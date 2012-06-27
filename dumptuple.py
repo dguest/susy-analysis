@@ -27,6 +27,24 @@ out_fileB = TFile('outputB.root','recreate')
 #l_hist = TH1D('l_hist', '', 100, 0,1)
 #out_fileL = TFile('outputL.root','recreate')
 
+def discriminator(entry, c): 
+    """
+    this returns giacinto's discriminator
+    """
+    w_c = entry.Likelihood_c
+    w_b = entry.Likelihood_b
+    w_l = entry.Likelihood_u
+    return w_c / (c * w_b + (1-c) * w_l)
+
+discriminator_hists = {}
+c_values = [ x for x in range(0,11)]
+for c in c_values: 
+    flavor_hists = {}
+    for flavor in ['bottom','charm','light']: 
+        hist_name = flavor + '_cVal' + str(c)
+        flavor_hists[flavor] = TH1D(hist_name,'',200,-5,5)
+    
+    discriminator_hists[c] = flavor_hists
 
 
 for n, entry in enumerate(root_tree): 
