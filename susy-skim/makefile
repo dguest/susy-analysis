@@ -1,6 +1,6 @@
-# makefile for JETNET ntuple preprocessor 
+# makefile for SUSY ntuple skimmer
 # Author: Dan Guest (dguest@cern.ch)
-# Created: Sat Jan 28 13:09:53 CET 2012
+# Created: Wed Jul  4 15:30:40 CEST 2012
 
 # --- set dirs
 BIN          := bin
@@ -8,12 +8,13 @@ SRC          := src
 INC          := src
 
 # --- external dirs 
-SUSY_INC      := $(ROOTCORE_ROOT)/SUSYTools/SUSYTools
+SUSY_INC      := $(shell ./map_libs.sh -i $(ROOTCORE_ROOT))
 
 #  set search path
 vpath %.o    $(BIN)
 vpath %.cxx  $(SRC) 
 vpath %.hh   $(INC) $(SUSY_INC)
+vpath %.h    $(INC) $(SUSY_INC)
 
 # --- load in root config
 ROOTCFLAGS    := $(shell root-config --cflags)
@@ -30,9 +31,9 @@ ROOTLDFLAGS   := $(shell root-config --ldflags)
 
 # --- set compiler and flags (roll c options and include paths together)
 CXX          := g++
-CXXFLAGS     := -O2 -Wall -fPIC -I$(INC) -I$(SUSY_INC) -g
+CXXFLAGS     := -O2 -Wall -fPIC -I$(INC) $(SUSY_INC:%=-I%) -g
 LDFLAGS      := -Wl,-no-undefined
-LIBS         := $(shell ./map_libs.sh $(ROOTCORE_ROOT))
+LIBS         := $(shell ./map_libs.sh -l $(ROOTCORE_ROOT))
 
 # rootstuff 
 CXXFLAGS     += $(ROOTCFLAGS)

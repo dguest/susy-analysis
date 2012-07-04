@@ -3,19 +3,25 @@
 #include <iostream>
 #include <string> 
 
+#include "SUSYTools/SUSYObjDef.h"
+
 int main (int narg, char* argv[])
 {
 
-  susy _susy_buffer; 
-  TTree* tree = _susy_buffer.fChain; 
+  SUSYObjDef def; 
+
+  susy buffer; 
+  TTree* tree = buffer.fChain; 
   int n_entries = tree->GetEntriesFast(); 
   std::cout << n_entries << " in chain" << std::endl; 
 
   for (int evt_n = 0; evt_n < 10; evt_n++) { 
     tree->GetEntry(evt_n); 
     
-    std::cout << _susy_buffer.el_n << " electrons in event " << evt_n
+    std::cout << buffer.el_n << " electrons in event " << evt_n
 	      << std::endl; 
+    std::cout << "in crack? " << (def.IsInCrack(0.4) ? "yes":"no" )
+	      << std::endl;
   }
 
   return 0;
