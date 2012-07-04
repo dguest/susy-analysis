@@ -1,5 +1,5 @@
+bin/
 *.root
 *.tar
 *.pdf
-#*
 \#*
