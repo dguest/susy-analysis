@@ -63,7 +63,8 @@ def hist_getter(root_file, hist_name):
     workaround for root's weird ownership rules
     """
     # print 'getting', hist_name
-    gROOT.cd()                   
+    gROOT.cd() 
+    print hist_name
     the_hist = root_file.Get(hist_name).Clone(str(random.random()))
     return the_hist
 
@@ -84,6 +85,7 @@ if __name__ == '__main__':
         for flav in flavors: 
         #hist_name = hist_base_name + '_' + flav
             hist_name = flav + 'cVal' + str(c)
+            print hist_name
             discrim_hists[flav] = hist_getter(root_file, hist_name)
 
     
