@@ -18,8 +18,13 @@ int main (int narg, char* argv[])
   int n_entries = tree->GetEntriesFast(); 
   std::cout << n_entries << " in chain" << std::endl; 
 
+  def.initialize(true); 
+
+
   for (int evt_n = 0; evt_n < 10; evt_n++) { 
     tree->GetEntry(evt_n); 
+    
+    def.Reset(); 
 
     // event preselection 
     bool lar_error = buffer.larError; 
@@ -40,6 +45,8 @@ int main (int narg, char* argv[])
     std::cout << "in crack? " << (def.IsInCrack(0.4) ? "yes":"no" )
 	      << std::endl;
   }
+  
+  def.Finalize(); 
 
   return 0;
 }
