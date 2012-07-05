@@ -46,7 +46,7 @@ int main (int narg, char* argv[])
 	      << std::endl;
   }
   
-  def.Finalize(); 
+  def.finalize(); 
 
   return 0;
 }
