@@ -5,6 +5,14 @@
 
 #include "SUSYTools/SUSYObjDef.h"
 
+/* NOTES:
+
+need to get proper condition for first trigger statement (not isSignal)
+remove isSignal = true
+
+
+ */
+
 int main (int narg, char* argv[])
 {
 
@@ -20,25 +28,51 @@ int main (int narg, char* argv[])
 
   def.initialize(true); 
 
-
+  // looping through events
   for (int evt_n = 0; evt_n < 10; evt_n++) { 
     tree->GetEntry(evt_n); 
     
     def.Reset(); 
 
-    // event preselection 
-    bool lar_error = buffer.larError; 
-
-    const int n_jets = buffer.jet_AntiKt4TopoNewEM_n; 
-
-    for (int jet_n = 0; jet_n < n_jets; jet_n++){ 
-      // jet preselection 
-      bool lar_hole_veto = check_lar_hole_veto(jet_n, buffer, def, info); 
-
-      bool is_jet = check_if_jet(jet_n, buffer, def, info); 
-
-    }
-
+   bool trigger=false;
+   bool isSignal=false;
+      
+   //if(basename2.Contains("Stop_") && basename2.Contains("private") && basename2.Contains("cl_xqcut")){
+   if(isSignal)
+     trigger=false;
+     gRandom= new TRandom3(0);
+  
+     //We have no runnumbers in our Stop-samples, so we create a random number to determine what trigger is being used for which event (depending on the luminosities of the periods and the used triggers) 
+     // EF_xe70_noMu: perdiod B-K
+     // EF_xe60_verytight_noMu: period L-M
+  
+     float rndnr=gRandom->Rndm(0)*4689.68;
+     //cout << rndnr << endl;
+     if(rndnr>2281.26){
+       if(EF_xe70_noMu) trigger=true;
+     }
+     else{
+       if(EF_xe60_verytight_noMu) trigger=true;
+     }
+   }else{
+     trigger=false;
+     if(RunNumber<=187815 && EF_xe70_noMu) trigger=true;
+     if(RunNumber>187815 && RunNumber<=191933&& EF_xe60_verytight_noMu) trigger=true;
+   }
+   
+   // event preselection 
+   bool lar_error = buffer.larError; 
+   
+   const int n_jets = buffer.jet_AntiKt4TopoNewEM_n; 
+   
+   for (int jet_n = 0; jet_n < n_jets; jet_n++){ 
+     // jet preselection 
+     bool lar_hole_veto = check_lar_hole_veto(jet_n, buffer, def, info); 
+     
+     bool is_jet = check_if_jet(jet_n, buffer, def, info); 
+     
+   }
+   
 
     std::cout << buffer.el_n << " electrons in event " << evt_n
 	      << std::endl; 
