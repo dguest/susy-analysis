@@ -20,7 +20,7 @@ bool check_if_jet(int jet_n,
 		  SUSYObjDef& def, 
 		  const RunInfo&); 
 
-class BaselineJet: TLorentzVector { 
+class BaselineJet:public TLorentzVector { 
 public: 
   BaselineJet(const susy& buffer, int jet_index); 
   double combNN_btag(); 
