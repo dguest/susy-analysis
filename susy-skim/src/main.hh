@@ -4,6 +4,8 @@
 class susy; 
 class SUSYObjDef; 
 
+#include "TLorentzVector.h"
+
 struct RunInfo { 
   bool is_data; 
   int run_number; 
@@ -17,5 +19,13 @@ bool check_if_jet(int jet_n,
 		  const susy& buffer, 
 		  SUSYObjDef& def, 
 		  const RunInfo&); 
+
+class BaselineJet: TLorentzVector { 
+public: 
+  BaselineJet(const susy& buffer, int jet_index); 
+  double combNN_btag(); 
+private: 
+  double m_combNN_btag_wt; 
+}; 
 
 #endif //MAIN_H

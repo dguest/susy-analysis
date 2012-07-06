@@ -2,6 +2,7 @@
 #include "susy.h"
 #include <iostream>
 #include <string> 
+#include <cassert>
 
 #include "SUSYTools/SUSYObjDef.h"
 
@@ -65,11 +66,16 @@ int main (int narg, char* argv[])
    
    const int n_jets = buffer.jet_AntiKt4TopoNewEM_n; 
    
+   std::vector<BaselineJet> baseline_jets; 
+
    for (int jet_n = 0; jet_n < n_jets; jet_n++){ 
      // jet preselection 
      bool lar_hole_veto = check_lar_hole_veto(jet_n, buffer, def, info); 
      
      bool is_jet = check_if_jet(jet_n, buffer, def, info); 
+
+     //ACHTUNG Ariel! this is where the jet is built 
+     baseline_jets.push_back(BaselineJet(buffer, jet_n)); 
      
    }
    
@@ -137,4 +143,17 @@ bool check_if_jet(int iJet,
 
 }
 
+BaselineJet::BaselineJet(const susy& buffer, int jet_index) { 
+  double pt = buffer.jet_AntiKt4TopoNewEM_pt  ->at(jet_index); 
+  double eta = buffer.jet_AntiKt4TopoNewEM_eta ->at(jet_index); 
+  double phi = buffer.jet_AntiKt4TopoNewEM_phi ->at(jet_index); 
+  double e = buffer.jet_AntiKt4TopoNewEM_E   ->at(jet_index); 
+  SetPtEtaPhiE(pt,eta,phi,e); 
+  
+  m_combNN_btag_wt = 0; 	// TODO: find this branch and set it
+}
 
+double BaselineJet::combNN_btag(){ 
+  std::cerr << "ERROR: this isn't defined yet\n"; 
+  assert(false); 
+}
