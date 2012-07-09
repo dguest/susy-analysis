@@ -81,31 +81,31 @@ int main (int narg, char* argv[])
     
 
      if(lar_hole_veto){
-       continue;
+       
 
        //do i need to define this, like the two other booleans?
        if(IsGoodVertex){
-	 contiune;
+	 
 
        if(is_jet){
-	 continue;
+	 
 
 	 if(trigger){
-	   continue;
+	   
 
 	   if(baseline_jets.size()>=3){
 
 	     for (int i=0;i<baseline_jets.size();i++){
 	       if(baseline_jets.at(i).Pt() > 150){
-		 continue;
+		 
 		 //fix the Etmiss one
 		 if(Etmiss.Pt()>150){
 
 		   //how do i get the size of goodmuons?
 		   //don't have a container for muons as of yet...??
-		   if (IsMuon
-		   
-
+		   //   if (IsMuon
+		       
+		       
 		 }
 	       }
 	     }
@@ -131,11 +131,11 @@ int main (int narg, char* argv[])
 		     << std::endl;
 	 }
 	 
-	 def.finalize(); 
-
+   def.finalize(); 
+	 
 	 return 0;
-	 }
-       
+  }
+  
        bool check_lar_hole_veto(int jet_n, const susy& buffer, SUSYObjDef& def, 
 				const RunInfo& info ) { 
 	 int n = jet_n; 
