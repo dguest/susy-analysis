@@ -20,6 +20,10 @@ bool check_if_jet(int jet_n,
 		  SUSYObjDef& def, 
 		  const RunInfo&); 
 
+TVector2 get_MET(const susy& buffer, 
+		  SUSYObjDef& def, 
+		  const RunInfo&);
+
 class BaselineJet:public TLorentzVector { 
 public: 
   BaselineJet(const susy& buffer, int jet_index); 
