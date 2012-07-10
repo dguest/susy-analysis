@@ -137,106 +137,106 @@ int main (int narg, char* argv[])
   
 }
   
-  bool check_lar_hole_veto(int jet_n, const susy& buffer, SUSYObjDef& def, 
-			   const RunInfo& info ) { 
-    int n = jet_n; 
-    bool veto = def.IsLArHoleVeto
-      (buffer.jet_AntiKt4TopoNewEM_pt->at(n), 
-       buffer.jet_AntiKt4TopoNewEM_eta->at(n), 
-       buffer.jet_AntiKt4TopoNewEM_phi->at(n),
-       buffer.jet_AntiKt4TopoNewEM_BCH_CORR_JET->at(n), 
-       buffer.jet_AntiKt4TopoNewEM_BCH_CORR_CELL->at(n), 
-       info.is_data, 
-       40000., // pt cut, not sure why needed...
-       info.run_number);
-    if (veto) return true; 
-    return false; 
-  }
+bool check_lar_hole_veto(int jet_n, const susy& buffer, SUSYObjDef& def, 
+			 const RunInfo& info ) { 
+  int n = jet_n; 
+  bool veto = def.IsLArHoleVeto
+    (buffer.jet_AntiKt4TopoNewEM_pt->at(n), 
+     buffer.jet_AntiKt4TopoNewEM_eta->at(n), 
+     buffer.jet_AntiKt4TopoNewEM_phi->at(n),
+     buffer.jet_AntiKt4TopoNewEM_BCH_CORR_JET->at(n), 
+     buffer.jet_AntiKt4TopoNewEM_BCH_CORR_CELL->at(n), 
+     info.is_data, 
+     40000., // pt cut, not sure why needed...
+     info.run_number);
+  if (veto) return true; 
+  return false; 
+}
   
 TVector2 get_MET(const susy& buffer, SUSYObjDef& def, const RunInfo& info){
+  std::vector<int> dummy; 
+  return def.GetMET
+    (buffer.jet_AntiKt4TopoNewEM_pt, // jacknife says this works... 
+     buffer.jet_AntiKt4TopoNewEM_MET_Simplified20_wet,
+     buffer.jet_AntiKt4TopoNewEM_MET_Simplified20_wpx,
+     buffer.jet_AntiKt4TopoNewEM_MET_Simplified20_wpy,
+     buffer.jet_AntiKt4TopoNewEM_MET_Simplified20_statusWord,
+     dummy, 		// hack
+     buffer.el_MET_Simplified20_wet,
+     buffer.el_MET_Simplified20_wpx,
+     buffer.el_MET_Simplified20_wpy,
+     buffer.el_MET_Simplified20_statusWord,
+     buffer.MET_SoftJets_etx,
+     buffer.MET_SoftJets_ety,
+     buffer.MET_SoftJets_sumet,
+     buffer.MET_CellOut_etx,
+     buffer.MET_CellOut_ety,
+     buffer.MET_CellOut_sumet,
+     buffer.MET_CellOut_Eflow_etx,
+     buffer.MET_CellOut_Eflow_ety,
+     buffer.MET_CellOut_Eflow_sumet,
+     buffer.MET_RefGamma_em_etx,
+     buffer.MET_RefGamma_em_ety,
+     buffer.MET_RefGamma_em_sumet,
+     dummy, 		// hack
+     buffer.mu_staco_ms_qoverp,
+     buffer.mu_staco_ms_theta,
+     buffer.mu_staco_ms_phi,
+     buffer.mu_staco_charge,
+     SystErr::NONE);
+}
+  
+bool check_if_jet(int iJet, 
+		  const susy& buffer, 
+		  SUSYObjDef& def, 
+		  const RunInfo& info){ 
     
-     return def.GetMET
-       //(buffer.jetoript,        
-       buffer.jet_AntiKt4TopoNewEM_MET_Simplified_wet,
-       buffer.jet_AntiKt4TopoNewEM_MET_Simplified_wpx,
-       buffer.jet_AntiKt4TopoNewEM_MET_Simplified_wpy,
-       buffer.jet_AntiKt4TopoNewEM_MET_Simplified_statusWord,
-       //buffer.velidx,
-       buffer.el_MET_Simplified20_wet,
-       buffer.el_MET_Simplified20_wpx,
-       buffer.el_MET_Simplified20_wpy,
-       buffer.el_MET_Simplified20_statusWord,
-       buffer.MET_SoftJets_etx,
-       buffer.MET_SoftJets_ety,
-       buffer.MET_SoftJets_sumet,
-       buffer.MET_CellOut_etx,
-       buffer.MET_CellOut_ety,
-       buffer.MET_CellOut_sumet,
-       buffer.MET_CellOut_Eflow_etx,
-       buffer.MET_CellOut_Eflow_ety,
-       buffer.MET_CellOut_Eflot_sumet,
-       buffer.MET_RefGamma_em_etx,
-       buffer.MET_RefGamma_em_ety,
-       buffer.MET_RefGamma_em_sumet,
-       // buffer.vmuidx,
-       buffer.mu_staco_ms_qoverp,
-       buffer.mu_staco_ms_theta,
-       buffer.mu_staco_ms_phi,
-       buffer.mu_staco_charge,
-       SystErr::NONE);
-       }
-  
-  bool check_if_jet(int iJet, 
-		    const susy& buffer, 
-		    SUSYObjDef& def, 
-		    const RunInfo& info){ 
+  return def.IsJet
+    (iJet, 
+     buffer.jet_AntiKt4TopoNewEM_pt                 ->at(iJet), 
+     buffer.jet_AntiKt4TopoNewEM_eta                ->at(iJet), 
+     buffer.jet_AntiKt4TopoNewEM_phi                ->at(iJet),
+     buffer.jet_AntiKt4TopoNewEM_E                  ->at(iJet), 
+     buffer.jet_AntiKt4TopoNewEM_emscale_eta        ->at(iJet), 
+     buffer.jet_AntiKt4TopoNewEM_emfrac             ->at(iJet), 
+     buffer.jet_AntiKt4TopoNewEM_hecf               ->at(iJet),
+     buffer.jet_AntiKt4TopoNewEM_LArQuality         ->at(iJet), 
+     buffer.jet_AntiKt4TopoNewEM_HECQuality         ->at(iJet), 
+     buffer.jet_AntiKt4TopoNewEM_AverageLArQF       ->at(iJet), 
+     buffer.jet_AntiKt4TopoNewEM_Timing             ->at(iJet), 
+     buffer.jet_AntiKt4TopoNewEM_sumPtTrk           ->at(iJet), 
+     buffer.jet_AntiKt4TopoNewEM_fracSamplingMax    ->at(iJet),
+     buffer.jet_AntiKt4TopoNewEM_NegativeE          ->at(iJet), 
+     buffer.jet_AntiKt4TopoNewEM_flavor_truth_label ->at(iJet), 
+     buffer.jet_AntiKt4TopoNewEM_emscale_E          ->at(iJet),
+     buffer.jet_AntiKt4TopoNewEM_emscale_eta        ->at(iJet), 
+     buffer.jet_AntiKt4TopoNewEM_EtaOrigin          ->at(iJet), 
+     buffer.jet_AntiKt4TopoNewEM_PhiOrigin          ->at(iJet), 
+     buffer.jet_AntiKt4TopoNewEM_MOrigin            ->at(iJet), 
+     buffer.averageIntPerXing,
+     buffer.vx_nTracks,             
+     info.is_data, 
+     20000., 			// pt cut
+     2.8,			// eta cut
+     JetID::LooseBad);
     
-    return def.IsJet
-      (iJet, 
-       buffer.jet_AntiKt4TopoNewEM_pt                 ->at(iJet), 
-       buffer.jet_AntiKt4TopoNewEM_eta                ->at(iJet), 
-       buffer.jet_AntiKt4TopoNewEM_phi                ->at(iJet),
-       buffer.jet_AntiKt4TopoNewEM_E                  ->at(iJet), 
-       buffer.jet_AntiKt4TopoNewEM_emscale_eta        ->at(iJet), 
-       buffer.jet_AntiKt4TopoNewEM_emfrac             ->at(iJet), 
-       buffer.jet_AntiKt4TopoNewEM_hecf               ->at(iJet),
-       buffer.jet_AntiKt4TopoNewEM_LArQuality         ->at(iJet), 
-       buffer.jet_AntiKt4TopoNewEM_HECQuality         ->at(iJet), 
-       buffer.jet_AntiKt4TopoNewEM_AverageLArQF       ->at(iJet), 
-       buffer.jet_AntiKt4TopoNewEM_Timing             ->at(iJet), 
-       buffer.jet_AntiKt4TopoNewEM_sumPtTrk           ->at(iJet), 
-       buffer.jet_AntiKt4TopoNewEM_fracSamplingMax    ->at(iJet),
-       buffer.jet_AntiKt4TopoNewEM_NegativeE          ->at(iJet), 
-       buffer.jet_AntiKt4TopoNewEM_flavor_truth_label ->at(iJet), 
-       buffer.jet_AntiKt4TopoNewEM_emscale_E          ->at(iJet),
-       buffer.jet_AntiKt4TopoNewEM_emscale_eta        ->at(iJet), 
-       buffer.jet_AntiKt4TopoNewEM_EtaOrigin          ->at(iJet), 
-       buffer.jet_AntiKt4TopoNewEM_PhiOrigin          ->at(iJet), 
-       buffer.jet_AntiKt4TopoNewEM_MOrigin            ->at(iJet), 
-       buffer.averageIntPerXing,
-       buffer.vx_nTracks,             
-       info.is_data, 
-       20000., 			// pt cut
-       2.8,			// eta cut
-       JetID::LooseBad);
+}
+  
+  
+  
+BaselineJet::BaselineJet(const susy& buffer, int jet_index) { 
+  double pt = buffer.jet_AntiKt4TopoNewEM_pt  ->at(jet_index); 
+  double eta = buffer.jet_AntiKt4TopoNewEM_eta ->at(jet_index); 
+  double phi = buffer.jet_AntiKt4TopoNewEM_phi ->at(jet_index); 
+  double e = buffer.jet_AntiKt4TopoNewEM_E   ->at(jet_index); 
+  SetPtEtaPhiE(pt,eta,phi,e); 
     
-  }
+  m_combNN_btag_wt = 0; 	// TODO: find this branch and set it
+}
   
-  
-  
-  BaselineJet::BaselineJet(const susy& buffer, int jet_index) { 
-    double pt = buffer.jet_AntiKt4TopoNewEM_pt  ->at(jet_index); 
-    double eta = buffer.jet_AntiKt4TopoNewEM_eta ->at(jet_index); 
-    double phi = buffer.jet_AntiKt4TopoNewEM_phi ->at(jet_index); 
-    double e = buffer.jet_AntiKt4TopoNewEM_E   ->at(jet_index); 
-    SetPtEtaPhiE(pt,eta,phi,e); 
-    
-    m_combNN_btag_wt = 0; 	// TODO: find this branch and set it
-  }
-  
-  double BaselineJet::combNN_btag(){ 
-    std::cerr << "ERROR: this isn't defined yet\n"; 
-    assert(false); 
-  }
+double BaselineJet::combNN_btag(){ 
+  std::cerr << "ERROR: this isn't defined yet\n"; 
+  assert(false); 
+}
   
   

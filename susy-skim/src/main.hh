@@ -3,6 +3,7 @@
 
 class susy; 
 class SUSYObjDef; 
+class TVector2; 
 
 #include "TLorentzVector.h"
 
