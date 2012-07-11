@@ -71,26 +71,47 @@ int main (int narg, char* argv[])
    
    // event preselection 
    bool lar_error = buffer.larError; 
-   
+
+   // ACHTUNG Ariel: I changed the electron / muon counts, you don't want 
+   //                to be using the trigger ones 
    const int n_jets = buffer.jet_AntiKt4TopoNewEM_n; 
-   const int n_el = buffer.trig_EF_el_n;
-   const int n_mu = buffer.trig_L1_mu_n;
+   const int n_el = buffer.el_n;
+   const int n_mu = buffer.mu_staco_n; // I'm pretty sure we're using staco
   
-   
+   // Ariel: sorry for the confusion, but they seem to be usingthis version
+   //        of met. on the positive side, it's easier to calculate...
+   TVector2 met(buffer.MET_Simplified20_RefFinal_etx, 
+		buffer.MET_Simplified20_RefFinal_ety); 
    
    
    std::vector<BaselineJet> baseline_jets; 
    
+   // ACHTUNG Ariel: use three seperate for loops, no need to nest them
+   // ( also, nesting them will result in n_el * n_jet * n_muon operations, 
+   //   if you don't nest them it's just  n_el + n_jet + n_muon operations)
    for (int jet_n = 0; jet_n < n_jets; jet_n++){ 
-     for (int el_n = 0; el_n < n_el; el_n++){
-       for (int mu_n = 0; mu_n < n_mu; mu_n++){
-
      // jet preselection 
      bool lar_hole_veto = check_lar_hole_veto(jet_n, buffer, def, info); 
      bool is_jet = check_if_jet(jet_n, buffer, def, info); 
+     // ... fill jets here 
 
+     //this is where the jet is built 
+     baseline_jets.push_back(BaselineJet(buffer, jet_n)); 
+   }
+   
+   // unless we start doing something with them we can just count the good el
+   int n_good_electrons = 0; 
+   for (int el_n = 0; el_n < n_el; el_n++){
      bool isElectron = check_if_electron(el_n, buffer, def, info);
+     if (isElectron) n_good_electrons++; 
+   }
+   int n_good_muons = 0; 
+   for (int mu_n = 0; mu_n < n_mu; mu_n++){
      bool isMuon = check_if_muon(mu_n, buffer, def, info);
+     if (isMuon) n_good_muons++; 
+   }
+
+
 
      //part of the badz0wrtPVmuon
      muon.isCosmic = def.IsCosmicMuon(mu_staco_z0_exPV->at(mu_n),
@@ -168,8 +189,6 @@ int main (int narg, char* argv[])
 
      */ 
      
-     //ACHTUNG Ariel! this is where the jet is built 
-     baseline_jets.push_back(BaselineJet(buffer, jet_n)); 
      
    
    
