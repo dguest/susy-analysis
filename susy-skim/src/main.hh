@@ -11,6 +11,7 @@ struct RunInfo {
   bool is_data; 
   int run_number; 
 }; 
+
 bool check_lar_hole_veto(int jet_n, 
 			 const susy& buffer, 
 			 SUSYObjDef& def, 
@@ -20,6 +21,16 @@ bool check_if_jet(int jet_n,
 		  const susy& buffer, 
 		  SUSYObjDef& def, 
 		  const RunInfo&); 
+
+bool check_if_electron(int iEl,
+		  const susy& buffer, 
+		  SUSYObjDef& def, 
+		  const RunInfo&);
+
+bool check_if_muon(int iMu,
+                  const susy& buffer, 
+		  SUSYObjDef& def, 
+		  const RunInfo&);
 
 TVector2 get_MET(const susy& buffer, 
 		  SUSYObjDef& def, 

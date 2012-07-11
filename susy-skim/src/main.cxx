@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string> 
 #include <cassert>
+#include "TVector2.h"
 
 #include "SUSYTools/SUSYObjDef.h"
 
@@ -11,7 +12,11 @@
 need to get proper condition for first trigger statement (not isSignal)
 remove isSignal = true
 
-find applicable variable names for the trigger/random number portion
+el_wet  set to zero, not passed properly
+
+where Jan used jetsEMscale, we just have baseline_jets container
+    (may need to fix this later)
+
 
 
  */
@@ -68,42 +73,88 @@ int main (int narg, char* argv[])
    bool lar_error = buffer.larError; 
    
    const int n_jets = buffer.jet_AntiKt4TopoNewEM_n; 
+   const int n_el = buffer.trig_EF_el_n;
+   const int n_mu = buffer.trig_L1_mu_n;
+  
+   
+   
    
    std::vector<BaselineJet> baseline_jets; 
    
    for (int jet_n = 0; jet_n < n_jets; jet_n++){ 
+     for (int el_n = 0; el_n < n_el; el_n++){
+       for (int mu_n = 0; mu_n < n_mu; mu_n++){
+
      // jet preselection 
      bool lar_hole_veto = check_lar_hole_veto(jet_n, buffer, def, info); 
-
-     
      bool is_jet = check_if_jet(jet_n, buffer, def, info); 
+
+     bool isElectron = check_if_electron(el_n, buffer, def, info);
+     bool isMuon = check_if_muon(mu_n, buffer, def, info);
+
+     //part of the badz0wrtPVmuon
+     muon.isCosmic = def.IsCosmicMuon(mu_staco_z0_exPV->at(mu_n),
+				      mu_staco_d0_exPV->at(mu_n),
+				      5.,
+				      2.);
+
+     if(!info.is_data){
+       if (top_hfor_type==4) 
+	 ishforveto = true;
+
+     }
+     
+     //define TVector2 MET = get_Met(......)
+  
 
      /* 
 
-     if(lar_hole_veto){
+     if(lar_hole_veto)
+     continue;
+     
+     if(IsSmartLArHoleVeto())
+     continue;
+
+     if(badjet_loose) //still need to implement this
+     continue;
+
+     if(badz0wrtPVmuon) // to be completed
+     continue;
        
+    if(!def.IsGoodVertex(buffer.vx_nTracks))
+     continue;
+	 
+     if(ishforveto) 
+     continue;
 
-       //do i need to define this, like the two other booleans?
-       if(IsGoodVertex){
+     if(is_jet){
 	 
 
-       if(is_jet){
-	 
-
-	 if(trigger){
+        if(trigger){
 	   
 
 	   if(baseline_jets.size()>=3){
 
+	   //could move this for loop up with the others. cleaner?
 	     for (int i=0;i<baseline_jets.size();i++){
 	       if(baseline_jets.at(i).Pt() > 150){
 		 
-		 //fix the Etmiss one
-		 if(Etmiss.Pt()>150){
+		 //correct implementation? 
+		 if(MET.mod()>150){
 
-		   //how do i get the size of goodmuons?
-		   //don't have a container for muons as of yet...??
-		   //   if (IsMuon
+		     if(!isElectron){
+
+
+		         if(!isMuon){
+
+			 if(baseline_jets.JetFitterCOMNN > -2 && baseline_jets.JetFitterCOMNN < 4)
+			 ctagJets++;
+			 //eventually, need to compare ctagJets >= 2
+
+		     }
+
+
+		   }
 		       
 		       
 		 }
@@ -113,7 +164,7 @@ int main (int narg, char* argv[])
 	 }
        }
        }
-     }
+    
 
      */ 
      
@@ -128,7 +179,9 @@ int main (int narg, char* argv[])
 	   std::cout << buffer.el_n << " electrons in event " << evt_n
 		     << std::endl; 
 	   std::cout << "in crack? " << (def.IsInCrack(0.4) ? "yes":"no" )
-		     << std::endl;
+	     		     << std::endl;
+       }
+     }
    }
   }
    def.finalize(); 
@@ -137,6 +190,48 @@ int main (int narg, char* argv[])
   
 }
   
+bool IsSmartLArHoleVeto() {
+
+  bool isVeto=false; 
+  
+  for (unsigned int j = 0; j<baseline_jets.size(); j++)
+    {
+
+      if(baseline_jets.at(j).Pt()<= 20.) continue;
+      if(def.IsLArHole(jetsEMscale.at(j).Eta(),
+		       jetsEMscale.at(j).Phi()))
+	{
+	  //use jet pT after JES/JER
+	  if(fakeMetEst.isBad(baseline_jets.at(j).Pt()*1e3,
+			      baseline_jets.at(j).BCH_CORR_JET,
+			      baseline_jets.at(j).BCH_CORR_CELL,
+			      baseline_jets.at(j).BCH_CORR_DOTX,
+			      baseline_jets.at(j).Phi(),
+			      MET.Px()*1e3,
+			      MET.Py()*1e3,
+			      10000.,
+			      10.,
+			      -1.,
+			      -1.)
+	     ) {
+
+	    isVeto = true;
+	    break;
+
+	  }
+
+	}
+
+    }
+
+  return isVeto;
+
+}
+	  
+
+
+}
+
 bool check_lar_hole_veto(int jet_n, const susy& buffer, SUSYObjDef& def, 
 			 const RunInfo& info ) { 
   int n = jet_n; 
@@ -152,7 +247,10 @@ bool check_lar_hole_veto(int jet_n, const susy& buffer, SUSYObjDef& def,
   if (veto) return true; 
   return false; 
 }
-  
+
+
+
+
 TVector2 get_MET(const susy& buffer, SUSYObjDef& def, const RunInfo& info){
   std::vector<int> dummy; 
   return def.GetMET
@@ -185,6 +283,72 @@ TVector2 get_MET(const susy& buffer, SUSYObjDef& def, const RunInfo& info){
      buffer.mu_staco_charge,
      SystErr::NONE);
 }
+
+bool check_if_electron(int iEl,
+		       const susy& buffer,
+		       SUSYObjDef& def,
+		       const RunInfo& info){
+  return def.IsElectron
+    (iEl,
+     info.run_number,
+     buffer.el_cl_eta                ->at(iEl),
+     buffer.el_cl_phi                ->at(iEl),
+     buffer.el_cl_E                  ->at(iEl),
+     buffer.el_tracketa               ->at(iEl),
+     buffer.el_trackphi               ->at(iEl),
+     buffer.trig_EF_el_author        ->at(iEl),
+     buffer.trig_EF_el_mediumPP      ->at(iEl),
+     buffer.el_OQ                    ->at(iEl),
+     buffer.el_nPixHits              ->at(iEl),
+     buffer.el_nSCTHits              ->at(iEl),
+     // buffer.el_weta2                 ->at(iEl),
+     0,
+     info.is_data,
+     20000.,                         //et cut
+     2.47,                          //eta cut
+     SystErr::NONE);
+     
+  //info.isAF2
+  //NOTE: el_wet set to zero, couldn't match variable in D3PD
+}
+
+bool check_if_muon(int iMu,
+		   const susy& buffer,
+		   SUSYObjDef& def,
+		   const RunInfo& info){
+
+  return def.IsMuon
+    (iMu,
+     buffer.mu_staco_pt                           ->at(iMu),
+     buffer.mu_staco_eta                          ->at(iMu),
+     buffer.mu_staco_phi                          ->at(iMu),
+     buffer.mu_staco_E                            ->at(iMu),
+     buffer.mu_staco_me_qoverp_exPV               ->at(iMu),
+     buffer.mu_staco_id_qoverp_exPV               ->at(iMu),
+     buffer.mu_staco_me_theta_exPV                ->at(iMu),
+     buffer.mu_staco_id_theta_exPV                ->at(iMu),
+     buffer.mu_staco_id_theta                     ->at(iMu),
+     buffer.mu_staco_isCombinedMuon               ->at(iMu),
+     buffer.mu_staco_isSegmentTaggedMuon          ->at(iMu),
+     buffer.mu_staco_loose                        ->at(iMu),
+     buffer.mu_staco_expectBLayerHit              ->at(iMu),
+     buffer.mu_staco_nBLHits                      ->at(iMu),
+     buffer.mu_staco_nPixHits                     ->at(iMu),
+     buffer.mu_staco_nPixelDeadSensors            ->at(iMu),
+     buffer.mu_staco_nPixHoles                    ->at(iMu),
+     buffer.mu_staco_nSCTHits                     ->at(iMu),
+     buffer.mu_staco_nSCTDeadSensors              ->at(iMu),
+     buffer.mu_staco_nSCTHoles                    ->at(iMu),
+     buffer.mu_staco_nTRTHits                     ->at(iMu),
+     buffer.mu_staco_nTRTOutliers                 ->at(iMu),
+     info.is_data,
+     10000.,                      //pt cut
+     2.4,                         //eta cut
+     SystErr::NONE);
+
+
+}
+
   
 bool check_if_jet(int iJet, 
 		  const susy& buffer, 
