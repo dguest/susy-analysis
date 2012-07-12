@@ -4,8 +4,9 @@
 #include <string> 
 #include <cassert>
 #include "TVector2.h"
-#include <math>
+#include <math.h>
 #include "SUSYTools/SUSYObjDef.h"
+#include "SUSYTools/FakeMetEstimator.h"
 
 /* NOTES:
 
@@ -29,6 +30,8 @@ run number is set, why?
 
 int main (int narg, char* argv[])
 {
+
+  FakeMetEstimator fakeMetEst;
 
   SUSYObjDef def; 
   RunInfo info; 
@@ -99,7 +102,7 @@ int main (int narg, char* argv[])
      bool is_jet = check_if_jet(jet_n, buffer, def, info); 
      // ... fill jets here 
 
-     if(!is_Jet) badjet_loose = true;
+     if(!is_jet) badjet_loose = true;
 
      //this is where the jet is built 
      baseline_jets.push_back(BaselineJet(buffer, jet_n)); 
@@ -132,8 +135,8 @@ int main (int narg, char* argv[])
     
    //ishforveto cut setup 
      if(!info.is_data){
-       if (top_hfor_type==4) 
-	 ishforveto = true;
+       if (buffer.top_hfor_type==4) 
+	 bool ishforveto = true;
 
      }
      
@@ -241,7 +244,7 @@ int main (int narg, char* argv[])
   
 }
   
-bool IsSmartLArHoleVeto(TVector2 met,EmulFakeMet& fakeMetEst,const susy& buffer, SUSYObjDef& def, std::vector<BaselineJet> baseline_jets ) {
+bool IsSmartLArHoleVeto(TVector2 met,FakeMetEstimator& fakeMetEst,const susy& buffer, SUSYObjDef& def, std::vector<BaselineJet> baseline_jets ) {
 
   bool isVeto=false; 
   
@@ -296,7 +299,7 @@ bool IsSmartLArHoleVeto(TVector2 met,EmulFakeMet& fakeMetEst,const susy& buffer,
 	  
 
 
-}
+
 
 /*bool check_lar_hole_veto(int jet_n, const susy& buffer, SUSYObjDef& def, 
 			 const RunInfo& info ) { 
