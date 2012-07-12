@@ -17,7 +17,7 @@ bool IsSmartLArHoleVeto(TVector2 met,
 			EmulFakeMet& fakeMetEst,
 			const susy& buffer, 
 			SUSYObjDef& def, 
-			const RunInfo& info )
+			const RunInfo& info ); 
 
 bool check_lar_hole_veto(int jet_n, 
 			 const susy& buffer, 
