@@ -4,7 +4,7 @@
 #include <string> 
 #include <cassert>
 #include "TVector2.h"
-
+#include <math>
 #include "SUSYTools/SUSYObjDef.h"
 
 /* NOTES:
@@ -17,7 +17,13 @@ el_wet  set to zero, not passed properly
 where Jan used jetsEMscale, we just have baseline_jets container
     (may need to fix this later)
 
+all the cuts have been negated now, for the continue statement logic
 
+putting off the badz0wrtPVmuon (superfluous at the moment, not easy to implement)
+
+m_combNN_btag_wt = 0; 	// TODO: find this branch and set it
+
+run number is set, why?
 
  */
 
@@ -72,32 +78,33 @@ int main (int narg, char* argv[])
    // event preselection 
    bool lar_error = buffer.larError; 
 
-   // ACHTUNG Ariel: I changed the electron / muon counts, you don't want 
-   //                to be using the trigger ones 
+
    const int n_jets = buffer.jet_AntiKt4TopoNewEM_n; 
    const int n_el = buffer.el_n;
    const int n_mu = buffer.mu_staco_n; // I'm pretty sure we're using staco
-  
-   // Ariel: sorry for the confusion, but they seem to be usingthis version
-   //        of met. on the positive side, it's easier to calculate...
+ 
    TVector2 met(buffer.MET_Simplified20_RefFinal_etx, 
 		buffer.MET_Simplified20_RefFinal_ety); 
+
+  
    
    
    std::vector<BaselineJet> baseline_jets; 
    
-   // ACHTUNG Ariel: use three seperate for loops, no need to nest them
-   // ( also, nesting them will result in n_el * n_jet * n_muon operations, 
-   //   if you don't nest them it's just  n_el + n_jet + n_muon operations)
+   bool badjet_loose = false;
+
    for (int jet_n = 0; jet_n < n_jets; jet_n++){ 
      // jet preselection 
      bool lar_hole_veto = check_lar_hole_veto(jet_n, buffer, def, info); 
      bool is_jet = check_if_jet(jet_n, buffer, def, info); 
      // ... fill jets here 
 
+     if(!is_Jet) badjet_loose = true;
+
      //this is where the jet is built 
      baseline_jets.push_back(BaselineJet(buffer, jet_n)); 
    }
+
    
    // unless we start doing something with them we can just count the good el
    int n_good_electrons = 0; 
@@ -105,32 +112,37 @@ int main (int narg, char* argv[])
      bool isElectron = check_if_electron(el_n, buffer, def, info);
      if (isElectron) n_good_electrons++; 
    }
+
    int n_good_muons = 0; 
    for (int mu_n = 0; mu_n < n_mu; mu_n++){
+
+     /*part of the badz0wrtPVmuon cut - complete later if needed
+     muon.isCosmic = def.IsCosmicMuon(mu_staco_z0_exPV->at(mu_n),
+				      mu_staco_d0_exPV->at(mu_n),
+				      5.,
+				      2.); */
+
      bool isMuon = check_if_muon(mu_n, buffer, def, info);
      if (isMuon) n_good_muons++; 
    }
 
 
 
-     //part of the badz0wrtPVmuon
-     muon.isCosmic = def.IsCosmicMuon(mu_staco_z0_exPV->at(mu_n),
-				      mu_staco_d0_exPV->at(mu_n),
-				      5.,
-				      2.);
 
+    
+   //ishforveto cut setup 
      if(!info.is_data){
        if (top_hfor_type==4) 
 	 ishforveto = true;
 
      }
      
-     //define TVector2 MET = get_Met(......)
+     
   
 
      /* 
 
-     if(lar_hole_veto)
+     if(lar_error)
      continue;
      
      if(IsSmartLArHoleVeto())
@@ -142,50 +154,71 @@ int main (int narg, char* argv[])
      if(badz0wrtPVmuon) // to be completed
      continue;
        
-    if(!def.IsGoodVertex(buffer.vx_nTracks))
+     if(!def.IsGoodVertex(buffer.vx_nTracks))
      continue;
 	 
      if(ishforveto) 
      continue;
-
-     if(is_jet){
-	 
-
-        if(trigger){
-	   
-
-	   if(baseline_jets.size()>=3){
-
-	   //could move this for loop up with the others. cleaner?
-	     for (int i=0;i<baseline_jets.size();i++){
-	       if(baseline_jets.at(i).Pt() > 150){
-		 
-		 //correct implementation? 
-		 if(MET.mod()>150){
-
-		     if(!isElectron){
-
-
-		         if(!isMuon){
-
-			 if(baseline_jets.JetFitterCOMNN > -2 && baseline_jets.JetFitterCOMNN < 4)
-			 ctagJets++;
-			 //eventually, need to compare ctagJets >= 2
-
-		     }
-
-
-		   }
-		       
-		       
-		 }
-	       }
-	     }
-	   }
-	 }
-       }
-       }
+     
     
+     
+     
+     if(!trigger)
+     continue;
+     
+     if(baseline_jets.size()<3)
+     continue;
+
+     //could move this for loop up with the others. cleaner?
+     for (int i=0;i<baseline_jets.size();i++){
+     if(baseline_jets.at(i).Pt() < 150)
+     continue;
+
+     }
+		
+     //correct implementation? 
+     if(met.mod()<150){
+
+     //no electrons
+     if(n_good_electrons>=1)
+     continue;
+
+     //no muons
+     if(n_good_muons>=1)
+     continue;
+
+     //ctag > 2 cut
+     int ctagJets = 0;
+     for (int i=0;i<baseline_jets.size();i++){
+     
+     if(baseline_jets.at(i).combNN_btag() > -2 
+     && baseline_jets.at(i).cobmNN_btag() < 4)
+     ctagJets++;
+
+     } 
+    
+     //For DeltaPhi cut
+     TLorentzVector sumjets; 
+     for(int i=0;i<baseline_jets.size();i++){
+     
+     sumjets+= baseline_jet.at(i);
+
+
+     }
+
+     double sumPhi = sumjets.Phi();
+     double metPhi = met.Phi();
+
+     double delta = fabs(met.Phi() - sumjet.Phi());
+     if(delta > M_PI)    delta = fabs(delta - 2*M_PI);
+
+     if(delta < 0.4)
+     continue;
+     
+
+
+     if(ctagJets<2)
+     continue;
 
      */ 
      
@@ -199,17 +232,16 @@ int main (int narg, char* argv[])
 		     << std::endl; 
 	   std::cout << "in crack? " << (def.IsInCrack(0.4) ? "yes":"no" )
 	     		     << std::endl;
-       }
-     }
-   }
+ 
   }
+
    def.finalize(); 
 	 
 	 return 0;
   
 }
   
-bool IsSmartLArHoleVeto() {
+bool IsSmartLArHoleVeto(TVector2 met,EmulFakeMet& fakeMetEst,const susy& buffer, SUSYObjDef& def, std::vector<BaselineJet> baseline_jets ) {
 
   bool isVeto=false; 
   
@@ -217,11 +249,25 @@ bool IsSmartLArHoleVeto() {
     {
 
       if(baseline_jets.at(j).Pt()<= 20.) continue;
-      if(def.IsLArHole(jetsEMscale.at(j).Eta(),
-		       jetsEMscale.at(j).Phi()))
+      if(def.IsLArHole(baseline_jets.at(j).Eta(),
+		       baseline_jets.at(j).Phi()))
 	{
+
+	  int d3pd_index = baseline_jets.at(j).jet_index();
 	  //use jet pT after JES/JER
-	  if(fakeMetEst.isBad(baseline_jets.at(j).Pt()*1e3,
+	  if(fakeMetEst.isBad(buffer.jet_AntiKt4TopoNewEM_pt            ->at(d3pd_index),
+			      buffer.jet_AntiKt4TopoNewEM_BCH_CORR_JET  ->at(d3pd_index),
+			      buffer.jet_AntiKt4TopoNewEM_BCH_CORR_CELL ->at(d3pd_index),
+			      buffer.jet_AntiKt4TopoNewEM_BCH_CORR_DOTX ->at(d3pd_index),
+			      buffer.jet_AntiKt4TopoNewEM_phi           ->at(d3pd_index),
+			      met.Px()*1e3,
+			      met.Py()*1e3,
+			      10000.,
+			      -1.,
+			      -1.)
+
+
+			      /* baseline_jets.at(j).Pt()*1e3,
 			      baseline_jets.at(j).BCH_CORR_JET,
 			      baseline_jets.at(j).BCH_CORR_CELL,
 			      baseline_jets.at(j).BCH_CORR_DOTX,
@@ -232,6 +278,7 @@ bool IsSmartLArHoleVeto() {
 			      10.,
 			      -1.,
 			      -1.)
+			      */
 	     ) {
 
 	    isVeto = true;
@@ -251,7 +298,7 @@ bool IsSmartLArHoleVeto() {
 
 }
 
-bool check_lar_hole_veto(int jet_n, const susy& buffer, SUSYObjDef& def, 
+/*bool check_lar_hole_veto(int jet_n, const susy& buffer, SUSYObjDef& def, 
 			 const RunInfo& info ) { 
   int n = jet_n; 
   bool veto = def.IsLArHoleVeto
@@ -267,10 +314,10 @@ bool check_lar_hole_veto(int jet_n, const susy& buffer, SUSYObjDef& def,
   return false; 
 }
 
+*/
 
 
-
-TVector2 get_MET(const susy& buffer, SUSYObjDef& def, const RunInfo& info){
+/*TVector2 get_MET(const susy& buffer, SUSYObjDef& def, const RunInfo& info){
   std::vector<int> dummy; 
   return def.GetMET
     (buffer.jet_AntiKt4TopoNewEM_pt, // jacknife says this works... 
@@ -302,6 +349,8 @@ TVector2 get_MET(const susy& buffer, SUSYObjDef& def, const RunInfo& info){
      buffer.mu_staco_charge,
      SystErr::NONE);
 }
+
+*/
 
 bool check_if_electron(int iEl,
 		       const susy& buffer,
@@ -413,6 +462,7 @@ BaselineJet::BaselineJet(const susy& buffer, int jet_index) {
   double phi = buffer.jet_AntiKt4TopoNewEM_phi ->at(jet_index); 
   double e = buffer.jet_AntiKt4TopoNewEM_E   ->at(jet_index); 
   SetPtEtaPhiE(pt,eta,phi,e); 
+  m_jet_index = jet_index;
     
   m_combNN_btag_wt = 0; 	// TODO: find this branch and set it
 }
@@ -423,3 +473,8 @@ double BaselineJet::combNN_btag(){
 }
   
   
+int BaselineJet::jet_index(){
+
+  return m_jet_index;
+
+}
