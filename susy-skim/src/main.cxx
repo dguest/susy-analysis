@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string> 
 #include <cassert>
+#include "TChain.h"
 #include "TVector2.h"
 #include <math.h>
 #include "SUSYTools/SUSYObjDef.h"
@@ -30,6 +31,14 @@ run number is set, why?
 
 int main (int narg, char* argv[])
 {
+  
+  TChain* input_chain = 0; 
+  if (narg > 1) { 
+    input_chain = new TChain("susy"); 
+    for (int n = 1; n < narg; n++) { 
+      input_chain->Add(argv[n]); 
+    }
+  }
 
   FakeMetEstimator fakeMetEst;
 
@@ -38,7 +47,7 @@ int main (int narg, char* argv[])
   info.is_data = false; 
   info.run_number = 180614; 
 
-  susy buffer; 
+  susy buffer(input_chain); 
   TTree* tree = buffer.fChain; 
   int n_entries = tree->GetEntriesFast(); 
   std::cout << n_entries << " in chain" << std::endl; 
@@ -241,7 +250,7 @@ int main (int narg, char* argv[])
    def.finalize(); 
 	 
 	 return 0;
-  
+	 
 }
   
 bool IsSmartLArHoleVeto(TVector2 met,FakeMetEstimator& fakeMetEst,const susy& buffer, SUSYObjDef& def, std::vector<BaselineJet> baseline_jets ) {
