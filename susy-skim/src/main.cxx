@@ -31,11 +31,12 @@ run number is set, why?
 
 int main (int narg, char* argv[])
 {
-  
+  std::cout<< "inside main, first line" << endl;
   TChain* input_chain = 0; 
   if (narg > 1) { 
     input_chain = new TChain("susy"); 
     for (int n = 1; n < narg; n++) { 
+      std::cout << "inside prompt file part" << endl; 
       input_chain->Add(argv[n]); 
     }
   }
@@ -55,8 +56,12 @@ int main (int narg, char* argv[])
   def.initialize(true); 
 
   // looping through events
+
+  std::cout << "before event loop" << endl;
   for (int evt_n = 0; evt_n < 10; evt_n++) { 
+    std::cout <<"inside event loop" << endl;
     tree->GetEntry(evt_n); 
+
     
     def.Reset(); 
     
@@ -89,6 +94,7 @@ int main (int narg, char* argv[])
    
    // event preselection 
    bool lar_error = buffer.larError; 
+   bool ishforveto;
 
 
    const int n_jets = buffer.jet_AntiKt4TopoNewEM_n; 
@@ -107,7 +113,7 @@ int main (int narg, char* argv[])
 
    for (int jet_n = 0; jet_n < n_jets; jet_n++){ 
      // jet preselection 
-     bool lar_hole_veto = check_lar_hole_veto(jet_n, buffer, def, info); 
+     // bool lar_hole_veto = check_lar_hole_veto(jet_n, buffer, def, info); 
      bool is_jet = check_if_jet(jet_n, buffer, def, info); 
      // ... fill jets here 
 
@@ -152,19 +158,27 @@ int main (int narg, char* argv[])
      
   
 
-     /* 
+     
 
      if(lar_error)
      continue;
      
-     if(IsSmartLArHoleVeto())
+     try {
+       if(IsSmartLArHoleVeto( met,
+			    fakeMetEst,
+			    buffer, 
+			    def, 
+			    baseline_jets))
      continue;
 
-     if(badjet_loose) //still need to implement this
+     }
+     catch(...){cout << "exception smartLar" << endl;}
+
+     if(badjet_loose) 
      continue;
 
-     if(badz0wrtPVmuon) // to be completed
-     continue;
+    // if(badz0wrtPVmuon)  to be completed
+    // continue;
        
      if(!def.IsGoodVertex(buffer.vx_nTracks))
      continue;
@@ -183,13 +197,14 @@ int main (int narg, char* argv[])
 
      //could move this for loop up with the others. cleaner?
      for (int i=0;i<baseline_jets.size();i++){
-     if(baseline_jets.at(i).Pt() < 150)
+     if(baseline_jets.at(i).Pt() <= 150)
      continue;
 
      }
 		
      //correct implementation? 
-     if(met.mod()<150){
+     if(met.Mod()<=150)
+     continue;
 
      //no electrons
      if(n_good_electrons>=1)
@@ -199,21 +214,13 @@ int main (int narg, char* argv[])
      if(n_good_muons>=1)
      continue;
 
-     //ctag > 2 cut
-     int ctagJets = 0;
-     for (int i=0;i<baseline_jets.size();i++){
-     
-     if(baseline_jets.at(i).combNN_btag() > -2 
-     && baseline_jets.at(i).cobmNN_btag() < 4)
-     ctagJets++;
-
-     } 
+    
     
      //For DeltaPhi cut
      TLorentzVector sumjets; 
      for(int i=0;i<baseline_jets.size();i++){
      
-     sumjets+= baseline_jet.at(i);
+     sumjets+= baseline_jets.at(i);
 
 
      }
@@ -221,7 +228,7 @@ int main (int narg, char* argv[])
      double sumPhi = sumjets.Phi();
      double metPhi = met.Phi();
 
-     double delta = fabs(met.Phi() - sumjet.Phi());
+     double delta = fabs(met.Phi() - sumjets.Phi());
      if(delta > M_PI)    delta = fabs(delta - 2*M_PI);
 
      if(delta < 0.4)
@@ -229,10 +236,20 @@ int main (int narg, char* argv[])
      
 
 
+     //ctag > 2 cut
+     int ctagJets = 0;
+     for (int i=0;i<baseline_jets.size();i++){
+     
+     if(baseline_jets.at(i).combNN_btag() > -2 
+     && baseline_jets.at(i).combNN_btag() < 4)
+     ctagJets++;
+     
+     } 
+
      if(ctagJets<2)
      continue;
 
-     */ 
+     
      
      
    

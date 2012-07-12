@@ -5,19 +5,27 @@ class susy;
 class SUSYObjDef; 
 class TVector2; 
 class FakeMetEstimator;
+class BaselineJet;
 
 #include "TLorentzVector.h"
+#include "TVector2.h"
+#include <vector> 
 
 struct RunInfo { 
   bool is_data; 
   int run_number; 
 }; 
 
+
+
+
+
+
 bool IsSmartLArHoleVeto(TVector2 met,
 			FakeMetEstimator& fakeMetEst,
 			const susy& buffer, 
 			SUSYObjDef& def, 
-			const RunInfo& info );
+			std::vector<BaselineJet> baseline_jets );
 
 
 bool check_lar_hole_veto(int jet_n, 
@@ -43,7 +51,6 @@ bool check_if_muon(int iMu,
 /*TVector2 get_MET(const susy& buffer, 
 		  SUSYObjDef& def, 
 		  const RunInfo&); */
-
 class BaselineJet:public TLorentzVector { 
 public: 
   BaselineJet(const susy& buffer, int jet_index); 
@@ -53,5 +60,6 @@ private:
   double m_combNN_btag_wt; 
   int m_jet_index;
 }; 
+
 
 #endif //MAIN_H
