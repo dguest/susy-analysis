@@ -46,7 +46,7 @@ LIBS         += $(ROOTLIBS)
 # PY_LDFLAGS += -shared
 
 # ---- define objects
-GEN_OBJ     += susy.o
+GEN_OBJ     += susy.o main.o
 EXE_OBJ     := $(GEN_OBJ) main.o
 
 # PY_OBJ       := pyprep.o
