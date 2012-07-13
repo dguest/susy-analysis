@@ -54,7 +54,7 @@ int main (int narg, char* argv[])
 
   susy buffer(input_chain); 
   TTree* tree = buffer.fChain; 
-  int n_entries = tree->GetEntriesFast(); 
+  int n_entries = tree->GetEntries(); 
   std::cout << n_entries << " in chain" << std::endl; 
 
   def.initialize(true); 
@@ -78,10 +78,19 @@ int main (int narg, char* argv[])
 
   // looping through events
 
-  
+  int one_percent = n_entries /  100; 
 
-  for (int evt_n = 0; evt_n < 10; evt_n++) { 
+
+
+  for (int evt_n = 0; evt_n < n_entries; evt_n++) { 
+    if (evt_n % one_percent == 0 || evt_n == n_entries - 1 ) { 
+      std::cout << "\r" << evt_n << " of " << n_entries << 
+	" (" << evt_n  / (one_percent ) << "%) processed "; 
+      std::cout.flush(); 
+    }
+
     cut_counters["10_events"]++;
+
     tree->GetEntry(evt_n); 
 
     
