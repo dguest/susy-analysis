@@ -6,6 +6,7 @@
 BIN          := bin
 SRC          := src
 INC          := src
+DICT         := dict
 
 # --- external dirs 
 SUSY_INC      := $(shell ./map_libs.sh -i $(ROOTCORE_ROOT))
@@ -15,6 +16,8 @@ vpath %.o    $(BIN)
 vpath %.cxx  $(SRC) 
 vpath %.hh   $(INC) $(SUSY_INC)
 vpath %.h    $(INC) $(SUSY_INC)
+vpath %Dict.h $(DICT)
+vpath %Dict.cxx $(DICT)
 
 # --- load in root config
 ROOTCFLAGS    := $(shell root-config --cflags)
@@ -47,8 +50,11 @@ LIBS         += $(ROOTLIBS)
 # PY_LDFLAGS += -shared
 
 # ---- define objects
-GEN_OBJ     += susy.o main.o
-EXE_OBJ     := $(GEN_OBJ) main.o
+TOBJ        := susy.o
+T_DICTS     := $(TOBJ:.o=Dict.o)
+GEN_OBJ     := main.o
+EXE_OBJ     := $(GEN_OBJ) $(T_DICTS) $(TOBJ)
+
 
 # PY_OBJ       := pyprep.o
 
@@ -73,6 +79,19 @@ $(BIN)/py%.o: py%.cxx
 	@echo compiling python object $@
 	@mkdir -p $(BIN)
 	@$(CXX) -c $(CXXFLAGS) $(PY_FLAGS) $< -o $@ 
+
+# root dictionary generation 
+$(DICT)/%Dict.cxx: %.h LinkDef.hh
+	@echo making dict $@
+	@mkdir -p $(DICT)
+	@rm -f $(DICT)/$*Dict.h $(DICT)/$*Dict.cxx 
+	@rootcint $@ -c $(INC)/$*.h	
+	@sed -i 's,#include "$(INC)/\(.*\)",#include "\1",g' $(DICT)/$*Dict.h
+
+$(BIN)/%Dict.o: $(DICT)/%Dict.cxx 
+	@mkdir -p $(BIN)
+	@echo compiling dict $@
+	@$(CC) $(CXXFLAGS) $(ROOTCFLAGS) -c $< -o $@
 
 # compile rule
 $(BIN)/%.o: %.cxx
@@ -100,7 +119,7 @@ $(DEP)/%.d: %.cxx
 CLEANLIST     = *~ *.o *.o~ *.d core 
 clean:
 	rm -fr $(CLEANLIST) $(CLEANLIST:%=$(BIN)/%) $(CLEANLIST:%=$(DEP)/%)
-	rm -fr $(BIN) $(ALLOUTPUT)
+	rm -fr $(BIN) $(ALLOUTPUT) $(DICT)
 
 rmdep: 
 	rm -f $(DEP)/*.d
