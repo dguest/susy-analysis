@@ -80,7 +80,7 @@ int main (int narg, char* argv[])
 
   
 
-  for (int evt_n = 0; evt_n < n_entries; evt_n++) { 
+  for (int evt_n = 0; evt_n < 10; evt_n++) { 
     cut_counters["10_events"]++;
     tree->GetEntry(evt_n); 
 
