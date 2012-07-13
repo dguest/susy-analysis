@@ -83,7 +83,7 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files) {
   std::cout << n_entries << " entries in chain" << std::endl; 
 
   
-  // def.initialize(true); 
+  def.initialize(info.is_data); 
 
   std::map<std::string, int> cut_counters; 
   cut_counters["10_events"]=0;
