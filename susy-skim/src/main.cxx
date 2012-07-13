@@ -24,7 +24,7 @@ all the cuts have been negated now, for the continue statement logic
 
 putting off the badz0wrtPVmuon (superfluous at the moment, not easy to implement)
 
-m_combNN_btag_wt = 0; 	// TODO: find this branch and set it
+DONE: m_combNN_btag_wt = 0; 	// TODO: find this branch and set it  
 
 run number is set, why?
 
@@ -32,12 +32,12 @@ run number is set, why?
 
 int main (int narg, char* argv[])
 {
-  std::cout<< "inside main, first line" << endl;
+  
   TChain* input_chain = 0; 
   if (narg > 1) { 
     input_chain = new TChain("susy"); 
     for (int n = 1; n < narg; n++) { 
-      std::cout << "inside prompt file part" << endl; 
+      
       input_chain->Add(argv[n]); 
     }
   }
@@ -58,13 +58,27 @@ int main (int narg, char* argv[])
   int counter = 0;
 
   std::map<std::string, int> cut_counters; 
-  cut_counters["lar_error"] = 0; 
+  cut_counters["10_events"]=0;
+  cut_counters["11_lar_error"] = 0; 
+  cut_counters["12_lar_hole_veto"]=0;
+  cut_counters["13_badjet"]=0;
+  cut_counters["14_GoodPV"]=0;
+  cut_counters["15_ishfor"]=0;
+  cut_counters["16_trigger"]=0;
+  cut_counters["17_UsedJetsSize"]=0;
+  cut_counters["18_UsedJetsPt"]=0;
+  cut_counters["19_MET"]=0;
+  cut_counters["20_goodEl"]=0;
+  cut_counters["21_goodMu"]=0;
+  cut_counters["22_deltaPhi"]=0;
+  cut_counters["23_ctag"]=0;
 
   // looping through events
 
-  std::cout << "before event loop" << endl;
-  for (int evt_n = 0; evt_n < 10; evt_n++) { 
-    std::cout <<"inside event loop" << endl;
+  
+
+  for (int evt_n = 0; evt_n < n_entries; evt_n++) { 
+    cut_counters["10_events"]++;
     tree->GetEntry(evt_n); 
 
     
@@ -99,7 +113,7 @@ int main (int narg, char* argv[])
    
    // event preselection 
    bool lar_error = buffer.larError; 
-   bool ishforveto;
+   bool ishforveto = false;
 
 
    const int n_jets = buffer.jet_AntiKt4TopoNewEM_n; 
@@ -151,77 +165,93 @@ int main (int narg, char* argv[])
 
 
 
-
+  
     
    //ishforveto cut setup 
      if(!info.is_data){
-       if (buffer.top_hfor_type==4) 
-	 bool ishforveto = true;
+       if (buffer.top_hfor_type==4)  ishforveto = true;
 
      }
      
      
   
-
      
 
      if(lar_error)
      continue;
-
-     cut_counters["lar_error"]++; 
+     cut_counters["11_lar_error"]++; 
      
-     try {
-       if(IsSmartLArHoleVeto( met,
+     
+     if(IsSmartLArHoleVeto( met,
 			    fakeMetEst,
 			    buffer, 
 			    def, 
 			    baseline_jets))
-     continue;
-
-     }
-     catch(...){cout << "exception smartLar" << endl;}
+     continue;     
+     cut_counters["12_lar_hole_veto"]++;
+  
+    
 
      if(badjet_loose) 
      continue;
+     cut_counters["13_badjet"]++;
+  
+
 
     // if(badz0wrtPVmuon)  to be completed
     // continue;
        
      if(!def.IsGoodVertex(buffer.vx_nTracks))
      continue;
+     cut_counters["14_GoodPV"]++;
+  
 	 
      if(ishforveto) 
      continue;
+     cut_counters["15_ishfor"]++;
+  
      
     
      
      
      if(!trigger)
      continue;
+     cut_counters["16_trigger"]++;
+  
      
      if(baseline_jets.size()<3)
      continue;
+     cut_counters["17_UsedJetsSize"]++;
+ 
 
+
+     bool jetAbove150 = false;
      //could move this for loop up with the others. cleaner?
      for (int i=0;i<baseline_jets.size();i++){
-     if(baseline_jets.at(i).Pt() <= 150)
-     continue;
-
+       if(baseline_jets.at(i).Pt() > 150) jetAbove150 = true;
      }
+     
+     if(!jetAbove150)
+     continue;
+     cut_counters["18_UsedJetsPt"]++;
 		
+
+
      //correct implementation? 
      if(met.Mod()<=150)
      continue;
+     cut_counters["19_MET"]++;
 
      //no electrons
      if(n_good_electrons>=1)
      continue;
+     cut_counters["20_goodEl"]++;
 
      //no muons
      if(n_good_muons>=1)
      continue;
+     cut_counters["21_goodMu"]++;
 
-    
     
      //For DeltaPhi cut
      TLorentzVector sumjets; 
@@ -240,8 +270,9 @@ int main (int narg, char* argv[])
 
      if(delta < 0.4)
      continue;
+     cut_counters["22_deltaPhi"]++;
      
-
+    
 
      //ctag > 2 cut
      int ctagJets = 0;
@@ -255,6 +286,7 @@ int main (int narg, char* argv[])
 
      if(ctagJets<2)
      continue;
+     cut_counters["23_ctag"]++;
 
      
      
@@ -264,10 +296,11 @@ int main (int narg, char* argv[])
 
 	   
 
-	   std::cout << buffer.el_n << " electrons in event " << evt_n
+     /*   std::cout << buffer.el_n << " electrons in event " << evt_n
 		     << std::endl; 
 	   std::cout << "in crack? " << (def.IsInCrack(0.4) ? "yes":"no" )
-	     		     << std::endl;
+	   << std::endl; 
+*/
  
   }
 
@@ -509,12 +542,14 @@ BaselineJet::BaselineJet(const susy& buffer, int jet_index) {
   SetPtEtaPhiE(pt,eta,phi,e); 
   m_jet_index = jet_index;
     
-  m_combNN_btag_wt = 0; 	// TODO: find this branch and set it
+  m_combNN_btag_wt = buffer.jet_AntiKt4TopoNewEM_flavor_weight_JetFitterCOMBNN ->at(jet_index); 	// TODO: find this branch and set it
 }
   
 double BaselineJet::combNN_btag(){ 
-  std::cerr << "ERROR: this isn't defined yet\n"; 
-  assert(false); 
+  //std::cerr << "ERROR: this isn't defined yet\n"; 
+  //assert(false); 
+
+  return m_combNN_btag_wt;
 }
   
   
