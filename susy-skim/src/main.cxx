@@ -7,6 +7,7 @@
 #include "TChain.h"
 #include "TVector2.h"
 #include <math.h>
+#include <stdexcept> 
 #include "SUSYTools/SUSYObjDef.h"
 #include "SUSYTools/FakeMetEstimator.h"
 
@@ -34,16 +35,38 @@ int main (int narg, char* argv[])
 {
   cout<< "in main" << endl;
 
-  
-  TChain* input_chain = 0; 
-  if (narg > 1) { 
-    cout << "if command line file inpt" << endl;
-    input_chain = new TChain("susy"); 
-    for (int n = 1; n < narg; n++) { 
-      
-      input_chain->Add(argv[n]); 
-    }
+  std::vector<std::string> input_files; 
+  for (int n = 1; n < narg; n++) { 
+    input_files.push_back(argv[n]); 
   }
+
+  // run the main routine 
+  std::map<std::string, int> cut_counters = run_cutflow(input_files); 
+
+  for (std::map<std::string, int>::const_iterator 
+	 cut_itr = cut_counters.begin(); 
+       cut_itr != cut_counters.end(); 
+       cut_itr++) { 
+    std::cout << cut_itr->second << " events pass cut " 
+	      << cut_itr->first << std::endl; 
+  }
+
+}
+ 
+std::map<std::string, int> run_cutflow(std::vector<std::string> files) {  
+
+  TChain* input_chain = new TChain("susy"); 
+
+  if (files.size() == 0) { 
+    throw std::runtime_error("I need files to run!"); 
+  }
+
+  for (std::vector<std::string>::const_iterator file_itr = files.begin(); 
+       file_itr != files.end(); 
+       file_itr++) { 
+    input_chain->Add(file_itr->c_str()); 
+  }
+
 
   FakeMetEstimator fakeMetEst;
 
@@ -58,7 +81,6 @@ int main (int narg, char* argv[])
   std::cout << n_entries << " in chain" << std::endl; 
 
   def.initialize(true); 
-  int counter = 0;
 
   std::map<std::string, int> cut_counters; 
   cut_counters["10_events"]=0;
@@ -236,7 +258,7 @@ int main (int narg, char* argv[])
 
      bool jetAbove150 = false;
      //could move this for loop up with the others. cleaner?
-     for (int i=0;i<baseline_jets.size();i++){
+     for (unsigned i=0;i<baseline_jets.size();i++){
        if(baseline_jets.at(i).Pt() > 150) jetAbove150 = true;
      }
      
@@ -264,15 +286,15 @@ int main (int narg, char* argv[])
     
      //For DeltaPhi cut
      TLorentzVector sumjets; 
-     for(int i=0;i<baseline_jets.size();i++){
+     for(unsigned i=0;i<baseline_jets.size();i++){
      
      sumjets+= baseline_jets.at(i);
 
 
      }
 
-     double sumPhi = sumjets.Phi();
-     double metPhi = met.Phi();
+     // double sumPhi = sumjets.Phi();
+     // double metPhi = met.Phi();
 
      double delta = fabs(met.Phi() - sumjets.Phi());
      if(delta > M_PI)    delta = fabs(delta - 2*M_PI);
@@ -285,7 +307,7 @@ int main (int narg, char* argv[])
 
      //ctag > 2 cut
      int ctagJets = 0;
-     for (int i=0;i<baseline_jets.size();i++){
+     for (unsigned i=0;i<baseline_jets.size();i++){
      
      if(baseline_jets.at(i).combNN_btag() > -2 
      && baseline_jets.at(i).combNN_btag() < 4)
@@ -312,19 +334,10 @@ int main (int narg, char* argv[])
 */
  
   }
+  std::cout << "\n"; 
 
-  for (std::map<std::string, int>::const_iterator 
-	 cut_itr = cut_counters.begin(); 
-       cut_itr != cut_counters.end(); 
-       cut_itr++) { 
-    std::cout << cut_itr->second << " events pass cut " 
-	      << cut_itr->first << std::endl; 
-  }
-       
-
-   def.finalize(); 
-	 
-	 return 0;
+  def.finalize(); 
+  return cut_counters; 
 	 
 }
   

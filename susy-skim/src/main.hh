@@ -10,6 +10,8 @@ class BaselineJet;
 #include "TLorentzVector.h"
 #include "TVector2.h"
 #include <vector> 
+#include <string> 
+#include <map>
 
 struct RunInfo { 
   bool is_data; 
@@ -18,6 +20,7 @@ struct RunInfo {
 
 
 
+std::map<std::string, int> run_cutflow(std::vector<std::string> files); 
 
 
 
