@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string> 
 #include <cassert>
+#include <map>
 #include "TChain.h"
 #include "TVector2.h"
 #include <math.h>
@@ -55,6 +56,9 @@ int main (int narg, char* argv[])
 
   def.initialize(true); 
   int counter = 0;
+
+  std::map<std::string, int> cut_counters; 
+  cut_counters["lar_error"] = 0; 
 
   // looping through events
 
@@ -163,6 +167,8 @@ int main (int narg, char* argv[])
 
      if(lar_error)
      continue;
+
+     cut_counters["lar_error"]++; 
      
      try {
        if(IsSmartLArHoleVeto( met,
@@ -264,6 +270,15 @@ int main (int narg, char* argv[])
 	     		     << std::endl;
  
   }
+
+  for (std::map<std::string, int>::const_iterator 
+	 cut_itr = cut_counters.begin(); 
+       cut_itr != cut_counters.end(); 
+       cut_itr++) { 
+    std::cout << cut_itr->second << " events pass cut " 
+	      << cut_itr->first << std::endl; 
+  }
+       
 
    def.finalize(); 
 	 
