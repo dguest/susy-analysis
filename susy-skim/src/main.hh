@@ -9,6 +9,7 @@ class BaselineJet;
 
 #include "TLorentzVector.h"
 #include "TVector2.h"
+#include "TChain.h"
 #include <vector> 
 #include <string> 
 #include <map>
@@ -18,6 +19,10 @@ struct RunInfo {
   int run_number; 
 }; 
 
+class SmartChain: public TChain { 
+public: 
+  void SetBranchAddress(std::string name, void** branch); 
+}; 
 
 
 std::map<std::string, int> run_cutflow(std::vector<std::string> files); 
