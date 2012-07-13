@@ -32,9 +32,12 @@ run number is set, why?
 
 int main (int narg, char* argv[])
 {
+  cout<< "in main" << endl;
+
   
   TChain* input_chain = 0; 
   if (narg > 1) { 
+    cout << "if command line file inpt" << endl;
     input_chain = new TChain("susy"); 
     for (int n = 1; n < narg; n++) { 
       
