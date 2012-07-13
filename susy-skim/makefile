@@ -20,6 +20,7 @@ vpath %.h    $(INC) $(SUSY_INC)
 ROOTCFLAGS    := $(shell root-config --cflags)
 ROOTLIBS      := $(shell root-config --libs)
 ROOTLDFLAGS   := $(shell root-config --ldflags)
+ROOTLIBS      += -lTreePlayer 	#don't know why this isn't loaded by default
 
 # # and py config
 # PY_CONFIG := python2.7-config

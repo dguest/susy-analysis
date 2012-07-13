@@ -583,3 +583,11 @@ int BaselineJet::jet_index(){
   return m_jet_index;
 
 }
+
+void SmartChain::SetBranchAddress(std::string name, void** branch) { 
+  int return_code = TChain::SetBranchAddress(name.c_str(), branch); 
+  if (return_code) { 
+    throw std::runtime_error(name); 
+  }
+}
+
