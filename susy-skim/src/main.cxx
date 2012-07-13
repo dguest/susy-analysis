@@ -54,6 +54,7 @@ int main (int narg, char* argv[])
   std::cout << n_entries << " in chain" << std::endl; 
 
   def.initialize(true); 
+  int counter = 0;
 
   // looping through events
 
@@ -391,10 +392,10 @@ bool check_if_electron(int iEl,
      buffer.el_cl_eta                ->at(iEl),
      buffer.el_cl_phi                ->at(iEl),
      buffer.el_cl_E                  ->at(iEl),
-     buffer.el_tracketa               ->at(iEl),
-     buffer.el_trackphi               ->at(iEl),
-     buffer.trig_EF_el_author        ->at(iEl),
-     buffer.trig_EF_el_mediumPP      ->at(iEl),
+     buffer.el_tracketa              ->at(iEl),
+     buffer.el_trackphi              ->at(iEl),
+     buffer.el_author                ->at(iEl),
+     buffer.el_mediumPP              ->at(iEl),
      buffer.el_OQ                    ->at(iEl),
      buffer.el_nPixHits              ->at(iEl),
      buffer.el_nSCTHits              ->at(iEl),
