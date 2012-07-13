@@ -65,6 +65,8 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files) {
        file_itr != files.end(); 
        file_itr++) { 
     input_chain->Add(file_itr->c_str()); 
+    // TFile f(file_itr->c_str()); 
+    // f.ShowStreamerInfo(); 
   }
 
 
@@ -76,11 +78,12 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files) {
   info.run_number = 180614; 
 
   susy buffer(input_chain); 
-  TTree* tree = buffer.fChain; 
   int n_entries = input_chain->GetEntries(); 
-  std::cout << n_entries << " in chain" << std::endl; 
 
-  def.initialize(true); 
+  std::cout << n_entries << " entries in chain" << std::endl; 
+
+  
+  // def.initialize(true); 
 
   std::map<std::string, int> cut_counters; 
   cut_counters["10_events"]=0;
@@ -100,6 +103,7 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files) {
 
   // looping through events
 
+  std::cout << n_entries << " entries in chain" << std::endl; 
   int one_percent = n_entries /  100; 
 
   for (int evt_n = 0; evt_n < n_entries; evt_n++) { 
@@ -110,11 +114,12 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files) {
     }
     cut_counters["10_events"]++;
 
+
     input_chain->GetEntry(evt_n); 
 
     // int nothing; 
     // input_chain->SetBranchAddress("nothing",&nothing); 
-    
+
     def.Reset(); 
     
    bool trigger=false;
