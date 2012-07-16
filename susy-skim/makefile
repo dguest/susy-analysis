@@ -52,7 +52,7 @@ LIBS         += $(ROOTLIBS)
 # ---- define objects
 TOBJ        := susy.o
 T_DICTS     := $(TOBJ:.o=Dict.o)
-GEN_OBJ     := main.o
+GEN_OBJ     := cutflow.o
 EXE_OBJ     := $(GEN_OBJ) $(T_DICTS) $(TOBJ)
 
 
@@ -60,11 +60,11 @@ EXE_OBJ     := $(GEN_OBJ) $(T_DICTS) $(TOBJ)
 
 ALLOBJ       := $(GEN_OBJ) $(PY_OBJ)
 
-ALLOUTPUT    := main
+ALLOUTPUT    := cutflow
 
 all: $(ALLOUTPUT) 
 
-main: $(EXE_OBJ:%=$(BIN)/%)
+cutflow: $(EXE_OBJ:%=$(BIN)/%)
 	@echo "linking $^ --> $@"
 	@$(CXX) -o $@ $^ $(LIBS) $(LDFLAGS)
 

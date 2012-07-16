@@ -1,4 +1,4 @@
-#include "main.hh"
+#include "cutflow.hh"
 #include "susy.h"
 #include <iostream>
 #include <fstream>

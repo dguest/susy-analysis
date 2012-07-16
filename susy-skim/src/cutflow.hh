@@ -1,5 +1,5 @@
-#ifndef MAIN_H
-#define MAIN_H
+#ifndef CUTFLOW_H
+#define CUTFLOW_H
 
 class susy; 
 class SUSYObjDef; 
@@ -71,4 +71,4 @@ private:
 }; 
 
 
-#endif //MAIN_H
+#endif //CUTFLOW_H
