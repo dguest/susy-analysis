@@ -21,6 +21,7 @@ struct RunInfo {
 
 class SmartChain: public TChain { 
 public: 
+  SmartChain(std::string tree_name); 
   void SetBranchAddress(std::string name, void** branch); 
 }; 
 
