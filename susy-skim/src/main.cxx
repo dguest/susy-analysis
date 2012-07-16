@@ -214,7 +214,8 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files) {
 
      }
      
-     
+     //---------------------------------------------------
+     //Cleaning Cuts:
   
      
 
@@ -252,7 +253,8 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files) {
      cut_counters["15_ishfor"]++;
   
      
-    
+     //------------------------------------------------
+     //Preselection cuts
      
      
      if(!trigger)
