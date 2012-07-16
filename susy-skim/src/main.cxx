@@ -1,6 +1,7 @@
 #include "main.hh"
 #include "susy.h"
 #include <iostream>
+#include <fstream>
 #include <string> 
 #include <cassert>
 #include <map>
@@ -40,16 +41,27 @@ int main (int narg, char* argv[])
     input_files.push_back(argv[n]); 
   }
 
+
   // run the main routine 
   std::map<std::string, int> cut_counters = run_cutflow(input_files); 
 
+  // output cutflow to file
+  std::ofstream cutflow_textfile("cutflow.txt"); 
+  
   for (std::map<std::string, int>::const_iterator 
 	 cut_itr = cut_counters.begin(); 
        cut_itr != cut_counters.end(); 
        cut_itr++) { 
     std::cout << cut_itr->second << " events pass cut " 
 	      << cut_itr->first << std::endl; 
+    cutflow_textfile << cut_itr->second << " events pass cut " 
+		     << cut_itr->first << std::endl; 
+
   }
+
+  cutflow_textfile.close(); 
+
+  return 0; 
 
 }
  
