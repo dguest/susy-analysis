@@ -164,9 +164,9 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files) {
    }
    
    
-   // event preselection 
-   bool lar_error = buffer.larError; 
-   bool ishforveto = false;
+   // event preselection preparation
+   
+  
 
 
    const int n_jets = buffer.jet_AntiKt4TopoNewEM_n; 
@@ -218,7 +218,7 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files) {
 
 
 
-  
+   bool ishforveto = false;
     
    //ishforveto cut setup 
      if(!info.is_data){
@@ -230,7 +230,7 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files) {
      //Cleaning Cuts:
   
      
-
+     bool lar_error = buffer.larError;
      if(lar_error)
      continue;
      cut_counters["11_lar_error"]++; 
