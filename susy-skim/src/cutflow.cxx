@@ -599,6 +599,12 @@ double BaselineJet::combNN_btag(){
   return m_combNN_btag_wt;
 }
   
+double BaselineJet::jfitcomb_cu(){
+
+ cu = buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pc / buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pu
+   return cu;
+  
+}
   
 int BaselineJet::jet_index(){
 
