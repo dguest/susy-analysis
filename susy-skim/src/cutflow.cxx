@@ -599,13 +599,22 @@ double BaselineJet::combNN_btag(){
   return m_combNN_btag_wt;
 }
   
-double BaselineJet::jfitcomb_cu(){
+double BaselineJet::jfitcomb_cu(const susy& buffer, int jet_index){
 
- cu = buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pc / buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pu
-   return cu;
+  m_cu = buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pc->at(jet_index) / buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pu->at(jet_index);
+   return m_cu;
   
 }
-  
+
+double BaselineJet::jfitcomb_cb(const susy& buffer, int jet_index){
+
+  m_cb =  buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pc->at(jet_index) / buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pb->at(jet_index);
+   return m_cb;
+
+}
+ 
+
+ 
 int BaselineJet::jet_index(){
 
   return m_jet_index;

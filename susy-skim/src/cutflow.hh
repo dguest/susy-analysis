@@ -65,9 +65,13 @@ public:
   BaselineJet(const susy& buffer, int jet_index); 
   double combNN_btag(); 
   int jet_index();
+  double jfitcomb_cu(const susy& buffer, int jet_index);
+  double jfitcomb_cb(const susy& buffer, int jet_index);
 private: 
   double m_combNN_btag_wt; 
   int m_jet_index;
+  double m_cu;
+  double m_cb;
 }; 
 
 
