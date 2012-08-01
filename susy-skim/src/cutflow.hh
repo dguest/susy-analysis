@@ -70,6 +70,8 @@ public:
 private: 
   double m_combNN_btag_wt; 
   int m_jet_index;
+  double cu;
+  double cb; 
   double m_cu;
   double m_cb;
 }; 

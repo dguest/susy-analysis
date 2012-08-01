@@ -166,9 +166,6 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files) {
    
    // event preselection preparation
    
-  
-
-
    const int n_jets = buffer.jet_AntiKt4TopoNewEM_n; 
    const int n_el = buffer.el_n;
    const int n_mu = buffer.mu_staco_n; // I'm pretty sure we're using staco
@@ -573,8 +570,8 @@ bool check_if_jet(int iJet,
      buffer.vx_nTracks,             
      info.is_data, 
      20000., 			// pt cut
-     2.8,			// eta cut
-     JetID::LooseBad,
+     10,			// eta cut - changed from 2.8 for testing
+     JetID::VeryLooseBad,
      SystErr::NONE);
     
 }
@@ -601,15 +598,19 @@ double BaselineJet::combNN_btag(){
   
 double BaselineJet::jfitcomb_cu(const susy& buffer, int jet_index){
 
-  m_cu = buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pc->at(jet_index) / buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pu->at(jet_index);
+  cu = buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pc->at(jet_index) / buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pu->at(jet_index);
+
+  m_cu = log(cu);
    return m_cu;
   
 }
 
 double BaselineJet::jfitcomb_cb(const susy& buffer, int jet_index){
 
-  m_cb =  buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pc->at(jet_index) / buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pb->at(jet_index);
-   return m_cb;
+  cb =  buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pc->at(jet_index) / buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pb->at(jet_index);
+   
+  m_cb = log(cb);
+  return m_cb;
 
 }
  
