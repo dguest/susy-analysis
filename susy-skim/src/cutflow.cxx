@@ -141,7 +141,15 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files) {
    bool isSignal=false;
       
    //if(basename2.Contains("Stop_") && basename2.Contains("private") && basename2.Contains("cl_xqcut")){
-   if(isSignal){
+
+
+   //note to self: npos returned if it can't find a position for that string
+   if((files.at(0).find_first_of("Stop_") != std::string::npos) &&
+      (files.at(0).find_first_of("private") !=std::string::npos) &&
+      (files.at(0).find_first_of("cl_xqcut") !=std::string::npos)){
+
+
+     //if(isSignal){  --temporary hack
      trigger=false;
      gRandom= new TRandom3(0);
   
@@ -181,17 +189,30 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files) {
    bool badjet_loose = false;
 
    for (int jet_n = 0; jet_n < n_jets; jet_n++){ 
-     // jet preselection 
-     // bool lar_hole_veto = check_lar_hole_veto(jet_n, buffer, def, info); 
-     bool is_jet = check_if_jet(jet_n, buffer, def, info); 
-     // ... fill jets here 
+    
+     //add the "standard quality" cuts here ************************
+     //JVF>0.75, pt>20GeV, isGoodJet (from SUSYTools), ...)
 
-     if(!is_jet) badjet_loose = true;
+
+     if( buffer.jet_AntiKt4TopoNewEM_pt->at(jet_n) < 20)
+       continue;
+
+     
+    
 
      //this is where the jet is built 
      baseline_jets.push_back(BaselineJet(buffer, jet_n)); 
    }
 
+
+
+   for( int i = 0; i < baseline_jets.size(); i++){
+     BaselineJet jet = baseline_jets.at(i);
+ 
+     bool is_jet = check_if_jet(jet.jet_index(), buffer, def, info); 
+     // ... fill jets here 
+
+     if(!is_jet) badjet_loose = true; }
    
    // unless we start doing something with them we can just count the good el
    int n_good_electrons = 0; 
@@ -224,7 +245,7 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files) {
      }
      
      //---------------------------------------------------
-     //Cleaning Cuts:
+     //Cleanup Cuts:
   
      
      bool lar_error = buffer.larError;
