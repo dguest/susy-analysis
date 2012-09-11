@@ -78,7 +78,7 @@ int main (int narg, char* argv[])
 }
  
 std::map<std::string, int> run_cutflow(std::vector<std::string> files, 
-				       RunInfo info) {  
+				       RunInfo info, const unsigned flags) {  
 
   TChain* input_chain = new TChain("susy"); 
 
@@ -107,7 +107,8 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files,
 
 
   // create a textfile to for annoying susytools output
-  std::streambuf* oldCoutStreamBuf = std::cout.rdbuf();
+  std::streambuf* old_out_stream = std::cout.rdbuf();
+  std::streambuf* old_err_stream = std::cerr.rdbuf();
   ofstream strCout("susy_noise.txt", ios_base::out | ios_base::trunc);
   std::cout.rdbuf( strCout.rdbuf() );
   std::cerr.rdbuf( strCout.rdbuf() );
@@ -115,8 +116,10 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files,
   def.initialize(info.is_data); 
 
   // Restore old cout.
-  std::cout.rdbuf( oldCoutStreamBuf );
-
+  if (flags & cutflag::verbose) { 
+    std::cerr.rdbuf( old_err_stream ); 
+    std::cout.rdbuf( old_out_stream );
+  }
 
   std::map<std::string, int> cut_counters; 
   
@@ -125,8 +128,6 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files,
 
   std::cout << n_entries << " entries in chain" << std::endl; 
   int one_percent = n_entries /  100; 
-
-
 
   for (int evt_n = 0; evt_n < n_entries; evt_n++) { 
     if (evt_n % one_percent == 0 || evt_n == n_entries - 1 ) { 
@@ -260,13 +261,11 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files,
       continue;     
     cut_counters["02_lar_hole_veto"]++;
   
-    
 
     if(badjet_loose) 
       continue;
     cut_counters["03_badjet"]++;
   
-
 
     // if(badz0wrtPVmuon)  to be completed
     // continue;
@@ -362,6 +361,13 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files,
  
   }
   std::cout << "\n"; 
+  
+  // restore cout if not already done
+  if (!flags & cutflag::verbose) { 
+    std::cerr.rdbuf( old_err_stream ); 
+    std::cout.rdbuf( old_out_stream );
+  }
+
 
   def.finalize(); 
   return cut_counters; 

@@ -25,12 +25,12 @@ ROOTLIBS      := $(shell root-config --libs)
 ROOTLDFLAGS   := $(shell root-config --ldflags)
 ROOTLIBS      += -lTreePlayer 	#don't know why this isn't loaded by default
 
-# # and py config
-# PY_CONFIG := python2.7-config
+# and py config
+PY_CONFIG := python2.7-config
 
-# PY_FLAGS :=   $(shell $(PY_CONFIG) --includes)
-# PY_LIB   := -L$(shell $(PY_CONFIG) --prefix)/lib
-# PY_LIB   +=   $(shell $(PY_CONFIG) --libs)
+PY_FLAGS :=   $(shell $(PY_CONFIG) --includes)
+PY_LIB   := -L$(shell $(PY_CONFIG) --prefix)/lib
+PY_LIB   +=   $(shell $(PY_CONFIG) --libs)
 
 
 # --- set compiler and flags (roll c options and include paths together)
@@ -44,23 +44,23 @@ CXXFLAGS     += $(ROOTCFLAGS)
 LDFLAGS      += $(ROOTLDFLAGS)
 LIBS         += $(ROOTLIBS)
 
-# # pystuff (roll the linking options and libraries together)
-# PY_LDFLAGS := $(LDFLAGS)
-# PY_LDFLAGS += $(PY_LIB)
-# PY_LDFLAGS += -shared
+# pystuff (roll the linking options and libraries together)
+PY_LDFLAGS := $(LDFLAGS)
+PY_LDFLAGS += $(PY_LIB)
+PY_LDFLAGS += -shared
 
 # ---- define objects
 TOBJ        := susy.o
 T_DICTS     := $(TOBJ:.o=Dict.o)
-GEN_OBJ     := cutflow.o
+GEN_OBJ     := cutflow.o 
 EXE_OBJ     := $(GEN_OBJ) $(T_DICTS) $(TOBJ)
+PYLIB_OBJ   := $(GEN_OBJ) $(T_DICTS) $(TOBJ)
 
-
-# PY_OBJ       := pyprep.o
+PY_OBJ       := _cutflow.o
 
 ALLOBJ       := $(GEN_OBJ) $(PY_OBJ)
 
-ALLOUTPUT    := cutflow
+ALLOUTPUT    := cutflow python/susy/_cutflow.so
 
 all: $(ALLOUTPUT) 
 
@@ -68,14 +68,15 @@ cutflow: $(EXE_OBJ:%=$(BIN)/%)
 	@echo "linking $^ --> $@"
 	@$(CXX) -o $@ $^ $(LIBS) $(LDFLAGS)
 
-# pyprep.so: $(GEN_OBJ:%=$(BIN)/%) $(PY_OBJ:%=$(BIN)/%)
-# 	@echo "linking $^ --> $@"
-# 	@$(CXX) -o $@ $^ $(LIBS) $(PY_LDFLAGS)
+python/susy/_cutflow.so: $(PYLIB_OBJ:%=$(BIN)/%) $(PY_OBJ:%=$(BIN)/%)
+	@mkdir -p python/susy
+	@echo "linking $^ --> $@"
+	@$(CXX) -o $@ $^ $(LIBS) $(PY_LDFLAGS)
 
 # --------------------------------------------------
 
 # python object compile
-$(BIN)/py%.o: py%.cxx 
+$(BIN)/_%.o: _%.cxx 
 	@echo compiling python object $@
 	@mkdir -p $(BIN)
 	@$(CXX) -c $(CXXFLAGS) $(PY_FLAGS) $< -o $@ 

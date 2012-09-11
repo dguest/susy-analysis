@@ -30,8 +30,14 @@ public:
 }; 
 
 
-std::map<std::string, int> run_cutflow(std::vector<std::string> files, 
-				       RunInfo info); 
+namespace cutflag { 
+  const unsigned verbose = 1u << 0; 
+}
+
+
+std::map<std::string, int> 
+run_cutflow(std::vector<std::string> files, 
+	    RunInfo info, const unsigned flags = 0); 
 
 
 
@@ -63,8 +69,8 @@ bool check_if_muon(int iMu,
 		   const RunInfo&);
 
 /*TVector2 get_MET(const susy& buffer, 
-		  SUSYObjDef& def, 
-		  const RunInfo&); */
+  SUSYObjDef& def, 
+  const RunInfo&); */
 class BaselineJet:public TLorentzVector { 
 public: 
   BaselineJet(const susy& buffer, int jet_index); 
