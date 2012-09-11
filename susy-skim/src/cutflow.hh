@@ -17,7 +17,11 @@ class BaselineJet;
 struct RunInfo { 
   bool is_data; 
   int run_number; 
+  bool is_signal; 
 }; 
+
+static const double MeV = 1.0; 
+static const double GeV = 1000.0*MeV; 
 
 class SmartChain: public TChain { 
 public: 
@@ -26,7 +30,8 @@ public:
 }; 
 
 
-std::map<std::string, int> run_cutflow(std::vector<std::string> files); 
+std::map<std::string, int> run_cutflow(std::vector<std::string> files, 
+				       RunInfo info); 
 
 
 

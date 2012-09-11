@@ -3,7 +3,9 @@
 #include <iostream>
 #include <fstream>
 #include <string> 
+#include <streambuf>
 #include <cassert>
+#include <cstdlib>
 #include <map>
 #include "TChain.h"
 #include "TVector2.h"
@@ -11,6 +13,8 @@
 #include <stdexcept> 
 #include "SUSYTools/SUSYObjDef.h"
 #include "SUSYTools/FakeMetEstimator.h"
+
+#include <boost/format.hpp>
 
 /* NOTES:
 
@@ -41,19 +45,27 @@ int main (int narg, char* argv[])
     input_files.push_back(argv[n]); 
   }
 
+  RunInfo info; 
+  info.is_data = false; 
+  info.run_number = 180614; 
+  info.is_signal = true; 
+  srand(0); 
 
   // run the main routine 
-  std::map<std::string, int> cut_counters = run_cutflow(input_files); 
+  std::map<std::string, int> cut_counters = run_cutflow(input_files, info); 
 
   // output cutflow to file
   std::ofstream cutflow_textfile("cutflow.txt"); 
+
+  float firstcut = cut_counters["00_events"]; 
   
   for (std::map<std::string, int>::const_iterator 
 	 cut_itr = cut_counters.begin(); 
        cut_itr != cut_counters.end(); 
        cut_itr++) { 
-    std::cout << cut_itr->second << " events pass cut " 
-	      << cut_itr->first << std::endl; 
+    std::cout << boost::format("%i events pass %s (%.2f%%)\n") % 
+      cut_itr->second % cut_itr->first % 
+      ( float(cut_itr->second) * 100 / firstcut) ; 
     cutflow_textfile << cut_itr->second << " events pass cut " 
 		     << cut_itr->first << std::endl; 
 
@@ -65,7 +77,8 @@ int main (int narg, char* argv[])
 
 }
  
-std::map<std::string, int> run_cutflow(std::vector<std::string> files) {  
+std::map<std::string, int> run_cutflow(std::vector<std::string> files, 
+				       RunInfo info) {  
 
   TChain* input_chain = new TChain("susy"); 
 
@@ -85,33 +98,28 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files) {
   FakeMetEstimator fakeMetEst;
 
   SUSYObjDef def; 
-  RunInfo info; 
-  info.is_data = false; 
-  info.run_number = 180614; 
 
-  susy buffer(input_chain); 
+  // unsigned branches = branches::run_num | branches::trigger; 
+  unsigned branches = branches::all; 
+
+  susy buffer(input_chain, branches); 
   int n_entries = input_chain->GetEntries(); 
 
-  std::cout << n_entries << " entries in chain" << std::endl; 
 
-  
+  // create a textfile to for annoying susytools output
+  std::streambuf* oldCoutStreamBuf = std::cout.rdbuf();
+  ofstream strCout("susy_noise.txt", ios_base::out | ios_base::trunc);
+  std::cout.rdbuf( strCout.rdbuf() );
+  std::cerr.rdbuf( strCout.rdbuf() );
+    
   def.initialize(info.is_data); 
 
+  // Restore old cout.
+  std::cout.rdbuf( oldCoutStreamBuf );
+
+
   std::map<std::string, int> cut_counters; 
-  cut_counters["10_events"]=0;
-  cut_counters["11_lar_error"] = 0; 
-  cut_counters["12_lar_hole_veto"]=0;
-  cut_counters["13_badjet"]=0;
-  cut_counters["14_GoodPV"]=0;
-  cut_counters["15_ishfor"]=0;
-  cut_counters["16_trigger"]=0;
-  cut_counters["17_UsedJetsSize"]=0;
-  cut_counters["18_UsedJetsPt"]=0;
-  cut_counters["19_MET"]=0;
-  cut_counters["20_goodEl"]=0;
-  cut_counters["21_goodMu"]=0;
-  cut_counters["22_deltaPhi"]=0;
-  cut_counters["23_ctag"]=0;
+  
 
   // looping through events
 
@@ -127,7 +135,7 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files) {
       std::cout.flush(); 
     }
 
-    cut_counters["10_events"]++;
+    cut_counters["00_events"]++;
 
 
     input_chain->GetEntry(evt_n); 
@@ -137,243 +145,220 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files) {
 
     def.Reset(); 
     
-   bool trigger=false;
-   bool isSignal=false;
+    bool trigger=false;
       
-   //if(basename2.Contains("Stop_") && basename2.Contains("private") && basename2.Contains("cl_xqcut")){
+    //if(basename2.Contains("Stop_") && basename2.Contains("private") && basename2.Contains("cl_xqcut")){
 
-
-   //note to self: npos returned if it can't find a position for that string
-   if((files.at(0).find_first_of("Stop_") != std::string::npos) &&
-      (files.at(0).find_first_of("private") !=std::string::npos) &&
-      (files.at(0).find_first_of("cl_xqcut") !=std::string::npos)){
-
-
-     //if(isSignal){  --temporary hack
-     trigger=false;
-     gRandom= new TRandom3(0);
+    if(info.is_signal){
+      trigger=false;
+      //We have no runnumbers in our Stop-samples, so we create a random number to determine what trigger is being used for which event (depending on the luminosities of the periods and the used triggers) 
+      // EF_xe70_noMu: perdiod B-K
+      // EF_xe60_verytight_noMu: period L-M
   
-     //We have no runnumbers in our Stop-samples, so we create a random number to determine what trigger is being used for which event (depending on the luminosities of the periods and the used triggers) 
-     // EF_xe70_noMu: perdiod B-K
-     // EF_xe60_verytight_noMu: period L-M
-  
-     float rndnr=gRandom->Rndm(0)*4689.68;
-     //cout << rndnr << endl;
-     if(rndnr>2281.26){
-       if(buffer.EF_xe70_noMu) trigger=true;
-     }
-     else{
-       if(buffer.EF_xe60_verytight_noMu) trigger=true;
-     }
-   }else{
-     trigger=false;
-     if(buffer.RunNumber<=187815 && buffer.EF_xe70_noMu) trigger=true;
-     if(buffer.RunNumber>187815 && buffer.RunNumber<=191933&& buffer.EF_xe60_verytight_noMu) trigger=true;
-   }
+      float rand_float = float(rand() ) / float(RAND_MAX); 
+
+      const float frac_lumi_at_trig_swap = 2281.26 / 4689.68; 
+
+      //cout << rndnr << endl;
+      if(rand_float < frac_lumi_at_trig_swap){
+	if(buffer.EF_xe70_noMu) trigger = true;
+      }
+      else{
+	if(buffer.EF_xe60_verytight_noMu) trigger = true;
+      }
+    }else{
+      trigger=false;
+      if(buffer.RunNumber <= 187815 && buffer.EF_xe70_noMu) trigger=true;
+      if(buffer.RunNumber >  187815 && buffer.RunNumber <= 191933 && buffer.EF_xe60_verytight_noMu) trigger=true;
+    }
+
    
+    // event preselection preparation
    
-   // event preselection preparation
-   
-   const int n_jets = buffer.jet_AntiKt4TopoNewEM_n; 
-   const int n_el = buffer.el_n;
-   const int n_mu = buffer.mu_staco_n; // I'm pretty sure we're using staco
+    const int n_jets = buffer.jet_AntiKt4TopoNewEM_n; 
+    const int n_el = buffer.el_n;
+    const int n_mu = buffer.mu_staco_n; // I'm pretty sure we're using staco
  
-   TVector2 met(buffer.MET_Simplified20_RefFinal_etx, 
-		buffer.MET_Simplified20_RefFinal_ety); 
+    TVector2 met(buffer.MET_Simplified20_RefFinal_etx, 
+		 buffer.MET_Simplified20_RefFinal_ety); 
 
   
    
    
-   std::vector<BaselineJet> baseline_jets; 
+    std::vector<BaselineJet> baseline_jets; 
    
-   bool badjet_loose = false;
+    bool badjet_loose = false;
 
-   for (int jet_n = 0; jet_n < n_jets; jet_n++){ 
+    for (int jet_n = 0; jet_n < n_jets; jet_n++){ 
     
-     //add the "standard quality" cuts here ************************
-     //JVF>0.75, pt>20GeV, isGoodJet (from SUSYTools), ...)
+      //add the "standard quality" cuts here ************************
+      //JVF>0.75, pt>20GeV, isGoodJet (from SUSYTools), ...)
 
-
-     if( buffer.jet_AntiKt4TopoNewEM_pt->at(jet_n) < 20)
-       continue;
-
-     
+      if( buffer.jet_AntiKt4TopoNewEM_pt->at(jet_n) < 20*GeV)
+	continue;
     
 
-     //this is where the jet is built 
-     baseline_jets.push_back(BaselineJet(buffer, jet_n)); 
-   }
+      //this is where the jet is built 
+      baseline_jets.push_back(BaselineJet(buffer, jet_n)); 
+    }
 
 
 
-   for( int i = 0; i < baseline_jets.size(); i++){
-     BaselineJet jet = baseline_jets.at(i);
+    for( size_t i = 0; i < baseline_jets.size(); i++){
+      BaselineJet jet = baseline_jets.at(i);
  
-     bool is_jet = check_if_jet(jet.jet_index(), buffer, def, info); 
-     // ... fill jets here 
+      bool is_jet = check_if_jet(jet.jet_index(), buffer, def, info); 
+      // ... fill jets here 
 
-     if(!is_jet) badjet_loose = true; }
+      if(!is_jet) badjet_loose = true; }
    
-   // unless we start doing something with them we can just count the good el
-   int n_good_electrons = 0; 
-   for (int el_n = 0; el_n < n_el; el_n++){
-     bool isElectron = check_if_electron(el_n, buffer, def, info);
-     if (isElectron) n_good_electrons++; 
-   }
+    // unless we start doing something with them we can just count the good el
+    int n_good_electrons = 0; 
+    for (int el_n = 0; el_n < n_el; el_n++){
+      bool isElectron = check_if_electron(el_n, buffer, def, info);
+      if (isElectron) n_good_electrons++; 
+    }
 
-   int n_good_muons = 0; 
-   for (int mu_n = 0; mu_n < n_mu; mu_n++){
+    int n_good_muons = 0; 
+    for (int mu_n = 0; mu_n < n_mu; mu_n++){
 
-     /*part of the badz0wrtPVmuon cut - complete later if needed
-     muon.isCosmic = def.IsCosmicMuon(mu_staco_z0_exPV->at(mu_n),
-				      mu_staco_d0_exPV->at(mu_n),
-				      5.,
-				      2.); */
+      /*part of the badz0wrtPVmuon cut - complete later if needed
+	muon.isCosmic = def.IsCosmicMuon(mu_staco_z0_exPV->at(mu_n),
+	mu_staco_d0_exPV->at(mu_n),
+	5.,
+	2.); */
 
-     bool isMuon = check_if_muon(mu_n, buffer, def, info);
-     if (isMuon) n_good_muons++; 
-   }
+      bool isMuon = check_if_muon(mu_n, buffer, def, info);
+      if (isMuon) n_good_muons++; 
+    }
 
 
 
-   bool ishforveto = false;
+    bool ishforveto = false;
     
-   //ishforveto cut setup 
-     if(!info.is_data){
-       if (buffer.top_hfor_type==4)  ishforveto = true;
+    //ishforveto cut setup 
+    if(!info.is_data){
+      if (buffer.top_hfor_type==4)  ishforveto = true;
 
-     }
+    }
      
-     //---------------------------------------------------
-     //Cleanup Cuts:
+    //---------------------------------------------------
+    //Cleanup Cuts:
   
      
-     bool lar_error = buffer.larError;
-     if(lar_error)
-     continue;
-     cut_counters["11_lar_error"]++; 
+    bool lar_error = buffer.larError;
+    if(lar_error)
+      continue;
+    cut_counters["01_lar_error"]++; 
      
      
-     if(IsSmartLArHoleVeto( met,
-			    fakeMetEst,
-			    buffer, 
-			    def, 
-			    baseline_jets))
-     continue;     
-     cut_counters["12_lar_hole_veto"]++;
+    if(IsSmartLArHoleVeto( met,
+			   fakeMetEst,
+			   buffer, 
+			   def, 
+			   baseline_jets))
+      continue;     
+    cut_counters["02_lar_hole_veto"]++;
   
     
 
-     if(badjet_loose) 
-     continue;
-     cut_counters["13_badjet"]++;
+    if(badjet_loose) 
+      continue;
+    cut_counters["03_badjet"]++;
   
 
 
     // if(badz0wrtPVmuon)  to be completed
     // continue;
        
-     if(!def.IsGoodVertex(buffer.vx_nTracks))
-     continue;
-     cut_counters["14_GoodPV"]++;
+    if(!def.IsGoodVertex(buffer.vx_nTracks))
+      continue;
+    cut_counters["04_GoodPV"]++;
   
 	 
-     if(ishforveto) 
-     continue;
-     cut_counters["15_ishfor"]++;
+    if(ishforveto) 
+      continue;
+    cut_counters["05_ishfor"]++;
   
      
-     //------------------------------------------------
-     //Preselection cuts
+    //------------------------------------------------
+    //Preselection cuts
      
      
-     if(!trigger)
-     continue;
-     cut_counters["16_trigger"]++;
-  
+    if(!trigger)
+      continue;
+    cut_counters["06_trigger"]++;
+
      
-     if(baseline_jets.size()<3)
-     continue;
-     cut_counters["17_UsedJetsSize"]++;
+    if(baseline_jets.size()<3)
+      continue;
+    cut_counters["07_UsedJetsSize"]++;
  
 
 
-     bool jetAbove150 = false;
-     //could move this for loop up with the others. cleaner?
-     for (unsigned i=0;i<baseline_jets.size();i++){
-       if(baseline_jets.at(i).Pt() > 150) jetAbove150 = true;
-     }
+    bool jetAbove150 = false;
+    //could move this for loop up with the others. cleaner?
+    for (unsigned i=0;i<baseline_jets.size();i++){
+      if(baseline_jets.at(i).Pt() > 150*GeV) jetAbove150 = true;
+    }
      
-     if(!jetAbove150)
-     continue;
-     cut_counters["18_UsedJetsPt"]++;
+    if(!jetAbove150)
+      continue;
+    cut_counters["08_UsedJetsPt"]++;
 		
 
 
-     //correct implementation? 
-     if(met.Mod()<=150)
-     continue;
-     cut_counters["19_MET"]++;
+    //correct implementation? 
+    if(met.Mod() <= 150*GeV)
+      continue;
+    cut_counters["09_MET"]++;
 
-     //no electrons
-     if(n_good_electrons>=1)
-     continue;
-     cut_counters["20_goodEl"]++;
+    //no electrons
+    if(n_good_electrons>=1)
+      continue;
+    cut_counters["10_goodEl"]++;
 
-     //no muons
-     if(n_good_muons>=1)
-     continue;
-     cut_counters["21_goodMu"]++;
+    //no muons
+    if(n_good_muons>=1)
+      continue;
+    cut_counters["11_goodMu"]++;
 
     
-     //For DeltaPhi cut
-     TLorentzVector sumjets; 
-     for(unsigned i=0;i<baseline_jets.size();i++){
+    //For DeltaPhi cut
+    TLorentzVector sumjets; 
+    for(unsigned i=0;i<baseline_jets.size();i++){
      
-     sumjets+= baseline_jets.at(i);
+      sumjets+= baseline_jets.at(i);
 
 
-     }
+    }
 
-     // double sumPhi = sumjets.Phi();
-     // double metPhi = met.Phi();
+    // double sumPhi = sumjets.Phi();
+    // double metPhi = met.Phi();
 
-     double delta = fabs(met.Phi() - sumjets.Phi());
-     if(delta > M_PI)    delta = fabs(delta - 2*M_PI);
+    double delta = fabs(met.Phi() - sumjets.Phi());
+    if(delta > M_PI)    delta = fabs(delta - 2*M_PI);
 
-     if(delta < 0.4)
-     continue;
-     cut_counters["22_deltaPhi"]++;
+    if(delta < 0.4)
+      continue;
+    cut_counters["12_deltaPhi"]++;
      
     
 
-     //ctag > 2 cut
-     int ctagJets = 0;
-     for (unsigned i=0;i<baseline_jets.size();i++){
+    //ctag > 2 cut
+    int ctagJets = 0;
+    for (unsigned i=0;i<baseline_jets.size();i++){
      
-     if(baseline_jets.at(i).combNN_btag() > -2 
-     && baseline_jets.at(i).combNN_btag() < 4)
-     ctagJets++;
+      if(baseline_jets.at(i).combNN_btag() > -2 
+	 && baseline_jets.at(i).combNN_btag() < 4)
+	ctagJets++;
      
-     } 
+    } 
 
-     if(ctagJets<2)
-     continue;
-     cut_counters["23_ctag"]++;
+    if(ctagJets<2)
+      continue;
+    cut_counters["13_ctag"]++;
 
-     
-     
-     
-   
-   
-
-	   
-
-     /*   std::cout << buffer.el_n << " electrons in event " << evt_n
-		     << std::endl; 
-	   std::cout << "in crack? " << (def.IsInCrack(0.4) ? "yes":"no" )
-	   << std::endl; 
-*/
  
   }
   std::cout << "\n"; 
