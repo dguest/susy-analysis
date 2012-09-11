@@ -37,23 +37,25 @@ static PyObject* py_cutflow(PyObject *self,
     return NULL; 
   }
 
-  PyObject* out_dict = PyDict_New(); 
+  PyObject* out_list = PyList_New(0); 
   for (std::map<std::string, int>::const_iterator itr = pass_numbers.begin(); 
        itr != pass_numbers.end(); 
        itr++){ 
-    PyObject* count = PyInt_FromLong(itr->second); 
-    if(PyDict_SetItemString(out_dict,itr->first.c_str(),count)) { 
+    // PyObject* count = PyInt_FromLong(itr->second); 
+    // PyObject* name = PyString_FromString(itr->first.c_str()); 
+    PyObject* tuple = Py_BuildValue("si", itr->first.c_str(), itr->second);
+    if(PyList_Append(out_list,tuple)) { 
       return NULL; 
     }
   }
   
-  return out_dict; 
+  return out_list; 
 
 }
 
 static PyMethodDef methods[] = {
   {"_cutflow", py_cutflow, METH_VARARGS, 
-   "cutflow(input_file, flags) --> cuts_dict\n"
+   "cutflow(input_file, flags) --> cuts_list\n"
    "flags:\n"
    "\tv: verbose\n"},
   {NULL, NULL, 0, NULL}   /* sentinel */
