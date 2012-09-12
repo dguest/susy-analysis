@@ -13,8 +13,10 @@ static PyObject* py_cutflow(PyObject *self,
 {
   const char* input_file; 
   const char* flags_str = ""; 
-    
-  bool ok = PyArg_ParseTuple(args,"s|s:cutflow", &input_file, &flags_str); 
+
+  RunInfo info; 
+  bool ok = PyArg_ParseTuple
+    (args,"si|s:cutflow", &input_file, &info.run_number, &flags_str); 
   if (!ok) return NULL;
 
   std::vector<std::string> input_files; 
@@ -22,11 +24,8 @@ static PyObject* py_cutflow(PyObject *self,
   
   unsigned flags = 0; 
   if (strchr(flags_str,'v')) flags |= cutflag::verbose; 
-
-  RunInfo info; 
-  info.is_data = false; 
-  info.run_number = 180614; 
-  info.is_signal = true; 
+  if (strchr(flags_str,'d')) flags |= cutflag::is_data; 
+  if (strchr(flags_str,'s')) flags |= cutflag::is_signal; 
 
   std::map<std::string, int> pass_numbers; 
   try { 
@@ -41,8 +40,6 @@ static PyObject* py_cutflow(PyObject *self,
   for (std::map<std::string, int>::const_iterator itr = pass_numbers.begin(); 
        itr != pass_numbers.end(); 
        itr++){ 
-    // PyObject* count = PyInt_FromLong(itr->second); 
-    // PyObject* name = PyString_FromString(itr->first.c_str()); 
     PyObject* tuple = Py_BuildValue("si", itr->first.c_str(), itr->second);
     if(PyList_Append(out_list,tuple)) { 
       return NULL; 

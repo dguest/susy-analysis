@@ -15,9 +15,7 @@ class SelectedJet;
 #include <map>
 
 struct RunInfo { 
-  bool is_data; 
   int run_number; 
-  bool is_signal; 
 }; 
 
 static const double MeV = 1.0; 
@@ -31,7 +29,9 @@ public:
 
 
 namespace cutflag { 
-  const unsigned verbose = 1u << 0; 
+  const unsigned verbose   = 1u << 0; 
+  const unsigned is_data   = 1u << 1; 
+  const unsigned is_signal = 1u << 2;  
 }
 
 
@@ -51,17 +51,18 @@ bool IsSmartLArHoleVeto(TVector2 met,
 bool check_if_jet(int jet_n, 
 		  const susy& buffer, 
 		  SUSYObjDef& def, 
-		  const RunInfo&); 
+		  const unsigned flags); 
 
 bool check_if_electron(int iEl,
 		       const susy& buffer, 
 		       SUSYObjDef& def, 
-		       const RunInfo&);
+		       const unsigned flags, 
+		       const RunInfo& info);
 
 bool check_if_muon(int iMu,
 		   const susy& buffer, 
 		   SUSYObjDef& def, 
-		   const RunInfo&);
+		   const unsigned flags);
 
 class TrigSimulator { 
 public: 

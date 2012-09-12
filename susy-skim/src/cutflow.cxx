@@ -46,13 +46,16 @@ int main (int narg, char* argv[])
   }
 
   RunInfo info; 
-  info.is_data = false; 
   info.run_number = 180614; 
-  info.is_signal = true; 
   srand(0); 
+  using namespace cutflag; 
+  unsigned flags = verbose | is_signal; 
+
 
   // run the main routine 
-  std::map<std::string, int> cut_counters = run_cutflow(input_files, info); 
+  std::map<std::string, int> cut_counters = run_cutflow(input_files, 
+							info, 
+							flags); 
 
   // we can sort the cuts by using the passing number as the key
   std::multimap<int, std::string> counters_cuts; 
@@ -117,7 +120,7 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files,
   std::cout.rdbuf( strCout.rdbuf() );
   std::cerr.rdbuf( strCout.rdbuf() );
     
-  def.initialize(info.is_data); 
+  def.initialize(flags & cutflag::is_data); 
 
   // Restore old cout.
   if (flags & cutflag::verbose) { 
@@ -148,7 +151,7 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files,
     
     bool trigger = false;
 
-    if(info.is_signal){
+    if(flags & cutflag::is_signal){
       trigger = trig_simulator.get_decision(buffer); 
       
     }else{
@@ -186,7 +189,7 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files,
     for( size_t i = 0; i < selected_jets.size(); i++){
       SelectedJet jet = selected_jets.at(i);
  
-      bool is_jet = check_if_jet(jet.jet_index(), buffer, def, info); 
+      bool is_jet = check_if_jet(jet.jet_index(), buffer, def, flags); 
       // ... fill jets here 
 
       if(!is_jet) badjet_loose = true; }
@@ -194,7 +197,7 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files,
     // unless we start doing something with them we can just count the good el
     int n_good_electrons = 0; 
     for (int el_n = 0; el_n < n_el; el_n++){
-      bool isElectron = check_if_electron(el_n, buffer, def, info);
+      bool isElectron = check_if_electron(el_n, buffer, def, flags, info);
       if (isElectron) n_good_electrons++; 
     }
 
@@ -207,14 +210,14 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files,
 	5.,
 	2.); */
 
-      bool isMuon = check_if_muon(mu_n, buffer, def, info);
+      bool isMuon = check_if_muon(mu_n, buffer, def, flags);
       if (isMuon) n_good_muons++; 
     }
 
     bool ishforveto = false;
     
     //ishforveto cut setup 
-    if(!info.is_data){
+    if(! flags & cutflag::is_data){
       if (buffer.top_hfor_type==4)  ishforveto = true;
 
     }
@@ -413,6 +416,7 @@ bool IsSmartLArHoleVeto(TVector2 met,
 bool check_if_electron(int iEl,
 		       const susy& buffer,
 		       SUSYObjDef& def,
+		       const unsigned flags, 
 		       const RunInfo& info){
   return def.IsElectron
     (iEl,
@@ -429,7 +433,7 @@ bool check_if_electron(int iEl,
      buffer.el_nSCTHits              ->at(iEl),
      // buffer.el_weta2                 ->at(iEl),
      0,
-     info.is_data,
+     flags & cutflag::is_data,
      20000.,                         //et cut
      2.47,                          //eta cut
      SystErr::NONE);
@@ -441,7 +445,7 @@ bool check_if_electron(int iEl,
 bool check_if_muon(int iMu,
 		   const susy& buffer,
 		   SUSYObjDef& def,
-		   const RunInfo& info){
+		   const unsigned flags){
 
   return def.IsMuon
     (iMu,
@@ -467,7 +471,7 @@ bool check_if_muon(int iMu,
      buffer.mu_staco_nSCTHoles                    ->at(iMu),
      buffer.mu_staco_nTRTHits                     ->at(iMu),
      buffer.mu_staco_nTRTOutliers                 ->at(iMu),
-     info.is_data,
+     flags & cutflag::is_data,
      10000.,                      //pt cut
      2.4,                         //eta cut
      SystErr::NONE);
@@ -479,7 +483,7 @@ bool check_if_muon(int iMu,
 bool check_if_jet(int iJet, 
 		  const susy& buffer, 
 		  SUSYObjDef& def, 
-		  const RunInfo& info){ 
+		  const unsigned flags){ 
     
   return def.IsJet
     (iJet, 
@@ -505,7 +509,7 @@ bool check_if_jet(int iJet,
      buffer.jet_AntiKt4TopoNewEM_MOrigin            ->at(iJet), 
      buffer.averageIntPerXing,
      buffer.vx_nTracks,             
-     info.is_data, 
+     flags & cutflag::is_data, 
      20000., 			// pt cut
      10,			// eta cut - changed from 2.8 for testing
      JetID::VeryLooseBad,
