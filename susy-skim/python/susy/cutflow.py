@@ -1,5 +1,17 @@
-import _cutflow as cf
+import _cutflow 
 import warnings
+
+run_number = 180614
+
+def cutflow(input_file, run_number, flags): 
+    """
+    Python-level interface for the compiled cutflow routine. 
+    Flags: 
+        v: verbose
+        d: is data
+        s: is signal
+    """
+    return _cutflow._cutflow(input_file, run_number, flags)
 
 
 class NormedCutflow(object): 
@@ -25,12 +37,15 @@ class NormedCutflow(object):
             raise LookupError('no {} found in {}'.format(
                     file_name, self._norm_file_name))
 
-        cut_counts = cf._cutflow(input_file, 'v')
+        cut_counts = cutflow(input_file, run_number, 'vs')
         
                               
 
 def print_raw_cutflow(input_file): 
-    cut_counts = cf._cutflow(input_file, 'v')
+    """
+    prints the raw cutflow, descending in n passing cut
+    """
+    cut_counts = cutflow(input_file, run_number, 'vs')
     sorted_counts = sorted(cut_counts, key=lambda cut: cut[1], reverse=True)
     for name, count in sorted_counts: 
         print '{:>20}: {}'.format(name,count)
