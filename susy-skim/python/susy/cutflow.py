@@ -37,7 +37,7 @@ class NormedCutflow(object):
             evts = int(spl[4])
             yield short_name, xsec, evts
 
-    def get_normed_counts(self, ds_key): 
+    def get_normed_counts(self, ds_key, lumi = 4700.0): 
         
         if not ds_key in self._norm_dict: 
             raise LookupError('no {} found in {}'.format(
@@ -70,9 +70,9 @@ class NormedCutflow(object):
                     ds_key, n_events, xsec_events, frac_in_file - 1), 
                 stacklevel=2)
         
-        robust_xsec =  cross_section / frac_in_file
+        int_xsec_per_evt =  cross_section / float(n_events) * lumi
 
-        normed_counts = {n: c * robust_xsec for n,c in cut_counts}
+        normed_counts = {n: c * int_xsec_per_evt for n,c in cut_counts}
 
         return normed_counts
         
