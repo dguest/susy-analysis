@@ -68,23 +68,31 @@ bool check_if_muon(int iMu,
 		   SUSYObjDef& def, 
 		   const RunInfo&);
 
+class TrigSimulator { 
+public: 
+  TrigSimulator(float fraction_preswap = 2281.26 / 4689.68); 
+  bool get_decision(const susy&); 
+private: 
+  float m_frac_preswap; 
+}; 
+
 /*TVector2 get_MET(const susy& buffer, 
   SUSYObjDef& def, 
   const RunInfo&); */
 class BaselineJet:public TLorentzVector { 
 public: 
   BaselineJet(const susy& buffer, int jet_index); 
-  double combNN_btag(); 
-  int jet_index();
-  double jfitcomb_cu(const susy& buffer, int jet_index);
-  double jfitcomb_cb(const susy& buffer, int jet_index);
+  double combNN_btag() const; 
+  int jet_index() const;
+  double jfitcomb_cu(const susy& buffer, int jet_index) const;
+  double jfitcomb_cb(const susy& buffer, int jet_index) const;
 private: 
   double m_combNN_btag_wt; 
   int m_jet_index;
-  double cu;
-  double cb; 
-  double m_cu;
-  double m_cb;
+  // double cu;
+  // double cb; 
+  // double m_cu;
+  // double m_cb;
 }; 
 
 
