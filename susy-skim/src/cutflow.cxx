@@ -54,24 +54,26 @@ int main (int narg, char* argv[])
   // run the main routine 
   std::map<std::string, int> cut_counters = run_cutflow(input_files, info); 
 
-  // output cutflow to file
-  std::ofstream cutflow_textfile("cutflow.txt"); 
-
-  float firstcut = cut_counters["00_events"]; 
-  
+  // we can sort the cuts by using the passing number as the key
+  std::multimap<int, std::string> counters_cuts; 
   for (std::map<std::string, int>::const_iterator 
-	 cut_itr = cut_counters.begin(); 
-       cut_itr != cut_counters.end(); 
-       cut_itr++) { 
-    std::cout << boost::format("%i events pass %s (%.2f%%)\n") % 
-      cut_itr->second % cut_itr->first % 
-      ( float(cut_itr->second) * 100 / firstcut) ; 
-    cutflow_textfile << cut_itr->second << " events pass cut " 
-		     << cut_itr->first << std::endl; 
-
+	 itr = cut_counters.begin(); 
+       itr != cut_counters.end(); 
+       itr++) { 
+    counters_cuts.insert(std::pair<int, std::string>(itr->second,itr->first));
   }
 
-  cutflow_textfile.close(); 
+  float firstcut = float(counters_cuts.rbegin()->first); 
+  
+  for (std::multimap<int,std::string>::const_reverse_iterator 
+	 cut_itr = counters_cuts.rbegin(); 
+       cut_itr != counters_cuts.rend(); 
+       cut_itr++) { 
+    std::cout << boost::format("%i events pass %s (%.2f%%)\n") % 
+      cut_itr->first % cut_itr->second % 
+      ( float(cut_itr->first) * 100 / firstcut) ; 
+
+  }
 
   return 0; 
 
