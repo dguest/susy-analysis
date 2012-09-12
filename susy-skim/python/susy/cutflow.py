@@ -38,6 +38,10 @@ class NormedCutflow(object):
             yield short_name, xsec, evts
 
     def get_normed_counts(self, ds_key, lumi = 4700.0): 
+        """
+        Gets lumi-normalized cut counts for dataset identified by ds_key. 
+        For now, will build a cache file from a file <ds_key>.root
+        """
         
         if not ds_key in self._norm_dict: 
             raise LookupError('no {} found in {}'.format(
