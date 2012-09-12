@@ -5,7 +5,7 @@ class susy;
 class SUSYObjDef; 
 class TVector2; 
 class FakeMetEstimator;
-class BaselineJet;
+class SelectedJet;
 
 #include "TLorentzVector.h"
 #include "TVector2.h"
@@ -45,7 +45,7 @@ bool IsSmartLArHoleVeto(TVector2 met,
 			FakeMetEstimator& fakeMetEst,
 			const susy& buffer, 
 			SUSYObjDef& def, 
-			std::vector<BaselineJet> baseline_jets );
+			std::vector<SelectedJet> baseline_jets );
 
 
 bool check_lar_hole_veto(int jet_n, 
@@ -79,9 +79,9 @@ private:
 /*TVector2 get_MET(const susy& buffer, 
   SUSYObjDef& def, 
   const RunInfo&); */
-class BaselineJet:public TLorentzVector { 
+class SelectedJet: public TLorentzVector { 
 public: 
-  BaselineJet(const susy& buffer, int jet_index); 
+  SelectedJet(const susy& buffer, int jet_index); 
   double combNN_btag() const; 
   int jet_index() const;
   double jfitcomb_cu(const susy& buffer, int jet_index) const;

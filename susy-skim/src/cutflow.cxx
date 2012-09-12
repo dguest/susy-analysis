@@ -165,7 +165,7 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files,
     TVector2 met(buffer.MET_Simplified20_RefFinal_etx, 
 		 buffer.MET_Simplified20_RefFinal_ety); 
    
-    std::vector<BaselineJet> baseline_jets; 
+    std::vector<SelectedJet> selected_jets; 
    
     bool badjet_loose = false;
 
@@ -178,11 +178,11 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files,
 	continue;
 
       //this is where the jet is built 
-      baseline_jets.push_back(BaselineJet(buffer, jet_n)); 
+      selected_jets.push_back(SelectedJet(buffer, jet_n)); 
     }
 
-    for( size_t i = 0; i < baseline_jets.size(); i++){
-      BaselineJet jet = baseline_jets.at(i);
+    for( size_t i = 0; i < selected_jets.size(); i++){
+      SelectedJet jet = selected_jets.at(i);
  
       bool is_jet = check_if_jet(jet.jet_index(), buffer, def, info); 
       // ... fill jets here 
@@ -229,7 +229,7 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files,
 			   fakeMetEst,
 			   buffer, 
 			   def, 
-			   baseline_jets))
+			   selected_jets))
       continue;     
     cut_counters["lar_hole_veto"]++;
 
@@ -256,15 +256,15 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files,
     cut_counters["trigger"]++;
 
      
-    if(baseline_jets.size()<3)
+    if(selected_jets.size()<3)
       continue;
     cut_counters["n_jets_gt_3"]++;
  
 
     bool jetAbove150 = false;
     //could move this for loop up with the others. cleaner?
-    for (unsigned i=0;i<baseline_jets.size();i++){
-      if(baseline_jets.at(i).Pt() > 150*GeV) jetAbove150 = true;
+    for (unsigned i=0;i<selected_jets.size();i++){
+      if(selected_jets.at(i).Pt() > 150*GeV) jetAbove150 = true;
     }
      
     if(!jetAbove150)
@@ -289,8 +289,8 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files,
     
     //For DeltaPhi cut
     bool pass_dphi_veto = true; 
-    for(std::vector<BaselineJet>::const_iterator itr = baseline_jets.begin();
-	itr != baseline_jets.end(); itr++) { 
+    for(std::vector<SelectedJet>::const_iterator itr = selected_jets.begin();
+	itr != selected_jets.end(); itr++) { 
       double deltaphi = fabs(met.Phi() - itr->Phi()); 
       if(deltaphi > M_PI) deltaphi = fabs(deltaphi - 2*M_PI);
       if(deltaphi < 0.4){ 
@@ -307,8 +307,8 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files,
 
     //ctag > 2 cut
     int ctagJets = 0;
-    for(std::vector<BaselineJet>::const_iterator itr = baseline_jets.begin();
-	itr != baseline_jets.end(); itr++) { 
+    for(std::vector<SelectedJet>::const_iterator itr = selected_jets.begin();
+	itr != selected_jets.end(); itr++) { 
       if(itr->combNN_btag() > -2 &&
 	 itr->combNN_btag() < 4)
 	ctagJets++;
@@ -359,19 +359,19 @@ bool TrigSimulator::get_decision(const susy& buffer){
 }; 
 
   
-bool IsSmartLArHoleVeto(TVector2 met,FakeMetEstimator& fakeMetEst,const susy& buffer, SUSYObjDef& def, std::vector<BaselineJet> baseline_jets ) {
+bool IsSmartLArHoleVeto(TVector2 met,FakeMetEstimator& fakeMetEst,const susy& buffer, SUSYObjDef& def, std::vector<SelectedJet> selected_jets ) {
 
   bool isVeto=false; 
   
-  for (unsigned int j = 0; j<baseline_jets.size(); j++)
+  for (unsigned int j = 0; j<selected_jets.size(); j++)
     {
 
-      if(baseline_jets.at(j).Pt()<= 20.) continue;
-      if(def.IsLArHole(baseline_jets.at(j).Eta(),
-		       baseline_jets.at(j).Phi()))
+      if(selected_jets.at(j).Pt()<= 20.) continue;
+      if(def.IsLArHole(selected_jets.at(j).Eta(),
+		       selected_jets.at(j).Phi()))
 	{
 
-	  int d3pd_index = baseline_jets.at(j).jet_index();
+	  int d3pd_index = selected_jets.at(j).jet_index();
 	  //use jet pT after JES/JER
 	  if(fakeMetEst.isBad
 	     (buffer.jet_AntiKt4TopoNewEM_pt            ->at(d3pd_index),
@@ -386,11 +386,11 @@ bool IsSmartLArHoleVeto(TVector2 met,FakeMetEstimator& fakeMetEst,const susy& bu
 	      -1.)
 
 
-	     /* baseline_jets.at(j).Pt()*1e3,
-		baseline_jets.at(j).BCH_CORR_JET,
-		baseline_jets.at(j).BCH_CORR_CELL,
-		baseline_jets.at(j).BCH_CORR_DOTX,
-		baseline_jets.at(j).Phi(),
+	     /* selected_jets.at(j).Pt()*1e3,
+		selected_jets.at(j).BCH_CORR_JET,
+		selected_jets.at(j).BCH_CORR_CELL,
+		selected_jets.at(j).BCH_CORR_DOTX,
+		selected_jets.at(j).Phi(),
 		MET.Px()*1e3,
 		MET.Py()*1e3,
 		10000.,
@@ -576,7 +576,7 @@ bool check_if_jet(int iJet,
   
   
   
-BaselineJet::BaselineJet(const susy& buffer, int jet_index) { 
+SelectedJet::SelectedJet(const susy& buffer, int jet_index) { 
   double pt = buffer.jet_AntiKt4TopoNewEM_pt  ->at(jet_index); 
   double eta = buffer.jet_AntiKt4TopoNewEM_eta ->at(jet_index); 
   double phi = buffer.jet_AntiKt4TopoNewEM_phi ->at(jet_index); 
@@ -587,14 +587,14 @@ BaselineJet::BaselineJet(const susy& buffer, int jet_index) {
   m_combNN_btag_wt = buffer.jet_AntiKt4TopoNewEM_flavor_weight_JetFitterCOMBNN ->at(jet_index); 	// TODO: find this branch and set it
 }
   
-double BaselineJet::combNN_btag() const { 
+double SelectedJet::combNN_btag() const { 
   //std::cerr << "ERROR: this isn't defined yet\n"; 
   //assert(false); 
 
   return m_combNN_btag_wt;
 }
   
-double BaselineJet::jfitcomb_cu(const susy& buffer, int jet_index) const {
+double SelectedJet::jfitcomb_cu(const susy& buffer, int jet_index) const {
 
   double cu; 
   cu = buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pc->at(jet_index)
@@ -603,7 +603,7 @@ double BaselineJet::jfitcomb_cu(const susy& buffer, int jet_index) const {
   return log(cu);
 }
 
-double BaselineJet::jfitcomb_cb(const susy& buffer, int jet_index) const {
+double SelectedJet::jfitcomb_cb(const susy& buffer, int jet_index) const {
 
   double cb; 
   cb =  buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pc->at(jet_index) / buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pb->at(jet_index);
@@ -613,7 +613,7 @@ double BaselineJet::jfitcomb_cb(const susy& buffer, int jet_index) const {
  
 
  
-int BaselineJet::jet_index() const{
+int SelectedJet::jet_index() const{
 
   return m_jet_index;
 
