@@ -48,11 +48,6 @@ bool IsSmartLArHoleVeto(TVector2 met,
 			std::vector<SelectedJet> baseline_jets );
 
 
-bool check_lar_hole_veto(int jet_n, 
-			 const susy& buffer, 
-			 SUSYObjDef& def, 
-			 const RunInfo&); 
-
 bool check_if_jet(int jet_n, 
 		  const susy& buffer, 
 		  SUSYObjDef& def, 

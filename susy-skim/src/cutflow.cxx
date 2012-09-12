@@ -359,117 +359,54 @@ bool TrigSimulator::get_decision(const susy& buffer){
 }; 
 
   
-bool IsSmartLArHoleVeto(TVector2 met,FakeMetEstimator& fakeMetEst,const susy& buffer, SUSYObjDef& def, std::vector<SelectedJet> selected_jets ) {
-
-  bool isVeto=false; 
+bool IsSmartLArHoleVeto(TVector2 met,
+			FakeMetEstimator& fakeMetEst,
+			const susy& buffer, 
+			SUSYObjDef& def, 
+			std::vector<SelectedJet> selected_jets ) {
   
-  for (unsigned int j = 0; j<selected_jets.size(); j++)
-    {
-
-      if(selected_jets.at(j).Pt()<= 20.) continue;
-      if(def.IsLArHole(selected_jets.at(j).Eta(),
-		       selected_jets.at(j).Phi()))
-	{
-
-	  int d3pd_index = selected_jets.at(j).jet_index();
-	  //use jet pT after JES/JER
-	  if(fakeMetEst.isBad
-	     (buffer.jet_AntiKt4TopoNewEM_pt            ->at(d3pd_index),
-	      buffer.jet_AntiKt4TopoNewEM_BCH_CORR_JET  ->at(d3pd_index),
-	      buffer.jet_AntiKt4TopoNewEM_BCH_CORR_CELL ->at(d3pd_index),
-	      buffer.jet_AntiKt4TopoNewEM_BCH_CORR_DOTX ->at(d3pd_index),
-	      buffer.jet_AntiKt4TopoNewEM_phi           ->at(d3pd_index),
-	      met.Px()*1e3,
-	      met.Py()*1e3,
-	      10000.,
-	      -1.,
-	      -1.)
-
-
-	     /* selected_jets.at(j).Pt()*1e3,
-		selected_jets.at(j).BCH_CORR_JET,
-		selected_jets.at(j).BCH_CORR_CELL,
-		selected_jets.at(j).BCH_CORR_DOTX,
-		selected_jets.at(j).Phi(),
-		MET.Px()*1e3,
-		MET.Py()*1e3,
-		10000.,
-		10.,
-		-1.,
-		-1.)
-	     */
-	     ) {
-
-	    isVeto = true;
-	    break;
-
-	  }
-
-	}
-
+  for (unsigned int j = 0; j<selected_jets.size(); j++){
+    
+    if(selected_jets.at(j).Pt() <= 20.) continue;
+    if(!def.IsLArHole(selected_jets.at(j).Eta(),
+		     selected_jets.at(j).Phi())) {
+      continue; 
     }
 
-  return isVeto;
+    /* selected_jets.at(j).Pt()*1e3,
+       selected_jets.at(j).BCH_CORR_JET,
+       selected_jets.at(j).BCH_CORR_CELL,
+       selected_jets.at(j).BCH_CORR_DOTX,
+       selected_jets.at(j).Phi(),
+       MET.Px()*1e3,
+       MET.Py()*1e3,
+       10000.,
+       10.,
+       -1.,
+       -1.)
+    */
+      
+    int d3pd_index = selected_jets.at(j).jet_index();
+    //use jet pT after JES/JER
+    if(fakeMetEst.isBad
+       (buffer.jet_AntiKt4TopoNewEM_pt            ->at(d3pd_index),
+	buffer.jet_AntiKt4TopoNewEM_BCH_CORR_JET  ->at(d3pd_index),
+	buffer.jet_AntiKt4TopoNewEM_BCH_CORR_CELL ->at(d3pd_index),
+	buffer.jet_AntiKt4TopoNewEM_BCH_CORR_DOTX ->at(d3pd_index),
+	buffer.jet_AntiKt4TopoNewEM_phi           ->at(d3pd_index),
+	met.Px()*GeV,
+	met.Py()*GeV,
+	10000.,
+	-1.,
+	-1.)
+       ) {
+      return true; 
+    }
+  } // end jet loop
+
+  return false;
 
 }
-	  
-
-
-
-
-/*bool check_lar_hole_veto(int jet_n, const susy& buffer, SUSYObjDef& def, 
-			 const RunInfo& info ) { 
-  int n = jet_n; 
-  bool veto = def.IsLArHoleVeto
-    (buffer.jet_AntiKt4TopoNewEM_pt->at(n), 
-     buffer.jet_AntiKt4TopoNewEM_eta->at(n), 
-     buffer.jet_AntiKt4TopoNewEM_phi->at(n),
-     buffer.jet_AntiKt4TopoNewEM_BCH_CORR_JET->at(n), 
-     buffer.jet_AntiKt4TopoNewEM_BCH_CORR_CELL->at(n), 
-     info.is_data, 
-     40000., // pt cut, not sure why needed...
-     info.run_number);
-  if (veto) return true; 
-  return false; 
-}
-
-*/
-
-
-/*TVector2 get_MET(const susy& buffer, SUSYObjDef& def, const RunInfo& info){
-  std::vector<int> dummy; 
-  return def.GetMET
-    (buffer.jet_AntiKt4TopoNewEM_pt, // jacknife says this works... 
-     buffer.jet_AntiKt4TopoNewEM_MET_Simplified20_wet,
-     buffer.jet_AntiKt4TopoNewEM_MET_Simplified20_wpx,
-     buffer.jet_AntiKt4TopoNewEM_MET_Simplified20_wpy,
-     buffer.jet_AntiKt4TopoNewEM_MET_Simplified20_statusWord,
-     dummy, 		// hack
-     buffer.el_MET_Simplified20_wet,
-     buffer.el_MET_Simplified20_wpx,
-     buffer.el_MET_Simplified20_wpy,
-     buffer.el_MET_Simplified20_statusWord,
-     buffer.MET_SoftJets_etx,
-     buffer.MET_SoftJets_ety,
-     buffer.MET_SoftJets_sumet,
-     buffer.MET_CellOut_etx,
-     buffer.MET_CellOut_ety,
-     buffer.MET_CellOut_sumet,
-     buffer.MET_CellOut_Eflow_etx,
-     buffer.MET_CellOut_Eflow_ety,
-     buffer.MET_CellOut_Eflow_sumet,
-     buffer.MET_RefGamma_em_etx,
-     buffer.MET_RefGamma_em_ety,
-     buffer.MET_RefGamma_em_sumet,
-     dummy, 		// hack
-     buffer.mu_staco_ms_qoverp,
-     buffer.mu_staco_ms_theta,
-     buffer.mu_staco_ms_phi,
-     buffer.mu_staco_charge,
-     SystErr::NONE);
-}
-
-*/
 
 bool check_if_electron(int iEl,
 		       const susy& buffer,
