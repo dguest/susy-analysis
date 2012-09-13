@@ -26,6 +26,7 @@ static PyObject* py_cutflow(PyObject *self,
   if (strchr(flags_str,'v')) flags |= cutflag::verbose; 
   if (strchr(flags_str,'d')) flags |= cutflag::is_data; 
   if (strchr(flags_str,'s')) flags |= cutflag::is_signal; 
+  if (strchr(flags_str,'p')) flags |= cutflag::use_low_pt_jets; 
 
   std::map<std::string, int> pass_numbers; 
   try { 

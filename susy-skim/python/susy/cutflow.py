@@ -12,6 +12,7 @@ def cutflow(input_file, run_number, flags):
         v: verbose
         d: is data
         s: is signal
+        p: use low pt jets
     """
     return _cutflow._cutflow(input_file, run_number, flags)
 

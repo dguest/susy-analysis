@@ -179,11 +179,12 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files,
       //add the "standard quality" cuts here ************************
       //JVF>0.75, pt>20GeV, isGoodJet (from SUSYTools), ...)
 
-      if( buffer.jet_AntiKt4TopoNewEM_pt->at(jet_n) < 20*GeV)
-	continue;
-
+      bool low_pt_jet = buffer.jet_AntiKt4TopoNewEM_pt->at(jet_n) < 20*GeV;
+      
       //this is where the jet is built 
-      selected_jets.push_back(SelectedJet(buffer, jet_n)); 
+      if (!low_pt_jet || flags & cutflag::use_low_pt_jets) { 
+	selected_jets.push_back(SelectedJet(buffer, jet_n)); 
+      }
     }
 
     for( size_t i = 0; i < selected_jets.size(); i++){
@@ -192,7 +193,8 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files,
       bool is_jet = check_if_jet(jet.jet_index(), buffer, def, flags); 
       // ... fill jets here 
 
-      if(!is_jet) badjet_loose = true; }
+      if(!is_jet) badjet_loose = true; 
+    }
    
     // unless we start doing something with them we can just count the good el
     int n_good_electrons = 0; 
