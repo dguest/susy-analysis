@@ -1,5 +1,5 @@
 #include "cutflow.hh"
-#include "susy.h"
+#include "SusyBuffer.h"
 #include <iostream>
 #include <fstream>
 #include <string> 
@@ -85,7 +85,7 @@ int main (int narg, char* argv[])
 std::map<std::string, int> run_cutflow(std::vector<std::string> files, 
 				       RunInfo info, const unsigned flags) {  
 
-  TChain* input_chain = new TChain("susy"); 
+  SmartChain* input_chain = new SmartChain("susy"); 
 
   if (files.size() == 0) { 
     throw std::runtime_error("I need files to run!"); 
@@ -109,7 +109,7 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files,
   // unsigned branches = branches::run_num | branches::trigger; 
   unsigned branches = branches::all; 
 
-  susy buffer(input_chain, branches); 
+  SusyBuffer buffer(input_chain, branches); 
   int n_entries = input_chain->GetEntries(); 
 
 
@@ -345,7 +345,7 @@ TrigSimulator::TrigSimulator(float fraction_preswap):
 { 
 }
 
-bool TrigSimulator::get_decision(const susy& buffer){ 
+bool TrigSimulator::get_decision(const SusyBuffer& buffer){ 
   // We have no runnumbers in our Stop-samples, so we create a
   // random number to determine what trigger is being used for
   // which event (depending on the luminosities of the periods
@@ -368,7 +368,7 @@ bool TrigSimulator::get_decision(const susy& buffer){
   
 bool IsSmartLArHoleVeto(TVector2 met,
 			FakeMetEstimator& fakeMetEst,
-			const susy& buffer, 
+			const SusyBuffer& buffer, 
 			SUSYObjDef& def, 
 			std::vector<SelectedJet> selected_jets ) {
   
@@ -416,7 +416,7 @@ bool IsSmartLArHoleVeto(TVector2 met,
 }
 
 bool check_if_electron(int iEl,
-		       const susy& buffer,
+		       const SusyBuffer& buffer,
 		       SUSYObjDef& def,
 		       const unsigned flags, 
 		       const RunInfo& info){
@@ -445,7 +445,7 @@ bool check_if_electron(int iEl,
 }
 
 bool check_if_muon(int iMu,
-		   const susy& buffer,
+		   const SusyBuffer& buffer,
 		   SUSYObjDef& def,
 		   const unsigned flags){
 
@@ -483,7 +483,7 @@ bool check_if_muon(int iMu,
 
   
 bool check_if_jet(int iJet, 
-		  const susy& buffer, 
+		  const SusyBuffer& buffer, 
 		  SUSYObjDef& def, 
 		  const unsigned flags){ 
     
@@ -521,7 +521,7 @@ bool check_if_jet(int iJet,
   
   
   
-SelectedJet::SelectedJet(const susy& buffer, int jet_index) { 
+SelectedJet::SelectedJet(const SusyBuffer& buffer, int jet_index) { 
   double pt = buffer.jet_AntiKt4TopoNewEM_pt  ->at(jet_index); 
   double eta = buffer.jet_AntiKt4TopoNewEM_eta ->at(jet_index); 
   double phi = buffer.jet_AntiKt4TopoNewEM_phi ->at(jet_index); 
@@ -539,7 +539,8 @@ double SelectedJet::combNN_btag() const {
   return m_combNN_btag_wt;
 }
   
-double SelectedJet::jfitcomb_cu(const susy& buffer, int jet_index) const {
+double SelectedJet::jfitcomb_cu(const SusyBuffer& buffer, 
+				int jet_index) const {
 
   double cu; 
   cu = buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pc->at(jet_index)
@@ -548,7 +549,8 @@ double SelectedJet::jfitcomb_cu(const susy& buffer, int jet_index) const {
   return log(cu);
 }
 
-double SelectedJet::jfitcomb_cb(const susy& buffer, int jet_index) const {
+double SelectedJet::jfitcomb_cb(const SusyBuffer& buffer, 
+				int jet_index) const {
 
   double cb; 
   cb =  buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pc->at(jet_index) / buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pb->at(jet_index);
@@ -569,10 +571,12 @@ SmartChain::SmartChain(std::string tree_name):
 { 
 }
 
-void SmartChain::SetBranchAddress(std::string name, void** branch) { 
+void SmartChain::SetBranchAddress(std::string name, void* branch) { 
   int return_code = TChain::SetBranchAddress(name.c_str(), branch); 
-  if (return_code) { 
-    throw std::runtime_error(name); 
+  if (return_code != 0 && return_code != 5 ){ 
+    std::string issue = (boost::format("can not set %s , return code %i") % 
+			 name % return_code).str(); 
+    throw std::runtime_error(issue); 
   }
 }
 

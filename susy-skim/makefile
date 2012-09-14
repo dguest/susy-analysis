@@ -50,7 +50,7 @@ PY_LDFLAGS += $(PY_LIB)
 PY_LDFLAGS += -shared
 
 # ---- define objects
-TOBJ        := susy.o
+TOBJ        := SusyBuffer.o
 T_DICTS     := $(TOBJ:.o=Dict.o)
 GEN_OBJ     := cutflow.o 
 EXE_OBJ     := $(GEN_OBJ) $(T_DICTS) $(TOBJ)
