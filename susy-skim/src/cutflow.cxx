@@ -578,5 +578,9 @@ void SmartChain::SetBranchAddress(std::string name, void* branch) {
 			 name % return_code).str(); 
     throw std::runtime_error(issue); 
   }
+  if (!GetBranch(name.c_str())) { 
+    std::string issue = (boost::format("can't find branch %s") % name).str(); 
+    throw std::runtime_error(issue); 
+  }
 }
 
