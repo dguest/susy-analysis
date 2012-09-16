@@ -22,12 +22,14 @@ def submit_ds(ds_name, debug=False, version=3):
         ]
     run_string = 'filter-and-merge-d3pd.py ' + ' '.join(run_args)
 
-    input_args = ['--inDS=' + ds_name,
-                  '--outDS=' + out_ds,
-                  '--outputs=skim-output*.root', 
-                  '--excludeFile=*.tar,*.log,*.sh,*.py,*.out,*.root,*.txt',
-                  '--extFile=used_vars.txt'
-                  '--athenaTag=17.2.1']
+    input_args = [
+        '--inDS=' + ds_name,
+        '--outDS=' + out_ds,
+        '--outputs=skim-output*.root', 
+        '--excludeFile=*.tar,*.log,*.sh,*.py,*.out,*.root,*.txt',
+        '--extFile=used_vars.txt', 
+        '--athenaTag=17.2.1', 
+        ]
 
     exec_string = '' + '; '.join([build_string, run_string]) + ''
 
