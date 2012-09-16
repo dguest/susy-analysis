@@ -58,10 +58,11 @@ class NormedCutflow(object):
             if not line: 
                 continue
             spl = line.split()
-            short_name = spl[0]
+            short_name = spl[1]
             xsec = float(spl[2])
-            evts = int(spl[4])
-            yield short_name, xsec, evts
+            k_factor = float(spl[3])
+            
+            yield short_name, xsec * k_factor, None
 
     def get_normed_counts(self, ds_key, lumi = 4700.0): 
         """
@@ -92,8 +93,12 @@ class NormedCutflow(object):
         # we assume the maximum cut is the number of events
         n_events = max(count for name, count in cut_counts)
         cross_section, xsec_events = self._norm_dict[ds_key]
-        frac_in_file = float(n_events) / float(xsec_events)
-        if n_events != xsec_events: 
+        try: 
+            frac_in_file = float(n_events) / float(xsec_events)
+        except TypeError: 
+            frac_in_file = 0
+            xsec_events = 0
+        if xsec_events and n_events != xsec_events: 
             warnings.warn(
                 "number of events in {} ({}) "
                 "doesn't match expected {} ({:.1%} diff)".format(

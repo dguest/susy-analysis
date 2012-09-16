@@ -4,12 +4,12 @@ from susy import cutflow
 import sys
 
 
-normed_cutflow = cutflow.NormedCutflow('SampleListStop.txt', 
-                                       file_format='mainz')
+mainz_cutflow = cutflow.NormedCutflow('SampleListStop.txt', 
+                                      file_format='mainz')
 
 sig_counts = {}
 for sig in ['Stop-180-100_1excl','Stop-180-100_2incl']: 
-    sig_counts[sig] = normed_cutflow.get_normed_counts(sig)
+    sig_counts[sig] = mainz_cutflow.get_normed_counts(sig)
     
 cuts_total = {}
 for cf in sig_counts.values(): 
