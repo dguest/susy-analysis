@@ -26,7 +26,7 @@ def submit_ds(ds_name, debug=False, version=3):
         '--inDS=' + ds_name,
         '--outDS=' + out_ds,
         '--outputs=skim-output*.root', 
-        '--excludeFile=*.tar,*.log,*.sh,*.py,*.out,*.root,*.txt',
+        '--excludeFile=*.tar,*.log,*.sh,*.py,*.out,*.root',
         '--extFile=used_vars.txt', 
         '--athenaTag=17.2.1', 
         ]
