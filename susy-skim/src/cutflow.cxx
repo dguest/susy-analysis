@@ -94,9 +94,12 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files,
   for (std::vector<std::string>::const_iterator file_itr = files.begin(); 
        file_itr != files.end(); 
        file_itr++) { 
-    input_chain->Add(file_itr->c_str()); 
-    // TFile f(file_itr->c_str()); 
-    // f.ShowStreamerInfo(); 
+    int ret_code = input_chain->Add(file_itr->c_str(),-1); 
+    if (ret_code != 1) { 
+      std::string err = (boost::format("error connecting file %s to chain") % 
+			 *file_itr).str(); 
+      throw std::runtime_error(err); 
+    }
   }
 
 
@@ -116,7 +119,7 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files,
   // create a textfile to for annoying susytools output
   std::streambuf* old_out_stream = std::cout.rdbuf();
   std::streambuf* old_err_stream = std::cerr.rdbuf();
-  ofstream strCout("susy_noise.txt", ios_base::out | ios_base::trunc);
+  ofstream strCout("/dev/null");
   std::cout.rdbuf( strCout.rdbuf() );
   std::cerr.rdbuf( strCout.rdbuf() );
     
@@ -138,8 +141,8 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files,
 
   for (int evt_n = 0; evt_n < n_entries; evt_n++) { 
     if (evt_n % one_percent == 0 || evt_n == n_entries - 1 ) { 
-      std::cout << "\r" << evt_n << " of " << n_entries << 
-	" (" << evt_n  / (one_percent ) << "%) processed "; 
+      std::cout << boost::format("\r%i of %i (%.1f%%) processed") % 
+	(evt_n + 1) % n_entries % ( (evt_n + 1) / one_percent); 
       std::cout.flush(); 
     }
 
