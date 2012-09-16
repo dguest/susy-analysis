@@ -21,13 +21,38 @@ class NormedCutflow(object):
     """
     Uses a lookup file to normalize cutflows. 
     """
-    def __init__(self, norm_file, raw_counts_cache = 'raw_counts.pkl'): 
+    def __init__(self, norm_file, raw_counts_cache='raw_counts.pkl', 
+                 file_format='official'): 
         self._norm_file_name = norm_file
         self._cache_name = raw_counts_cache
-        with open(norm_file) as txt: 
-            self._norm_dict = {n: (x,e) for n,x,e in self._tup_itr(txt)}
 
-    def _tup_itr(self,txt_file): 
+        allowed_formats = {
+            'mainz':self._mainz_itr,
+            'official':self._susy_itr, 
+            }
+
+        if not file_format in allowed_formats: 
+            raise ValueError("can't parse file formatted in {}, "
+                             "choose from {}".format(file_format, 
+                                                     allowed_formats.keys()))
+
+        file_itr = allowed_formats[file_format]
+
+        with open(norm_file) as txt: 
+            self._norm_dict = {n: (x,e) for n,x,e in file_itr(txt)}
+
+    def _mainz_itr(self,txt_file): 
+        for line in txt_file: 
+            line = line.split('#')[0].strip()
+            if not line: 
+                continue
+            spl = line.split()
+            short_name = spl[0]
+            xsec = float(spl[2])
+            evts = int(spl[4])
+            yield short_name, xsec, evts
+
+    def _susy_itr(self,txt_file): 
         for line in txt_file: 
             line = line.split('#')[0].strip()
             if not line: 
