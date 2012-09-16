@@ -7,7 +7,8 @@ converts a list of datasets to the corresponding dq2-able strings
 import argparse
 import sys
 
-def _aggressive_match(short_name, possible_matches): 
+def _aggressive_match(short_name, possible_matches, 
+                      secondary='susyfilt'): 
     matches = []
     for key in possible_matches: 
         if short_name in key: 
@@ -16,7 +17,14 @@ def _aggressive_match(short_name, possible_matches):
     if len(matches) == 1: 
         return matches[0]
     elif len(matches) > 1: 
-        raise LookupError('{} all match {}'.format(matches, short_name))
+        new_matches = [x for x in matches if secondary in x]
+        if len(new_matches) == 1: 
+            return new_matches[0]
+        elif new_matches: 
+            raise LookupError("{} didn't kill them all".format(secondary)) 
+        else: 
+            raise LookupError("{} killed them all".format(secondary)) 
+
     else: 
         raise LookupError('no match for {} found'.format(short_name))
                           
@@ -46,9 +54,8 @@ def get_dq2_ids(dataset_names, lookup_file='susy_crosssections.txt'):
             try: 
                 new_ds = _aggressive_match(ds, name_to_number.keys())
                 match_pairs.append( (new_ds, name_to_number[new_ds]))
-            except LookupError: 
-                failed_matches.append(ds)
-
+            except LookupError as e: 
+                failed_matches.append('{}: {}'.format(ds,str(e)))
 
     return match_pairs, failed_matches
 
