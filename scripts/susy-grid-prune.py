@@ -4,11 +4,12 @@ import sys, os
 import argparse
 from subprocess import Popen, PIPE
 
-def submit_ds(ds_name, debug=False): 
+def submit_ds(ds_name, debug=False, version=1): 
 
     user = os.path.expandvars('$USER')
     output_base = ds_name.strip('/')
-    out_ds = 'user.{user}.{in_ds}.skim'.format(user=user,in_ds=output_base)
+    out_ds = 'user.{user}.{in_ds}.skim_v{version}'.format(
+        user=user, in_ds=output_base, version=version)
 
     build_string = 'echo %IN | sed \'s/,/\n/g\' > grid_files.txt'
 
@@ -22,8 +23,8 @@ def submit_ds(ds_name, debug=False):
 
     input_args = ['--inDS=' + ds_name,
                   '--outDS=' + out_ds,
-                  '--outputs="skim-output_*.root"', 
-                  '--excludeFile=*.tar,*.log,*.sh,*.py,*.out',
+                  '--outputs=skim-output*.root', 
+                  '--excludeFile=*.tar,*.log,*.sh,*.py,*.out,*.root',
                   '--athenaTag=17.2.1']
 
     exec_string = '\"' + '; '.join([build_string, run_string]) + '\"'
