@@ -29,7 +29,7 @@ def submit_ds(ds_name, debug=False, version=3):
                   '--extFile=used_vars.txt'
                   '--athenaTag=17.2.1']
 
-    exec_string = '\"' + '; '.join([build_string, run_string]) + '\"'
+    exec_string = '' + '; '.join([build_string, run_string]) + ''
 
     
     submit_string = ['prun','--exec',exec_string] + input_args
