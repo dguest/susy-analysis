@@ -39,6 +39,7 @@ def submit_ds(ds_name, debug=False, version=3):
         submit_string = ['echo'] + submit_string
     ps = Popen(submit_string)
     ps.communicate()
+    return out_ds
 
 if __name__ == '__main__': 
     parser = argparse.ArgumentParser()
@@ -47,6 +48,7 @@ if __name__ == '__main__':
     parser.add_argument('-v', default='0')
     parser.add_argument('--debug', action='store_true')
     parser.add_argument('--multi', action='store_true')
+    parser.add_argument('--out_name', default='output_datasets.txt')
     args = parser.parse_args()
     
     datasets = []
@@ -63,13 +65,18 @@ if __name__ == '__main__':
         for ds_name in sys.stdin.readlines(): 
             datasets.append(ds_name.strip())
 
+    output_datasets_list = open(args.out_name,'w')
+
     if args.multi:
         def submit(ds): 
-            submit_ds(ds, args.debug, args.v)
+            return submit_ds(ds, args.debug, args.v)
 
         pool = Pool(10)
-        pool.map(submit, datasets)
+        output_datasets = pool.map(submit, datasets)
+        for ds in output_datasets: 
+            output_datasets_list.write(ds + '\n')
     else: 
             
         for ds in datasets: 
-            submit_ds(ds, args.debug, args.v)
+            out_ds = submit_ds(ds, args.debug, args.v)
+            output_datasets_list.write(out_ds + '\n')
