@@ -7,6 +7,8 @@ run_number = 180614
 
 def cutflow(input_file, run_number, flags): 
     """
+    Returns a list of pairs: (cut_name, n_passing)
+
     Python-level interface for the compiled cutflow routine. 
     Flags: 
         v: verbose
@@ -64,7 +66,7 @@ class NormedCutflow(object):
             
             yield short_name, xsec * k_factor, None
 
-    def get_normed_counts(self, ds_key, lumi = 4700.0): 
+    def get_normed_counts(self, ds_key, lumi=4700.0): 
         """
         Gets lumi-normalized cut counts for dataset identified by ds_key. 
         For now, will build a cache file from a file <ds_key>.root
