@@ -9,7 +9,7 @@ def submit_ds(ds_name, debug=False, version=3):
 
     user = os.path.expandvars('$USER')
     output_base = ds_name.strip('/')
-    out_ds = 'user.{user}.{in_ds}.skim_v{version}'.format(
+    out_ds = 'user.{user}.{in_ds}.skim_v{version}/'.format(
         user=user, in_ds=output_base, version=version)
 
     build_string = 'echo %IN | sed \'s/,/\\n/g\' > grid_files.txt'
@@ -25,7 +25,7 @@ def submit_ds(ds_name, debug=False, version=3):
     input_args = [
         '--inDS=' + ds_name,
         '--outDS=' + out_ds,
-        '--outputs=skim-output*.root', 
+        '--outputs=skim-output.root', 
         '--excludeFile=*.tar,*.log,*.sh,*.py,*.out,*.root',
         '--extFile=used_vars.txt', 
         '--athenaTag=17.2.1', 
@@ -48,7 +48,8 @@ if __name__ == '__main__':
     parser.add_argument('-v', default='0')
     parser.add_argument('--debug', action='store_true')
     parser.add_argument('--multi', action='store_true')
-    parser.add_argument('--out_name', default='output_datasets.txt')
+    parser.add_argument('--out_name', default='output_datasets.txt', 
+                        help='default: %(default)s')
     args = parser.parse_args()
     
     datasets = []
