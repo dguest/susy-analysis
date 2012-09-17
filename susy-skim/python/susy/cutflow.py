@@ -5,7 +5,7 @@ import os
 
 run_number = 180614
 
-def cutflow(input_file, run_number, flags): 
+def cutflow(input_files, run_number, flags): 
     """
     Returns a list of pairs: (cut_name, n_passing)
 
@@ -16,7 +16,10 @@ def cutflow(input_file, run_number, flags):
         s: is signal
         p: use low pt jets
     """
-    return _cutflow._cutflow(input_file, run_number, flags)
+    if isinstance(input_files, str): 
+        input_files = [input_files]
+
+    return _cutflow._cutflow(input_files, run_number, flags)
 
 
 class NormedCutflow(object): 

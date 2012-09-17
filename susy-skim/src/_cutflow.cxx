@@ -11,16 +11,24 @@
 static PyObject* py_cutflow(PyObject *self, 
 			    PyObject *args)
 {
-  const char* input_file; 
+  PyObject* py_input_files; 
   const char* flags_str = ""; 
 
   RunInfo info; 
   bool ok = PyArg_ParseTuple
-    (args,"si|s:cutflow", &input_file, &info.run_number, &flags_str); 
+    (args,"Oi|s:cutflow", &py_input_files, &info.run_number, &flags_str); 
   if (!ok) return NULL;
 
+  int n_files = PyList_Size(py_input_files); 
+  if (PyErr_Occurred()) return NULL; 
+    
   std::vector<std::string> input_files; 
-  input_files.push_back(input_file); 
+  for (int n = 0; n < n_files; n++) { 
+    PyObject* py_file_name = PyList_GetItem(py_input_files, n); 
+    std::string file_name = PyString_AsString(py_file_name); 
+    if (PyErr_Occurred()) return NULL; 
+    input_files.push_back(file_name);     
+  }
   
   unsigned flags = 0; 
   if (strchr(flags_str,'v')) flags |= cutflag::verbose; 
