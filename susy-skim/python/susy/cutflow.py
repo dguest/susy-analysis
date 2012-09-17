@@ -2,6 +2,8 @@ import _cutflow
 import warnings
 import cPickle
 import os
+import glob
+import collections
 
 run_number = 180614
 
@@ -19,6 +21,9 @@ def cutflow(input_files, run_number, flags):
     if isinstance(input_files, str): 
         input_files = [input_files]
 
+    if not input_files: 
+        raise IOError("can't run cutflow, input files don't exist")
+
     return _cutflow._cutflow(input_files, run_number, flags)
 
 
@@ -26,6 +31,9 @@ class NormedCutflow(object):
     """
     Uses a lookup file to normalize cutflows. 
     """
+    
+    files_from_key = collections.defaultdict(list)
+
     def __init__(self, norm_file, raw_counts_cache='raw_counts.pkl', 
                  file_format='official'): 
         self._norm_file_name = norm_file
@@ -46,6 +54,35 @@ class NormedCutflow(object):
         with open(norm_file) as txt: 
             self._norm_dict = {n: (x,e) for n,x,e in file_itr(txt)}
 
+
+    def add_ds_lookup(self, ds_key, lookup_location): 
+        """
+        Builds a mapping between the ds_key and the files that it maps to.
+        Tries several things in order, appends if these are true: 
+        1) exact file match
+        2) top-level directory includes ds key
+        3) subdirectory of lookup_location contains ds_key
+
+        returns the mapping. 
+        """
+        matches = []
+        leaf_dir = os.path.split(lookup_location)[0].split('/')[-1]
+        if os.path.isfile(lookup_location): 
+            matches = [lookup_location]
+        elif ds_key in leaf_dir: 
+            matches += glob.glob('{loc}/*.root*')
+        elif os.path.isdir(lookup_location): 
+            match_files = glob.glob('{loc}/**{key}**/*.root*'.format(
+                    loc=lookup_location, key=ds_key))
+            for f in match_files: 
+                match_files.append(f)
+        else: 
+            warnings.warn("can't find {} in {}".format(
+                    ds_key, lookup_location))
+        
+        self.files_from_key[ds_key] += matches
+        return self.files_from_key[ds_key]
+
     def _mainz_itr(self,txt_file): 
         for line in txt_file: 
             line = line.split('#')[0].strip()
@@ -58,7 +95,15 @@ class NormedCutflow(object):
             yield short_name, xsec, evts
 
     def _susy_itr(self,txt_file): 
+        id_line = ''
         for line in txt_file: 
+
+            # first line of the susy textfile is some kind of 
+            # field description         
+            if not id_line: 
+                id_line = line
+                continue
+
             line = line.split('#')[0].strip()
             if not line: 
                 continue
@@ -69,10 +114,11 @@ class NormedCutflow(object):
             
             yield short_name, xsec * k_factor, None
 
-    def get_normed_counts(self, ds_key, lumi=4700.0): 
+    def get_normed_counts(self, ds_key, lumi=4700.0, flags='v'): 
         """
         Gets lumi-normalized cut counts for dataset identified by ds_key. 
-        For now, will build a cache file from a file <ds_key>.root
+        Looks finds the root files in files_from_key, normalization 
+        is found in norm_file. 
         """
         
         if not ds_key in self._norm_dict: 
@@ -85,8 +131,8 @@ class NormedCutflow(object):
                 cached_info = cPickle.load(pkl)
 
         if not ds_key in cached_info: 
-            input_file = ds_key + '.root'
-            cut_counts = cutflow(input_file, run_number, 'vs')
+            input_files = self.files_from_key[ds_key]
+            cut_counts = cutflow(input_files, run_number, flags=flags)
             
             cached_info[ds_key] = cut_counts
 
