@@ -92,5 +92,13 @@ private:
   // double m_cb;
 }; 
 
+class CutCounter: public std::map<std::string, int> 
+{
+public: 
+  int& operator[](std::string key); 
+  std::vector< std::pair<std::string, int> > get_ordered_cuts() const; 
+private: 
+  std::vector<std::string> m_cuts; 
+}; 
 
 #endif //CUTFLOW_H

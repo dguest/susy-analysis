@@ -116,7 +116,7 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files,
   int n_entries = input_chain->GetEntries(); 
 
 
-  // create a textfile to for annoying susytools output
+  // dump stdout from susytools init to /dev/null 
   std::streambuf* old_out_stream = std::cout.rdbuf();
   std::streambuf* old_err_stream = std::cerr.rdbuf();
   ofstream strCout("/dev/null");
@@ -587,3 +587,21 @@ void SmartChain::SetBranchAddress(std::string name, void* branch) {
   }
 }
 
+int& CutCounter::operator[](std::string key) 
+{ 
+  bool new_cut = (find(key) == end()); 
+  if (new_cut) { 
+    m_cuts.push_back(key); 
+  }
+  return std::map<std::string, int>::operator[](key); 
+}
+
+std::vector< std::pair<std::string, int> > CutCounter::get_ordered_cuts() 
+  const 
+{
+  std::vector< std::pair<std::string, int> > ordered_cuts; 
+  for (const_iterator itr = begin(); itr != end(); itr++) { 
+    ordered_cuts.push_back(*find(itr->first));
+  }
+  return ordered_cuts;
+}
