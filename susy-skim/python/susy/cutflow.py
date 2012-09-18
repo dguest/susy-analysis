@@ -89,7 +89,7 @@ class NormedCutflow(object):
                 loc=lookup_location.rstrip('/'), key=ds_key)
             match_files = glob.glob(globstr)
             for f in match_files: 
-                if not f.endswith('gz'): 
+                if not 'root.tgz' in f: 
                     matches.append(f)
         else: 
             warnings.warn("can't find {} in {}".format(
@@ -134,13 +134,6 @@ class NormedCutflow(object):
                         version_strings, f))
             if version_strings:
                 versions[int(version_strings[0])].append(f)
-
-        if len(versions) > 1: 
-            use_version = max(versions.keys())
-            warnings.warn('found multiple versions of {}, using {}'.format(
-                    ds_key,use_version), stacklevel=3)
-            # match_files = versions[use_version]
-                          
 
         return match_files
 
