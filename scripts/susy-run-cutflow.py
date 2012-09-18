@@ -9,7 +9,7 @@ At some point I'll add a flag to output some small ntuple
 """
 
 from susy import cutflow 
-import sys, os
+import sys, os, re
 import argparse, ConfigParser
 import warnings
 import collections
@@ -70,7 +70,18 @@ def run_cutflow(samples, susy_lookup, mainz_lookup='SampleListStop.txt',
         
         for name, value in cuts.items(): 
             signal_cutflows[particle][name] += value
-        
+
+    np_finder = re.compile('Np[0-9]')
+    bg_cutflows = collections.defaultdict(get_zeroed_counter)
+    for sample_name, cuts in bg_counts.items(): 
+        short_name = sample_name
+        if np_finder.findall(sample_name): 
+            short_name = np_finder.split(sample_name)[0]
+        for name, value in cuts.items(): 
+            bg_cutflows[short_name][name] += value
+
+    signal_cutflows.update(bg_cutflows)
+
     return signal_cutflows
 
 if __name__ == '__main__': 
@@ -124,6 +135,8 @@ if __name__ == '__main__':
         flags=flags, 
         data_location=args.data_location, 
         )
+
+    
 
     for sample, cut_dict in all_cuts.iteritems(): 
         print sample
