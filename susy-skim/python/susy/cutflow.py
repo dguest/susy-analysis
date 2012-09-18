@@ -25,7 +25,12 @@ def cutflow(input_files, run_number, flags):
     if not input_files: 
         raise IOError("can't run cutflow, input files don't exist")
 
-    return _cutflow._cutflow(input_files, run_number, flags)
+    try: 
+        cut_out = _cutflow._cutflow(input_files, run_number, flags)
+    except RuntimeError as er: 
+        raise RuntimeError('{} in {}'.format(str(er), input_files))
+
+    return cut_out
 
 
 class NormedCutflow(object): 
@@ -84,7 +89,8 @@ class NormedCutflow(object):
                 loc=lookup_location.rstrip('/'), key=ds_key)
             match_files = glob.glob(globstr)
             for f in match_files: 
-                matches.append(f)
+                if not f.endswith('gz'): 
+                    matches.append(f)
         else: 
             warnings.warn("can't find {} in {}".format(
                     ds_key, lookup_location))

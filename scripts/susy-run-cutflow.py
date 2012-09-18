@@ -56,7 +56,6 @@ def run_cutflow(samples, susy_lookup, mainz_lookup='SampleListStop.txt',
                 continue
 
             matched_files = susy_cutflow.add_ds_lookup(samp, data_location)
-            print matched_files
             if matched_files: 
                 bg_counts[samp] = susy_cutflow.get_normed_counts(
                     samp, flags=flags)
