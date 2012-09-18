@@ -53,28 +53,18 @@ int main (int narg, char* argv[])
 
 
   // run the main routine 
-  std::map<std::string, int> cut_counters = run_cutflow(input_files, 
-							info, 
-							flags); 
+  typedef std::vector<std::pair<std::string, int> > CCOut; 
+  CCOut cut_counters = run_cutflow(input_files, 
+				   info, 
+				   flags); 
 
-  // we can sort the cuts by using the passing number as the key
-  std::multimap<int, std::string> counters_cuts; 
-  for (std::map<std::string, int>::const_iterator 
-	 itr = cut_counters.begin(); 
-       itr != cut_counters.end(); 
-       itr++) { 
-    counters_cuts.insert(std::pair<int, std::string>(itr->second,itr->first));
-  }
-
-  float firstcut = float(counters_cuts.rbegin()->first); 
-  
-  for (std::multimap<int,std::string>::const_reverse_iterator 
-	 cut_itr = counters_cuts.rbegin(); 
-       cut_itr != counters_cuts.rend(); 
+  float firstcut = cut_counters.at(0).second; 
+  for (CCOut::const_iterator cut_itr = cut_counters.begin(); 
+       cut_itr != cut_counters.end(); 
        cut_itr++) { 
     std::cout << boost::format("%i events pass %s (%.2f%%)\n") % 
-      cut_itr->first % cut_itr->second % 
-      ( float(cut_itr->first) * 100 / firstcut) ; 
+      cut_itr->second % cut_itr->first % 
+      ( float(cut_itr->second) * 100 / firstcut) ; 
 
   }
 
@@ -82,8 +72,9 @@ int main (int narg, char* argv[])
 
 }
  
-std::map<std::string, int> run_cutflow(std::vector<std::string> files, 
-				       RunInfo info, const unsigned flags) {  
+std::vector<std::pair<std::string, int> >
+run_cutflow(std::vector<std::string> files, 
+	    RunInfo info, const unsigned flags) {  
 
   SmartChain* input_chain = new SmartChain("susy"); 
 
@@ -131,7 +122,7 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files,
     std::cout.rdbuf( old_out_stream );
   }
 
-  std::map<std::string, int> cut_counters; 
+  CutCounter cut_counters; 
   
 
   // looping through events
@@ -339,7 +330,7 @@ std::map<std::string, int> run_cutflow(std::vector<std::string> files,
 
 
   def.finalize(); 
-  return cut_counters; 
+  return cut_counters.get_ordered_cuts(); 
 	 
 }
 
@@ -599,9 +590,10 @@ int& CutCounter::operator[](std::string key)
 std::vector< std::pair<std::string, int> > CutCounter::get_ordered_cuts() 
   const 
 {
+  typedef std::vector<std::string>::const_iterator IdxItr; 
   std::vector< std::pair<std::string, int> > ordered_cuts; 
-  for (const_iterator itr = begin(); itr != end(); itr++) { 
-    ordered_cuts.push_back(*find(itr->first));
+  for (IdxItr itr = m_cuts.begin(); itr != m_cuts.end(); itr++) { 
+    ordered_cuts.push_back(*find(*itr));
   }
   return ordered_cuts;
 }

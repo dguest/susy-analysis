@@ -36,7 +36,7 @@ namespace cutflag {
 }
 
 
-std::map<std::string, int> 
+std::vector<std::pair<std::string, int> >
 run_cutflow(std::vector<std::string> files, 
 	    RunInfo info, const unsigned flags = 0); 
 

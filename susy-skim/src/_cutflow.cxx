@@ -36,7 +36,8 @@ static PyObject* py_cutflow(PyObject *self,
   if (strchr(flags_str,'s')) flags |= cutflag::is_signal; 
   if (strchr(flags_str,'p')) flags |= cutflag::use_low_pt_jets; 
 
-  std::map<std::string, int> pass_numbers; 
+  typedef std::vector<std::pair<std::string, int> > CCOut; 
+  CCOut pass_numbers; 
   try { 
     pass_numbers = run_cutflow(input_files, info, flags); 
   }
@@ -46,7 +47,7 @@ static PyObject* py_cutflow(PyObject *self,
   }
 
   PyObject* out_list = PyList_New(0); 
-  for (std::map<std::string, int>::const_iterator itr = pass_numbers.begin(); 
+  for (CCOut::const_iterator itr = pass_numbers.begin(); 
        itr != pass_numbers.end(); 
        itr++){ 
     PyObject* tuple = Py_BuildValue("si", itr->first.c_str(), itr->second);
