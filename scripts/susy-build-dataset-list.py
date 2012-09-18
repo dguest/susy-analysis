@@ -68,6 +68,8 @@ if __name__ == '__main__':
     parser.add_argument('datasets_file', nargs='?', 
                         type=argparse.FileType('r'), default=sys.stdin)
     parser.add_argument('--prepend', default='mc11_7TeV')
+    parser.add_argument('--make-steering', action='store_true', 
+                        help='build the steering file (rather than dq2)')
     
     args = parser.parse_args(sys.argv[1:])
 
@@ -80,8 +82,12 @@ if __name__ == '__main__':
 
     matched, unmatched = get_dq2_ids(datasets, args.lookup)
 
+    if not args.make_steering: 
+        out_template = '{pre}.{num}.*{name}*NTUP_SUSY.*/'
+    else: 
+        out_template = '{name}'
     for ds, number in matched:
-        print '{pre}.{num}.*{name}*NTUP_SUSY.*/'.format(
+        print out_template.format(
             pre=args.prepend, num=number, name=ds)
     
     for lin in unmatched: 
