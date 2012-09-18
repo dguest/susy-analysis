@@ -47,7 +47,7 @@ public :
   vector<int>     *el_nConv;
   vector<int>     *el_nSingleTrackConv;
   vector<int>     *el_nDoubleTrackConv;
-  vector<unsigned int> *el_OQRecalc;
+  // vector<unsigned int> *el_OQRecalc;
   vector<int>     *el_mediumPP;
   vector<int>     *el_mediumPPIso;
   vector<float>   *el_weta2;
@@ -253,14 +253,6 @@ public :
   double sharktopus; 
 
   SusyBuffer(SmartChain *tree, unsigned use_branches = branches::all);
-  // virtual ~SusyBuffer();
-  // virtual Int_t    Cut(Long64_t entry);
-  // virtual Int_t    GetEntry(Long64_t entry);
-  // virtual Long64_t LoadTree(Long64_t entry);
-  // virtual void     Init(TChain *tree, const unsigned use_br = branches::all);
-  // virtual void     Loop();
-  // virtual Bool_t   Notify();
-  // virtual void     Show(Long64_t entry = -1);
 };
 
 #endif

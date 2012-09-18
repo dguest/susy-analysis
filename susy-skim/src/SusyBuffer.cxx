@@ -17,7 +17,6 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, unsigned br)
    el_nConv = 0;
    el_nSingleTrackConv = 0;
    el_nDoubleTrackConv = 0;
-   el_OQRecalc = 0;
    el_mediumPP = 0;
    el_mediumPPIso = 0;
    el_weta2 = 0;
@@ -229,8 +228,6 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, unsigned br)
    fChain->SetBranchAddress("el_nSingleTrackConv", &el_nSingleTrackConv); 
    fChain->SetBranchStatus("el_nDoubleTrackConv",other);
    fChain->SetBranchAddress("el_nDoubleTrackConv", &el_nDoubleTrackConv); 
-   fChain->SetBranchStatus("el_OQRecalc",other);
-   fChain->SetBranchAddress("el_OQRecalc", &el_OQRecalc); 
    fChain->SetBranchStatus("el_mediumPP",other);
    fChain->SetBranchAddress("el_mediumPP", &el_mediumPP); 
    fChain->SetBranchStatus("el_mediumPPIso",other);
