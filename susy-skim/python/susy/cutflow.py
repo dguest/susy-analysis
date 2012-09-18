@@ -4,6 +4,7 @@ import cPickle
 import os
 import glob
 import collections
+import re
 
 run_number = 180614
 
@@ -60,22 +61,30 @@ class NormedCutflow(object):
         Builds a mapping between the ds_key and the files that it maps to.
         Tries several things in order, appends if these are true: 
         1) exact file match
-        2) top-level directory includes ds key
-        3) subdirectory of lookup_location contains ds_key
+        2) fuzzy match according to Mainz naming convention
+        3) top-level directory includes ds key
+        4) subdirectory of lookup_location contains ds_key
 
         returns the mapping. 
         """
+        
         matches = []
         leaf_dir = os.path.split(lookup_location)[0].split('/')[-1]
+        
+        fuzzy_mainz = self._mainz_match(ds_key, lookup_location)
+
         if os.path.isfile(lookup_location): 
             matches = [lookup_location]
+        elif fuzzy_mainz: 
+            matches = fuzzy_mainz
         elif ds_key in leaf_dir: 
             matches += glob.glob('{loc}/*.root*')
         elif os.path.isdir(lookup_location): 
-            match_files = glob.glob('{loc}/**{key}**/*.root*'.format(
-                    loc=lookup_location, key=ds_key))
+            globstr = '{loc}/*{key}*/*.root*'.format(
+                loc=lookup_location.rstrip('/'), key=ds_key)
+            match_files = glob.glob(globstr)
             for f in match_files: 
-                match_files.append(f)
+                matches.append(f)
         else: 
             warnings.warn("can't find {} in {}".format(
                     ds_key, lookup_location))
@@ -93,6 +102,41 @@ class NormedCutflow(object):
             xsec = float(spl[2])
             evts = int(spl[4])
             yield short_name, xsec, evts
+
+    def _mainz_match(self, ds_key, location): 
+        """
+        fuzzy match function for mainz signal files
+        """
+        spl = ds_key.split('_')
+        if len(spl) != 2: 
+            return None
+        ds_dir, file_name = spl
+        globstr = '{loc}/*{subdir}*/*{fn}*.root'.format(
+            loc=location.rstrip('/'), 
+            subdir=ds_dir.replace('-','?'), 
+            fn=file_name)
+        match_files = glob.glob(globstr)
+
+        match_re = re.compile('(?<=[-_.]v)[0-9]+(?=[-_.])')
+
+        versions = collections.defaultdict(list)
+        for f in match_files: 
+            version_strings = match_re.findall(f)
+            if len(version_strings) > 1: 
+                warnings.warn(
+                    'version finder acting up: {} found in {}'.format(
+                        version_strings, f))
+            if version_strings:
+                versions[int(version_strings[0])].append(f)
+
+        if len(versions) > 1: 
+            use_version = max(versions.keys())
+            warnings.warn('found multiple versions of {}, using {}'.format(
+                    ds_key,use_version), stacklevel=3)
+            # match_files = versions[use_version]
+                          
+
+        return match_files
 
     def _susy_itr(self,txt_file): 
         id_line = ''
@@ -123,7 +167,7 @@ class NormedCutflow(object):
         
         if not ds_key in self._norm_dict: 
             raise LookupError('no {} found in {}'.format(
-                    file_name, self._norm_file_name))
+                    ds_key, self._norm_file_name))
 
         cached_info = {}
         if os.path.isfile(self._cache_name): 

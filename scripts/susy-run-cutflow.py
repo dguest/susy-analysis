@@ -2,7 +2,9 @@
 """
 susy stop cutflow script. 
 
-At some point I'll probably also add a flag to output some small ntuple 
+Defaults are set (by default) in cutflow.cfg.
+
+At some point I'll add a flag to output some small ntuple 
 (for the real Science)
 """
 
@@ -10,7 +12,7 @@ from susy import cutflow
 import sys, os
 import argparse, ConfigParser
 import warnings
-
+import collections
 
 
 def run_cutflow(samples, susy_lookup, mainz_lookup='SampleListStop.txt',
@@ -35,9 +37,11 @@ def run_cutflow(samples, susy_lookup, mainz_lookup='SampleListStop.txt',
 
             matched_files = mainz_cutflow.add_ds_lookup(samp, data_location)
 
+            signal_flags = flags + 's'
+
             if matched_files: 
                 sig_counts[samp] = mainz_cutflow.get_normed_counts(
-                    samp, flags=flags)
+                    samp, flags=signal_flags)
 
         elif samp == 'Data': 
             if debug: 
@@ -50,19 +54,25 @@ def run_cutflow(samples, susy_lookup, mainz_lookup='SampleListStop.txt',
             if debug: 
                 print '{} will go to bg'.format(samp)
                 continue
-    
-    cuts_total = {}
-    for cf in sig_counts.values(): 
-        if not cuts_total: 
-            cuts_total = cf
-        else: 
-            for cut in cuts_total: 
-                cuts_total[cut] += cf[cut]
 
-    sorted_cuts = sorted(cuts_total.items(), 
-                         key=lambda cut: cut[1], reverse=True)
-           
-    return sorted_cuts
+            matched_files = susy_cutflow.add_ds_lookup(samp, data_location)
+            print matched_files
+            if matched_files: 
+                bg_counts[samp] = susy_cutflow.get_normed_counts(
+                    samp, flags=flags)
+    
+    def get_zeroed_counter(): 
+        return collections.defaultdict(int)
+    signal_cutflows = collections.defaultdict(get_zeroed_counter)
+
+    for sample_name, cuts in sig_counts.items(): 
+
+        particle, vx = sample_name.split('_')
+        
+        for name, value in cuts.items(): 
+            signal_cutflows[particle][name] += value
+        
+    return signal_cutflows
 
 if __name__ == '__main__': 
     preparser = argparse.ArgumentParser(
@@ -74,17 +84,19 @@ if __name__ == '__main__':
                            help='default: %(default)s')
     args, remaining = preparser.parse_known_args(sys.argv[1:])
 
-    if os.path.isfile(args.config_file): 
-        config_parser = ConfigParser.SafeConfigParser()
-        config_parser.read([args.config_file])
-        default_files = dict(config_parser.items('files'))
 
     parser = argparse.ArgumentParser(
         parents=[preparser], 
         description=__doc__, 
         epilog='Author: Dan Guest', 
         )
-    parser.set_defaults(**default_files)
+
+    if os.path.isfile(args.config_file): 
+        config_parser = ConfigParser.SafeConfigParser()
+        config_parser.read([args.config_file])
+        default_files = dict(config_parser.items('files'))
+
+        parser.set_defaults(**default_files)
 
     parser.add_argument('used_samples', nargs='?', 
                         help='default: %(default)s')
@@ -95,14 +107,18 @@ if __name__ == '__main__':
 
     args = parser.parse_args(remaining)
 
+    if not args.used_samples: 
+        sys.exit('used_samples is required')
+
     with open(args.used_samples) as inputs: 
-        used_samples = [v.strip() for v in inputs]
+        used_samples = [v.split('#')[0].strip() for v in inputs]
+        used_samples = filter(None,used_samples)
 
     flags = '' if args.terse else 'v'
     if args.debug: 
         flags += 'b'
 
-    cuts = run_cutflow(
+    all_cuts = run_cutflow(
         used_samples, 
         susy_lookup=args.susy_lookup, 
         mainz_lookup=args.mainz_lookup, 
@@ -110,5 +126,12 @@ if __name__ == '__main__':
         data_location=args.data_location, 
         )
 
-    for name, count in cuts: 
-        print '{:>20}: {: >12.2f}'.format(name,count)
+    for sample, cut_dict in all_cuts.iteritems(): 
+        print sample
+        sort_cuts = [(name, value) for name, value in cut_dict.iteritems()]
+        sort_cuts = sorted(sort_cuts, key=lambda cut: cut[1], reverse=True)
+        for name, value in sort_cuts: 
+            print '{:>20}: {: >12.2f}'.format(name,value)
+
+
+
