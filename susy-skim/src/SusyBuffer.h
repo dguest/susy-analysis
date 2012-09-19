@@ -238,9 +238,9 @@ public :
   vector<int>     *jet_AntiKt4TopoNewEM_flavor_truth_label;
   vector<float>   *jet_AntiKt4TopoNewEM_EF_dr;
   vector<int>     *jet_AntiKt4TopoNewEM_EF_matched;
-  vector<int>     *jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pu;
-  vector<int>     *jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pb;
-  vector<int>     *jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pc;
+  vector<float>     *jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pu;
+  vector<float>     *jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pb;
+  vector<float>     *jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pc;
   vector<int>     *vx_nTracks;
   Int_t           trig_L2_el_n;
   Int_t           trig_EF_el_n;
