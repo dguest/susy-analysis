@@ -75,7 +75,10 @@ def run_cutflow(samples, susy_lookup, mainz_lookup='SampleListStop.txt',
         ins = (samp, data_location, flags, mainz_cutflow, susy_cutflow)
         inputs.append(ins)
 
-    all_counts = pool.map(cutflow_job, inputs)
+    if len(inputs) > 1: 
+        all_counts = pool.map(cutflow_job, inputs)
+    else: 
+        all_counts = map(cutflow_job, inputs)
 
     for samp, (count, data_type) in zip(samples,all_counts): 
         if data_type == 'signal': 
@@ -141,7 +144,7 @@ if __name__ == '__main__':
     parser.add_argument('--susy-lookup', help='default: %(default)s')
     parser.add_argument('-t','--terse', action='store_true')
     parser.add_argument('--debug', action='store_true')
-    parser.add_argument('--multi', type=int, default=n_cores, const=1, 
+    parser.add_argument('--multi', type=int, default=1, const=n_cores, 
                         nargs='?',
                         help='use multiple cores (or all if no arg given)')
 
@@ -153,8 +156,8 @@ if __name__ == '__main__':
     with open(args.used_samples) as inputs: 
         used_samples = [v.split('#')[0].strip() for v in inputs]
         used_samples = filter(None,used_samples)
-
-    flags = '' if args.terse or n_cores > 1 else 'v'
+        
+    flags = '' if args.terse or args.multi > 1 else 'v'
         
     if args.debug: 
         flags += 'b'
