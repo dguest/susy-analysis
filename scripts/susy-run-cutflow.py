@@ -13,12 +13,50 @@ import sys, os, re
 import argparse, ConfigParser
 import warnings
 import collections
+import multiprocessing
+
+def cutflow_job(ins): 
+    """
+    job wrapper to pass to multiprocessing map
+    """
+    samp, data_location, flags, mainz_cutflow, susy_cutflow = ins
+
+    debug = 'b' in flags
+
+    data_type = 'unknown'
+    counts = {}
+    if samp.startswith('Stop'): 
+        data_type = 'signal'
+        if debug: 
+            data_type = 'debug'
+            return '{} will go to signal'.format(samp), 'debug'
+        matched_files = mainz_cutflow.add_ds_lookup(samp, data_location)
+        signal_flags = flags + 's'
+        if matched_files: 
+            counts = mainz_cutflow.get_normed_counts(
+                samp, flags=signal_flags)
+
+    elif samp == 'Data': 
+        data_type = 'data'
+        if debug: 
+            return '{} is Data'.format(samp), 'debug'
+        warnings.warn('Data not implemented')
+
+    else: 
+        data_type = 'background'
+        if debug: 
+            return '{} will go to bg'.format(samp), 'debug'
+        matched_files = susy_cutflow.add_ds_lookup(samp, data_location)
+        if matched_files: 
+            counts = susy_cutflow.get_normed_counts(
+                samp, flags=flags)
+    return counts, data_type
+
 
 
 def run_cutflow(samples, susy_lookup, mainz_lookup='SampleListStop.txt',
-                data_location='.', flags='v'): 
+                data_location='.', flags='v', cores=1): 
 
-    debug = 'b' in flags
     
     mainz_cutflow = cutflow.NormedCutflow(mainz_lookup, 
                                           file_format='mainz')
@@ -28,38 +66,26 @@ def run_cutflow(samples, susy_lookup, mainz_lookup='SampleListStop.txt',
 
     sig_counts = {}
     bg_counts = {}
+
+
+    pool = multiprocessing.Pool(n_cores)
+
+    inputs = []
     for samp in samples: 
-        if samp.startswith('Stop'): 
+        ins = (samp, data_location, flags, mainz_cutflow, susy_cutflow)
+        inputs.append(ins)
 
-            if debug: 
-                print '{} will go to signal'.format(samp)
-                continue
+    all_counts = pool.map(cutflow_job, inputs)
 
-            matched_files = mainz_cutflow.add_ds_lookup(samp, data_location)
-
-            signal_flags = flags + 's'
-
-            if matched_files: 
-                sig_counts[samp] = mainz_cutflow.get_normed_counts(
-                    samp, flags=signal_flags)
-
-        elif samp == 'Data': 
-            if debug: 
-                print '{} is Data'.format(samp)
-                continue
-            
-            warnings.warn('Data not implemented')
-
+    for samp, (count, data_type) in zip(samples,all_counts): 
+        if data_type == 'signal': 
+            sig_counts[samp] = count
+        elif data_type == 'background': 
+            bg_counts[samp] = count
         else: 
-            if debug: 
-                print '{} will go to bg'.format(samp)
-                continue
+            print count
 
-            matched_files = susy_cutflow.add_ds_lookup(samp, data_location)
-            if matched_files: 
-                bg_counts[samp] = susy_cutflow.get_normed_counts(
-                    samp, flags=flags)
-    
+
     def get_zeroed_counter(): 
         return collections.defaultdict(int)
     signal_cutflows = collections.defaultdict(get_zeroed_counter)
@@ -108,12 +134,16 @@ if __name__ == '__main__':
 
         parser.set_defaults(**default_files)
 
+    n_cores = multiprocessing.cpu_count()
     parser.add_argument('used_samples', nargs='?', 
                         help='default: %(default)s')
     parser.add_argument('--mainz-lookup', help='default: %(default)s' )
     parser.add_argument('--susy-lookup', help='default: %(default)s')
     parser.add_argument('-t','--terse', action='store_true')
     parser.add_argument('--debug', action='store_true')
+    parser.add_argument('--multi', type=int, default=n_cores, const=1, 
+                        nargs='?',
+                        help='use multiple cores (or all if no arg given)')
 
     args = parser.parse_args(remaining)
 
@@ -124,7 +154,8 @@ if __name__ == '__main__':
         used_samples = [v.split('#')[0].strip() for v in inputs]
         used_samples = filter(None,used_samples)
 
-    flags = '' if args.terse else 'v'
+    flags = '' if args.terse or n_cores > 1 else 'v'
+        
     if args.debug: 
         flags += 'b'
 
@@ -134,6 +165,7 @@ if __name__ == '__main__':
         mainz_lookup=args.mainz_lookup, 
         flags=flags, 
         data_location=args.data_location, 
+        cores=args.multi, 
         )
 
     

@@ -40,7 +40,7 @@ class NormedCutflow(object):
     
     files_from_key = collections.defaultdict(list)
 
-    def __init__(self, norm_file, raw_counts_cache='raw_counts.pkl', 
+    def __init__(self, norm_file, raw_counts_cache='raw_counts', 
                  file_format='official'): 
         self._norm_file_name = norm_file
         self._cache_name = raw_counts_cache
@@ -168,9 +168,13 @@ class NormedCutflow(object):
             raise LookupError('no {} found in {}'.format(
                     ds_key, self._norm_file_name))
 
+        
         cached_info = {}
-        if os.path.isfile(self._cache_name): 
-            with open(self._cache_name,'rb') as pkl: 
+        full_cache_name = os.path.join(self._cache_name, ds_key + '.pkl')
+        if not os.path.isdir(self._cache_name): 
+            os.makedirs(self._cache_name)
+        if os.path.isfile(full_cache_name): 
+            with open(full_cache_name,'rb') as pkl: 
                 cached_info = cPickle.load(pkl)
 
         if not ds_key in cached_info: 
@@ -179,7 +183,7 @@ class NormedCutflow(object):
             
             cached_info[ds_key] = cut_counts
 
-            with open(self._cache_name,'wb') as pkl: 
+            with open(full_cache_name,'wb') as pkl: 
                 cPickle.dump(cached_info, pkl)
 
         cut_counts = cached_info[ds_key]
