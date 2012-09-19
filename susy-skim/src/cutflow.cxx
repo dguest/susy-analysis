@@ -2,6 +2,7 @@
 #include "SusyBuffer.h"
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 #include <string> 
 #include <streambuf>
 #include <cassert>
@@ -13,6 +14,7 @@
 #include <stdexcept> 
 #include "SUSYTools/SUSYObjDef.h"
 #include "SUSYTools/FakeMetEstimator.h"
+#include "EventBits.hh"
 
 #include <boost/format.hpp>
 
@@ -56,7 +58,8 @@ int main (int narg, char* argv[])
   typedef std::vector<std::pair<std::string, int> > CCOut; 
   CCOut cut_counters = run_cutflow(input_files, 
 				   info, 
-				   flags); 
+				   flags, 
+				   "output_skim.root"); 
 
   float firstcut = cut_counters.at(0).second; 
   for (CCOut::const_iterator cut_itr = cut_counters.begin(); 
@@ -74,7 +77,8 @@ int main (int narg, char* argv[])
  
 std::vector<std::pair<std::string, int> >
 run_cutflow(std::vector<std::string> files, 
-	    RunInfo info, const unsigned flags) {  
+	    RunInfo info, const unsigned flags, 
+	    std::string out_ntuple_name) {  
 
   SmartChain* input_chain = new SmartChain("susy"); 
 
@@ -93,6 +97,7 @@ run_cutflow(std::vector<std::string> files,
     }
   }
 
+  typedef std::vector<SelectedJet>::const_iterator JetItr; 
 
   FakeMetEstimator fakeMetEst;
 
@@ -122,9 +127,14 @@ run_cutflow(std::vector<std::string> files,
     std::cout.rdbuf( old_out_stream );
   }
 
+
+  // --- output things ---
+
+  // tree with no name means no tree
+  OutTree out_tree(out_ntuple_name); 
+
   CutCounter cut_counters; 
   
-
   // looping through events
 
   std::cout << n_entries << " entries in chain" << std::endl; 
@@ -163,11 +173,11 @@ run_cutflow(std::vector<std::string> files,
  
     TVector2 met(buffer.MET_Simplified20_RefFinal_etx, 
 		 buffer.MET_Simplified20_RefFinal_ety); 
-   
+
     std::vector<SelectedJet> selected_jets; 
    
     bool badjet_loose = false;
-
+    
     for (int jet_n = 0; jet_n < n_jets; jet_n++){ 
     
       //add the "standard quality" cuts here ************************
@@ -181,13 +191,20 @@ run_cutflow(std::vector<std::string> files,
       }
     }
 
-    for( size_t i = 0; i < selected_jets.size(); i++){
-      SelectedJet jet = selected_jets.at(i);
+    double leading_jet_pt = 0; 
+    for(JetItr itr = selected_jets.begin(); 
+	itr != selected_jets.end(); itr++){
+      const SelectedJet& jet = *itr;
  
       bool is_jet = check_if_jet(jet.jet_index(), buffer, def, flags); 
       // ... fill jets here 
 
-      if(!is_jet) badjet_loose = true; 
+      if (is_jet) { 
+	leading_jet_pt = std::max(jet.Pt(), leading_jet_pt); 
+      }
+      else { 
+	badjet_loose = true; 
+      }
     }
    
     // unless we start doing something with them we can just count the good el
@@ -213,9 +230,8 @@ run_cutflow(std::vector<std::string> files,
     bool ishforveto = false;
     
     //ishforveto cut setup 
-    if(! flags & cutflag::is_data){
-      if (buffer.top_hfor_type==4)  ishforveto = true;
-
+    if(! (flags & cutflag::is_data)){
+      if (buffer.top_hfor_type == 4)  ishforveto = true;
     }
      
     //---------------------------------------------------
@@ -250,74 +266,50 @@ run_cutflow(std::vector<std::string> files,
     cut_counters["hfor_veto"]++;
      
     //------------------------------------------------
-    //Preselection cuts
+    //Preselection cuts 
      
     if(!trigger)
       continue;
     cut_counters["trigger"]++;
 
-     
-    if(selected_jets.size()<3)
+    if(selected_jets.size() < 3)
       continue;
     cut_counters["n_jets_gt_3"]++;
- 
 
-    bool jetAbove150 = false;
-    //could move this for loop up with the others. cleaner?
-    for (unsigned i=0;i<selected_jets.size();i++){
-      if(selected_jets.at(i).Pt() > 150*GeV) jetAbove150 = true;
-    }
-     
-    if(!jetAbove150)
-      continue;
-    cut_counters["one_jet_pt_gt_150"]++;
-		
-    //correct implementation? 
-    if(met.Mod() <= 150*GeV)
-      continue;
-    cut_counters["MET_gt_150"]++;
+    // --- this is the region we're studying ----
 
-    //no electrons
-    if(n_good_electrons >= 1)
-      continue;
-    cut_counters["el_veto"]++;
+    float min_jetmet_dphi = get_jetmet_dphi(selected_jets, met); 
 
-    //no muons
-    if(n_good_muons >= 1)
-      continue;
-    cut_counters["mu_veto"]++;
-
-    
-    //For DeltaPhi cut
-    bool pass_dphi_veto = true; 
-    for(std::vector<SelectedJet>::const_iterator itr = selected_jets.begin();
-	itr != selected_jets.end(); itr++) { 
-      double deltaphi = fabs(met.Phi() - itr->Phi()); 
-      if(deltaphi > M_PI) deltaphi = fabs(deltaphi - 2*M_PI);
-      if(deltaphi < 0.4){ 
-	pass_dphi_veto = false; 
-	break; 
-      }
-    }
-    
-    if (!pass_dphi_veto) { 
-      continue;
-    }
-    cut_counters["min_jetmet_deltaPhi"]++;
-     
-
-    //ctag > 2 cut
-    int ctagJets = 0;
+    int n_mainz_ctags = 0;
     for(std::vector<SelectedJet>::const_iterator itr = selected_jets.begin();
 	itr != selected_jets.end(); itr++) { 
       if(itr->combNN_btag() > -2 &&
 	 itr->combNN_btag() < 4)
-	ctagJets++;
+	n_mainz_ctags++;
     } 
+ 
+    unsigned pass_bits = 0; 
+    using namespace evt; 
+    if (leading_jet_pt > 150*GeV) pass_bits |= pass_leading_pt; 
+    if (met.Mod() > 150*GeV)      pass_bits |= pass_met; 
+    if (n_good_electrons == 0)    pass_bits |= pass_el_veto; 
+    if (n_good_muons == 0)        pass_bits |= pass_mu_veto; 
+    if (min_jetmet_dphi > 0.4)    pass_bits |= pass_jetmet_dphi; 
+    if (n_mainz_ctags >= 2)       pass_bits |= pass_mainz_ctag; 
 
-    if(ctagJets < 2)
-      continue;
-    cut_counters["2_ctag"]++;
+    fill_cutflow_from_bits(cut_counters, pass_bits); 
+
+    out_tree.pass_bits = pass_bits; 
+    out_tree.met = met.Mod(); 
+    out_tree.min_jetmet_dphi = min_jetmet_dphi; 
+
+    std::sort(selected_jets.begin(), selected_jets.end(), has_lower_pt); 
+    std::reverse(selected_jets.begin(), selected_jets.end()); 
+    const SelectedJet& leading_jet = selected_jets.at(1); 
+    const SelectedJet& subleading_jet = selected_jets.at(2); 
+    copy_jet_info(leading_jet, buffer, out_tree.leading_jet); 
+    copy_jet_info(subleading_jet, buffer, out_tree.subleading_jet); 
+    out_tree.fill(); 
  
   }
   std::cout << "\n"; 
@@ -333,6 +325,71 @@ run_cutflow(std::vector<std::string> files,
   return cut_counters.get_ordered_cuts(); 
 	 
 }
+
+void copy_jet_info(const SelectedJet& in, const SusyBuffer& buffer, 
+		   OutTree::Jet& jet)
+{
+  int jet_index = in.jet_index(); 
+  jet.pt = in.Pt(); 
+  jet.eta = in.Eta(); 
+  jet.phi = in.Phi(); 
+  jet.cnn_b = buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pb->at
+    (jet_index); 
+  jet.cnn_c = buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pc->at
+    (jet_index); 
+  jet.cnn_u = buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pu->at
+    (jet_index); 
+  jet.flavor_truth_label = -1; 
+}
+
+
+int fill_cutflow_from_bits(CutCounter& cut_counters, const unsigned bits) { 
+  using namespace evt; 
+  if (! (bits & pass_leading_pt) ) { 
+    return 0; 
+  }
+  cut_counters["one_jet_pt_gt_150"]++;
+  
+  if (! (bits & pass_met)        ) { 
+    return 0; 
+  }
+  cut_counters["MET_gt_150"]++;
+
+  if (! (bits & pass_el_veto)    ) { 
+    return 0; 
+  }
+  cut_counters["el_veto"]++;
+  
+  if (! (bits & pass_mu_veto)    ) { 
+    return 0; 
+  }
+  cut_counters["mu_veto"]++;
+
+  if (! (bits & pass_jetmet_dphi)) { 
+    return 0; 
+  }
+  cut_counters["min_jetmet_deltaPhi"]++;
+
+  if (! (bits & pass_mainz_ctag) ) { 
+    return 0; 
+  }
+  cut_counters["2_ctag"]++;
+  return 1; 
+
+}
+
+float get_jetmet_dphi(const std::vector<SelectedJet>& jets, 
+		      const TVector2& met){ 
+  float min_dphi = M_PI; 
+  for(std::vector<SelectedJet>::const_iterator itr = jets.begin();
+      itr != jets.end(); itr++) { 
+    float deltaphi = fabs(met.Phi() - itr->Phi()); 
+    if(deltaphi > M_PI) deltaphi = fabs(deltaphi - 2*M_PI);
+    min_dphi = std::min(deltaphi, min_dphi); 
+  }
+  return min_dphi; 
+}
+
 
 TrigSimulator::TrigSimulator(float fraction_preswap): 
   m_frac_preswap(fraction_preswap)
@@ -359,7 +416,11 @@ bool TrigSimulator::get_decision(const SusyBuffer& buffer){
 
 }; 
 
-  
+
+bool has_lower_pt(const TLorentzVector& v1, const TLorentzVector& v2) { 
+  return v1.Pt() < v2.Pt(); 
+}
+
 bool IsSmartLArHoleVeto(TVector2 met,
 			FakeMetEstimator& fakeMetEst,
 			const SusyBuffer& buffer, 
@@ -596,4 +657,54 @@ std::vector< std::pair<std::string, int> > CutCounter::get_ordered_cuts()
     ordered_cuts.push_back(*find(*itr));
   }
   return ordered_cuts;
+}
+
+OutTree::OutTree(std::string file, std::string tree): 
+  m_file(0), 
+  m_tree(0)
+{ 
+  if (file.size() > 0) { 
+    m_file = new TFile(file.c_str(), "recreate"); 
+    m_tree = new TTree(tree.c_str(), tree.c_str()); 
+    init(); 
+  }
+}
+
+void OutTree::Jet::set_branches(TTree* tree, std::string prefix) 
+{
+  tree->Branch((prefix + "pt").c_str(), &pt); 
+  tree->Branch((prefix + "eta").c_str(), &eta); 
+  tree->Branch((prefix + "phi").c_str(), &phi); 
+  tree->Branch((prefix + "flavor_truth_label").c_str(), 
+		 &flavor_truth_label); 
+  tree->Branch((prefix + "cnn_b").c_str(), &cnn_b); 
+  tree->Branch((prefix + "cnn_c").c_str(), &cnn_c); 
+  tree->Branch((prefix + "cnn_u").c_str(), &cnn_u); 
+}
+
+void OutTree::init() 
+{ 
+  m_tree->Branch("pass_bits", &pass_bits ); 
+  m_tree->Branch("met", &met); 
+  m_tree->Branch("min_jetmet_dphi" , &min_jetmet_dphi); 
+
+  leading_jet.set_branches(m_tree, "leading_jet_"); 
+  subleading_jet.set_branches(m_tree, "subleading_jet_"); 
+
+}
+
+OutTree::~OutTree() 
+{
+  if (m_file){ 
+    m_file->WriteTObject(m_tree); 
+    delete m_file; 
+  }
+  m_file = 0; 
+}
+
+void OutTree::fill() 
+{
+  if (m_tree) { 
+    m_tree->Fill(); 
+  }
 }

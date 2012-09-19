@@ -6,6 +6,7 @@ class SUSYObjDef;
 class TVector2; 
 class FakeMetEstimator;
 class SelectedJet;
+class TFile; 
 
 #include "TLorentzVector.h"
 #include "TVector2.h"
@@ -38,9 +39,11 @@ namespace cutflag {
 
 std::vector<std::pair<std::string, int> >
 run_cutflow(std::vector<std::string> files, 
-	    RunInfo info, const unsigned flags = 0); 
+	    RunInfo info, const unsigned flags = 0, 
+	    std::string out_ntuple_name = ""); 
 
-
+float get_jetmet_dphi(const std::vector<SelectedJet>&, 
+		      const TVector2& ); 
 
 bool IsSmartLArHoleVeto(TVector2 met,
 			FakeMetEstimator& fakeMetEst,
@@ -86,11 +89,9 @@ public:
 private: 
   double m_combNN_btag_wt; 
   int m_jet_index;
-  // double cu;
-  // double cb; 
-  // double m_cu;
-  // double m_cb;
 }; 
+
+bool has_lower_pt(const TLorentzVector&, const TLorentzVector&); 
 
 class CutCounter: public std::map<std::string, int> 
 {
@@ -100,5 +101,44 @@ public:
 private: 
   std::vector<std::string> m_cuts; 
 }; 
+
+class OutTree
+{
+public: 
+  OutTree(std::string file, std::string tree = "EvtTree"); 
+  ~OutTree(); 
+  void fill(); 
+  
+  unsigned pass_bits; 
+  double met; 
+  double min_jetmet_dphi; 
+  
+  class Jet 
+  {
+  public: 
+    double pt; 
+    double eta; 
+    double phi; 
+    int flavor_truth_label; 
+    double cnn_b; 
+    double cnn_c; 
+    double cnn_u; 
+  private: 
+    friend class OutTree; 
+    void set_branches(TTree*, std::string prefix); 
+  }; 
+
+  Jet leading_jet; 
+  Jet subleading_jet; 
+
+private:
+  void init(); 
+  TFile* m_file; 
+  TTree* m_tree; 
+}; 
+int fill_cutflow_from_bits(CutCounter&, const unsigned); 
+
+void copy_jet_info(const SelectedJet& , const SusyBuffer& buffer, 
+		   OutTree::Jet&); 
 
 #endif //CUTFLOW_H
