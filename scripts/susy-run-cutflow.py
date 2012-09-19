@@ -60,8 +60,8 @@ def run_cutflow(samples, susy_lookup, mainz_lookup='SampleListStop.txt',
 
 
 
-    if not os.path.isdir(raw_counts): 
-        os.makedirs(raw_counts)
+    if not os.path.isdir(counts_cache): 
+        os.makedirs(counts_cache)
     
     mainz_cutflow = cutflow.NormedCutflow(mainz_lookup, 
                                           file_format='mainz', 
