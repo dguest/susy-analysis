@@ -25,7 +25,7 @@ static const double GeV = 1000.0*MeV;
 class SmartChain: public TChain { 
 public: 
   SmartChain(std::string tree_name); 
-  void SetBranchAddress(std::string name, void* branch); 
+  void SetBranchAddress(std::string name, void* branch, bool turnon = false); 
 }; 
 
 

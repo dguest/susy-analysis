@@ -608,9 +608,9 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, unsigned br)
    fChain->SetBranchAddress("jet_AntiKt4TopoNewEM_EF_dr", &jet_AntiKt4TopoNewEM_EF_dr); 
    fChain->SetBranchStatus("jet_AntiKt4TopoNewEM_EF_matched",other);
    fChain->SetBranchAddress("jet_AntiKt4TopoNewEM_EF_matched", &jet_AntiKt4TopoNewEM_EF_matched); 
-   fChain->SetBranchAddress("jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pu", &jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pu);
-   fChain->SetBranchAddress("jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pb", &jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pb);
-   fChain->SetBranchAddress("jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pc", &jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pc);
+   fChain->SetBranchAddress("jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pu", &jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pu, other);
+   fChain->SetBranchAddress("jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pb", &jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pb, other);
+   fChain->SetBranchAddress("jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pc", &jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pc, other);
    fChain->SetBranchStatus("vx_nTracks",other);
    fChain->SetBranchAddress("vx_nTracks", &vx_nTracks); 
    fChain->SetBranchStatus("trig_L2_el_n",other);

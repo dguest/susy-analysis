@@ -626,7 +626,11 @@ SmartChain::SmartChain(std::string tree_name):
 { 
 }
 
-void SmartChain::SetBranchAddress(std::string name, void* branch) { 
+void SmartChain::SetBranchAddress(std::string name, void* branch, 
+				  bool turnon) { 
+  if (turnon) { 
+    SetBranchStatus(name.c_str(), 1); 
+  }
   int return_code = TChain::SetBranchAddress(name.c_str(), branch); 
   if (return_code != 0 && return_code != 5 ){ 
     std::string issue = (boost::format("can not set %s , return code %i") % 
