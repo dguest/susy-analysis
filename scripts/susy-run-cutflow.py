@@ -55,14 +55,21 @@ def cutflow_job(ins):
 
 
 def run_cutflow(samples, susy_lookup, mainz_lookup='SampleListStop.txt',
-                data_location='.', flags='v', cores=1): 
+                data_location='.', flags='v', cores=1,    
+                counts_cache='raw_counts'): 
 
+
+
+    if not os.path.isdir(raw_counts): 
+        os.makedirs(raw_counts)
     
     mainz_cutflow = cutflow.NormedCutflow(mainz_lookup, 
-                                          file_format='mainz')
+                                          file_format='mainz', 
+                                          raw_counts_cache=counts_cache)
 
     susy_cutflow = cutflow.NormedCutflow(susy_lookup, 
-                                         file_format='official')
+                                         file_format='official', 
+                                         raw_counts_cache=counts_cache)
 
     sig_counts = {}
     bg_counts = {}
