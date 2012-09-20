@@ -32,7 +32,7 @@ def cutflow(input_files, run_number, flags, output_ntuple = ''):
         cut_out = _cutflow._cutflow(input_files, run_number, flags)
     except RuntimeError as er: 
         if 'a' in flags and 'bad file:' in str(er): 
-            bad_file = str(er).split(':').strip()
+            bad_file = str(er).split(':')[-1].strip()
             remaining_files = [f for f in input_files if f != bad_file]
             if remaining_files:
                 warnings.warn('removed {}, retrying'.format(bad_file))
