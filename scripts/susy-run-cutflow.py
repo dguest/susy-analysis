@@ -14,7 +14,7 @@ import argparse, ConfigParser
 import warnings
 import collections
 import multiprocessing
-from itertools import izip_longest
+import cPickle
 
 def cutflow_job(ins): 
     """
@@ -204,32 +204,9 @@ if __name__ == '__main__':
         cores=args.multi, 
         )
 
-    names = all_cuts['names']
-    
-    num_format = '{:.4g}'
-    write_format = '{:>{w}.4g}'
-    widths = {}
-    for sample, cut_list in all_cuts.iteritems(): 
-        if cut_list and sample != 'names':
-            lowpre = [num_format.format(x) for x in cut_list]
-            widths[sample] = max(len(x) for x in lowpre + [sample]) + 1
+    with open('final_cuts.pkl','wb') as out_pkl: 
+        cPickle.dump(all_cuts, out_pkl)
 
-    all_samples = all_cuts.keys()
-    sys.stdout.write(''.rjust(24))
-    for sample in all_samples: 
-        if sample in widths:
-            sys.stdout.write(sample.rjust(widths[sample]))
-    sys.stdout.write('\n')
-    for cut_num, cut_name in enumerate(names): 
-        sys.stdout.write(cut_name.rjust(23) + ':')
-        for sample in all_samples: 
-            if sample == 'names' or sample not in widths: 
-                continue
-            if cut_num < len(all_cuts[sample]): 
-                val = all_cuts[sample][cut_num]
-            else: 
-                val = 0
-            sys.stdout.write(write_format.format(val, w=widths[sample]))
-        sys.stdout.write('\n')
+    
 
 
