@@ -154,6 +154,8 @@ if __name__ == '__main__':
     parser.add_argument('--multi', type=int, default=1, const=n_cores, 
                         nargs='?',
                         help='use multiple cores (or all if no arg given)')
+    parser.add_argument('--aggressive', action='store_true', 
+                        help='remove corrupted files and carry on')
 
     args = parser.parse_args(remaining)
 
@@ -168,6 +170,8 @@ if __name__ == '__main__':
         
     if args.debug: 
         flags += 'b'
+    if args.aggressive: 
+        flags += 'a'
 
     all_cuts = run_cutflow(
         used_samples, 

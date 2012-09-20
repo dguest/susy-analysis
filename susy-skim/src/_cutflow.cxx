@@ -13,10 +13,12 @@ static PyObject* py_cutflow(PyObject *self,
 {
   PyObject* py_input_files; 
   const char* flags_str = ""; 
+  const char* out_ntuple = ""; 
 
   RunInfo info; 
   bool ok = PyArg_ParseTuple
-    (args,"Oi|s:cutflow", &py_input_files, &info.run_number, &flags_str); 
+    (args,"Oi|ss:cutflow", &py_input_files, &info.run_number, 
+     &flags_str, &out_ntuple); 
   if (!ok) return NULL;
 
   int n_files = PyList_Size(py_input_files); 
@@ -39,7 +41,7 @@ static PyObject* py_cutflow(PyObject *self,
   typedef std::vector<std::pair<std::string, int> > CCOut; 
   CCOut pass_numbers; 
   try { 
-    pass_numbers = run_cutflow(input_files, info, flags); 
+    pass_numbers = run_cutflow(input_files, info, flags, out_ntuple); 
   }
   catch (std::runtime_error e) { 
     PyErr_SetString(PyExc_RuntimeError, e.what()); 

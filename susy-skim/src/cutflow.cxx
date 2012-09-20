@@ -17,6 +17,7 @@
 #include "EventBits.hh"
 
 #include <boost/format.hpp>
+#include <boost/scoped_ptr.hpp>
 
 /* NOTES:
 
@@ -80,7 +81,7 @@ run_cutflow(std::vector<std::string> files,
 	    RunInfo info, const unsigned flags, 
 	    std::string out_ntuple_name) {  
 
-  SmartChain* input_chain = new SmartChain("susy"); 
+  boost::scoped_ptr<SmartChain> input_chain(new SmartChain("susy")); 
 
   if (files.size() == 0) { 
     throw std::runtime_error("I need files to run!"); 
@@ -91,7 +92,7 @@ run_cutflow(std::vector<std::string> files,
        file_itr++) { 
     int ret_code = input_chain->Add(file_itr->c_str(),-1); 
     if (ret_code != 1) { 
-      std::string err = (boost::format("error connecting file %s to chain") % 
+      std::string err = (boost::format("bad file: %s") % 
 			 *file_itr).str(); 
       throw std::runtime_error(err); 
     }
@@ -108,7 +109,7 @@ run_cutflow(std::vector<std::string> files,
   // unsigned branches = branches::run_num | branches::trigger; 
   unsigned branches = branches::all; 
 
-  SusyBuffer buffer(input_chain, branches); 
+  SusyBuffer buffer(input_chain.get(), branches); 
   int n_entries = input_chain->GetEntries(); 
 
 

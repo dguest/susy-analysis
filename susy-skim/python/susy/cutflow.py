@@ -8,16 +8,19 @@ import re
 
 run_number = 180614
 
-def cutflow(input_files, run_number, flags): 
+def cutflow(input_files, run_number, flags, output_ntuple = ''): 
     """
-    Returns a list of pairs: (cut_name, n_passing)
+    Returns a list of pairs: (cut_name, n_passing). If output_ntuple is 
+    given will also write an ntuple. 
 
-    Python-level interface for the compiled cutflow routine. 
     Flags: 
         v: verbose
         d: is data
         s: is signal
         p: use low pt jets
+        a: aggressive --- remove bad files and retry
+
+    This is a python-level interface for the compiled cutflow routine. 
     """
     if isinstance(input_files, str): 
         input_files = [input_files]
@@ -28,7 +31,14 @@ def cutflow(input_files, run_number, flags):
     try: 
         cut_out = _cutflow._cutflow(input_files, run_number, flags)
     except RuntimeError as er: 
-        raise RuntimeError('{} in {}'.format(str(er), input_files))
+        if 'a' in flags and 'bad file:' in str(er): 
+            bad_file = str(er).split(':').strip()
+            remaining_files = [f for f in input_files if f != bad_file]
+            if remaining_files:
+                warnings.warn('removed {}, retrying'.format(bad_file))
+                return cutflow(remaining_files, run_number, flags, 
+                               output_ntuple)
+        raise RuntimeError('{} in cutflow'.format(str(er)))
 
     return cut_out
 
