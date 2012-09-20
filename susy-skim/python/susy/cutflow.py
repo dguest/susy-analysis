@@ -215,7 +215,7 @@ class NormedCutflow(object):
         
         int_xsec_per_evt =  cross_section / float(n_events) * lumi
 
-        normed_counts = {n: c * int_xsec_per_evt for n,c in cut_counts}
+        normed_counts = [(n, c * int_xsec_per_evt) for n,c in cut_counts]
 
         return normed_counts
         

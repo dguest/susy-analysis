@@ -96,27 +96,48 @@ def run_cutflow(samples, susy_lookup, mainz_lookup='SampleListStop.txt',
             print count
 
 
-    def get_zeroed_counter(): 
-        return collections.defaultdict(int)
-    signal_cutflows = collections.defaultdict(get_zeroed_counter)
+    signal_cutflows = collections.defaultdict(list)
+    cuts_names = []
+    def check_cut(number, name): 
+        if len(cuts_names) <= number: 
+            cuts_names.append(name)
+        elif cuts_names[number] != name: 
+            raise ValueError(
+                'cut number {}: {} got weird name ({})'.format(
+                    number, cuts_names[number], name) )
 
     for sample_name, cuts in sig_counts.items(): 
 
         particle, vx = sample_name.split('_')
         
-        for name, value in cuts.items(): 
-            signal_cutflows[particle][name] += value
+        chan_cutflow = signal_cutflows[particle]
+
+        for number, (name, value) in enumerate(cuts): 
+            if len(chan_cutflow) <= number: 
+                chan_cutflow.append(value)
+            else: 
+                chan_cutflow[number] += value
+            check_cut(number, name)
 
     np_finder = re.compile('Np[0-9]')
-    bg_cutflows = collections.defaultdict(get_zeroed_counter)
+    bg_cutflows = collections.defaultdict(list)
     for sample_name, cuts in bg_counts.items(): 
         short_name = sample_name
         if np_finder.findall(sample_name): 
             short_name = np_finder.split(sample_name)[0]
-        for name, value in cuts.items(): 
-            bg_cutflows[short_name][name] += value
+            
+        chan_cutflow = bg_cutflows[short_name]
+
+        for number, (name, value) in enumerate(cuts): 
+            if len(chan_cutflow) <= number: 
+                chan_cutflow.append(value)
+            else: 
+                chan_cutflow[number] += value
+            check_cut(number, name)
+
 
     signal_cutflows.update(bg_cutflows)
+    signal_cutflows['names'] = cuts_names
 
     return signal_cutflows
 
@@ -182,13 +203,13 @@ if __name__ == '__main__':
         cores=args.multi, 
         )
 
-    
+    print all_cuts
 
-    for sample, cut_dict in all_cuts.iteritems(): 
+    names = all_cuts['names']
+    for sample, cut_list in all_cuts.iteritems(): 
+        if sample == 'names': continue
         print sample
-        sort_cuts = [(name, value) for name, value in cut_dict.iteritems()]
-        sort_cuts = sorted(sort_cuts, key=lambda cut: cut[1], reverse=True)
-        for name, value in sort_cuts: 
+        for name, value in zip(names, cut_list): 
             print '{:>20}: {: >12.2f}'.format(name,value)
 
 
