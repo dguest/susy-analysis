@@ -138,7 +138,6 @@ run_cutflow(std::vector<std::string> files,
   
   // looping through events
 
-  std::cout << n_entries << " entries in chain" << std::endl; 
   int one_percent = n_entries /  100; 
 
   for (int evt_n = 0; evt_n < n_entries; evt_n++) { 
