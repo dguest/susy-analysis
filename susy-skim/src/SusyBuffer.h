@@ -18,7 +18,7 @@ namespace branches {
   const unsigned trigger = 1u << 0; 
   const unsigned run_num = 1u << 1; 
   const unsigned others  = 1u << 5; 
-  const unsigned all     = trigger | others; 
+  const unsigned all     = trigger | others | run_num; 
   const unsigned unleash_sharktopus  = 1u << 6; 
 }
 

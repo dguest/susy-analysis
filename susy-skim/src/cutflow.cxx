@@ -333,13 +333,14 @@ void copy_jet_info(const SelectedJet& in, const SusyBuffer& buffer,
   jet.pt = in.Pt(); 
   jet.eta = in.Eta(); 
   jet.phi = in.Phi(); 
-  jet.cnn_b = buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pb->at
-    (jet_index); 
-  jet.cnn_c = buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pc->at
-    (jet_index); 
-  jet.cnn_u = buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pu->at
-    (jet_index); 
-  jet.flavor_truth_label = -1; 
+  jet.cnn_b = 
+    buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pb->at(jet_index); 
+  jet.cnn_c = 
+    buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pc->at(jet_index); 
+  jet.cnn_u = 
+    buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pu->at(jet_index); 
+  jet.flavor_truth_label = 
+    buffer.jet_AntiKt4TopoNewEM_flavor_truth_label->at(jet_index); 
 }
 
 
