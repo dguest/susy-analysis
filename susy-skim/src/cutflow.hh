@@ -130,6 +130,7 @@ public:
 
   Jet leading_jet; 
   Jet subleading_jet; 
+  Jet isr_jet; 
 
 private:
   void init(); 

@@ -307,8 +307,10 @@ run_cutflow(std::vector<std::string> files,
     std::reverse(selected_jets.begin(), selected_jets.end()); 
     const SelectedJet& leading_jet = selected_jets.at(1); 
     const SelectedJet& subleading_jet = selected_jets.at(2); 
+    const SelectedJet& isr_jet = selected_jets.at(0); 
     copy_jet_info(leading_jet, buffer, out_tree.leading_jet); 
     copy_jet_info(subleading_jet, buffer, out_tree.subleading_jet); 
+    copy_jet_info(isr_jet, buffer, out_tree.isr_jet); 
     out_tree.fill(); 
  
   }
@@ -695,6 +697,7 @@ void OutTree::init()
 
   leading_jet.set_branches(m_tree, "leading_jet_"); 
   subleading_jet.set_branches(m_tree, "subleading_jet_"); 
+  isr_jet.set_branches(m_tree, "isr_jet_"); 
 
 }
 
