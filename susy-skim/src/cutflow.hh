@@ -105,7 +105,7 @@ private:
 class OutTree
 {
 public: 
-  OutTree(std::string file, std::string tree = "EvtTree"); 
+  OutTree(std::string file, std::string tree = "evt_tree"); 
   ~OutTree(); 
   void fill(); 
   

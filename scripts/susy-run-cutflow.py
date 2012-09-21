@@ -20,7 +20,9 @@ def cutflow_job(ins):
     """
     job wrapper to pass to multiprocessing map
     """
-    samp, data_location, flags, mainz_cutflow, susy_cutflow = ins
+    samp, data_paths, flags, mainz_cutflow, susy_cutflow = ins
+
+    data_location = data_paths['input']
 
     debug = 'b' in flags
 
@@ -28,9 +30,6 @@ def cutflow_job(ins):
     counts = {}
     if samp.startswith('Stop'): 
         data_type = 'signal'
-        if debug: 
-            data_type = 'debug'
-            return '{} will go to signal'.format(samp), 'debug'
         matched_files = mainz_cutflow.add_ds_lookup(samp, data_location)
         signal_flags = flags + 's'
         if matched_files: 
@@ -38,39 +37,39 @@ def cutflow_job(ins):
                 samp, flags=signal_flags)
 
     elif samp == 'Data': 
-        data_type = 'data'
-        if debug: 
-            return '{} is Data'.format(samp), 'debug'
         warnings.warn('Data not implemented')
 
     else: 
         data_type = 'background'
-        if debug: 
-            return '{} will go to bg'.format(samp), 'debug'
         matched_files = susy_cutflow.add_ds_lookup(samp, data_location)
         if matched_files: 
             counts = susy_cutflow.get_normed_counts(
                 samp, flags=flags)
     return counts, data_type
 
-
-
-def run_cutflow(samples, susy_lookup, mainz_lookup='SampleListStop.txt',
-                data_location='.', flags='v', cores=1,    
+def run_cutflow(samples, data_paths, susy_lookup, 
+                mainz_lookup='SampleListStop.txt',
+                flags='v', cores=1,    
                 counts_cache='raw_counts'): 
-
-
 
     if not os.path.isdir(counts_cache): 
         os.makedirs(counts_cache)
     
-    mainz_cutflow = cutflow.NormedCutflow(mainz_lookup, 
-                                          file_format='mainz', 
-                                          raw_counts_cache=counts_cache)
+    output = ''
+    if 'output' in data_paths: 
+        output = data_paths['output']
 
-    susy_cutflow = cutflow.NormedCutflow(susy_lookup, 
-                                         file_format='official', 
-                                         raw_counts_cache=counts_cache)
+    mainz_cutflow = cutflow.NormedCutflow(
+        mainz_lookup, 
+        file_format='mainz', 
+        raw_counts_cache=counts_cache, 
+        output_ntuples_dir=output)
+
+    susy_cutflow = cutflow.NormedCutflow(
+        susy_lookup, 
+        file_format='official', 
+        raw_counts_cache=counts_cache, 
+        output_ntuples_dir=output)
 
     sig_counts = {}
     bg_counts = {}
@@ -80,10 +79,10 @@ def run_cutflow(samples, susy_lookup, mainz_lookup='SampleListStop.txt',
 
     inputs = []
     for samp in samples: 
-        ins = (samp, data_location, flags, mainz_cutflow, susy_cutflow)
+        ins = (samp, data_paths, flags, mainz_cutflow, susy_cutflow)
         inputs.append(ins)
 
-    if len(inputs) > 1: 
+    if len(inputs) > 1 and cores > 1 and 'b' not in flags: 
         all_counts = pool.map(cutflow_job, inputs)
     else: 
         all_counts = map(cutflow_job, inputs)
@@ -172,7 +171,10 @@ if __name__ == '__main__':
     parser.add_argument('--mainz-lookup', help='default: %(default)s' )
     parser.add_argument('--susy-lookup', help='default: %(default)s')
     parser.add_argument('-t','--terse', action='store_true')
-    parser.add_argument('--debug', action='store_true')
+    parser.add_argument(
+        '--debug', action='store_true', 
+        help='may not do anything right now'
+        )
     parser.add_argument('--multi', type=int, default=1, const=n_cores, 
                         nargs='?',
                         help='use multiple cores (or all if no arg given)')
@@ -195,12 +197,17 @@ if __name__ == '__main__':
     if args.aggressive: 
         flags += 'a'
 
+    data_paths = {'input':args.data_location}
+
+    if 'output_ntuples_location' in args: 
+        data_paths['output'] = args.output_ntuples_location
+
     all_cuts = run_cutflow(
         used_samples, 
         susy_lookup=args.susy_lookup, 
         mainz_lookup=args.mainz_lookup, 
         flags=flags, 
-        data_location=args.data_location, 
+        data_paths=data_paths, 
         cores=args.multi, 
         )
 

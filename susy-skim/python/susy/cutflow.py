@@ -29,7 +29,8 @@ def cutflow(input_files, run_number, flags, output_ntuple = ''):
         raise IOError("can't run cutflow, input files don't exist")
 
     try: 
-        cut_out = _cutflow._cutflow(input_files, run_number, flags)
+        cut_out = _cutflow._cutflow(input_files, run_number, flags, 
+                                    output_ntuple)
     except RuntimeError as er: 
         if 'a' in flags and 'bad file:' in str(er): 
             bad_file = str(er).split(':')[-1].strip()
@@ -51,9 +52,10 @@ class NormedCutflow(object):
     files_from_key = collections.defaultdict(list)
 
     def __init__(self, norm_file, raw_counts_cache='raw_counts', 
-                 file_format='official'): 
+                 file_format='official', output_ntuples_dir=''): 
         self._norm_file_name = norm_file
         self._cache_name = raw_counts_cache
+        self._output_ntuples_dir = output_ntuples_dir
 
         allowed_formats = {
             'mainz':self._mainz_itr,
@@ -187,9 +189,25 @@ class NormedCutflow(object):
             with open(full_cache_name,'rb') as pkl: 
                 cached_info = cPickle.load(pkl)
 
-        if not ds_key in cached_info: 
+        if self._output_ntuples_dir: 
+            if not os.path.isdir(self._output_ntuples_dir): 
+                os.makedirs(self._output_ntuples_dir)
+            output_ntuple = os.path.join(self._output_ntuples_dir,ds_key)
+            output_ntuple += '.root'
+        else: 
+            output_ntuple = ''
+
+        rebuild_conditions = [
+            ds_key not in cached_info, 
+            output_ntuple and not os.path.isfile(output_ntuple), 
+            ]
+
+        need_rebuild = any(rebuild_conditions)
+
+        if need_rebuild: 
             input_files = self.files_from_key[ds_key]
-            cut_counts = cutflow(input_files, run_number, flags=flags)
+            cut_counts = cutflow(input_files, run_number, flags=flags, 
+                                 output_ntuple=output_ntuple)
             
             cached_info[ds_key] = cut_counts
 
@@ -204,7 +222,7 @@ class NormedCutflow(object):
         try: 
             frac_in_file = float(n_events) / float(xsec_events)
         except TypeError: 
-            frac_in_file = 0
+            frac_in_file = 0 
             xsec_events = 0
         if xsec_events and n_events != xsec_events: 
             warnings.warn(
@@ -214,6 +232,23 @@ class NormedCutflow(object):
                 stacklevel=2)
         
         int_xsec_per_evt =  cross_section / float(n_events) * lumi
+
+        if self._output_ntuples_dir: 
+            per_evt_pkl = 'x_sec_per_event.pkl'
+            x_sec_pkl = os.path.join(self._output_ntuples_dir, per_evt_pkl) 
+            if os.path.isfile(x_sec_pkl): 
+                with open(x_sec_pkl) as pkl: 
+                    per_evt_dic = cPickle.load(pkl)
+                if not isinstance(per_evt_dic, dict): 
+                    warnings.warn(
+                        '{} is corrupted, removing'.format(x_sec_pkl))
+                    os.remove(x_sec_pkl)
+                    per_evt_dic = {}
+            else:
+                per_evt_dic = {}
+            per_evt_dic[ds_key] = int_xsec_per_evt
+            with open(x_sec_pkl,'w') as pkl: 
+                cPickle.dump(per_evt_dic, pkl)
 
         normed_counts = [(n, c * int_xsec_per_evt) for n,c in cut_counts]
 
