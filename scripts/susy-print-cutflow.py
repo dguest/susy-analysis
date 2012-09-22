@@ -12,7 +12,9 @@ if __name__ == '__main__':
     
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('input_pickle')
-    parser.add_argument('--filter', nargs='+')
+    parser.add_argument(
+        '--filter', nargs='+', 
+        help='print only samples with names containing these strings')
 
     args = parser.parse_args(sys.argv[1:])
     

@@ -4,8 +4,8 @@ susy stop cutflow script.
 
 Defaults are set (by default) in cutflow.cfg.
 
-At some point I'll add a flag to output some small ntuple 
-(for the real Science)
+Output is saved in the output-pickle, and can be printed with
+susy-print-cutflow.py. 
 """
 
 from susy import cutflow 
@@ -180,6 +180,9 @@ if __name__ == '__main__':
                         help='use multiple cores (or all if no arg given)')
     parser.add_argument('--aggressive', action='store_true', 
                         help='remove corrupted files and carry on')
+    parser.add_argument(
+        '--output-pickle', default='final_cuts.pkl', 
+        help='pickle where cutflow is saved (default: %(default)s)')
 
     args = parser.parse_args(remaining)
 
@@ -211,7 +214,7 @@ if __name__ == '__main__':
         cores=args.multi, 
         )
 
-    with open('final_cuts.pkl','wb') as out_pkl: 
+    with open(args.output_pickle,'wb') as out_pkl: 
         cPickle.dump(all_cuts, out_pkl)
 
     
