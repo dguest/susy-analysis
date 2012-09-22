@@ -10,7 +10,9 @@ import cPickle
 
 if __name__ == '__main__': 
     
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__, 
+                                     epilog='Author: Dan Guest', 
+                                     )
     parser.add_argument('input_pickle')
     parser.add_argument(
         '--filter', nargs='+', 
