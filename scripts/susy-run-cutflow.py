@@ -199,7 +199,7 @@ if __name__ == '__main__':
     flags = '' if args.terse or args.multi > 1 else 'v'
         
     if args.debug: 
-        flags += 'b'
+        flags += 'd'
     if args.aggressive: 
         flags += 'a'
 
