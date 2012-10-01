@@ -172,6 +172,7 @@ if __name__ == '__main__':
                         help='default: %(default)s')
     parser.add_argument('--mainz-lookup', help='default: %(default)s' )
     parser.add_argument('--susy-lookup', help='default: %(default)s')
+    parser.add_argument('--rootcoredir', help='default: %(default)s')
     parser.add_argument('--cache', help='default: %(default)s')
     parser.add_argument('-t','--terse', action='store_true')
     parser.add_argument(
@@ -208,16 +209,25 @@ if __name__ == '__main__':
     if 'output_ntuples_location' in args: 
         data_paths['output'] = args.output_ntuples_location
 
-
-    all_cuts = run_cutflow(
-        used_samples, 
-        susy_lookup=args.susy_lookup, 
-        mainz_lookup=args.mainz_lookup, 
-        flags=flags, 
-        data_paths=data_paths, 
-        cores=args.multi, 
-        counts_cache=args.cache
-        )
+    # allow local override of ROOTCOREDIR
+    old_rootcoredir = ''
+    if args.rootcoredir: 
+        if 'ROOTCOREDIR' in os.environ: 
+            old_rcd = os.environ['ROOTCOREDIR']
+        os.environ['ROOTCOREDIR'] = args.rootcoredir
+    try: 
+        all_cuts = run_cutflow(
+            used_samples, 
+            susy_lookup=args.susy_lookup, 
+            mainz_lookup=args.mainz_lookup, 
+            flags=flags, 
+            data_paths=data_paths, 
+            cores=args.multi, 
+            counts_cache=args.cache
+            )
+    finally: 
+        if old_rootcoredir: 
+            os.environ['ROOTCOREDIR'] = old_rootcoredir
 
     with open(args.output_pickle,'wb') as out_pkl: 
         cPickle.dump(all_cuts, out_pkl)
