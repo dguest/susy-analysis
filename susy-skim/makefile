@@ -9,6 +9,7 @@ INC          := src
 DICT         := dict
 
 # --- external dirs 
+-include local.mk		# should define ROOTCORE_ROOT
 SUSY_INC      := $(shell ./map_libs.sh -i $(ROOTCORE_ROOT))
 
 #  set search path

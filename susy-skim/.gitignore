@@ -5,3 +5,4 @@
 *.so
 *.pyc
 *.pkl
+local.mk
