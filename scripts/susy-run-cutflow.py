@@ -27,10 +27,10 @@ def cutflow_job(ins):
     debug = 'b' in flags
 
     data_type = 'unknown'
-    counts = {}
+    counts = None
     if samp.startswith('Stop'): 
-        data_type = 'signal'
         matched_files = mainz_cutflow.add_ds_lookup(samp, data_location)
+        data_type = 'signal'
         signal_flags = flags + 's'
         if matched_files: 
             counts = mainz_cutflow.get_normed_counts(
@@ -40,8 +40,8 @@ def cutflow_job(ins):
         warnings.warn('Data not implemented')
 
     else: 
-        data_type = 'background'
         matched_files = susy_cutflow.add_ds_lookup(samp, data_location)
+        data_type = 'background'
         if matched_files: 
             counts = susy_cutflow.get_normed_counts(
                 samp, flags=flags)
@@ -88,13 +88,15 @@ def run_cutflow(samples, data_paths, susy_lookup,
         all_counts = map(cutflow_job, inputs)
 
     for samp, (count, data_type) in zip(samples,all_counts): 
+        if not count: 
+            print '{} not found'.format(samp)
+            continue
         if data_type == 'signal': 
             sig_counts[samp] = count
         elif data_type == 'background': 
             bg_counts[samp] = count
         else: 
             print count
-
 
     signal_cutflows = collections.defaultdict(list)
     cuts_names = []
@@ -135,7 +137,7 @@ def run_cutflow(samples, data_paths, susy_lookup,
                 chan_cutflow[number] += value
             check_cut(number, name)
 
-
+    
     signal_cutflows.update(bg_cutflows)
     signal_cutflows['names'] = cuts_names
 
@@ -170,6 +172,7 @@ if __name__ == '__main__':
                         help='default: %(default)s')
     parser.add_argument('--mainz-lookup', help='default: %(default)s' )
     parser.add_argument('--susy-lookup', help='default: %(default)s')
+    parser.add_argument('--cache', help='default: %(default)s')
     parser.add_argument('-t','--terse', action='store_true')
     parser.add_argument(
         '--debug', action='store_true', 
@@ -205,6 +208,7 @@ if __name__ == '__main__':
     if 'output_ntuples_location' in args: 
         data_paths['output'] = args.output_ntuples_location
 
+
     all_cuts = run_cutflow(
         used_samples, 
         susy_lookup=args.susy_lookup, 
@@ -212,6 +216,7 @@ if __name__ == '__main__':
         flags=flags, 
         data_paths=data_paths, 
         cores=args.multi, 
+        counts_cache=args.cache
         )
 
     with open(args.output_pickle,'wb') as out_pkl: 

@@ -37,6 +37,7 @@ static PyObject* py_cutflow(PyObject *self,
   if (strchr(flags_str,'d')) flags |= cutflag::is_data; 
   if (strchr(flags_str,'s')) flags |= cutflag::is_signal; 
   if (strchr(flags_str,'p')) flags |= cutflag::use_low_pt_jets; 
+  if (strchr(flags_str,'d')) flags |= cutflag::debug_susy; 
 
   typedef std::vector<std::pair<std::string, int> > CCOut; 
   CCOut pass_numbers; 

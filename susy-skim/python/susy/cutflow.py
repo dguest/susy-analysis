@@ -19,6 +19,7 @@ def cutflow(input_files, run_number, flags, output_ntuple = ''):
         s: is signal
         p: use low pt jets
         a: aggressive --- remove bad files and retry
+        d: debug susytools (don't pipe output to /dev/null)
 
     This is a python-level interface for the compiled cutflow routine. 
     """
@@ -175,7 +176,7 @@ class NormedCutflow(object):
         Looks finds the root files in files_from_key, normalization 
         is found in norm_file. 
         """
-        
+
         if not ds_key in self._norm_dict: 
             raise LookupError('no {} found in {}'.format(
                     ds_key, self._norm_file_name))

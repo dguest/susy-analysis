@@ -116,7 +116,11 @@ run_cutflow(std::vector<std::string> files,
   // dump stdout from susytools init to /dev/null 
   std::streambuf* old_out_stream = std::cout.rdbuf();
   std::streambuf* old_err_stream = std::cerr.rdbuf();
-  ofstream strCout("/dev/null");
+  std::string out_file = "/dev/null"; 
+  if (flags & cutflag::debug_susy) { 
+    out_file = "susy-dbg.txt"; 
+  }
+  ofstream strCout(out_file.c_str());
   std::cout.rdbuf( strCout.rdbuf() );
   std::cerr.rdbuf( strCout.rdbuf() );
     
