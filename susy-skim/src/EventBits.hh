@@ -4,13 +4,20 @@
 // NOTE: This is (to be) parsed by a python function to extract bit 
 //       definitions. Please restrict the below code to bit defs. 
 
-namespace evt { 
-  const unsigned pass_leading_pt  = 1u << 0; 
-  const unsigned pass_met         = 1u << 1; 
-  const unsigned pass_el_veto     = 1u << 2; 
-  const unsigned pass_mu_veto     = 1u << 3; 
-  const unsigned pass_jetmet_dphi = 1u << 4; 
-  const unsigned pass_mainz_ctag  = 1u << 5; 
+namespace pass { 
+  const unsigned grl         = 1u << 2; 
+  const unsigned trigger     = 1u << 3; 
+  const unsigned lar_error   = 1u << 4; 
+  const unsigned core        = 1u << 5; 
+  const unsigned jet_clean   = 1u << 6; 
+  const unsigned vxp_gt_4trk = 1u << 7; 
+  const unsigned leading_jet = 1u << 8; 
+  const unsigned met         = 1u << 9; 
+  const unsigned n_jet       = 1u << 10; 
+  const unsigned dphi_jetmet = 1u << 11; 
+  const unsigned lepton_veto = 1u << 12; 
+  const unsigned ctag_mainz  = 1u << 13; 
+
 }
 
 #endif

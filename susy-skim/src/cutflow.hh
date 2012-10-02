@@ -69,6 +69,11 @@ bool check_if_muon(int iMu,
 		   SUSYObjDef& def, 
 		   const unsigned flags);
 
+int fill_electrons(const SusyBuffer& buffer, SUSYObjDef& def, 
+		   unsigned flags, const RunInfo& info); 
+std::vector<int> fill_muons(const SusyBuffer& buffer, SUSYObjDef& def, 
+			    unsigned flags, const RunInfo& info); 
+
 class TrigSimulator { 
 public: 
   TrigSimulator(float fraction_preswap = 2281.26 / 4689.68); 
@@ -77,9 +82,10 @@ private:
   float m_frac_preswap; 
 }; 
 
-/*TVector2 get_MET(const SusyBuffer& buffer, 
-  SUSYObjDef& def, 
-  const RunInfo&); */
+TVector2 get_met(const SusyBuffer& buffer, 
+		 SUSYObjDef& def, 
+		 const RunInfo&, const std::vector<int>& muon_idx );
+
 class SelectedJet: public TLorentzVector { 
 public: 
   SelectedJet(const SusyBuffer& buffer, int jet_index); 
@@ -87,9 +93,17 @@ public:
   int jet_index() const;
   double jfitcomb_cu(const SusyBuffer& buffer, int jet_index) const;
   double jfitcomb_cb(const SusyBuffer& buffer, int jet_index) const;
+  double jvf() const; 
 private: 
   double m_combNN_btag_wt; 
   int m_jet_index;
+  float m_jvf; //jet_AntiKt4TopoNewEM_jvtxf
+}; 
+
+class SelectedJets: public std::vector<SelectedJet> 
+{ 
+public: 
+  SelectedJets(const SusyBuffer& buffer, const unsigned flags); 
 }; 
 
 bool has_lower_pt(const TLorentzVector&, const TLorentzVector&); 

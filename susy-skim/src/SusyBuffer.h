@@ -22,6 +22,10 @@ namespace branches {
   const unsigned unleash_sharktopus  = 1u << 6; 
 }
 
+struct BranchNames 
+{ 
+  std::string trigger; 
+}; 
 
 using std::vector; 
 
@@ -38,9 +42,39 @@ public :
   unsigned int RunNumber; 
   Bool_t          EF_xe60_verytight_noMu;
   Bool_t          EF_xe70_noMu;
+  Bool_t          trigger; 
   Float_t         averageIntPerXing;
   UInt_t          mc_channel_number;
   UInt_t          larError;
+  unsigned        coreFlags; 
+
+  // MET things
+  vector<float>*          jet_AntiKt4LCTopo_pt;
+  vector<vector<float> >*    jet_AntiKt4LCTopo_MET_Egamma10NoTau_wet;
+  vector<vector<float> >*    jet_AntiKt4LCTopo_MET_Egamma10NoTau_wpx;
+  vector<vector<float> >*    jet_AntiKt4LCTopo_MET_Egamma10NoTau_wpy;
+  vector<vector<unsigned> >* jet_AntiKt4LCTopo_MET_Egamma10NoTau_statusWord;
+
+  vector<vector<float> >*    el_MET_Egamma10NoTau_wet;
+  vector<vector<float> >*    el_MET_Egamma10NoTau_wpx;
+  vector<vector<float> >*    el_MET_Egamma10NoTau_wpy;
+  vector<vector<unsigned> >* el_MET_Egamma10NoTau_statusWord;
+
+  float MET_Egamma10NoTau_SoftJets_etx;
+  float MET_Egamma10NoTau_SoftJets_ety;
+  float MET_Egamma10NoTau_SoftJets_sumet;                                
+  float MET_Egamma10NoTau_CellOut_etx; //CellOut
+  float MET_Egamma10NoTau_CellOut_ety; //CellOut
+  float MET_Egamma10NoTau_CellOut_sumet; //CellOut
+  float MET_Egamma10NoTau_CellOut_etx; //CellOut Eflow
+  float MET_Egamma10NoTau_CellOut_ety; //CellOut Eflow
+  float MET_Egamma10NoTau_CellOut_sumet; //CellOut Eflow
+  float MET_Egamma10NoTau_RefGamma_etx;
+  float MET_Egamma10NoTau_RefGamma_ety;
+  float MET_Egamma10NoTau_RefGamma_sumet;
+
+  
+  vector<float>   *jet_AntiKt4TopoNewEM_jvtxf; 
   Int_t           el_n;
   vector<int>     *el_author;
   vector<unsigned int> *el_OQ;
@@ -252,7 +286,8 @@ public :
 
   double sharktopus; 
 
-  SusyBuffer(SmartChain *tree, unsigned use_branches = branches::all);
+  SusyBuffer(SmartChain *tree, unsigned use_branches = branches::all, 
+	     BranchNames names);
 };
 
 #endif
