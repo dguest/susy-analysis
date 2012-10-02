@@ -66,9 +66,6 @@ public :
   float MET_Egamma10NoTau_CellOut_etx; //CellOut
   float MET_Egamma10NoTau_CellOut_ety; //CellOut
   float MET_Egamma10NoTau_CellOut_sumet; //CellOut
-  float MET_Egamma10NoTau_CellOut_etx; //CellOut Eflow
-  float MET_Egamma10NoTau_CellOut_ety; //CellOut Eflow
-  float MET_Egamma10NoTau_CellOut_sumet; //CellOut Eflow
   float MET_Egamma10NoTau_RefGamma_etx;
   float MET_Egamma10NoTau_RefGamma_ety;
   float MET_Egamma10NoTau_RefGamma_sumet;
@@ -91,6 +88,7 @@ public :
   vector<float>   *el_cl_E;
   vector<float>   *el_cl_eta;
   vector<float>   *el_cl_phi;
+  vector<float>   *el_cl_pt;
   vector<float>   *el_trackphi;
   vector<float>   *el_tracketa;
   vector<int>     *el_nBLHits;
@@ -258,6 +256,7 @@ public :
   vector<float>   *jet_AntiKt4TopoNewEM_BCH_CORR_JET_FORCELL;
   vector<float>   *jet_AntiKt4TopoNewEM_ENG_BAD_CELLS;
   vector<float>   *jet_AntiKt4TopoNewEM_fracSamplingMax;
+  vector<int>     *jet_AntiKt4TopoNewEM_SamplingMax;
   vector<float>   *jet_AntiKt4TopoNewEM_hecf;
   vector<float>   *jet_AntiKt4TopoNewEM_emfrac;
   vector<float>   *jet_AntiKt4TopoNewEM_EMJES;
@@ -286,8 +285,8 @@ public :
 
   double sharktopus; 
 
-  SusyBuffer(SmartChain *tree, unsigned use_branches = branches::all, 
-	     BranchNames names);
+  SusyBuffer(SmartChain *tree, unsigned use_branches, 
+	     BranchNames names );
 };
 
 #endif

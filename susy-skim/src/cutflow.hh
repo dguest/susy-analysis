@@ -19,8 +19,9 @@ struct RunInfo {
   int run_number; 
 }; 
 
-static const double MeV = 1.0; 
-static const double GeV = 1000.0*MeV; 
+// --- these are now (annoyingly) defined in FudgeMCTool.h ---
+// static const double MeV = 1.0; 
+// static const double GeV = 1000.0*MeV; 
 
 class SmartChain: public TChain { 
 public: 
@@ -43,8 +44,11 @@ run_cutflow(std::vector<std::string> files,
 	    RunInfo info, const unsigned flags = 0, 
 	    std::string out_ntuple_name = ""); 
 
-float get_jetmet_dphi(const std::vector<SelectedJet>&, 
-		      const TVector2& ); 
+float get_min_jetmet_dphi(const std::vector<SelectedJet>&, 
+			  const TVector2& ); 
+
+float get_sum_jetmet_dphi(const std::vector<SelectedJet>&, 
+			  const TVector2& ); 
 
 bool IsSmartLArHoleVeto(TVector2 met,
 			FakeMetEstimator& fakeMetEst,
@@ -56,7 +60,8 @@ bool IsSmartLArHoleVeto(TVector2 met,
 bool check_if_jet(int jet_n, 
 		  const SusyBuffer& buffer, 
 		  SUSYObjDef& def, 
-		  const unsigned flags); 
+		  const unsigned flags, 
+		  const RunInfo& info); 
 
 bool check_if_electron(int iEl,
 		       const SusyBuffer& buffer, 
@@ -69,18 +74,13 @@ bool check_if_muon(int iMu,
 		   SUSYObjDef& def, 
 		   const unsigned flags);
 
+bool pass_mainz_ctag(const SelectedJet& jet); 
+
 int fill_electrons(const SusyBuffer& buffer, SUSYObjDef& def, 
 		   unsigned flags, const RunInfo& info); 
 std::vector<int> fill_muons(const SusyBuffer& buffer, SUSYObjDef& def, 
 			    unsigned flags, const RunInfo& info); 
 
-class TrigSimulator { 
-public: 
-  TrigSimulator(float fraction_preswap = 2281.26 / 4689.68); 
-  bool get_decision(const SusyBuffer&); 
-private: 
-  float m_frac_preswap; 
-}; 
 
 TVector2 get_met(const SusyBuffer& buffer, 
 		 SUSYObjDef& def, 
@@ -103,6 +103,7 @@ private:
 class SelectedJets: public std::vector<SelectedJet> 
 { 
 public: 
+  SelectedJets(); 
   SelectedJets(const SusyBuffer& buffer, const unsigned flags); 
 }; 
 
@@ -156,5 +157,17 @@ int fill_cutflow_from_bits(CutCounter&, const unsigned);
 
 void copy_jet_info(const SelectedJet& , const SusyBuffer& buffer, 
 		   OutTree::Jet&); 
+
+
+// --- obsolete? ---
+
+class TrigSimulator { 
+public: 
+  TrigSimulator(float fraction_preswap = 2281.26 / 4689.68); 
+  bool get_decision(const SusyBuffer&); 
+private: 
+  float m_frac_preswap; 
+}; 
+
 
 #endif //CUTFLOW_H

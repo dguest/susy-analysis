@@ -6,7 +6,7 @@ USE_LIBS="ApplyJetCalibration CalibrationDataInterface egammaAnalysisUtils\
  egammaEvent GoodRunsLists JetResolution JetSelectorTools JetUncertainties\
  MissingETUtility MuonEfficiencyCorrections MuonMomentumCorrections\
  ObjectSelectorCore PileupReweighting ReweightUtils SUSYTools\
- TrigRootAnalysis FudgeMCTool"
+ TrigRootAnalysis FudgeMCTool PhotonIDTool"
 
 if [[ $1 == '-l' ]]
 then

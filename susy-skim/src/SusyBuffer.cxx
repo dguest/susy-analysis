@@ -308,6 +308,7 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, unsigned br, BranchNames names)
   fChain->SetBranchAddress("el_cl_eta", &el_cl_eta); 
   fChain->SetBranchStatus("el_cl_phi",other);
   fChain->SetBranchAddress("el_cl_phi", &el_cl_phi); 
+  fChain->SetBranchAddress("el_cl_pt", &el_cl_pt, true); 
   fChain->SetBranchStatus("el_trackphi",other);
   fChain->SetBranchAddress("el_trackphi", &el_trackphi); 
   fChain->SetBranchStatus("el_tracketa",other);
@@ -641,7 +642,8 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, unsigned br, BranchNames names)
   fChain->SetBranchStatus("jet_AntiKt4TopoNewEM_ENG_BAD_CELLS",other);
   fChain->SetBranchAddress("jet_AntiKt4TopoNewEM_ENG_BAD_CELLS", &jet_AntiKt4TopoNewEM_ENG_BAD_CELLS); 
   fChain->SetBranchStatus("jet_AntiKt4TopoNewEM_fracSamplingMax",other);
-  fChain->SetBranchAddress("jet_AntiKt4TopoNewEM_fracSamplingMax", &jet_AntiKt4TopoNewEM_fracSamplingMax); 
+  fChain->SetBranchAddress("jet_AntiKt4TopoNewEM_SamplingMax", 
+			   &jet_AntiKt4TopoNewEM_SamplingMax, true); 
   fChain->SetBranchStatus("jet_AntiKt4TopoNewEM_hecf",other);
   fChain->SetBranchAddress("jet_AntiKt4TopoNewEM_hecf", &jet_AntiKt4TopoNewEM_hecf); 
   fChain->SetBranchStatus("jet_AntiKt4TopoNewEM_emfrac",other);

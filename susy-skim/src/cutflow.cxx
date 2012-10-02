@@ -100,16 +100,15 @@ run_cutflow(std::vector<std::string> files,
 
   typedef std::vector<SelectedJet>::const_iterator JetItr; 
 
-  FakeMetEstimator fakeMetEst;
-
-  TrigSimulator trig_simulator; 
-
   SUSYObjDef def; 
 
   // unsigned branches = branches::run_num | branches::trigger; 
   unsigned branches = branches::all; 
 
-  SusyBuffer buffer(input_chain.get(), branches); 
+  BranchNames branch_names; 
+  branch_names.trigger = "EF_xe80_tclcw_loose"; 
+
+  SusyBuffer buffer(input_chain.get(), branches, branch_names); 
   int n_entries = input_chain->GetEntries(); 
 
 
@@ -134,14 +133,10 @@ run_cutflow(std::vector<std::string> files,
 
 
   // --- output things ---
-
-  // tree with no name means no tree
   OutTree out_tree(out_ntuple_name); 
-
   CutCounter cut_counters; 
   
   // looping through events
-
   int one_percent = n_entries /  100; 
 
   for (int evt_n = 0; evt_n < n_entries; evt_n++) { 
@@ -151,64 +146,11 @@ run_cutflow(std::vector<std::string> files,
       std::cout.flush(); 
     }
 
-
     input_chain->GetEntry(evt_n); 
 
     def.Reset(); 
     
-    // event preselection preparation
-
     SelectedJets selected_jets(buffer, flags); 
-   
-    // bool badjet_loose = false;
-
-    // double leading_jet_pt = 0; 
-    // for(JetItr itr = selected_jets.begin(); 
-    // 	itr != selected_jets.end(); itr++){
-    //   const SelectedJet& jet = *itr;
- 
-    //   bool is_jet = check_if_jet(jet.jet_index(), buffer, def, flags); 
-    //   // ... fill jets here 
-
-    //   if (is_jet) { 
-    // 	leading_jet_pt = std::max(jet.Pt(), leading_jet_pt); 
-    //   }
-    //   else { 
-    // 	badjet_loose = true; 
-    //   }
-    // }
-   
-    // unless we start doing something with them we can just count the good el
-    //const int n_el = buffer.el_n;
-    // int n_good_electrons = 0; 
-    // for (int el_n = 0; el_n < n_el; el_n++){
-    //   bool isElectron = check_if_electron(el_n, buffer, def, flags, info);
-    //   if (isElectron) n_good_electrons++; 
-    // }
-
-    //const int n_mu = buffer.mu_staco_n; // I'm pretty sure we're using staco
-    // int n_good_muons = 0; 
-    // for (int mu_n = 0; mu_n < n_mu; mu_n++){
-
-    //   /*part of the badz0wrtPVmuon cut - complete later if needed
-    // 	muon.isCosmic = def.IsCosmicMuon(mu_staco_z0_exPV->at(mu_n),
-    // 	mu_staco_d0_exPV->at(mu_n),
-    // 	5.,
-    // 	2.); */
-
-    //   bool isMuon = check_if_muon(mu_n, buffer, def, flags);
-    //   if (isMuon) n_good_muons++; 
-    // }
-
-    // bool ishforveto = false;
-    
-    // //ishforveto cut setup 
-    // if(! (flags & cutflag::is_data)){
-    //   if (buffer.top_hfor_type == 4)  ishforveto = true;
-    // }
-     
-    //---------------------------------------------------
-    //Cleanup Cuts:
 
     unsigned pass_bits = 0; 
   
@@ -218,7 +160,7 @@ run_cutflow(std::vector<std::string> files,
     if(!buffer.trigger)   pass_bits |= pass::trigger; 
     if(!buffer.larError)  pass_bits |= pass::lar_error; 
 
-    if ( !(flags & cutflags::is_data) ||
+    if ( !(flags & cutflag::is_data) ||
 	 (buffer.coreFlags & 0x40000) == 0) { 
       pass_bits |= pass::lar_error; 
     }
@@ -227,7 +169,8 @@ run_cutflow(std::vector<std::string> files,
     for (SelectedJets::const_iterator jet_itr = selected_jets.begin(); 
 	 jet_itr != selected_jets.end(); 
 	 jet_itr++) { 
-      bool is_jet = check_if_jet(jet_itr->jet_index(), buffer, def, flags);
+      bool is_jet = check_if_jet(jet_itr->jet_index(), buffer, def, flags, 
+				 info);
       if (!is_jet) pass_bits &=~ pass::jet_clean; 
     }
 
@@ -239,7 +182,7 @@ run_cutflow(std::vector<std::string> files,
     for (SelectedJets::const_iterator jet_itr = selected_jets.begin(); 
 	 jet_itr != selected_jets.end(); jet_itr++) { 
       bool in_eta = fabs(jet_itr->Eta()) < 2.5; 
-      bool good_jvf = true; 	// FIXME: need variable
+      bool good_jvf = jet_itr->jvf() > 0.5; 
       if ( in_eta && good_jvf) { 
 	max_jet_pt = std::max(jet_itr->Pt(), max_jet_pt); 
       }
@@ -251,72 +194,54 @@ run_cutflow(std::vector<std::string> files,
     int n_electrons = fill_electrons(buffer, def, flags, info); 
     std::vector<int> muon_idx = fill_muons(buffer, def, flags, info); 
     
-    TVector2 met(buffer.MET_Simplified20_RefFinal_etx, 
-		 buffer.MET_Simplified20_RefFinal_ety); 
+    TVector2 met = get_met(buffer, def, info, muon_idx); 
 
-    if(IsSmartLArHoleVeto( met,
-			   fakeMetEst,
-			   buffer, 
-			   def, 
-			   selected_jets))
-      continue;     
-    cut_counters["lar_hole_veto"]++;
+    if (met.Mod() > 120*GeV) { 
+      pass_bits |= pass::met; 
+    }
 
-    if(badjet_loose) 
-      continue;
-    cut_counters["badjet_loose"]++;
-  
-    // if(badz0wrtPVmuon)  to be completed
-    // continue;
-       
-    if(!def.IsGoodVertex(buffer.vx_nTracks))
-      continue;
-    cut_counters["GoodPV"]++;
-  
-    if(ishforveto) 
-      continue;
-    cut_counters["hfor_veto"]++;
-     
-    //------------------------------------------------
-    //Preselection cuts 
-     
+    SelectedJets good_jets; 
+    for (SelectedJets::const_iterator jet_itr = selected_jets.begin(); 
+	 jet_itr != selected_jets.end(); jet_itr++) { 
 
-    if(selected_jets.size() < 3)
-      continue;
-    cut_counters["n_jets_gt_3"]++;
+      bool good_pt = jet_itr->Pt() > 30*GeV; 
+      bool good_eta = fabs(jet_itr->Eta()) < 2.5;
+      bool good_jvf = jet_itr->jvf() > 0.5; 
+      if (good_pt && good_eta && good_jvf) { 
+	good_jets.push_back(*jet_itr); 
+      }
+    }
+    if (good_jets.size() >= 3) { 
+      pass_bits |= pass::n_jet; 
+    }
 
-    // --- this is the region we're studying ----
+    std::sort(good_jets.begin(), good_jets.end(), has_lower_pt); 
+    std::reverse(good_jets.begin(), good_jets.end()); 
 
-    float min_jetmet_dphi = get_jetmet_dphi(selected_jets, met); 
+    float dphi = get_min_jetmet_dphi(good_jets, met); 
+    if (dphi > 0.4) { 
+      pass_bits |= pass::dphi_jetmet; 
+    }
 
-    int n_mainz_ctags = 0;
-    for(std::vector<SelectedJet>::const_iterator itr = selected_jets.begin();
-	itr != selected_jets.end(); itr++) { 
-      if(itr->combNN_btag() > -2 &&
-	 itr->combNN_btag() < 4)
-	n_mainz_ctags++;
-    } 
- 
-    unsigned pass_bits = 0; 
-    using namespace evt; 
-    if (leading_jet_pt > 150*GeV) pass_bits |= pass_leading_pt; 
-    if (met.Mod() > 150*GeV)      pass_bits |= pass_met; 
-    if (n_good_electrons == 0)    pass_bits |= pass_el_veto; 
-    if (n_good_muons == 0)        pass_bits |= pass_mu_veto; 
-    if (min_jetmet_dphi > 0.4)    pass_bits |= pass_jetmet_dphi; 
-    if (n_mainz_ctags >= 2)       pass_bits |= pass_mainz_ctag; 
+    if (n_electrons == 0 && muon_idx.size() == 0) { 
+      pass_bits |= pass::lepton_veto; 
+    }
+
+    const SelectedJet& leading_jet = good_jets.at(1); 
+    const SelectedJet& subleading_jet = good_jets.at(2); 
+    const SelectedJet& isr_jet = good_jets.at(0); 
+
+    if (pass_mainz_ctag(leading_jet) || 
+	pass_mainz_ctag(subleading_jet)) { 
+      pass_bits |= pass::ctag_mainz; 
+    }
 
     fill_cutflow_from_bits(cut_counters, pass_bits); 
 
     out_tree.pass_bits = pass_bits; 
     out_tree.met = met.Mod(); 
-    out_tree.min_jetmet_dphi = min_jetmet_dphi; 
+    out_tree.min_jetmet_dphi = dphi; 
 
-    std::sort(selected_jets.begin(), selected_jets.end(), has_lower_pt); 
-    std::reverse(selected_jets.begin(), selected_jets.end()); 
-    const SelectedJet& leading_jet = selected_jets.at(1); 
-    const SelectedJet& subleading_jet = selected_jets.at(2); 
-    const SelectedJet& isr_jet = selected_jets.at(0); 
     copy_jet_info(leading_jet, buffer, out_tree.leading_jet); 
     copy_jet_info(subleading_jet, buffer, out_tree.subleading_jet); 
     copy_jet_info(isr_jet, buffer, out_tree.isr_jet); 
@@ -336,6 +261,14 @@ run_cutflow(std::vector<std::string> files,
   return cut_counters.get_ordered_cuts(); 
 	 
 }
+
+bool pass_mainz_ctag(const SelectedJet& jet){ 
+
+  bool pass = (jet.combNN_btag() > -2.55 && 
+	       jet.combNN_btag() < 1.0); 
+  return pass; 
+}
+
 
 int fill_electrons(const SusyBuffer& buffer, SUSYObjDef& def, 
 		   unsigned flags, const RunInfo& info)
@@ -381,6 +314,8 @@ void copy_jet_info(const SelectedJet& in, const SusyBuffer& buffer,
     buffer.jet_AntiKt4TopoNewEM_flavor_truth_label->at(jet_index); 
 }
 
+SelectedJets::SelectedJets() {}; 
+
 SelectedJets::SelectedJets(const SusyBuffer& buffer, const unsigned flags) { 
   const int n_jets = buffer.jet_AntiKt4TopoNewEM_n; 
   for (int jet_n = 0; jet_n < n_jets; jet_n++){ 
@@ -397,12 +332,12 @@ SelectedJets::SelectedJets(const SusyBuffer& buffer, const unsigned flags) {
 
     // overlap removal 
     double min_delta_r = 10; 
-    for (int el_n = 0; buffer.el_n < n_el; el_n++) { 
+    for (int el_n = 0; el_n < buffer.el_n; el_n++) { 
       TLorentzVector el; 
-      el.SetPtEtaPhiE(buffer.el_pt->at(el_n), 
-		      buffer.el_eta->at(el_n), 
-		      buffer.el_phi->at(el_n), 
-		      buffer.el_E->at(el_n)); 
+      el.SetPtEtaPhiE(buffer.el_cl_pt->at(el_n), 
+		      buffer.el_cl_eta->at(el_n), 
+		      buffer.el_cl_phi->at(el_n), 
+		      buffer.el_cl_E->at(el_n)); 
       float delta_r = el.DeltaR(the_jet); 
       if (delta_r < 0.2) { 
 	min_delta_r = delta_r; 
@@ -449,43 +384,29 @@ int fill_cutflow_from_bits(CutCounter& cut_counters, const unsigned bits) {
 
 }
 
-float get_jetmet_dphi(const std::vector<SelectedJet>& jets, 
-		      const TVector2& met){ 
+float get_min_jetmet_dphi(const std::vector<SelectedJet>& jets, 
+			  const TVector2& met){ 
+  TLorentzVector mector; 
+  mector.SetPtEtaPhiE(1,0,met.Phi(),1); 
   float min_dphi = M_PI; 
-  for(std::vector<SelectedJet>::const_iterator itr = jets.begin();
-      itr != jets.end(); itr++) { 
-    float deltaphi = fabs(met.Phi() - itr->Phi()); 
-    if(deltaphi > M_PI) deltaphi = fabs(deltaphi - 2*M_PI);
+  for(unsigned iii = 0; iii <3; iii++){
+    float deltaphi = mector.DeltaPhi(jets.at(iii)); 
     min_dphi = std::min(deltaphi, min_dphi); 
   }
   return min_dphi; 
 }
 
-
-TrigSimulator::TrigSimulator(float fraction_preswap): 
-  m_frac_preswap(fraction_preswap)
-{ 
+float get_sum_jetmet_dphi(const std::vector<SelectedJet>& jets, 
+			  const TVector2& met){ 
+  TLorentzVector sum; 
+  for(unsigned iii = 0; iii <3 ; iii++) {
+    sum += jets.at(iii); 
+  }
+  TLorentzVector mector; 
+  mector.SetPtEtaPhiE(1,0,met.Phi(),1); 
+  return mector.DeltaPhi(sum); 
 }
 
-bool TrigSimulator::get_decision(const SusyBuffer& buffer){ 
-  // We have no runnumbers in our Stop-samples, so we create a
-  // random number to determine what trigger is being used for
-  // which event (depending on the luminosities of the periods
-  // and the used triggers) 
-  // EF_xe70_noMu: perdiod B-K
-  // EF_xe60_verytight_noMu: period L-M
-  float rand_float = float(rand() ) / float(RAND_MAX); 
-
-  //cout << rndnr << endl;
-  if(rand_float < m_frac_preswap){
-    if(buffer.EF_xe70_noMu) return true;
-  }
-  else{
-    if(buffer.EF_xe60_verytight_noMu) return true;
-  }
-  return false; 
-
-}; 
 
 
 bool has_lower_pt(const TLorentzVector& v1, const TLorentzVector& v2) { 
@@ -563,7 +484,8 @@ bool check_if_electron(int iEl,
      0, // what the fuck is 'float el_wet'? 
      // buffer.el_MET_Egamma10NoTau_wet ->at(iEl),
      flags & cutflag::is_data);
-     
+
+  return pass_el; 
   //info.isAF2
   //NOTE: el_wet set to zero, couldn't match variable in D3PD
 }
@@ -573,7 +495,7 @@ bool check_if_muon(int iMu,
 		   SUSYObjDef& def,
 		   const unsigned flags){
 
-  return def.IsMuon
+  return def.FillMuon
     (iMu,
      buffer.mu_staco_pt                           ->at(iMu),
      buffer.mu_staco_eta                          ->at(iMu),
@@ -584,6 +506,7 @@ bool check_if_muon(int iMu,
      buffer.mu_staco_me_theta_exPV                ->at(iMu),
      buffer.mu_staco_id_theta_exPV                ->at(iMu),
      buffer.mu_staco_id_theta                     ->at(iMu),
+     buffer.mu_staco_charge                       ->at(iMu), 
      buffer.mu_staco_isCombinedMuon               ->at(iMu),
      buffer.mu_staco_isSegmentTaggedMuon          ->at(iMu),
      buffer.mu_staco_loose                        ->at(iMu),
@@ -606,9 +529,10 @@ bool check_if_muon(int iMu,
 bool check_if_jet(int iJet, 
 		  const SusyBuffer& buffer, 
 		  SUSYObjDef& def, 
-		  const unsigned flags){ 
+		  const unsigned flags, 
+		  const RunInfo& info){ 
     
-  return def.IsJet
+  return def.FillJet
     (iJet, 
      buffer.jet_AntiKt4TopoNewEM_pt                 ->at(iJet), 
      buffer.jet_AntiKt4TopoNewEM_eta                ->at(iJet), 
@@ -623,6 +547,7 @@ bool check_if_jet(int iJet,
      buffer.jet_AntiKt4TopoNewEM_Timing             ->at(iJet), 
      buffer.jet_AntiKt4TopoNewEM_sumPtTrk           ->at(iJet), 
      buffer.jet_AntiKt4TopoNewEM_fracSamplingMax    ->at(iJet),
+     buffer.jet_AntiKt4TopoNewEM_SamplingMax        ->at(iJet), 
      buffer.jet_AntiKt4TopoNewEM_NegativeE          ->at(iJet), 
      buffer.jet_AntiKt4TopoNewEM_flavor_truth_label ->at(iJet), 
      buffer.jet_AntiKt4TopoNewEM_emscale_E          ->at(iJet),
@@ -632,10 +557,11 @@ bool check_if_jet(int iJet,
      buffer.jet_AntiKt4TopoNewEM_MOrigin            ->at(iJet), 
      buffer.averageIntPerXing,
      buffer.vx_nTracks,             
+     info.run_number, 
      flags & cutflag::is_data, 
-     20000., 			// pt cut
-     10,			// eta cut - changed from 2.8 for testing
-     JetID::LooseBad,
+     20000.0, 	// pt cut
+     2.8,	// eta cut - changed from 2.8 for testing
+     JetID::VeryLooseBad,
      SystErr::NONE);
     
 }
@@ -652,7 +578,8 @@ SelectedJet::SelectedJet(const SusyBuffer& buffer, int jet_index) {
 
   m_jvf = buffer.jet_AntiKt4TopoNewEM_jvtxf->at(jet_index); 
     
-  m_combNN_btag_wt = buffer.jet_AntiKt4TopoNewEM_flavor_weight_JetFitterCOMBNN ->at(jet_index); 	// TODO: find this branch and set it
+  m_combNN_btag_wt = 
+    buffer.jet_AntiKt4TopoNewEM_flavor_weight_JetFitterCOMBNN->at(jet_index); 
 }
   
 double SelectedJet::combNN_btag() const { 
@@ -676,19 +603,17 @@ double SelectedJet::jfitcomb_cb(const SusyBuffer& buffer,
 				int jet_index) const {
 
   double cb; 
-  cb =  buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pc->at(jet_index) / buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pb->at(jet_index);
-   
+  cb = buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pc->at(jet_index) / buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pb->at(jet_index);
   return log(cb); 
 }
  
-
- 
 int SelectedJet::jet_index() const{
-
   return m_jet_index;
-
 }
 
+double SelectedJet::jvf() const { 
+  return m_jvf; 
+}
 
 
 TVector2 get_met(const SusyBuffer& buffer, 
@@ -699,7 +624,7 @@ TVector2 get_met(const SusyBuffer& buffer,
   const int n_el = buffer.el_n; 
   std::vector<int> el_mystery_index; 
   for (int el_n = 0; el_n < n_el; el_n++) { 
-    float mystery_float = buffer.el_MET_Egamma10NoTau_wet->at(iEl).at(0); 
+    float mystery_float = buffer.el_MET_Egamma10NoTau_wet->at(el_n).at(0); 
     if (mystery_float != 0.0) { 
       el_mystery_index.push_back(el_n); 
     }
@@ -833,3 +758,34 @@ void OutTree::fill()
     m_tree->Fill(); 
   }
 }
+
+/////////////////////////////////////////////////////////////////////
+//////////////           obsolete?         /////////////////////////
+/////////////////////////////////////////////////////////////////////
+
+
+TrigSimulator::TrigSimulator(float fraction_preswap): 
+  m_frac_preswap(fraction_preswap)
+{ 
+}
+
+bool TrigSimulator::get_decision(const SusyBuffer& buffer){ 
+  // We have no runnumbers in our Stop-samples, so we create a
+  // random number to determine what trigger is being used for
+  // which event (depending on the luminosities of the periods
+  // and the used triggers) 
+  // EF_xe70_noMu: perdiod B-K
+  // EF_xe60_verytight_noMu: period L-M
+  float rand_float = float(rand() ) / float(RAND_MAX); 
+
+  //cout << rndnr << endl;
+  if(rand_float < m_frac_preswap){
+    if(buffer.EF_xe70_noMu) return true;
+  }
+  else{
+    if(buffer.EF_xe60_verytight_noMu) return true;
+  }
+  return false; 
+
+}; 
+
