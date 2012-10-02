@@ -23,13 +23,6 @@ struct RunInfo {
 // static const double MeV = 1.0; 
 // static const double GeV = 1000.0*MeV; 
 
-class SmartChain: public TChain { 
-public: 
-  SmartChain(std::string tree_name); 
-  void SetBranchAddress(std::string name, void* branch, bool turnon = false); 
-}; 
-
-
 namespace cutflag { 
   const unsigned verbose         = 1u << 0; 
   const unsigned is_data         = 1u << 1; 
@@ -50,11 +43,6 @@ float get_min_jetmet_dphi(const std::vector<SelectedJet>&,
 float get_sum_jetmet_dphi(const std::vector<SelectedJet>&, 
 			  const TVector2& ); 
 
-bool IsSmartLArHoleVeto(TVector2 met,
-			FakeMetEstimator& fakeMetEst,
-			const SusyBuffer& buffer, 
-			SUSYObjDef& def, 
-			std::vector<SelectedJet> baseline_jets );
 
 
 bool check_if_jet(int jet_n, 
@@ -86,6 +74,8 @@ TVector2 get_met(const SusyBuffer& buffer,
 		 SUSYObjDef& def, 
 		 const RunInfo&, const std::vector<int>& muon_idx );
 
+bool has_lower_pt(const TLorentzVector&, const TLorentzVector&); 
+
 class SelectedJet: public TLorentzVector { 
 public: 
   SelectedJet(const SusyBuffer& buffer, int jet_index); 
@@ -107,7 +97,8 @@ public:
   SelectedJets(const SusyBuffer& buffer, const unsigned flags); 
 }; 
 
-bool has_lower_pt(const TLorentzVector&, const TLorentzVector&); 
+
+// --- io things ----
 
 class CutCounter: public std::map<std::string, int> 
 {
@@ -116,6 +107,12 @@ public:
   std::vector< std::pair<std::string, int> > get_ordered_cuts() const; 
 private: 
   std::vector<std::string> m_cuts; 
+}; 
+
+class SmartChain: public TChain { 
+public: 
+  SmartChain(std::string tree_name); 
+  void SetBranchAddress(std::string name, void* branch, bool turnon = false); 
 }; 
 
 class OutTree
@@ -168,6 +165,12 @@ public:
 private: 
   float m_frac_preswap; 
 }; 
+
+bool IsSmartLArHoleVeto(TVector2 met,
+			FakeMetEstimator& fakeMetEst,
+			const SusyBuffer& buffer, 
+			SUSYObjDef& def, 
+			std::vector<SelectedJet> baseline_jets );
 
 
 #endif //CUTFLOW_H
