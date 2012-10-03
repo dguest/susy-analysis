@@ -95,7 +95,7 @@ public:
 private: 
   double m_combNN_btag_wt; 
   int m_jet_index;
-  float m_jvf; //jet_AntiKt4LCTopo_jvtxf
+  float m_jvf; //jet_jvtxf
   unsigned m_bits; 
 }; 
 

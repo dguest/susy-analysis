@@ -45,11 +45,11 @@ public :
   unsigned        coreFlags; 
 
   // MET things
-  vector<float>*          jet_AntiKt4LCTopo_pt;
-  vector<vector<float> >*    jet_AntiKt4LCTopo_MET_Egamma10NoTau_wet;
-  vector<vector<float> >*    jet_AntiKt4LCTopo_MET_Egamma10NoTau_wpx;
-  vector<vector<float> >*    jet_AntiKt4LCTopo_MET_Egamma10NoTau_wpy;
-  vector<vector<unsigned> >* jet_AntiKt4LCTopo_MET_Egamma10NoTau_statusWord;
+  vector<float>*          jet_pt;
+  vector<vector<float> >*    jet_MET_Egamma10NoTau_wet;
+  vector<vector<float> >*    jet_MET_Egamma10NoTau_wpx;
+  vector<vector<float> >*    jet_MET_Egamma10NoTau_wpy;
+  vector<vector<unsigned> >* jet_MET_Egamma10NoTau_statusWord;
 
   vector<vector<float> >*    el_MET_Egamma10NoTau_wet;
   vector<vector<float> >*    el_MET_Egamma10NoTau_wpx;
@@ -67,7 +67,7 @@ public :
   float MET_Egamma10NoTau_RefGamma_sumet;
 
   
-  vector<float>   *jet_AntiKt4LCTopo_jvtxf; 
+  vector<float>   *jet_jvtxf; 
   Int_t           el_n;
   vector<int>     *el_author;
   vector<unsigned int> *el_OQ;
@@ -108,33 +108,33 @@ public :
   vector<int>     *mu_staco_nPixelDeadSensors;
   vector<int>     *mu_staco_nSCTDeadSensors;
   vector<int>     *mu_staco_expectBLayerHit;
-  Int_t           jet_AntiKt4LCTopo_n;
-  vector<float>   *jet_AntiKt4LCTopo_E;
-  vector<float>   *jet_AntiKt4LCTopo_eta;
-  vector<float>   *jet_AntiKt4LCTopo_phi;
-  vector<float>   *jet_AntiKt4LCTopo_EtaOrigin;
-  vector<float>   *jet_AntiKt4LCTopo_PhiOrigin;
-  vector<float>   *jet_AntiKt4LCTopo_MOrigin;
-  vector<float>   *jet_AntiKt4LCTopo_Timing;
-  vector<float>   *jet_AntiKt4LCTopo_LArQuality;
-  vector<float>   *jet_AntiKt4LCTopo_sumPtTrk;
-  vector<float>   *jet_AntiKt4LCTopo_HECQuality;
-  vector<float>   *jet_AntiKt4LCTopo_NegativeE;
-  vector<float>   *jet_AntiKt4LCTopo_AverageLArQF;
-  vector<float>   *jet_AntiKt4LCTopo_BCH_CORR_CELL;
-  vector<float>   *jet_AntiKt4LCTopo_BCH_CORR_DOTX;
-  vector<float>   *jet_AntiKt4LCTopo_BCH_CORR_JET;
-  vector<float>   *jet_AntiKt4LCTopo_fracSamplingMax;
-  vector<int>     *jet_AntiKt4LCTopo_SamplingMax;
-  vector<float>   *jet_AntiKt4LCTopo_hecf;
-  vector<float>   *jet_AntiKt4LCTopo_emfrac;
-  vector<float>   *jet_AntiKt4LCTopo_emscale_E;
-  vector<float>   *jet_AntiKt4LCTopo_emscale_eta;
-  vector<float>   *jet_AntiKt4LCTopo_flavor_weight_JetFitterCOMBNN;
-  vector<int>     *jet_AntiKt4LCTopo_flavor_truth_label;
-  vector<float>     *jet_AntiKt4LCTopo_flavor_component_jfitcomb_pu;
-  vector<float>     *jet_AntiKt4LCTopo_flavor_component_jfitcomb_pb;
-  vector<float>     *jet_AntiKt4LCTopo_flavor_component_jfitcomb_pc;
+  Int_t           jet_n;
+  vector<float>   *jet_E;
+  vector<float>   *jet_eta;
+  vector<float>   *jet_phi;
+  vector<float>   *jet_EtaOrigin;
+  vector<float>   *jet_PhiOrigin;
+  vector<float>   *jet_MOrigin;
+  vector<float>   *jet_Timing;
+  vector<float>   *jet_LArQuality;
+  vector<float>   *jet_sumPtTrk;
+  vector<float>   *jet_HECQuality;
+  vector<float>   *jet_NegativeE;
+  vector<float>   *jet_AverageLArQF;
+  vector<float>   *jet_BCH_CORR_CELL;
+  vector<float>   *jet_BCH_CORR_DOTX;
+  vector<float>   *jet_BCH_CORR_JET;
+  vector<float>   *jet_fracSamplingMax;
+  vector<int>     *jet_SamplingMax;
+  vector<float>   *jet_hecf;
+  vector<float>   *jet_emfrac;
+  vector<float>   *jet_emscale_E;
+  vector<float>   *jet_emscale_eta;
+  vector<float>   *jet_flavor_weight_JetFitterCOMBNN;
+  vector<int>     *jet_flavor_truth_label;
+  vector<float>     *jet_flavor_component_jfitcomb_pu;
+  vector<float>     *jet_flavor_component_jfitcomb_pb;
+  vector<float>     *jet_flavor_component_jfitcomb_pc;
   vector<int>     *vx_nTracks;
   vector<vector<int> > *trig_RoI_EF_b_Rec__TrackParticleContainer;
   vector<vector<int> > *trig_RoI_EF_b_Rec__TrackParticleContainerStatus;
