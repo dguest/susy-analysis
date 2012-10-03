@@ -116,6 +116,7 @@ run_cutflow(std::vector<std::string> files,
     input_chain->GetEntry(evt_n); 
 
     def.Reset(); 
+    out_tree.clear_buffer(); 
     
     SelectedJets selected_jets(buffer, def, flags, info); 
 
@@ -137,7 +138,10 @@ run_cutflow(std::vector<std::string> files,
 	 jet_itr != selected_jets.end(); 
 	 jet_itr++) { 
       bool is_jet = (jet_itr->get_bits() & jetbit::good); 
-      if (!is_jet) pass_bits &=~ pass::jet_clean; 
+      bool is_low_pt = (jet_itr->get_bits() & jetbit::low_pt); 
+      bool is_overlap = (jet_itr->get_bits() & jetbit::el_overlap); 
+      bool is_veto = !is_jet && !is_low_pt && !is_overlap; 
+      if (is_veto) pass_bits &=~ pass::jet_clean; 
     }
 
     if(def.IsGoodVertex(buffer.vx_nTracks)) {
@@ -203,20 +207,20 @@ run_cutflow(std::vector<std::string> files,
 	pass_bits |= pass::ctag_mainz; 
       }
 
-      out_tree.pass_bits = pass_bits; 
-      out_tree.met = met.Mod(); 
-      out_tree.min_jetmet_dphi = dphi; 
 
       copy_jet_info(leading_jet, buffer, out_tree.leading_jet); 
       copy_jet_info(subleading_jet, buffer, out_tree.subleading_jet); 
       copy_jet_info(isr_jet, buffer, out_tree.isr_jet); 
-      out_tree.fill(); 
+      out_tree.min_jetmet_dphi = dphi; 
 
     } // end if n_jets >= 3
 
     fill_cutflow_from_bits(cut_counters, pass_bits); 
 
+    out_tree.pass_bits = pass_bits; 
+    out_tree.met = met.Mod(); 
 
+    out_tree.fill(); 
  
   }
   std::cout << "\n"; 
@@ -779,6 +783,17 @@ void OutTree::Jet::set_branches(TTree* tree, std::string prefix)
   tree->Branch((prefix + "cnn_u").c_str(), &cnn_u); 
 }
 
+void OutTree::Jet::clear() 
+{
+  pt = -1; 
+  eta = -1; 
+  phi = -1; 
+  flavor_truth_label = -1; 
+  cnn_b = -1; 
+  cnn_c = -1; 
+  cnn_u = -1; 
+}
+
 void OutTree::init() 
 { 
   m_tree->Branch("pass_bits", &pass_bits ); 
@@ -805,6 +820,15 @@ void OutTree::fill()
   if (m_tree) { 
     m_tree->Fill(); 
   }
+}
+
+void OutTree::clear_buffer() { 
+  pass_bits = 0; 
+  met = -1; 
+  min_jetmet_dphi = -1; 
+  leading_jet.clear(); 
+  subleading_jet.clear(); 
+  isr_jet.clear(); 
 }
 
 /////////////////////////////////////////////////////////////////////

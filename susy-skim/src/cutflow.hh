@@ -152,6 +152,7 @@ public:
   OutTree(std::string file, std::string tree = "evt_tree"); 
   ~OutTree(); 
   void fill(); 
+  void clear_buffer(); 
   
   unsigned pass_bits; 
   double met; 
@@ -170,6 +171,7 @@ public:
   private: 
     friend class OutTree; 
     void set_branches(TTree*, std::string prefix); 
+    void clear(); 
   }; 
 
   Jet leading_jet; 
