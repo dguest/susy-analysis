@@ -563,11 +563,20 @@ double SelectedJet::jvf() const {
 SelectedJets::SelectedJets() {}; 
 
 SelectedJets::SelectedJets(const SusyBuffer& buffer, const unsigned flags) { 
+
+  assert(buffer.jet_AntiKt4TopoNewEM_n); 
+  assert(buffer.jet_AntiKt4TopoNewEM_pt); 
+  assert(buffer.el_cl_pt); 
+  assert(buffer.el_cl_eta); 
+  assert(buffer.el_cl_phi); 
+  assert(buffer.el_cl_E); 
+
   const int n_jets = buffer.jet_AntiKt4TopoNewEM_n; 
   for (int jet_n = 0; jet_n < n_jets; jet_n++){ 
     
       //add the "standard quality" cuts here ************************
       //JVF>0.75, pt>20GeV, isGoodJet (from SUSYTools), ...)
+
     bool low_pt_jet = buffer.jet_AntiKt4TopoNewEM_pt->at(jet_n) < 20*GeV;
 
     if (low_pt_jet) { 
@@ -616,7 +625,7 @@ int main (int narg, char* argv[])
   info.run_number = 180614; 
   srand(0); 
   using namespace cutflag; 
-  unsigned flags = verbose | is_signal; 
+  unsigned flags = verbose | is_signal | debug_susy; 
 
 
   // run the main routine 
@@ -652,6 +661,7 @@ SmartChain::SmartChain(std::string tree_name):
 void SmartChain::SetBranchAddress(std::string name, void* branch, 
 				  bool turnon) { 
   if (turnon) { 
+    branch = 0; 
     SetBranchStatus(name.c_str(), 1); 
   }
   int return_code = TChain::SetBranchAddress(name.c_str(), branch); 
