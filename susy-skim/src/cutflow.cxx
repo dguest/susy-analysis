@@ -314,13 +314,13 @@ void copy_jet_info(const SelectedJet& in, const SusyBuffer& buffer,
   jet.eta = in.Eta(); 
   jet.phi = in.Phi(); 
   jet.cnn_b = 
-    buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pb->at(jet_index); 
+    buffer.jet_AntiKt4LCTopo_flavor_component_jfitcomb_pb->at(jet_index); 
   jet.cnn_c = 
-    buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pc->at(jet_index); 
+    buffer.jet_AntiKt4LCTopo_flavor_component_jfitcomb_pc->at(jet_index); 
   jet.cnn_u = 
-    buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pu->at(jet_index); 
+    buffer.jet_AntiKt4LCTopo_flavor_component_jfitcomb_pu->at(jet_index); 
   jet.flavor_truth_label = 
-    buffer.jet_AntiKt4TopoNewEM_flavor_truth_label->at(jet_index); 
+    buffer.jet_AntiKt4LCTopo_flavor_truth_label->at(jet_index); 
 }
 
 
@@ -431,51 +431,51 @@ bool check_if_jet(int iJet,
 		  const unsigned flags, 
 		  const RunInfo& info){ 
 
-  assert(buffer.jet_AntiKt4TopoNewEM_pt                 );
-  assert(buffer.jet_AntiKt4TopoNewEM_eta                );
-  assert(buffer.jet_AntiKt4TopoNewEM_phi                );
-  assert(buffer.jet_AntiKt4TopoNewEM_E                  );
-  assert(buffer.jet_AntiKt4TopoNewEM_emscale_eta        );
-  assert(buffer.jet_AntiKt4TopoNewEM_emfrac             );
-  assert(buffer.jet_AntiKt4TopoNewEM_hecf               );
-  assert(buffer.jet_AntiKt4TopoNewEM_LArQuality         );
-  assert(buffer.jet_AntiKt4TopoNewEM_HECQuality         );
-  assert(buffer.jet_AntiKt4TopoNewEM_AverageLArQF       );
-  assert(buffer.jet_AntiKt4TopoNewEM_Timing             );
-  assert(buffer.jet_AntiKt4TopoNewEM_sumPtTrk           );
-  assert(buffer.jet_AntiKt4TopoNewEM_fracSamplingMax    );
-  assert(buffer.jet_AntiKt4TopoNewEM_SamplingMax        );
-  assert(buffer.jet_AntiKt4TopoNewEM_NegativeE          );
-  assert(buffer.jet_AntiKt4TopoNewEM_flavor_truth_label );
-  assert(buffer.jet_AntiKt4TopoNewEM_emscale_E          );
-  assert(buffer.jet_AntiKt4TopoNewEM_emscale_eta        );
-  assert(buffer.jet_AntiKt4TopoNewEM_EtaOrigin          );
-  assert(buffer.jet_AntiKt4TopoNewEM_PhiOrigin          );
-  assert(buffer.jet_AntiKt4TopoNewEM_MOrigin            );
+  assert(buffer.jet_AntiKt4LCTopo_pt                 );
+  assert(buffer.jet_AntiKt4LCTopo_eta                );
+  assert(buffer.jet_AntiKt4LCTopo_phi                );
+  assert(buffer.jet_AntiKt4LCTopo_E                  );
+  assert(buffer.jet_AntiKt4LCTopo_emscale_eta        );
+  assert(buffer.jet_AntiKt4LCTopo_emfrac             );
+  assert(buffer.jet_AntiKt4LCTopo_hecf               );
+  assert(buffer.jet_AntiKt4LCTopo_LArQuality         );
+  assert(buffer.jet_AntiKt4LCTopo_HECQuality         );
+  assert(buffer.jet_AntiKt4LCTopo_AverageLArQF       );
+  assert(buffer.jet_AntiKt4LCTopo_Timing             );
+  assert(buffer.jet_AntiKt4LCTopo_sumPtTrk           );
+  assert(buffer.jet_AntiKt4LCTopo_fracSamplingMax    );
+  assert(buffer.jet_AntiKt4LCTopo_SamplingMax        );
+  assert(buffer.jet_AntiKt4LCTopo_NegativeE          );
+  assert(buffer.jet_AntiKt4LCTopo_flavor_truth_label );
+  assert(buffer.jet_AntiKt4LCTopo_emscale_E          );
+  assert(buffer.jet_AntiKt4LCTopo_emscale_eta        );
+  assert(buffer.jet_AntiKt4LCTopo_EtaOrigin          );
+  assert(buffer.jet_AntiKt4LCTopo_PhiOrigin          );
+  assert(buffer.jet_AntiKt4LCTopo_MOrigin            );
     
   return def.FillJet
     (iJet, 
-     buffer.jet_AntiKt4TopoNewEM_pt                 ->at(iJet), 
-     buffer.jet_AntiKt4TopoNewEM_eta                ->at(iJet), 
-     buffer.jet_AntiKt4TopoNewEM_phi                ->at(iJet),
-     buffer.jet_AntiKt4TopoNewEM_E                  ->at(iJet), 
-     buffer.jet_AntiKt4TopoNewEM_emscale_eta        ->at(iJet), 
-     buffer.jet_AntiKt4TopoNewEM_emfrac             ->at(iJet), 
-     buffer.jet_AntiKt4TopoNewEM_hecf               ->at(iJet),
-     buffer.jet_AntiKt4TopoNewEM_LArQuality         ->at(iJet), 
-     buffer.jet_AntiKt4TopoNewEM_HECQuality         ->at(iJet), 
-     buffer.jet_AntiKt4TopoNewEM_AverageLArQF       ->at(iJet), 
-     buffer.jet_AntiKt4TopoNewEM_Timing             ->at(iJet), 
-     buffer.jet_AntiKt4TopoNewEM_sumPtTrk           ->at(iJet), 
-     buffer.jet_AntiKt4TopoNewEM_fracSamplingMax    ->at(iJet),
-     buffer.jet_AntiKt4TopoNewEM_SamplingMax        ->at(iJet), 
-     buffer.jet_AntiKt4TopoNewEM_NegativeE          ->at(iJet), 
-     buffer.jet_AntiKt4TopoNewEM_flavor_truth_label ->at(iJet), 
-     buffer.jet_AntiKt4TopoNewEM_emscale_E          ->at(iJet),
-     buffer.jet_AntiKt4TopoNewEM_emscale_eta        ->at(iJet), 
-     buffer.jet_AntiKt4TopoNewEM_EtaOrigin          ->at(iJet), 
-     buffer.jet_AntiKt4TopoNewEM_PhiOrigin          ->at(iJet), 
-     buffer.jet_AntiKt4TopoNewEM_MOrigin            ->at(iJet), 
+     buffer.jet_AntiKt4LCTopo_pt                 ->at(iJet), 
+     buffer.jet_AntiKt4LCTopo_eta                ->at(iJet), 
+     buffer.jet_AntiKt4LCTopo_phi                ->at(iJet),
+     buffer.jet_AntiKt4LCTopo_E                  ->at(iJet), 
+     buffer.jet_AntiKt4LCTopo_emscale_eta        ->at(iJet), 
+     buffer.jet_AntiKt4LCTopo_emfrac             ->at(iJet), 
+     buffer.jet_AntiKt4LCTopo_hecf               ->at(iJet),
+     buffer.jet_AntiKt4LCTopo_LArQuality         ->at(iJet), 
+     buffer.jet_AntiKt4LCTopo_HECQuality         ->at(iJet), 
+     buffer.jet_AntiKt4LCTopo_AverageLArQF       ->at(iJet), 
+     buffer.jet_AntiKt4LCTopo_Timing             ->at(iJet), 
+     buffer.jet_AntiKt4LCTopo_sumPtTrk           ->at(iJet), 
+     buffer.jet_AntiKt4LCTopo_fracSamplingMax    ->at(iJet),
+     buffer.jet_AntiKt4LCTopo_SamplingMax        ->at(iJet), 
+     buffer.jet_AntiKt4LCTopo_NegativeE          ->at(iJet), 
+     buffer.jet_AntiKt4LCTopo_flavor_truth_label ->at(iJet), 
+     buffer.jet_AntiKt4LCTopo_emscale_E          ->at(iJet),
+     buffer.jet_AntiKt4LCTopo_emscale_eta        ->at(iJet), 
+     buffer.jet_AntiKt4LCTopo_EtaOrigin          ->at(iJet), 
+     buffer.jet_AntiKt4LCTopo_PhiOrigin          ->at(iJet), 
+     buffer.jet_AntiKt4LCTopo_MOrigin            ->at(iJet), 
      buffer.averageIntPerXing,
      buffer.vx_nTracks,             
      info.run_number, 
@@ -541,17 +541,17 @@ SelectedJet::SelectedJet(const SelectedJets* parent, int jet_index):
   m_bits(0)
 { 
   const SusyBuffer& buffer = *parent->m_buffer; 
-  double pt = buffer.jet_AntiKt4TopoNewEM_pt  ->at(jet_index); 
-  double eta = buffer.jet_AntiKt4TopoNewEM_eta ->at(jet_index); 
-  double phi = buffer.jet_AntiKt4TopoNewEM_phi ->at(jet_index); 
-  double e = buffer.jet_AntiKt4TopoNewEM_E   ->at(jet_index); 
+  double pt = buffer.jet_AntiKt4LCTopo_pt  ->at(jet_index); 
+  double eta = buffer.jet_AntiKt4LCTopo_eta ->at(jet_index); 
+  double phi = buffer.jet_AntiKt4LCTopo_phi ->at(jet_index); 
+  double e = buffer.jet_AntiKt4LCTopo_E   ->at(jet_index); 
   SetPtEtaPhiE(pt,eta,phi,e); 
   m_jet_index = jet_index;
 
-  m_jvf = buffer.jet_AntiKt4TopoNewEM_jvtxf->at(jet_index); 
+  m_jvf = buffer.jet_AntiKt4LCTopo_jvtxf->at(jet_index); 
     
   m_combNN_btag_wt = 
-    buffer.jet_AntiKt4TopoNewEM_flavor_weight_JetFitterCOMBNN->at(jet_index); 
+    buffer.jet_AntiKt4LCTopo_flavor_weight_JetFitterCOMBNN->at(jet_index); 
 }
   
 double SelectedJet::combNN_btag() const { 
@@ -565,8 +565,8 @@ double SelectedJet::jfitcomb_cu(const SusyBuffer& buffer,
 				int jet_index) const {
 
   double cu; 
-  cu = buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pc->at(jet_index)
-    / buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pu->at(jet_index);
+  cu = buffer.jet_AntiKt4LCTopo_flavor_component_jfitcomb_pc->at(jet_index)
+    / buffer.jet_AntiKt4LCTopo_flavor_component_jfitcomb_pu->at(jet_index);
 
   return log(cu);
 }
@@ -575,7 +575,7 @@ double SelectedJet::jfitcomb_cb(const SusyBuffer& buffer,
 				int jet_index) const {
 
   double cb; 
-  cb = buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pc->at(jet_index) / buffer.jet_AntiKt4TopoNewEM_flavor_component_jfitcomb_pb->at(jet_index);
+  cb = buffer.jet_AntiKt4LCTopo_flavor_component_jfitcomb_pc->at(jet_index) / buffer.jet_AntiKt4LCTopo_flavor_component_jfitcomb_pb->at(jet_index);
   return log(cb); 
 }
  
@@ -602,14 +602,14 @@ SelectedJets::SelectedJets(const SusyBuffer& buffer, SUSYObjDef& def,
   m_buffer(&buffer)
 { 
 
-  assert(buffer.jet_AntiKt4TopoNewEM_n); 
-  assert(buffer.jet_AntiKt4TopoNewEM_pt); 
+  assert(buffer.jet_AntiKt4LCTopo_n); 
+  assert(buffer.jet_AntiKt4LCTopo_pt); 
   assert(buffer.el_cl_pt); 
   assert(buffer.el_cl_eta); 
   assert(buffer.el_cl_phi); 
   assert(buffer.el_cl_E); 
 
-  const int n_jets = buffer.jet_AntiKt4TopoNewEM_n; 
+  const int n_jets = buffer.jet_AntiKt4LCTopo_n; 
   for (int jet_n = 0; jet_n < n_jets; jet_n++){ 
     
       //add the "standard quality" cuts here ************************
@@ -870,11 +870,11 @@ bool IsSmartLArHoleVeto(TVector2 met,
     int d3pd_index = selected_jets.at(j).jet_index();
     //use jet pT after JES/JER
     if(fakeMetEst.isBad
-       (buffer.jet_AntiKt4TopoNewEM_pt            ->at(d3pd_index),
-	buffer.jet_AntiKt4TopoNewEM_BCH_CORR_JET  ->at(d3pd_index),
-	buffer.jet_AntiKt4TopoNewEM_BCH_CORR_CELL ->at(d3pd_index),
-	buffer.jet_AntiKt4TopoNewEM_BCH_CORR_DOTX ->at(d3pd_index),
-	buffer.jet_AntiKt4TopoNewEM_phi           ->at(d3pd_index),
+       (buffer.jet_AntiKt4LCTopo_pt            ->at(d3pd_index),
+	buffer.jet_AntiKt4LCTopo_BCH_CORR_JET  ->at(d3pd_index),
+	buffer.jet_AntiKt4LCTopo_BCH_CORR_CELL ->at(d3pd_index),
+	buffer.jet_AntiKt4LCTopo_BCH_CORR_DOTX ->at(d3pd_index),
+	buffer.jet_AntiKt4LCTopo_phi           ->at(d3pd_index),
 	met.Px()*GeV,
 	met.Py()*GeV,
 	10000.,
