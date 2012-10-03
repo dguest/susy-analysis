@@ -6,6 +6,7 @@ class SUSYObjDef;
 class TVector2; 
 class FakeMetEstimator;
 class SelectedJet;
+class SelectedJets; 
 class TFile; 
 
 #include "TLorentzVector.h"
@@ -31,6 +32,11 @@ namespace cutflag {
   const unsigned debug_susy      = 1u << 4; 
 }
 
+namespace jetbit { 
+  const unsigned good            = 1u << 0; 
+  const unsigned low_pt          = 1u << 1; 
+  const unsigned el_overlap      = 1u << 2; 
+}
 
 std::vector<std::pair<std::string, int> >
 run_cutflow(std::vector<std::string> files, 
@@ -78,23 +84,30 @@ bool has_lower_pt(const TLorentzVector&, const TLorentzVector&);
 
 class SelectedJet: public TLorentzVector { 
 public: 
-  SelectedJet(const SusyBuffer& buffer, int jet_index); 
+  SelectedJet(const SelectedJets* parent, int jet_index); 
   double combNN_btag() const; 
   int jet_index() const;
   double jfitcomb_cu(const SusyBuffer& buffer, int jet_index) const;
   double jfitcomb_cb(const SusyBuffer& buffer, int jet_index) const;
   double jvf() const; 
+  void set_bit(unsigned); 
+  unsigned get_bits() const; 
 private: 
   double m_combNN_btag_wt; 
   int m_jet_index;
   float m_jvf; //jet_AntiKt4TopoNewEM_jvtxf
+  unsigned m_bits; 
 }; 
 
 class SelectedJets: public std::vector<SelectedJet> 
 { 
 public: 
   SelectedJets(); 
-  SelectedJets(const SusyBuffer& buffer, const unsigned flags); 
+  SelectedJets(const SusyBuffer& buffer, SUSYObjDef& def, 
+	       const unsigned flags, const RunInfo& info); 
+private: 
+  const SusyBuffer* m_buffer; 
+  friend class SelectedJet; 
 }; 
 
 
@@ -112,8 +125,26 @@ private:
 class SmartChain: public TChain { 
 public: 
   SmartChain(std::string tree_name); 
-  void SetBranchAddress(std::string name, void* branch, bool turnon = false); 
+  
+  template<typename T, typename Z>
+  void SetBranchAddress(T name, Z branch, 
+  			bool turnon = false); 
+
+  // void SetBranchAddress(std::string name, void* branch, 
+  // 			bool turnon = false); 
+
+private: 
+  void SetBranchAddressPrivate(std::string name, void* branch, 
+			       bool turnon = false); 
 }; 
+
+template<typename T, typename Z>
+void SmartChain::SetBranchAddress(T name, Z branch, 
+				  bool turnon) { 
+  *branch = 0; 
+  SetBranchAddressPrivate(name, branch, turnon); 
+}
+
 
 class OutTree
 {

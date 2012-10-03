@@ -117,27 +117,26 @@ run_cutflow(std::vector<std::string> files,
 
     def.Reset(); 
     
-    SelectedJets selected_jets(buffer, flags); 
+    SelectedJets selected_jets(buffer, def, flags, info); 
 
     unsigned pass_bits = 0; 
   
     cut_counters["n_events"]++;
-    cut_counters["GRL"]++; 
+    pass_bits |= pass::grl; 
 
     if(!buffer.trigger)   pass_bits |= pass::trigger; 
     if(!buffer.larError)  pass_bits |= pass::lar_error; 
 
-    if ( !(flags & cutflag::is_data) ||
-	 (buffer.coreFlags & 0x40000) == 0) { 
-      pass_bits |= pass::lar_error; 
+    if ( !(flags & cutflag::is_data ) ||
+	 ((buffer.coreFlags & 0x40000) == 0) ){ 
+      pass_bits |= pass::core; 
     }
     
     pass_bits |= pass::jet_clean; 
     for (SelectedJets::const_iterator jet_itr = selected_jets.begin(); 
 	 jet_itr != selected_jets.end(); 
 	 jet_itr++) { 
-      bool is_jet = check_if_jet(jet_itr->jet_index(), buffer, def, flags, 
-				 info);
+      bool is_jet = (jet_itr->get_bits() & jetbit::good); 
       if (!is_jet) pass_bits &=~ pass::jet_clean; 
     }
 
@@ -150,6 +149,7 @@ run_cutflow(std::vector<std::string> files,
 	 jet_itr != selected_jets.end(); jet_itr++) { 
       bool in_eta = fabs(jet_itr->Eta()) < 2.5; 
       bool good_jvf = jet_itr->jvf() > 0.5; 
+
       if ( in_eta && good_jvf) { 
 	max_jet_pt = std::max(jet_itr->Pt(), max_jet_pt); 
       }
@@ -160,7 +160,7 @@ run_cutflow(std::vector<std::string> files,
       
     int n_electrons = fill_electrons(buffer, def, flags, info); 
     std::vector<int> muon_idx = fill_muons(buffer, def, flags, info); 
-    
+
     TVector2 met = get_met(buffer, def, info, muon_idx); 
 
     if (met.Mod() > 120*GeV) { 
@@ -178,41 +178,45 @@ run_cutflow(std::vector<std::string> files,
 	good_jets.push_back(*jet_itr); 
       }
     }
-    if (good_jets.size() >= 3) { 
-      pass_bits |= pass::n_jet; 
-    }
-
-    std::sort(good_jets.begin(), good_jets.end(), has_lower_pt); 
-    std::reverse(good_jets.begin(), good_jets.end()); 
-
-    float dphi = get_min_jetmet_dphi(good_jets, met); 
-    if (dphi > 0.4) { 
-      pass_bits |= pass::dphi_jetmet; 
-    }
 
     if (n_electrons == 0 && muon_idx.size() == 0) { 
       pass_bits |= pass::lepton_veto; 
     }
 
-    const SelectedJet& leading_jet = good_jets.at(1); 
-    const SelectedJet& subleading_jet = good_jets.at(2); 
-    const SelectedJet& isr_jet = good_jets.at(0); 
+    if (good_jets.size() >= 3) { 
+      pass_bits |= pass::n_jet; 
 
-    if (pass_mainz_ctag(leading_jet) || 
-	pass_mainz_ctag(subleading_jet)) { 
-      pass_bits |= pass::ctag_mainz; 
-    }
+      float dphi = get_min_jetmet_dphi(good_jets, met); 
+      if (dphi > 0.4) { 
+	pass_bits |= pass::dphi_jetmet; 
+      }
+
+      std::sort(good_jets.begin(), good_jets.end(), has_lower_pt); 
+      std::reverse(good_jets.begin(), good_jets.end()); 
+
+      const SelectedJet& leading_jet = good_jets.at(1); 
+      const SelectedJet& subleading_jet = good_jets.at(2); 
+      const SelectedJet& isr_jet = good_jets.at(0); 
+
+      if (pass_mainz_ctag(leading_jet) || 
+	  pass_mainz_ctag(subleading_jet)) { 
+	pass_bits |= pass::ctag_mainz; 
+      }
+
+      out_tree.pass_bits = pass_bits; 
+      out_tree.met = met.Mod(); 
+      out_tree.min_jetmet_dphi = dphi; 
+
+      copy_jet_info(leading_jet, buffer, out_tree.leading_jet); 
+      copy_jet_info(subleading_jet, buffer, out_tree.subleading_jet); 
+      copy_jet_info(isr_jet, buffer, out_tree.isr_jet); 
+      out_tree.fill(); 
+
+    } // end if n_jets >= 3
 
     fill_cutflow_from_bits(cut_counters, pass_bits); 
 
-    out_tree.pass_bits = pass_bits; 
-    out_tree.met = met.Mod(); 
-    out_tree.min_jetmet_dphi = dphi; 
 
-    copy_jet_info(leading_jet, buffer, out_tree.leading_jet); 
-    copy_jet_info(subleading_jet, buffer, out_tree.subleading_jet); 
-    copy_jet_info(isr_jet, buffer, out_tree.isr_jet); 
-    out_tree.fill(); 
  
   }
   std::cout << "\n"; 
@@ -376,7 +380,7 @@ bool check_if_electron(int iEl,
      buffer.el_OQ                    ->at(iEl),
      buffer.el_nPixHits              ->at(iEl),
      buffer.el_nSCTHits              ->at(iEl),
-     0, // what the fuck is 'float el_wet'? 
+     buffer.el_MET_Egamma10NoTau_wet->at(iEl).at(0), 
      // buffer.el_MET_Egamma10NoTau_wet ->at(iEl),
      flags & cutflag::is_data);
 
@@ -426,6 +430,28 @@ bool check_if_jet(int iJet,
 		  SUSYObjDef& def, 
 		  const unsigned flags, 
 		  const RunInfo& info){ 
+
+  assert(buffer.jet_AntiKt4TopoNewEM_pt                 );
+  assert(buffer.jet_AntiKt4TopoNewEM_eta                );
+  assert(buffer.jet_AntiKt4TopoNewEM_phi                );
+  assert(buffer.jet_AntiKt4TopoNewEM_E                  );
+  assert(buffer.jet_AntiKt4TopoNewEM_emscale_eta        );
+  assert(buffer.jet_AntiKt4TopoNewEM_emfrac             );
+  assert(buffer.jet_AntiKt4TopoNewEM_hecf               );
+  assert(buffer.jet_AntiKt4TopoNewEM_LArQuality         );
+  assert(buffer.jet_AntiKt4TopoNewEM_HECQuality         );
+  assert(buffer.jet_AntiKt4TopoNewEM_AverageLArQF       );
+  assert(buffer.jet_AntiKt4TopoNewEM_Timing             );
+  assert(buffer.jet_AntiKt4TopoNewEM_sumPtTrk           );
+  assert(buffer.jet_AntiKt4TopoNewEM_fracSamplingMax    );
+  assert(buffer.jet_AntiKt4TopoNewEM_SamplingMax        );
+  assert(buffer.jet_AntiKt4TopoNewEM_NegativeE          );
+  assert(buffer.jet_AntiKt4TopoNewEM_flavor_truth_label );
+  assert(buffer.jet_AntiKt4TopoNewEM_emscale_E          );
+  assert(buffer.jet_AntiKt4TopoNewEM_emscale_eta        );
+  assert(buffer.jet_AntiKt4TopoNewEM_EtaOrigin          );
+  assert(buffer.jet_AntiKt4TopoNewEM_PhiOrigin          );
+  assert(buffer.jet_AntiKt4TopoNewEM_MOrigin            );
     
   return def.FillJet
     (iJet, 
@@ -511,7 +537,10 @@ TVector2 get_met(const SusyBuffer& buffer,
 //___________________________________________________________________
 // selected jet  
   
-SelectedJet::SelectedJet(const SusyBuffer& buffer, int jet_index) { 
+SelectedJet::SelectedJet(const SelectedJets* parent, int jet_index): 
+  m_bits(0)
+{ 
+  const SusyBuffer& buffer = *parent->m_buffer; 
   double pt = buffer.jet_AntiKt4TopoNewEM_pt  ->at(jet_index); 
   double eta = buffer.jet_AntiKt4TopoNewEM_eta ->at(jet_index); 
   double phi = buffer.jet_AntiKt4TopoNewEM_phi ->at(jet_index); 
@@ -558,11 +587,20 @@ double SelectedJet::jvf() const {
   return m_jvf; 
 }
 
+unsigned SelectedJet::get_bits() const { 
+  return m_bits; 
+}
 
+void SelectedJet::set_bit(unsigned bit) { 
+  m_bits |= bit; 
+}
 
 SelectedJets::SelectedJets() {}; 
 
-SelectedJets::SelectedJets(const SusyBuffer& buffer, const unsigned flags) { 
+SelectedJets::SelectedJets(const SusyBuffer& buffer, SUSYObjDef& def, 
+			   const unsigned flags, const RunInfo& info): 
+  m_buffer(&buffer)
+{ 
 
   assert(buffer.jet_AntiKt4TopoNewEM_n); 
   assert(buffer.jet_AntiKt4TopoNewEM_pt); 
@@ -577,13 +615,20 @@ SelectedJets::SelectedJets(const SusyBuffer& buffer, const unsigned flags) {
       //add the "standard quality" cuts here ************************
       //JVF>0.75, pt>20GeV, isGoodJet (from SUSYTools), ...)
 
-    bool low_pt_jet = buffer.jet_AntiKt4TopoNewEM_pt->at(jet_n) < 20*GeV;
+    // must initalize all jets
+    bool is_jet = check_if_jet(jet_n, buffer, def, flags, info); 
 
-    if (low_pt_jet) { 
-      continue; 
+    SelectedJet the_jet(this, jet_n); 
+
+    if (is_jet) { 
+      the_jet.set_bit(jetbit::good); 
     }
     
-    SelectedJet the_jet(buffer, jet_n); 
+    bool low_pt_jet = the_jet.Pt() < 20*GeV;
+    if (low_pt_jet) { 
+      the_jet.set_bit(jetbit::low_pt); 
+    }
+    
 
     // overlap removal 
     double min_delta_r = 10; 
@@ -600,7 +645,7 @@ SelectedJets::SelectedJets(const SusyBuffer& buffer, const unsigned flags) {
       }
     }
     if (min_delta_r < 0.2) { 
-      continue; 
+      the_jet.set_bit(jetbit::el_overlap); 
     }
 
     push_back(the_jet); 
@@ -658,10 +703,17 @@ SmartChain::SmartChain(std::string tree_name):
 { 
 }
 
-void SmartChain::SetBranchAddress(std::string name, void* branch, 
-				  bool turnon) { 
+// void SmartChain::SetBranchAddress(std::string name, void* branch, 
+// 				  bool turnon ) { 
+//   SetBranchAddressPrivate(name, branch, turnon); 
+// }
+
+
+void SmartChain::SetBranchAddressPrivate(std::string name, void* branch, 
+					 bool turnon) { 
+  // printf("setting %s\n", name.c_str());  
+
   if (turnon) { 
-    branch = 0; 
     SetBranchStatus(name.c_str(), 1); 
   }
   int return_code = TChain::SetBranchAddress(name.c_str(), branch); 
