@@ -765,11 +765,14 @@ bool TrigSimulator::get_decision(const SusyBuffer& buffer){
   float rand_float = float(rand() ) / float(RAND_MAX); 
 
   //cout << rndnr << endl;
+
+  // NOTE: Triggers have been removed from SusyBuffer
+
   if(rand_float < m_frac_preswap){
-    if(buffer.EF_xe70_noMu) return true;
+    // if(buffer.EF_xe70_noMu) return true;
   }
   else{
-    if(buffer.EF_xe60_verytight_noMu) return true;
+    // if(buffer.EF_xe60_verytight_noMu) return true;
   }
   return false; 
 

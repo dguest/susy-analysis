@@ -267,11 +267,7 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, unsigned br, BranchNames names)
 			   &MET_Egamma10NoTau_RefGamma_sumet, true);
 
 
-
-  fChain->SetBranchStatus("EF_xe60_verytight_noMu", br & trigger);
-  fChain->SetBranchAddress("EF_xe60_verytight_noMu", &EF_xe60_verytight_noMu); 
-  fChain->SetBranchStatus("EF_xe70_noMu", br & trigger);
-  fChain->SetBranchAddress("EF_xe70_noMu", &EF_xe70_noMu); 
+ 
   fChain->SetBranchStatus("averageIntPerXing",other);
   fChain->SetBranchAddress("averageIntPerXing", &averageIntPerXing); 
   fChain->SetBranchStatus("mc_channel_number",other);
