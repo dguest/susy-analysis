@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 
-# USE_LIBS="SUSYTools CalibrationDataInterface MuonEfficiencyCorrections "
-
 USE_LIBS="ApplyJetCalibration CalibrationDataInterface egammaAnalysisUtils\
  egammaEvent GoodRunsLists JetResolution JetSelectorTools JetUncertainties\
  MissingETUtility MuonEfficiencyCorrections MuonMomentumCorrections\
- ObjectSelectorCore PileupReweighting ReweightUtils SUSYTools\
- TrigRootAnalysis FudgeMCTool PhotonIDTool"
+ ObjectSelectorCore PileupReweighting ReweightUtils\
+ TrigRootAnalysis FudgeMCTool PhotonIDTool\
+ SUSYTools"
+
+USE_HEADER="SUSYTools MissingETUtility egammaAnalysisUtils"
+
 
 if [[ $1 == '-l' ]]
 then
@@ -16,7 +18,7 @@ then
     done
 elif [[ $1 == '-i' ]]
 then
-    for i in $USE_LIBS
+    for i in $USE_HEADER
     do 
 	echo -n $2/$i\ 
     done

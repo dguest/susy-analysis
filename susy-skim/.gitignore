@@ -6,3 +6,4 @@
 *.pyc
 *.pkl
 local.mk
+cleanup/

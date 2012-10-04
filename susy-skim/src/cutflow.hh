@@ -20,9 +20,9 @@ struct RunInfo {
   int run_number; 
 }; 
 
-// --- these are now (annoyingly) defined in FudgeMCTool.h ---
-// static const double MeV = 1.0; 
-// static const double GeV = 1000.0*MeV; 
+//--- these are now (annoyingly) defined in FudgeMCTool.h ---
+static const double MeV = 1.0; 
+static const double GeV = 1000.0*MeV; 
 
 namespace cutflag { 
   const unsigned verbose         = 1u << 0; 
