@@ -118,7 +118,7 @@ run_cutflow(std::vector<std::string> files,
     def.Reset(); 
     out_tree.clear_buffer(); 
     
-    SelectedJets selected_jets(buffer, def, flags, info); 
+    SelectedJets all_jets(buffer, def, flags, info); 
 
     unsigned pass_bits = 0; 
   
@@ -133,14 +133,23 @@ run_cutflow(std::vector<std::string> files,
       pass_bits |= pass::core; 
     }
     
+    SelectedJets selected_jets; 
+    for (SelectedJets::const_iterator jet_itr = all_jets.begin(); 
+	 jet_itr != all_jets.end(); 
+	 jet_itr++) { 
+      bool is_low_pt = (jet_itr->get_bits() & jetbit::low_pt); 
+      bool is_overlap = (jet_itr->get_bits() & jetbit::el_overlap); 
+      if (!is_low_pt && !is_overlap) { 
+	selected_jets.push_back(*jet_itr); 
+      }
+    }
+
     pass_bits |= pass::jet_clean; 
     for (SelectedJets::const_iterator jet_itr = selected_jets.begin(); 
 	 jet_itr != selected_jets.end(); 
 	 jet_itr++) { 
       bool is_jet = (jet_itr->get_bits() & jetbit::good); 
-      bool is_low_pt = (jet_itr->get_bits() & jetbit::low_pt); 
-      bool is_overlap = (jet_itr->get_bits() & jetbit::el_overlap); 
-      bool is_veto = !is_jet && !is_low_pt && !is_overlap; 
+      bool is_veto = !is_jet;
       if (is_veto) pass_bits &=~ pass::jet_clean; 
     }
 
