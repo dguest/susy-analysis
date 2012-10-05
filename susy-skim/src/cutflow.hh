@@ -48,7 +48,8 @@ run_cutflow(std::vector<std::string> files,
 	    std::string out_ntuple_name = ""); 
 
 void do_multijet_calculations(const std::vector<SelectedJet*>& leading_jets, 
-			      unsigned& pass_bits, OutTree& out_tree, 
+			      unsigned& pass_bits, 
+			      OutTree& out_tree, 
 			      const TVector2& met); 
 
 
@@ -81,7 +82,7 @@ bool check_if_muon(int iMu,
 		   SUSYObjDef& def, 
 		   const unsigned flags);
 
-bool pass_mainz_ctag(const SelectedJet& jet); 
+bool pass_mainz_ctag(const SelectedJet* jet); 
 
 std::vector<int> fill_muons(const SusyBuffer& buffer, SUSYObjDef& def, 
 			    unsigned flags, const RunInfo& info); 
@@ -165,6 +166,20 @@ private:
   std::vector<std::string> m_cuts; 
 }; 
 
+class BitmapCutflow 
+{ 
+public: 
+  BitmapCutflow(std::string first_name = "n_events"); 
+  void add(std::string name, unsigned mask); 
+  int fill(const unsigned mask); 
+  std::vector< std::pair<std::string, int> > get() const; 
+private: 
+  typedef std::vector<std::pair<unsigned,std::string> > MaskName; 
+  std::string m_first_name; 
+  CutCounter m_counter; 
+  MaskName m_mask_name; 
+};
+
 class SmartChain: public TChain { 
 public: 
   SmartChain(std::string tree_name); 
@@ -172,9 +187,6 @@ public:
   template<typename T, typename Z>
   void SetBranchAddress(T name, Z branch, 
   			bool turnon = false); 
-
-  // void SetBranchAddress(std::string name, void* branch, 
-  // 			bool turnon = false); 
 
 private: 
   void SetBranchAddressPrivate(std::string name, void* branch, 
@@ -230,9 +242,8 @@ private:
   TFile* m_file; 
   TTree* m_tree; 
 }; 
-int fill_cutflow_from_bits(CutCounter&, const unsigned); 
 
-void copy_jet_info(const SelectedJet& , OutTree::Jet&); 
+void copy_jet_info(const SelectedJet* , OutTree::Jet&); 
 
 // ---- templates -----
 

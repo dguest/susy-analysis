@@ -99,10 +99,21 @@ run_cutflow(std::vector<std::string> files,
     std::cout.rdbuf( old_out_stream );
   }
 
-
   // --- output things ---
   OutTree out_tree(out_ntuple_name,  "evt_tree", flags); 
-  CutCounter cut_counters; 
+  BitmapCutflow cutflow; 
+  cutflow.add("GRL"              , pass::grl            );  
+  cutflow.add("trigger"          , pass::trigger        );
+  cutflow.add("lar_error" 	 , pass::lar_error      );
+  cutflow.add("core" 		 , pass::core           );
+  cutflow.add("jet_clean" 	 , pass::jet_clean      );
+  cutflow.add("vxp_gt_4trk" 	 , pass::vxp_gt_4trk    );
+  cutflow.add("leading_jet" 	 , pass::leading_jet    );
+  cutflow.add("met" 		 , pass::met            );
+  cutflow.add("n_jet_gt_3" 	 , pass::n_jet          );
+  cutflow.add("dphi_jetmet_sum"  , pass::dphi_jetmet_sum);
+  cutflow.add("lepton_veto" 	 , pass::lepton_veto    );
+  cutflow.add("ctag_mainz"       , pass::ctag_mainz     ); 
   
   // looping through events
   int one_percent = n_entries /  100; 
@@ -131,7 +142,6 @@ run_cutflow(std::vector<std::string> files,
 
     unsigned pass_bits = 0; 
   
-    cut_counters["n_events"]++;
     pass_bits |= pass::grl; 
 
     if(!buffer.trigger)   pass_bits |= pass::trigger; 
@@ -146,7 +156,7 @@ run_cutflow(std::vector<std::string> files,
     std::reverse(all_jets.begin(), all_jets.end()); 
 
     if (all_jets.size()) { 
-      copy_jet_info(*all_jets.at(0), out_tree.leading_jet_uncensored); 
+      copy_jet_info(all_jets.at(0), out_tree.leading_jet_uncensored); 
     }
 
     
@@ -224,8 +234,23 @@ run_cutflow(std::vector<std::string> files,
       do_multijet_calculations(leading_jets, pass_bits, out_tree, met); 
     }
 
-    fill_cutflow_from_bits(cut_counters, pass_bits); 
+    if (good_jets.size() >= 1) { 
+      copy_jet_info(good_jets.at(0), out_tree.isr_jet); 
+    }
+    if (good_jets.size() >= 2) { 
+      copy_jet_info(good_jets.at(1), out_tree.leading_jet);
+      if (pass_mainz_ctag(good_jets.at(1)) ) { 
+	pass_bits |= pass::ctag_mainz; 
+      }
+    }
+    if (good_jets.size() >= 3) { 
+      copy_jet_info(good_jets.at(2), out_tree.subleading_jet); 
+      if (pass_mainz_ctag(good_jets.at(2)) ) { 
+	pass_bits |= pass::ctag_mainz; 
+      }
+    }
 
+    cutflow.fill(pass_bits); 
     out_tree.pass_bits = pass_bits; 
     out_tree.met = met.Mod(); 
 
@@ -242,35 +267,25 @@ run_cutflow(std::vector<std::string> files,
 
 
   def.finalize(); 
-  return cut_counters.get_ordered_cuts(); 
+  return cutflow.get(); 
 	 
 }
 
 void do_multijet_calculations(const std::vector<SelectedJet*>& leading_jets, 
-			      unsigned& pass_bits, OutTree& out_tree, 
+			      unsigned& pass_bits, 
+			      OutTree& out_tree, 
 			      const TVector2& met) 
 { 
   float dphi_sum = get_sum_jetmet_dphi(leading_jets, met); 
   if (dphi_sum > 0.4) { 
     pass_bits |= pass::dphi_jetmet_sum; 
   }
+  out_tree.sum_jetmet_dphi = dphi_sum; 
+
   float dphi_min = get_min_jetmet_dphi(leading_jets, met); 
   if (dphi_min > 0.4) { 
     pass_bits |= pass::dphi_jetmet_min; 
   }
-
-  const SelectedJet& leading_jet = *leading_jets.at(1); 
-  const SelectedJet& subleading_jet = *leading_jets.at(2); 
-  const SelectedJet& isr_jet = *leading_jets.at(0); 
-
-  if (pass_mainz_ctag(leading_jet) || 
-      pass_mainz_ctag(subleading_jet)) { 
-    pass_bits |= pass::ctag_mainz; 
-  }
-
-  copy_jet_info(leading_jet, out_tree.leading_jet); 
-  copy_jet_info(subleading_jet, out_tree.subleading_jet); 
-  copy_jet_info(isr_jet, out_tree.isr_jet); 
   out_tree.min_jetmet_dphi = dphi_min; 
 
 }
@@ -278,10 +293,10 @@ void do_multijet_calculations(const std::vector<SelectedJet*>& leading_jets,
 //____________________________________________________________
 // utility functions 
 
-bool pass_mainz_ctag(const SelectedJet& jet){ 
+bool pass_mainz_ctag(const SelectedJet* jet){ 
 
-  bool pass = (jet.combNN_btag() > -2.55 && 
-	       jet.combNN_btag() < 1.0); 
+  bool pass = (jet->combNN_btag() > -2.55 && 
+	       jet->combNN_btag() < 1.0); 
   return pass; 
 }
 
@@ -313,9 +328,6 @@ float get_sum_jetmet_dphi(const std::vector<SelectedJet*>& jets,
   return mector.DeltaPhi(sum); 
 }
 
-// bool has_lower_pt(const TLorentzVector& v1, const TLorentzVector& v2) { 
-//   return v1.Pt() < v2.Pt(); 
-// }
 bool has_lower_pt(const TLorentzVector* v1, const TLorentzVector* v2) { 
   return v1->Pt() < v2->Pt(); 
 }
@@ -342,49 +354,16 @@ std::vector<int> fill_muons(const SusyBuffer& buffer, SUSYObjDef& def,
 //____________________________________________________________________
 // io functions 
 
-void copy_jet_info(const SelectedJet& in, OutTree::Jet& jet)
+void copy_jet_info(const SelectedJet* in, OutTree::Jet& jet)
 {
   // int jet_index = in.jet_index(); 
-  jet.pt = in.Pt(); 
-  jet.eta = in.Eta(); 
-  jet.phi = in.Phi(); 
-  jet.cnn_b = in.pb(); 
-  jet.cnn_c = in.pc(); 
-  jet.cnn_u = in.pu(); 
-  jet.flavor_truth_label = in.flavor_truth_label(); 
-
-}
-
-
-
-int fill_cutflow_from_bits(CutCounter& cut_counters, const unsigned bits) { 
-  using namespace pass; 
-
-  if (! (bits & grl        ) ) return 0; 
-  cut_counters["GRL"]++;
-  if (! (bits & trigger    ) ) return 0; 
-  cut_counters["trigger"]++;
-  if (! (bits & lar_error    ) ) return 0; 
-  cut_counters["lar_error"]++;
-  if (! (bits & core    ) ) return 0; 
-  cut_counters["core"]++;
-  if (! (bits & jet_clean    ) ) return 0; 
-  cut_counters["jet_clean"]++;
-  if (! (bits & vxp_gt_4trk    ) ) return 0; 
-  cut_counters["vxp_gt_4trk"]++;
-  if (! (bits & leading_jet    ) ) return 0; 
-  cut_counters["leading_jet"]++;
-  if (! (bits & met    ) ) return 0; 
-  cut_counters["met"]++;
-  if (! (bits & n_jet    ) ) return 0; 
-  cut_counters["n_jet_gt_3"]++;
-  if (! (bits & dphi_jetmet_sum    ) ) return 0; 
-  cut_counters["dphi_jetmet_sum"]++;
-  if (! (bits & lepton_veto    ) ) return 0; 
-  cut_counters["lepton_veto"]++;
-  if (! (bits & ctag_mainz    ) ) return 0; 
-  cut_counters["ctag_mainz"]++;
-  return 1; 
+  jet.pt = in->Pt(); 
+  jet.eta = in->Eta(); 
+  jet.phi = in->Phi(); 
+  jet.cnn_b = in->pb(); 
+  jet.cnn_c = in->pc(); 
+  jet.cnn_u = in->pu(); 
+  jet.flavor_truth_label = in->flavor_truth_label(); 
 
 }
 
@@ -830,7 +809,34 @@ std::vector< std::pair<std::string, int> > CutCounter::get_ordered_cuts()
   return ordered_cuts;
 }
 
+BitmapCutflow::BitmapCutflow(std::string first_name): 
+  m_first_name(first_name)
+{ 
+}
 
+void BitmapCutflow::add(std::string name, unsigned mask) { 
+  m_mask_name.push_back(std::make_pair(mask, name)); 
+}
+
+int BitmapCutflow::fill(const unsigned mask) { 
+  int n_passed = 0; 
+  m_counter[m_first_name]++; 
+  for (MaskName::const_iterator itr = m_mask_name.begin(); 
+       itr != m_mask_name.end(); itr++) { 
+    if (mask & itr->first) { 
+      m_counter[itr->second]++; 
+      n_passed++; 
+    }
+    else { 
+      break; 
+    }
+  }
+  return n_passed; 
+}
+
+std::vector< std::pair<std::string, int> > BitmapCutflow::get() const { 
+  return m_counter.get_ordered_cuts(); 
+} 
 
 //_______________________________________________________________
 // OutTree
