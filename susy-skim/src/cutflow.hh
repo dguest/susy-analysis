@@ -3,11 +3,14 @@
 
 class SusyBuffer; 
 class SUSYObjDef; 
-class TVector2; 
 class FakeMetEstimator;
 class SelectedJet;
 class SelectedJets; 
 class TFile; 
+class SusyElectrons; 
+class Electron; 
+class OutTree; 
+
 
 #include "TLorentzVector.h"
 #include "TVector2.h"
@@ -30,6 +33,7 @@ namespace cutflag {
   const unsigned is_signal       = 1u << 2;  
   const unsigned use_low_pt_jets = 1u << 3; 
   const unsigned debug_susy      = 1u << 4; 
+  const unsigned raw_evt_info    = 1u << 5; 
 }
 
 namespace jetbit { 
@@ -43,11 +47,20 @@ run_cutflow(std::vector<std::string> files,
 	    RunInfo info, const unsigned flags = 0, 
 	    std::string out_ntuple_name = ""); 
 
-float get_min_jetmet_dphi(const std::vector<SelectedJet>&, 
+void do_multijet_calculations(const std::vector<SelectedJet*>& leading_jets, 
+			      unsigned& pass_bits, OutTree& out_tree, 
+			      const TVector2& met); 
+
+
+float get_min_jetmet_dphi(const std::vector<SelectedJet*>&, 
 			  const TVector2& ); 
 
-float get_sum_jetmet_dphi(const std::vector<SelectedJet>&, 
+float get_sum_jetmet_dphi(const std::vector<SelectedJet*>&, 
 			  const TVector2& ); 
+
+
+template<typename M, typename A>
+void remove_overlaping(const M& mask, A& altered, const float delta_r); 
 
 
 
@@ -70,8 +83,6 @@ bool check_if_muon(int iMu,
 
 bool pass_mainz_ctag(const SelectedJet& jet); 
 
-int fill_electrons(const SusyBuffer& buffer, SUSYObjDef& def, 
-		   unsigned flags, const RunInfo& info); 
 std::vector<int> fill_muons(const SusyBuffer& buffer, SUSYObjDef& def, 
 			    unsigned flags, const RunInfo& info); 
 
@@ -80,36 +91,68 @@ TVector2 get_met(const SusyBuffer& buffer,
 		 SUSYObjDef& def, 
 		 const RunInfo&, const std::vector<int>& muon_idx );
 
-bool has_lower_pt(const TLorentzVector&, const TLorentzVector&); 
+// bool has_lower_pt(const TLorentzVector&, const TLorentzVector&); 
+bool has_lower_pt(const TLorentzVector*, const TLorentzVector*); 
 
 class SelectedJet: public TLorentzVector { 
 public: 
-  SelectedJet(const SelectedJets* parent, int jet_index); 
+  SelectedJet(const SelectedJets* container, int jet_index); 
   double combNN_btag() const; 
   int jet_index() const;
   double jfitcomb_cu(const SusyBuffer& buffer, int jet_index) const;
   double jfitcomb_cb(const SusyBuffer& buffer, int jet_index) const;
   double jvf() const; 
   void set_bit(unsigned); 
-  unsigned get_bits() const; 
+  unsigned bits() const; 
+  double pb() const; 
+  double pu() const; 
+  double pc() const; 
+  int flavor_truth_label() const; 
 private: 
-  double m_combNN_btag_wt; 
+  double m_cnn_b; 
+  double m_cnn_c; 
+  double m_cnn_u; 
   int m_jet_index;
   float m_jvf; //jet_jvtxf
   unsigned m_bits; 
+  int m_flavor_truth_label; 
 }; 
 
-class SelectedJets: public std::vector<SelectedJet> 
+class SelectedJets: public std::vector<SelectedJet*> 
 { 
 public: 
   SelectedJets(); 
   SelectedJets(const SusyBuffer& buffer, SUSYObjDef& def, 
-	       const unsigned flags, const RunInfo& info); 
+	       const unsigned flags, const RunInfo& info);
+  ~SelectedJets(); 
 private: 
   const SusyBuffer* m_buffer; 
   friend class SelectedJet; 
 }; 
 
+class Electron: public TLorentzVector 
+{ 
+public: 
+  Electron(const SusyElectrons* container, int index); 
+  bool pass_susy() const; 
+private: 
+  bool m_pass_susy; 
+}; 
+
+class SusyElectrons: public std::vector<Electron*> 
+{ 
+public: 
+  SusyElectrons(); 
+  SusyElectrons(const SusyBuffer& buffer, SUSYObjDef& def, 
+		const unsigned flags, const RunInfo& info); 
+  ~SusyElectrons(); 
+private: 
+  const SusyBuffer* m_buffer; 
+  SUSYObjDef* m_def; 
+  const unsigned m_flags; 
+  const RunInfo* m_info; 
+  friend class Electron; 
+}; 
 
 // --- io things ----
 
@@ -149,7 +192,8 @@ void SmartChain::SetBranchAddress(T name, Z branch,
 class OutTree
 {
 public: 
-  OutTree(std::string file, std::string tree = "evt_tree"); 
+  OutTree(std::string file, std::string tree = "evt_tree", 
+	  const unsigned flags = 0); 
   ~OutTree(); 
   void fill(); 
   void clear_buffer(); 
@@ -157,6 +201,7 @@ public:
   unsigned pass_bits; 
   double met; 
   double min_jetmet_dphi; 
+  double sum_jetmet_dphi; 
   
   class Jet 
   {
@@ -174,20 +219,40 @@ public:
     void clear(); 
   }; 
 
+  Jet leading_jet_uncensored; 
+
   Jet leading_jet; 
   Jet subleading_jet; 
   Jet isr_jet; 
 
 private:
-  void init(); 
+  void init(const unsigned flags = 0); 
   TFile* m_file; 
   TTree* m_tree; 
 }; 
 int fill_cutflow_from_bits(CutCounter&, const unsigned); 
 
-void copy_jet_info(const SelectedJet& , const SusyBuffer& buffer, 
-		   OutTree::Jet&); 
+void copy_jet_info(const SelectedJet& , OutTree::Jet&); 
 
+// ---- templates -----
+
+template<typename M, typename A>
+void remove_overlaping(const M& mask, A& altered, const float delta_r) { 
+  for (typename M::const_iterator 
+	 itr = mask.begin(); 
+       itr != mask.end(); 
+       itr++) { 
+    const unsigned n_jets = altered.size(); 
+    A new_container; 
+    for (unsigned idx = 0; idx < n_jets; idx++) { 
+      double delr = (*itr)->DeltaR(*altered.at(idx)); 
+      if (delr > delta_r) { 
+	new_container.push_back(altered.at(idx)); 
+      }
+    }
+    altered = new_container; 
+  }
+} 
 
 // --- obsolete? ---
 

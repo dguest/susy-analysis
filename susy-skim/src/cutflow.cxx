@@ -65,7 +65,6 @@ run_cutflow(std::vector<std::string> files,
     }
   }
 
-  typedef std::vector<SelectedJet>::const_iterator JetItr; 
 
   SUSYObjDef def; 
 
@@ -91,6 +90,8 @@ run_cutflow(std::vector<std::string> files,
   std::cerr.rdbuf( strCout.rdbuf() );
     
   def.initialize(flags & cutflag::is_data); 
+  def.SetJetCalib(false); 
+
 
   // Restore old cout.
   if (flags & cutflag::verbose) { 
@@ -100,7 +101,7 @@ run_cutflow(std::vector<std::string> files,
 
 
   // --- output things ---
-  OutTree out_tree(out_ntuple_name); 
+  OutTree out_tree(out_ntuple_name,  "evt_tree", flags); 
   CutCounter cut_counters; 
   
   // looping through events
@@ -119,6 +120,14 @@ run_cutflow(std::vector<std::string> files,
     out_tree.clear_buffer(); 
     
     SelectedJets all_jets(buffer, def, flags, info); 
+    SusyElectrons all_electrons(buffer, def, flags, info); 
+    std::vector<Electron*> susy_electrons; 
+    for (std::vector<Electron*>::const_iterator itr = susy_electrons.begin(); 
+	 itr!= susy_electrons.end(); itr++) { 
+      if ( (*itr)->pass_susy() ) { 
+	susy_electrons.push_back(*itr); 
+      }
+    }
 
     unsigned pass_bits = 0; 
   
@@ -132,23 +141,32 @@ run_cutflow(std::vector<std::string> files,
 	 ((buffer.coreFlags & 0x40000) == 0) ){ 
       pass_bits |= pass::core; 
     }
+
+    std::sort(all_jets.begin(),all_jets.end(),has_lower_pt); 
+    std::reverse(all_jets.begin(), all_jets.end()); 
+
+    if (all_jets.size()) { 
+      copy_jet_info(*all_jets.at(0), out_tree.leading_jet_uncensored); 
+    }
+
     
-    SelectedJets selected_jets; 
+    std::vector<SelectedJet*> selected_jets; 
     for (SelectedJets::const_iterator jet_itr = all_jets.begin(); 
 	 jet_itr != all_jets.end(); 
-	 jet_itr++) { 
-      bool is_low_pt = (jet_itr->get_bits() & jetbit::low_pt); 
-      bool is_overlap = (jet_itr->get_bits() & jetbit::el_overlap); 
-      if (!is_low_pt && !is_overlap) { 
+	 jet_itr++) {
+      const SelectedJet& jet = **jet_itr; 
+      bool is_low_pt = (jet.bits() & jetbit::low_pt); 
+      if (!is_low_pt) { 
 	selected_jets.push_back(*jet_itr); 
       }
     }
+    remove_overlaping(susy_electrons, selected_jets, 0.2); 
 
     pass_bits |= pass::jet_clean; 
     for (SelectedJets::const_iterator jet_itr = selected_jets.begin(); 
 	 jet_itr != selected_jets.end(); 
 	 jet_itr++) { 
-      bool is_jet = (jet_itr->get_bits() & jetbit::good); 
+      bool is_jet = ((*jet_itr)->bits() & jetbit::good); 
       bool is_veto = !is_jet;
       if (is_veto) pass_bits &=~ pass::jet_clean; 
     }
@@ -157,21 +175,19 @@ run_cutflow(std::vector<std::string> files,
       pass_bits |= pass::vxp_gt_4trk; 
     }
         
-    double max_jet_pt = 0; 
     for (SelectedJets::const_iterator jet_itr = selected_jets.begin(); 
 	 jet_itr != selected_jets.end(); jet_itr++) { 
-      bool in_eta = fabs(jet_itr->Eta()) < 2.5; 
-      bool good_jvf = jet_itr->jvf() > 0.5; 
-
-      if ( in_eta && good_jvf) { 
-	max_jet_pt = std::max(jet_itr->Pt(), max_jet_pt); 
+      const SelectedJet& jet = **jet_itr; 
+      bool in_eta = fabs(jet.Eta()) < 2.5; 
+      bool good_jvf = jet.jvf() > 0.5; 
+      bool good_pt = jet.Pt() > 120*GeV; 
+      if ( in_eta && good_jvf && good_pt) { 
+	pass_bits |= pass::leading_jet; 
+	break; 
       }
     }
-    if (max_jet_pt > 120*GeV) { 
-      pass_bits |= pass::leading_jet; 
-    }
       
-    int n_electrons = fill_electrons(buffer, def, flags, info); 
+    int n_electrons = susy_electrons.size(); 
     std::vector<int> muon_idx = fill_muons(buffer, def, flags, info); 
 
     TVector2 met = get_met(buffer, def, info, muon_idx); 
@@ -180,13 +196,14 @@ run_cutflow(std::vector<std::string> files,
       pass_bits |= pass::met; 
     }
 
-    SelectedJets good_jets; 
+    std::vector<SelectedJet*> good_jets; 
     for (SelectedJets::const_iterator jet_itr = selected_jets.begin(); 
 	 jet_itr != selected_jets.end(); jet_itr++) { 
 
-      bool good_pt = jet_itr->Pt() > 30*GeV; 
-      bool good_eta = fabs(jet_itr->Eta()) < 2.5;
-      bool good_jvf = jet_itr->jvf() > 0.5; 
+      const SelectedJet& jet = **jet_itr; 
+      bool good_pt = jet.Pt() > 30*GeV; 
+      bool good_eta = fabs(jet.Eta()) < 2.5;
+      bool good_jvf = jet.jvf() > 0.5; 
       if (good_pt && good_eta && good_jvf) { 
 	good_jets.push_back(*jet_itr); 
       }
@@ -196,33 +213,16 @@ run_cutflow(std::vector<std::string> files,
       pass_bits |= pass::lepton_veto; 
     }
 
-    if (good_jets.size() >= 3) { 
+    const unsigned n_req_jets = 3; 
+    if (good_jets.size() >= n_req_jets) { 
       pass_bits |= pass::n_jet; 
 
-      float dphi = get_min_jetmet_dphi(good_jets, met); 
-      if (dphi > 0.4) { 
-	pass_bits |= pass::dphi_jetmet; 
-      }
+      std::vector<SelectedJet*> leading_jets(good_jets.begin(), 
+					     good_jets.begin() + n_req_jets); 
 
-      std::sort(good_jets.begin(), good_jets.end(), has_lower_pt); 
-      std::reverse(good_jets.begin(), good_jets.end()); 
-
-      const SelectedJet& leading_jet = good_jets.at(1); 
-      const SelectedJet& subleading_jet = good_jets.at(2); 
-      const SelectedJet& isr_jet = good_jets.at(0); 
-
-      if (pass_mainz_ctag(leading_jet) || 
-	  pass_mainz_ctag(subleading_jet)) { 
-	pass_bits |= pass::ctag_mainz; 
-      }
-
-
-      copy_jet_info(leading_jet, buffer, out_tree.leading_jet); 
-      copy_jet_info(subleading_jet, buffer, out_tree.subleading_jet); 
-      copy_jet_info(isr_jet, buffer, out_tree.isr_jet); 
-      out_tree.min_jetmet_dphi = dphi; 
-
-    } // end if n_jets >= 3
+      //  --- multijet things ---
+      do_multijet_calculations(leading_jets, pass_bits, out_tree, met); 
+    }
 
     fill_cutflow_from_bits(cut_counters, pass_bits); 
 
@@ -246,6 +246,35 @@ run_cutflow(std::vector<std::string> files,
 	 
 }
 
+void do_multijet_calculations(const std::vector<SelectedJet*>& leading_jets, 
+			      unsigned& pass_bits, OutTree& out_tree, 
+			      const TVector2& met) 
+{ 
+  float dphi_sum = get_sum_jetmet_dphi(leading_jets, met); 
+  if (dphi_sum > 0.4) { 
+    pass_bits |= pass::dphi_jetmet_sum; 
+  }
+  float dphi_min = get_min_jetmet_dphi(leading_jets, met); 
+  if (dphi_min > 0.4) { 
+    pass_bits |= pass::dphi_jetmet_min; 
+  }
+
+  const SelectedJet& leading_jet = *leading_jets.at(1); 
+  const SelectedJet& subleading_jet = *leading_jets.at(2); 
+  const SelectedJet& isr_jet = *leading_jets.at(0); 
+
+  if (pass_mainz_ctag(leading_jet) || 
+      pass_mainz_ctag(subleading_jet)) { 
+    pass_bits |= pass::ctag_mainz; 
+  }
+
+  copy_jet_info(leading_jet, out_tree.leading_jet); 
+  copy_jet_info(subleading_jet, out_tree.subleading_jet); 
+  copy_jet_info(isr_jet, out_tree.isr_jet); 
+  out_tree.min_jetmet_dphi = dphi_min; 
+
+}
+
 //____________________________________________________________
 // utility functions 
 
@@ -257,50 +286,44 @@ bool pass_mainz_ctag(const SelectedJet& jet){
 }
 
 
-float get_min_jetmet_dphi(const std::vector<SelectedJet>& jets, 
+float get_min_jetmet_dphi(const std::vector<SelectedJet*>& jets, 
 			  const TVector2& met){ 
+  typedef std::vector<SelectedJet*> JVec; 
+  typedef JVec::const_iterator JItr; 
   TLorentzVector mector; 
   mector.SetPtEtaPhiE(1,0,met.Phi(),1); 
   float min_dphi = M_PI; 
-  for(unsigned iii = 0; iii <3; iii++){
-    float deltaphi = mector.DeltaPhi(jets.at(iii)); 
+  for(JItr itr = jets.begin(); itr != jets.end(); itr++){
+    float deltaphi = mector.DeltaPhi(**itr); 
     min_dphi = std::min(deltaphi, min_dphi); 
   }
   return min_dphi; 
 }
 
-float get_sum_jetmet_dphi(const std::vector<SelectedJet>& jets, 
+float get_sum_jetmet_dphi(const std::vector<SelectedJet*>& jets, 
 			  const TVector2& met){ 
+  typedef std::vector<SelectedJet*> JVec; 
+  typedef JVec::const_iterator JItr; 
   TLorentzVector sum; 
-  for(unsigned iii = 0; iii <3 ; iii++) {
-    sum += jets.at(iii); 
+  for(JItr itr = jets.begin(); itr != jets.end(); itr++){
+    sum += **itr; 
   }
   TLorentzVector mector; 
   mector.SetPtEtaPhiE(1,0,met.Phi(),1); 
   return mector.DeltaPhi(sum); 
 }
 
-bool has_lower_pt(const TLorentzVector& v1, const TLorentzVector& v2) { 
-  return v1.Pt() < v2.Pt(); 
+// bool has_lower_pt(const TLorentzVector& v1, const TLorentzVector& v2) { 
+//   return v1.Pt() < v2.Pt(); 
+// }
+bool has_lower_pt(const TLorentzVector* v1, const TLorentzVector* v2) { 
+  return v1->Pt() < v2->Pt(); 
 }
 
 
 
 //___________________________________________________________
 // object fillers 
-
-int fill_electrons(const SusyBuffer& buffer, SUSYObjDef& def, 
-		   unsigned flags, const RunInfo& info)
-{ 
-  int n_electrons = 0; 
-  for (int iii = 0; iii < buffer.el_n; iii++) { 
-    bool is_electron = check_if_electron(iii, buffer, def, flags, info); 
-    if (is_electron) { 
-      n_electrons++; 
-    }
-  }
-  return n_electrons; 
-}
 
 std::vector<int> fill_muons(const SusyBuffer& buffer, SUSYObjDef& def, 
 			    unsigned flags, const RunInfo& info)
@@ -319,21 +342,17 @@ std::vector<int> fill_muons(const SusyBuffer& buffer, SUSYObjDef& def,
 //____________________________________________________________________
 // io functions 
 
-void copy_jet_info(const SelectedJet& in, const SusyBuffer& buffer, 
-		   OutTree::Jet& jet)
+void copy_jet_info(const SelectedJet& in, OutTree::Jet& jet)
 {
-  int jet_index = in.jet_index(); 
+  // int jet_index = in.jet_index(); 
   jet.pt = in.Pt(); 
   jet.eta = in.Eta(); 
   jet.phi = in.Phi(); 
-  jet.cnn_b = 
-    buffer.jet_flavor_component_jfitcomb_pb->at(jet_index); 
-  jet.cnn_c = 
-    buffer.jet_flavor_component_jfitcomb_pc->at(jet_index); 
-  jet.cnn_u = 
-    buffer.jet_flavor_component_jfitcomb_pu->at(jet_index); 
-  jet.flavor_truth_label = 
-    buffer.jet_flavor_truth_label->at(jet_index); 
+  jet.cnn_b = in.pb(); 
+  jet.cnn_c = in.pc(); 
+  jet.cnn_u = in.pu(); 
+  jet.flavor_truth_label = in.flavor_truth_label(); 
+
 }
 
 
@@ -359,8 +378,8 @@ int fill_cutflow_from_bits(CutCounter& cut_counters, const unsigned bits) {
   cut_counters["met"]++;
   if (! (bits & n_jet    ) ) return 0; 
   cut_counters["n_jet_gt_3"]++;
-  if (! (bits & dphi_jetmet    ) ) return 0; 
-  cut_counters["dphi_jetmet"]++;
+  if (! (bits & dphi_jetmet_sum    ) ) return 0; 
+  cut_counters["dphi_jetmet_sum"]++;
   if (! (bits & lepton_veto    ) ) return 0; 
   cut_counters["lepton_veto"]++;
   if (! (bits & ctag_mainz    ) ) return 0; 
@@ -562,34 +581,27 @@ SelectedJet::SelectedJet(const SelectedJets* parent, int jet_index):
   m_jet_index = jet_index;
 
   m_jvf = buffer.jet_jvtxf->at(jet_index); 
-    
-  m_combNN_btag_wt = 
-    buffer.jet_flavor_weight_JetFitterCOMBNN->at(jet_index); 
+
+  m_cnn_b = buffer.jet_flavor_component_jfitcomb_pb->at(jet_index); 
+  m_cnn_c = buffer.jet_flavor_component_jfitcomb_pc->at(jet_index); 
+  m_cnn_u = buffer.jet_flavor_component_jfitcomb_pu->at(jet_index); 
+  m_flavor_truth_label = buffer.jet_flavor_truth_label->at(jet_index); 
+
+
 }
   
 double SelectedJet::combNN_btag() const { 
-  //std::cerr << "ERROR: this isn't defined yet\n"; 
-  //assert(false); 
-
-  return m_combNN_btag_wt;
+  return log(m_cnn_b / m_cnn_u); 
 }
   
 double SelectedJet::jfitcomb_cu(const SusyBuffer& buffer, 
 				int jet_index) const {
-
-  double cu; 
-  cu = buffer.jet_flavor_component_jfitcomb_pc->at(jet_index)
-    / buffer.jet_flavor_component_jfitcomb_pu->at(jet_index);
-
-  return log(cu);
+  return m_cnn_u;
 }
 
 double SelectedJet::jfitcomb_cb(const SusyBuffer& buffer, 
 				int jet_index) const {
-
-  double cb; 
-  cb = buffer.jet_flavor_component_jfitcomb_pc->at(jet_index) / buffer.jet_flavor_component_jfitcomb_pb->at(jet_index);
-  return log(cb); 
+  return m_cnn_b; 
 }
  
 int SelectedJet::jet_index() const{
@@ -599,8 +611,20 @@ int SelectedJet::jet_index() const{
 double SelectedJet::jvf() const { 
   return m_jvf; 
 }
+double SelectedJet::pb() const { 
+  return m_cnn_b; 
+}
+double SelectedJet::pc() const { 
+  return m_cnn_c; 
+}
+double SelectedJet::pu() const { 
+  return m_cnn_u; 
+}
+int SelectedJet::flavor_truth_label() const { 
+  return m_flavor_truth_label; 
+}
 
-unsigned SelectedJet::get_bits() const { 
+unsigned SelectedJet::bits() const { 
   return m_bits; 
 }
 
@@ -631,15 +655,20 @@ SelectedJets::SelectedJets(const SusyBuffer& buffer, SUSYObjDef& def,
     // must initalize all jets
     bool is_jet = check_if_jet(jet_n, buffer, def, flags, info); 
 
-    SelectedJet the_jet(this, jet_n); 
+    SelectedJet* the_jet = new SelectedJet(this, jet_n); 
+    push_back(the_jet); 
+
+    // susytools corrected tlv
+    TLorentzVector tlv = def.GetJetTLV(); 
+    the_jet->SetPtEtaPhiE(tlv.Pt(), tlv.Eta(), tlv.Phi(), tlv.E()); 
 
     if (is_jet) { 
-      the_jet.set_bit(jetbit::good); 
+      the_jet->set_bit(jetbit::good); 
     }
     
-    bool low_pt_jet = the_jet.Pt() < 20*GeV;
+    bool low_pt_jet = the_jet->Pt() < 20*GeV;
     if (low_pt_jet) { 
-      the_jet.set_bit(jetbit::low_pt); 
+      the_jet->set_bit(jetbit::low_pt); 
     }
     
 
@@ -651,21 +680,24 @@ SelectedJets::SelectedJets(const SusyBuffer& buffer, SUSYObjDef& def,
 		      buffer.el_cl_eta->at(el_n), 
 		      buffer.el_cl_phi->at(el_n), 
 		      buffer.el_cl_E->at(el_n)); 
-      float delta_r = el.DeltaR(the_jet); 
+      float delta_r = el.DeltaR(*the_jet); 
       if (delta_r < 0.2) { 
 	min_delta_r = delta_r; 
 	break; 
       }
     }
     if (min_delta_r < 0.2) { 
-      the_jet.set_bit(jetbit::el_overlap); 
+      the_jet->set_bit(jetbit::el_overlap); 
     }
 
-    push_back(the_jet); 
   }
 }
 
-
+SelectedJets::~SelectedJets() { 
+  for (iterator itr = begin(); itr != end(); itr++) { 
+    delete *itr; 
+  }
+}
 
 //________________________________________________________________
 // main function (for quick checks)
@@ -707,6 +739,40 @@ int main (int narg, char* argv[])
 
 }
 
+//______________________________________________________________
+// lepton classes
+
+Electron::Electron(const SusyElectrons* container, int index) { 
+  const SusyBuffer* buffer = container->m_buffer; 
+  m_pass_susy = check_if_electron
+    (index , 
+     *buffer, 
+     *container->m_def, 
+     container->m_flags, 
+     *container->m_info);
+}
+bool Electron::pass_susy() const { 
+  return m_pass_susy; 
+}
+
+SusyElectrons::SusyElectrons(const SusyBuffer& buffer, SUSYObjDef& def, 
+			     const unsigned flags, const RunInfo& info): 
+  m_buffer(&buffer), 
+  m_def(&def), 
+  m_flags(flags), 
+  m_info(&info)
+{
+  for (int iii = 0; iii < buffer.el_n; iii++) { 
+    push_back(new Electron(this, iii)); 
+  }
+  
+}
+
+SusyElectrons::~SusyElectrons() { 
+  for (iterator itr = begin(); itr != end(); itr++) { 
+    delete *itr; 
+  }
+}
 
 //______________________________________________________________
 // smart chain
@@ -769,14 +835,14 @@ std::vector< std::pair<std::string, int> > CutCounter::get_ordered_cuts()
 //_______________________________________________________________
 // OutTree
 
-OutTree::OutTree(std::string file, std::string tree): 
+OutTree::OutTree(std::string file, std::string tree, const unsigned flags): 
   m_file(0), 
   m_tree(0)
 { 
   if (file.size() > 0) { 
     m_file = new TFile(file.c_str(), "recreate"); 
     m_tree = new TTree(tree.c_str(), tree.c_str()); 
-    init(); 
+    init(flags); 
   }
 }
 
@@ -803,7 +869,7 @@ void OutTree::Jet::clear()
   cnn_u = -1; 
 }
 
-void OutTree::init() 
+void OutTree::init(const unsigned flags) 
 { 
   m_tree->Branch("pass_bits", &pass_bits ); 
   m_tree->Branch("met", &met); 
@@ -812,6 +878,9 @@ void OutTree::init()
   leading_jet.set_branches(m_tree, "leading_jet_"); 
   subleading_jet.set_branches(m_tree, "subleading_jet_"); 
   isr_jet.set_branches(m_tree, "isr_jet_"); 
+  if (flags & cutflag::raw_evt_info) {
+    leading_jet_uncensored.set_branches(m_tree, "leading_jet_uncensored_"); 
+  }
 
 }
 
@@ -838,6 +907,7 @@ void OutTree::clear_buffer() {
   leading_jet.clear(); 
   subleading_jet.clear(); 
   isr_jet.clear(); 
+  leading_jet_uncensored.clear(); 
 }
 
 /////////////////////////////////////////////////////////////////////
