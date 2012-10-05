@@ -102,18 +102,18 @@ run_cutflow(std::vector<std::string> files,
   // --- output things ---
   OutTree out_tree(out_ntuple_name,  "evt_tree", flags); 
   BitmapCutflow cutflow; 
-  cutflow.add("GRL"              , pass::grl            );  
-  cutflow.add("trigger"          , pass::trigger        );
-  cutflow.add("lar_error" 	 , pass::lar_error      );
-  cutflow.add("core" 		 , pass::core           );
-  cutflow.add("jet_clean" 	 , pass::jet_clean      );
-  cutflow.add("vxp_gt_4trk" 	 , pass::vxp_gt_4trk    );
-  cutflow.add("leading_jet" 	 , pass::leading_jet    );
-  cutflow.add("met" 		 , pass::met            );
-  cutflow.add("n_jet_gt_3" 	 , pass::n_jet          );
-  cutflow.add("dphi_jetmet_sum"  , pass::dphi_jetmet_sum);
-  cutflow.add("lepton_veto" 	 , pass::lepton_veto    );
-  cutflow.add("ctag_mainz"       , pass::ctag_mainz     ); 
+  cutflow.add("GRL"                   , pass::grl            );  
+  cutflow.add(branch_names.trigger    , pass::trigger        );
+  cutflow.add("lar_error" 	      , pass::lar_error      );
+  cutflow.add("core" 		      , pass::core           );
+  cutflow.add("jet_clean" 	      , pass::jet_clean      );
+  cutflow.add("vxp_good" 	      , pass::vxp_gt_4trk    );
+  cutflow.add("leading_jet_120"	      , pass::leading_jet    );
+  cutflow.add("met_120" 	      , pass::met            );
+  cutflow.add("n_jet_geq_3" 	      , pass::n_jet          );
+  cutflow.add("dphi_jetmet_min"       , pass::dphi_jetmet_min);
+  cutflow.add("lepton_veto" 	      , pass::lepton_veto    );
+  cutflow.add("ctag_mainz"            , pass::ctag_mainz     ); 
   
   // looping through events
   int one_percent = n_entries /  100; 
@@ -144,7 +144,7 @@ run_cutflow(std::vector<std::string> files,
   
     pass_bits |= pass::grl; 
 
-    if(!buffer.trigger)   pass_bits |= pass::trigger; 
+    if(buffer.trigger)    pass_bits |= pass::trigger; 
     if(!buffer.larError)  pass_bits |= pass::lar_error; 
 
     if ( !(flags & cutflag::is_data ) ||
