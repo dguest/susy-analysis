@@ -58,12 +58,6 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, unsigned br, BranchNames names)
   fChain->SetBranchAddress("MET_Egamma10NoTau_SoftJets_sumet",
 			   &MET_Egamma10NoTau_SoftJets_sumet, true);
   fChain->SetBranchAddress("MET_Egamma10NoTau_CellOut_etx"   ,
-			   &MET_Egamma10NoTau_CellOut_etx, true); 
-  fChain->SetBranchAddress("MET_Egamma10NoTau_CellOut_ety"   ,
-			   &MET_Egamma10NoTau_CellOut_ety, true);    
-  fChain->SetBranchAddress("MET_Egamma10NoTau_CellOut_sumet" ,
-			   &MET_Egamma10NoTau_CellOut_sumet, true);
-  fChain->SetBranchAddress("MET_Egamma10NoTau_CellOut_etx"   ,
 			   &MET_Egamma10NoTau_CellOut_etx, true);  
   fChain->SetBranchAddress("MET_Egamma10NoTau_CellOut_ety"   ,
 			   &MET_Egamma10NoTau_CellOut_ety, true);    

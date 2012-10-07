@@ -19,6 +19,7 @@ class TVector2;
 #include <vector> 
 #include <string> 
 #include <map>
+#include <set>
 #include <cassert>
 
 struct RunInfo { 
@@ -35,6 +36,7 @@ namespace cutflag {
   const unsigned use_low_pt_jets = 1u << 3; 
   const unsigned debug_susy      = 1u << 4; 
   const unsigned raw_evt_info    = 1u << 5; 
+  const unsigned get_branches    = 1u << 6; 
 }
 
 namespace jetbit { 
@@ -221,9 +223,12 @@ public:
   void SetBranchAddress(T name, Z branch, 
   			bool turnon = false); 
 
+  std::vector<std::string> get_all_branch_names() const; 
 private: 
   void SetBranchAddressPrivate(std::string name, void* branch, 
 			       bool turnon = false); 
+  std::vector<std::string> m_set_branches; 
+  std::set<std::string> m_set_branch_set; 
 }; 
 
 

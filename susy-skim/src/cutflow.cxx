@@ -77,6 +77,16 @@ run_cutflow(std::vector<std::string> files,
   SusyBuffer buffer(input_chain.get(), branches, branch_names); 
   int n_entries = input_chain->GetEntries(); 
 
+  if (flags & cutflag::get_branches) { 
+    std::vector<std::string> br_names = input_chain->get_all_branch_names();
+    ofstream branch_save("all-set-branches.txt"); 
+    for (std::vector<std::string>::const_iterator itr = br_names.begin(); 
+	 itr != br_names.end(); itr++) { 
+      branch_save << *itr << std::endl;
+    }
+    branch_save.close(); 
+  }
+
 
   // dump stdout from susytools init to /dev/null 
   std::streambuf* old_out_stream = std::cout.rdbuf();
@@ -652,7 +662,7 @@ EventJets::~EventJets() {
 //________________________________________________________________
 // main function (for quick checks)
 
-int main (int narg, char* argv[])
+int main(int narg, char* argv[])
 {
   cout<< "in main" << endl;
 
@@ -667,6 +677,7 @@ int main (int narg, char* argv[])
   using namespace cutflag; 
   unsigned flags = verbose | is_signal | debug_susy; 
 
+  flags |= get_branches; 
 
   // run the main routine 
   typedef std::vector<std::pair<std::string, int> > CCOut; 
@@ -782,6 +793,10 @@ SmartChain::SmartChain(std::string tree_name):
 { 
 }
 
+std::vector<std::string> SmartChain::get_all_branch_names() const { 
+  return m_set_branches; 
+}
+
 void SmartChain::SetBranchAddressPrivate(std::string name, void* branch, 
 					 bool turnon) { 
 
@@ -798,6 +813,15 @@ void SmartChain::SetBranchAddressPrivate(std::string name, void* branch,
     std::string issue = (boost::format("can't find branch %s") % name).str(); 
     throw std::runtime_error(issue); 
   }
+
+  m_set_branches.push_back(name);
+
+  if (m_set_branch_set.count(name)) { 
+    std::string err = (boost::format("setting branch address: %s is already"
+				     " set in %s") % name % GetName()).str(); 
+    throw std::runtime_error(err); 
+  }
+  m_set_branch_set.insert(name); 
 }
 
 //_____________________________________________________________________
