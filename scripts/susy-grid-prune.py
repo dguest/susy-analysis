@@ -1,14 +1,18 @@
 #!/usr/bin/env python2.7
 
+"""
+Script to submit prun jobs to skim D3PDs
+"""
+
 import sys, os
 import argparse
 from subprocess import Popen, PIPE
 from multiprocessing import Pool
 
-def submit_ds(ds_name, debug=False, version=3): 
+def submit_ds(ds_name, debug=False, version=3, used_vars='used_vars.txt'): 
 
     user = os.path.expandvars('$USER')
-    output_base = ds_name.strip('/')
+    output_base = '.'.join(ds_name.split('.')[:4])
     out_ds = 'user.{user}.{in_ds}.skim_v{version}/'.format(
         user=user, in_ds=output_base, version=version)
 
@@ -18,7 +22,7 @@ def submit_ds(ds_name, debug=False, version=3):
         '--in=grid_files.txt',
         '--out=skim-output.root', 
         '--tree=susy', 
-        '--var=used_vars.txt', 
+        '--var={}'.format(used_vars), 
         ]
     run_string = 'filter-and-merge-d3pd.py ' + ' '.join(run_args)
 
@@ -27,7 +31,7 @@ def submit_ds(ds_name, debug=False, version=3):
         '--outDS=' + out_ds,
         '--outputs=skim-output.root', 
         '--excludeFile=*.tar,*.log,*.sh,*.py,*.out,*.root',
-        '--extFile=used_vars.txt', 
+        '--extFile={}'.format(used_vars), 
         '--athenaTag=17.2.1', 
         ]
 
@@ -42,25 +46,30 @@ def submit_ds(ds_name, debug=False, version=3):
     return out_ds
 
 if __name__ == '__main__': 
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description=__doc__)
 
     parser.add_argument('ds_list', nargs='?')
-    parser.add_argument('-v', default='0')
+    parser.add_argument('-v', default='0', help='version')
     parser.add_argument('--debug', action='store_true')
     parser.add_argument('--multi', action='store_true')
     parser.add_argument('--out_name', default='output_datasets.txt', 
                         help='default: %(default)s')
+    parser.add_argument('--varlist', default='used_vars.txt', 
+                        help='list of variables to include '
+                        'default: %(default)s')
     args = parser.parse_args()
     
     datasets = []
 
-    if not os.path.isfile('used_vars.txt'): 
-        sys.exit('you need used_vars.txt!')
+    if not os.path.isfile(args.varlist): 
+        sys.exit('you need {}!'.format(args.varlist))
 
     if args.ds_list: 
         with open(args.ds_list) as ds_list: 
             for line in ds_list: 
-                datasets.append(line.strip())
+                dataset = line.split('#')[0].strip()
+                if dataset: 
+                    datasets.append(dataset)
 
     if len(sys.argv) == 1: 
         for ds_name in sys.stdin.readlines(): 
@@ -70,7 +79,7 @@ if __name__ == '__main__':
 
     if args.multi:
         def submit(ds): 
-            return submit_ds(ds, args.debug, args.v)
+            return submit_ds(ds, args.debug, args.v, used_vars=args.varlist)
 
         pool = Pool(10)
         output_datasets = pool.map(submit, datasets)
