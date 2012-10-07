@@ -10,10 +10,9 @@ class TFile;
 class SusyElectrons; 
 class Electron; 
 class OutTree; 
-
+class TVector2; 
 
 #include "TLorentzVector.h"
-#include "TVector2.h"
 #include "TChain.h"
 #include <vector> 
 #include <string> 
@@ -23,7 +22,6 @@ struct RunInfo {
   int run_number; 
 }; 
 
-//--- these are now (annoyingly) defined in FudgeMCTool.h ---
 static const double MeV = 1.0; 
 static const double GeV = 1000.0*MeV; 
 
@@ -92,7 +90,7 @@ TVector2 get_met(const SusyBuffer& buffer,
 		 SUSYObjDef& def, 
 		 const RunInfo&, const std::vector<int>& muon_idx );
 
-// bool has_lower_pt(const TLorentzVector&, const TLorentzVector&); 
+
 bool has_lower_pt(const TLorentzVector*, const TLorentzVector*); 
 
 class SelectedJet: public TLorentzVector { 
@@ -193,13 +191,6 @@ private:
 			       bool turnon = false); 
 }; 
 
-template<typename T, typename Z>
-void SmartChain::SetBranchAddress(T name, Z branch, 
-				  bool turnon) { 
-  *branch = 0; 
-  SetBranchAddressPrivate(name, branch, turnon); 
-}
-
 
 class OutTree
 {
@@ -265,21 +256,11 @@ void remove_overlaping(const M& mask, A& altered, const float delta_r) {
   }
 } 
 
-// --- obsolete? ---
-
-class TrigSimulator { 
-public: 
-  TrigSimulator(float fraction_preswap = 2281.26 / 4689.68); 
-  bool get_decision(const SusyBuffer&); 
-private: 
-  float m_frac_preswap; 
-}; 
-
-bool IsSmartLArHoleVeto(TVector2 met,
-			FakeMetEstimator& fakeMetEst,
-			const SusyBuffer& buffer, 
-			SUSYObjDef& def, 
-			std::vector<SelectedJet> baseline_jets );
-
+template<typename T, typename Z>
+void SmartChain::SetBranchAddress(T name, Z branch, 
+				  bool turnon) { 
+  *branch = 0; 
+  SetBranchAddressPrivate(name, branch, turnon); 
+}
 
 #endif //CUTFLOW_H

@@ -761,15 +761,8 @@ SmartChain::SmartChain(std::string tree_name):
 { 
 }
 
-// void SmartChain::SetBranchAddress(std::string name, void* branch, 
-// 				  bool turnon ) { 
-//   SetBranchAddressPrivate(name, branch, turnon); 
-// }
-
-
 void SmartChain::SetBranchAddressPrivate(std::string name, void* branch, 
 					 bool turnon) { 
-  // printf("setting %s\n", name.c_str());  
 
   if (turnon) { 
     SetBranchStatus(name.c_str(), 1); 
@@ -921,80 +914,4 @@ void OutTree::clear_buffer() {
 /////////////////////////////////////////////////////////////////////
 
 
-TrigSimulator::TrigSimulator(float fraction_preswap): 
-  m_frac_preswap(fraction_preswap)
-{ 
-}
-
-bool TrigSimulator::get_decision(const SusyBuffer& buffer){ 
-  // We have no runnumbers in our Stop-samples, so we create a
-  // random number to determine what trigger is being used for
-  // which event (depending on the luminosities of the periods
-  // and the used triggers) 
-  // EF_xe70_noMu: perdiod B-K
-  // EF_xe60_verytight_noMu: period L-M
-  float rand_float = float(rand() ) / float(RAND_MAX); 
-
-  //cout << rndnr << endl;
-
-  // NOTE: Triggers have been removed from SusyBuffer
-
-  if(rand_float < m_frac_preswap){
-    // if(buffer.EF_xe70_noMu) return true;
-  }
-  else{
-    // if(buffer.EF_xe60_verytight_noMu) return true;
-  }
-  return false; 
-
-}; 
-
-bool IsSmartLArHoleVeto(TVector2 met,
-			FakeMetEstimator& fakeMetEst,
-			const SusyBuffer& buffer, 
-			SUSYObjDef& def, 
-			std::vector<SelectedJet> selected_jets ) {
-  
-  for (unsigned int j = 0; j<selected_jets.size(); j++){
-    
-    if(selected_jets.at(j).Pt() <= 20.) continue;
-    if(!def.IsLArHole(selected_jets.at(j).Eta(),
-		     selected_jets.at(j).Phi())) {
-      continue; 
-    }
-
-    /* selected_jets.at(j).Pt()*1e3,
-       selected_jets.at(j).BCH_CORR_JET,
-       selected_jets.at(j).BCH_CORR_CELL,
-       selected_jets.at(j).BCH_CORR_DOTX,
-       selected_jets.at(j).Phi(),
-       MET.Px()*1e3,
-       MET.Py()*1e3,
-       10000.,
-       10.,
-       -1.,
-       -1.)
-    */
-      
-    int d3pd_index = selected_jets.at(j).jet_index();
-    //use jet pT after JES/JER
-    if(fakeMetEst.isBad
-       (buffer.jet_pt            ->at(d3pd_index),
-	buffer.jet_BCH_CORR_JET  ->at(d3pd_index),
-	buffer.jet_BCH_CORR_CELL ->at(d3pd_index),
-	buffer.jet_BCH_CORR_DOTX ->at(d3pd_index),
-	buffer.jet_phi           ->at(d3pd_index),
-	met.Px()*GeV,
-	met.Py()*GeV,
-	10000.,
-	-1.,
-	-1.)
-       ) {
-      return true; 
-    }
-  } // end jet loop
-
-  return false;
-
-}
 

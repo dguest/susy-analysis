@@ -11,10 +11,10 @@ DICT         := dict
 # --- external dirs 
 -include local.mk		# should define ROOTCORE_ROOT
 
-ifndef ROOTCORE_107_ROOT
-$(error "couldn't find ROOTCORE_107_ROOT, is it defined in local.mk?")
+ifndef ROOTCORE_108_ROOT
+$(error "couldn't find ROOTCORE_108_ROOT, is it defined in local.mk?")
 endif
-ROOTCORE_ROOT := $(ROOTCORE_107_ROOT)
+ROOTCORE_ROOT := $(ROOTCORE_108_ROOT)
 SUSY_INC      := $(shell ./map_libs.sh -i $(ROOTCORE_ROOT))
 
 #  set search path
