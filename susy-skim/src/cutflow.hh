@@ -9,6 +9,8 @@ class EventJets;
 class TFile; 
 class EventElectrons; 
 class Electron; 
+class EventMuons; 
+class Muon; 
 class OutTree; 
 class TVector2; 
 
@@ -17,6 +19,7 @@ class TVector2;
 #include <vector> 
 #include <string> 
 #include <map>
+#include <cassert>
 
 struct RunInfo { 
   int run_number; 
@@ -61,7 +64,11 @@ float get_sum_jetmet_dphi(const std::vector<SelectedJet*>&,
 template<typename M, typename A>
 void remove_overlaping(const M& mask, A& altered, const float delta_r); 
 
+template<typename T>
+std::vector<int> get_indices(const T&); 
 
+template<typename T>
+std::vector<T*> filter_susy(const std::vector<T*>&); 
 
 bool check_if_jet(int jet_n, 
 		  const SusyBuffer& buffer, 
@@ -82,9 +89,6 @@ bool check_if_muon(int iMu,
 
 bool pass_mainz_ctag(const SelectedJet* jet); 
 
-std::vector<int> fill_muons(const SusyBuffer& buffer, SUSYObjDef& def, 
-			    unsigned flags, const RunInfo& info); 
-
 
 TVector2 get_met(const SusyBuffer& buffer, 
 		 SUSYObjDef& def, 
@@ -97,11 +101,12 @@ class SelectedJet: public TLorentzVector {
 public: 
   SelectedJet(const EventJets* container, int jet_index); 
   double combNN_btag() const; 
-  int jet_index() const;
+  int index() const;
   double jfitcomb_cu(const SusyBuffer& buffer, int jet_index) const;
   double jfitcomb_cb(const SusyBuffer& buffer, int jet_index) const;
   double jvf() const; 
   void set_bit(unsigned); 
+  void unset_bit(unsigned); 
   unsigned bits() const; 
   double pb() const; 
   double pu() const; 
@@ -120,11 +125,12 @@ private:
 class EventJets: public std::vector<SelectedJet*> 
 { 
 public: 
-  EventJets(); 
   EventJets(const SusyBuffer& buffer, SUSYObjDef& def, 
-	       const unsigned flags, const RunInfo& info);
+	    unsigned flags, const RunInfo& info);
   ~EventJets(); 
 private: 
+  EventJets() {}; 
+  EventJets(const EventJets&) {}; 
   const SusyBuffer* m_buffer; 
   friend class SelectedJet; 
 }; 
@@ -134,25 +140,54 @@ class Electron: public TLorentzVector
 public: 
   Electron(const EventElectrons* container, int index); 
   bool pass_susy() const; 
+  int index() const; 
 private: 
   bool m_pass_susy; 
+  int m_index; 
 }; 
 
 class EventElectrons: public std::vector<Electron*> 
 { 
 public: 
-  EventElectrons(); 
   EventElectrons(const SusyBuffer& buffer, SUSYObjDef& def, 
-		const unsigned flags, const RunInfo& info); 
+		 unsigned flags, const RunInfo& info); 
   ~EventElectrons(); 
 private: 
+  EventElectrons() {}; 
+  EventElectrons(const EventElectrons&) {}; 
   const SusyBuffer* m_buffer; 
   SUSYObjDef* m_def; 
-  const unsigned m_flags; 
+  unsigned m_flags; 
   const RunInfo* m_info; 
   friend class Electron; 
 }; 
 
+class Muon: public TLorentzVector
+{
+public: 
+  Muon(const EventMuons* container, int index); 
+  bool pass_susy() const; 
+  int index() const; 
+private: 
+  bool m_pass_susy; 
+  int m_index; 
+}; 
+
+class EventMuons: public std::vector<Muon*>
+{
+public: 
+  EventMuons(const SusyBuffer& buffer, SUSYObjDef& def, 
+	     unsigned flags, const RunInfo& info); 
+  ~EventMuons(); 
+private: 
+  EventMuons() {}; 
+  EventMuons(const EventMuons&) {}; 
+  const SusyBuffer* m_buffer; 
+  SUSYObjDef* m_def; 
+  unsigned m_flags; 
+  const RunInfo* m_info; 
+  friend class Muon; 
+}; 
 // --- io things ----
 
 class CutCounter: public std::map<std::string, int> 
@@ -247,6 +282,7 @@ void remove_overlaping(const M& mask, A& altered, const float delta_r) {
     const unsigned n_jets = altered.size(); 
     A new_container; 
     for (unsigned idx = 0; idx < n_jets; idx++) { 
+      assert((*itr)->Pt() > 0); 
       double delr = (*itr)->DeltaR(*altered.at(idx)); 
       if (delr > delta_r) { 
 	new_container.push_back(altered.at(idx)); 
@@ -255,6 +291,30 @@ void remove_overlaping(const M& mask, A& altered, const float delta_r) {
     altered = new_container; 
   }
 } 
+
+template<typename T>
+std::vector<int> get_indices(const T& cont) 
+{ 
+  std::vector<int> indices; 
+  for (typename T::const_iterator itr = cont.begin(); 
+       itr != cont.end(); itr++ ) { 
+    indices.push_back((*itr)->index()); 
+  }
+  return indices; 
+}; 
+
+template<typename T>
+std::vector<T*> filter_susy(const std::vector<T*>& in) 
+{ 
+  std::vector<T*> out; 
+  for (typename std::vector<T*>::const_iterator itr = in.begin(); 
+	 itr!= in.end(); itr++) { 
+    if ( (*itr)->pass_susy() ) { 
+      out.push_back(*itr); 
+    }
+  }
+  return out; 
+}
 
 template<typename T, typename Z>
 void SmartChain::SetBranchAddress(T name, Z branch, 

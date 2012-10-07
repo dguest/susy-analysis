@@ -132,13 +132,10 @@ run_cutflow(std::vector<std::string> files,
     
     EventJets all_jets(buffer, def, flags, info); 
     EventElectrons all_electrons(buffer, def, flags, info); 
-    std::vector<Electron*> susy_electrons; 
-    for (std::vector<Electron*>::const_iterator itr = susy_electrons.begin(); 
-	 itr!= susy_electrons.end(); itr++) { 
-      if ( (*itr)->pass_susy() ) { 
-	susy_electrons.push_back(*itr); 
-      }
-    }
+    EventMuons all_muons(buffer, def, flags, info); 
+
+    std::vector<Electron*> susy_electrons = filter_susy(all_electrons); 
+    std::vector<Muon*> susy_muons = filter_susy(all_muons); 
 
     unsigned pass_bits = 0; 
   
@@ -158,7 +155,6 @@ run_cutflow(std::vector<std::string> files,
     if (all_jets.size()) { 
       copy_jet_info(all_jets.at(0), out_tree.leading_jet_uncensored); 
     }
-
     
     std::vector<SelectedJet*> selected_jets; 
     for (EventJets::const_iterator jet_itr = all_jets.begin(); 
@@ -184,24 +180,9 @@ run_cutflow(std::vector<std::string> files,
     if(def.IsGoodVertex(buffer.vx_nTracks)) {
       pass_bits |= pass::vxp_gt_4trk; 
     }
-        
-    for (EventJets::const_iterator jet_itr = selected_jets.begin(); 
-	 jet_itr != selected_jets.end(); jet_itr++) { 
-      const SelectedJet& jet = **jet_itr; 
-      bool in_eta = fabs(jet.Eta()) < 2.5; 
-      bool good_jvf = jet.jvf() > 0.5; 
-      bool good_pt = jet.Pt() > 120*GeV; 
-      if ( in_eta && good_jvf && good_pt) { 
-	pass_bits |= pass::leading_jet; 
-	break; 
-      }
-    }
       
-    int n_electrons = susy_electrons.size(); 
-    std::vector<int> muon_idx = fill_muons(buffer, def, flags, info); 
-
+    std::vector<int> muon_idx = get_indices(susy_muons); 
     TVector2 met = get_met(buffer, def, info, muon_idx); 
-
     if (met.Mod() > 120*GeV) { 
       pass_bits |= pass::met; 
     }
@@ -216,10 +197,17 @@ run_cutflow(std::vector<std::string> files,
       bool good_jvf = jet.jvf() > 0.5; 
       if (good_pt && good_eta && good_jvf) { 
 	good_jets.push_back(*jet_itr); 
+	bool good_isr_pt = jet.Pt() > 120*GeV;
+	if (good_isr_pt) { 
+	  pass_bits |= pass::leading_jet; 
+	}
       }
     }
 
-    if (n_electrons == 0 && muon_idx.size() == 0) { 
+    remove_overlaping(selected_jets, susy_electrons, 0.4); 
+    remove_overlaping(selected_jets, susy_muons, 0.4); 
+
+    if (susy_electrons.size() == 0 && susy_muons.size() == 0) { 
       pass_bits |= pass::lepton_veto; 
     }
 
@@ -333,30 +321,12 @@ bool has_lower_pt(const TLorentzVector* v1, const TLorentzVector* v2) {
 }
 
 
-
-//___________________________________________________________
-// object fillers 
-
-std::vector<int> fill_muons(const SusyBuffer& buffer, SUSYObjDef& def, 
-			    unsigned flags, const RunInfo& info)
-{ 
-  std::vector<int> muon_idx; 
-  for (int iii = 0; iii < buffer.mu_staco_n; iii++) { 
-    bool is_muon = check_if_muon(iii, buffer, def, flags); 
-    if (is_muon) { 
-      muon_idx.push_back(iii); 
-    }
-  }
-  return muon_idx; 
-}
-
-
 //____________________________________________________________________
 // io functions 
 
 void copy_jet_info(const SelectedJet* in, OutTree::Jet& jet)
 {
-  // int jet_index = in.jet_index(); 
+
   jet.pt = in->Pt(); 
   jet.eta = in->Eta(); 
   jet.phi = in->Phi(); 
@@ -583,7 +553,7 @@ double SelectedJet::jfitcomb_cb(const SusyBuffer& buffer,
   return m_cnn_b; 
 }
  
-int SelectedJet::jet_index() const{
+int SelectedJet::index() const{
   return m_jet_index;
 }
 
@@ -610,11 +580,12 @@ unsigned SelectedJet::bits() const {
 void SelectedJet::set_bit(unsigned bit) { 
   m_bits |= bit; 
 }
-
-EventJets::EventJets() {}; 
+void SelectedJet::unset_bit(unsigned bit) { 
+  m_bits &=~ bit; 
+}
 
 EventJets::EventJets(const SusyBuffer& buffer, SUSYObjDef& def, 
-			   const unsigned flags, const RunInfo& info): 
+		     unsigned flags, const RunInfo& info): 
   m_buffer(&buffer)
 { 
 
@@ -721,21 +692,29 @@ int main (int narg, char* argv[])
 //______________________________________________________________
 // lepton classes
 
+// -- electron --
 Electron::Electron(const EventElectrons* container, int index) { 
   const SusyBuffer* buffer = container->m_buffer; 
+  
+  // calls the susytools electron filler
   m_pass_susy = check_if_electron
     (index , 
      *buffer, 
      *container->m_def, 
      container->m_flags, 
      *container->m_info);
+
+  SUSYObjDef* def = container->m_def; 
+  const TLorentzVector& tlv = def->GetElecTLV(index); 
+  SetPxPyPzE(tlv.Px(), tlv.Py(), tlv.Pz(), tlv.E()); 
+  
 }
 bool Electron::pass_susy() const { 
   return m_pass_susy; 
 }
 
 EventElectrons::EventElectrons(const SusyBuffer& buffer, SUSYObjDef& def, 
-			     const unsigned flags, const RunInfo& info): 
+			       unsigned flags, const RunInfo& info): 
   m_buffer(&buffer), 
   m_def(&def), 
   m_flags(flags), 
@@ -749,6 +728,48 @@ EventElectrons::EventElectrons(const SusyBuffer& buffer, SUSYObjDef& def,
 
 EventElectrons::~EventElectrons() { 
   for (iterator itr = begin(); itr != end(); itr++) { 
+    delete *itr; 
+  }
+}
+
+// -- muon --
+
+Muon::Muon(const EventMuons* container, int index): 
+  m_index(index)
+{ 
+  const SusyBuffer* buffer = container->m_buffer; 
+
+  // calls the susytools muon filler
+  m_pass_susy = check_if_muon(index, 
+			      *buffer, 
+			      *container->m_def, 
+			      container->m_flags); 
+
+  SUSYObjDef* def = container->m_def; 
+  const TLorentzVector& tlv = def->GetMuonTLV(index); 
+  assert(tlv.Pt() > 0); 
+  SetPxPyPzE(tlv.Px(), tlv.Py(), tlv.Pz(), tlv.E()); 
+}
+bool Muon::pass_susy() const { 
+  return m_pass_susy; 
+}
+int Muon::index() const { 
+  return m_index; 
+}
+
+EventMuons::EventMuons(const SusyBuffer& buffer, SUSYObjDef& def, 
+		       unsigned flags, const RunInfo& info):
+  m_buffer(&buffer), 
+  m_def(&def), 
+  m_flags(flags), 
+  m_info(&info)
+{
+  for (int iii = 0; iii < buffer.mu_staco_n; iii++) { 
+    push_back(new Muon(this, iii)); 
+  }
+}
+EventMuons::~EventMuons() { 
+  for (iterator itr = begin(); itr != end() ; itr++) { 
     delete *itr; 
   }
 }
