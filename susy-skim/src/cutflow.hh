@@ -5,9 +5,9 @@ class SusyBuffer;
 class SUSYObjDef; 
 class FakeMetEstimator;
 class SelectedJet;
-class SelectedJets; 
+class EventJets; 
 class TFile; 
-class SusyElectrons; 
+class EventElectrons; 
 class Electron; 
 class OutTree; 
 class TVector2; 
@@ -95,7 +95,7 @@ bool has_lower_pt(const TLorentzVector*, const TLorentzVector*);
 
 class SelectedJet: public TLorentzVector { 
 public: 
-  SelectedJet(const SelectedJets* container, int jet_index); 
+  SelectedJet(const EventJets* container, int jet_index); 
   double combNN_btag() const; 
   int jet_index() const;
   double jfitcomb_cu(const SusyBuffer& buffer, int jet_index) const;
@@ -117,13 +117,13 @@ private:
   int m_flavor_truth_label; 
 }; 
 
-class SelectedJets: public std::vector<SelectedJet*> 
+class EventJets: public std::vector<SelectedJet*> 
 { 
 public: 
-  SelectedJets(); 
-  SelectedJets(const SusyBuffer& buffer, SUSYObjDef& def, 
+  EventJets(); 
+  EventJets(const SusyBuffer& buffer, SUSYObjDef& def, 
 	       const unsigned flags, const RunInfo& info);
-  ~SelectedJets(); 
+  ~EventJets(); 
 private: 
   const SusyBuffer* m_buffer; 
   friend class SelectedJet; 
@@ -132,19 +132,19 @@ private:
 class Electron: public TLorentzVector 
 { 
 public: 
-  Electron(const SusyElectrons* container, int index); 
+  Electron(const EventElectrons* container, int index); 
   bool pass_susy() const; 
 private: 
   bool m_pass_susy; 
 }; 
 
-class SusyElectrons: public std::vector<Electron*> 
+class EventElectrons: public std::vector<Electron*> 
 { 
 public: 
-  SusyElectrons(); 
-  SusyElectrons(const SusyBuffer& buffer, SUSYObjDef& def, 
+  EventElectrons(); 
+  EventElectrons(const SusyBuffer& buffer, SUSYObjDef& def, 
 		const unsigned flags, const RunInfo& info); 
-  ~SusyElectrons(); 
+  ~EventElectrons(); 
 private: 
   const SusyBuffer* m_buffer; 
   SUSYObjDef* m_def; 

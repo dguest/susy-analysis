@@ -130,8 +130,8 @@ run_cutflow(std::vector<std::string> files,
     def.Reset(); 
     out_tree.clear_buffer(); 
     
-    SelectedJets all_jets(buffer, def, flags, info); 
-    SusyElectrons all_electrons(buffer, def, flags, info); 
+    EventJets all_jets(buffer, def, flags, info); 
+    EventElectrons all_electrons(buffer, def, flags, info); 
     std::vector<Electron*> susy_electrons; 
     for (std::vector<Electron*>::const_iterator itr = susy_electrons.begin(); 
 	 itr!= susy_electrons.end(); itr++) { 
@@ -161,7 +161,7 @@ run_cutflow(std::vector<std::string> files,
 
     
     std::vector<SelectedJet*> selected_jets; 
-    for (SelectedJets::const_iterator jet_itr = all_jets.begin(); 
+    for (EventJets::const_iterator jet_itr = all_jets.begin(); 
 	 jet_itr != all_jets.end(); 
 	 jet_itr++) {
       const SelectedJet& jet = **jet_itr; 
@@ -173,7 +173,7 @@ run_cutflow(std::vector<std::string> files,
     remove_overlaping(susy_electrons, selected_jets, 0.2); 
 
     pass_bits |= pass::jet_clean; 
-    for (SelectedJets::const_iterator jet_itr = selected_jets.begin(); 
+    for (EventJets::const_iterator jet_itr = selected_jets.begin(); 
 	 jet_itr != selected_jets.end(); 
 	 jet_itr++) { 
       bool is_jet = ((*jet_itr)->bits() & jetbit::good); 
@@ -185,7 +185,7 @@ run_cutflow(std::vector<std::string> files,
       pass_bits |= pass::vxp_gt_4trk; 
     }
         
-    for (SelectedJets::const_iterator jet_itr = selected_jets.begin(); 
+    for (EventJets::const_iterator jet_itr = selected_jets.begin(); 
 	 jet_itr != selected_jets.end(); jet_itr++) { 
       const SelectedJet& jet = **jet_itr; 
       bool in_eta = fabs(jet.Eta()) < 2.5; 
@@ -207,7 +207,7 @@ run_cutflow(std::vector<std::string> files,
     }
 
     std::vector<SelectedJet*> good_jets; 
-    for (SelectedJets::const_iterator jet_itr = selected_jets.begin(); 
+    for (EventJets::const_iterator jet_itr = selected_jets.begin(); 
 	 jet_itr != selected_jets.end(); jet_itr++) { 
 
       const SelectedJet& jet = **jet_itr; 
@@ -548,7 +548,7 @@ TVector2 get_met(const SusyBuffer& buffer,
 //___________________________________________________________________
 // selected jet  
   
-SelectedJet::SelectedJet(const SelectedJets* parent, int jet_index): 
+SelectedJet::SelectedJet(const EventJets* parent, int jet_index): 
   m_bits(0)
 { 
   const SusyBuffer& buffer = *parent->m_buffer; 
@@ -611,9 +611,9 @@ void SelectedJet::set_bit(unsigned bit) {
   m_bits |= bit; 
 }
 
-SelectedJets::SelectedJets() {}; 
+EventJets::EventJets() {}; 
 
-SelectedJets::SelectedJets(const SusyBuffer& buffer, SUSYObjDef& def, 
+EventJets::EventJets(const SusyBuffer& buffer, SUSYObjDef& def, 
 			   const unsigned flags, const RunInfo& info): 
   m_buffer(&buffer)
 { 
@@ -672,7 +672,7 @@ SelectedJets::SelectedJets(const SusyBuffer& buffer, SUSYObjDef& def,
   }
 }
 
-SelectedJets::~SelectedJets() { 
+EventJets::~EventJets() { 
   for (iterator itr = begin(); itr != end(); itr++) { 
     delete *itr; 
   }
@@ -721,7 +721,7 @@ int main (int narg, char* argv[])
 //______________________________________________________________
 // lepton classes
 
-Electron::Electron(const SusyElectrons* container, int index) { 
+Electron::Electron(const EventElectrons* container, int index) { 
   const SusyBuffer* buffer = container->m_buffer; 
   m_pass_susy = check_if_electron
     (index , 
@@ -734,7 +734,7 @@ bool Electron::pass_susy() const {
   return m_pass_susy; 
 }
 
-SusyElectrons::SusyElectrons(const SusyBuffer& buffer, SUSYObjDef& def, 
+EventElectrons::EventElectrons(const SusyBuffer& buffer, SUSYObjDef& def, 
 			     const unsigned flags, const RunInfo& info): 
   m_buffer(&buffer), 
   m_def(&def), 
@@ -747,7 +747,7 @@ SusyElectrons::SusyElectrons(const SusyBuffer& buffer, SUSYObjDef& def,
   
 }
 
-SusyElectrons::~SusyElectrons() { 
+EventElectrons::~EventElectrons() { 
   for (iterator itr = begin(); itr != end(); itr++) { 
     delete *itr; 
   }
