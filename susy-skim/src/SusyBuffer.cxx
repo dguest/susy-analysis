@@ -6,7 +6,7 @@
 #include <stdexcept>
 
 #include "SusyBuffer.h"
-#include "cutflow.hh"
+#include "SmartChain.hh"
 
 SusyBuffer::SusyBuffer(SmartChain *fChain, unsigned br, BranchNames names)
 {

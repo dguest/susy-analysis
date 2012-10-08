@@ -8,6 +8,7 @@
 
 #include "cutflow.hh"
 #include "CutBits.hh"
+#include "RunInfo.hh"
 
 static PyObject* py_cutflow(PyObject *self, 
 			    PyObject *args)

@@ -58,7 +58,8 @@ PY_LDFLAGS += -shared
 # ---- define objects
 TOBJ        := SusyBuffer.o
 T_DICTS     := $(TOBJ:.o=Dict.o)
-GEN_OBJ     := cutflow.o OutTree.o
+GEN_OBJ     := cutflow.o OutTree.o Jets.o Leptons.o BitmapCutflow.o
+GEN_OBJ     += SmartChain.o
 EXE_OBJ     := $(GEN_OBJ) $(T_DICTS) $(TOBJ)
 PYLIB_OBJ   := $(GEN_OBJ) $(T_DICTS) $(TOBJ)
 

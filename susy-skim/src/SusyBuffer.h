@@ -8,9 +8,6 @@
 #ifndef susy_h
 #define susy_h
 
-#include <TROOT.h>
-#include <TChain.h>
-#include <TFile.h>
 #include <vector> 
 
 
