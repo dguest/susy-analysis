@@ -7,6 +7,7 @@
 #include <stdexcept>
 
 #include "cutflow.hh"
+#include "CutBits.hh"
 
 static PyObject* py_cutflow(PyObject *self, 
 			    PyObject *args)

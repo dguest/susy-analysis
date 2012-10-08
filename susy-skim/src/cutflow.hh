@@ -11,8 +11,9 @@ class EventElectrons;
 class Electron; 
 class EventMuons; 
 class Muon; 
-class OutTree; 
 class TVector2; 
+
+#include "OutTree.hh" // copy_jet_info
 
 #include "TLorentzVector.h"
 #include "TChain.h"
@@ -28,18 +29,6 @@ struct RunInfo {
 
 static const double MeV = 1.0; 
 static const double GeV = 1000.0*MeV; 
-
-namespace cutflag { 
-  const unsigned verbose         = 1u << 0; 
-  const unsigned is_data         = 1u << 1; 
-  const unsigned is_signal       = 1u << 2;  
-  const unsigned use_low_pt_jets = 1u << 3; 
-  const unsigned debug_susy      = 1u << 4; 
-  const unsigned raw_evt_info    = 1u << 5; 
-  const unsigned get_branches    = 1u << 6; 
-  const unsigned save_ratios     = 1u << 7; 
-  const unsigned save_flavor_wt  = 1u << 8; 
-}
 
 namespace jetbit { 
   const unsigned good            = 1u << 0; 
@@ -234,49 +223,6 @@ private:
 }; 
 
 
-class OutTree
-{
-public: 
-  OutTree(std::string file, std::string tree = "evt_tree", 
-	  const unsigned flags = 0); 
-  ~OutTree(); 
-  void fill(); 
-  void clear_buffer(); 
-  
-  unsigned pass_bits; 
-  double met; 
-  double min_jetmet_dphi; 
-  double sum_jetmet_dphi; 
-  
-  class Jet 
-  {
-  public: 
-    double pt; 
-    double eta; 
-    double phi; 
-    int flavor_truth_label; 
-    double cnn_b; 
-    double cnn_c; 
-    double cnn_u; 
-    double cnn_log_cu; 
-    double cnn_log_cb; 
-  private: 
-    friend class OutTree; 
-    void set_branches(TTree*, std::string prefix, unsigned flags); 
-    void clear(); 
-  }; 
-
-  Jet leading_jet_uncensored; 
-
-  Jet leading_jet; 
-  Jet subleading_jet; 
-  Jet isr_jet; 
-
-private:
-  void init(const unsigned flags = 0); 
-  TFile* m_file; 
-  TTree* m_tree; 
-}; 
 
 void copy_jet_info(const SelectedJet* , OutTree::Jet&); 
 
