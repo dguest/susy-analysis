@@ -37,6 +37,8 @@ namespace cutflag {
   const unsigned debug_susy      = 1u << 4; 
   const unsigned raw_evt_info    = 1u << 5; 
   const unsigned get_branches    = 1u << 6; 
+  const unsigned save_ratios     = 1u << 7; 
+  const unsigned save_flavor_wt  = 1u << 8; 
 }
 
 namespace jetbit { 
@@ -256,9 +258,11 @@ public:
     double cnn_b; 
     double cnn_c; 
     double cnn_u; 
+    double cnn_log_cu; 
+    double cnn_log_cb; 
   private: 
     friend class OutTree; 
-    void set_branches(TTree*, std::string prefix); 
+    void set_branches(TTree*, std::string prefix, unsigned flags); 
     void clear(); 
   }; 
 

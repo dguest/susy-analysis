@@ -344,7 +344,8 @@ void copy_jet_info(const SelectedJet* in, OutTree::Jet& jet)
   jet.cnn_c = in->pc(); 
   jet.cnn_u = in->pu(); 
   jet.flavor_truth_label = in->flavor_truth_label(); 
-
+  jet.cnn_log_cu = log( in->pc() / in->pu() ) ; 
+  jet.cnn_log_cb = log( in->pc() / in->pb() ) ; 
 }
 
 
@@ -678,6 +679,7 @@ int main(int narg, char* argv[])
   unsigned flags = verbose | is_signal | debug_susy; 
 
   flags |= get_branches; 
+  flags |= save_ratios; 
 
   // run the main routine 
   typedef std::vector<std::pair<std::string, int> > CCOut; 
@@ -890,16 +892,23 @@ OutTree::OutTree(std::string file, std::string tree, const unsigned flags):
   }
 }
 
-void OutTree::Jet::set_branches(TTree* tree, std::string prefix) 
+void OutTree::Jet::set_branches(TTree* tree, std::string prefix, 
+				unsigned flags) 
 {
   tree->Branch((prefix + "pt").c_str(), &pt); 
   tree->Branch((prefix + "eta").c_str(), &eta); 
   tree->Branch((prefix + "phi").c_str(), &phi); 
   tree->Branch((prefix + "flavor_truth_label").c_str(), 
 		 &flavor_truth_label); 
-  tree->Branch((prefix + "cnn_b").c_str(), &cnn_b); 
-  tree->Branch((prefix + "cnn_c").c_str(), &cnn_c); 
-  tree->Branch((prefix + "cnn_u").c_str(), &cnn_u); 
+  if (flags & cutflag::save_flavor_wt) { 
+    tree->Branch((prefix + "cnn_b").c_str(), &cnn_b); 
+    tree->Branch((prefix + "cnn_c").c_str(), &cnn_c); 
+    tree->Branch((prefix + "cnn_u").c_str(), &cnn_u); 
+  }
+  if (flags & cutflag::save_ratios) { 
+    tree->Branch((prefix + "cnn_log_cb").c_str(), &cnn_log_cb); 
+    tree->Branch((prefix + "cnn_log_cu").c_str(), &cnn_log_cu); 
+  }
 }
 
 void OutTree::Jet::clear() 
@@ -911,6 +920,8 @@ void OutTree::Jet::clear()
   cnn_b = -1; 
   cnn_c = -1; 
   cnn_u = -1; 
+  cnn_log_cu = -1; 
+  cnn_log_cb = -1; 
 }
 
 void OutTree::init(const unsigned flags) 
@@ -919,11 +930,12 @@ void OutTree::init(const unsigned flags)
   m_tree->Branch("met", &met); 
   m_tree->Branch("min_jetmet_dphi" , &min_jetmet_dphi); 
 
-  leading_jet.set_branches(m_tree, "leading_jet_"); 
-  subleading_jet.set_branches(m_tree, "subleading_jet_"); 
-  isr_jet.set_branches(m_tree, "isr_jet_"); 
+  leading_jet.set_branches(m_tree, "leading_jet_", flags); 
+  subleading_jet.set_branches(m_tree, "subleading_jet_", flags); 
+  isr_jet.set_branches(m_tree, "isr_jet_", flags); 
   if (flags & cutflag::raw_evt_info) {
-    leading_jet_uncensored.set_branches(m_tree, "leading_jet_uncensored_"); 
+    leading_jet_uncensored.set_branches(m_tree, "leading_jet_uncensored_", 
+					flags); 
   }
 
 }
