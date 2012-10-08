@@ -5,7 +5,7 @@
 # --- set dirs
 BIN          := bin
 SRC          := src
-INC          := src
+INC          := include
 DICT         := dict
 
 # --- external dirs 
