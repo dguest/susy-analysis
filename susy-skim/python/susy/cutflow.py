@@ -17,9 +17,12 @@ def cutflow(input_files, run_number, flags, output_ntuple = ''):
         v: verbose
         d: is data
         s: is signal
+        r: save c-tag ratios
+        w: save c-tag flavor weights
         p: use low pt jets
-        a: aggressive --- remove bad files and retry
         d: debug susytools (don't pipe output to /dev/null)
+
+        a: aggressive --- remove bad files and retry
 
     This is a python-level interface for the compiled cutflow routine. 
     """
