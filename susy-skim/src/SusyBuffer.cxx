@@ -137,6 +137,8 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, unsigned br, BranchNames names)
   fChain->SetBranchAddress(jc + "_emfrac", &jet_emfrac, true); 
   fChain->SetBranchAddress(jc + "_emscale_E", &jet_emscale_E, true); 
   fChain->SetBranchAddress(jc + "_emscale_eta", &jet_emscale_eta, true); 
+  fChain->SetBranchAddress(jc + "_constscale_E",   &jet_constscale_E, true); 
+  fChain->SetBranchAddress(jc + "_constscale_eta", &jet_constscale_eta, true); 
   fChain->SetBranchAddress(jc + "_flavor_weight_JetFitterCOMBNN", &jet_flavor_weight_JetFitterCOMBNN, true); 
   fChain->SetBranchAddress(jc + "_flavor_truth_label", &jet_flavor_truth_label, true); 
   fChain->SetBranchAddress(jc + "_flavor_component_jfitcomb_pu", &jet_flavor_component_jfitcomb_pu, true);

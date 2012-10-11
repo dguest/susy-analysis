@@ -127,6 +127,8 @@ public :
   vector<float>   *jet_emfrac;
   vector<float>   *jet_emscale_E;
   vector<float>   *jet_emscale_eta;
+  vector<float>   *jet_constscale_E;
+  vector<float>   *jet_constscale_eta;
   vector<float>   *jet_flavor_weight_JetFitterCOMBNN;
   vector<int>     *jet_flavor_truth_label;
   vector<float>     *jet_flavor_component_jfitcomb_pu;

@@ -18,6 +18,7 @@
 #include <map>
 #include "TChain.h"
 #include "TVector2.h"
+#include "TError.h"
 #include <math.h>
 #include <stdexcept> 
 #include "SUSYTools/SUSYObjDef.h"
@@ -108,10 +109,13 @@ run_cutflow(std::vector<std::string> files,
   if (flags & cutflag::debug_susy) { 
     out_file = "susy-dbg.txt"; 
   }
+  else { 
+    gErrorIgnoreLevel = 2000;
+  }
   ofstream strCout(out_file.c_str());
   std::cout.rdbuf( strCout.rdbuf() );
   std::cerr.rdbuf( strCout.rdbuf() );
-    
+
   def.initialize(flags & cutflag::is_data); 
   def.SetJetCalib(false); 
 
