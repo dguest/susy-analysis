@@ -195,7 +195,7 @@ bool check_if_jet(int iJet,
      info.run_number, 
      flags & cutflag::is_data, 
      20000.0, 	// pt cut
-     2.8,	// eta cut - changed from 2.8 for testing
+     10,	// eta cut, was 2.8 but changed to comply with Jan
      JetID::VeryLooseBad,
      SystErr::NONE);
     

@@ -57,6 +57,7 @@ void OutTree::init(const unsigned flags)
   m_tree->Branch("pass_bits", &pass_bits ); 
   m_tree->Branch("met", &met); 
   m_tree->Branch("min_jetmet_dphi" , &min_jetmet_dphi); 
+  m_tree->Branch("n_jets_at_cleaning", &n_jets_at_cleaning); 
 
   leading_jet.set_branches(m_tree, "leading_jet_", flags); 
   subleading_jet.set_branches(m_tree, "subleading_jet_", flags); 
@@ -88,6 +89,7 @@ void OutTree::clear_buffer() {
   pass_bits = 0; 
   met = -1; 
   min_jetmet_dphi = -1; 
+  n_jets_at_cleaning = -1; 
   leading_jet.clear(); 
   subleading_jet.clear(); 
   isr_jet.clear(); 

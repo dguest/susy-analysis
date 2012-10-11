@@ -200,9 +200,11 @@ run_cutflow(std::vector<std::string> files,
 	 jet_itr != selected_jets.end(); 
 	 jet_itr++) { 
       bool is_jet = ((*jet_itr)->bits() & jetbit::good); 
+      assert( !( (*jet_itr)->bits() & jetbit::low_pt)); 
       bool is_veto = !is_jet;
       if (is_veto) pass_bits &=~ pass::jet_clean; 
     }
+    out_tree.n_jets_at_cleaning = selected_jets.size(); 
 
     if(def.IsGoodVertex(buffer.vx_nTracks)) {
       pass_bits |= pass::vxp_gt_4trk; 

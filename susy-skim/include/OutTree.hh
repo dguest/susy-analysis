@@ -19,6 +19,7 @@ public:
   double met; 
   double min_jetmet_dphi; 
   double sum_jetmet_dphi; 
+  int n_jets_at_cleaning; 
   
   class Jet 
   {
