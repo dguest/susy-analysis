@@ -70,6 +70,9 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, unsigned br, BranchNames names)
   fChain->SetBranchAddress("MET_Egamma10NoTau_RefGamma_sumet",
 			   &MET_Egamma10NoTau_RefGamma_sumet, true);
 
+  fChain->SetBranchAddress("MET_RefFinal_etx", &MET_RefFinal_etx, true); 
+  fChain->SetBranchAddress("MET_RefFinal_ety", &MET_RefFinal_ety, true); 
+
  
   fChain->SetBranchAddress("averageIntPerXing", &averageIntPerXing, true); 
   fChain->SetBranchAddress("larError", &larError, true); 

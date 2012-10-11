@@ -138,7 +138,7 @@ run_cutflow(std::vector<std::string> files,
   cutflow.add("leading_jet_120"	      , pass::leading_jet    );
   cutflow.add("met_120" 	      , pass::met            );
   cutflow.add("n_jet_geq_3" 	      , pass::n_jet          );
-  cutflow.add("dphi_jetmet_min"       , pass::dphi_jetmet_min);
+  cutflow.add("dphi_jetmet_sum"       , pass::dphi_jetmet_sum);
   cutflow.add("lepton_veto" 	      , pass::lepton_veto    );
   cutflow.add("ctag_mainz"            , pass::ctag_mainz     ); 
   
@@ -194,6 +194,8 @@ run_cutflow(std::vector<std::string> files,
       }
     }
     remove_overlaping(susy_electrons, selected_jets, 0.2); 
+    remove_overlaping(selected_jets, susy_electrons, 0.4); 
+    remove_overlaping(selected_jets, susy_muons, 0.4); 
 
     pass_bits |= pass::jet_clean; 
     for (EventJets::const_iterator jet_itr = selected_jets.begin(); 
@@ -212,6 +214,9 @@ run_cutflow(std::vector<std::string> files,
       
     std::vector<int> muon_idx = get_indices(susy_muons); 
     TVector2 met = get_met(buffer, def, info, muon_idx); 
+    if (flags & cutflag::use_met_reffinal) { 
+      met.Set(buffer.MET_RefFinal_etx, buffer.MET_RefFinal_ety); 
+    }
     if (met.Mod() > 120*GeV) { 
       pass_bits |= pass::met; 
     }
@@ -233,8 +238,6 @@ run_cutflow(std::vector<std::string> files,
       }
     }
 
-    remove_overlaping(selected_jets, susy_electrons, 0.4); 
-    remove_overlaping(selected_jets, susy_muons, 0.4); 
 
     if (susy_electrons.size() == 0 && susy_muons.size() == 0) { 
       pass_bits |= pass::lepton_veto; 
@@ -246,6 +249,8 @@ run_cutflow(std::vector<std::string> files,
 
       std::vector<SelectedJet*> leading_jets(good_jets.begin(), 
 					     good_jets.begin() + n_req_jets); 
+
+      assert(leading_jets.size() == n_req_jets);
 
       //  --- multijet things ---
       do_multijet_calculations(leading_jets, pass_bits, out_tree, met); 
@@ -445,6 +450,7 @@ int main(int narg, char* argv[])
   flags |= get_branches; 
   flags |= save_ratios; 
   flags |= raw_evt_info; 
+  flags |= use_met_reffinal; 
 
   // run the main routine 
   typedef std::vector<std::pair<std::string, int> > CCOut; 

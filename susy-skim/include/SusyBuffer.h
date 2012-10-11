@@ -63,6 +63,8 @@ public :
   float MET_Egamma10NoTau_RefGamma_ety;
   float MET_Egamma10NoTau_RefGamma_sumet;
 
+  float MET_RefFinal_etx; 
+  float MET_RefFinal_ety; 
   
   vector<float>   *jet_jvtxf; 
   Int_t           el_n;
