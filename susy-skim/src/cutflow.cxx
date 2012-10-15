@@ -138,7 +138,7 @@ run_cutflow(std::vector<std::string> files,
   cutflow.add("leading_jet_120"	      , pass::leading_jet    );
   cutflow.add("met_120" 	      , pass::met            );
   cutflow.add("n_jet_geq_3" 	      , pass::n_jet          );
-  cutflow.add("dphi_jetmet_sum"       , pass::dphi_jetmet_sum);
+  cutflow.add("dphi_jetmet_min"       , pass::dphi_jetmet_min);
   cutflow.add("lepton_veto" 	      , pass::lepton_veto    );
   cutflow.add("ctag_mainz"            , pass::ctag_mainz     ); 
   
