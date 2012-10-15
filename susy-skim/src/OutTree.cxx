@@ -57,17 +57,32 @@ void OutTree::init(const unsigned flags)
   m_tree->Branch("pass_bits", &pass_bits ); 
   m_tree->Branch("met", &met); 
   m_tree->Branch("min_jetmet_dphi" , &min_jetmet_dphi); 
-  m_tree->Branch("n_jets_at_cleaning", &n_jets_at_cleaning); 
+  m_tree->Branch("n_susy_jets", &n_susy_jets); 
+  m_tree->Branch("n_good_jets", &n_good_jets); 
 
-  leading_jet.set_branches(m_tree, "leading_jet_", flags); 
-  subleading_jet.set_branches(m_tree, "subleading_jet_", flags); 
-  isr_jet.set_branches(m_tree, "isr_jet_", flags); 
+  leading_jet.set_branches(m_tree, "jet2_", flags); 
+  subleading_jet.set_branches(m_tree, "jet3_", flags); 
+  isr_jet.set_branches(m_tree, "jet1_", flags); 
   if (flags & cutflag::raw_evt_info) {
     leading_jet_uncensored.set_branches(m_tree, "leading_jet_uncensored_", 
 					flags); 
   }
 
 }
+
+void OutTree::clear_buffer() { 
+  pass_bits = 0; 
+  met = -1; 
+  min_jetmet_dphi = -1; 
+  sum_jetmet_dphi = -1; 
+  n_susy_jets = -1; 
+  n_good_jets = -1; 
+  leading_jet.clear(); 
+  subleading_jet.clear(); 
+  isr_jet.clear(); 
+  leading_jet_uncensored.clear(); 
+}
+
 
 OutTree::~OutTree() 
 {
@@ -85,13 +100,3 @@ void OutTree::fill()
   }
 }
 
-void OutTree::clear_buffer() { 
-  pass_bits = 0; 
-  met = -1; 
-  min_jetmet_dphi = -1; 
-  n_jets_at_cleaning = -1; 
-  leading_jet.clear(); 
-  subleading_jet.clear(); 
-  isr_jet.clear(); 
-  leading_jet_uncensored.clear(); 
-}

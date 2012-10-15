@@ -183,30 +183,30 @@ run_cutflow(std::vector<std::string> files,
       copy_jet_info(all_jets.at(0), out_tree.leading_jet_uncensored); 
     }
     
-    std::vector<SelectedJet*> selected_jets; 
+    std::vector<SelectedJet*> susy_jets; 
     for (EventJets::const_iterator jet_itr = all_jets.begin(); 
 	 jet_itr != all_jets.end(); 
 	 jet_itr++) {
       const SelectedJet& jet = **jet_itr; 
       bool is_low_pt = (jet.bits() & jetbit::low_pt); 
       if (!is_low_pt) { 
-	selected_jets.push_back(*jet_itr); 
+	susy_jets.push_back(*jet_itr); 
       }
     }
-    remove_overlaping(susy_electrons, selected_jets, 0.2); 
-    remove_overlaping(selected_jets, susy_electrons, 0.4); 
-    remove_overlaping(selected_jets, susy_muons, 0.4); 
+    remove_overlaping(susy_electrons, susy_jets, 0.2); 
+    remove_overlaping(susy_jets, susy_electrons, 0.4); 
+    remove_overlaping(susy_jets, susy_muons, 0.4); 
 
     pass_bits |= pass::jet_clean; 
-    for (EventJets::const_iterator jet_itr = selected_jets.begin(); 
-	 jet_itr != selected_jets.end(); 
+    for (EventJets::const_iterator jet_itr = susy_jets.begin(); 
+	 jet_itr != susy_jets.end(); 
 	 jet_itr++) { 
       bool is_jet = ((*jet_itr)->bits() & jetbit::good); 
       assert( !( (*jet_itr)->bits() & jetbit::low_pt)); 
       bool is_veto = !is_jet;
       if (is_veto) pass_bits &=~ pass::jet_clean; 
     }
-    out_tree.n_jets_at_cleaning = selected_jets.size(); 
+    out_tree.n_susy_jets = susy_jets.size(); 
 
     if(def.IsGoodVertex(buffer.vx_nTracks)) {
       pass_bits |= pass::vxp_gt_4trk; 
@@ -222,8 +222,8 @@ run_cutflow(std::vector<std::string> files,
     }
 
     std::vector<SelectedJet*> good_jets; 
-    for (EventJets::const_iterator jet_itr = selected_jets.begin(); 
-	 jet_itr != selected_jets.end(); jet_itr++) { 
+    for (EventJets::const_iterator jet_itr = susy_jets.begin(); 
+	 jet_itr != susy_jets.end(); jet_itr++) { 
 
       const SelectedJet& jet = **jet_itr; 
       bool good_pt = jet.Pt() > 30*GeV; 
@@ -238,6 +238,7 @@ run_cutflow(std::vector<std::string> files,
       }
     }
 
+    out_tree.n_good_jets = good_jets.size(); 
 
     if (susy_electrons.size() == 0 && susy_muons.size() == 0) { 
       pass_bits |= pass::lepton_veto; 
@@ -331,7 +332,7 @@ float get_min_jetmet_dphi(const std::vector<SelectedJet*>& jets,
   mector.SetPtEtaPhiE(1,0,met.Phi(),1); 
   float min_dphi = M_PI; 
   for(JItr itr = jets.begin(); itr != jets.end(); itr++){
-    float deltaphi = mector.DeltaPhi(**itr); 
+    float deltaphi = fabs(mector.DeltaPhi(**itr)); 
     min_dphi = std::min(deltaphi, min_dphi); 
   }
   return min_dphi; 
