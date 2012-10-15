@@ -42,14 +42,14 @@ void OutTree::Jet::set_branches(TTree* tree, std::string prefix,
 void OutTree::Jet::clear() 
 {
   pt = -1; 
-  eta = -1; 
-  phi = -1; 
+  eta = -10; 
+  phi = -10; 
   flavor_truth_label = -1; 
   cnn_b = -1; 
   cnn_c = -1; 
   cnn_u = -1; 
-  cnn_log_cu = -1; 
-  cnn_log_cb = -1; 
+  cnn_log_cu = -1000; 
+  cnn_log_cb = -1000; 
 }
 
 void OutTree::init(const unsigned flags) 
