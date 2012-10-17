@@ -12,6 +12,7 @@ namespace cutflag {
   const unsigned save_ratios      = 1u << 7; 
   const unsigned save_flavor_wt   = 1u << 8; 
   const unsigned use_met_reffinal = 1u << 9; 
+  const unsigned no_jet_recal     = 1u << 10; 
 }
 
 #endif //CUT_BITS_H

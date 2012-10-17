@@ -117,7 +117,9 @@ run_cutflow(std::vector<std::string> files,
   std::cerr.rdbuf( strCout.rdbuf() );
 
   def.initialize(flags & cutflag::is_data); 
-  def.SetJetCalib(false); 
+  if (flags & cutflag::no_jet_recal) { 
+    def.SetJetCalib(false); 
+  }
 
 
   // Restore old cout.
