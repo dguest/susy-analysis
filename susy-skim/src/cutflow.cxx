@@ -116,7 +116,7 @@ run_cutflow(std::vector<std::string> files,
   std::cout.rdbuf( strCout.rdbuf() );
   std::cerr.rdbuf( strCout.rdbuf() );
 
-  def.initialize(flags & cutflag::is_data); 
+  def.initialize(flags & cutflag::is_data, flags & cutflag::is_atlfast); 
   if (flags & cutflag::no_jet_recal) { 
     def.SetJetCalib(false); 
   }

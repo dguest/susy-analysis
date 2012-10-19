@@ -17,6 +17,7 @@ def cutflow(input_files, run_number, flags, output_ntuple = ''):
         v: verbose
         d: is data
         s: is signal
+        f: is atlfast
         r: save c-tag ratios
         w: save c-tag flavor weights
         p: use low pt jets

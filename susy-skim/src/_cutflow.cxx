@@ -42,6 +42,7 @@ static PyObject* py_cutflow(PyObject *self,
   if (strchr(flags_str,'d')) flags |= cutflag::debug_susy; 
   if (strchr(flags_str,'r')) flags |= cutflag::save_ratios; 
   if (strchr(flags_str,'w')) flags |= cutflag::save_flavor_wt; 
+  if (strchr(flags_str,'f')) flags |= cutflag::is_atlfast; 
 
   typedef std::vector<std::pair<std::string, int> > CCOut; 
   CCOut pass_numbers; 
