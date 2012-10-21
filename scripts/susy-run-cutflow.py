@@ -20,31 +20,26 @@ def cutflow_job(ins):
     """
     job wrapper to pass to multiprocessing map
     """
-    samp, data_paths, flags, mainz_cutflow, susy_cutflow = ins
+    samp, data_paths, flags, mainz_cutflow = ins
 
     data_location = data_paths['input']
 
     debug = 'b' in flags
 
-    data_type = 'unknown'
+    data_type = 'background'
     counts = None
-    if samp.startswith('Stop'): 
-        matched_files = mainz_cutflow.add_ds_lookup(samp, data_location)
+    if samp.startswith('Stop-'): 
         data_type = 'signal'
-        signal_flags = flags + 's'
-        if matched_files: 
-            counts = mainz_cutflow.get_normed_counts(
-                samp, flags=signal_flags)
+        more_flags = flags + 's'
+
+    matched_files = mainz_cutflow.add_ds_lookup(samp, data_location)
+
+    if matched_files: 
+        counts = mainz_cutflow.get_normed_counts(samp, flags=more_flags)
 
     elif samp == 'Data': 
         warnings.warn('Data not implemented')
 
-    else: 
-        matched_files = susy_cutflow.add_ds_lookup(samp, data_location)
-        data_type = 'background'
-        if matched_files: 
-            counts = susy_cutflow.get_normed_counts(
-                samp, flags=flags)
     return counts, data_type
 
 def run_cutflow(samples, data_paths, susy_lookup, 
@@ -65,11 +60,11 @@ def run_cutflow(samples, data_paths, susy_lookup,
         raw_counts_cache=counts_cache, 
         output_ntuples_dir=output)
 
-    susy_cutflow = cutflow.NormedCutflow(
-        susy_lookup, 
-        file_format='official', 
-        raw_counts_cache=counts_cache, 
-        output_ntuples_dir=output)
+    # susy_cutflow = cutflow.NormedCutflow(
+    #     susy_lookup, 
+    #     file_format='official', 
+    #     raw_counts_cache=counts_cache, 
+    #     output_ntuples_dir=output)
 
     sig_counts = {}
     bg_counts = {}
@@ -79,7 +74,7 @@ def run_cutflow(samples, data_paths, susy_lookup,
 
     inputs = []
     for samp in samples: 
-        ins = (samp, data_paths, flags, mainz_cutflow, susy_cutflow)
+        ins = (samp, data_paths, flags, mainz_cutflow)
         inputs.append(ins)
 
     if len(inputs) > 1 and cores > 1 and 'b' not in flags: 
@@ -110,7 +105,7 @@ def run_cutflow(samples, data_paths, susy_lookup,
 
     for sample_name, cuts in sig_counts.items(): 
 
-        particle, vx = sample_name.split('_')
+        particle = sample_name
         
         chan_cutflow = signal_cutflows[particle]
 
@@ -196,8 +191,10 @@ if __name__ == '__main__':
     with open(args.used_samples) as inputs: 
         used_samples = [v.split('#')[0].strip() for v in inputs]
         used_samples = filter(None,used_samples)
-        
-    flags = '' if args.terse or args.multi > 1 else 'v'
+
+    flags = 'f'                 #FIXME: should not assume atlfast
+
+    flags += '' if args.terse or args.multi > 1 else 'v'
         
     if args.debug: 
         flags += 'd'

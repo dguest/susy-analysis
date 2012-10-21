@@ -57,10 +57,12 @@ class NormedCutflow(object):
     files_from_key = collections.defaultdict(list)
 
     def __init__(self, norm_file, raw_counts_cache='raw_counts', 
-                 file_format='official', output_ntuples_dir=''): 
+                 file_format='official', output_ntuples_dir='', 
+                 p_tag='p1032'): 
         self._norm_file_name = norm_file
         self._cache_name = raw_counts_cache
         self._output_ntuples_dir = output_ntuples_dir
+        self.p_tag = p_tag
 
         allowed_formats = {
             'mainz':self._mainz_itr,
@@ -77,45 +79,10 @@ class NormedCutflow(object):
         with open(norm_file) as txt: 
             self._norm_dict = {n: (x,e) for n,x,e in file_itr(txt)}
 
-
-    def add_ds_lookup(self, ds_key, lookup_location): 
-        """
-        Builds a mapping between the ds_key and the files that it maps to.
-        Tries several things in order, appends if these are true: 
-        1) exact file match
-        2) fuzzy match according to Mainz naming convention
-        3) top-level directory includes ds key
-        4) subdirectory of lookup_location contains ds_key
-
-        returns the mapping. 
-        """
-        
-        matches = []
-        leaf_dir = os.path.split(lookup_location)[0].split('/')[-1]
-        
-        fuzzy_mainz = self._mainz_match(ds_key, lookup_location)
-
-        if os.path.isfile(lookup_location): 
-            matches = [lookup_location]
-        elif fuzzy_mainz: 
-            matches = fuzzy_mainz
-        elif ds_key in leaf_dir: 
-            matches += glob.glob('{loc}/*.root*')
-        elif os.path.isdir(lookup_location): 
-            globstr = '{loc}/*{key}*/*.root*'.format(
-                loc=lookup_location.rstrip('/'), key=ds_key)
-            match_files = glob.glob(globstr)
-            for f in match_files: 
-                if not 'root.tgz' in f: 
-                    matches.append(f)
-        else: 
-            warnings.warn("can't find {} in {}".format(
-                    ds_key, lookup_location))
-        
-        self.files_from_key[ds_key] += matches
-        return self.files_from_key[ds_key]
-
     def _mainz_itr(self,txt_file): 
+        """
+        iterator for xsec file in mainz format
+        """
         for line in txt_file: 
             line = line.split('#')[0].strip()
             if not line: 
@@ -126,34 +93,6 @@ class NormedCutflow(object):
             filter_eff = float(spl[3])
             evts = int(spl[4])
             yield short_name, xsec * filter_eff, evts
-
-    def _mainz_match(self, ds_key, location): 
-        """
-        fuzzy match function for mainz signal files
-        """
-        spl = ds_key.split('_')
-        if len(spl) != 2: 
-            return None
-        ds_dir, file_name = spl
-        globstr = '{loc}/*{subdir}*/*{fn}*.root'.format(
-            loc=location.rstrip('/'), 
-            subdir=ds_dir.replace('-','?'), 
-            fn=file_name)
-        match_files = glob.glob(globstr)
-
-        match_re = re.compile('(?<=[-_.]v)[0-9]+(?=[-_.])')
-
-        versions = collections.defaultdict(list)
-        for f in match_files: 
-            version_strings = match_re.findall(f)
-            if len(version_strings) > 1: 
-                warnings.warn(
-                    'version finder acting up: {} found in {}'.format(
-                        version_strings, f))
-            if version_strings:
-                versions[int(version_strings[0])].append(f)
-
-        return match_files
 
     def _susy_itr(self,txt_file): 
         id_line = ''
@@ -174,6 +113,54 @@ class NormedCutflow(object):
             k_factor = float(spl[3])
             
             yield short_name, xsec * k_factor, None
+
+    def add_ds_lookup(self, ds_key, lookup_location): 
+        """
+        Builds a mapping between the ds_key and the files that it maps to.
+        Tries several things in order, appends if these are true: 
+        1) exact file match
+        2) find ds_key within sub-directories of lookup_location
+
+        returns the mapping. 
+        """
+        
+        matches = []
+        
+        ds_matches = self._ds_match(ds_key, lookup_location)
+
+        if os.path.isfile(lookup_location): 
+            matches = [lookup_location]
+        elif ds_matches: 
+            matches = ds_matches
+        else: 
+            warnings.warn("can't find {} in {}".format(
+                    ds_key, lookup_location))
+        
+        self.files_from_key[ds_key] += matches
+        return self.files_from_key[ds_key]
+
+
+    def _ds_match(self, ds_key, location): 
+        """
+        fuzzy match function for mainz lookup format
+        """
+        
+        dq2_name = ''
+        if ds_key.startswith('Stop-'): 
+            stop, m_stop, m_lsp = ds_key.split('-')
+            glob_tmp = '{location}/*_directCC_{m_stop}_{m_lsp}*{tag}*/*.root*'
+            globstr = glob_tmp.format(location=location.rstrip('/'), 
+                                      m_stop=m_stop, 
+                                      m_lsp=m_lsp, 
+                                      tag=self.p_tag)
+        else: 
+            globstr = '{location}/*{ds_key}*{tag}*/*.root*'.format(
+                location=location, ds_key=ds_key, tag=self.p_tag)
+            
+        match_files = glob.glob(globstr)
+
+        return match_files
+
 
     def get_normed_counts(self, ds_key, lumi=4700.0, flags='v'): 
         """
