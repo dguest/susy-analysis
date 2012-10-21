@@ -155,12 +155,17 @@ if __name__ == '__main__':
         epilog='Author: Dan Guest', 
         )
 
+    defaults = { 
+        'cache': 'cache', 
+        'output_pickle': 'final_cuts.pkl', 
+        }
+
     if os.path.isfile(args.config_file): 
         config_parser = ConfigParser.SafeConfigParser()
         config_parser.read([args.config_file])
-        default_files = dict(config_parser.items('files'))
-
-        parser.set_defaults(**default_files)
+        defaults.update(dict(config_parser.items('files')))
+        
+        parser.set_defaults(**defaults)
 
     n_cores = multiprocessing.cpu_count()
     parser.add_argument('used_samples', nargs='?', 
@@ -180,7 +185,7 @@ if __name__ == '__main__':
     parser.add_argument('--aggressive', action='store_true', 
                         help='remove corrupted files and carry on')
     parser.add_argument(
-        '--output-pickle', default='final_cuts.pkl', 
+        '--output-pickle', 
         help='pickle where cutflow is saved (default: %(default)s)')
 
     args = parser.parse_args(remaining)
