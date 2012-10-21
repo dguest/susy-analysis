@@ -123,8 +123,9 @@ class NormedCutflow(object):
             spl = line.split()
             short_name = spl[0]
             xsec = float(spl[2])
+            filter_eff = float(spl[3])
             evts = int(spl[4])
-            yield short_name, xsec, evts
+            yield short_name, xsec * filter_eff, evts
 
     def _mainz_match(self, ds_key, location): 
         """
