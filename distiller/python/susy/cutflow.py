@@ -58,7 +58,7 @@ class NormedCutflow(object):
 
     def __init__(self, norm_file, raw_counts_cache='raw_counts', 
                  file_format='official', output_ntuples_dir='', 
-                 p_tag='p1032'): 
+                 p_tag=''): 
         self._norm_file_name = norm_file
         self._cache_name = raw_counts_cache
         self._output_ntuples_dir = output_ntuples_dir
@@ -125,16 +125,11 @@ class NormedCutflow(object):
         """
         
         matches = []
-        
-        ds_matches = self._ds_match(ds_key, lookup_location)
 
         if os.path.isfile(lookup_location): 
             matches = [lookup_location]
-        elif ds_matches: 
-            matches = ds_matches
         else: 
-            warnings.warn("can't find {} in {}".format(
-                    ds_key, lookup_location))
+            matches = self._ds_match(ds_key, lookup_location)
         
         self.files_from_key[ds_key] += matches
         return self.files_from_key[ds_key]
@@ -153,11 +148,16 @@ class NormedCutflow(object):
                                       m_stop=m_stop, 
                                       m_lsp=m_lsp, 
                                       tag=self.p_tag)
+
         else: 
             globstr = '{location}/*{ds_key}*{tag}*/*.root*'.format(
                 location=location, ds_key=ds_key, tag=self.p_tag)
             
         match_files = glob.glob(globstr)
+        
+        if not match_files: 
+            warnings.warn("can't find key {} in {} with {}".format(
+                    ds_key, location, globstr))
 
         return match_files
 
