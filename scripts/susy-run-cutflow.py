@@ -41,6 +41,8 @@ def cutflow_job(ins):
 
     elif samp == 'Data': 
         warnings.warn('Data not implemented')
+    else: 
+        warnings.warn("couldn't find any matches for {}".format(samp))
 
     return counts, data_type
 

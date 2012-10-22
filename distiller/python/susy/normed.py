@@ -155,10 +155,13 @@ class NormedCutflow(object):
 
         need_rebuild = any(rebuild_conditions)
 
+        run_number = 180614 # FIXME: obviously not right...
+
         if need_rebuild: 
             input_files = self.files_from_key[ds_key]
-            cut_counts = cutflow(input_files, run_number, flags=flags, 
-                                 output_ntuple=output_ntuple)
+            cut_counts = cutflow.cutflow(input_files, run_number, 
+                                         flags=flags, 
+                                         output_ntuple=output_ntuple)
             
             cached_info[ds_key] = cut_counts
 

@@ -1,8 +1,6 @@
 import _cutflow 
 import warnings
 
-run_number = 180614
-
 def cutflow(input_files, run_number, flags, output_ntuple = ''): 
     """
     Returns a list of pairs: (cut_name, n_passing). If output_ntuple is 
