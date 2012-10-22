@@ -14,29 +14,46 @@ class NormedCutflow(object):
     
     files_from_key = collections.defaultdict(list)
 
-    def __init__(self, norm_file, raw_counts_cache='raw_counts', 
-                 file_format='official', output_ntuples_dir='', 
+    def __init__(self, mainz_file, susy_file, 
+                 raw_counts_cache='raw_counts', 
+                 output_ntuples_dir='', 
                  p_tag=''): 
-        self._norm_file_name = norm_file
+        self._mainz_file_name = mainz_file
+        self._susy_file_name = susy_file, 
         self._cache_name = raw_counts_cache
         self._output_ntuples_dir = output_ntuples_dir
         self.p_tag = p_tag
+        
+        self.n_fail_mainz_lookup = 0
 
-        allowed_formats = {
-            'mainz':self._mainz_itr,
-            'official':self._susy_itr, 
-            }
+        with open(mainz_file) as txt: 
+            self._mainz_dict = {n: (x,e) for n,x,e in self._mainz_itr(txt)}
+        with open(susy_file) as txt: 
+            self._susy_dict = {n: (x,e) for n,x,e in self._susy_itr(txt)}
 
-        if not file_format in allowed_formats: 
-            raise ValueError("can't parse file formatted in {}, "
-                             "choose from {}".format(file_format, 
-                                                     allowed_formats.keys()))
+    def get_xsec_for(self, ds_key): 
+        """
+        Try to get cross section for ds_key. Search order: 
+        1) exact mainz match 
+        2) exact susy match 
+        3) ds_key within susy key 
+        """
+        try: 
+            return self._mainz_dict[ds_key]
+        except KeyError: 
+            self.n_fail_mainz_lookup += 1
 
-        file_itr = allowed_formats[file_format]
+        try:
+            return self._susy_dict[ds_key]
+        except KeyError: 
+            for key in self._susy_dict: 
+                if ds_key in key: 
+                    return self._susy_dict[key]
+    
+        raise LookupError('no {} found in {} or {}'.format(
+                ds_key, self._mainz_file_name, self._susy_file_name))
 
-        with open(norm_file) as txt: 
-            self._norm_dict = {n: (x,e) for n,x,e in file_itr(txt)}
-
+    
     def _mainz_itr(self,txt_file): 
         """
         iterator for xsec file in mainz format
@@ -69,8 +86,9 @@ class NormedCutflow(object):
             short_name = spl[1]
             xsec = float(spl[2])
             k_factor = float(spl[3])
+            filt_eff = float(spl[4])
             
-            yield short_name, xsec * k_factor, None
+            yield short_name, xsec * k_factor * filt_eff, None
 
     def add_ds_lookup(self, ds_key, lookup_location): 
         """
@@ -126,11 +144,6 @@ class NormedCutflow(object):
         Looks finds the root files in files_from_key, normalization 
         is found in norm_file. 
         """
-
-        if not ds_key in self._norm_dict: 
-            raise LookupError('no {} found in {}'.format(
-                    ds_key, self._norm_file_name))
-
         
         cached_info = {}
         full_cache_name = os.path.join(self._cache_name, ds_key + '.pkl')
@@ -172,7 +185,7 @@ class NormedCutflow(object):
         
         # we assume the maximum cut is the number of events
         n_events = max(count for name, count in cut_counts)
-        cross_section, xsec_events = self._norm_dict[ds_key]
+        cross_section, xsec_events = self.get_xsec_for(ds_key)
         try: 
             frac_in_file = float(n_events) / float(xsec_events)
         except TypeError: 

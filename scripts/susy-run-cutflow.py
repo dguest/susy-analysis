@@ -37,8 +37,16 @@ def cutflow_job(ins):
     matched_files = mainz_cutflow.add_ds_lookup(samp, data_location)
 
     if matched_files: 
-        counts = mainz_cutflow.get_normed_counts(samp, flags=more_flags)
-
+        try: 
+            counts = mainz_cutflow.get_normed_counts(samp, flags=more_flags)
+        except LookupError as e: 
+            if 'a' in flags: 
+                warnings.warn(
+                    "error looking up normalization: {}".format(str(e))
+                    )
+            else: 
+                raise 
+                        
     elif samp == 'Data': 
         warnings.warn('Data not implemented')
     else: 
@@ -59,16 +67,10 @@ def run_cutflow(samples, data_paths, susy_lookup,
         output = data_paths['output']
 
     mainz_cutflow = normed.NormedCutflow(
-        mainz_lookup, 
-        file_format='mainz', 
+        mainz_file=mainz_lookup, 
+        susy_file=susy_lookup, 
         raw_counts_cache=counts_cache, 
         output_ntuples_dir=output)
-
-    # susy_cutflow = cutflow.NormedCutflow(
-    #     susy_lookup, 
-    #     file_format='official', 
-    #     raw_counts_cache=counts_cache, 
-    #     output_ntuples_dir=output)
 
     sig_counts = {}
     bg_counts = {}
