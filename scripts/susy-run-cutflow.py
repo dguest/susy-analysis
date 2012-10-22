@@ -28,9 +28,11 @@ def cutflow_job(ins):
 
     data_type = 'background'
     counts = None
+
+    more_flags = flags
     if samp.startswith('Stop-'): 
         data_type = 'signal'
-        more_flags = flags + 's'
+        more_flags += 's'
 
     matched_files = mainz_cutflow.add_ds_lookup(samp, data_location)
 
