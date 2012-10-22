@@ -8,7 +8,7 @@ Output is saved in the output-pickle, and can be printed with
 susy-print-cutflow.py. 
 """
 
-from susy import cutflow 
+from susy import cutflow, normed
 import sys, os, re
 import argparse, ConfigParser
 import warnings
@@ -56,7 +56,7 @@ def run_cutflow(samples, data_paths, susy_lookup,
     if 'output' in data_paths: 
         output = data_paths['output']
 
-    mainz_cutflow = cutflow.NormedCutflow(
+    mainz_cutflow = normed.NormedCutflow(
         mainz_lookup, 
         file_format='mainz', 
         raw_counts_cache=counts_cache, 
