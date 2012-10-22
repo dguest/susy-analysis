@@ -6,14 +6,27 @@ import collections
 import re
 import warnings
 
+class Dataset(object): 
+    """
+    container for dataset info
+    """
+    def __init__(self): 
+        self.id = 0
+        self.name = ''
+        self.xsec = -1
+        self.kfactor = -1
+        self.filteff = -1
+        self.files = []
+        self.evts = 0
+    def corrected_xsec(self): 
+        assert all(x >= 0 for x in [self.xsec, self.kfactor, self.filteff])
+        return self.xsec * self.kfactor * self.filteff
 
 class NormedCutflow(object): 
     """
     Uses a lookup file to normalize cutflows. 
     """
     
-    files_from_key = collections.defaultdict(list)
-
     def __init__(self, mainz_file, susy_file, 
                  raw_counts_cache='raw_counts', 
                  output_ntuples_dir='', 
@@ -24,14 +37,17 @@ class NormedCutflow(object):
         self._output_ntuples_dir = output_ntuples_dir
         self.p_tag = p_tag
         
-        self.n_fail_mainz_lookup = 0
+        self.n_fail_lookup = 0
 
         with open(mainz_file) as txt: 
-            self._mainz_dict = {n: (x,e) for n,x,e in self._mainz_itr(txt)}
+            mainz_dict = {n: d for n,d in self._mainz_itr(txt)}
         with open(susy_file) as txt: 
-            self._susy_dict = {n: (x,e) for n,x,e in self._susy_itr(txt)}
+            susy_dict = {n: d for n,d in self._susy_itr(txt)}
 
-    def get_xsec_for(self, ds_key): 
+        self._ds_dict = susy_dict
+        self._ds_dict.update(mainz_dict)
+
+    def get_dataset(self, ds_key): 
         """
         Try to get cross section for ds_key. Search order: 
         1) exact mainz match 
@@ -39,16 +55,13 @@ class NormedCutflow(object):
         3) ds_key within susy key 
         """
         try: 
-            return self._mainz_dict[ds_key]
+            return self._ds_dict[ds_key]
         except KeyError: 
-            self.n_fail_mainz_lookup += 1
+            self.n_fail_lookup += 1
 
-        try:
-            return self._susy_dict[ds_key]
-        except KeyError: 
-            for key in self._susy_dict: 
-                if ds_key in key: 
-                    return self._susy_dict[key]
+        for key in self._ds_dict: 
+            if ds_key in key: 
+                return self._ds_dict[key]
     
         raise LookupError('no {} found in {} or {}'.format(
                 ds_key, self._mainz_file_name, self._susy_file_name))
@@ -63,11 +76,13 @@ class NormedCutflow(object):
             if not line: 
                 continue
             spl = line.split()
-            short_name = spl[0]
-            xsec = float(spl[2])
-            filter_eff = float(spl[3])
-            evts = int(spl[4])
-            yield short_name, xsec * filter_eff, evts
+            ds = Dataset()
+            ds.name = spl[0]
+            ds.xsec = float(spl[2])
+            ds.filteff = float(spl[3])
+            ds.kfactor = 1
+            ds.evts = int(spl[4])
+            yield ds.name, ds
 
     def _susy_itr(self,txt_file): 
         id_line = ''
@@ -83,12 +98,14 @@ class NormedCutflow(object):
             if not line: 
                 continue
             spl = line.split()
-            short_name = spl[1]
-            xsec = float(spl[2])
-            k_factor = float(spl[3])
-            filt_eff = float(spl[4])
+            ds = Dataset()
+            ds.id = int(spl[0])
+            ds.name = spl[1]
+            ds.xsec = float(spl[2])
+            ds.kfactor = float(spl[3])
+            ds.filteff = float(spl[4])
             
-            yield short_name, xsec * k_factor * filt_eff, None
+            yield ds.name, ds
 
     def add_ds_lookup(self, ds_key, lookup_location): 
         """
@@ -107,9 +124,8 @@ class NormedCutflow(object):
         else: 
             matches = self._ds_match(ds_key, lookup_location)
         
-        self.files_from_key[ds_key] += matches
-        return self.files_from_key[ds_key]
-
+        self.get_dataset(ds_key).files += matches
+        return self.get_dataset(ds_key).files
 
     def _ds_match(self, ds_key, location): 
         """
@@ -168,10 +184,12 @@ class NormedCutflow(object):
 
         need_rebuild = any(rebuild_conditions)
 
-        run_number = 180614 # FIXME: obviously not right...
+        run_number = self.get_dataset(ds_key).id
+        if not run_number: 
+            run_number = 180614 # FIXME: obviously not right...
 
         if need_rebuild: 
-            input_files = self.files_from_key[ds_key]
+            input_files = self.get_dataset(ds_key).files
             cut_counts = cutflow.cutflow(input_files, run_number, 
                                          flags=flags, 
                                          output_ntuple=output_ntuple)
@@ -185,20 +203,17 @@ class NormedCutflow(object):
         
         # we assume the maximum cut is the number of events
         n_events = max(count for name, count in cut_counts)
-        cross_section, xsec_events = self.get_xsec_for(ds_key)
-        try: 
-            frac_in_file = float(n_events) / float(xsec_events)
-        except TypeError: 
-            frac_in_file = 0 
-            xsec_events = 0
-        if xsec_events and n_events != xsec_events: 
+        dataset = self.get_dataset(ds_key)
+
+        if dataset.evts and n_events != dataset.evts: 
+            frac_in_file = float(n_events) / float(dataset.evts)
             warnings.warn(
                 "number of events in {} ({}) "
                 "doesn't match expected {} ({:.1%} diff)".format(
-                    ds_key, n_events, xsec_events, frac_in_file - 1), 
+                    ds_key, n_events, dataset.evts, frac_in_file - 1), 
                 stacklevel=2)
         
-        int_xsec_per_evt =  cross_section / float(n_events) * lumi
+        int_xsec_per_evt = dataset.corrected_xsec() / float(n_events) * lumi
 
         if self._output_ntuples_dir: 
             per_evt_pkl = 'x_sec_per_event.pkl'
