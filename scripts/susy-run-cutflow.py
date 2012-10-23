@@ -9,7 +9,7 @@ susy-print-cutflow.py.
 """
 
 from susy import cutflow, normed
-import sys, os, re
+import sys, os, re, glob
 import argparse, ConfigParser
 import warnings
 import collections
@@ -65,6 +65,8 @@ def run_cutflow(samples, data_paths, susy_lookup,
     output = ''
     if 'output' in data_paths: 
         output = data_paths['output']
+        if glob.glob(os.path.join(output,'*')): 
+            raise IOError('files found in {output}'.format(**data_paths))
 
     mainz_cutflow = normed.NormedCutflow(
         mainz_file=mainz_lookup, 
@@ -144,6 +146,21 @@ def run_cutflow(samples, data_paths, susy_lookup,
 
     return signal_cutflows
 
+def cleanup(args):
+    for f in glob.glob(os.path.join(args.output_ntuples_location,'*')): 
+        print 'removing {}'.format(f)
+        os.remove(f)
+    if os.path.isfile(args.output_pickle): 
+        print 'removing {}'.format(args.output_pickle)
+        os.remove(args.output_pickle)
+    if os.path.isdir(args.cache): 
+        for f in glob.glob(os.path.join(args.cache,'*')): 
+            print 'removing {}'.format(f)
+            os.remove(f)
+        print 'removing {}'.format(args.cache)
+        os.rmdir(args.cache)
+
+
 if __name__ == '__main__': 
     preparser = argparse.ArgumentParser(
         add_help=False, 
@@ -181,6 +198,7 @@ if __name__ == '__main__':
     parser.add_argument('--rootcoredir', help='default: %(default)s')
     parser.add_argument('--cache', help='default: %(default)s')
     parser.add_argument('-t','--terse', action='store_true')
+    parser.add_argument('--clean', action='store_true')
     parser.add_argument(
         '--debug', action='store_true', 
         help='may not do anything right now'
@@ -195,6 +213,10 @@ if __name__ == '__main__':
         help='pickle where cutflow is saved (default: %(default)s)')
 
     args = parser.parse_args(remaining)
+
+    if args.clean: 
+        cleanup(args)
+        sys.exit('removed output files, quitting')
 
     if not args.used_samples: 
         sys.exit('used_samples is required')
@@ -239,7 +261,4 @@ if __name__ == '__main__':
 
     with open(args.output_pickle,'wb') as out_pkl: 
         cPickle.dump(all_cuts, out_pkl)
-
-    
-
 
