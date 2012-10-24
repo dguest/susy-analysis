@@ -29,18 +29,46 @@ def print_all_hists(all_hists):
         for var in variables: 
             make_hist(all_hists, var, cut)
 
+def bin_sparse_vars(hist): 
+    lab = hist.x_label
+    triggers = [
+        'met' in lab and not 'jetmet' in lab, 
+        '_pt' in lab
+        ]
+    if any(triggers): 
+        break_pts = range(50,70,2) + [80, 100]
+        for low, high in zip(break_pts[:-1],break_pts[1:]): 
+            hist.average_bins(np.arange(low,high))
+
 def combine_backgrounds(hists): 
 
     # list is to preserve ordering
     combined_list = []
     combined = {}
     crap_finder = re.compile('Np[0-9]+')
+    finders = [
+        (r'$Z \to \nu \nu$ + jets', r'Znunu','orange'), 
+        (r'$W \to l \nu$ + jets', r'W(tau|e|mu)nu','green'), 
+        (r'$W \to q q$', r'W(c|b)','r'), 
+        (r'$Z \to l l$ + jets', r'Z(tau|e|mu){2}','c'), 
+        (r'$t\bar{t}$',         r'ttbar_','b'),
+        ]
+    
     for h in hists: 
-        hist_name = str(h)
+        hist_name = h.title
+        bin_sparse_vars(h)
         combined_name = crap_finder.split(hist_name)[0]
+        color = 'b'
+        for rep, old, color_cand in finders: 
+            reg = re.compile(old)
+            if reg.findall(combined_name): 
+                combined_name = rep
+                color = color_cand
         if combined_name != hist_name: 
+            h.title = combined_name
             if combined_name not in combined: 
                 combined[combined_name] = h
+                combined[combined_name].color = color
                 combined_list.append(combined_name)
             else: 
                 combined[combined_name] += h
@@ -60,16 +88,25 @@ def make_hist(all_hists, var, cut):
     hists = sorted(hists)
     stack = Stack('stack')
     stack.ax.set_yscale('log')
-    stack.y_min = 1
+    stack.y_min = 0.1
     signal_hists = [x for x in hists if str(x).startswith('Stop')]
     background_hists = [x for x in hists if not str(x).startswith('Stop')]
     combined_bkg = combine_backgrounds(background_hists)
+    combined_bkg = sorted(combined_bkg)
+    for sig in signal_hists: 
+        bin_sparse_vars(sig)
+
     stack.add_signals(signal_hists)
     stack.add_backgrounds(combined_bkg)
     stack.add_legend()
     if not os.path.isdir('plots'): 
         os.mkdir('plots')
-    stack.save('plots/stack_{var}_{cut}.pdf'.format(var=var, cut=cut))
+
+    for ext in ['pdf','png']: 
+        stack.save('plots/stack_{var}_cut_{cut}.{ext}'.format(
+                var=var, cut=cut, ext=ext))
+
+    stack.close()
     
 
 def get_variable_and_cut(hist_name): 
@@ -77,18 +114,34 @@ def get_variable_and_cut(hist_name):
         return hist_name, None
     return hist_name.split('_cut_')
 
+def select_signals(sample_list, signals = ['175-100']): 
+    accepted = []
+    for sample in sample_list: 
+        if not os.path.basename(sample).startswith('Stop'): 
+            accepted.append(sample)
+        else: 
+            for signal in signals: 
+                if signal in sample: 
+                    accepted.append(sample)
+    return accepted
 
 if __name__ == '__main__': 
     parser = argparse.ArgumentParser(
         description=__doc__, epilog='Author: Dan Guest <dguest@cern.ch>')
     parser.add_argument('config', nargs='?', help='default: %(default)s', 
-                        default='cutflow.cfg')
+                        default='draw.cfg')
+    parser.add_argument('--fast', action='store_true')
     args = parser.parse_args(sys.argv[1:])
     config_parser = ConfigParser.SafeConfigParser()
     config_parser.read([args.config])
     file_config = dict(config_parser.items('files'))
     whisky_path = file_config['output_ntuples_location']
     distillates = glob.glob(os.path.join(whisky_path,'*.root'))
+    if 'signals' in file_config: 
+        distillates = select_signals(distillates, 
+                                     file_config['signals'].split())
+    else:
+        print file_config
 
     norm_file = os.path.join(whisky_path, 'x_sec_per_event.pkl')
     with open(norm_file) as pkl: 
@@ -98,9 +151,10 @@ if __name__ == '__main__':
     for f in distillates: 
         profile_pth = build_profile(f)
         stem = os.path.splitext(profile_pth)[0]
-        success, failure = hd_from_root(profile_pth)
-        assert not failure, 'conversion fail {}'.format(failure)
         h5_name = '{}.h5'.format(stem)
+        if not os.path.isfile(h5_name): 
+            success, failure = hd_from_root(profile_pth)
+            assert not failure, 'conversion fail {}'.format(failure)
         h5s.append(h5_name)
 
     all_hists = {}
@@ -117,6 +171,13 @@ if __name__ == '__main__':
                 reduced = np.add.reduce(array, axis=1)
                 short_var = var.replace('met_vs_','')
                 all_hists[(sample,short_var,cut)] = (reduced, extent)
+
+    if args.fast: 
+        fast_hists = {}
+        for (sample, short, cut), hist in all_hists.iteritems(): 
+            if cut == 'met_120' and short == 'jet1_pt': 
+                fast_hists[(sample,short,cut)] = hist
+        all_hists = fast_hists
 
     print_all_hists(all_hists)
 

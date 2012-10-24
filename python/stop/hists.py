@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from itertools import chain
 
 class Hist1d(object): 
     """
@@ -13,9 +14,10 @@ class Hist1d(object):
         self.x_label = x_label
         self.y_label = y_label
         self.title = title
+        self.color = ''
 
     def __float__(self): 
-        return self._array[1:-1].sum()
+        return self._array.sum()
     def __cmp__(self, other): 
         this_val = float(self)
         other_val = float(other)
@@ -34,19 +36,23 @@ class Hist1d(object):
         new_title = self._zipstring(self.title, other.title)
         new_hist = Hist1d(sum_array, self._extent, 
                           x_label=new_x, y_label=new_y, title=new_title)
+        new_hist.color = self.color if self.color else other.color
         return new_hist
     def _zipstring(self, one, two): 
-        return str(c for c, o in zip(one, two) if c == o)
+        return ''.join(c for c, o in zip(one, two) if c == o)
     
     def scale(self, factor): 
         self._array = self._array * factor
+    def average_bins(self, bins): 
+        ave = np.average(self._array[bins])
+        self._array[bins] = ave
     def get_xy_pts(self): 
         """
         returns slightly hacked xy pairs which can be fed to plt.plot()
         """
         y_vals = self._array[1:-1] # no overflow
         double_y_vals = np.dstack((y_vals,y_vals)).flatten()
-        x_vals = np.linspace(*self._extent, num=len(y_vals) + 1, endpoint=True)
+        x_vals = np.linspace(*self._extent, num=len(y_vals) + 1)
         double_x_vals = np.dstack((x_vals,x_vals)).flatten()[1:-1]
 
         return double_x_vals, double_y_vals
@@ -58,14 +64,16 @@ class Stack(object):
         self.ax = self.fig.add_subplot(1,1,1)
         self.x_vals = None
         self._y_sum = None
-        self.colors = 'bgrcmyk'
+        self.colors = 'mky'
         self.y_min = None
         self._proxy_legs = []
+        self._bg_proxy_legs = []
     def add_backgrounds(self, hist_list): 
         last_plot = 0
+        color_itr = iter(self.colors)
         if self.y_min is not None: 
             last_plot = self.y_min
-        for hist, color in zip(hist_list, self.colors):
+        for hist in hist_list:
             x_vals, y_vals = hist.get_xy_pts()
 
             if self.x_vals is None: 
@@ -87,27 +95,43 @@ class Stack(object):
             tmp_sum = self._y_sum[:]
             if self.y_min is not None: 
                 tmp_sum[tmp_sum < self.y_min] = self.y_min
+            
+            fill_color = hist.color
+            if not fill_color: 
+                fill_color = next(color_itr)
+
             self.ax.fill_between(x_vals, self._y_sum, last_plot, 
-                                 facecolor=color)
-            proxy = plt.Rectangle((0, 0), 1, 1, fc=color, 
-                                  label=str(hist))
-            self._proxy_legs.append( (proxy,str(hist)) )
+                                 facecolor=fill_color)
+            proxy = plt.Rectangle((0, 0), 1, 1, fc=fill_color, 
+                                  label=hist.title)
+
+            self._bg_proxy_legs.append( (proxy,hist.title)) 
 
             last_plot = self._y_sum
 
     def add_signals(self, hist_list): 
-        styles = [''.join([x,'--']) for x in self.colors]
-        for hist, style in zip(hist_list, styles): 
+        color_itr = iter(self.colors)
+        for hist in hist_list: 
             x_vals, y_vals = hist.get_xy_pts()
             if self.y_min is not None: 
                 y_vals[y_vals < self.y_min] = self.y_min
-            plt_handle, = self.ax.plot(x_vals,y_vals,style)
-            self._proxy_legs.append( (plt_handle, str(hist)))
+
+            if hist.color: 
+                color = hist.color
+            else: 
+                color = next(color_itr)
+            style = color + '--'
+            plt_handle, = self.ax.plot(x_vals,y_vals,style, linewidth=2.0)
+            self._proxy_legs.append( (plt_handle, hist.title))
     
     def add_legend(self): 
-        proxies = zip(*self._proxy_legs)
+        all_legs = chain(self._proxy_legs,reversed(self._bg_proxy_legs))
+        proxies = zip(*all_legs)
         legend = self.ax.legend(*proxies)
         legend.get_frame().set_linewidth(0)
+        legend.get_frame().set_alpha(0)
             
     def save(self, name): 
         self.fig.savefig(name, bbox_inches='tight')
+    def close(self): 
+        plt.close(self.fig)
