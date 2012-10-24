@@ -1,3 +1,6 @@
+import matplotlib.pyplot as plt
+import numpy as np
+
 class Hist1d(object): 
     """
     class to organize 1d hists from np arrays

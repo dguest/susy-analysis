@@ -6,3 +6,4 @@ bin/
 *~
 .__afs*
 *.txt
+*.pyc
