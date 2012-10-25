@@ -67,6 +67,8 @@ def run_cutflow(samples, data_paths, susy_lookup,
         output = data_paths['output']
         if glob.glob(os.path.join(output,'*')): 
             raise IOError('files found in {output}'.format(**data_paths))
+        if not os.path.isdir(output): 
+            os.mkdir(output)
 
     mainz_cutflow = normed.NormedCutflow(
         mainz_file=mainz_lookup, 
