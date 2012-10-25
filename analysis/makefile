@@ -74,7 +74,7 @@ all: $(ALLOUTPUT)
 
 drink: $(EXE_OBJ:%=$(BIN)/%)
 	@echo "linking $^ --> $@"
-	$(CXX) -o $@ $^ $(LIBS) $(LDFLAGS)
+	@$(CXX) -o $@ $^ $(LIBS) $(LDFLAGS)
 
 $(PY_LIB): $(PYLIB_OBJ:%=$(BIN)/%) $(PY_OBJ:%=$(BIN)/%)
 	@mkdir -p $(shell dirname $(PY_LIB))

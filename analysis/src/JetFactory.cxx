@@ -55,9 +55,23 @@ void JetFactory::entry(int n) {
 
 Jet JetFactory::jet(int jet_number) const { 
   // offset in the jet numbersing right now
-  JetBuffer* the_buffer = m_jet_buffers.at(jet_number - 1); 
+  JetBuffer* the_buffer = m_jet_buffers.at(jet_number); 
   assert(the_buffer); 
+  if (the_buffer->pt < 0) { 
+    throw std::range_error("asked for undefined jet"); 
+  }
   return Jet(the_buffer, m_flags); 
+}
+std::vector<Jet> JetFactory::jets() const { 
+  std::vector<Jet> jets_out; 
+  for (std::vector<JetBuffer*>::const_iterator 
+	 itr = m_jet_buffers.begin(); itr != m_jet_buffers.end(); itr++) { 
+    if ((*itr)->pt < 0) { 
+      return jets_out; 
+    }
+    jets_out.push_back(Jet(*itr,m_flags)); 
+  }
+  return jets_out; 
 }
 
 double JetFactory::met()   const  { return m_met; }

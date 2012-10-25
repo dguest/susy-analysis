@@ -3,9 +3,11 @@
 
 #include <string> 
 #include <map>
+#include <vector> 
 
 class JetFactory; 
 class Histogram; 
+class Axis; 
 
 class HistBuilder
 {
@@ -16,12 +18,15 @@ public:
   void build(); 
   void save(std::string output = ""); 
 private: 
-  void make_histograms(); 
+  void book_ptmet_histograms(); 
+  void book_tobster_histograms(); 
+  void book_one_var_hist(Axis); 
+  void fill(std::string name, double); 
   typedef std::map<std::string, unsigned> CutMasks; 
-  typedef std::map<std::string, unsigned> Histograms; 
+  typedef std::map<std::string, Histogram> HistByCut; 
   JetFactory* m_factory; 
   CutMasks m_cut_masks; 
-  Histograms m_histograms; 
+  HistByCut m_histograms; 
 };
 
 #endif // HIST_BUILDER_HH

@@ -33,6 +33,7 @@ public:
   int entries() const; 
   void entry(int); 
   Jet jet(int) const; 
+  std::vector<Jet> jets() const; 
   double met() const; 
   unsigned bits() const; 
   double dphi() const; 
