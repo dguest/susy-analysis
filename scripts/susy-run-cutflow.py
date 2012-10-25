@@ -225,7 +225,7 @@ if __name__ == '__main__':
         used_samples = [v.split('#')[0].strip() for v in inputs]
         used_samples = filter(None,used_samples)
 
-    flags = 'f'                 #FIXME: should not assume atlfast
+    flags = 'fw'                 #FIXME: should not assume atlfast
 
     flags += '' if args.terse or args.multi > 1 else 'v'
         
