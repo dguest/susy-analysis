@@ -34,6 +34,7 @@ void HistBuilder::add_cut_mask(std::string name, unsigned bits)
 void HistBuilder::build() { 
   if (m_histograms.size() == 0) { 
     book_tobster_histograms(); 
+    // book_ptmet_histograms(); 
   }
   typedef std::vector<Jet> Jets; 
   int n_entries = m_factory->entries(); 
@@ -62,6 +63,10 @@ void HistBuilder::save(std::string output) {
        itr != m_histograms.end(); itr++) { 
     histToFile(itr->second, file, itr->first); 
   }
+  for (HistByCut::const_iterator itr = m_h1.begin(); 
+       itr != m_h1.end(); itr++) { 
+    histToFile(itr->second, file, itr->first); 
+  }
 }
 
 void HistBuilder::book_ptmet_histograms() { 
@@ -84,19 +89,19 @@ void HistBuilder::book_ptmet_histograms() {
   }
 
 }
-void HistBuilder::book_one_var_hist(Axis axis){ 
-  Histogram hist(std::vector<Axis>(1,axis));
-  m_histograms.insert(std::make_pair(axis.name,hist)); 
+void HistBuilder::book_hist(std::string name, int bins, 
+			    double low, double high)
+{ 
+  Histogram hist(bins, low, high);
+  m_h1.insert(std::make_pair(name,hist)); 
 }
 void HistBuilder::book_tobster_histograms() { 
-  Axis dphi = {"dphiC1Met",100,0.0,M_PI}; 
-  book_one_var_hist(dphi); 
-  Axis mTTop = {"mTTop",100,1e6}; 
-  book_one_var_hist(mTTop); 
+  book_hist("dphiC1Met",100,0.0,M_PI); 
+  book_hist("mTTop",100,0.0,1e6); 
 }
 void HistBuilder::fill(std::string hist_name, double value){ 
-  HistByCut::iterator itr = m_histograms.find(hist_name); 
-  if (itr == m_histograms.end()){ 
+  HistByCut::iterator itr = m_h1.find(hist_name); 
+  if (itr == m_h1.end()){ 
     throw std::range_error("hist " + hist_name + " doesn't exist"); 
   }
   itr->second.fill(std::vector<double>(1,value)); 

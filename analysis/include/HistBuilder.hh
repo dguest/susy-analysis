@@ -20,13 +20,16 @@ public:
 private: 
   void book_ptmet_histograms(); 
   void book_tobster_histograms(); 
-  void book_one_var_hist(Axis); 
+  void book_hist(std::string name, int bins, 
+		 double low, double high); 
+
   void fill(std::string name, double); 
   typedef std::map<std::string, unsigned> CutMasks; 
   typedef std::map<std::string, Histogram> HistByCut; 
   JetFactory* m_factory; 
   CutMasks m_cut_masks; 
   HistByCut m_histograms; 
+  HistByCut m_h1; 
 };
 
 #endif // HIST_BUILDER_HH
