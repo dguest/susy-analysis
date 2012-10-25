@@ -15,7 +15,7 @@ ifndef ND_HIST
 $(error "couldn't find ND_HIST, is it defined in local.mk?")
 endif
 ND_HIST_INC      := $(ND_HIST)/include
-NC_HIST_LIB      := $(ND_HIST)/lib
+ND_HIST_LIB      := $(ND_HIST)/lib
 
 #  set search path
 vpath %.o    $(BIN)
@@ -41,8 +41,11 @@ PY_LIB   +=   $(shell $(PY_CONFIG) --libs)
 # --- set compiler and flags (roll c options and include paths together)
 CXX          := g++
 CXXFLAGS     := -O2 -Wall -fPIC -I$(INC) -I$(ND_HIST_INC) -g
-LIBS         := -L$(ND_HIST_LIB) -lndhist
+LIBS         := -L$(ND_HIST_LIB) -Wl,-rpath,$(ND_HIST_LIB) -lndhist
 LDFLAGS      := -Wl,-no-undefined
+
+# --- HDF5 needed for hist saving
+LIBS         += -lhdf5_cpp -lhdf5 
 
 # rootstuff 
 CXXFLAGS     += $(ROOTCFLAGS)
@@ -71,7 +74,7 @@ all: $(ALLOUTPUT)
 
 drink: $(EXE_OBJ:%=$(BIN)/%)
 	@echo "linking $^ --> $@"
-	@$(CXX) -o $@ $^ $(LIBS) $(LDFLAGS)
+	$(CXX) -o $@ $^ $(LIBS) $(LDFLAGS)
 
 $(PY_LIB): $(PYLIB_OBJ:%=$(BIN)/%) $(PY_OBJ:%=$(BIN)/%)
 	@mkdir -p $(shell dirname $(PY_LIB))
