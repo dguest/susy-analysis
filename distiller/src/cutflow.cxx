@@ -278,6 +278,7 @@ run_cutflow(std::vector<std::string> files,
     cutflow.fill(pass_bits); 
     out_tree.pass_bits = pass_bits; 
     out_tree.met = met.Mod(); 
+    out_tree.met_phi = met.Phi(); 
 
     out_tree.fill(); 
  
