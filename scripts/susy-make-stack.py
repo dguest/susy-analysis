@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.7
 
-import os, re, glob, cPickle, sys
+import os, re, glob, cPickle, sys, cProfile
 import collections
 from stop.hists import Hist1d, Stack
 from stop.profile import build_profile
@@ -99,7 +99,7 @@ def make_hist(all_hists, var, cut):
     # hists = sorted(hists)
     stack = Stack('stack')
     stack.ax.set_yscale('log')
-    stack.y_min = 0.1
+    stack.y_min = 1.0
     signal_hists = [x for x in hists if str(x).startswith('Stop')]
     background_hists = [x for x in hists if not str(x).startswith('Stop')]
     combined_bkg = combine_backgrounds(background_hists)
@@ -149,7 +149,8 @@ def write_xsec_corrections(used_xsecs):
             xsec_used.write(record)
 
 
-if __name__ == '__main__': 
+
+def run_main(): 
     parser = argparse.ArgumentParser(
         description=__doc__, epilog='Author: Dan Guest <dguest@cern.ch>')
     parser.add_argument('config', nargs='?', help='default: %(default)s', 
@@ -182,6 +183,10 @@ if __name__ == '__main__':
     with open(norm_file) as pkl: 
         x_sec_dict = cPickle.load(pkl)
 
+    lumi = 1.0
+    if config_parser.has_option('physics','total_lumi'): 
+        lumi = config_parser.getfloat('physics','total_lumi')
+
     h5s = []
     for f in distillates: 
         profile_pth = build_profile(f)
@@ -204,8 +209,8 @@ if __name__ == '__main__':
                 array = np.array(h5_array)
                 scale_name = sample_name_from_file(histofile)
                 scale_factor = x_sec_dict[scale_name]
-                array = array * scale_factor
-                total_area = array.sum() * scale_factor
+                array = array * scale_factor * lumi
+                total_area = array.sum() * scale_factor * lumi
                 used_xsecs[scale_name] = max(used_xsecs[scale_name],
                                              total_area)
                 reduced = np.add.reduce(array, axis=1)
@@ -224,3 +229,6 @@ if __name__ == '__main__':
     print_all_hists(all_hists)
 
         
+if __name__ == '__main__': 
+    run_main()
+    # cProfile.run('run_main()','profile.txt')
