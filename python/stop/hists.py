@@ -10,7 +10,7 @@ class Hist1d(object):
     def __init__(self, array, extent, 
                  x_label = '', y_label = 'Jets', title=''): 
         self._array = array
-        self._extent = extent
+        self.extent = extent
         self.x_label = x_label
         self.y_label = y_label
         self.title = title
@@ -25,16 +25,16 @@ class Hist1d(object):
     def __str__(self): 
         return self.title
     def __add__(self, other): 
-        diffs = [(x - y)**2 for x, y in zip(self._extent, other._extent)]
-        if sum(diffs) / sum(x**2 for x in self._extent) > 1e-4: 
+        diffs = [(x - y)**2 for x, y in zip(self.extent, other.extent)]
+        if sum(diffs) / sum(x**2 for x in self.extent) > 1e-4: 
             raise ValueError(
                 'tried to add a hist with extent {} to one with'
-                ' extent {}'.format(self._extent, other._extent) )
+                ' extent {}'.format(self.extent, other.extent) )
         sum_array = self._array + other._array
         new_y = self._zipstring(self.y_label, other.y_label)
         new_x = self._zipstring(self.x_label, other.x_label)
         new_title = self._zipstring(self.title, other.title)
-        new_hist = Hist1d(sum_array, self._extent, 
+        new_hist = Hist1d(sum_array, self.extent, 
                           x_label=new_x, y_label=new_y, title=new_title)
         new_hist.color = self.color if self.color else other.color
         return new_hist
@@ -52,7 +52,7 @@ class Hist1d(object):
         """
         y_vals = self._array[1:-1] # no overflow
         double_y_vals = np.dstack((y_vals,y_vals)).flatten()
-        x_vals = np.linspace(*self._extent, num=len(y_vals) + 1)
+        x_vals = np.linspace(*self.extent, num=len(y_vals) + 1)
         double_x_vals = np.dstack((x_vals,x_vals)).flatten()[1:-1]
 
         return double_x_vals, double_y_vals

@@ -29,16 +29,24 @@ def print_all_hists(all_hists):
         for var in variables: 
             make_hist(all_hists, var, cut)
 
-def bin_sparse_vars(hist): 
+def fix_metpt_like(hist): 
     lab = hist.x_label
     triggers = [
         'met' in lab and not 'jetmet' in lab, 
         '_pt' in lab
         ]
     if any(triggers): 
-        break_pts = range(50,70,2) + [80, 100]
-        for low, high in zip(break_pts[:-1],break_pts[1:]): 
-            hist.average_bins(np.arange(low,high))
+        bin_sparse_vars(hist)
+        mev_to_gev(hist)
+
+def bin_sparse_vars(hist): 
+    break_pts = range(50,70,2) + [80, 100]
+    for low, high in zip(break_pts[:-1],break_pts[1:]): 
+        hist.average_bins(np.arange(low,high))
+
+def mev_to_gev(hist): 
+    hist.extent = tuple(e / 1e3 for e in hist.extent)
+    hist.x_label = '{} [GeV]'.format(hist.x_label)
 
 def combine_backgrounds(hists): 
 
@@ -56,7 +64,7 @@ def combine_backgrounds(hists):
     
     for h in hists: 
         hist_name = h.title
-        bin_sparse_vars(h)
+        fix_metpt_like(h)
         combined_name = crap_finder.split(hist_name)[0]
         color = 'b'
         for rep, old, color_cand in finders: 
@@ -85,7 +93,7 @@ def make_hist(all_hists, var, cut):
     hists = []
     for sample, (hist, extent) in used_hists.iteritems(): 
         hists.append(Hist1d(hist, extent, x_label=var, title=sample))
-    hists = sorted(hists)
+    # hists = sorted(hists)
     stack = Stack('stack')
     stack.ax.set_yscale('log')
     stack.y_min = 0.1
@@ -94,7 +102,7 @@ def make_hist(all_hists, var, cut):
     combined_bkg = combine_backgrounds(background_hists)
     combined_bkg = sorted(combined_bkg)
     for sig in signal_hists: 
-        bin_sparse_vars(sig)
+        fix_metpt_like(sig)
 
     stack.add_signals(signal_hists)
     stack.add_backgrounds(combined_bkg)
