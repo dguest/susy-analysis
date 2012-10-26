@@ -154,7 +154,7 @@ class NormedCutflow(object):
         return match_files
 
 
-    def get_normed_counts(self, ds_key, lumi=4700.0, flags='v'): 
+    def get_normed_counts(self, ds_key, lumi=1000.0, flags='v'): 
         """
         Gets lumi-normalized cut counts for dataset identified by ds_key. 
         Looks finds the root files in files_from_key, normalization 

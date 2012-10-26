@@ -1,6 +1,7 @@
 #!/usr/bin/env python2.7
 
 import os, re, glob, cPickle, sys
+import collections
 from stop.hists import Hist1d, Stack
 from stop.profile import build_profile
 import ConfigParser, argparse
@@ -58,7 +59,7 @@ def combine_backgrounds(hists):
         (r'$Z \to \nu \nu$ + jets', r'Znunu','orange'), 
         (r'$W \to l \nu$ + jets', r'W(tau|e|mu)nu','green'), 
         (r'$W \to q q$', r'W(c|b)','r'), 
-        (r'$Z \to l l$ + jets', r'Z(tau|e|mu){2}','c'), 
+        (r'$Z \to \tau \tau$ + jets', r'Z(tau){2}','c'), 
         (r'$t\bar{t}$',         r'ttbar_','b'),
         ]
     
@@ -80,6 +81,8 @@ def combine_backgrounds(hists):
                 combined_list.append(combined_name)
             else: 
                 combined[combined_name] += h
+        else: 
+            warnings.warn("can't fit in {}".format(hist_name))
 
     for name in combined_list: 
         yield combined[name]
@@ -133,6 +136,19 @@ def select_signals(sample_list, signals = ['175-100']):
                     accepted.append(sample)
     return accepted
 
+def write_xsec_corrections(used_xsecs): 
+    used = []
+    for name, factor in used_xsecs.items(): 
+        used.append((factor, name))
+
+    used = sorted(used)
+
+    with open('xsec_used.txt','w') as xsec_used: 
+        for scale, name in used: 
+            record = '{:<30} {}\n'.format(name, scale)
+            xsec_used.write(record)
+
+
 if __name__ == '__main__': 
     parser = argparse.ArgumentParser(
         description=__doc__, epilog='Author: Dan Guest <dguest@cern.ch>')
@@ -150,6 +166,17 @@ if __name__ == '__main__':
                                      file_config['signals'].split())
     else:
         print file_config
+    if 'exclude_pattern' in file_config: 
+        comp_pattern = re.compile(file_config['exclude_pattern'])
+        def ds_filt(ds): 
+            return not comp_pattern.search(ds)
+        distillates = filter(ds_filt,distillates)
+
+    with open('files_used.txt','w') as files_used: 
+        for f in distillates:
+            base = os.path.basename(f)
+            files_used.write('{}\n'.format(base))
+        
 
     norm_file = os.path.join(whisky_path, 'x_sec_per_event.pkl')
     with open(norm_file) as pkl: 
@@ -166,6 +193,7 @@ if __name__ == '__main__':
         h5s.append(h5_name)
 
     all_hists = {}
+    used_xsecs = collections.defaultdict(lambda: 0)
     for histofile in h5s: 
         sample = sample_name_from_file(histofile)
         with h5py.File(histofile) as hist_file: 
@@ -175,10 +203,16 @@ if __name__ == '__main__':
                 var, cut = get_variable_and_cut(hist)
                 array = np.array(h5_array)
                 scale_name = sample_name_from_file(histofile)
-                array = array * x_sec_dict[scale_name]
+                scale_factor = x_sec_dict[scale_name]
+                array = array * scale_factor
+                total_area = array.sum() * scale_factor
+                used_xsecs[scale_name] = max(used_xsecs[scale_name],
+                                             total_area)
                 reduced = np.add.reduce(array, axis=1)
                 short_var = var.replace('met_vs_','')
                 all_hists[(sample,short_var,cut)] = (reduced, extent)
+
+    write_xsec_corrections(used_xsecs)
 
     if args.fast: 
         fast_hists = {}
