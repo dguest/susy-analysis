@@ -16,7 +16,13 @@ SelectedJet::SelectedJet(const EventJets* parent, int jet_index):
   double eta = buffer.jet_eta ->at(jet_index); 
   double phi = buffer.jet_phi ->at(jet_index); 
   double e = buffer.jet_E   ->at(jet_index); 
-  SetPtEtaPhiE(pt,eta,phi,e); 
+
+  if (pt){ 
+    SetPtEtaPhiE(pt,eta,phi,e); 
+  }
+  else { 
+    SetPxPyPzE(0,0,0,e); 
+  }
   m_jet_index = jet_index;
 
   m_jvf = buffer.jet_jvtxf->at(jet_index); 
@@ -99,7 +105,7 @@ EventJets::EventJets(const SusyBuffer& buffer, SUSYObjDef& def,
 
     // susytools corrected tlv
     TLorentzVector tlv = def.GetJetTLV(); 
-    the_jet->SetPtEtaPhiE(tlv.Pt(), tlv.Eta(), tlv.Phi(), tlv.E()); 
+    the_jet->SetPxPyPzE(tlv.Px(), tlv.Py(), tlv.Pz(), tlv.E()); 
 
     if (is_jet) { 
       the_jet->set_bit(jetbit::good); 
@@ -115,6 +121,8 @@ EventJets::EventJets(const SusyBuffer& buffer, SUSYObjDef& def,
     double min_delta_r = 10; 
     for (int el_n = 0; el_n < buffer.el_n; el_n++) { 
       TLorentzVector el; 
+      if (buffer.el_cl_pt->at(el_n) == 0.0) 
+	continue; 
       el.SetPtEtaPhiE(buffer.el_cl_pt->at(el_n), 
 		      buffer.el_cl_eta->at(el_n), 
 		      buffer.el_cl_phi->at(el_n), 

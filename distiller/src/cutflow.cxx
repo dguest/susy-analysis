@@ -110,7 +110,18 @@ run_cutflow(std::vector<std::string> files,
     out_file = "susy-dbg.txt"; 
   }
   else { 
-    gErrorIgnoreLevel = 2000;
+    // set to ignore warnings 
+    gErrorIgnoreLevel = kError;
+
+    // ROOT defines the following: 
+    // const Int_t kUnset    =  -1;
+    // const Int_t kPrint    =   0;
+    // const Int_t kInfo     =   1000;
+    // const Int_t kWarning  =   2000;
+    // const Int_t kError    =   3000;
+    // const Int_t kBreak    =   4000;
+    // const Int_t kSysError =   5000;
+    // const Int_t kFatal    =   6000;
   }
   ofstream strCout(out_file.c_str());
   std::cout.rdbuf( strCout.rdbuf() );
@@ -365,6 +376,7 @@ bool has_lower_pt(const TLorentzVector* v1, const TLorentzVector* v2) {
 void copy_jet_info(const SelectedJet* in, OutTree::Jet& jet)
 {
 
+  assert(in->Pt()); 
   jet.pt = in->Pt(); 
   jet.eta = in->Eta(); 
   jet.phi = in->Phi(); 
