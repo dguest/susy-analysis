@@ -129,21 +129,11 @@ class NormedCutflow(object):
 
     def _ds_match(self, ds_key, location): 
         """
-        fuzzy match function for mainz lookup format
+        does the globbing for files matching ds_key in location 
         """
         
-        dq2_name = ''
-        if ds_key.startswith('Stop-'): 
-            stop, m_stop, m_lsp = ds_key.split('-')
-            glob_tmp = '{location}/*_directCC_{m_stop}_{m_lsp}*{tag}*/*.root*'
-            globstr = glob_tmp.format(location=location.rstrip('/'), 
-                                      m_stop=m_stop, 
-                                      m_lsp=m_lsp, 
-                                      tag=self.p_tag)
-
-        else: 
-            globstr = '{location}/*{ds_key}*{tag}*/*.root*'.format(
-                location=location, ds_key=ds_key, tag=self.p_tag)
+        globstr = '{location}/*{ds_key}*{tag}*/*.root*'.format(
+            location=location, ds_key=ds_key, tag=self.p_tag)
             
         match_files = glob.glob(globstr)
         

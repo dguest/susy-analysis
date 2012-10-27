@@ -224,7 +224,7 @@ if __name__ == '__main__':
         sys.exit('used_samples is required')
 
     with open(args.used_samples) as inputs: 
-        used_samples = [v.split('#')[0].strip() for v in inputs]
+        used_samples = [v.split('#')[0].strip().split()[0] for v in inputs]
         used_samples = filter(None,used_samples)
 
     flags = 'fw'                 #FIXME: should not assume atlfast
