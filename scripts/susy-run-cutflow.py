@@ -223,9 +223,19 @@ if __name__ == '__main__':
     if not args.used_samples: 
         sys.exit('used_samples is required')
 
+    def parse_used_sample(line): 
+        """
+        expected format is 'sample group', gets sample, throws group away
+        """
+        if line.strip().startswith('#'): 
+            return ''
+        else: 
+            return line.split()[0]
+
     with open(args.used_samples) as inputs: 
-        used_samples = [v.split('#')[0].strip().split()[0] for v in inputs]
-        used_samples = filter(None,used_samples)
+        used_samples = map(parse_used_sample,inputs)
+    used_samples = filter(None,used_samples)
+    
 
     flags = 'fw'                 #FIXME: should not assume atlfast
 
