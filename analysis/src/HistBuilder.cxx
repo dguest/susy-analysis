@@ -1,10 +1,8 @@
 #include "HistBuilder.hh" 
 #include "JetFactory.hh"
 #include "Histogram.hh"
-
-#include "HdfFromHist.hh"
+#include "ObjKinematics.hh"
 #include "H5Cpp.h"
-
 
 #include <string> 
 #include <stdexcept>
@@ -15,11 +13,20 @@
 HistBuilder::HistBuilder(std::string input)
 { 
   m_factory = new JetFactory(input); 
+  
+  m_jet1_hists = new Jet1DHists(1e3*GeV); 
+  m_jet2_hists = new Jet1DHists(1e3*GeV); 
+  m_jet3_hists = new Jet1DHists(1e3*GeV); 
+
 }
 
 HistBuilder::~HistBuilder() { 
   delete m_factory; 
   m_factory = 0; 
+
+  delete m_jet1_hists; 
+  delete m_jet2_hists; 
+  delete m_jet3_hists; 
 }
 
 void HistBuilder::add_cut_mask(std::string name, unsigned bits)
@@ -29,6 +36,9 @@ void HistBuilder::add_cut_mask(std::string name, unsigned bits)
     throw std::runtime_error("tried to overwrite " + name); 
   }
   m_cut_masks[name] = bits; 
+  m_jet1_hists->add_mask(bits, name); 
+  m_jet2_hists->add_mask(bits, name); 
+  m_jet3_hists->add_mask(bits, name); 
 }
 
 void HistBuilder::build() { 
@@ -41,6 +51,11 @@ void HistBuilder::build() {
   for (int entry = 0; entry < n_entries; entry++) { 
     m_factory->entry(entry); 
     Jets jets = m_factory->jets(); 
+    const unsigned mask = m_factory->bits(); 
+
+    if (jets.size() > 0) { 
+      m_jet1_hists->fill(jets.at(0),mask); 
+    }
 
     if (jets.size() >= 2) { 
       fill("dphiC1Met",m_factory->met()/1e6); 
@@ -57,16 +72,24 @@ void HistBuilder::save(std::string output) {
   if (output.size() == 0) { 
     return; 
   }
-  H5::H5File file(output, H5F_ACC_TRUNC); 
+  using namespace H5; 
+  H5File file(output, H5F_ACC_TRUNC); 
 
   for (HistByCut::const_iterator itr = m_histograms.begin(); 
        itr != m_histograms.end(); itr++) { 
-    histToFile(itr->second, file, itr->first); 
+    itr->second.write_to(file, itr->first); 
   }
   for (HistByCut::const_iterator itr = m_h1.begin(); 
        itr != m_h1.end(); itr++) { 
-    histToFile(itr->second, file, itr->first); 
+    itr->second.write_to(file, itr->first); 
   }
+  printf("writing jet1\n"); 
+  Group jet1(file.createGroup("/jet1")); 
+  m_jet1_hists->write_to(jet1); 
+  Group jet2(file.createGroup("/jet2")); 
+  m_jet2_hists->write_to(jet2); 
+  Group jet3(file.createGroup("/jet3")); 
+  m_jet3_hists->write_to(jet3); 
 }
 
 void HistBuilder::book_ptmet_histograms() { 
