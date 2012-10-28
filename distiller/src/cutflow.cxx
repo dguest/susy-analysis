@@ -15,6 +15,7 @@
 #include <streambuf>
 #include <cassert>
 #include <cstdlib>
+#include <cstdio>
 #include <map>
 #include "TChain.h"
 #include "TVector2.h"
@@ -101,42 +102,25 @@ run_cutflow(std::vector<std::string> files,
     branch_save.close(); 
   }
 
-
   // dump stdout from susytools init to /dev/null 
-  std::streambuf* old_out_stream = std::cout.rdbuf();
-  std::streambuf* old_err_stream = std::cerr.rdbuf();
   std::string out_file = "/dev/null"; 
   if (flags & cutflag::debug_susy) { 
     out_file = "susy-dbg.txt"; 
   }
   else { 
-    // set to ignore warnings 
     gErrorIgnoreLevel = kError;
-
-    // ROOT defines the following: 
-    // const Int_t kUnset    =  -1;
-    // const Int_t kPrint    =   0;
-    // const Int_t kInfo     =   1000;
-    // const Int_t kWarning  =   2000;
-    // const Int_t kError    =   3000;
-    // const Int_t kBreak    =   4000;
-    // const Int_t kSysError =   5000;
-    // const Int_t kFatal    =   6000;
   }
-  ofstream strCout(out_file.c_str());
-  std::cout.rdbuf( strCout.rdbuf() );
-  std::cerr.rdbuf( strCout.rdbuf() );
+  freopen(out_file.c_str(), "w", stdout); 
 
   def.initialize(flags & cutflag::is_data, flags & cutflag::is_atlfast); 
   if (flags & cutflag::no_jet_recal) { 
     def.SetJetCalib(false); 
   }
 
-
   // Restore old cout.
   if (flags & cutflag::verbose) { 
-    std::cerr.rdbuf( old_err_stream ); 
-    std::cout.rdbuf( old_out_stream );
+    fclose(stdout); 
+    freopen("/dev/tty","w",stdout); 
   }
 
   // --- output things ---
@@ -298,8 +282,8 @@ run_cutflow(std::vector<std::string> files,
   
   // restore cout if not already done
   if (!flags & cutflag::verbose) { 
-    std::cerr.rdbuf( old_err_stream ); 
-    std::cout.rdbuf( old_out_stream );
+    fclose(stdout); 
+    freopen("/dev/stdout","w",stdout); 
   }
 
 
@@ -467,6 +451,7 @@ int main(int narg, char* argv[])
   flags |= save_ratios; 
   flags |= raw_evt_info; 
   flags |= use_met_reffinal; 
+  flags |= verbose; 
 
   // run the main routine 
   typedef std::vector<std::pair<std::string, int> > CCOut; 
