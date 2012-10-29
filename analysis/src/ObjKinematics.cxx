@@ -35,11 +35,17 @@ void Jet1DHists::add_mask(unsigned bitmask, std::string name) {
 
 void Jet1DHists::write_to(H5::CommonFG& file, std::string stub, 
 			  std::string postfix) { 
-  m_pt->write_to(file, stub + "pt" + postfix);       
-  m_eta->write_to(file, stub + "eta" + postfix);      
-  m_phi->write_to(file, stub + "phi" + postfix);      
-  m_cnnLogCb->write_to(file, stub + "logCb" + postfix); 
-  m_cnnLogCu->write_to(file, stub + "logCu" + postfix);
+  using namespace H5;
+  Group pt(file.createGroup("pt")); 
+  m_pt->write_to(pt);       
+  Group eta(file.createGroup("eta")); 
+  m_eta->write_to(eta); 
+  Group phi(file.createGroup("phi")); 
+  m_phi->write_to(phi); 
+  Group logCb(file.createGroup("logCb")); 
+  m_cnnLogCb->write_to(logCb); 
+  Group logCu(file.createGroup("logCu")); 
+  m_cnnLogCu->write_to(logCu); 
 }
 void Jet1DHists::fill(const Jet& jet, const unsigned mask) { 
   m_pt->fill(jet.Pt(), mask); 

@@ -8,6 +8,7 @@
 class Jet; 
 class TTree;
 class TFile; 
+class TVector2; 
 
 namespace ioflag {
   const unsigned no_flavor = 1u << 0; 
@@ -34,7 +35,7 @@ public:
   void entry(int); 
   Jet jet(int) const; 
   std::vector<Jet> jets() const; 
-  double met() const; 
+  TVector2 met() const; 
   unsigned bits() const; 
   double dphi() const; 
   int n_good() const; 
@@ -45,6 +46,7 @@ private:
   TFile* m_file; 
   std::vector<JetBuffer*> m_jet_buffers; 
   double m_met; 
+  double m_met_phi; 
   unsigned m_bits; 
   double m_dphi; 
   int m_n_good; 

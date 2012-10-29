@@ -11,9 +11,9 @@ class Histogram;
 class MaskedHistArray; 
 class Axis; 
 class Jet1DHists; 
+class Jet; 
+class TVector2; 
 
-const double MeV = 1.0; 
-const double GeV = 1e3; 
 
 class HistBuilder : public boost::noncopyable
 {
@@ -24,25 +24,22 @@ public:
   void build(); 
   void save(std::string output = ""); 
 private: 
-  HistBuilder(const HistBuilder&); 
-  HistBuilder& operator=(const HistBuilder&); 
-  void book_ptmet_histograms(); 
-  void book_tobster_histograms(); 
-  void book_hist(std::string name, int bins, 
-		 double low, double high); 
-
-  void fill(std::string name, double); 
+  double get_mttop(const std::vector<Jet>& jets, TVector2 met); 
+  double get_mttop(const Jet& jet, TVector2 met); 
   typedef std::map<std::string, unsigned> CutMasks; 
-  typedef std::map<std::string, Histogram> HistByCut; 
+
   JetFactory* m_factory; 
   
   CutMasks m_cut_masks; 
-  HistByCut m_histograms; 
-  HistByCut m_h1; 
 
   Jet1DHists* m_jet1_hists; 
   Jet1DHists* m_jet2_hists; 
   Jet1DHists* m_jet3_hists; 
+
+  MaskedHistArray* m_met; 
+  MaskedHistArray* m_min_dphi; 
+  MaskedHistArray* m_j2_met_dphi; 
+  MaskedHistArray* m_mttop; 
 
 };
 

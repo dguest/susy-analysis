@@ -6,6 +6,7 @@
 #include <boost/format.hpp>
 
 #include "TLorentzVector.h"
+#include "TVector2.h"
 #include "TFile.h"
 #include "TTree.h"
 
@@ -21,6 +22,7 @@ JetFactory::JetFactory(std::string root_file, int n_jets)
   }
   int errors = 0; 
   errors += m_tree->SetBranchAddress("met",&m_met); 
+  errors += m_tree->SetBranchAddress("met_phi",&m_met_phi); 
   errors += m_tree->SetBranchAddress("pass_bits",&m_bits); 
   errors += m_tree->SetBranchAddress("min_jetmet_dphi", &m_dphi); 
   errors += m_tree->SetBranchAddress("n_good_jets", &m_n_good); 
@@ -57,7 +59,7 @@ Jet JetFactory::jet(int jet_number) const {
   // offset in the jet numbersing right now
   JetBuffer* the_buffer = m_jet_buffers.at(jet_number); 
   assert(the_buffer); 
-  if (the_buffer->pt < 0) { 
+  if (the_buffer->pt <= 0) { 
     throw std::range_error("asked for undefined jet"); 
   }
   return Jet(the_buffer, m_flags); 
@@ -66,7 +68,7 @@ std::vector<Jet> JetFactory::jets() const {
   std::vector<Jet> jets_out; 
   for (std::vector<JetBuffer*>::const_iterator 
 	 itr = m_jet_buffers.begin(); itr != m_jet_buffers.end(); itr++) { 
-    if ((*itr)->pt < 0) { 
+    if ((*itr)->pt <= 0) { 
       return jets_out; 
     }
     jets_out.push_back(Jet(*itr,m_flags)); 
@@ -74,7 +76,11 @@ std::vector<Jet> JetFactory::jets() const {
   return jets_out; 
 }
 
-double JetFactory::met()   const  { return m_met; }
+TVector2 JetFactory::met()   const  { 
+  TVector2 met; 
+  met.SetMagPhi(m_met, m_met_phi); 
+  return met; 
+}
 unsigned JetFactory::bits() const  { return m_bits; }
 double JetFactory::dphi()  const  { return m_dphi; }
 int JetFactory::n_good()   const  { return m_n_good; }
@@ -126,7 +132,7 @@ Jet::Jet(JetBuffer* basis, unsigned flags):
   m_truth_label(basis->flavor_truth_label), 
   m_flags(flags)
 {
-  SetPtEtaPhiE(basis->pt, basis->eta, basis->phi, 1); 
+  SetPtEtaPhiM(basis->pt, basis->eta, basis->phi, 0); 
 }
 double Jet::pb() const {req_flavor(); return m_pb; } 
 double Jet::pc() const {req_flavor(); return m_pc; } 
