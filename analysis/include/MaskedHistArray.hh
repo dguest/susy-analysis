@@ -33,7 +33,7 @@ template<typename T>
 void MaskedHistArray::fill(T values, const unsigned mask) { 
   for (Hists::iterator itr = m_hists.begin(); itr != m_hists.end(); itr++){ 
     const unsigned hist_mask = itr->first; 
-    if (hist_mask & mask == hist_mask) { 
+    if ( (hist_mask & mask) == hist_mask) { 
       itr->second.fill(values); 
     }
   }
