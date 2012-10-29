@@ -180,6 +180,8 @@ class NormedCutflow(object):
 
         if need_rebuild: 
             input_files = self.get_dataset(ds_key).files
+            if 'v' in flags: 
+                print '--- distilling {} ---'.format(ds_key)
             cut_counts = cutflow.cutflow(input_files, run_number, 
                                          flags=flags, 
                                          output_ntuple=output_ntuple)
@@ -203,8 +205,19 @@ class NormedCutflow(object):
                     ds_key, n_events, dataset.evts, frac_in_file - 1), 
                 stacklevel=2)
         
+        dataset.evts = n_events
+        
         int_xsec_per_evt = dataset.corrected_xsec() / float(n_events) * lumi
 
+        self._save_xsec_info(ds_key, int_xsec_per_evt)
+        dataset = self.get_dataset(ds_key)
+        self._save_dataset_meta(dataset)
+
+        normed_counts = [(n, c * int_xsec_per_evt) for n,c in cut_counts]
+
+        return normed_counts
+
+    def _save_xsec_info(self,ds_key, int_xsec_per_evt): 
         if self._output_ntuples_dir: 
             per_evt_pkl = 'x_sec_per_event.pkl'
             x_sec_pkl = os.path.join(self._output_ntuples_dir, per_evt_pkl) 
@@ -222,6 +235,22 @@ class NormedCutflow(object):
             with open(x_sec_pkl,'w') as pkl: 
                 cPickle.dump(per_evt_dic, pkl)
 
-        normed_counts = [(n, c * int_xsec_per_evt) for n,c in cut_counts]
+    def _save_dataset_meta(self,dataset): 
+        if self._output_ntuples_dir: 
+            meta_pkl = 'meta.pkl'
+            meta_path = os.path.join(self._output_ntuples_dir, meta_pkl)
+            if os.path.isfile(meta_path): 
+                with open(meta_path) as pkl: 
+                    meta_dict = cPickle.load(pkl)
+                if not isinstance(meta_dict, dict): 
+                    warnings.warn(
+                        '{} is corrupted, removing'.format(meta_dict))
+                    os.remove(meta_dict)
+                    meta_dict = {}
+            else: 
+                meta_dict = {}
+            
+            meta_dict[dataset.name] = dataset
+            with open(meta_path,'w') as pkl: 
+                cPickle.dump(meta_dict, pkl)
 
-        return normed_counts
