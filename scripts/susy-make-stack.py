@@ -1,7 +1,7 @@
 #!/usr/bin/env python2.7
 
 import os, re, glob, cPickle, sys, cProfile
-import collections
+import collections, warnings
 from stop.hists import Hist1d, Stack
 from stop.profile import build_profile
 import ConfigParser, argparse
@@ -49,28 +49,40 @@ def mev_to_gev(hist):
     hist.extent = tuple(e / 1e3 for e in hist.extent)
     hist.x_label = '{} [GeV]'.format(hist.x_label)
 
+def fix_signame(hist): 
+    finder = re.compile('directCC_([0-9]+)_([0-9]+)')
+    found = finder.search(hist.title)
+    if found: 
+        newname = 'Stop-{}-{}'.format(found.group(1), found.group(2))
+        hist.title = newname
+
 def combine_backgrounds(hists): 
 
     # list is to preserve ordering
     combined_list = []
     combined = {}
     crap_finder = re.compile('Np[0-9]+')
+    rep_groups = {
+        'Zlljets':'Zll', 
+        }
     finders = [
-        (r'$Z \to \nu \nu$ + jets', r'Znunu','orange'), 
-        (r'$W \to l \nu$ + jets', r'W(tau|e|mu)nu','green'), 
-        (r'$W \to q q$', r'W(c|b)','r'), 
-        (r'$Z \to \tau \tau$ + jets', r'Z(tau){2}','c'), 
-        (r'$t\bar{t}$',         r'ttbar_','b'),
+        (r'$Z \to \nu \nu$ + jets', 'Znunujets','orange'), 
+        (r'$Z \to ll$ + jets',      'Zll','c'), 
+        (r'$W \to l \nu$',          'Wlnu','green'), 
+        (r'$W$ + jets',             'Wjets','r'), 
+        (r'$t\bar{t}$',             'ttbar','b'),
         ]
     
     for h in hists: 
         hist_name = h.title
+
+        if h.group in rep_groups: 
+            h.group = rep_groups[h.group]
         fix_metpt_like(h)
         combined_name = crap_finder.split(hist_name)[0]
         color = 'b'
-        for rep, old, color_cand in finders: 
-            reg = re.compile(old)
-            if reg.findall(combined_name): 
+        for rep, group, color_cand in finders: 
+            if group in h.group: 
                 combined_name = rep
                 color = color_cand
         if combined_name != hist_name: 
@@ -94,18 +106,19 @@ def make_hist(all_hists, var, cut):
             used_hists[id_tuple[0]] = hist
 
     hists = []
-    for sample, (hist, extent) in used_hists.iteritems(): 
-        hists.append(Hist1d(hist, extent, x_label=var, title=sample))
+    for sample, hist in used_hists.iteritems(): 
+        hists.append(hist)
     # hists = sorted(hists)
     stack = Stack('stack')
     stack.ax.set_yscale('log')
     stack.y_min = 1.0
-    signal_hists = [x for x in hists if str(x).startswith('Stop')]
-    background_hists = [x for x in hists if not str(x).startswith('Stop')]
+    signal_hists = [x for x in hists if 'directCC' in x.title]
+    background_hists = [x for x in hists if not 'directCC' in x.title]
     combined_bkg = combine_backgrounds(background_hists)
     combined_bkg = sorted(combined_bkg)
     for sig in signal_hists: 
         fix_metpt_like(sig)
+        fix_signame(sig)
 
     stack.add_signals(signal_hists)
     stack.add_backgrounds(combined_bkg)
@@ -127,8 +140,9 @@ def get_variable_and_cut(hist_name):
 
 def select_signals(sample_list, signals = ['175-100']): 
     accepted = []
+    signals = [s.replace('-','_') for s in signals]
     for sample in sample_list: 
-        if not os.path.basename(sample).startswith('Stop'): 
+        if not 'directCC' in os.path.basename(sample):
             accepted.append(sample)
         else: 
             for signal in signals: 
@@ -148,6 +162,10 @@ def write_xsec_corrections(used_xsecs):
             record = '{:<30} {}\n'.format(name, scale)
             xsec_used.write(record)
 
+def fitr(f): 
+    for l in f: 
+        if not l.strip().startswith('#'): 
+            yield l.strip()
 
 
 def run_main(): 
@@ -177,7 +195,9 @@ def run_main():
         for f in distillates:
             base = os.path.basename(f)
             files_used.write('{}\n'.format(base))
-        
+
+    with open(file_config['grouping_file']) as grp: 
+        grouping = dict(f.split() for f in fitr(grp))
 
     norm_file = os.path.join(whisky_path, 'x_sec_per_event.pkl')
     with open(norm_file) as pkl: 
@@ -201,30 +221,37 @@ def run_main():
     used_xsecs = collections.defaultdict(lambda: 0)
     for histofile in h5s: 
         sample = sample_name_from_file(histofile)
+        if not sample in x_sec_dict: 
+            warnings.warn(
+                '{} is missing from scal file, skipping'.format(sample))
+            continue
         with h5py.File(histofile) as hist_file: 
             for hist in hist_file: 
                 h5_array = hist_file[hist]
                 extent = [h5_array.attrs[n] for n in ['xmin','xmax']]
                 var, cut = get_variable_and_cut(hist)
+                short_var = var.replace('met_vs_','')
+                if args.fast: 
+                    requirements = [
+                        cut == 'met_120', 
+                        short_var == 'jet1_pt', 
+                        ]
+                    if not all(requirements): 
+                        continue
+                    print 'found fast hist in {}'.format(histofile)
                 array = np.array(h5_array)
-                scale_name = sample_name_from_file(histofile)
-                scale_factor = x_sec_dict[scale_name]
+                scale_factor = x_sec_dict[sample]
                 array = array * scale_factor * lumi
                 total_area = array.sum() * scale_factor * lumi
-                used_xsecs[scale_name] = max(used_xsecs[scale_name],
+                used_xsecs[sample] = max(used_xsecs[sample],
                                              total_area)
                 reduced = np.add.reduce(array, axis=1)
-                short_var = var.replace('met_vs_','')
-                all_hists[(sample,short_var,cut)] = (reduced, extent)
+                group = grouping[sample]
+                hist = Hist1d(reduced, extent=extent, x_label=short_var, 
+                              title=sample, group=group)
+                all_hists[(sample,short_var,cut)] = hist
 
     write_xsec_corrections(used_xsecs)
-
-    if args.fast: 
-        fast_hists = {}
-        for (sample, short, cut), hist in all_hists.iteritems(): 
-            if cut == 'met_120' and short == 'jet1_pt': 
-                fast_hists[(sample,short,cut)] = hist
-        all_hists = fast_hists
 
     print_all_hists(all_hists)
 

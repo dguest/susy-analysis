@@ -8,13 +8,14 @@ class Hist1d(object):
     """
     
     def __init__(self, array, extent, 
-                 x_label = '', y_label = 'Jets', title=''): 
+                 x_label = '', y_label = 'Jets', title='', group = ''): 
         self._array = array
         self.extent = extent
         self.x_label = x_label
         self.y_label = y_label
         self.title = title
         self.color = ''
+        self.group = group
 
     def __float__(self): 
         return self._array.sum()
@@ -30,6 +31,10 @@ class Hist1d(object):
             raise ValueError(
                 'tried to add a hist with extent {} to one with'
                 ' extent {}'.format(self.extent, other.extent) )
+        if self.group != other.group: 
+            error = "tried to add {} in group {} to {} in group {}."
+            raise ValueError(error.format(self.title, self.group, 
+                                          other.title, other.group))
         sum_array = self._array + other._array
         new_y = self._zipstring(self.y_label, other.y_label)
         new_x = self._zipstring(self.x_label, other.x_label)
@@ -37,6 +42,7 @@ class Hist1d(object):
         new_hist = Hist1d(sum_array, self.extent, 
                           x_label=new_x, y_label=new_y, title=new_title)
         new_hist.color = self.color if self.color else other.color
+        new_hist.group = self.group
         return new_hist
     def _zipstring(self, one, two): 
         return ''.join(c for c, o in zip(one, two) if c == o)
