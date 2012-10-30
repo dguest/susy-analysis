@@ -66,7 +66,7 @@ PYLIB_OBJ   := $(GEN_OBJ) $(TOBJ)
 PY_OBJ       := _hyperstack.o
 PY_LIB       := ../python/stop/_hyperstack.so
 
-ALLOBJ       := $(GEN_OBJ) $(PY_OBJ)
+ALLOBJ       := $(GEN_OBJ) $(PY_OBJ) drink.o
 
 ALLOUTPUT    := drink $(PY_LIB)
 

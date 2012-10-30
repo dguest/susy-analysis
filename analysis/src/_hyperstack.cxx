@@ -7,6 +7,9 @@
 #include <stdexcept>
 
 #include "HistBuilder.hh"
+#include "HistBuilderFlags.hh"
+
+static unsigned parse_flags(const char* flags);
 
 static PyObject* py_stacksusy(PyObject *self, PyObject *args)
 {
@@ -20,8 +23,10 @@ static PyObject* py_stacksusy(PyObject *self, PyObject *args)
      &input_file, &bits, &output_file, &flags); 
   if (!ok) return NULL;
 
+  unsigned bitflags = parse_flags(flags); 
+
   try { 
-    HistBuilder hist_builder(input_file); 
+    HistBuilder hist_builder(input_file, bitflags); 
 
     const int n_bits = PyList_Size(bits); 
     if (PyErr_Occurred()) return NULL; 
@@ -61,4 +66,12 @@ extern "C" {
     Py_InitModule("_hyperstack", methods);
   }
 
+}
+
+
+static unsigned parse_flags(const char* flags){ 
+  using namespace buildflag; 
+  unsigned bitflags = 0; 
+  if(strchr(flags,'v')) bitflags |= verbose; 
+  return bitflags; 
 }

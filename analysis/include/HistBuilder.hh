@@ -18,7 +18,7 @@ class TVector2;
 class HistBuilder : public boost::noncopyable
 {
 public: 
-  HistBuilder(std::string input); 
+  HistBuilder(std::string input, const unsigned flags = 0); 
   ~HistBuilder(); 
   void add_cut_mask(std::string name, unsigned bits); 
   void build(); 
@@ -27,6 +27,8 @@ private:
   double get_mttop(const std::vector<Jet>& jets, TVector2 met); 
   double get_mttop(const Jet& jet, TVector2 met); 
   typedef std::map<std::string, unsigned> CutMasks; 
+
+  const unsigned m_flags; 
 
   JetFactory* m_factory; 
   

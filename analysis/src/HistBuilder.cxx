@@ -1,4 +1,5 @@
 #include "HistBuilder.hh" 
+#include "HistBuilderFlags.hh"
 #include "JetFactory.hh"
 #include "Histogram.hh"
 #include "ObjKinematics.hh"
@@ -11,10 +12,13 @@
 #include <boost/format.hpp>
 #include <algorithm>
 #include <iostream> 
+#include <ostream>
+#include <fstream>
 
 #include "TVector2.h"
 
-HistBuilder::HistBuilder(std::string input)
+HistBuilder::HistBuilder(std::string input, const unsigned flags): 
+  m_flags(flags)
 { 
   m_factory = new JetFactory(input); 
   
@@ -63,8 +67,24 @@ void HistBuilder::add_cut_mask(std::string name, unsigned bits)
 void HistBuilder::build() { 
 
   typedef std::vector<Jet> Jets; 
-  int n_entries = m_factory->entries(); 
+  const int n_entries = m_factory->entries(); 
+  const int one_percent = n_entries / 100; 
+
+  std::ofstream nullstream("/dev/null"); 
+  std::streambuf* out_buffer = nullstream.rdbuf(); 
+  if (m_flags & buildflag::verbose) { 
+    out_buffer = std::cout.rdbuf(); 
+  }
+  std::ostream outstream(out_buffer); 
+
   for (int entry = 0; entry < n_entries; entry++) { 
+
+    if (entry % one_percent == 0 || entry == n_entries - 1 ) { 
+      outstream << boost::format("\r%i of %i (%.1f%%) processed") % 
+	entry % n_entries % ( entry / one_percent); 
+      outstream.flush(); 
+    }
+
     m_factory->entry(entry); 
     const Jets jets = m_factory->jets(); 
     const unsigned mask = m_factory->bits(); 
@@ -99,6 +119,7 @@ void HistBuilder::build() {
     }
 
   }
+  outstream << std::endl;
 
 }
 
