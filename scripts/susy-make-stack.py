@@ -46,6 +46,7 @@ def print_all_hists(all_hists):
     for cut in cuts: 
         # assert cut in cut_bits, cut
         for var in variables: 
+            print 'printing {} {}'.format(var, cut)
             make_hist(all_hists, var, cut)
 
 def fix_metpt_like(hist): 
@@ -147,7 +148,7 @@ def make_hist(all_hists, var, cut):
     if not os.path.isdir('plots'): 
         os.mkdir('plots')
 
-    for ext in ['pdf','png']: 
+    for ext in ['png']: 
         stack.save('plots/stack_{var}_cut_{cut}.{ext}'.format(
                 var=var, cut=cut, ext=ext))
 
@@ -248,7 +249,10 @@ def run_main():
 
     all_hists = {}
     used_xsecs = collections.defaultdict(lambda: 0)
-    for histofile in h5s: 
+    for number, histofile in enumerate(h5s): 
+        sys.stdout.write(
+            '\rloading files ({} of {})'.format(number + 1, len(h5s)))
+        sys.stdout.flush()
         sample = sample_name_from_file(histofile)
         if not sample in x_sec_dict: 
             warnings.warn(
@@ -277,7 +281,9 @@ def run_main():
                 all_hists[(sample,short_var,cut)] = hist
 
     write_xsec_corrections(used_xsecs)
+    print ''
 
+    
     print_all_hists(all_hists)
 
         
