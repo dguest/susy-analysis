@@ -112,7 +112,8 @@ void HistBuilder::build() {
 
     double min_jetmet_dphi = 10; 
     for (Jets::const_iterator itr = jets.begin(); itr != jets.end(); itr++) { 
-      min_jetmet_dphi = std::min(min_jetmet_dphi, met4.DeltaPhi(*itr)); 
+      min_jetmet_dphi = std::min(min_jetmet_dphi, 
+				 fabs(met4.DeltaPhi(*itr))); 
     }
     m_min_dphi->fill(min_jetmet_dphi, mask); 
 
