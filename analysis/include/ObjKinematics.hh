@@ -22,7 +22,6 @@ public:
 private: 
   MaskedHistArray* m_pt; 
   MaskedHistArray* m_eta; 
-  MaskedHistArray* m_phi; 
   MaskedHistArray* m_cnnLogCb; 
   MaskedHistArray* m_cnnLogCu; 
 }; 

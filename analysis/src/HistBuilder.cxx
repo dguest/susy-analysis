@@ -59,6 +59,7 @@ void HistBuilder::add_cut_mask(std::string name, unsigned bits)
   m_jet2_hists->add_mask(bits, name); 
   m_jet3_hists->add_mask(bits, name); 
 
+  m_met->add_mask(bits, name); 
   m_min_dphi->add_mask(bits, name); 
   m_j2_met_dphi->add_mask(bits, name); 
   m_mttop->add_mask(bits, name); 
