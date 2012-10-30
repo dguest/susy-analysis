@@ -104,20 +104,17 @@ void HistBuilder::build() {
       m_j2_met_dphi->fill(fabs(dphi), mask); 
     }
     if (jets.size() >= 3) { 
-      double min_dphi = M_PI; 
       m_jet3_hists->fill(jets.at(2), mask); 
-      for (Jets::const_iterator itr = jets.begin(); 
-	   itr != jets.begin() + 3; itr++){ 
-	assert(itr->Vect().Mag()); 
-	assert(met4.Vect().Mag()); 
-	double dphi = met4.DeltaPhi(*itr); 
-	min_dphi = std::min(min_dphi, dphi); 
-      }
-      m_min_dphi->fill(min_dphi, mask); 
       double mttop = get_mttop(std::vector<Jet>(jets.begin(), 
 						jets.begin() + 3), met); 
       m_mttop->fill(mttop, mask); 
     }
+
+    double min_jetmet_dphi = 10; 
+    for (Jets::const_iterator itr = jets.begin(); itr != jets.end(); itr++) { 
+      min_jetmet_dphi = std::min(min_jetmet_dphi, met4.DeltaPhi(*itr)); 
+    }
+    m_min_dphi->fill(min_jetmet_dphi, mask); 
 
   }
   outstream << std::endl;

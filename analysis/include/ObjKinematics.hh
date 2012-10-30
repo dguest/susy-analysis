@@ -24,6 +24,7 @@ private:
   MaskedHistArray* m_eta; 
   MaskedHistArray* m_cnnLogCb; 
   MaskedHistArray* m_cnnLogCu; 
+  MaskedHistArray* m_cnnLogBu; 
 }; 
 
 #endif
