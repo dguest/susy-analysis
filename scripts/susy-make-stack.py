@@ -90,8 +90,8 @@ def combine_backgrounds(hists):
     finders = [
         (r'$Z \to \nu \nu$ + jets', 'Znunujets','orange'), 
         (r'$Z \to ll$ + jets',      'Zll','c'), 
-        (r'$W \to l \nu$',          'Wlnu','green'), 
-        (r'$W$ + jets',             'Wjets','r'), 
+        (r'$W \to l \nu$ + jets',   'Wlnu','red'), 
+        (r'$W$ + jets',             'Wjets','green'), 
         (r'$t\bar{t}$',             'ttbar','b'),
         ]
     
