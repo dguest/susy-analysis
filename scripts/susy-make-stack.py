@@ -50,9 +50,11 @@ def print_all_hists(all_hists):
 
 def fix_metpt_like(hist): 
     lab = hist.x_label
+    lab_first = lab.split('_')[0]
     triggers = [
-        'met' in lab and not 'jetmet' in lab, 
-        '_pt' in lab
+        lab_first == 'met', 
+        '_pt' in lab, 
+        lab_first == 'mttop'
         ]
     if any(triggers): 
         bin_sparse_vars(hist)
@@ -82,6 +84,7 @@ def combine_backgrounds(hists):
     crap_finder = re.compile('Np[0-9]+')
     rep_groups = {
         'Zlljets':'Zll', 
+        'Wjets':'Wlnu'
         }
     finders = [
         (r'$Z \to \nu \nu$ + jets', 'Znunujets','orange'), 
