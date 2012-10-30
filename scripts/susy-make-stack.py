@@ -4,6 +4,7 @@ import os, re, glob, cPickle, sys, cProfile
 import collections, warnings
 from stop.hists import Hist1d, Stack
 from stop.profile import build_profile
+from stop import hyperstack
 import ConfigParser, argparse
 from hdroot import hd_from_root
 import h5py

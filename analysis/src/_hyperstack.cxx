@@ -6,20 +6,36 @@
 // #include <map>
 #include <stdexcept>
 
-// #include "cutflow.hh"
-// #include "CutBits.hh"
-// #include "RunInfo.hh"
+#include "HistBuilder.hh"
 
-static PyObject* py_hist_from_whiskey(PyObject *self, 
-				      PyObject *args)
+static PyObject* py_stacksusy(PyObject *self, PyObject *args)
 {
   const char* input_file = ""; 
+  PyObject* bits = 0; 
+  const char* output_file = ""; 
+  const char* flags = ""; 
 
-  bool ok = PyArg_ParseTuple(args,"s:hist_from_whiskey", &input_file); 
+  bool ok = PyArg_ParseTuple
+    (args,"sOs|s:stacksusy", 
+     &input_file, &bits, &output_file, &flags); 
   if (!ok) return NULL;
 
   try { 
-    printf(input_file); 
+    HistBuilder hist_builder(input_file); 
+
+    const int n_bits = PyList_Size(bits); 
+    if (PyErr_Occurred()) return NULL; 
+    for (int bit_n = 0; bit_n < n_bits; bit_n++) { 
+      PyObject* entry = PyList_GetItem(bits, bit_n); 
+      const char* name = ""; 
+      unsigned mask = 0; 
+      ok = PyArg_ParseTuple(entry, "sk:parsemask", &name, &mask); 
+      if (!ok) return NULL; 
+      hist_builder.add_cut_mask(name, mask); 
+    }
+    
+    hist_builder.build(); 
+    hist_builder.save(output_file); 
   }
   catch (std::runtime_error e) { 
     PyErr_SetString(PyExc_RuntimeError, e.what()); 
@@ -33,16 +49,16 @@ static PyObject* py_hist_from_whiskey(PyObject *self,
 }
 
 static PyMethodDef methods[] = {
-  {"_hist_from_whiskey", py_hist_from_whiskey, METH_VARARGS, 
+  {"_stacksusy", py_stacksusy, METH_VARARGS, 
    "don't ask, read the source"},
   {NULL, NULL, 0, NULL}   /* sentinel */
 };
 
 extern "C" { 
 
-  PyMODINIT_FUNC init_hist_from_whiskey(void)
+  PyMODINIT_FUNC init_hyperstack(void)
   {
-    Py_InitModule("_hist_from_whiskey", methods);
+    Py_InitModule("_hyperstack", methods);
   }
 
 }
