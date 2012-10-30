@@ -63,8 +63,8 @@ GEN_OBJ     := HistBuilder.o MaskedHistArray.o ObjKinematics.o
 EXE_OBJ     := $(GEN_OBJ) $(TOBJ) drink.o
 PYLIB_OBJ   := $(GEN_OBJ) $(TOBJ)
 
-PY_OBJ       := _hist_from_whiskey.o
-PY_LIB       := ../python/stop/_hist_from_whiskey.so
+PY_OBJ       := _hyperstack.o
+PY_LIB       := ../python/stop/_hyperstack.so
 
 ALLOBJ       := $(GEN_OBJ) $(PY_OBJ)
 
