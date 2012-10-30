@@ -3,17 +3,34 @@
 import os, re, glob, cPickle, sys, cProfile
 import collections, warnings
 from stop.hists import Hist1d, Stack
-from stop.profile import build_profile
+from stop.profile import build_profile, cum_cuts
 from stop import hyperstack
 import ConfigParser, argparse
 from hdroot import hd_from_root
 import h5py
 import numpy as np
 
+def build_hists(root_file, put_where='cache'): 
+    out_file_name = '{}_hists.h5'.format(os.path.splitext(root_file)[0])
+    out_file_name = os.path.join(put_where,os.path.basename(out_file_name))
+
+    if not os.path.isdir(put_where): 
+        os.mkdir(put_where)
+
+    if os.path.isfile(out_file_name): 
+        return out_file_name
+
+    print 'making {}'.format(os.path.basename(out_file_name))
+
+    cuts = cum_cuts()
+    out_file = hyperstack.stacksusy(root_file, mask_list=cuts, 
+                                    output_file=out_file_name, 
+                                    flags='v')
+    return out_file
 
 def sample_name_from_file(file_name): 
     parts = os.path.splitext(os.path.basename(file_name))[0].split('_')
-    if parts[-1] == 'pro2': 
+    if parts[-1] == 'hists': 
         return '_'.join(parts[:-1])
     else: 
         return '_'.join(parts)
@@ -168,6 +185,19 @@ def fitr(f):
         if not l.strip().startswith('#'): 
             yield l.strip()
 
+def hist_itr(f): 
+    """
+    Traverses an HDF5 file, yields (var, cut, array) tuples
+    """
+    for name, entry in f.iteritems(): 
+        if name.startswith('jet'): 
+            for var, cut, array in hist_itr(entry): 
+                yield '{}_{}'.format(name,var), cut, array
+
+        else: 
+            for cut, array in entry.iteritems(): 
+                yield name, cut, array
+
 
 def run_main(): 
     parser = argparse.ArgumentParser(
@@ -210,12 +240,7 @@ def run_main():
 
     h5s = []
     for f in distillates: 
-        profile_pth = build_profile(f)
-        stem = os.path.splitext(profile_pth)[0]
-        h5_name = '{}.h5'.format(stem)
-        if not os.path.isfile(h5_name): 
-            success, failure = hd_from_root(profile_pth)
-            assert not failure, 'conversion fail {}'.format(failure)
+        h5_name = build_hists(f)
         h5s.append(h5_name)
 
     all_hists = {}
@@ -227,11 +252,8 @@ def run_main():
                 '{} is missing from scal file, skipping'.format(sample))
             continue
         with h5py.File(histofile) as hist_file: 
-            for hist in hist_file: 
-                h5_array = hist_file[hist]
-                extent = [h5_array.attrs[n] for n in ['xmin','xmax']]
-                var, cut = get_variable_and_cut(hist)
-                short_var = var.replace('met_vs_','')
+            for short_var, cut, h5_array in hist_itr(hist_file): 
+                extent = [h5_array.attrs[n] for n in ['x_min','x_max']]
                 if args.fast: 
                     requirements = [
                         cut == 'met_120', 
@@ -246,9 +268,8 @@ def run_main():
                 total_area = array.sum() * scale_factor * lumi
                 used_xsecs[sample] = max(used_xsecs[sample],
                                              total_area)
-                reduced = np.add.reduce(array, axis=1)
                 group = grouping[sample]
-                hist = Hist1d(reduced, extent=extent, x_label=short_var, 
+                hist = Hist1d(array, extent=extent, x_label=short_var, 
                               title=sample, group=group)
                 all_hists[(sample,short_var,cut)] = hist
 
