@@ -31,6 +31,7 @@ private:
   MaskedHistArray* m_bottom_pt; 
   MaskedHistArray* m_charm_pt; 
   MaskedHistArray* m_light_pt; 
+  MaskedHistArray* m_tau_pt; 
   MaskedHistArray* m_other_pt; 
 }; 
 

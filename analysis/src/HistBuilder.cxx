@@ -32,6 +32,11 @@ HistBuilder::HistBuilder(std::string input, const unsigned flags):
   m_mttop = new MaskedHistArray(Histogram(100, 0.0, 1e3*GeV)); 
   m_n_good_jets = new MaskedHistArray(Histogram(11, -0.5, 10.5)); 
 
+  if (flags & buildflag::fill_truth) { 
+    m_leading_cjet_rank = new MaskedHistArray(Histogram(6, -0.5, 5.5)); 
+    m_subleading_cjet_rank = new MaskedHistArray(Histogram(6, -0.5, 5.5)); 
+  }
+
 }
 
 HistBuilder::~HistBuilder() { 
@@ -47,6 +52,9 @@ HistBuilder::~HistBuilder() {
   delete m_j2_met_dphi; 
   delete m_mttop; 
   delete m_n_good_jets; 
+
+  delete m_leading_cjet_rank; 
+  delete m_subleading_cjet_rank; 
 }
 
 void HistBuilder::add_cut_mask(std::string name, unsigned bits)
@@ -65,6 +73,9 @@ void HistBuilder::add_cut_mask(std::string name, unsigned bits)
   m_j2_met_dphi->add_mask(bits, name); 
   m_mttop->add_mask(bits, name); 
   m_n_good_jets->add_mask(bits, name); 
+
+  m_leading_cjet_rank->add_mask(bits, name); 
+  m_subleading_cjet_rank->add_mask(bits, name); 
 }
 
 void HistBuilder::build() { 
@@ -120,10 +131,33 @@ void HistBuilder::build() {
     m_min_dphi->fill(min_jetmet_dphi, mask); 
     
     m_n_good_jets->fill(m_factory->n_good(), mask); 
+    if (m_leading_cjet_rank) { 
+      fill_truth_hists(jets, mask); 
+    }
 
   }
   outstream << std::endl;
 
+}
+
+void HistBuilder::fill_truth_hists(const std::vector<Jet>& jets, 
+				   const unsigned mask) { 
+  int leading_pos = -1; 
+  int subleading_pos = -1; 
+  for (unsigned jet_pos = 0; jet_pos < jets.size(); jet_pos++) { 
+    const Jet& jet = jets.at(jet_pos); 
+    if (jet.flavor_truth_label() == CHARM) { 
+      if (leading_pos == -1) { 
+	leading_pos = jet_pos; 
+      }
+      else if (subleading_pos == -1){ 
+	subleading_pos = jet_pos; 
+	break; 
+      }
+    } // end charm check
+  } // end jet loop
+  m_leading_cjet_rank->fill(leading_pos, mask); 
+  m_subleading_cjet_rank->fill(subleading_pos, mask); 
 }
 
 void HistBuilder::save(std::string output) { 
@@ -151,6 +185,14 @@ void HistBuilder::save(std::string output) {
 
   Group nGoodJets(file.createGroup("/nGoodJets")); 
   m_n_good_jets->write_to(nGoodJets); 
+
+  if (m_leading_cjet_rank) { 
+    Group truth(file.createGroup("/truth")); 
+    Group leadingCJet(truth.createGroup("leadingCJet")); 
+    m_leading_cjet_rank->write_to(leadingCJet); 
+    Group subleadingCJet(truth.createGroup("subleadingCJet")); 
+    m_subleading_cjet_rank->write_to(subleadingCJet); 
+  }
 
 }
 

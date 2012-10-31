@@ -26,6 +26,7 @@ public:
 private: 
   double get_mttop(const std::vector<Jet>& jets, TVector2 met); 
   double get_mttop(const Jet& jet, TVector2 met); 
+  void fill_truth_hists(const std::vector<Jet>& jets, const unsigned mask); 
   typedef std::map<std::string, unsigned> CutMasks; 
 
   const unsigned m_flags; 
@@ -43,6 +44,9 @@ private:
   MaskedHistArray* m_j2_met_dphi; 
   MaskedHistArray* m_mttop; 
   MaskedHistArray* m_n_good_jets; 
+
+  MaskedHistArray* m_leading_cjet_rank; 
+  MaskedHistArray* m_subleading_cjet_rank; 
 
 };
 

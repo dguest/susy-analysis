@@ -3,6 +3,7 @@
 #include "Histogram.hh"
 #include "MaskedHistArray.hh"
 #include "HistBuilderFlags.hh"
+#include "PhysicalConstants.hh"
 #include "H5Cpp.h"
 
 #include <string> 
@@ -23,10 +24,11 @@ Jet1DHists::Jet1DHists(double max_pt, const unsigned flags) :
   m_cnnLogBu = new MaskedHistArray(Histogram(100, -10, 10)); 
 
   if (flags & buildflag::fill_truth) { 
-    m_truth_label = new MaskedHistArray(Histogram(7, -0.5, 6.5)); 
+    m_truth_label = new MaskedHistArray(Histogram(21, -0.5, 20.5)); 
     m_bottom_pt = new MaskedHistArray(Histogram(100, 0, max_pt)); 
     m_charm_pt = new MaskedHistArray(Histogram(100, 0, max_pt)); 
     m_light_pt = new MaskedHistArray(Histogram(100, 0, max_pt)); 
+    m_tau_pt = new MaskedHistArray(Histogram(100, 0, max_pt)); 
     m_other_pt = new MaskedHistArray(Histogram(100, 0, max_pt)); 
   }
 }
@@ -37,6 +39,14 @@ Jet1DHists::~Jet1DHists()
   delete m_cnnLogCb; 
   delete m_cnnLogCu; 
   delete m_cnnLogBu;
+
+  delete m_truth_label; 
+  delete m_bottom_pt; 
+  delete m_charm_pt; 
+  delete m_light_pt; 
+  delete m_tau_pt; 
+  delete m_other_pt; 
+
 }
 
 void Jet1DHists::add_mask(unsigned bitmask, std::string name) { 
@@ -51,6 +61,7 @@ void Jet1DHists::add_mask(unsigned bitmask, std::string name) {
     m_bottom_pt->add_mask(bitmask, name); 
     m_charm_pt->add_mask(bitmask, name); 
     m_light_pt->add_mask(bitmask, name); 
+    m_tau_pt->add_mask(bitmask, name); 
     m_other_pt->add_mask(bitmask, name); 
   }
 } 
@@ -89,7 +100,10 @@ void Jet1DHists::write_truth_info(H5::CommonFG& truth){
   m_charm_pt->write_to(charm); 
   Group light(pt.createGroup("light")); 
   m_light_pt->write_to(light); 
+  Group tau(pt.createGroup("tau")); 
+  m_tau_pt->write_to(tau); 
   Group other(pt.createGroup("other")); 
+  m_other_pt->write_to(other); 
 }
 
 void Jet1DHists::fill(const Jet& jet, const unsigned mask) { 
@@ -101,16 +115,20 @@ void Jet1DHists::fill(const Jet& jet, const unsigned mask) {
 
   if (m_truth_label) { 
     int label = jet.flavor_truth_label(); 
+    m_truth_label->fill(label, mask); 
     double pt = jet.Pt(); 
     switch (label) { 
-    case 4:
+    case CHARM:
       m_charm_pt->fill(pt, mask); 
       break; 
-    case 5: 
+    case BOTTOM: 
       m_bottom_pt->fill(pt, mask); 
       break; 
-    case 1: 
+    case LIGHT: 
       m_light_pt->fill(pt, mask); 
+      break; 
+    case TAU: 
+      m_tau_pt->fill(pt, mask); 
       break; 
     default: 
       m_other_pt->fill(pt, mask); 
