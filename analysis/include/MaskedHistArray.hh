@@ -19,6 +19,7 @@ public:
   void add_mask(unsigned bitmask, std::string name = ""); 
   template<typename T> void fill(T values, const unsigned mask); 
   std::map<std::string,Histogram> get_hists() const; 
+  void set_physics_tag(std::string tag); 
   void write_to(H5::CommonFG& out_file, std::string stub = "") const; 
 private: 
   bool has_bit(unsigned) const; 
@@ -27,6 +28,7 @@ private:
   Hists m_hists; 
   typedef std::map<unsigned, std::string> Names;
   Names m_bit_to_name; 
+  std::string m_physics_tag; 
 }; 
 
 template<typename T>

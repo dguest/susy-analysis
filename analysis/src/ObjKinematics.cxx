@@ -59,10 +59,15 @@ void Jet1DHists::add_mask(unsigned bitmask, std::string name) {
   if (m_truth_label) { 
     m_truth_label->add_mask(bitmask, name); 
     m_bottom_pt->add_mask(bitmask, name); 
+    m_bottom_pt->set_physics_tag("bottom"); 
     m_charm_pt->add_mask(bitmask, name); 
+    m_charm_pt->set_physics_tag("charm"); 
     m_light_pt->add_mask(bitmask, name); 
-    m_tau_pt->add_mask(bitmask, name); 
+    m_light_pt->set_physics_tag("light"); 
+    m_tau_pt->add_mask(bitmask, name);
+    m_tau_pt->set_physics_tag("tau"); 
     m_other_pt->add_mask(bitmask, name); 
+    m_other_pt->set_physics_tag("other"); 
   }
 } 
 

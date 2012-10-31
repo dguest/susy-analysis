@@ -9,7 +9,8 @@
 #include <cassert> 
 
 MaskedHistArray::MaskedHistArray(const Histogram& base_hist): 
-  m_base_hist(base_hist) 
+  m_base_hist(base_hist), 
+  m_physics_tag("")
 {
 }
 
@@ -32,6 +33,11 @@ std::map<std::string, Histogram> MaskedHistArray::get_hists() const
   return return_map; 
 }
 
+void MaskedHistArray::set_physics_tag(std::string tag) { 
+  assert(m_physics_tag.size() == 0); 
+  m_physics_tag = tag; 
+}
+
 void MaskedHistArray::write_to(H5::CommonFG& out_file, std::string stub) 
   const { 
   for (Hists::const_iterator hist_itr = m_hists.begin(); 
@@ -40,6 +46,14 @@ void MaskedHistArray::write_to(H5::CommonFG& out_file, std::string stub)
     assert(has_bit(hist_itr->first)); 
     name.append(m_bit_to_name.find(hist_itr->first)->second); 
     hist_itr->second.write_to(out_file, name); 
+    if (m_physics_tag.size()) { 
+      using namespace H5; 
+      DataSet the_ds = out_file.openDataSet(name); 
+      StrType vls_type(0, H5T_VARIABLE);
+      DataSpace att_space(H5S_SCALAR);
+      Attribute tag = the_ds.createAttribute("tag", vls_type, att_space); 
+      tag.write(vls_type, &m_physics_tag); 
+    }
   }
 }
 
