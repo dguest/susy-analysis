@@ -36,7 +36,7 @@ def sample_name_from_file(file_name):
         return '_'.join(parts)
 
 def print_all_hists(all_hists): 
-    samplist, varlist, cutlist = zip(*all_hists.keys())
+    samplist, varlist, cutlist, grouplist = zip(*all_hists.keys())
     samples = sorted(set(samplist))
     variables = sorted(set(varlist))
     cuts = set(filter(None,cutlist))
@@ -93,6 +93,13 @@ def combine_backgrounds(hists):
         (r'$W \to l \nu$ + jets',   'Wlnu','red'), 
         (r'$W$ + jets',             'Wjets','green'), 
         (r'$t\bar{t}$',             'ttbar','b'),
+
+        ('charm','charm','g'), 
+        ('bottom','bottom','red'), 
+        ('light','light','blue'), 
+        ('tau','tau','orange'), 
+        ('other','other','pink'), 
+        
         ]
     
     for h in hists: 
@@ -122,15 +129,11 @@ def combine_backgrounds(hists):
         yield combined[name]
 
 def make_hist(all_hists, var, cut): 
-    used_hists = {}
+    hists = []
     for id_tuple, hist in all_hists.iteritems(): 
         if id_tuple[1] == var and id_tuple[2] == cut: 
-            used_hists[id_tuple[0]] = hist
+            hists.append(hist)
 
-    hists = []
-    for sample, hist in used_hists.iteritems(): 
-        hists.append(hist)
-    # hists = sorted(hists)
     stack = Stack('stack')
     stack.ax.set_yscale('log')
     stack.y_min = 1.0
@@ -189,21 +192,37 @@ def fitr(f):
         if not l.strip().startswith('#'): 
             yield l.strip()
 
-def hist_itr(f): 
+def hist_itr(f, truth_type='all'): 
     """
-    Traverses an HDF5 file, yields (var, cut, array) tuples
+    Traverses an HDF5 file, yields (var, cut, group, array) tuples
     """
     for name, entry in f.iteritems(): 
         if name.startswith('jet'):
-            for var, cut, array in hist_itr(entry): 
-                yield '{}_{}'.format(name,var), cut, array
+            for var, cut, array in hist_itr(entry, use_truth): 
+                yield '{}_{}'.format(name,var), cut, truth_type, array
 
-        elif name == 'truth': 
+        elif name == 'truth' and truth_type != 'all': 
             continue
         else: 
             for cut, array in entry.iteritems(): 
-                yield name, cut, array
+                yield name, cut, truth_type, array
 
+def remove_from_name(name, rm): 
+    splname = name.split('_')
+    splname.remove(rm)
+    return '_'.join(splname)    
+
+def hist_iter(f, parent=''): 
+    for name, entry in f.iteritems(): 
+        if type(entry) == h5py.Group: 
+            if parent: 
+                new_parent = '_'.join([parent, name])
+            else: 
+                new_parent = name
+            for subname, cut, array in hist_iter(entry, parent=new_parent): 
+                yield subname, cut, array
+        else: 
+            yield parent, name, entry
 
 def run_main(): 
     parser = argparse.ArgumentParser(
@@ -249,6 +268,8 @@ def run_main():
         h5_name = build_hists(f)
         h5s.append(h5_name)
 
+    do_truth = False
+
     all_hists = {}
     used_xsecs = collections.defaultdict(lambda: 0)
     for number, histofile in enumerate(h5s): 
@@ -261,8 +282,21 @@ def run_main():
                 '{} is missing from scal file, skipping'.format(sample))
             continue
         with h5py.File(histofile) as hist_file: 
-            for short_var, cut, h5_array in hist_itr(hist_file): 
+            for short_var, cut, h5_array in hist_iter(hist_file): 
                 extent = [h5_array.attrs[n] for n in ['x_min','x_max']]
+
+                group = 'all'
+                tagged = 'tag' in h5_array.attrs
+                if do_truth:
+                    if not tagged: 
+                        continue
+                    else: 
+                        group = h5_array.attrs['tag']
+                        short_var = remove_from_name(short_var,group)
+                else: 
+                    if tagged: 
+                        continue
+          
                 if args.fast: 
                     requirements = [
                         cut == 'met_120', 
@@ -277,10 +311,14 @@ def run_main():
                 total_area = array.sum() * scale_factor * lumi
                 used_xsecs[sample] = max(used_xsecs[sample],
                                              total_area)
-                group = grouping[sample]
+                if group == 'all': 
+                    group = grouping[sample]
+                elif 'directCC' in sample: 
+                    continue
+                    
                 hist = Hist1d(array, extent=extent, x_label=short_var, 
                               title=sample, group=group)
-                all_hists[(sample,short_var,cut)] = hist
+                all_hists[(sample,short_var,cut,group)] = hist
 
     write_xsec_corrections(used_xsecs)
     print ''
