@@ -30,7 +30,7 @@ HistBuilder::HistBuilder(std::string input, const unsigned flags):
   m_min_dphi = new MaskedHistArray(Histogram(100, 0.0, M_PI)); 
   m_j2_met_dphi = new MaskedHistArray(Histogram(100, 0.0, M_PI)); 
   m_mttop = new MaskedHistArray(Histogram(100, 0.0, 1e3*GeV)); 
-
+  m_n_good_jets = new MaskedHistArray(Histogram(11, -0.5, 10.5)); 
 
 }
 
@@ -46,6 +46,7 @@ HistBuilder::~HistBuilder() {
   delete m_min_dphi; 
   delete m_j2_met_dphi; 
   delete m_mttop; 
+  delete m_n_good_jets; 
 }
 
 void HistBuilder::add_cut_mask(std::string name, unsigned bits)
@@ -63,6 +64,7 @@ void HistBuilder::add_cut_mask(std::string name, unsigned bits)
   m_min_dphi->add_mask(bits, name); 
   m_j2_met_dphi->add_mask(bits, name); 
   m_mttop->add_mask(bits, name); 
+  m_n_good_jets->add_mask(bits, name); 
 }
 
 void HistBuilder::build() { 
@@ -116,6 +118,8 @@ void HistBuilder::build() {
 				 fabs(met4.DeltaPhi(*itr))); 
     }
     m_min_dphi->fill(min_jetmet_dphi, mask); 
+    
+    m_n_good_jets->fill(m_factory->n_good(), mask); 
 
   }
   outstream << std::endl;
@@ -138,12 +142,15 @@ void HistBuilder::save(std::string output) {
 
   Group met(file.createGroup("/met")); 
   m_met->write_to(met);
-  Group min_dphi(file.createGroup("/min_dphi")); 
+  Group min_dphi(file.createGroup("/minDphi")); 
   m_min_dphi->write_to(min_dphi); 
-  Group j2_met_dphi(file.createGroup("/j2_met_dphi")); 
+  Group j2_met_dphi(file.createGroup("/j2MetDphi")); 
   m_j2_met_dphi->write_to(j2_met_dphi); 
   Group mttop(file.createGroup("/mttop")); 
   m_mttop->write_to(mttop); 
+
+  Group nGoodJets(file.createGroup("/nGoodJets")); 
+  m_n_good_jets->write_to(nGoodJets); 
 
 }
 
