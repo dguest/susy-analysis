@@ -194,13 +194,14 @@ def hist_itr(f):
     Traverses an HDF5 file, yields (var, cut, array) tuples
     """
     for name, entry in f.iteritems(): 
-        if name.startswith('jet'): 
+        if name.startswith('jet'):
             for var, cut, array in hist_itr(entry): 
                 yield '{}_{}'.format(name,var), cut, array
 
+        elif name == 'truth': 
+            continue
         else: 
             for cut, array in entry.iteritems(): 
-                if cut == 'truth': continue
                 yield name, cut, array
 
 
