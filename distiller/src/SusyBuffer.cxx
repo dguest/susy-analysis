@@ -22,9 +22,12 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, unsigned br, BranchNames names)
   fChain->SetBranchStatus("*",0); 
 
   fChain->SetBranchAddress("RunNumber", &RunNumber, true);  
+  fChain->SetBranchAddress("EventNumber", &EventNumber, true); 
 
   fChain->SetBranchAddress(names.trigger.c_str(), &trigger, true); 
   fChain->SetBranchAddress("coreFlags", &coreFlags, true); 
+  
+  fChain->SetBranchAddress("top_hfor_type", &hfor_type, true); 
 
   fChain->SetBranchAddress(jc + "_jvtxf", 
 			   &jet_jvtxf, true); 

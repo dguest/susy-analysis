@@ -275,6 +275,9 @@ run_cutflow(std::vector<std::string> files,
     out_tree.met = met.Mod(); 
     out_tree.met_phi = met.Phi(); 
 
+    out_tree.hfor_type = buffer.hfor_type; 
+    out_tree.event_number = buffer.EventNumber; 
+
     out_tree.fill(); 
  
   }

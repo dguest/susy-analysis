@@ -61,6 +61,9 @@ void OutTree::init(const unsigned flags)
   m_tree->Branch("n_susy_jets", &n_susy_jets); 
   m_tree->Branch("n_good_jets", &n_good_jets); 
 
+  m_tree->Branch("hfor_type", &hfor_type); 
+  m_tree->Branch("event_number", &event_number); 
+
   leading_jet.set_branches(m_tree, "jet2_", flags); 
   subleading_jet.set_branches(m_tree, "jet3_", flags); 
   isr_jet.set_branches(m_tree, "jet1_", flags); 
@@ -79,6 +82,10 @@ void OutTree::clear_buffer() {
   sum_jetmet_dphi = -1; 
   n_susy_jets = -1; 
   n_good_jets = -1; 
+
+  hfor_type = -2; 
+  event_number = 0; 
+
   leading_jet.clear(); 
   subleading_jet.clear(); 
   isr_jet.clear(); 

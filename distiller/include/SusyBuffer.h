@@ -36,10 +36,13 @@ public :
 
   // Declaration of leaf types
   unsigned int RunNumber; 
+  unsigned int EventNumber; 
   Bool_t          trigger; 
   Float_t         averageIntPerXing;
   UInt_t          larError;
   unsigned        coreFlags; 
+
+  int hfor_type; 
 
   // MET things
   vector<float>*          jet_pt;

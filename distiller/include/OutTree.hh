@@ -22,6 +22,9 @@ public:
   double sum_jetmet_dphi; 
   int n_susy_jets; 
   int n_good_jets; 
+
+  int hfor_type; 
+  unsigned event_number; 
   
   class Jet 
   {
