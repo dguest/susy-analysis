@@ -59,7 +59,8 @@ PY_LDFLAGS += -shared
 
 # ---- define objects
 TOBJ        := JetFactory.o
-GEN_OBJ     := HistBuilder.o MaskedHistArray.o ObjKinematics.o
+GEN_OBJ     := HistBuilder.o MaskedHistArray.o ObjKinematics.o 
+GEN_OBJ     += TruthJetHists.o
 EXE_OBJ     := $(GEN_OBJ) $(TOBJ) drink.o
 PYLIB_OBJ   := $(GEN_OBJ) $(TOBJ)
 
