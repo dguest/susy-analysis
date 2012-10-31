@@ -21,10 +21,10 @@ HistBuilder::HistBuilder(std::string input, const unsigned flags):
   m_flags(flags)
 { 
   m_factory = new JetFactory(input); 
-  
-  m_jet1_hists = new Jet1DHists(1e3*GeV); 
-  m_jet2_hists = new Jet1DHists(1e3*GeV); 
-  m_jet3_hists = new Jet1DHists(1e3*GeV); 
+
+  m_jet1_hists = new Jet1DHists(1e3*GeV, flags); 
+  m_jet2_hists = new Jet1DHists(1e3*GeV, flags); 
+  m_jet3_hists = new Jet1DHists(1e3*GeV, flags); 
 
   m_met = new MaskedHistArray(Histogram(100, 0.0, 1e3*GeV)); 
   m_min_dphi = new MaskedHistArray(Histogram(100, 0.0, M_PI)); 

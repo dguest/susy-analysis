@@ -73,5 +73,6 @@ static unsigned parse_flags(const char* flags){
   using namespace buildflag; 
   unsigned bitflags = 0; 
   if(strchr(flags,'v')) bitflags |= verbose; 
+  if(strchr(flags,'t')) bitflags |= fill_truth; 
   return bitflags; 
 }

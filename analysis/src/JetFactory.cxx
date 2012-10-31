@@ -113,9 +113,14 @@ void JetFactory::set_buffer(std::string base_name)
   else {
     m_flags |= ioflag::no_flavor; 
   }
-  
-  errors += m_tree->SetBranchAddress(flavor_truth.c_str(), 
-				     &b->flavor_truth_label); 
+
+  if (m_tree->GetBranch(flavor_truth.c_str())) { 
+    errors += m_tree->SetBranchAddress(flavor_truth.c_str(), 
+				       &b->flavor_truth_label); 
+  }
+  else { 
+    m_flags |= ioflag::no_truth; 
+  }
 
   if (errors) { 
     throw std::runtime_error
@@ -137,7 +142,12 @@ Jet::Jet(JetBuffer* basis, unsigned flags):
 double Jet::pb() const {req_flavor(); return m_pb; } 
 double Jet::pc() const {req_flavor(); return m_pc; } 
 double Jet::pu() const {req_flavor(); return m_pu; } 
-int    Jet::flavor_truth_label() const { return m_truth_label; }
+int    Jet::flavor_truth_label() const { 
+  if (m_flags & ioflag::no_truth) { 
+    throw std::runtime_error("no truth info found"); 
+  }
+  return m_truth_label; 
+}
 
 bool Jet::has_flavor() const { 
   return !(m_flags & ioflag::no_flavor); 
