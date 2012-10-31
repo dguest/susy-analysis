@@ -5,6 +5,7 @@
 #include "ObjKinematics.hh"
 #include "MaskedHistArray.hh"
 #include "PhysicalConstants.hh"
+#include "TruthJetHists.hh"
 #include "H5Cpp.h"
 
 #include <string> 
@@ -20,21 +21,26 @@
 HistBuilder::HistBuilder(std::string input, const unsigned flags): 
   m_flags(flags)
 { 
+  const double max_pt = 1e3*GeV; 
+  
   m_factory = new JetFactory(input); 
 
-  m_jet1_hists = new Jet1DHists(1e3*GeV, flags); 
-  m_jet2_hists = new Jet1DHists(1e3*GeV, flags); 
-  m_jet3_hists = new Jet1DHists(1e3*GeV, flags); 
+  m_jet1_hists = new Jet1DHists(max_pt, flags); 
+  m_jet2_hists = new Jet1DHists(max_pt, flags); 
+  m_jet3_hists = new Jet1DHists(max_pt, flags); 
 
-  m_met = new MaskedHistArray(Histogram(100, 0.0, 1e3*GeV)); 
+  m_met = new MaskedHistArray(Histogram(100, 0.0, max_pt)); 
   m_min_dphi = new MaskedHistArray(Histogram(100, 0.0, M_PI)); 
   m_j2_met_dphi = new MaskedHistArray(Histogram(100, 0.0, M_PI)); 
-  m_mttop = new MaskedHistArray(Histogram(100, 0.0, 1e3*GeV)); 
+  m_mttop = new MaskedHistArray(Histogram(100, 0.0, max_pt)); 
   m_n_good_jets = new MaskedHistArray(Histogram(11, -0.5, 10.5)); 
 
   if (flags & buildflag::fill_truth) { 
     m_leading_cjet_rank = new MaskedHistArray(Histogram(6, -0.5, 5.5)); 
     m_subleading_cjet_rank = new MaskedHistArray(Histogram(6, -0.5, 5.5)); 
+    m_jet1_truth = new TruthJetHists(max_pt, flags); 
+    m_jet2_truth = new TruthJetHists(max_pt, flags); 
+    m_jet3_truth = new TruthJetHists(max_pt, flags); 
   }
 
 }
@@ -55,6 +61,10 @@ HistBuilder::~HistBuilder() {
 
   delete m_leading_cjet_rank; 
   delete m_subleading_cjet_rank; 
+  delete m_jet1_truth; 
+  delete m_jet2_truth; 
+  delete m_jet3_truth; 
+  
 }
 
 void HistBuilder::add_cut_mask(std::string name, unsigned bits)
@@ -76,6 +86,10 @@ void HistBuilder::add_cut_mask(std::string name, unsigned bits)
 
   m_leading_cjet_rank->add_mask(bits, name); 
   m_subleading_cjet_rank->add_mask(bits, name); 
+  m_jet1_truth->add_mask(bits, name); 
+  m_jet2_truth->add_mask(bits, name); 
+  m_jet3_truth->add_mask(bits, name); 
+  
 }
 
 void HistBuilder::build() { 
@@ -158,6 +172,10 @@ void HistBuilder::fill_truth_hists(const std::vector<Jet>& jets,
   } // end jet loop
   m_leading_cjet_rank->fill(leading_pos, mask); 
   m_subleading_cjet_rank->fill(subleading_pos, mask); 
+  unsigned n_jets = jets.size(); 
+  if (n_jets >= 1) m_jet1_truth->fill(jets.at(0), mask); 
+  if (n_jets >= 2) m_jet2_truth->fill(jets.at(1), mask); 
+  if (n_jets >= 3) m_jet3_truth->fill(jets.at(2), mask); 
 }
 
 void HistBuilder::save(std::string output) { 
@@ -192,6 +210,13 @@ void HistBuilder::save(std::string output) {
     m_leading_cjet_rank->write_to(leadingCJet); 
     Group subleadingCJet(truth.createGroup("subleadingCJet")); 
     m_subleading_cjet_rank->write_to(subleadingCJet); 
+
+    Group j1_truth(truth.createGroup("jet1")); 
+    Group j2_truth(truth.createGroup("jet2")); 
+    Group j3_truth(truth.createGroup("jet3")); 
+    m_jet1_truth->write_to(j1_truth); 
+    m_jet2_truth->write_to(j2_truth); 
+    m_jet3_truth->write_to(j3_truth); 
   }
 
 }

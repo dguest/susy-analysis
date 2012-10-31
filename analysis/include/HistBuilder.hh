@@ -9,6 +9,7 @@
 class JetFactory; 
 class Histogram; 
 class MaskedHistArray; 
+class TruthJetHists; 
 class Axis; 
 class Jet1DHists; 
 class Jet; 
@@ -47,6 +48,10 @@ private:
 
   MaskedHistArray* m_leading_cjet_rank; 
   MaskedHistArray* m_subleading_cjet_rank; 
+
+  TruthJetHists* m_jet1_truth; 
+  TruthJetHists* m_jet2_truth; 
+  TruthJetHists* m_jet3_truth; 
 
 };
 
