@@ -25,7 +25,7 @@ def build_hists(root_file, put_where='cache'):
     cuts = cum_cuts()
     out_file = hyperstack.stacksusy(root_file, mask_list=cuts, 
                                     output_file=out_file_name, 
-                                    flags='v')
+                                    flags='vt')
     return out_file
 
 def sample_name_from_file(file_name): 
@@ -200,6 +200,7 @@ def hist_itr(f):
 
         else: 
             for cut, array in entry.iteritems(): 
+                if cut == 'truth': continue
                 yield name, cut, array
 
 
