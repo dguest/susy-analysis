@@ -25,11 +25,11 @@ Jet1DHists::Jet1DHists(double max_pt, const unsigned flags) :
 
   if (flags & buildflag::fill_truth) { 
     m_truth_label = new MaskedHistArray(Histogram(21, -0.5, 20.5)); 
-    m_bottom_pt = new MaskedHistArray(Histogram(100, 0, max_pt)); 
-    m_charm_pt = new MaskedHistArray(Histogram(100, 0, max_pt)); 
-    m_light_pt = new MaskedHistArray(Histogram(100, 0, max_pt)); 
-    m_tau_pt = new MaskedHistArray(Histogram(100, 0, max_pt)); 
-    m_other_pt = new MaskedHistArray(Histogram(100, 0, max_pt)); 
+    m_bottom_pt = new MaskedHistArray(Histogram(100, 0, max_pt),"bottom"); 
+    m_charm_pt = new MaskedHistArray(Histogram(100, 0, max_pt),"charm"); 
+    m_light_pt = new MaskedHistArray(Histogram(100, 0, max_pt),"light"); 
+    m_tau_pt = new MaskedHistArray(Histogram(100, 0, max_pt),"tau"); 
+    m_other_pt = new MaskedHistArray(Histogram(100, 0, max_pt),"other"); 
   }
 }
 Jet1DHists::~Jet1DHists() 
@@ -59,15 +59,10 @@ void Jet1DHists::add_mask(unsigned bitmask, std::string name) {
   if (m_truth_label) { 
     m_truth_label->add_mask(bitmask, name); 
     m_bottom_pt->add_mask(bitmask, name); 
-    m_bottom_pt->set_physics_tag("bottom"); 
     m_charm_pt->add_mask(bitmask, name); 
-    m_charm_pt->set_physics_tag("charm"); 
     m_light_pt->add_mask(bitmask, name); 
-    m_light_pt->set_physics_tag("light"); 
     m_tau_pt->add_mask(bitmask, name);
-    m_tau_pt->set_physics_tag("tau"); 
     m_other_pt->add_mask(bitmask, name); 
-    m_other_pt->set_physics_tag("other"); 
   }
 } 
 

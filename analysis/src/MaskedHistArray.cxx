@@ -8,9 +8,10 @@
 #include <string> 
 #include <cassert> 
 
-MaskedHistArray::MaskedHistArray(const Histogram& base_hist): 
+MaskedHistArray::MaskedHistArray(const Histogram& base_hist, 
+				 std::string tag): 
   m_base_hist(base_hist), 
-  m_physics_tag("")
+  m_physics_tag(tag)
 {
 }
 
@@ -31,11 +32,6 @@ std::map<std::string, Histogram> MaskedHistArray::get_hists() const
     return_map.insert(std::make_pair(name,hist_itr->second)); 
   }
   return return_map; 
-}
-
-void MaskedHistArray::set_physics_tag(std::string tag) { 
-  assert(m_physics_tag.size() == 0); 
-  m_physics_tag = tag; 
 }
 
 void MaskedHistArray::write_to(H5::CommonFG& out_file, std::string stub) 
