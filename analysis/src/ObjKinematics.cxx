@@ -10,26 +10,18 @@
 #include <cmath>
 
 
-Jet1DHists::Jet1DHists(double max_pt, const unsigned flags) : 
+Jet1DHists::Jet1DHists(double max_pt, const unsigned flags, std::string tag): 
   m_truth_label(0), 
-  m_bottom_pt(0), 
-  m_charm_pt(0), 
-  m_light_pt(0), 
-  m_other_pt(0)
+  m_tag(tag)
 { 
-  m_pt = new MaskedHistArray(Histogram(100, 0, max_pt)); 
-  m_eta = new MaskedHistArray(Histogram(100, -2.7, 2.7)); 
-  m_cnnLogCb = new MaskedHistArray(Histogram(100, -10, 10)); 
-  m_cnnLogCu = new MaskedHistArray(Histogram(100, -10, 10)); 
-  m_cnnLogBu = new MaskedHistArray(Histogram(100, -10, 10)); 
+  m_pt = new MaskedHistArray(Histogram(100, 0, max_pt), tag); 
+  m_eta = new MaskedHistArray(Histogram(100, -2.7, 2.7), tag); 
+  m_cnnLogCb = new MaskedHistArray(Histogram(100, -10, 10), tag); 
+  m_cnnLogCu = new MaskedHistArray(Histogram(100, -10, 10), tag); 
+  m_cnnLogBu = new MaskedHistArray(Histogram(100, -10, 10), tag); 
 
   if (flags & buildflag::fill_truth) { 
-    m_truth_label = new MaskedHistArray(Histogram(21, -0.5, 20.5)); 
-    m_bottom_pt = new MaskedHistArray(Histogram(100, 0, max_pt),"bottom"); 
-    m_charm_pt = new MaskedHistArray(Histogram(100, 0, max_pt),"charm"); 
-    m_light_pt = new MaskedHistArray(Histogram(100, 0, max_pt),"light"); 
-    m_tau_pt = new MaskedHistArray(Histogram(100, 0, max_pt),"tau"); 
-    m_other_pt = new MaskedHistArray(Histogram(100, 0, max_pt),"other"); 
+    m_truth_label = new MaskedHistArray(Histogram(21, -0.5, 20.5), tag); 
   }
 }
 Jet1DHists::~Jet1DHists() 
@@ -41,11 +33,6 @@ Jet1DHists::~Jet1DHists()
   delete m_cnnLogBu;
 
   delete m_truth_label; 
-  delete m_bottom_pt; 
-  delete m_charm_pt; 
-  delete m_light_pt; 
-  delete m_tau_pt; 
-  delete m_other_pt; 
 
 }
 
@@ -58,11 +45,6 @@ void Jet1DHists::add_mask(unsigned bitmask, std::string name) {
 
   if (m_truth_label) { 
     m_truth_label->add_mask(bitmask, name); 
-    m_bottom_pt->add_mask(bitmask, name); 
-    m_charm_pt->add_mask(bitmask, name); 
-    m_light_pt->add_mask(bitmask, name); 
-    m_tau_pt->add_mask(bitmask, name);
-    m_other_pt->add_mask(bitmask, name); 
   }
 } 
 
@@ -89,21 +71,8 @@ void Jet1DHists::write_to(H5::CommonFG& file, std::string stub,
 void Jet1DHists::write_truth_info(H5::CommonFG& truth){ 
   
   using namespace H5; 
-
   Group label(truth.createGroup("label")); 
   m_truth_label->write_to(label); 
-    
-  Group pt(truth.createGroup("pt")); 
-  Group bottom(pt.createGroup("bottom")); 
-  m_bottom_pt->write_to(bottom); 
-  Group charm(pt.createGroup("charm")); 
-  m_charm_pt->write_to(charm); 
-  Group light(pt.createGroup("light")); 
-  m_light_pt->write_to(light); 
-  Group tau(pt.createGroup("tau")); 
-  m_tau_pt->write_to(tau); 
-  Group other(pt.createGroup("other")); 
-  m_other_pt->write_to(other); 
 }
 
 void Jet1DHists::fill(const Jet& jet, const unsigned mask) { 
@@ -116,24 +85,6 @@ void Jet1DHists::fill(const Jet& jet, const unsigned mask) {
   if (m_truth_label) { 
     int label = jet.flavor_truth_label(); 
     m_truth_label->fill(label, mask); 
-    double pt = jet.Pt(); 
-    switch (label) { 
-    case CHARM:
-      m_charm_pt->fill(pt, mask); 
-      break; 
-    case BOTTOM: 
-      m_bottom_pt->fill(pt, mask); 
-      break; 
-    case LIGHT: 
-      m_light_pt->fill(pt, mask); 
-      break; 
-    case TAU: 
-      m_tau_pt->fill(pt, mask); 
-      break; 
-    default: 
-      m_other_pt->fill(pt, mask); 
-      break; 
-    }
   }
 
 }

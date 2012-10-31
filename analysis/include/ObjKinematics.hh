@@ -13,7 +13,7 @@ class MaskedHistArray;
 class Jet1DHists: public boost::noncopyable
 {
 public: 
-  Jet1DHists(double max_pt, const unsigned flags); 
+  Jet1DHists(double max_pt, const unsigned flags, std::string tag = ""); 
   ~Jet1DHists(); 
   void add_mask(unsigned bitmask, std::string name = ""); 
   void write_to(H5::CommonFG&, std::string stub = "", 
@@ -28,11 +28,7 @@ private:
 
   void write_truth_info(H5::CommonFG&); 
   MaskedHistArray* m_truth_label; 
-  MaskedHistArray* m_bottom_pt; 
-  MaskedHistArray* m_charm_pt; 
-  MaskedHistArray* m_light_pt; 
-  MaskedHistArray* m_tau_pt; 
-  MaskedHistArray* m_other_pt; 
+  std::string m_tag; 
 }; 
 
 #endif
