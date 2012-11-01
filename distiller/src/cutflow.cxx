@@ -453,8 +453,9 @@ int main(int narg, char* argv[])
   flags |= get_branches; 
   flags |= save_ratios; 
   flags |= raw_evt_info; 
-  flags |= use_met_reffinal; 
+  // flags |= use_met_reffinal; 
   flags |= verbose; 
+  flags |= is_atlfast; 
 
   // run the main routine 
   typedef std::vector<std::pair<std::string, int> > CCOut; 
