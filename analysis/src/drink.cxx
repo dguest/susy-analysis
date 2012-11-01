@@ -10,15 +10,10 @@ int main(int narg, char* argv[]) {
   }
   unsigned flags = buildflag::verbose | buildflag::fill_truth; 
   std::string file = argv[1]; 
-  printf("flags: %i\n", flags); 
   HistBuilder* builder = new HistBuilder(file, flags); 
-  printf("constructed\n"); 
   builder->add_cut_mask("all",0); 
-  printf("added cut\n"); 
 
   builder->build(); 
-  printf("filled\n"); 
   builder->save("bullshit.h5"); 
-  printf("saved\n"); 
   delete builder; 
 }
