@@ -9,6 +9,7 @@ import ConfigParser, argparse
 from hdroot import hd_from_root
 import h5py
 import numpy as np
+from multiprocessing import Pool, cpu_count
 
 def build_hists(root_file, put_where='cache'): 
     out_file_name = '{}_hists.h5'.format(os.path.splitext(root_file)[0])
@@ -36,18 +37,15 @@ def sample_name_from_file(file_name):
         return '_'.join(parts)
 
 def print_all_hists(all_hists): 
-    samplist, varlist, cutlist, grouplist = zip(*all_hists.keys())
-    samples = sorted(set(samplist))
+    varlist, cutlist = zip(*all_hists.keys())
     variables = sorted(set(varlist))
     cuts = set(filter(None,cutlist))
 
-    # cut_bits = dict(cum_cuts())
-    
     for cut in cuts: 
         # assert cut in cut_bits, cut
         for var in variables: 
             print 'printing {} {}'.format(var, cut)
-            make_hist(all_hists, var, cut)
+            make_hist(all_hists[(var,cut)])
 
 def fix_metpt_like(hist): 
     lab = hist.x_label
@@ -97,8 +95,8 @@ def combine_backgrounds(hists):
         ('charm','charm','g'), 
         ('bottom','bottom','red'), 
         ('light','light','blue'), 
-        ('tau','tau','orange'), 
-        ('other','other','pink'), 
+        ('tau','tau','pink'), 
+        ('other','other','orange'), 
         
         ]
     
@@ -114,26 +112,21 @@ def combine_backgrounds(hists):
             if group in h.group: 
                 combined_name = rep
                 color = color_cand
-        if combined_name != hist_name: 
-            h.title = combined_name
-            if combined_name not in combined: 
-                combined[combined_name] = h
-                combined[combined_name].color = color
-                combined_list.append(combined_name)
-            else: 
-                combined[combined_name] += h
+
+        h.title = combined_name
+        if combined_name not in combined: 
+            combined[combined_name] = h
+            combined[combined_name].color = color
+            combined_list.append(combined_name)
         else: 
-            warnings.warn("can't fit in {}".format(hist_name))
+            combined[combined_name] += h
 
     for name in combined_list: 
         yield combined[name]
 
-def make_hist(all_hists, var, cut): 
-    hists = []
-    for id_tuple, hist in all_hists.iteritems(): 
-        if id_tuple[1] == var and id_tuple[2] == cut: 
-            hists.append(hist)
-
+def make_hist(hists): 
+    cut = hists[0].cut
+    var = hists[0].x_label
     stack = Stack('stack')
     stack.ax.set_yscale('log')
     stack.y_min = 1.0
@@ -176,6 +169,9 @@ def select_signals(sample_list, signals = ['175-100']):
     return accepted
 
 def write_xsec_corrections(used_xsecs): 
+    """
+    probably broken
+    """
     used = []
     for name, factor in used_xsecs.items(): 
         used.append((factor, name))
@@ -192,36 +188,29 @@ def fitr(f):
         if not l.strip().startswith('#'): 
             yield l.strip()
 
-def hist_itr(f, truth_type='all'): 
-    """
-    Traverses an HDF5 file, yields (var, cut, group, array) tuples
-    """
-    for name, entry in f.iteritems(): 
-        if name.startswith('jet'):
-            for var, cut, array in hist_itr(entry, use_truth): 
-                yield '{}_{}'.format(name,var), cut, truth_type, array
-
-        elif name == 'truth' and truth_type != 'all': 
-            continue
-        else: 
-            for cut, array in entry.iteritems(): 
-                yield name, cut, truth_type, array
 
 def remove_from_name(name, rm): 
     splname = name.split('_')
     splname.remove(rm)
     return '_'.join(splname)    
 
-def hist_iter(f, parent=''): 
+def hist_iter(f, parent='', truth=False): 
     for name, entry in f.iteritems(): 
         if type(entry) == h5py.Group: 
             if parent: 
                 new_parent = '_'.join([parent, name])
             else: 
                 new_parent = name
-            for subname, cut, array in hist_iter(entry, parent=new_parent): 
+            for subname, cut, array in hist_iter(entry, parent=new_parent, 
+                                                 truth=truth): 
                 yield subname, cut, array
         else: 
+            if truth: 
+                if not 'tag' in entry.attrs: 
+                    continue
+            else: 
+                if 'tag' in entry.attrs: 
+                    continue
             yield parent, name, entry
 
 def run_main(): 
@@ -230,6 +219,13 @@ def run_main():
     parser.add_argument('config', nargs='?', help='default: %(default)s', 
                         default='draw.cfg')
     parser.add_argument('--fast', action='store_true')
+    parser.add_argument('--multi', action='store_true')
+    parser.add_argument(
+        '--truth', nargs='?', 
+        default=None, 
+        const='backgrounds', 
+        help='Group by truth rather than sample. '
+        'Can also give <stop mass>-<lsp mass> pair')
     args = parser.parse_args(sys.argv[1:])
     config_parser = ConfigParser.SafeConfigParser()
     config_parser.read([args.config])
@@ -263,39 +259,39 @@ def run_main():
     if config_parser.has_option('physics','total_lumi'): 
         lumi = config_parser.getfloat('physics','total_lumi')
 
-    h5s = []
-    for f in distillates: 
-        h5_name = build_hists(f)
-        h5s.append(h5_name)
+    if args.multi:
+        pool = Pool(cpu_count())
+        h5s = pool.map(build_hists, distillates)
+    else: 
+        h5s = map(build_hists, distillates)
 
-    do_truth = False
+    do_truth = bool(args.truth)
+    if do_truth and args.truth != 'backgrounds': 
+        stop_mass, lsp_mass = args.truth.split('-')
 
-    all_hists = {}
     used_xsecs = collections.defaultdict(lambda: 0)
+    hists_by_group = collections.defaultdict(list)
     for number, histofile in enumerate(h5s): 
         sys.stdout.write(
             '\rloading files ({} of {})'.format(number + 1, len(h5s)))
         sys.stdout.flush()
         sample = sample_name_from_file(histofile)
+        if do_truth: 
+            if args.truth == 'backgrounds': 
+                if 'directCC' in sample: 
+                    continue
+            else: 
+                if not 'directCC_{}_{}'.format(stop_mass, lsp_mass) in sample:
+                    continue
+
         if not sample in x_sec_dict: 
             warnings.warn(
                 '{} is missing from scal file, skipping'.format(sample))
             continue
         with h5py.File(histofile) as hist_file: 
-            for short_var, cut, h5_array in hist_iter(hist_file): 
+            for short_var, cut, h5_array in hist_iter(hist_file, 
+                                                      truth=do_truth): 
                 extent = [h5_array.attrs[n] for n in ['x_min','x_max']]
-
-                group = 'all'
-                tagged = 'tag' in h5_array.attrs
-                if do_truth:
-                    if not tagged: 
-                        continue
-                    else: 
-                        group = h5_array.attrs['tag']
-                        short_var = remove_from_name(short_var,group)
-                else: 
-                    if tagged: 
-                        continue
           
                 if args.fast: 
                     requirements = [
@@ -311,20 +307,23 @@ def run_main():
                 total_area = array.sum() * scale_factor * lumi
                 used_xsecs[sample] = max(used_xsecs[sample],
                                              total_area)
-                if group == 'all': 
+
+                if not do_truth:
                     group = grouping[sample]
-                elif 'directCC' in sample: 
-                    continue
+                else: 
+                    group = h5_array.attrs['tag']
+                    short_var = remove_from_name(short_var,group)
                     
                 hist = Hist1d(array, extent=extent, x_label=short_var, 
                               title=sample, group=group)
-                all_hists[(sample,short_var,cut,group)] = hist
+                hist.cut = cut
+                if do_truth and args.truth != 'backgrounds': 
+                    hist.title='garbage'
+                hists_by_group[(short_var, cut)].append(hist)
 
-    write_xsec_corrections(used_xsecs)
-    print ''
-
+    # write_xsec_corrections(used_xsecs)
     
-    print_all_hists(all_hists)
+    print_all_hists(hists_by_group)
 
         
 if __name__ == '__main__': 
