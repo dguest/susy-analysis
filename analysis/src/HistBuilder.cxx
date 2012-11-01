@@ -84,12 +84,13 @@ void HistBuilder::add_cut_mask(std::string name, unsigned bits)
   m_mttop->add_mask(bits, name); 
   m_n_good_jets->add_mask(bits, name); 
 
-  m_leading_cjet_rank->add_mask(bits, name); 
-  m_subleading_cjet_rank->add_mask(bits, name); 
-  m_jet1_truth->add_mask(bits, name); 
-  m_jet2_truth->add_mask(bits, name); 
-  m_jet3_truth->add_mask(bits, name); 
-  
+  if (m_leading_cjet_rank) { 
+    m_leading_cjet_rank->add_mask(bits, name); 
+    m_subleading_cjet_rank->add_mask(bits, name); 
+    m_jet1_truth->add_mask(bits, name); 
+    m_jet2_truth->add_mask(bits, name); 
+    m_jet3_truth->add_mask(bits, name); 
+  }  
 }
 
 void HistBuilder::build() { 
