@@ -8,11 +8,16 @@ int main(int narg, char* argv[]) {
     std::cout << "no input" << std::endl;
     return 0; 
   }
-  unsigned flags = buildflag::verbose; 
+  unsigned flags = buildflag::verbose & buildflag::fill_truth; 
   std::string file = argv[1]; 
-  HistBuilder builder(file, flags); 
-  builder.add_cut_mask("all",0); 
+  HistBuilder* builder = new HistBuilder(file, flags); 
+  printf("constructed\n"); 
+  builder->add_cut_mask("all",0); 
+  printf("added cut\n"); 
 
-  builder.build(); 
-  builder.save("bullshit.h5"); 
+  builder->build(); 
+  printf("filled\n"); 
+  builder->save("bullshit.h5"); 
+  printf("saved\n"); 
+  delete builder; 
 }
