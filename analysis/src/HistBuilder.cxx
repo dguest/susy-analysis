@@ -19,7 +19,12 @@
 #include "TVector2.h"
 
 HistBuilder::HistBuilder(std::string input, const unsigned flags): 
-  m_flags(flags)
+  m_flags(flags), 
+  m_leading_cjet_rank(0), 
+  m_subleading_cjet_rank(0), 
+  m_jet1_truth(0), 
+  m_jet2_truth(0), 
+  m_jet3_truth(0)
 { 
   const double max_pt = 1e3*GeV; 
   

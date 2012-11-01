@@ -8,8 +8,9 @@ int main(int narg, char* argv[]) {
     std::cout << "no input" << std::endl;
     return 0; 
   }
-  unsigned flags = buildflag::verbose & buildflag::fill_truth; 
+  unsigned flags = buildflag::verbose | buildflag::fill_truth; 
   std::string file = argv[1]; 
+  printf("flags: %i\n", flags); 
   HistBuilder* builder = new HistBuilder(file, flags); 
   printf("constructed\n"); 
   builder->add_cut_mask("all",0); 
