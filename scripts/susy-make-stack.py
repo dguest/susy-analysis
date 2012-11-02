@@ -124,7 +124,7 @@ def combine_backgrounds(hists):
     for name in combined_list: 
         yield combined[name]
 
-def make_hist(hists, save_dir='plots/'): 
+def make_hist(hists, save_dir='plots'): 
     cut = hists[0].cut
     var = hists[0].x_label
     stack = Stack('stack')
@@ -141,8 +141,8 @@ def make_hist(hists, save_dir='plots/'):
     stack.add_signals(signal_hists)
     stack.add_backgrounds(combined_bkg)
     stack.add_legend()
-    if not os.path.isdir('plots'): 
-        os.mkdir('plots')
+    if not os.path.isdir(save_dir): 
+        os.mkdir(save_dir)
 
     for ext in ['png']: 
         stack.save('{save_dir}/stack_{var}_cut_{cut}.{ext}'.format(
