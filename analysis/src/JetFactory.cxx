@@ -27,6 +27,7 @@ JetFactory::JetFactory(std::string root_file, int n_jets)
   errors += m_tree->SetBranchAddress("min_jetmet_dphi", &m_dphi); 
   errors += m_tree->SetBranchAddress("n_good_jets", &m_n_good); 
   errors += m_tree->SetBranchAddress("n_susy_jets", &m_n_susy); 
+  errors += m_tree->SetBranchAddress("hfor_type", &m_hfor_type); 
   if (errors) { 
     throw std::runtime_error
       ((boost::format("%i branch setting errors") % errors).str()); 
@@ -85,6 +86,21 @@ unsigned JetFactory::bits() const  { return m_bits; }
 double JetFactory::dphi()  const  { return m_dphi; }
 int JetFactory::n_good()   const  { return m_n_good; }
 int JetFactory::n_susy()   const  { return m_n_susy; }
+
+hfor::JetType hfor_type() const { 
+  using namespace hfor; 
+  switch (m_hfor_type) { 
+  case -1: return NONE; 
+  case 0: return BB; 
+  case 1: return CC; 
+  case 2: return C; 
+  case 3: return LIGHT; 
+  case 4: return KILL; 
+  default: 
+    throw std::runtime_error("given undefined hfor type"); 
+  }
+}
+
 
 void JetFactory::set_buffer(std::string base_name) 
 {

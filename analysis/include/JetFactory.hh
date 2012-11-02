@@ -4,11 +4,12 @@
 #include <string> 
 #include <vector> 
 #include "TLorentzVector.h"
+#include "HforTypeDef.hh"
 
 class Jet; 
 class TTree;
 class TFile; 
-class TVector2; 
+class TVector2;
 
 namespace ioflag {
   const unsigned no_flavor = 1u << 0; 
@@ -41,6 +42,7 @@ public:
   double dphi() const; 
   int n_good() const; 
   int n_susy() const; 
+  hfor::JetType hfor_type() const; 
 private: 
   void set_buffer(std::string base_name); 
   TTree* m_tree; 
@@ -52,6 +54,7 @@ private:
   double m_dphi; 
   int m_n_good; 
   int m_n_susy; 
+  int m_hfor_type; 
   
   unsigned m_flags; 
 }; 

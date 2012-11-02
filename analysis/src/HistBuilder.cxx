@@ -120,6 +120,9 @@ void HistBuilder::build() {
     }
 
     m_factory->entry(entry); 
+
+    if (m_factory->hfor_type() == hfor::KILL) continue; 
+
     const Jets jets = m_factory->jets(); 
     const unsigned mask = m_factory->bits(); 
     const TVector2 met = m_factory->met(); 
