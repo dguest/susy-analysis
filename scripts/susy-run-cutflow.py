@@ -46,12 +46,13 @@ def cutflow_job(ins):
                     )
             else: 
                 raise 
-        except RuntimeError as e: 
+        except StandardError as e: 
             if 'a' in flags: 
-                wrn = '{} throw unrecoverable RuntimeError,'
-                ' it will not be processed'
+                wrn = ('{} throw unrecoverable StandardError,'
+                       ' it will not be processed')
                 warnings.warn(wrn.format(samp))
-                        
+            else: 
+                raise
     elif samp == 'Data': 
         warnings.warn('Data not implemented')
     else: 
