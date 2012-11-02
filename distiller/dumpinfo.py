@@ -29,8 +29,7 @@ bits = (
 
 forstr = '{evt:10} {njet:10} {pt:10.3f} {eta:10.3f} {phi:10.3f} {met:10.3f}'
 
-for entry in islice(tree, 100): 
-    if entry.n_good_jets == 0: continue
+for entry in islice(tree, 100000): 
     if not ( (entry.pass_bits & bits) == bits): continue
     print forstr.format(
         evt=entry.event_number, 

@@ -106,7 +106,7 @@ bool check_if_electron(int iEl,
   
   bool pass_el = def.FillElectron
     (iEl,
-     info.run_number,
+     buffer.RunNumber,
      buffer.el_cl_eta                ->at(iEl),
      buffer.el_cl_phi                ->at(iEl),
      buffer.el_cl_E                  ->at(iEl),

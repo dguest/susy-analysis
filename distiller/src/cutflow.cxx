@@ -63,6 +63,14 @@ run_cutflow(std::vector<std::string> files,
 	    RunInfo info, const unsigned flags, 
 	    std::string out_ntuple_name) {  
 
+  std::ofstream nullstream("/dev/null"); 
+  std::ofstream dbg_file("cutflow-dbg.txt"); 
+  std::streambuf* out_buffer = nullstream.rdbuf(); 
+  if (flags & cutflag::debug_cutflow) { 
+    out_buffer = dbg_file.rdbuf(); 
+  }
+  std::ostream dbg_stream(out_buffer); 
+
   boost::scoped_ptr<SmartChain> input_chain(new SmartChain("susy")); 
 
   if (files.size() == 0) { 
@@ -190,9 +198,17 @@ run_cutflow(std::vector<std::string> files,
 	susy_jets.push_back(*jet_itr); 
       }
     }
-    remove_overlaping(susy_electrons, susy_jets, 0.2); 
+    
+    std::vector<double> jet_dr = remove_overlaping(susy_electrons, 
+						   susy_jets, 0.2); 
     remove_overlaping(susy_jets, susy_electrons, 0.4); 
     remove_overlaping(susy_jets, susy_muons, 0.4); 
+
+    for (std::vector<double>::const_iterator dr_itr = jet_dr.begin(); 
+	 dr_itr != jet_dr.end(); dr_itr++) { 
+      dbg_stream << "evt " << buffer.EventNumber << ", removed jet -- dR = " 
+		 << *dr_itr << std::endl; 
+    }
 
     pass_bits |= pass::jet_clean; 
     for (EventJets::const_iterator jet_itr = susy_jets.begin(); 
@@ -288,7 +304,8 @@ run_cutflow(std::vector<std::string> files,
     fclose(stdout); 
     freopen("/dev/stdout","w",stdout); 
   }
-
+  
+  dbg_file.close(); 
 
   def.finalize(); 
   return cutflow.get(); 
@@ -456,6 +473,7 @@ int main(int narg, char* argv[])
   // flags |= use_met_reffinal; 
   flags |= verbose; 
   flags |= is_atlfast; 
+  flags |= debug_cutflow; 
 
   // run the main routine 
   typedef std::vector<std::pair<std::string, int> > CCOut; 

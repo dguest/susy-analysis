@@ -14,6 +14,7 @@ namespace cutflag {
   const unsigned use_met_reffinal = 1u << 9; 
   const unsigned no_jet_recal     = 1u << 10; 
   const unsigned is_atlfast       = 1u << 11; 
+  const unsigned debug_cutflow    = 1u << 12; 
 }
 
 #endif //CUT_BITS_H

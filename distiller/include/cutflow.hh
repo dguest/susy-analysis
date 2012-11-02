@@ -39,7 +39,9 @@ float get_sum_jetmet_dphi(const std::vector<SelectedJet*>&,
 
 
 template<typename M, typename A>
-void remove_overlaping(const M& mask, A& altered, const float delta_r); 
+std::vector<double> remove_overlaping(const M& mask, 
+				      A& altered, 
+				      const float delta_r); 
 
 template<typename T>
 std::vector<int> get_indices(const T&); 
@@ -67,7 +69,10 @@ bool has_lower_pt(const TLorentzVector*, const TLorentzVector*);
 // ---- templates -----
 
 template<typename M, typename A>
-void remove_overlaping(const M& mask, A& altered, const float delta_r) { 
+std::vector<double> remove_overlaping(const M& mask, 
+				      A& altered, 
+				      const float delta_r) { 
+  std::vector<double> delta_r_vals; 
   for (typename M::const_iterator 
 	 itr = mask.begin(); 
        itr != mask.end(); 
@@ -80,9 +85,13 @@ void remove_overlaping(const M& mask, A& altered, const float delta_r) {
       if (delr > delta_r) { 
 	new_container.push_back(altered.at(idx)); 
       }
+      else { 
+	delta_r_vals.push_back(delr); 
+      }
     }
     altered = new_container; 
   }
+  return delta_r_vals; 
 } 
 
 template<typename T>
