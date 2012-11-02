@@ -48,9 +48,9 @@ def cutflow_job(ins):
                 raise 
         except StandardError as e: 
             if 'a' in flags: 
-                wrn = ('{} throw unrecoverable StandardError,'
-                       ' it will not be processed')
-                warnings.warn(wrn.format(samp))
+                wrn = ('{} threw unrecoverable StandardError,'
+                       ' it will not be processed\n\t {}')
+                warnings.warn(wrn.format(samp,str(e)))
             else: 
                 raise
     elif samp == 'Data': 
