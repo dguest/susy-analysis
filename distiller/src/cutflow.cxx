@@ -253,6 +253,10 @@ run_cutflow(std::vector<std::string> files,
 
     out_tree.n_good_jets = good_jets.size(); 
 
+    if (flags & cutflag::save_truth) { 
+      fill_cjet_positions(out_tree, good_jets); 
+    }
+
     if (susy_electrons.size() == 0 && susy_muons.size() == 0) { 
       pass_bits |= pass::lepton_veto; 
     }
@@ -329,6 +333,27 @@ void do_multijet_calculations(const std::vector<SelectedJet*>& leading_jets,
   }
   out_tree.min_jetmet_dphi = dphi_min; 
 
+}
+
+void fill_cjet_positions(OutTree& out_tree, 
+			 const std::vector<SelectedJet*>& jets)
+{
+  int leading_pos = -1; 
+  int subleading_pos = -1; 
+  for (unsigned jet_pos = 0; jet_pos < jets.size(); jet_pos++) { 
+    const SelectedJet& jet = *jets.at(jet_pos); 
+    if (jet.flavor_truth_label() == 4) { 
+      if (leading_pos == -1) { 
+	leading_pos = jet_pos; 
+      }
+      else if (subleading_pos == -1){ 
+	subleading_pos = jet_pos; 
+	break; 
+      }
+    } // end charm check
+  } // end jet loop
+  out_tree.leading_cjet_pos = leading_pos; 
+  out_tree.subleading_cjet_pos = subleading_pos; 
 }
 
 //____________________________________________________________
@@ -474,6 +499,7 @@ int main(int narg, char* argv[])
   flags |= verbose; 
   flags |= is_atlfast; 
   flags |= debug_cutflow; 
+  flags |= save_truth; 
 
   // run the main routine 
   typedef std::vector<std::pair<std::string, int> > CCOut; 

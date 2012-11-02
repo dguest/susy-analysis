@@ -25,6 +25,9 @@ public:
 
   int hfor_type; 
   unsigned event_number; 
+
+  int leading_cjet_pos; 
+  int subleading_cjet_pos; 
   
   class Jet 
   {

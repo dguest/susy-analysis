@@ -34,6 +34,10 @@ def cutflow_job(ins):
         data_type = 'signal'
         more_flags += 's'
 
+    # save truth info for non-data
+    if not 'd' in more_flags: 
+        more_flags += 't'
+
     matched_files = mainz_cutflow.add_ds_lookup(samp, data_location)
 
     if matched_files: 

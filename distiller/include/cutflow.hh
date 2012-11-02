@@ -30,6 +30,9 @@ void do_multijet_calculations(const std::vector<SelectedJet*>& leading_jets,
 			      OutTree& out_tree, 
 			      const TVector2& met); 
 
+void fill_cjet_positions(OutTree& out_tree, 
+			 const std::vector<SelectedJet*>& jets); 
+
 
 float get_min_jetmet_dphi(const std::vector<SelectedJet*>&, 
 			  const TVector2& ); 
