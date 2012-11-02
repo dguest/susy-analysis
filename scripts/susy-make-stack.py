@@ -36,7 +36,7 @@ def sample_name_from_file(file_name):
     else: 
         return '_'.join(parts)
 
-def print_all_hists(all_hists): 
+def print_all_hists(all_hists, save_dir): 
     varlist, cutlist = zip(*all_hists.keys())
     variables = sorted(set(varlist))
     cuts = set(filter(None,cutlist))
@@ -45,7 +45,7 @@ def print_all_hists(all_hists):
         # assert cut in cut_bits, cut
         for var in variables: 
             print 'printing {} {}'.format(var, cut)
-            make_hist(all_hists[(var,cut)])
+            make_hist(all_hists[(var,cut)], save_dir)
 
 def fix_metpt_like(hist): 
     lab = hist.x_label
@@ -124,7 +124,7 @@ def combine_backgrounds(hists):
     for name in combined_list: 
         yield combined[name]
 
-def make_hist(hists): 
+def make_hist(hists, save_dir='plots/'): 
     cut = hists[0].cut
     var = hists[0].x_label
     stack = Stack('stack')
@@ -145,8 +145,8 @@ def make_hist(hists):
         os.mkdir('plots')
 
     for ext in ['png']: 
-        stack.save('plots/stack_{var}_cut_{cut}.{ext}'.format(
-                var=var, cut=cut, ext=ext))
+        stack.save('{save_dir}/stack_{var}_cut_{cut}.{ext}'.format(
+                save_dir=save_dir, var=var, cut=cut, ext=ext))
 
     stack.close()
     
@@ -226,6 +226,9 @@ def run_main():
         const='backgrounds', 
         help='Group by truth rather than sample. '
         'Can also give <stop mass>-<lsp mass> pair')
+    parser.add_argument('--save-dir', nargs='?', default='plots', 
+                        help='default: %(default)s')
+
     args = parser.parse_args(sys.argv[1:])
     config_parser = ConfigParser.SafeConfigParser()
     config_parser.read([args.config])
@@ -323,7 +326,7 @@ def run_main():
 
     # write_xsec_corrections(used_xsecs)
     
-    print_all_hists(hists_by_group)
+    print_all_hists(hists_by_group, save_dir=args.save_dir)
 
         
 if __name__ == '__main__': 
