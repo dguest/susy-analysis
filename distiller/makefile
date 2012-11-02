@@ -116,11 +116,11 @@ include  $(ALLOBJ:%.o=$(DEP)/%.d)
 endif
 endif
 
+DEPTARGSTR = -MT $(BIN)/$*.o -MT $(DEP)/$*.d
 $(DEP)/%.d: %.cxx
 	@echo making dependencies for $<
 	@mkdir -p $(DEP)
-	@$(CXX) -MM $(CXXFLAGS) $< -o $@
-	@sed -i 's,$*\.o,$(BIN)/& $@ ,g' $@
+	@$(CXX) -MM -MP $(DEPTARGSTR) $(CXXFLAGS) $< -o $@ 
 
 # clean
 .PHONY : clean rmdep
