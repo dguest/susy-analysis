@@ -106,6 +106,10 @@ void HyperBuilder::build() {
     m_hists->fill(vars, mask); 
 
   }
+
+  outstream << "\n";
+  outstream.flush(); 
+
 }
 
 void HyperBuilder::save(std::string output) { 

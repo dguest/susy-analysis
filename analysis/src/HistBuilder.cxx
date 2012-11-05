@@ -159,7 +159,8 @@ void HistBuilder::build() {
     }
 
   }
-  outstream << std::endl;
+  outstream << "\n";
+  outstream.flush(); 
 
 }
 
