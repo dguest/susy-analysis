@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from itertools import chain
+from collections import defaultdict
 
 class Hist1d(object): 
     """
@@ -62,6 +63,92 @@ class Hist1d(object):
         double_x_vals = np.dstack((x_vals,x_vals)).flatten()[1:-1]
 
         return double_x_vals, double_y_vals
+
+class HistNd(object): 
+    """
+    Wrapper for multidimensional array. This class exists to simplify 
+    conversion from HDF5 array to a 1d or 2d hist which can be plotted. 
+    """
+    class Axis(object): 
+        def __init__(self): 
+            self.name = None
+            self.bins = None
+            self.min = None
+            self.max = None
+            self.number = None
+        def __eq__(self, other): 
+            span = self.max - self.min
+            span_diff = (self.max - other.max)**2 + (self.min - other.min)**2
+            conditions = [ 
+                self.name == other.name, 
+                self.bins == other.bins, 
+                self.number == other.number, 
+                span_diff / span**2 < 1e-6, 
+                ]
+            return all(conditions)
+        def __ne__(self, other): 
+            not self == other
+
+        @property
+        def valid(self): 
+            conditions = [ 
+                self.name, 
+                self.bins, 
+                self.min is not None, 
+                self.max is not None, 
+                self.number is not None, 
+                ]
+            return all(conditions)
+        @property
+        def axis(self): 
+            return self.number
+        @axis.setter
+        def axis(self, num): 
+            self.number = num
+
+    def __init__(self,array=None): 
+        self._axes = defaultdict(HistNd.Axis)
+        if array: 
+            self.__from_hdf(array)
+
+    def __from_hdf(self, hdf_array): 
+        self._array = np.array(hdf_array)
+        for name, atr in hdf_array.attrs.items(): 
+            ax_name, part, ax_prop = name.rpartition('_')
+            the_axis = self._axes[ax_name]
+            setattr(the_axis, ax_prop, atr)
+            the_axis.name = ax_name
+        for name, axis in self._axes.items(): 
+            if not axis.valid: 
+                raise IOError("{} isn't well defined in".format(name))
+
+    def __add__(self, other): 
+        for axis in self._axes: 
+            if not self._axes[axis] == other._axes[axis]: 
+                raise ValueError("tried to add non-equal hists")
+        new = HistNd()
+        new._axes = self._axes
+        new._array = self._array + other._array
+        return new
+
+    def integrate(self, axis=None, reverse=False): 
+        if axis is None: 
+            for axis in self._axes: 
+                self.integrate(axis, reverse)
+        else: 
+            if isinstance(axis, int): 
+                ax_number = axis
+            else: 
+                ax_number = self._axes[axis].number
+            a = self._array
+            if reverse: 
+                a = a.swapaxes(0,ax_number)[::-1,...].swapaxes(0,ax_number)
+            a = np.add.accumulate(a, axis=ax_number)
+            if reverse: 
+                a = a.swapaxes(0,ax_number)[::-1,...].swapaxes(0,ax_number)
+            self._array = a
+            
+        
 
 class Stack(object): 
     def __init__(self, title): 
