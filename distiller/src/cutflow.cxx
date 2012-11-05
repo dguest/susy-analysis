@@ -254,7 +254,7 @@ run_cutflow(std::vector<std::string> files,
     out_tree.n_good_jets = good_jets.size(); 
 
     if (flags & cutflag::save_truth) { 
-      fill_cjet_positions(out_tree, good_jets); 
+      fill_cjet_truth(out_tree, good_jets); 
     }
 
     if (susy_electrons.size() == 0 && susy_muons.size() == 0) { 
@@ -335,11 +335,12 @@ void do_multijet_calculations(const std::vector<SelectedJet*>& leading_jets,
 
 }
 
-void fill_cjet_positions(OutTree& out_tree, 
-			 const std::vector<SelectedJet*>& jets)
+void fill_cjet_truth(OutTree& out_tree, 
+		     const std::vector<SelectedJet*>& jets)
 {
   int leading_pos = -1; 
   int subleading_pos = -1; 
+  int n_cjet = 0; 
   for (unsigned jet_pos = 0; jet_pos < jets.size(); jet_pos++) { 
     const SelectedJet& jet = *jets.at(jet_pos); 
     if (jet.flavor_truth_label() == 4) { 
@@ -348,12 +349,13 @@ void fill_cjet_positions(OutTree& out_tree,
       }
       else if (subleading_pos == -1){ 
 	subleading_pos = jet_pos; 
-	break; 
       }
+      n_cjet++; 
     } // end charm check
   } // end jet loop
   out_tree.leading_cjet_pos = leading_pos; 
   out_tree.subleading_cjet_pos = subleading_pos; 
+  out_tree.n_cjet = n_cjet; 
 }
 
 //____________________________________________________________
@@ -494,7 +496,7 @@ int main(int narg, char* argv[])
 
   flags |= get_branches; 
   flags |= save_ratios; 
-  flags |= raw_evt_info; 
+  // flags |= raw_evt_info; 
   // flags |= use_met_reffinal; 
   flags |= verbose; 
   flags |= is_atlfast; 

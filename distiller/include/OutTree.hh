@@ -28,6 +28,7 @@ public:
 
   int leading_cjet_pos; 
   int subleading_cjet_pos; 
+  int n_cjet; 
   
   class Jet 
   {

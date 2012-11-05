@@ -69,6 +69,7 @@ void OutTree::init(const unsigned flags)
   if (flags & cutflag::save_truth) { 
     m_tree->Branch("leading_cjet_pos", &leading_cjet_pos); 
     m_tree->Branch("subleading_cjet_pos", &subleading_cjet_pos); 
+    m_tree->Branch("n_cjet", &n_cjet); 
   }
 
   leading_jet.set_branches(m_tree, "jet2_", flags); 
