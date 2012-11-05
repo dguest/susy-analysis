@@ -10,7 +10,8 @@
 #include "TFile.h"
 #include "TTree.h"
 
-JetFactory::JetFactory(std::string root_file, int n_jets) 
+JetFactory::JetFactory(std::string root_file, int n_jets) : 
+  m_flags(0)
 {
   m_file = new TFile(root_file.c_str()); 
   if (!m_file) { 
