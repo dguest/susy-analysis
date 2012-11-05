@@ -87,7 +87,7 @@ double JetFactory::dphi()  const  { return m_dphi; }
 int JetFactory::n_good()   const  { return m_n_good; }
 int JetFactory::n_susy()   const  { return m_n_susy; }
 
-hfor::JetType hfor_type() const { 
+hfor::JetType JetFactory::hfor_type() const { 
   using namespace hfor; 
   switch (m_hfor_type) { 
   case -1: return NONE; 
