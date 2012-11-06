@@ -77,6 +77,7 @@ class HistNd(object):
             self.min = None
             self.max = None
             self.number = None
+            self.type = 'bare'
         def __eq__(self, other): 
             span = self.max - self.min
             span_diff = (self.max - other.max)**2 + (self.min - other.min)**2
@@ -85,6 +86,7 @@ class HistNd(object):
                 self.bins == other.bins, 
                 self.number == other.number, 
                 span_diff / span**2 < 1e-6, 
+                self.type == other.type, 
                 ]
             return all(conditions)
         def __ne__(self, other): 
@@ -128,6 +130,7 @@ class HistNd(object):
                                    compression='gzip')
         ax_list = sorted([(ax.number, ax) for ax in self._axes.values()])
         for num, ax in ax_list: 
+            assert ax.type == 'bare'
             ds.attrs['{}_axis'.format(ax.name)] = num
             ds.attrs['{}_bins'.format(ax.name)] = ax.bins
             ds.attrs['{}_min'.format(ax.name)] = ax.min
@@ -148,7 +151,28 @@ class HistNd(object):
     def __mul__(self, value): 
         new = HistNd()
         new._axes = copy.deepcopy(self._axes)
-        new._array = self._array * value
+        if isinstance(value,HistNd): 
+            self.__check_consistency(value)
+            used = np.isfinite(self._array) * np.isfinite(value._array)
+            new._array = np.zeros(self._array.shape)
+            new._array[used] = self._array[used] * value._array[used]
+        else: 
+            new._array = self._array * value
+        return new
+
+    def __rmul__(self, value): 
+        return self * value
+
+    def __div__(self, value): 
+        old_err = np.seterr(divide='ignore')
+        denom = value**(-1)
+        np.seterr(**old_err)
+        return self * denom
+
+    def __pow__(self, value): 
+        new = HistNd()
+        new._axes = copy.deepcopy(self._axes)
+        new._array = self._array**value
         return new
 
     @property
@@ -173,19 +197,35 @@ class HistNd(object):
             if reverse: 
                 a = a.swapaxes(0,ax_number)[::-1,...].swapaxes(0,ax_number)
             self._array = a
+            self._axes[axis].type = 'integral'
+
 
     def reduce(self, axis): 
         """
-        Remove an axis. Take care not to reduce an integrated axis, 
-        since this will sum the integral. 
-
-        TODO: give axes an integrated tag.
+        Remove an axis. If the axis has been integrated replace with the 
+        maximum bin, otherwise replace with the sum. 
         """
-        reduce_axis = self._axes.pop(axis)
-        self._array = np.add.reduce(self._array, axis=reduce_axis.number)
+        ax = self._axes.pop(axis)
+        if ax.type == 'bare': 
+            self._array = np.add.reduce(self._array, axis=ax.number)
+        elif ax.type == 'integral': 
+            self._array = np.maximum.reduce(self._array, axis=ax.number)
+        else: 
+            raise ValueError(
+                'an axis somehow got undefined type: {}'.format(ax.type))
         for ax_name in self._axes: 
-            if self._axes[ax_name].number > reduce_axis.number: 
+            if self._axes[ax_name].number > ax.number: 
                 self._axes[ax_name].number -= 1
+
+    def splinter(self): 
+        """
+        output one (array, extent, name) tuple for each variable
+        """
+        todo = [a.name for a in self.axes]
+        cached = []
+        for axis in todo: 
+            pass
+            
 
     def write_to(self, hdf_fg, name): 
         self.__to_hdf(hdf_fg, name)
