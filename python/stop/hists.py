@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from itertools import chain
 from collections import defaultdict
+import copy
 
 class Hist1d(object): 
     """
@@ -120,15 +121,33 @@ class HistNd(object):
             the_axis.name = ax_name
         for name, axis in self._axes.items(): 
             if not axis.valid: 
-                raise IOError("{} isn't well defined in".format(name))
+                raise IOError("{} isn't well defined".format(name))
 
-    def __add__(self, other): 
+    def __to_hdf(self, target, name): 
+        ds = target.create_dataset(name, data=self._array)
+        ax_list = sorted([(ax.number, ax) for ax in self._axes.values()])
+        for ax in ax_list: 
+            ds.attrs['{}_axis'.format(ax.name)] = ax.number
+            ds.attrs['{}_bins'.format(ax.name)] = ax.bins
+            ds.attrs['{}_min'.format(ax.name)] = ax.min
+            ds.attrs['{}_max'.format(ax.name)] = ax.max
+
+    def __check_consistency(self, other): 
         for axis in self._axes: 
             if not self._axes[axis] == other._axes[axis]: 
                 raise ValueError("tried to add non-equal hists")
+
+    def __add__(self, other): 
+        self.__check_consistency(other)
         new = HistNd()
-        new._axes = self._axes
+        new._axes = copy.deepcopy(self._axes)
         new._array = self._array + other._array
+        return new
+
+    def __mul__(self, value): 
+        new = HistNd()
+        new._axes = copy.deepcopy(self._axes)
+        new._array = self._array * value
         return new
 
     def integrate(self, axis=None, reverse=False): 
@@ -139,6 +158,8 @@ class HistNd(object):
             if isinstance(axis, int): 
                 ax_number = axis
             else: 
+                if not axis in self._axes: 
+                    raise ValueError('axis {} not defined'.format(axis))
                 ax_number = self._axes[axis].number
             a = self._array
             if reverse: 
@@ -147,8 +168,9 @@ class HistNd(object):
             if reverse: 
                 a = a.swapaxes(0,ax_number)[::-1,...].swapaxes(0,ax_number)
             self._array = a
-            
-        
+
+    def write_to(self, hdf_fg, name): 
+        self.__to_hdf(hdf_fg, name)
 
 class Stack(object): 
     def __init__(self, title): 
