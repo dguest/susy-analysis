@@ -40,11 +40,10 @@ def sig_itr(sample_list, signals):
                 if signal in sample: 
                     yield sample
 
-def combine(h5_cache, meta): 
+def combine(h5_cache, meta, cut='vxp_good', signal='175-100'): 
     sum_background = None
     sum_signal = None
-    cut = 'vxp_good'
-    signal = '175-100'
+
     signal_finder = re.compile('directCC_{}_{}'.format(*signal.split('-')))
 
     for hyper in  h5_cache: 
