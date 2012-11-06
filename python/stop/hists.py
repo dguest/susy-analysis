@@ -151,6 +151,10 @@ class HistNd(object):
         new._array = self._array * value
         return new
 
+    @property
+    def axes(self): 
+        return copy.deepcopy(self._axes).values()
+
     def integrate(self, axis=None, reverse=False): 
         if axis is None: 
             for axis in self._axes: 
@@ -169,6 +173,19 @@ class HistNd(object):
             if reverse: 
                 a = a.swapaxes(0,ax_number)[::-1,...].swapaxes(0,ax_number)
             self._array = a
+
+    def reduce(self, axis): 
+        """
+        Remove an axis. Take care not to reduce an integrated axis, 
+        since this will sum the integral. 
+
+        TODO: give axes an integrated tag.
+        """
+        reduce_axis = self._axes.pop(axis)
+        self._array = np.add.reduce(self._array, axis=reduce_axis.number)
+        for ax_name in self._axes: 
+            if self._axes[ax_name].number > reduce_axis.number: 
+                self._axes[ax_name].number -= 1
 
     def write_to(self, hdf_fg, name): 
         self.__to_hdf(hdf_fg, name)
