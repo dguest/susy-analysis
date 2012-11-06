@@ -124,10 +124,11 @@ class HistNd(object):
                 raise IOError("{} isn't well defined".format(name))
 
     def __to_hdf(self, target, name): 
-        ds = target.create_dataset(name, data=self._array)
+        ds = target.create_dataset(name, data=self._array, 
+                                   compression='gzip')
         ax_list = sorted([(ax.number, ax) for ax in self._axes.values()])
-        for ax in ax_list: 
-            ds.attrs['{}_axis'.format(ax.name)] = ax.number
+        for num, ax in ax_list: 
+            ds.attrs['{}_axis'.format(ax.name)] = num
             ds.attrs['{}_bins'.format(ax.name)] = ax.bins
             ds.attrs['{}_min'.format(ax.name)] = ax.min
             ds.attrs['{}_max'.format(ax.name)] = ax.max
