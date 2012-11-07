@@ -23,8 +23,8 @@ HyperBuilder::HyperBuilder(std::string input, const unsigned flags) :
   m_factory(0), 
   m_hists(0)
 { 
-  const double max_pt = 180*GeV; 
-  const double min_pt = 80*GeV; 
+  const double max_pt = 250*GeV; 
+  const double min_pt = 50*GeV; 
   m_factory = new JetFactory(input); 
 
   std::vector<Axis> axes; 
