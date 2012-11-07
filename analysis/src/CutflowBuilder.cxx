@@ -29,8 +29,8 @@ CutflowBuilder::CutflowBuilder(std::string input, const unsigned flags) :
   }
   int errors = 0; 
   m_tree->SetBranchStatus("*",0); 
-  errors += m_tree->SetBranchAddress("pass_bits",&m_pass_bits); 
   m_tree->SetBranchStatus("pass_bits",1); 
+  errors += m_tree->SetBranchAddress("pass_bits",&m_pass_bits); 
   if (errors) { 
     throw std::runtime_error
       ((boost::format("%i branch setting errors") % errors).str()); 
