@@ -204,12 +204,15 @@ class HistNd(object):
         """
         Remove an axis. If the axis has been integrated replace with the 
         maximum bin, otherwise replace with the sum. 
+
+        TODO: consider making this return reduced HistNd (rather than 
+        modifying in place)
         """
         ax = self._axes.pop(axis)
         if ax.type == 'bare': 
-            self._array = np.add.reduce(self._array, axis=ax.number)
+            self._array = np.sum(self._array, axis=ax.number)
         elif ax.type == 'integral': 
-            self._array = np.maximum.reduce(self._array, axis=ax.number)
+            self._array = np.amax(self._array, axis=ax.number)
         else: 
             raise ValueError(
                 'an axis somehow got undefined type: {}'.format(ax.type))
@@ -217,15 +220,19 @@ class HistNd(object):
             if self._axes[ax_name].number > ax.number: 
                 self._axes[ax_name].number -= 1
 
-    def splinter(self): 
+    def project_1d(self, axis): 
         """
-        output one (array, extent, name) tuple for each variable
+        get (array, extent) tuple for axis
         """
         todo = [a.name for a in self.axes]
-        cached = []
-        for axis in todo: 
-            pass
-            
+        victim = copy.deepcopy(self)
+        for red_ax in todo: 
+            if red_ax == axis: continue
+            victim.reduce(red_ax)
+        
+        assert len(victim.axes) == 1
+        the_ax = victim.axes[0]
+        return victim._array, (the_ax.min, the_ax.max)
 
     def write_to(self, hdf_fg, name): 
         self.__to_hdf(hdf_fg, name)
