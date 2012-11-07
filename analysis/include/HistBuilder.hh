@@ -22,7 +22,7 @@ public:
   HistBuilder(std::string input, const unsigned flags = 0); 
   ~HistBuilder(); 
   void add_cut_mask(std::string name, unsigned bits); 
-  void build(); 
+  int build(); 
   void save(std::string output = ""); 
 private: 
   double get_mttop(const std::vector<Jet>& jets, TVector2 met); 

@@ -57,7 +57,7 @@ void HyperBuilder::add_cut_mask(std::string name, unsigned bits)
   m_hists->add_mask(bits, name); 
 }
 
-void HyperBuilder::build() { 
+int HyperBuilder::build() { 
   typedef std::vector<Jet> Jets; 
   const int n_entries = m_factory->entries(); 
   const int one_percent = n_entries / 100; 
@@ -110,6 +110,7 @@ void HyperBuilder::build() {
   outstream << "\n";
   outstream.flush(); 
 
+  return 0; 
 }
 
 void HyperBuilder::save(std::string output) { 

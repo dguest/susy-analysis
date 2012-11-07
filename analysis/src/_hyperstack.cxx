@@ -27,6 +27,7 @@ static PyObject* py_analysis_alg(PyObject *self, PyObject *args)
 
   unsigned bitflags = parse_flags(flags); 
 
+  int ret_val = 0; 
   try { 
     T builder(input_file, bitflags); 
 
@@ -41,7 +42,7 @@ static PyObject* py_analysis_alg(PyObject *self, PyObject *args)
       builder.add_cut_mask(name, mask); 
     }
     
-    builder.build(); 
+    ret_val = builder.build(); 
     builder.save(output_file); 
   }
   catch (std::runtime_error e) { 
@@ -49,7 +50,7 @@ static PyObject* py_analysis_alg(PyObject *self, PyObject *args)
     return NULL; 
   }
 
-  PyObject* tuple = Py_BuildValue("s", input_file);
+  PyObject* tuple = Py_BuildValue("i", ret_val);
   
   return tuple; 
 

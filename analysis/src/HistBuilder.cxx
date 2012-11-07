@@ -98,7 +98,7 @@ void HistBuilder::add_cut_mask(std::string name, unsigned bits)
   }  
 }
 
-void HistBuilder::build() { 
+int HistBuilder::build() { 
 
   typedef std::vector<Jet> Jets; 
   const int n_entries = m_factory->entries(); 
@@ -162,6 +162,7 @@ void HistBuilder::build() {
   outstream << "\n";
   outstream.flush(); 
 
+  return 0; 
 }
 
 void HistBuilder::fill_truth_hists(const std::vector<Jet>& jets, 

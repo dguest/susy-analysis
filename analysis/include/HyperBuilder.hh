@@ -19,7 +19,7 @@ public:
   HyperBuilder(std::string input, const unsigned flags = 0); 
   ~HyperBuilder(); 
   void add_cut_mask(std::string name, unsigned bits); 
-  void build(); 
+  int build(); 
   void save(std::string output = ""); 
 private: 
   typedef std::map<std::string, unsigned> CutMasks; 
