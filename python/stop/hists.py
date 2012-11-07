@@ -193,7 +193,7 @@ class HistNd(object):
             a = self._array
             if reverse: 
                 a = a.swapaxes(0,ax_number)[::-1,...].swapaxes(0,ax_number)
-            a = np.add.accumulate(a, axis=ax_number)
+            a = np.cumsum(a, axis=ax_number)
             if reverse: 
                 a = a.swapaxes(0,ax_number)[::-1,...].swapaxes(0,ax_number)
             self._array = a
