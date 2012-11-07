@@ -1,4 +1,4 @@
-from _hyperstack import _stacksusy, _hypersusy
+from _hyperstack import _stacksusy, _hypersusy, _cutflow
 from os.path import basename, splitext
 
 def stacksusy(input_file, mask_list, output_file='', flags=''): 
@@ -28,3 +28,12 @@ def hypersusy(input_file, mask_list, output_file='', flags=''):
     _hypersusy(input_file, mask_list, output_file, flags)
     return output_file
     
+def cutflow(input_file, mask, flags=''): 
+    """
+    runs very quick cutflow based on bits
+
+    Flags: 
+        v: verbose
+    """
+    
+    return _cutflow(input_file, [mask], '', flags)

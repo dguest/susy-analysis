@@ -4,6 +4,8 @@ import numpy as np
 from os.path import join, basename, splitext, isdir
 import os, re
 from stop.profile import cum_cuts
+from os.path import isfile, basename, split, join
+import cPickle
 
 import ConfigParser, argparse
 
@@ -25,6 +27,17 @@ def build_hists(root_file, put_where='cache'):
                                     output_file=out_file_name, 
                                     flags='vt')
     return out_file
+
+def run_cutflow(root_file): 
+
+    print 'running cutflow {}'.format(root_file)
+
+    the_cut = dict(cum_cuts())['ctag_mainz']
+
+    pass_number = hyperstack.cutflow(root_file, 
+                                     mask=('dummy',the_cut), 
+                                     flags='vt')
+    return pass_number
 
 
 def select_signals(sample_list, signals = ['175-100']): 
@@ -68,3 +81,34 @@ def combine(h5_cache, meta, cut='vxp_good', signal='175-100'):
                 sum_background += hist
 
     return sum_signal, sum_background
+
+
+def get_baseline(cache, distillates, meta, sys_factor, lumi): 
+    comparison_pkl = join(cache, 'comp_cutflow.pkl')
+    if isfile(comparison_pkl): 
+        with open(comparison_pkl) as pkl: 
+            count_dict = cPickle.load(pkl)
+    else: 
+        raw_counts = map(run_cutflow, distillates)
+        keys = [splitext(basename(rf))[0] for rf in distillates]
+        keycount = zip(keys, raw_counts)
+        def norm(key): 
+            return meta[key].xsec_per_evt * lumi
+        count_dict = {key: raw * norm(key) for key, raw in keycount}
+        with open(comparison_pkl,'w') as pkl: 
+            cPickle.dump(count_dict, pkl)
+
+
+
+    total_signal = 0
+    total_bg = 0
+    for key, count in count_dict.iteritems(): 
+        if 'directCC' in key: 
+            assert total_signal == 0
+            total_signal += count
+        else: 
+            total_bg += count
+
+    baseline_signif = total_signal / (
+        total_signal + total_bg + sys_factor * total_bg**2)**0.5
+    return baseline_signif
