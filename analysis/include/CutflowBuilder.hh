@@ -22,8 +22,9 @@ private:
   TFile* m_file; 
   TTree* m_tree; 
   unsigned m_mask; 
-  unsigned m_pass_bits; 
 
+  unsigned m_pass_bits; 
+  int m_hfor_type; 
 };
 
 

@@ -17,7 +17,9 @@ CutflowBuilder::CutflowBuilder(std::string input, const unsigned flags) :
   m_file(0), 
   m_tree(0), 
   m_mask(0), 
-  m_pass_bits(0)
+
+  m_pass_bits(0), 
+  m_hfor_type(0)
 { 
   m_file = new TFile(input.c_str()); 
   if (!m_file) { 
@@ -31,6 +33,8 @@ CutflowBuilder::CutflowBuilder(std::string input, const unsigned flags) :
   m_tree->SetBranchStatus("*",0); 
   m_tree->SetBranchStatus("pass_bits",1); 
   errors += m_tree->SetBranchAddress("pass_bits",&m_pass_bits); 
+  m_tree->SetBranchStatus("hfor_type",1); 
+  errors += m_tree->SetBranchAddress("hfor_type",&m_hfor_type); 
   if (errors) { 
     throw std::runtime_error
       ((boost::format("%i branch setting errors") % errors).str()); 
@@ -68,6 +72,7 @@ int CutflowBuilder::build() {
       outstream.flush(); 
     }
     m_tree->GetEntry(entry); 
+    if (m_hfor_type == 4) continue; 
     if ( (m_pass_bits & m_mask) == m_mask) { 
       n_pass++; 
     }
