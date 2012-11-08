@@ -9,7 +9,7 @@ import cPickle
 
 import ConfigParser, argparse
 
-def build_hists(root_file, put_where='cache'): 
+def build_hists(root_file, put_where='cache', cut='vxp_good'): 
     stem_name = basename(splitext(root_file)[0])
     out_file_name = join(put_where,'{}_hyper.h5'.format(stem_name))
 
@@ -21,8 +21,8 @@ def build_hists(root_file, put_where='cache'):
 
     print 'making {}'.format(os.path.basename(out_file_name))
 
-    the_cut = dict(cum_cuts())['vxp_good']
-    cuts = [('vxp_good',the_cut)]
+    the_cut = dict(cum_cuts())[cut]
+    cuts = [(cut,the_cut)]
     out_file = hyperstack.hypersusy(root_file, mask_list=cuts, 
                                     output_file=out_file_name, 
                                     flags='vt')
@@ -110,5 +110,5 @@ def get_baseline(cache, distillates, meta, sys_factor, lumi):
             total_bg += count
 
     baseline_signif = total_signal / (
-        total_signal + total_bg + sys_factor * total_bg**2)**0.5
+        total_signal + total_bg + (sys_factor * total_bg)**2)**0.5
     return baseline_signif
