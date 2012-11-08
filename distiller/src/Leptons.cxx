@@ -2,6 +2,7 @@
 #include "SusyBuffer.h"
 #include "RunInfo.hh"
 #include "CutBits.hh"
+#include "constants.hh"
 
 #include <cassert>
 
@@ -119,7 +120,9 @@ bool check_if_electron(int iEl,
      buffer.el_nSCTHits              ->at(iEl),
      buffer.el_MET_Egamma10NoTau_wet->at(iEl).at(0), 
      // buffer.el_MET_Egamma10NoTau_wet ->at(iEl),
-     flags & cutflag::is_data);
+     flags & cutflag::is_data, 
+     10*GeV			// et cut
+     );
 
   return pass_el; 
   //info.isAF2

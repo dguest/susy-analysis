@@ -198,6 +198,9 @@ run_cutflow(std::vector<std::string> files,
 	susy_jets.push_back(*jet_itr); 
       }
     }
+
+    // need to get susy muon indices before overlap
+    std::vector<int> susy_muon_idx = get_indices(susy_muons); 
     
     std::vector<double> jet_dr = remove_overlaping(susy_electrons, 
 						   susy_jets, 0.2); 
@@ -225,8 +228,7 @@ run_cutflow(std::vector<std::string> files,
       pass_bits |= pass::vxp_gt_4trk; 
     }
       
-    std::vector<int> muon_idx = get_indices(susy_muons); 
-    TVector2 met = get_met(buffer, def, info, muon_idx); 
+    TVector2 met = get_met(buffer, def, info, susy_muon_idx); 
     if (flags & cutflag::use_met_reffinal) { 
       met.Set(buffer.MET_RefFinal_etx, buffer.MET_RefFinal_ety); 
     }
