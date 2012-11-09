@@ -234,6 +234,37 @@ class HistNd(object):
         the_ax = victim.axes[0]
         return victim._array, (the_ax.min, the_ax.max)
 
+    def project_2d(self, xaxis, yaxis): 
+        """
+        returns a dict that works with imshow
+        """
+        todo = [a.name for a in self.axes]
+        victim = copy.deepcopy(self)
+        for red_ax in todo: 
+            if red_ax in [xaxis, yaxis]: continue
+            victim.reduce(red_ax) 
+        
+        array = victim._array
+
+        x_idx = todo.index(xaxis)
+        y_idx = todo.index(yaxis)
+        if x_idx > y_idx: 
+            array = array.T
+
+        extent = (
+            self.axes[x_idx].min, self.axes[x_idx].max, 
+            self.axes[y_idx].min, self.axes[y_idx].max, 
+            )
+        aspect = (extent[1] - extent[0]) / (extent[3] - extent[2])
+        
+        return {
+            'X': array.T, 
+            'extent': extent, 
+            'aspect': aspect, 
+            'interpolation':'nearest', 
+            'origin':'lower left', 
+            }
+
     def write_to(self, hdf_fg, name): 
         self.__to_hdf(hdf_fg, name)
 
