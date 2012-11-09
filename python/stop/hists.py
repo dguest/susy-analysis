@@ -200,6 +200,24 @@ class HistNd(object):
             self._axes[axis].type = 'integral'
 
 
+    def cut(self, axis, value, reverse=False): 
+        """
+        cut axis at (approximately) value, return value where cut is 
+        actually made
+        """
+        assert not reverse
+        ax = self._axes[axis]
+        bin_bounds = np.linspace(ax.min,ax.max,ax.bins + 1)
+        bin_n = np.digitize([value], bin_bounds)
+        a = self._array.swapaxes(0, ax.number)
+        a[:bin_n,...] = 0.0
+        self._array = a.swapaxes(0, ax.number)
+        lowest_bound_idx = bin_n - 1
+        if lowest_bound_idx >= 0: 
+            return bin_bounds[lowest_bound_idx]
+        else:
+            return None
+        
     def reduce(self, axis): 
         """
         Remove an axis. If the axis has been integrated replace with the 
