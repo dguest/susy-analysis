@@ -208,12 +208,16 @@ class HistNd(object):
         assert not reverse
         ax = self._axes[axis]
         bin_bounds = np.linspace(ax.min,ax.max,ax.bins + 1)
-        bin_n = np.digitize([value], bin_bounds)
-        a = self._array.swapaxes(0, ax.number)
-        a[:bin_n,...] = 0.0
-        self._array = a.swapaxes(0, ax.number)
+        bin_n = np.digitize([value], bin_bounds)[0]
+
         lowest_bound_idx = bin_n - 1
         if lowest_bound_idx >= 0: 
+            a = self._array.swapaxes(0, ax.number)
+            a = a[lowest_bound_idx:,...] 
+            a[0,...] = 0        # zero the underflow
+            self._array = a.swapaxes(0, ax.number)
+            self._axes[axis].min = bin_bounds[lowest_bound_idx]
+            self._axes[axis].bins = len(bin_bounds[lowest_bound_idx:])
             return bin_bounds[lowest_bound_idx]
         else:
             return None
@@ -252,35 +256,37 @@ class HistNd(object):
         the_ax = victim.axes[0]
         return victim._array, (the_ax.min, the_ax.max)
 
-    def project_2d(self, xaxis, yaxis): 
+    def project_imshow(self, xaxis, yaxis): 
         """
         returns a dict that works with imshow
         """
+
         todo = [a.name for a in self.axes]
         victim = copy.deepcopy(self)
         for red_ax in todo: 
             if red_ax in [xaxis, yaxis]: continue
             victim.reduce(red_ax) 
         
-        array = victim._array
+        array = victim._array[1:-1,1:-1]
 
-        x_idx = todo.index(xaxis)
-        y_idx = todo.index(yaxis)
-        if x_idx > y_idx: 
+        ax_dic = dict((a.name, a) for a in self.axes)
+        x_ax = ax_dic[xaxis]
+        y_ax = ax_dic[yaxis]
+
+        if x_ax.number > y_ax.number: 
             array = array.T
 
-        extent = (
-            self.axes[x_idx].min, self.axes[x_idx].max, 
-            self.axes[y_idx].min, self.axes[y_idx].max, 
-            )
-        aspect = (extent[1] - extent[0]) / (extent[3] - extent[2])
+        extent = [
+            x_ax.min, x_ax.max, 
+            y_ax.min, y_ax.max, 
+            ]
         
         return {
             'X': array.T, 
             'extent': extent, 
-            'aspect': aspect, 
+            'aspect': 'auto', 
             'interpolation':'nearest', 
-            'origin':'lower left', 
+            'origin':'lower', 
             }
 
     def write_to(self, hdf_fg, name): 
