@@ -109,6 +109,7 @@ class HistNd(object):
         def axis(self, num): 
             self.number = num
 
+
     def __init__(self,array=None): 
         self._axes = defaultdict(HistNd.Axis)
         if array: 
@@ -177,7 +178,8 @@ class HistNd(object):
 
     @property
     def axes(self): 
-        return copy.deepcopy(self._axes).values()
+        return sorted(copy.deepcopy(self._axes).values(), 
+                      key=lambda x: x.number)
 
     def integrate(self, axis=None, reverse=False): 
         if axis is None: 
@@ -288,6 +290,18 @@ class HistNd(object):
             'interpolation':'nearest', 
             'origin':'lower', 
             }
+    
+    def max_bin_dict(self): 
+        global_max = np.argmax(self._array)
+        max_bin_tuple = np.unravel_index(global_max,self._array.shape)
+        max_bins = {}
+        return {a.name: t for a,t in zip(self.axes, max_bin_tuple)}
+
+    def max_bins(self): 
+        """
+        someday this should procduce tuples of (name, extent)
+        """
+        raise NotImplementedError("you got to write this")
 
     def write_to(self, hdf_fg, name): 
         self.__to_hdf(hdf_fg, name)
