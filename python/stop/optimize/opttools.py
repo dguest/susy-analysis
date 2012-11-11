@@ -23,6 +23,7 @@ def compute_significance(signal, background, kept_axes, sys_factor=0.3):
     sig_hist = signal / denom
     return sig_hist
 
+
 def build_hists(root_file, put_where='cache', cut='vxp_good'): 
     stem_name = basename(splitext(root_file)[0])
     out_file_name = join(put_where,'{}_hyper.h5'.format(stem_name))
