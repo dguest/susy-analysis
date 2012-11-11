@@ -5,9 +5,23 @@ from os.path import join, basename, splitext, isdir
 import os, re
 from stop.profile import cum_cuts
 from os.path import isfile, basename, split, join
-import cPickle
+import cPickle, copy
 
 import ConfigParser, argparse
+
+def compute_significance(signal, background, kept_axes, sys_factor=0.3): 
+    signal = copy.deepcopy(signal)
+    background = copy.deepcopy(background)
+    for axis in background.axes: 
+        if not axis.name in kept_axes:
+            signal.reduce(axis.name)
+            background.reduce(axis.name)
+
+    denom = ( signal + background + 
+              (sys_factor * background)**2 )**0.5
+    
+    sig_hist = signal / denom
+    return sig_hist
 
 def build_hists(root_file, put_where='cache', cut='vxp_good'): 
     stem_name = basename(splitext(root_file)[0])
