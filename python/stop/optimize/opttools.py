@@ -69,6 +69,9 @@ def sig_itr(sample_list, signals):
                     yield sample
 
 def combine(h5_cache, meta, cut='vxp_good', signal='175-100'): 
+    """
+    file combiner, badly needs a rewrite (shouldn't be doing filtering)
+    """
     sum_background = None
     sum_signal = None
 
@@ -98,27 +101,36 @@ def combine(h5_cache, meta, cut='vxp_good', signal='175-100'):
     return sum_signal, sum_background
 
 
-def get_baseline(cache, distillates, meta, sys_factor, lumi): 
-    comparison_pkl = join(cache, 'comp_cutflow.pkl')
+def get_baseline(comparison_pkl, 
+                 distillates, meta, sys_factor, lumi, signal): 
+
     if isfile(comparison_pkl): 
         with open(comparison_pkl) as pkl: 
             count_dict = cPickle.load(pkl)
     else: 
-        raw_counts = map(run_cutflow, distillates)
-        keys = [splitext(basename(rf))[0] for rf in distillates]
-        keycount = zip(keys, raw_counts)
-        def norm(key): 
-            return meta[key].xsec_per_evt * lumi
-        count_dict = {key: raw * norm(key) for key, raw in keycount}
+        count_dict = {}
+
+    def k_from_r(f_name): 
+        return splitext(basename(f_name))[0]
+
+    dist_dict = {k_from_r(rf):rf for rf in distillates}
+
+    missing_keys = set(dist_dict.keys()) - set(count_dict.keys())
+
+    for key in missing_keys:
+        missing_file = dist_dict[key]
+        raw = run_cutflow(missing_file)
+        count_dict[key] = raw * meta[key].xsec_per_evt * lumi
+
+    if missing_keys: 
         with open(comparison_pkl,'w') as pkl: 
             cPickle.dump(count_dict, pkl)
-
 
 
     total_signal = 0
     total_bg = 0
     for key, count in count_dict.iteritems(): 
-        if 'directCC' in key: 
+        if signal.replace('-','_') in key: 
             assert total_signal == 0
             total_signal += count
         else: 

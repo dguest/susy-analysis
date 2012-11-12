@@ -94,35 +94,52 @@ class CutflowOptimum(object):
             'magenta', 
             '0.5'
             ]
-        self.baseline = None
+        self._baseline = None
         self.max_bins = {}
+        self.ymin = None
+        self._do_log = False
+
+    @property
+    def baseline(self): 
+        return self._baseline
+    @baseline.setter
+    def baseline(self, value): 
+        self._baseline = value
+        if value: 
+            self.ymin = min(value, self.ymin)
+
         
     def compute(self,sys_factor=0.3): 
         used = []
+        mins = []
         for new in self.cuts: 
             used.append(new)
             sig = opttools.compute_significance(
                 self._signal, self._background, kept_axes=used, 
                 sys_factor=sys_factor)
-            self._cut_tuples.append(sig.project_1d(new))
+            array, extent = sig.project_1d(new)
+            mins.append(np.min(array[array != 0.0]))
+            self._cut_tuples.append((array, extent))
             self.fom_label = self.fom_template.format(sys_factor)
 
-            self.max_bins = sig.max_bin_dict()
+        self.max_bins = sig.max_bin_dict()
+        self.ymin = min(mins)
 
+    def set_log(self, min_val=None): 
+        if min_val is not None: 
+            self.ymin = min_val
+        self._do_log = True
 
     def draw_normalized(self, output_file_name): 
         color_itr = iter(self.colors)
         fig = plt.figure(figsize=(6,4.5))
         ax = fig.add_subplot(1,1,1)
         for (array, extent), cut in zip(self._cut_tuples, self.cuts): 
+            if self._do_log: 
+                array = np.maximum(self.ymin, array)
             hist = hists.Hist1d(array, (0,1))
             new_name, extent, units = new_name_ext(cut, extent)
 
-            maxbin = self.max_bins[cut] - 1 # offset for underflow
-            nbins = array.size - 2
-            maxbinx = np.linspace(*extent, num=nbins, endpoint=False)[maxbin]
-            maxbiny = array[maxbin + 1] # undo underflow offset
-            maxbinx_norm = np.linspace(0,1, nbins, endpoint=False)[maxbin]
 
             color = next(color_itr)
             x_pts, y_pts = hist.get_xy_pts()
@@ -145,13 +162,33 @@ class CutflowOptimum(object):
                                 va='bottom', ha='right',
                                 color=color, 
                                 bbox=bbox)
-            txt_max = ax.text(maxbinx_norm, maxbiny, 
-                              x_format.format(maxbinx, units), 
-                              size=9, 
-                              color=color, va='bottom', ha='left')
+
+
+            maxbin = self.max_bins[cut] - 1 # offset for underflow
+            nbins = array.size - 2
+            maxbiny = array[maxbin + 1] # undo underflow offset
+            if nbins > maxbin >= 0: 
+                maxbinx = np.linspace(
+                    *extent, num=nbins, endpoint=False)[maxbin]
+                maxbinx_norm = np.linspace(
+                    0,1, nbins, endpoint=False)[maxbin]
+
+                txt_max = ax.text(maxbinx_norm, maxbiny, 
+                                  x_format.format(maxbinx, units), 
+                                  size=9, 
+                                  color=color, va='bottom', ha='left')
+            elif maxbin == nbins: 
+                ax.text(1, maxbiny, 'overflow', size=9, color=color, 
+                        va='bottom', ha='right')
+            elif maxbin == -1: 
+                ax.test(0, maxbiny, 'underflow', size=9, color=color, 
+                        va='bottom', ha='left')
+            else: 
+                raise RuntimeError("something wront")
+                
             
-        if self.baseline is not None: 
-            handle, = ax.plot((0,1), [self.baseline]*2, 'k--', 
+        if self._baseline is not None: 
+            handle, = ax.plot((0,1), [self._baseline]*2, 'k--', 
                               label='nominal')
             
         ax.set_ylabel(self.fom_label, y=0.98, va='top')
@@ -159,6 +196,9 @@ class CutflowOptimum(object):
         ax.grid(True)
         ax.get_xaxis().set_ticklabels([])
         ax.get_xaxis().set_ticks([])
+
+        if self._do_log: 
+            ax.set_yscale('log')
 
         ymin, ymax = ax.get_ylim()
         ax.set_ylim(ymin, ymax + (ymax - ymin)*0.2)
