@@ -4,6 +4,7 @@ import numpy as np
 from os.path import join, basename, splitext, isdir
 import os, re
 from stop.profile import cum_cuts
+from stop import bits
 from os.path import isfile, basename, split, join
 import cPickle, copy
 
@@ -24,7 +25,8 @@ def compute_significance(signal, background, kept_axes, sys_factor=0.3):
     return sig_hist
 
 
-def build_hists(root_file, put_where='cache', cut='vxp_good'): 
+def build_hists(root_file, put_where='cache', base_cut='vxp_good', 
+                more_cuts=['lepton_veto']): 
     stem_name = basename(splitext(root_file)[0])
     out_file_name = join(put_where,'{}_hyper.h5'.format(stem_name))
 
@@ -36,11 +38,23 @@ def build_hists(root_file, put_where='cache', cut='vxp_good'):
 
     print 'making {}'.format(os.path.basename(out_file_name))
 
-    the_cut = dict(cum_cuts())[cut]
-    cuts = [(cut,the_cut)]
+    the_cut = dict(cum_cuts())[base_cut]
+    full_cut_name = '+'.join([base_cut] + more_cuts)
+    for cut_to_add in more_cuts: 
+        the_cut |= dict(bits.bits)[cut_to_add]
+
+    cuts = [(full_cut_name, the_cut)]
+
+    GeV = 1e3
+    special_limits = {
+        'min_pt': 100*GeV, 
+        'max_pt': 300*GeV, 
+        }
+
     out_file = hyperstack.hypersusy(root_file, mask_list=cuts, 
                                     output_file=out_file_name, 
-                                    flags='vt')
+                                    flags='vt', 
+                                    limit_dict=special_limits)
     return out_file
 
 def run_cutflow(root_file): 
