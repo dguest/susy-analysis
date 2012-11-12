@@ -21,10 +21,16 @@
 HyperBuilder::HyperBuilder(std::string input, const unsigned flags) : 
   m_flags(flags), 
   m_factory(0), 
-  m_hists(0)
+  m_hists(0), 
+  m_input_file(input), 
+  m_max_pt(250*GeV), 
+  m_min_pt(50*GeV)
 { 
-  const double max_pt = 250*GeV; 
-  const double min_pt = 50*GeV; 
+}
+
+void HyperBuilder::init(std::string input, const unsigned flags) { 
+  const double max_pt = m_max_pt; 
+  const double min_pt = m_min_pt;  
   m_factory = new JetFactory(input); 
 
   std::vector<Axis> axes; 
@@ -45,6 +51,12 @@ HyperBuilder::HyperBuilder(std::string input, const unsigned flags) :
 
   Histogram base_hist(axes); 
   m_hists = new MaskedHistArray(base_hist); 
+
+  for (CutMasks::const_iterator itr = m_cut_masks.begin(); 
+       itr != m_cut_masks.end(); itr++) { 
+    m_hists->add_mask(itr->second, itr->first);     
+  }
+
 }
 
 HyperBuilder::~HyperBuilder() { 
@@ -54,10 +66,13 @@ HyperBuilder::~HyperBuilder() {
 
 void HyperBuilder::add_cut_mask(std::string name, unsigned bits) 
 {
-  m_hists->add_mask(bits, name); 
+  m_cut_masks.push_back(std::make_pair(name, bits)); 
 }
 
 int HyperBuilder::build() { 
+
+  init(m_input_file, m_flags); 
+
   typedef std::vector<Jet> Jets; 
   const int n_entries = m_factory->entries(); 
   const int one_percent = n_entries / 100; 
@@ -123,4 +138,16 @@ void HyperBuilder::save(std::string output) {
 
 }
 
-
+void HyperBuilder::set_float(std::string name, double value) { 
+  if (name == "max_pt") {  
+    m_max_pt = value; 
+    return; 
+  }
+  else if (name == "min_pt") { 
+    m_min_pt = value; 
+    return; 
+  }
+  else { 
+    throw std::runtime_error(name + " is not defined in HyperBuilder"); 
+  }
+}

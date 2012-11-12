@@ -17,6 +17,7 @@ public:
   void add_cut_mask(std::string, unsigned bits); 
   int build(); 
   void save(std::string output = ""); 
+  void set_float(std::string, double) {}
 private: 
   const unsigned m_flags; 
   TFile* m_file; 

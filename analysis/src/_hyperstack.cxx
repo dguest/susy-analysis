@@ -20,10 +20,11 @@ static PyObject* py_analysis_alg(PyObject *self, PyObject *args)
   PyObject* bits = 0; 
   const char* output_file = ""; 
   const char* flags = ""; 
+  PyObject* floats_dict = 0; 
 
   bool ok = PyArg_ParseTuple
-    (args,"sOs|s:algo", 
-     &input_file, &bits, &output_file, &flags); 
+    (args,"sOs|sO:algo", 
+     &input_file, &bits, &output_file, &flags, &floats_dict); 
   if (!ok) return NULL;
 
   unsigned bitflags = parse_flags(flags); 
@@ -41,6 +42,16 @@ static PyObject* py_analysis_alg(PyObject *self, PyObject *args)
       ok = PyArg_ParseTuple(entry, "sk:parsemask", &name, &mask); 
       if (!ok) return NULL; 
       builder.add_cut_mask(name, mask); 
+    }
+    PyObject* dic_key = 0; 
+    PyObject* dic_val = 0; 
+    int pos = 0; 
+    while (PyDict_Next(floats_dict, &pos, &dic_key, &dic_val)) { 
+      char* key_val = PyString_AsString(dic_key); 
+      if (PyErr_Occurred()) return NULL; 
+      float val_val = PyFloat_AsDouble(dic_val); 
+      if (PyErr_Occurred()) return NULL; 
+      builder.set_float(key_val, val_val); 
     }
     
     ret_val = builder.build(); 

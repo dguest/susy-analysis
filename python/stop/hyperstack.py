@@ -12,10 +12,11 @@ def stacksusy(input_file, mask_list, output_file='', flags=''):
     mask_list = list(mask_list)
     if not output_file: 
         output_file = '{}_stack.h5'.format(splitext(input_file)[0])
-    _stacksusy(input_file, mask_list, output_file, flags)
+    _stacksusy(input_file, mask_list, output_file, flags, {})
     return output_file
 
-def hypersusy(input_file, mask_list, output_file='', flags=''): 
+def hypersusy(input_file, mask_list, output_file='', flags='', 
+              cuts_dict={}): 
     """
     Runs the hyperstacker on a distilled ntuple. 
 
@@ -25,7 +26,7 @@ def hypersusy(input_file, mask_list, output_file='', flags=''):
     mask_list = list(mask_list)
     if not output_file: 
         output_file = '{}_hyper.h5'.format(splitext(input_file)[0])
-    _hypersusy(input_file, mask_list, output_file, flags)
+    _hypersusy(input_file, mask_list, output_file, flags, cuts_dict)
     return output_file
     
 def cutflow(input_file, mask, flags=''): 

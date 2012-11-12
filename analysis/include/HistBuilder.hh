@@ -24,6 +24,7 @@ public:
   void add_cut_mask(std::string name, unsigned bits); 
   int build(); 
   void save(std::string output = ""); 
+  void set_float(std::string, double) {}
 private: 
   double get_mttop(const std::vector<Jet>& jets, TVector2 met); 
   double get_mttop(const Jet& jet, TVector2 met); 
