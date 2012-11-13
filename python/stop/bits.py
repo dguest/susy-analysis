@@ -24,3 +24,12 @@ bits = [
     ]
 
 better_bits = [(new, val) for new, (old, val) in zip(other_bits,bits)]
+
+more_bits = [ 
+    ('leading_jet_opt', 1 << 20), 
+    ('met_opt', 1 << 21), 
+    ('j2_anti_b' , 1 << 22), 
+    ('j2_anti_u' , 1 << 23), 
+    ('j3_anti_b' , 1 << 24), 
+    ('j3_anti_u' , 1 << 25), 
+    ]

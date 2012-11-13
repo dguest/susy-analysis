@@ -5,13 +5,41 @@ import collections, warnings
 from stop.hists import Hist1d, Stack
 from stop.profile import build_profile, cum_cuts
 from stop import hyperstack
+from stop import bits
 import ConfigParser, argparse
 from hdroot import hd_from_root
 import h5py
 import numpy as np
 from multiprocessing import Pool, cpu_count
 
-def build_hists(root_file, put_where='cache'): 
+_basic_cuts = [
+    'n_events','GRL','EF_xe80_tclcw_loose','lar_error','core',
+    'jet_clean', 'vxp_good', 'n_jet_geq_3','lepton_veto', 
+    ]
+_opt_cuts = [a for a, b in bits.more_bits]
+
+def build_nminus_hists(root_file, opt_cuts=_opt_cuts, 
+                       basic_cuts=_basic_cuts): 
+    base_mask = 0
+    bdict = dict(bits.better_bits + bits.more_bits)
+    for cut in basic_cuts + opt_cuts: 
+        base_mask |= bdict[cut]
+        
+    cuts = []
+    for minus_cut in opt_cuts: 
+        minus_mask = (base_mask & ~bdict[minus_cut])
+        cuts.append( (minus_cut, minus_mask))
+    
+    for name, mask in cuts: 
+        stuffs = []
+        for bname, bmask in bdict.iteritems(): 
+            if bmask & mask: 
+                stuffs.append(bname)
+        assert name not in stuffs
+
+    return build_hists(root_file, cuts=cuts)
+
+def build_hists(root_file, put_where='cache', cuts=cum_cuts()): 
     out_file_name = '{}_hists.h5'.format(os.path.splitext(root_file)[0])
     out_file_name = os.path.join(put_where,os.path.basename(out_file_name))
 
@@ -23,11 +51,12 @@ def build_hists(root_file, put_where='cache'):
 
     print 'making {}'.format(os.path.basename(out_file_name))
 
-    cuts = cum_cuts()
     out_file = hyperstack.stacksusy(root_file, mask_list=cuts, 
                                     output_file=out_file_name, 
                                     flags='vt')
     return out_file
+
+
 
 def sample_name_from_file(file_name): 
     parts = os.path.splitext(os.path.basename(file_name))[0].split('_')
@@ -228,6 +257,8 @@ def run_main():
         'Can also give <stop mass>-<lsp mass> pair')
     parser.add_argument('--save-dir', nargs='?', default='plots', 
                         help='default: %(default)s')
+    parser.add_argument('--nminus', action='store_true', 
+                        help='make n-1 histograms')
 
     args = parser.parse_args(sys.argv[1:])
     config_parser = ConfigParser.SafeConfigParser()
@@ -262,11 +293,15 @@ def run_main():
     if config_parser.has_option('physics','total_lumi'): 
         lumi = config_parser.getfloat('physics','total_lumi')
 
+    hist_builder = build_hists
+    if args.nminus: 
+        hist_builder = build_nminus_hists
+
     if args.multi:
         pool = Pool(cpu_count())
-        h5s = pool.map(build_hists, distillates)
+        h5s = pool.map(hist_builder, distillates)
     else: 
-        h5s = map(build_hists, distillates)
+        h5s = map(hist_builder, distillates)
 
     do_truth = bool(args.truth)
     if do_truth and args.truth != 'backgrounds': 
