@@ -143,26 +143,13 @@ class CutflowOptimum(object):
 
             color = next(color_itr)
             x_pts, y_pts = hist.get_xy_pts()
+            plot_label = '{cut} {} - {} {units}'.format(
+                cut=cut, *extent, units=units)
             handle, = ax.plot(x_pts, y_pts, 
-                              label=cut,
+                              label=plot_label,
                               color=color)
 
             x_format = '{: .3g} {}'
-
-            bbox = dict(ec='none', pad=3, color='none')
-            txt_left = ax.text(0,array[1],
-                               x_format.format(extent[0], units), 
-                                size=9, 
-                                va='bottom', ha='left',
-                                color=color, 
-                                bbox=bbox)
-            txt_right = ax.text(1,array[-2],
-                                x_format.format(extent[1], units), 
-                                size=9, 
-                                va='bottom', ha='right',
-                                color=color, 
-                                bbox=bbox)
-
 
             maxbin = self.max_bins[cut] - 1 # offset for underflow
             nbins = array.size - 2
@@ -201,9 +188,11 @@ class CutflowOptimum(object):
             ax.set_yscale('log')
 
         ymin, ymax = ax.get_ylim()
-        ax.set_ylim(ymin, ymax + (ymax - ymin)*0.2)
-        ax.legend(ncol=3).get_frame().set_visible(False)
-
+        top_edge = ymax * 2.5 if self._do_log else ymax + (ymax - ymin)*0.2
+        ax.set_ylim(ymin, top_edge)
+        leg = ax.legend(ncol=2)
+        leg.get_frame().set_visible(False)
+        plt.setp(leg.get_texts(), fontsize=9) 
         fig.savefig(output_file_name, bbox_inches='tight')
         plt.close(fig)
         
