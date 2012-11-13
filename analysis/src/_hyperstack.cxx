@@ -46,12 +46,14 @@ static PyObject* py_analysis_alg(PyObject *self, PyObject *args)
     PyObject* dic_key = 0; 
     PyObject* dic_val = 0; 
     int pos = 0; 
-    while (PyDict_Next(floats_dict, &pos, &dic_key, &dic_val)) { 
-      char* key_val = PyString_AsString(dic_key); 
-      if (PyErr_Occurred()) return NULL; 
-      float val_val = PyFloat_AsDouble(dic_val); 
-      if (PyErr_Occurred()) return NULL; 
-      builder.set_float(key_val, val_val); 
+    if (floats_dict) { 
+      while (PyDict_Next(floats_dict, &pos, &dic_key, &dic_val)) { 
+	char* key_val = PyString_AsString(dic_key); 
+	if (PyErr_Occurred()) return NULL; 
+	float val_val = PyFloat_AsDouble(dic_val); 
+	if (PyErr_Occurred()) return NULL; 
+	builder.set_float(key_val, val_val); 
+      }
     }
     
     ret_val = builder.build(); 
