@@ -1,7 +1,18 @@
 from _hyperstack import _stacksusy, _hypersusy, _cutflow
 from os.path import basename, splitext
 
-def stacksusy(input_file, mask_list, output_file='', flags=''): 
+GeV = 1e3
+
+_added_cuts = dict(
+    leading_jet = 260*GeV, 
+    met         = 180*GeV, 
+    j2_anti_b   = -0.2, 
+    j2_anti_u   =  2.5, 
+    j3_anti_b   = -0.2, 
+    j3_anti_u   = -0.5, 
+)
+def stacksusy(input_file, mask_list, output_file='', flags='', 
+              added_cuts=_added_cuts): 
     """
     Runs the analysis on a distilled ntuple. 
 
@@ -12,7 +23,7 @@ def stacksusy(input_file, mask_list, output_file='', flags=''):
     mask_list = list(mask_list)
     if not output_file: 
         output_file = '{}_stack.h5'.format(splitext(input_file)[0])
-    _stacksusy(input_file, mask_list, output_file, flags, {})
+    _stacksusy(input_file, mask_list, output_file, flags, added_cuts)
     return output_file
 
 def hypersusy(input_file, mask_list, output_file='', flags='', 

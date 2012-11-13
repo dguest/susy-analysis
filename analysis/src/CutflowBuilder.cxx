@@ -1,5 +1,6 @@
 #include "CutflowBuilder.hh"
 #include "HistBuilderFlags.hh"
+#include "CutAugmenter.hh"
 
 #include <string> 
 #include <stdexcept>
@@ -19,7 +20,9 @@ CutflowBuilder::CutflowBuilder(std::string input, const unsigned flags) :
   m_mask(0), 
 
   m_pass_bits(0), 
-  m_hfor_type(0)
+  m_hfor_type(0), 
+  
+  m_cut_augmenter(0)
 { 
   m_file = new TFile(input.c_str()); 
   if (!m_file) { 
@@ -91,4 +94,11 @@ void CutflowBuilder::save(std::string output) {
 
 }
 
+void CutflowBuilder::set_float(std::string name, double value) { 
+  if (!m_cut_augmenter) { 
+    m_cut_augmenter = new CutAugmenter; 
+  }
+  m_cut_augmenter->set_float(name, value); 
+  assert(false); 
+}; 
 

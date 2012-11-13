@@ -8,6 +8,7 @@
 
 class TTree; 
 class TFile; 
+class CutAugmenter; 
 
 class CutflowBuilder : public boost::noncopyable
 {
@@ -17,7 +18,7 @@ public:
   void add_cut_mask(std::string, unsigned bits); 
   int build(); 
   void save(std::string output = ""); 
-  void set_float(std::string, double) {}
+  void set_float(std::string, double); 
 private: 
   const unsigned m_flags; 
   TFile* m_file; 
@@ -26,6 +27,7 @@ private:
 
   unsigned m_pass_bits; 
   int m_hfor_type; 
+  CutAugmenter* m_cut_augmenter; 
 };
 
 
