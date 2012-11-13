@@ -6,6 +6,8 @@
 #include "MaskedHistArray.hh"
 #include "PhysicalConstants.hh"
 #include "TruthJetHists.hh"
+#include "CutBits.hh"
+#include "CutAugmenter.hh"
 #include "H5Cpp.h"
 
 #include <string> 
@@ -24,7 +26,8 @@ HistBuilder::HistBuilder(std::string input, const unsigned flags):
   m_subleading_cjet_rank(0), 
   m_jet1_truth(0), 
   m_jet2_truth(0), 
-  m_jet3_truth(0)
+  m_jet3_truth(0), 
+  m_cut_augmenter(0)
 { 
   const double max_pt = 1e3*GeV; 
   
@@ -69,7 +72,8 @@ HistBuilder::~HistBuilder() {
   delete m_jet1_truth; 
   delete m_jet2_truth; 
   delete m_jet3_truth; 
-  
+
+  delete m_cut_augmenter; 
 }
 
 void HistBuilder::add_cut_mask(std::string name, unsigned bits)
@@ -124,9 +128,15 @@ int HistBuilder::build() {
     if (m_factory->hfor_type() == hfor::KILL) continue; 
 
     const Jets jets = m_factory->jets(); 
-    const unsigned mask = m_factory->bits(); 
+    unsigned mask = m_factory->bits(); 
     const TVector2 met = m_factory->met(); 
     const TLorentzVector met4(met.Px(), met.Py(), 0, 0); 
+
+    if (m_cut_augmenter) { 
+      unsigned added_cuts = m_cut_augmenter->get_added_cuts(jets, met); 
+      assert( (added_cuts & mask) == 0); 
+      mask |= added_cuts; 
+    }
 
     m_met->fill(met.Mod(), mask); 
 
@@ -255,3 +265,12 @@ double HistBuilder::get_mttop(const Jet& jet, TVector2 met) {
   return sqrt( pow( jet_pt.Mod() + sqrt(met.Mod2() + pow(W_MASS,2) ) , 2) - 
 	       (jet_pt + met).Mod2() ); 
 }
+
+void HistBuilder::set_float(std::string name, double value) { 
+  if (!m_cut_augmenter) { 
+    m_cut_augmenter = new CutAugmenter; 
+  }
+  m_cut_augmenter->set_float(name, value); 
+}
+
+

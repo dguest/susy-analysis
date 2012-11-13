@@ -14,7 +14,7 @@ class Axis;
 class Jet1DHists; 
 class Jet; 
 class TVector2; 
-
+class CutAugmenter; 
 
 class HistBuilder : public boost::noncopyable
 {
@@ -24,7 +24,7 @@ public:
   void add_cut_mask(std::string name, unsigned bits); 
   int build(); 
   void save(std::string output = ""); 
-  void set_float(std::string, double) {}
+  void set_float(std::string, double);
 private: 
   double get_mttop(const std::vector<Jet>& jets, TVector2 met); 
   double get_mttop(const Jet& jet, TVector2 met); 
@@ -54,6 +54,7 @@ private:
   TruthJetHists* m_jet2_truth; 
   TruthJetHists* m_jet3_truth; 
 
+  CutAugmenter* m_cut_augmenter; 
 };
 
 #endif // HIST_BUILDER_HH
