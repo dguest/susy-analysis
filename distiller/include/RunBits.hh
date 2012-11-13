@@ -1,5 +1,5 @@
-#ifndef CUT_BITS_H
-#define CUT_BITS_H
+#ifndef RUN_BITS_H
+#define RUN_BITS_H
 
 namespace cutflag { 
   const unsigned verbose          = 1u << 0; 
@@ -18,4 +18,4 @@ namespace cutflag {
   const unsigned save_truth       = 1u << 13; 
 }
 
-#endif //CUT_BITS_H
+#endif //RUN_BITS_H

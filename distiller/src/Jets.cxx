@@ -2,7 +2,8 @@
 #include "SusyBuffer.h"
 #include "constants.hh"
 #include "RunInfo.hh"
-#include "CutBits.hh"
+#include "RunBits.hh"
+#include "RunBits.hh"
 
 #include "SUSYTools/SUSYObjDef.h"
 
