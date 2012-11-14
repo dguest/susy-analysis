@@ -42,6 +42,8 @@ public:
   double dphi() const; 
   int n_good() const; 
   int n_susy() const; 
+  int leading_cjet_pos() const; 
+  int subleading_cjet_pos() const; 
   hfor::JetType hfor_type() const; 
 private: 
   void set_buffer(std::string base_name); 
@@ -55,6 +57,9 @@ private:
   int m_n_good; 
   int m_n_susy; 
   int m_hfor_type; 
+  
+  int m_leading_cjet_pos; 
+  int m_subleading_cjet_pos; 
   
   unsigned m_flags; 
 }; 

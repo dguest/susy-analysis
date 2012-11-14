@@ -165,6 +165,8 @@ int HistBuilder::build() {
     
     m_n_good_jets->fill(m_factory->n_good(), mask); 
     if (m_leading_cjet_rank) { 
+      m_leading_cjet_rank->fill(m_factory->leading_cjet_pos(), mask); 
+      m_subleading_cjet_rank->fill(m_factory->subleading_cjet_pos(), mask); 
       fill_truth_hists(jets, mask); 
     }
 
@@ -177,22 +179,6 @@ int HistBuilder::build() {
 
 void HistBuilder::fill_truth_hists(const std::vector<Jet>& jets, 
 				   const unsigned mask) { 
-  int leading_pos = -1; 
-  int subleading_pos = -1; 
-  for (unsigned jet_pos = 0; jet_pos < jets.size(); jet_pos++) { 
-    const Jet& jet = jets.at(jet_pos); 
-    if (jet.flavor_truth_label() == CHARM) { 
-      if (leading_pos == -1) { 
-	leading_pos = jet_pos; 
-      }
-      else if (subleading_pos == -1){ 
-	subleading_pos = jet_pos; 
-	break; 
-      }
-    } // end charm check
-  } // end jet loop
-  m_leading_cjet_rank->fill(leading_pos, mask); 
-  m_subleading_cjet_rank->fill(subleading_pos, mask); 
   unsigned n_jets = jets.size(); 
   if (n_jets >= 1) m_jet1_truth->fill(jets.at(0), mask); 
   if (n_jets >= 2) m_jet2_truth->fill(jets.at(1), mask); 

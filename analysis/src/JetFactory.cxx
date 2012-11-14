@@ -15,7 +15,7 @@ JetFactory::JetFactory(std::string root_file, int n_jets) :
 {
   m_file = new TFile(root_file.c_str()); 
   if (!m_file) { 
-    throw std::runtime_error(root_file + " could not be foune"); 
+    throw std::runtime_error(root_file + " could not be found"); 
   }
   m_tree = dynamic_cast<TTree*>(m_file->Get("evt_tree")); 
   if (!m_tree) { 
@@ -29,6 +29,11 @@ JetFactory::JetFactory(std::string root_file, int n_jets) :
   errors += m_tree->SetBranchAddress("n_good_jets", &m_n_good); 
   errors += m_tree->SetBranchAddress("n_susy_jets", &m_n_susy); 
   errors += m_tree->SetBranchAddress("hfor_type", &m_hfor_type); 
+
+  errors += m_tree->SetBranchAddress("leading_cjet_pos", 
+				     &m_leading_cjet_pos); 
+  errors += m_tree->SetBranchAddress("subleading_cjet_pos", 
+				     &m_subleading_cjet_pos); 
   if (errors) { 
     throw std::runtime_error
       ((boost::format("%i branch setting errors") % errors).str()); 
@@ -87,6 +92,9 @@ unsigned JetFactory::bits() const  { return m_bits; }
 double JetFactory::dphi()  const  { return m_dphi; }
 int JetFactory::n_good()   const  { return m_n_good; }
 int JetFactory::n_susy()   const  { return m_n_susy; }
+int JetFactory::leading_cjet_pos() const {return m_leading_cjet_pos;}
+int JetFactory::subleading_cjet_pos() const {return m_subleading_cjet_pos;}
+
 
 hfor::JetType JetFactory::hfor_type() const { 
   using namespace hfor; 
