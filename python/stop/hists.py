@@ -52,6 +52,17 @@ class Hist1d(object):
     def scale(self, factor): 
         self._array = self._array * factor
     def average_bins(self, bins): 
+        """
+        either average bin range or all bins. 
+        
+        TODO: rework to average all bins between successive list entries. 
+        """
+        if isinstance(bins, int): 
+            lbin = 1
+            for hbin in xrange(bins + 1, self._array.size, bins): 
+                ave_bins = np.arange(lbin, hbin)
+                lbin = hbin
+                self.average_bins(ave_bins)
         ave = np.average(self._array[bins])
         self._array[bins] = ave
     def get_xy_pts(self): 

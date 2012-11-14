@@ -29,6 +29,7 @@ def build_nminus_hists(root_file, opt_cuts=_opt_cuts,
     for minus_cut in opt_cuts: 
         minus_mask = (base_mask & ~bdict[minus_cut])
         cuts.append( (minus_cut, minus_mask))
+    cuts.append( ('all', base_mask) )
     
     for name, mask in cuts: 
         stuffs = []
@@ -65,7 +66,7 @@ def sample_name_from_file(file_name):
     else: 
         return '_'.join(parts)
 
-def print_all_hists(all_hists, save_dir): 
+def print_all_hists(all_hists, save_dir, rebin=None): 
     varlist, cutlist = zip(*all_hists.keys())
     variables = sorted(set(varlist))
     cuts = set(filter(None,cutlist))
@@ -74,9 +75,9 @@ def print_all_hists(all_hists, save_dir):
         # assert cut in cut_bits, cut
         for var in variables: 
             print 'printing {} {}'.format(var, cut)
-            make_hist(all_hists[(var,cut)], save_dir)
+            make_hist(all_hists[(var,cut)], save_dir, rebin)
 
-def fix_metpt_like(hist): 
+def fix_metpt_like(hist, rebin=None): 
     lab = hist.x_label
     lab_first = lab.split('_')[0]
     triggers = [
@@ -84,12 +85,21 @@ def fix_metpt_like(hist):
         '_pt' in lab, 
         lab_first == 'mttop'
         ]
+    anti_triggers = [ 
+        'truth_label' in lab
+        ]
     if any(triggers): 
-        bin_sparse_vars(hist)
+        bin_sparse_vars(hist, rebin)
         mev_to_gev(hist)
+    elif rebin is not None and not any(anti_triggers): 
+        hist.average_bins(rebin)
 
-def bin_sparse_vars(hist): 
-    break_pts = range(50,70,2) + [80, 100]
+def bin_sparse_vars(hist, rebin=None): 
+    rebin_begin = 1
+    if rebin is None: 
+        rebin = 2
+        rebin_begin = 50
+    break_pts = range(rebin_begin,70,rebin) + [80, 100]
     for low, high in zip(break_pts[:-1],break_pts[1:]): 
         hist.average_bins(np.arange(low,high))
 
@@ -104,7 +114,7 @@ def fix_signame(hist):
         newname = 'Stop-{}-{}'.format(found.group(1), found.group(2))
         hist.title = newname
 
-def combine_backgrounds(hists): 
+def combine_backgrounds(hists, rebin=None): 
 
     # list is to preserve ordering
     combined_list = []
@@ -134,7 +144,7 @@ def combine_backgrounds(hists):
 
         if h.group in rep_groups: 
             h.group = rep_groups[h.group]
-        fix_metpt_like(h)
+        fix_metpt_like(h, rebin)
         combined_name = crap_finder.split(hist_name)[0]
         color = 'b'
         for rep, group, color_cand in finders: 
@@ -153,7 +163,7 @@ def combine_backgrounds(hists):
     for name in combined_list: 
         yield combined[name]
 
-def make_hist(hists, save_dir='plots'): 
+def make_hist(hists, save_dir='plots', rebin=None): 
     cut = hists[0].cut
     var = hists[0].x_label
     stack = Stack('stack')
@@ -161,10 +171,10 @@ def make_hist(hists, save_dir='plots'):
     stack.y_min = 1.0
     signal_hists = [x for x in hists if 'directCC' in x.title]
     background_hists = [x for x in hists if not 'directCC' in x.title]
-    combined_bkg = combine_backgrounds(background_hists)
+    combined_bkg = combine_backgrounds(background_hists, rebin)
     combined_bkg = sorted(combined_bkg)
     for sig in signal_hists: 
-        fix_metpt_like(sig)
+        fix_metpt_like(sig, rebin)
         fix_signame(sig)
 
     stack.add_signals(signal_hists)
@@ -259,7 +269,8 @@ def run_main():
                         help='default: %(default)s')
     parser.add_argument('--nminus', action='store_true', 
                         help='make n-1 histograms')
-
+    parser.add_argument('--rebin', type=int, 
+                        help='combine this number of bins into each bin')
     args = parser.parse_args(sys.argv[1:])
     config_parser = ConfigParser.SafeConfigParser()
     config_parser.read([args.config])
@@ -361,7 +372,8 @@ def run_main():
 
     # write_xsec_corrections(used_xsecs)
     
-    print_all_hists(hists_by_group, save_dir=args.save_dir)
+    print_all_hists(hists_by_group, save_dir=args.save_dir, 
+                    rebin=args.rebin)
 
         
 if __name__ == '__main__': 
