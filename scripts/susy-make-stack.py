@@ -299,13 +299,13 @@ def run_main():
     with open(file_config['grouping_file']) as grp: 
         grouping = dict(f.split() for f in fitr(grp))
 
-    norm_file = os.path.join(whisky_path, 'x_sec_per_event.pkl')
-    with open(norm_file) as pkl: 
-        x_sec_dict = cPickle.load(pkl)
+    meta_file = os.path.join(whisky_path, 'meta.pkl')
+    with open(meta_file) as pkl: 
+        meta_dict = cPickle.load(pkl)
 
-    lumi = 1.0
-    if config_parser.has_option('physics','total_lumi'): 
-        lumi = config_parser.getfloat('physics','total_lumi')
+    lumi_fb = 1.0
+    if config_parser.has_option('physics','total_lumi_fb'): 
+        lumi_fb = config_parser.getfloat('physics','total_lumi_fb')
 
     if config_parser.has_section('cuts'): 
         plot_opts = dict(config_parser.items('cuts'))
@@ -359,7 +359,7 @@ def run_main():
                 if not 'directCC_{}_{}'.format(stop_mass, lsp_mass) in sample:
                     continue
 
-        if not sample in x_sec_dict: 
+        if not sample in meta_dict: 
             warnings.warn(
                 '{} is missing from scal file, skipping'.format(sample))
             continue
@@ -377,9 +377,9 @@ def run_main():
                         continue
                     print 'found fast hist in {}'.format(histofile)
                 array = np.array(h5_array)
-                scale_factor = x_sec_dict[sample]
-                array = array * scale_factor * lumi
-                total_area = array.sum() * scale_factor * lumi
+                scale_factor = meta_dict[sample].xsec_per_evt
+                array = array * scale_factor * lumi_fb * 1e3
+                total_area = array.sum()
                 used_xsecs[sample] = max(used_xsecs[sample],
                                              total_area)
 
