@@ -86,7 +86,9 @@ def fix_metpt_like(hist, rebin=None):
         lab_first == 'mttop'
         ]
     anti_triggers = [ 
-        'truth_label' in lab
+        'truth_label' in lab, 
+        lab == 'nGoodJets', 
+        'leadingCJet' in lab, 
         ]
     if any(triggers): 
         bin_sparse_vars(hist, rebin)

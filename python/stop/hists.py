@@ -342,10 +342,10 @@ class Stack(object):
                 pass            # TODO: add check
             ylabel = self.ax.get_ylabel()
             if not ylabel: 
-                self.ax.set_ylabel(hist.y_label)
+                self.ax.set_ylabel(hist.y_label, y=0.98, va='top')
             xlabel = self.ax.get_xlabel()
             if not xlabel: 
-                self.ax.set_xlabel(hist.x_label)
+                self.ax.set_xlabel(hist.x_label, x=0.98, ha='right')
 
             if self._y_sum is None:
                 self._y_sum = y_vals
