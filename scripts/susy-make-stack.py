@@ -66,7 +66,7 @@ def sample_name_from_file(file_name):
     else: 
         return '_'.join(parts)
 
-def print_all_hists(all_hists, save_dir, rebin=None): 
+def print_all_hists(all_hists, save_dir, draw_opts=None): 
     varlist, cutlist = zip(*all_hists.keys())
     variables = sorted(set(varlist))
     cuts = set(filter(None,cutlist))
@@ -75,9 +75,9 @@ def print_all_hists(all_hists, save_dir, rebin=None):
         # assert cut in cut_bits, cut
         for var in variables: 
             print 'printing {} {}'.format(var, cut)
-            make_hist(all_hists[(var,cut)], save_dir, rebin)
+            make_hist(all_hists[(var,cut)], save_dir, draw_opts)
 
-def fix_metpt_like(hist, rebin=None): 
+def fix_metpt_like(hist, draw_opts=None): 
     lab = hist.x_label
     lab_first = lab.split('_')[0]
     triggers = [
@@ -91,16 +91,19 @@ def fix_metpt_like(hist, rebin=None):
         'leadingCJet' in lab, 
         ]
     if any(triggers): 
-        bin_sparse_vars(hist, rebin)
+        bin_sparse_vars(hist, draw_opts.rebin)
         mev_to_gev(hist)
-    elif rebin is not None and not any(anti_triggers): 
-        hist.average_bins(rebin)
+    elif draw_opts.rebin is not None and not any(anti_triggers): 
+        hist.average_bins(draw_opts.rebin)
+        hist.scale(draw_opts.rebin)
 
 def bin_sparse_vars(hist, rebin=None): 
     rebin_begin = 1
     if rebin is None: 
         rebin = 2
         rebin_begin = 50
+    else: 
+        hist.scale(rebin)
     break_pts = range(rebin_begin,70,rebin) + [80, 100]
     for low, high in zip(break_pts[:-1],break_pts[1:]): 
         hist.average_bins(np.arange(low,high))
@@ -116,7 +119,7 @@ def fix_signame(hist):
         newname = 'Stop-{}-{}'.format(found.group(1), found.group(2))
         hist.title = newname
 
-def combine_backgrounds(hists, rebin=None): 
+def combine_backgrounds(hists, draw_opts=None): 
 
     # list is to preserve ordering
     combined_list = []
@@ -146,7 +149,7 @@ def combine_backgrounds(hists, rebin=None):
 
         if h.group in rep_groups: 
             h.group = rep_groups[h.group]
-        fix_metpt_like(h, rebin)
+        fix_metpt_like(h, draw_opts)
         combined_name = crap_finder.split(hist_name)[0]
         color = 'b'
         for rep, group, color_cand in finders: 
@@ -165,18 +168,18 @@ def combine_backgrounds(hists, rebin=None):
     for name in combined_list: 
         yield combined[name]
 
-def make_hist(hists, save_dir='plots', rebin=None): 
+def make_hist(hists, save_dir='plots', draw_opts=None): 
     cut = hists[0].cut
     var = hists[0].x_label
     stack = Stack('stack')
     stack.ax.set_yscale('log')
-    stack.y_min = 1.0
+    stack.y_min = draw_opts.y_min
     signal_hists = [x for x in hists if 'directCC' in x.title]
     background_hists = [x for x in hists if not 'directCC' in x.title]
-    combined_bkg = combine_backgrounds(background_hists, rebin)
+    combined_bkg = combine_backgrounds(background_hists, draw_opts)
     combined_bkg = sorted(combined_bkg)
     for sig in signal_hists: 
-        fix_metpt_like(sig, rebin)
+        fix_metpt_like(sig, draw_opts)
         fix_signame(sig)
 
     stack.add_signals(signal_hists)
@@ -271,8 +274,6 @@ def run_main():
                         help='default: %(default)s')
     parser.add_argument('--nminus', action='store_true', 
                         help='make n-1 histograms')
-    parser.add_argument('--rebin', type=int, 
-                        help='combine this number of bins into each bin')
     args = parser.parse_args(sys.argv[1:])
     config_parser = ConfigParser.SafeConfigParser()
     config_parser.read([args.config])
@@ -306,9 +307,32 @@ def run_main():
     if config_parser.has_option('physics','total_lumi'): 
         lumi = config_parser.getfloat('physics','total_lumi')
 
+    if config_parser.has_section('cuts'): 
+        plot_opts = dict(config_parser.items('cuts'))
+        nminus_cuts = plot_opts['nminus_cuts'].split()
+        basic_cuts = plot_opts['basic_cuts'].split()
+        def the_poney_button(in_file): 
+            """
+            this here be broken
+            """
+            return build_nminus_hists(in_file, opt_cuts=nminus_cuts, 
+                                      basic_cuts=basic_cuts)
+        mappable_nminus = the_poney_button
+    else: 
+        mappable_nminus = build_nminus_hists
+
     hist_builder = build_hists
     if args.nminus: 
-        hist_builder = build_nminus_hists
+        hist_builder = mappable_nminus
+
+    class DrawOpts(object): 
+        rebin = None
+        y_min = 1.0
+    draw_opts = DrawOpts()
+
+    if config_parser.has_section('draw'): 
+        draw_opts.rebin = config_parser.getint('draw','rebin')
+        draw_opts.y_min = config_parser.getfloat('draw','y_min')
 
     if args.multi:
         pool = Pool(cpu_count())
@@ -374,8 +398,9 @@ def run_main():
 
     # write_xsec_corrections(used_xsecs)
     
+
     print_all_hists(hists_by_group, save_dir=args.save_dir, 
-                    rebin=args.rebin)
+                    draw_opts=draw_opts)
 
         
 if __name__ == '__main__': 
