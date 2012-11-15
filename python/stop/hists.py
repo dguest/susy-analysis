@@ -391,7 +391,11 @@ class Stack(object):
         legend.get_frame().set_linewidth(0)
         legend.get_frame().set_alpha(0)
             
-    def save(self, name): 
+    def save(self, name):
+        if self.ax.get_yscale() != 'log': 
+            ymax = self.ax.get_ylim()[1]
+            self.ax.set_ylim(0,ymax)
+            self.ax.set_xlim(min(self.x_vals), max(self.x_vals))
         self.fig.savefig(name, bbox_inches='tight')
     def close(self): 
         plt.close(self.fig)

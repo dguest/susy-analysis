@@ -172,8 +172,9 @@ def make_hist(hists, save_dir='plots', draw_opts=None):
     cut = hists[0].cut
     var = hists[0].x_label
     stack = Stack('stack')
-    stack.ax.set_yscale('log')
-    stack.y_min = draw_opts.y_min
+    if draw_opts.do_log: 
+        stack.ax.set_yscale('log')
+        stack.y_min = draw_opts.y_min
     signal_hists = [x for x in hists if 'directCC' in x.title]
     background_hists = [x for x in hists if not 'directCC' in x.title]
     combined_bkg = combine_backgrounds(background_hists, draw_opts)
@@ -188,9 +189,9 @@ def make_hist(hists, save_dir='plots', draw_opts=None):
     if not os.path.isdir(save_dir): 
         os.mkdir(save_dir)
 
-    for ext in ['png']: 
-        stack.save('{save_dir}/stack_{var}_cut_{cut}.{ext}'.format(
-                save_dir=save_dir, var=var, cut=cut, ext=ext))
+
+    stack.save('{save_dir}/stack_{var}_cut_{cut}.{ext}'.format(
+            save_dir=save_dir, var=var, cut=cut, ext=draw_opts.ext))
 
     stack.close()
     
@@ -272,8 +273,12 @@ def run_main():
         'Can also give <stop mass>-<lsp mass> pair')
     parser.add_argument('--save-dir', nargs='?', default='plots', 
                         help='default: %(default)s')
-    parser.add_argument('--nminus', action='store_true', 
+    parser.add_argument('--nminus','-m', action='store_true', 
                         help='make n-1 histograms')
+    parser.add_argument('--log','-l', action='store_true')
+    parser.add_argument(
+        '--ext', choices=['.png','.pdf'], default='.png', 
+        help='produce this type of file (default %(default)s)')
     args = parser.parse_args(sys.argv[1:])
     config_parser = ConfigParser.SafeConfigParser()
     config_parser.read([args.config])
@@ -328,7 +333,13 @@ def run_main():
     class DrawOpts(object): 
         rebin = None
         y_min = 1.0
-    draw_opts = DrawOpts()
+        do_log = False
+
+        def __init__(self,args): 
+            self.ext = args.ext
+            self.do_log = args.log
+
+    draw_opts = DrawOpts(args)
 
     if config_parser.has_section('draw'): 
         draw_opts.rebin = config_parser.getint('draw','rebin')
