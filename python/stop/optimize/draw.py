@@ -179,7 +179,7 @@ class CutflowOptimum(object):
                               label='nominal')
             
         ax.set_ylabel(self.fom_label, y=0.98, va='top')
-        ax.set_xlabel('arb', x=0.98, ha='right')
+        ax.set_xlabel('cut value', x=0.98, ha='right')
         ax.grid(True)
         ax.get_xaxis().set_ticklabels([])
         ax.get_xaxis().set_ticks([])
