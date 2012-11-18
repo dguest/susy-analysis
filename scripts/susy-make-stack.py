@@ -30,6 +30,11 @@ def build_nminus_hists(root_file, opt_cuts=_opt_cuts,
         minus_mask = (base_mask & ~bdict[minus_cut])
         cuts.append( (minus_cut, minus_mask))
     cuts.append( ('all', base_mask) )
+
+    none_mask = 0
+    for cut in basic_cuts: 
+        none_mask |= bdict[cut]
+    cuts.append( ('base', none_mask))
     
     for name, mask in cuts: 
         stuffs = []
@@ -190,8 +195,10 @@ def make_hist(hists, save_dir='plots', draw_opts=None):
         os.mkdir(save_dir)
 
 
-    stack.save('{save_dir}/stack_{var}_cut_{cut}.{ext}'.format(
-            save_dir=save_dir, var=var, cut=cut, ext=draw_opts.ext))
+    stack.save('{save_dir}/stack_{var}_cut_{cut}{bonus}.{ext}'.format(
+            save_dir=save_dir, var=var, cut=cut, 
+            bonus='_log' if draw_opts.do_log else '', 
+            ext=draw_opts.ext.lstrip('.')))
 
     stack.close()
     

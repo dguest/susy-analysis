@@ -124,6 +124,34 @@ class CutflowOptimum(object):
 
         self.max_bins = sig.max_bin_dict()
         self.ymin = min(mins)
+        
+    def get_efficiencies(self): 
+        if not self.max_bins: 
+            self.compute()
+        sig_ratios = self._array_ratio(self._signal)
+        bkg_ratios = self._array_ratio(self._background)
+        assert self._signal.axes == self._background.axes
+
+        names = [a.name for a in self._signal.axes]
+        return {n: (s,b) for n,s,b in zip(names, sig_ratios, bkg_ratios)}
+
+    def _array_ratio(self, histogram):
+        out_vals = []
+        for ax in histogram.axes: 
+            max_bin = self.max_bins[ax.name]
+            ar = histogram.array
+            if ax.type == 'bare': 
+                precut_count = ar.sum()
+                postcut_count = ar.swapaxes(0,ax.number)[max_bin:,...].sum()
+            elif ax.type == 'integral': 
+                precut_count = ar.max()
+                postcut_count = ar.swapaxes(0,ax.number)[max_bin:,...].max()
+            else: 
+                raise ValueError(
+                    'axis has type {}, WTF?'.format(ax.type))
+            out_vals.append(postcut_count / precut_count)
+
+        return out_vals
 
     def set_log(self, min_val=None): 
         if min_val is not None: 

@@ -120,6 +120,14 @@ class HistNd(object):
         def axis(self, num): 
             self.number = num
 
+        def get_bin_extent(self, num): 
+            bin_bounds = np.linspace(self.min,self.max,self.bins + 1)
+            if num == 0: 
+                return -np.inf, bin_bounds[0]
+            elif num == self.bins + 1: 
+                return bin_bounds[self.bins], np.inf
+            else: 
+                return bin_bounds[num - 1], bin_bounds[num]
 
     def __init__(self,array=None): 
         self._axes = defaultdict(HistNd.Axis)
@@ -186,6 +194,13 @@ class HistNd(object):
         new._axes = copy.deepcopy(self._axes)
         new._array = self._array**value
         return new
+
+    @property
+    def array(self): 
+        """
+        probably never should have made _array private
+        """
+        return self._array
 
     @property
     def axes(self): 
