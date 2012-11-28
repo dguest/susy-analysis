@@ -1,4 +1,4 @@
-// python wrapper for susy cutflow
+// python wrapper for susy cutflow / d3pd reader
 // Author: Daniel Guest (dguest@cern.ch)
 #include <Python.h>
 #include <string> 
@@ -8,7 +8,7 @@
 
 #include "cutflow.hh"
 #include "RunBits.hh"
-#include "RunBits.hh"
+#include "PerformanceNtuple.hh"
 #include "RunInfo.hh"
 
 static PyObject* py_cutflow(PyObject *self, 
@@ -45,6 +45,11 @@ static PyObject* py_cutflow(PyObject *self,
   if (strchr(flags_str,'w')) flags |= cutflag::save_flavor_wt; 
   if (strchr(flags_str,'f')) flags |= cutflag::is_atlfast; 
   if (strchr(flags_str,'t')) flags |= cutflag::save_truth; 
+  if (strchr(flags_str,'c')) flags |= cutflag::jetfitter_charm; 
+  if (strchr(flags_str,'m')) flags |= cutflag::mv3; 
+
+  // other taggers not implemented yet
+  assert(flags & (cutflag::jetfitter_charm | cutflag::mv3) == 0); 
 
   typedef std::vector<std::pair<std::string, int> > CCOut; 
   CCOut pass_numbers; 
@@ -70,11 +75,40 @@ static PyObject* py_cutflow(PyObject *self,
 
 }
 
+static PyObject* py_perf_ntuple(PyObject *self, 
+				PyObject *args)
+{
+  const char* input_file = ""; 
+  const char* flags_str = ""; 
+  const char* out_ntuple = ""; 
+
+  bool ok = PyArg_ParseTuple
+    (args,"s|ss:cutflow", &input_file, &flags_str, &out_ntuple); 
+  if (!ok) return NULL;
+  
+  unsigned flags = 0; 
+  if (strchr(flags_str,'c')) flags |= cutflag::jetfitter_charm; 
+  if (strchr(flags_str,'m')) flags |= cutflag::mv3; 
+
+  int return_code = 0; 
+  try { 
+    return_code = make_perf_ntuple(input_file, flags, out_ntuple); 
+  }
+  catch (std::runtime_error e) { 
+    PyErr_SetString(PyExc_RuntimeError, e.what()); 
+    return NULL; 
+  }
+
+  return Py_BuildValue("i", return_code);
+}
+
+
 static PyMethodDef methods[] = {
   {"_cutflow", py_cutflow, METH_VARARGS, 
    "cutflow(input_file, flags) --> cuts_list\n"
    "flags:\n"
    "\tv: verbose\n"},
+  {"_make_perf_ntuple", py_perf_ntuple, METH_VARARGS, "nothings"}, 
   {NULL, NULL, 0, NULL}   /* sentinel */
 };
 

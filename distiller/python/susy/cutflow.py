@@ -16,6 +16,8 @@ def cutflow(input_files, run_number, flags, output_ntuple = ''):
         p: use low pt jets
         d: debug susytools (don't pipe output to /dev/null)
         t: save truth info
+        c: save JetFitterCharm weights
+        m: save mv3 weights
 
         a: aggressive --- remove bad files and retry
 
@@ -44,7 +46,12 @@ def cutflow(input_files, run_number, flags, output_ntuple = ''):
 
 
         
-                
+def make_perf_ntuple(input_file, flags, output_ntuple=''): 
+    """
+    makes a performance ntuple from input_file, supposed to be compatible
+    with JETNET training / testing stuff
+    """
+    _cutflow._make_perf_ntuple(input_file, flags, output_ntuple)
                               
 
 def print_raw_cutflow(input_file): 

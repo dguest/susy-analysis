@@ -152,6 +152,23 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, unsigned br, BranchNames names)
   fChain->SetBranchAddress(jc + "_flavor_component_jfitcomb_pc", &jet_flavor_component_jfitcomb_pc, true);
   fChain->SetBranchAddress("vx_nTracks", &vx_nTracks, true); 
 
+  bool do_mv3 = (br & mv3); 
+  fChain->SetBranchAddress(jc + "_flavor_weight_MV3_bVSu", 
+			   &jet_flavor_weight_MV3_bVSu, do_mv3); 
+  fChain->SetBranchAddress(jc + "_flavor_weight_MV3_bVSc", 
+			   &jet_flavor_weight_MV3_bVSc, do_mv3); 
+  fChain->SetBranchAddress(jc + "_flavor_weight_MV3_cVSu", 
+			   &jet_flavor_weight_MV3_cVSu, do_mv3); 
+
+
+  bool do_jfc = (br & jfc); 
+  fChain->SetBranchAddress(jc + "_flavor_component_jfitc_pu", 
+			   &jet_flavor_component_jfitc_pu, do_jfc);
+  fChain->SetBranchAddress(jc + "_flavor_component_jfitc_pb", 
+			   &jet_flavor_component_jfitc_pb, do_jfc);
+  fChain->SetBranchAddress(jc + "_flavor_component_jfitc_pc", 
+			   &jet_flavor_component_jfitc_pc, do_jfc);
+
   if (br & unleash_sharktopus){  
     fChain->SetBranchAddress("sharktopus",&sharktopus, true); 
   }

@@ -17,6 +17,8 @@ namespace branches {
   const unsigned others  = 1u << 5; 
   const unsigned all     = trigger | others | run_num; 
   const unsigned unleash_sharktopus  = 1u << 6; 
+  const unsigned mv3     = 1u << 7; 
+  const unsigned jfc     = 1u << 8; 
 }
 
 struct BranchNames 
@@ -142,6 +144,14 @@ public :
   vector<int>     *vx_nTracks;
   vector<vector<int> > *trig_RoI_EF_b_Rec__TrackParticleContainer;
   vector<vector<int> > *trig_RoI_EF_b_Rec__TrackParticleContainerStatus;
+
+  vector<float>     *jet_flavor_component_jfitc_pu;
+  vector<float>     *jet_flavor_component_jfitc_pb;
+  vector<float>     *jet_flavor_component_jfitc_pc;
+  vector<float>     *jet_flavor_weight_MV3_bVSu;
+  vector<float>     *jet_flavor_weight_MV3_bVSc;
+  vector<float>     *jet_flavor_weight_MV3_cVSu;
+
 
   double sharktopus; 
 
