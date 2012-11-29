@@ -3,7 +3,7 @@
 import os, re, glob, cPickle, sys, cProfile
 import collections, warnings
 from stop.hists import Hist1d, Stack
-from stop.profile import build_profile, cum_cuts
+from stop.profile import cum_cuts
 from stop import hyperstack
 from stop import bits
 import ConfigParser, argparse
@@ -18,8 +18,23 @@ _basic_cuts = [
     ]
 _opt_cuts = [a for a, b in bits.more_bits]
 
+GeV = 1e3
+
+class DrawOpts(object): 
+    rebin = None
+    y_min = 1.0
+    do_log = False
+    cuts = {}
+
+    def __init__(self,args={}, cuts={}): 
+        if args:
+            self.ext = args.ext
+            self.do_log = args.log
+            self.cuts = cuts
+
+
 def build_nminus_hists(root_file, opt_cuts=_opt_cuts, 
-                       basic_cuts=_basic_cuts): 
+                       basic_cuts=_basic_cuts, options=DrawOpts()): 
     base_mask = 0
     bdict = dict(bits.better_bits + bits.more_bits)
     for cut in basic_cuts + opt_cuts: 
@@ -43,9 +58,10 @@ def build_nminus_hists(root_file, opt_cuts=_opt_cuts,
                 stuffs.append(bname)
         assert name not in stuffs
 
-    return build_hists(root_file, cuts=cuts)
+    return build_hists(root_file, cuts=cuts, options=options)
 
-def build_hists(root_file, put_where='cache', cuts=cum_cuts()): 
+def build_hists(root_file, put_where='cache', cuts=cum_cuts(), 
+                options=DrawOpts()): 
     out_file_name = '{}_hists.h5'.format(os.path.splitext(root_file)[0])
     out_file_name = os.path.join(put_where,os.path.basename(out_file_name))
 
@@ -59,6 +75,7 @@ def build_hists(root_file, put_where='cache', cuts=cum_cuts()):
 
     out_file = hyperstack.stacksusy(root_file, mask_list=cuts, 
                                     output_file=out_file_name, 
+                                    added_cuts=options.cuts, 
                                     flags='vt')
     return out_file
 
@@ -319,17 +336,31 @@ def run_main():
     if config_parser.has_option('physics','total_lumi_fb'): 
         lumi_fb = config_parser.getfloat('physics','total_lumi_fb')
 
+    draw_opts = DrawOpts(args)
+
     if config_parser.has_section('cuts'): 
         plot_opts = dict(config_parser.items('cuts'))
         nminus_cuts = plot_opts['nminus_cuts'].split()
         basic_cuts = plot_opts['basic_cuts'].split()
-        def the_poney_button(in_file): 
+
+        draw_opts.cuts = dict(
+            leading_jet = float(plot_opts['leading_jet_cut_gev'])*GeV, 
+            met = float(plot_opts['met_cut_gev'])*GeV, 
+            j2_anti_b = float(plot_opts['j2_anti_b_cut']), 
+            j2_anti_u = float(plot_opts['j2_anti_u_cut']), 
+            j3_anti_b = float(plot_opts['j3_anti_b_cut']), 
+            j3_anti_u = float(plot_opts['j3_anti_u_cut']), 
+            )
+
+        print 'pushing the pony button'
+        def the_pony_button(in_file): 
             """
-            this here be broken
+            this here be broken in the multiprocessing
             """
             return build_nminus_hists(in_file, opt_cuts=nminus_cuts, 
-                                      basic_cuts=basic_cuts)
-        mappable_nminus = the_poney_button
+                                      basic_cuts=basic_cuts, 
+                                      options=draw_opts)
+        mappable_nminus = the_pony_button
     else: 
         mappable_nminus = build_nminus_hists
 
@@ -337,16 +368,7 @@ def run_main():
     if args.nminus: 
         hist_builder = mappable_nminus
 
-    class DrawOpts(object): 
-        rebin = None
-        y_min = 1.0
-        do_log = False
-
-        def __init__(self,args): 
-            self.ext = args.ext
-            self.do_log = args.log
-
-    draw_opts = DrawOpts(args)
+    
 
     if config_parser.has_section('draw'): 
         draw_opts.rebin = config_parser.getint('draw','rebin')

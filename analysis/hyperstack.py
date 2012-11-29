@@ -2,6 +2,7 @@
 
 from stop import hyperstack
 import os, sys
+from stop import bits
 
 limit_dict = {
     'min_pt': 100*1e3, 
@@ -11,4 +12,24 @@ limit_dict = {
 
 hyperstack.hypersusy(
     sys.argv[1], [('all',0)], 'hyper.h5', flags='v', limit_dict=limit_dict)
-hyperstack.stacksusy(sys.argv[1], [('all',0)], 'stupid.h5', flags='v')
+
+all_cuts = [('all',0)] + bits.more_bits
+
+every_cut = 0
+for cut, bit in all_cuts: 
+    every_cut |= bit
+all_cuts.append( ('every',every_cut) )
+
+GeV = 1e3
+
+added_cuts = dict(
+    leading_jet = 260*GeV, 
+    met         = 180*GeV, 
+    j2_anti_b   = -0.2, 
+    j2_anti_u   =  2.5, 
+    j3_anti_b   = -0.2, 
+    j3_anti_u   = -0.5, 
+    )
+
+hyperstack.stacksusy(sys.argv[1], all_cuts, 'stupid.h5', flags='v', 
+                     added_cuts=added_cuts)
