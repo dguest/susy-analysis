@@ -6,6 +6,7 @@ import os, sys
 limit_dict = {
     'min_pt': 100*1e3, 
     'max_pt': 300*1e3, 
+    'hard_cu': -0.5, 
     }
 
 hyperstack.hypersusy(

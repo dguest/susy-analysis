@@ -24,7 +24,9 @@ HyperBuilder::HyperBuilder(std::string input, const unsigned flags) :
   m_hists(0), 
   m_input_file(input), 
   m_max_pt(250*GeV), 
-  m_min_pt(50*GeV)
+  m_min_pt(50*GeV), 
+  m_hard_cu(0.0), 
+  m_float_cu(true)
 { 
 }
 
@@ -43,10 +45,16 @@ void HyperBuilder::init(std::string input, const unsigned flags) {
   Axis j1Bu = {"j1Bu", 10, -8, 8}; 
   axes.push_back(leading_pt); 
   axes.push_back(met); 
-  axes.push_back(j1Bu); 
-  axes.push_back(j2Cu); 
+  if (m_flags & buildflag::leading_jet_btag) { 
+    axes.push_back(j1Bu); 
+  }
+  if (m_float_cu) { 
+    axes.push_back(j2Cu); 
+  }
   axes.push_back(j2Cb); 
-  axes.push_back(j3Cu); 
+  if (m_float_cu) { 
+    axes.push_back(j3Cu); 
+  }
   axes.push_back(j3Cb); 
 
   Histogram base_hist(axes); 
@@ -98,27 +106,37 @@ int HyperBuilder::build() {
     const Jets jets = m_factory->jets(); 
     if (jets.size() < 3) continue; 
 
+
     const unsigned mask = m_factory->bits(); 
     std::map<std::string, double> vars; 
     vars["met"] = m_factory->met().Mod(); 
 
-    {
-      const Jet& jet1 = jets.at(0); 
-      vars["leadingPt"] = jet1.Pt(); 
-      vars["j1Bu"] = log(jet1.pb() / jet1.pu()); 
-    }
-    {
-      const Jet& jet2 = jets.at(1); 
-      vars["j2Cu"] = log(jet2.pc() / jet2.pu()); 
-      vars["j2Cb"] = log(jet2.pc() / jet2.pb()); 
-    }
-    {
-      const Jet& jet3 = jets.at(2); 
-      vars["j3Cu"] = log(jet3.pc() / jet3.pu()); 
-      vars["j3Cb"] = log(jet3.pc() / jet3.pb()); 
-    }
 
-    m_hists->fill(vars, mask); 
+    const Jet& jet1 = jets.at(0); 
+    vars["leadingPt"] = jet1.Pt(); 
+    vars["j1Bu"] = log(jet1.pb() / jet1.pu()); 
+
+    const Jet& jet2 = jets.at(1); 
+    vars["j2Cu"] = log(jet2.pc() / jet2.pu()); 
+    vars["j2Cb"] = log(jet2.pc() / jet2.pb()); 
+
+    const Jet& jet3 = jets.at(2); 
+    vars["j3Cu"] = log(jet3.pc() / jet3.pu()); 
+    vars["j3Cb"] = log(jet3.pc() / jet3.pb()); 
+
+    bool veto_event = false; 
+    if (!m_float_cu) { 
+      if (vars["j2Cu"] < m_hard_cu) { 
+	veto_event = true; 
+      }
+      if (vars["j3Cu"] < m_hard_cu) { 
+	veto_event = true; 
+      }
+    }
+    
+    if (!veto_event) { 
+      m_hists->fill(vars, mask); 
+    }
 
   }
 
@@ -146,6 +164,10 @@ void HyperBuilder::set_float(std::string name, double value) {
   else if (name == "min_pt") { 
     m_min_pt = value; 
     return; 
+  }
+  else if (name == "hard_cu") { 
+    m_hard_cu = value; 
+    m_float_cu = false; 
   }
   else { 
     throw std::runtime_error(name + " is not defined in HyperBuilder"); 

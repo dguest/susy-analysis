@@ -24,38 +24,47 @@ def compute_significance(signal, background, kept_axes, sys_factor=0.3):
     sig_hist = signal / denom
     return sig_hist
 
+class HistBuilder(object): 
+    def __init__(self, put_where='cache', base_cut='vxp_good', 
+                 more_cuts=['lepton_veto']): 
+        self._cache = put_where
+        self._base_cut = base_cut
+        self._more_cuts = more_cuts
 
-def build_hists(root_file, put_where='cache', base_cut='vxp_good', 
-                more_cuts=['lepton_veto']): 
-    stem_name = basename(splitext(root_file)[0])
-    out_file_name = join(put_where,'{}_hyper.h5'.format(stem_name))
+        GeV = 1e3
+        self.special_limits = { 
+            'min_pt': 100*GeV, 
+            'max_pt': 300*GeV, 
+            }
 
-    if not os.path.isdir(put_where): 
-        os.mkdir(put_where)
+    def build(self, root_file): 
+        put_where = self._cache
+        base_cut = self._base_cut
+        more_cuts = self._more_cuts
+        stem_name = basename(splitext(root_file)[0])
+        out_file_name = join(put_where,'{}_hyper.h5'.format(stem_name))
 
-    if os.path.isfile(out_file_name): 
-        return out_file_name
+        if not os.path.isdir(put_where): 
+            os.mkdir(put_where)
 
-    print 'making {}'.format(os.path.basename(out_file_name))
+        if os.path.isfile(out_file_name): 
+            return out_file_name
 
-    the_cut = dict(cum_cuts())[base_cut]
-    full_cut_name = '+'.join([base_cut] + more_cuts)
-    for cut_to_add in more_cuts: 
-        the_cut |= dict(bits.bits)[cut_to_add]
+        print 'making {}'.format(os.path.basename(out_file_name))
 
-    cuts = [(full_cut_name, the_cut)]
+        the_cut = dict(cum_cuts())[base_cut]
+        full_cut_name = '+'.join([base_cut] + more_cuts)
+        for cut_to_add in more_cuts: 
+            the_cut |= dict(bits.bits)[cut_to_add]
 
-    GeV = 1e3
-    special_limits = {
-        'min_pt': 100*GeV, 
-        'max_pt': 300*GeV, 
-        }
+        cuts = [(full_cut_name, the_cut)]
 
-    out_file = hyperstack.hypersusy(root_file, mask_list=cuts, 
-                                    output_file=out_file_name, 
-                                    flags='vt', 
-                                    limit_dict=special_limits)
-    return out_file
+
+        out_file = hyperstack.hypersusy(root_file, mask_list=cuts, 
+                                        output_file=out_file_name, 
+                                        flags='vt', 
+                                        limit_dict=self.special_limits)
+        return out_file
 
 def run_cutflow(root_file): 
 

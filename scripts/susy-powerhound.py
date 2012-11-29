@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.7
 
-from stop.optimize.opttools import combine, select_signals, build_hists
+from stop.optimize.opttools import combine, select_signals, HistBuilder
 from stop.optimize import opttools
 from stop.optimize import draw
 from stop import hists
@@ -58,7 +58,12 @@ def run():
     all_cuts = 'vxp_good+lepton_veto'
     # cut = 'ctag_mainz'
 
-    h5_cache = [build_hists(d, base_cut=base_cut) for d in distillates]
+    builder = HistBuilder(base_cut=base_cut)
+
+    # FIXME: hack for now, change with more data
+    builder.special_limits['hard_cu'] = -0.5
+    
+    h5_cache = [builder.build(d) for d in distillates]
     baseline_cache = join(cache, 'baseline_cache.pkl')
 
 
@@ -92,8 +97,10 @@ def optimize_signal(signal, h5_cache, meta, all_cuts, tune, plot_dir='plots',
     sum_background *= lumi
     sum_signal *= lumi
 
-    sum_signal.reduce('j1Bu')
-    sum_background.reduce('j1Bu')
+    if 'j1Bu' in [a.name for a in sum_signal.axes]: 
+        sum_signal.reduce('j1Bu')
+    if 'j1Bu' in [a.name for a in sum_background.axes]: 
+        sum_background.reduce('j1Bu')
 
     for axis in sum_background.axes: 
         print 'integrating {}'.format(axis.name)
@@ -110,6 +117,10 @@ def optimize_signal(signal, h5_cache, meta, all_cuts, tune, plot_dir='plots',
     kinematic_vars = ['met','leadingPt']
     oddbals = ['leadingPt','j2Cu']
     cuts_to_use = kinematic_vars + j2_taggers + j3_taggers
+
+    possible_cuts = [a.name for a in sum_signal.axes + sum_background.axes]
+
+    cuts_to_use = [c for c in cuts_to_use if c in possible_cuts]
 
     make_cutflow_plots(sum_signal, sum_background, signal, sys_factor, 
                        cuts_to_use, plot_dir, baseline)
@@ -171,8 +182,9 @@ def optimum_cuts_generator(hyperstash, all_cuts, variable, h5_cache,
         sighist, bkhist = get_signal_and_background(
             hyperstash, sig, all_cuts, h5_cache, meta)
 
-        sighist.reduce('j1Bu')
-        bkhist.reduce('j1Bu')
+        if 'j1Bu' in [a.name for a in sighist.axes + bkhist.axes]: 
+            sighist.reduce('j1Bu')
+            bkhist.reduce('j1Bu')
 
         ax_names = [a.name for a in sighist.axes]
 

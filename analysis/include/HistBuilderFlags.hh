@@ -4,6 +4,8 @@
 namespace buildflag { 
   const unsigned verbose    = 1u << 0; 
   const unsigned fill_truth = 1u << 1; 
+
+  const unsigned leading_jet_btag = 1u << 10; 
 }
 
 #endif

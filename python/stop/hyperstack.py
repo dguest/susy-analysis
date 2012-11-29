@@ -26,13 +26,14 @@ def stacksusy(input_file, mask_list, output_file='', flags='',
     _stacksusy(input_file, mask_list, output_file, flags, added_cuts)
     return output_file
 
-def hypersusy(input_file, mask_list, output_file='', flags='', 
+def hypersusy(input_file, mask_list, output_file='', flags='i', 
               limit_dict={}): 
     """
     Runs the hyperstacker on a distilled ntuple. 
 
     Flags: 
         v: verbose
+        i: optimize b-tag on leading (isr) jet (default true)
     """
     mask_list = list(mask_list)
     if not output_file: 

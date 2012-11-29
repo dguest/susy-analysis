@@ -35,6 +35,9 @@ private:
   double m_max_pt; 
   double m_min_pt; 
 
+  double m_hard_cu; 
+  bool m_float_cu; 
+
 };
 
 
