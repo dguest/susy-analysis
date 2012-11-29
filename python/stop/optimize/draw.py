@@ -51,7 +51,7 @@ def plot_2d(sig_hist, fom_label, put_where='plots'):
             plt.close(fig)
 
 def plot_1d(sig_hist, fom_label, put_where='plots', baseline=None, 
-            signal_name='signal'): 
+            signal_name='signal', signal_hist=None, background_hist=None): 
     for axis in sig_hist.axes: 
         array, ext = sig_hist.project_1d(axis.name)
         x_name, ext, units = new_name_ext(axis.name, ext)
@@ -68,7 +68,21 @@ def plot_1d(sig_hist, fom_label, put_where='plots', baseline=None,
         x_lab = '{} [{}]'.format(x_name, units) if units else x_name
         ax.set_xlabel(x_lab, x=0.98, ha='right')
         ax.grid(True)
-        ax.legend().get_frame().set_visible(False)
+        ax.legend(loc='upper left').get_frame().set_visible(False)
+        if signal_hist is not None: 
+            count_ax = ax.twinx()
+            count_ax.set_yscale('log')
+            count_array, count_ext = signal_hist.project_1d(axis.name)
+            signal_hist_1d = hists.Hist1d(count_array, ext)
+            ct_x, ct_y = signal_hist_1d.get_xy_pts()
+            count_ax.plot(ct_x, ct_y,'r', label='signal')
+            count_ax.set_ylabel('$n$ events', y=0.98, va='top')
+            bg_array, count_ext = background_hist.project_1d(axis.name)
+            bg_hist_1d = hists.Hist1d(bg_array, ext)
+            bg_x, bg_y = bg_hist_1d.get_xy_pts()
+            count_ax.plot(bg_x, bg_y,'orange', label='background')
+            count_ax.legend(loc='upper right').get_frame().set_visible(False)
+            
         for ext in ['.pdf','.png']: 
             fig.savefig(join(put_where,'{}{}'.format(axis.name, ext)),
                         bbox_inches='tight')

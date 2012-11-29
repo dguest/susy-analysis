@@ -125,9 +125,9 @@ def optimize_signal(signal, h5_cache, meta, all_cuts, tune, plot_dir='plots',
     make_cutflow_plots(sum_signal, sum_background, signal, sys_factor, 
                        cuts_to_use, plot_dir, baseline)
 
-    # make_other_plots(sum_signal, sum_background, signal, 
-    #                  sys_factor, cuts_to_use, put_where='plots', 
-    #                  baseline=baseline)
+    make_other_plots(sum_signal, sum_background, signal, 
+                     sys_factor, cuts_to_use, put_where='plots', 
+                     baseline=baseline)
 
     # compare_signal_cuts(hyperstash, all_cuts, h5_cache, meta)
 
@@ -286,12 +286,13 @@ def make_other_plots(sum_signal, sum_background, signal,
     if not isdir(sub_plot_dir): 
         os.mkdir(sub_plot_dir)
 
-    print 'plot 2d'
-    draw.plot_2d(sig_hist, fom_label, put_where=sub_plot_dir)
+    # print 'plot 2d'
+    # draw.plot_2d(sig_hist, fom_label, put_where=sub_plot_dir)
 
     print 'plotting'
     draw.plot_1d(sig_hist, fom_label, put_where=sub_plot_dir, 
-                 baseline=baseline, signal_name=signal)
+                 baseline=baseline, signal_name=signal, 
+                 signal_hist=sum_signal, background_hist=sum_background)
 
 
 if __name__ == '__main__': 
