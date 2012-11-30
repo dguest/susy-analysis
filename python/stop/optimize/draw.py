@@ -56,32 +56,57 @@ def plot_1d(sig_hist, fom_label, put_where='plots', baseline=None,
         array, ext = sig_hist.project_1d(axis.name)
         x_name, ext, units = new_name_ext(axis.name, ext)
         signal_histo = hists.Hist1d(array, ext)
+
+        shape = (axis.bins + 2, -1)
+        reshaped = sig_hist.array.swapaxes(axis.number,0).reshape(shape)
+        max_args = np.argmax(reshaped,1)
+        # maxes = reshaped[np.arange(shape[0]),max_args]
+        global_max = np.unravel_index(reshaped.argmax(),reshaped.shape)
+        fixed_maxes = reshaped[np.arange(shape[0]),global_max[1]]
+        fixed_hist = hists.Hist1d(fixed_maxes,ext)
         
         fig = plt.figure(figsize=(6,4.5))
         ax = fig.add_subplot(1,1,1)
         x_pts, y_pts = signal_histo.get_xy_pts()
-        handle, = ax.plot(x_pts, y_pts, label=signal_name)
+        handle, = ax.plot(x_pts, y_pts, label=r'$\sigma$ optimal', 
+                          color='blue')
+        
+        fixed, = ax.plot(*fixed_hist.get_xy_pts(), linestyle='dashed', 
+                          color='blue', 
+                          label=r'$\sigma$ fixed')
         if baseline: 
             nom_handel = ax.plot(x_pts, [baseline]*len(x_pts), 
-                                 label='nominal')
+                                 color='green', 
+                                 label=r'$\sigma$ nominal')
         ax.set_ylabel(fom_label, y=0.98, va='top')
         x_lab = '{} [{}]'.format(x_name, units) if units else x_name
         ax.set_xlabel(x_lab, x=0.98, ha='right')
         ax.grid(True)
+        lims = ax.get_ylim()
+        ax.set_ylim(lims[0], (lims[1] - lims[0])*1.3 + lims[0])
         ax.legend(loc='upper left').get_frame().set_visible(False)
         if signal_hist is not None: 
             count_ax = ax.twinx()
             count_ax.set_yscale('log')
-            count_array, count_ext = signal_hist.project_1d(axis.name)
-            signal_hist_1d = hists.Hist1d(count_array, ext)
+
+            r_sg = signal_hist.array.swapaxes(axis.number,0).reshape(shape)
+            signal_maxes = r_sg[np.arange(shape[0]),max_args]
+            r_bg = background_hist.array.swapaxes(axis.number,0).reshape(shape)
+            background_maxes = r_bg[np.arange(shape[0]),max_args]
+
+            signal_hist_1d = hists.Hist1d(signal_maxes, ext)
             ct_x, ct_y = signal_hist_1d.get_xy_pts()
             count_ax.plot(ct_x, ct_y,'r', label='signal')
             count_ax.set_ylabel('$n$ events', y=0.98, va='top')
-            bg_array, count_ext = background_hist.project_1d(axis.name)
-            bg_hist_1d = hists.Hist1d(bg_array, ext)
+
+            bg_hist_1d = hists.Hist1d(background_maxes, ext)
             bg_x, bg_y = bg_hist_1d.get_xy_pts()
             count_ax.plot(bg_x, bg_y,'orange', label='background')
             count_ax.legend(loc='upper right').get_frame().set_visible(False)
+
+            lims = count_ax.get_ylim()
+            count_ax.set_ylim(lims[0], lims[1]*20)
+
             
         for ext in ['.pdf','.png']: 
             fig.savefig(join(put_where,'{}{}'.format(axis.name, ext)),

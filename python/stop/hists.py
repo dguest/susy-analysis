@@ -257,6 +257,10 @@ class HistNd(object):
 
         TODO: consider making this return reduced HistNd (rather than 
         modifying in place)
+
+        TODO: consider removing this (and most other public) method(s) ---
+        it's probably cleaner to use the array / axis objects directly. 
+        
         """
         ax = self._axes.pop(axis)
         if ax.type == 'bare': 
