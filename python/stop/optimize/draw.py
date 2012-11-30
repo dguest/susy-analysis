@@ -235,7 +235,7 @@ class CutflowOptimum(object):
                 ax.text(1, maxbiny, 'overflow', size=9, color=color, 
                         va='bottom', ha='right')
             elif maxbin == -1: 
-                ax.test(0, maxbiny, 'underflow', size=9, color=color, 
+                ax.text(0, maxbiny, 'underflow', size=9, color=color, 
                         va='bottom', ha='left')
             else: 
                 raise RuntimeError("something wront")
