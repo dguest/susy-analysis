@@ -168,7 +168,8 @@ def compare_signal_cuts(hyperstash, all_cuts, h5_cache, meta, lumi,
         ax.set_xlabel(xlab.format(v=var_name,u=units), x=0.98, ha='right')
 
         fom_template = (
-            r'$\frac{{s}}{{\sqrt{{s + b + ({:.2f} \times b)^2}} }}$')
+            r'$\sigma \equiv '
+            r'\frac{{s}}{{\sqrt{{s + b + ({:.2f} \times b)^2}} }}$')
         fom_label = fom_template.format(sys_factor)
         ax.set_ylabel(fom_label, y=0.98, va='top')
 
@@ -279,7 +280,9 @@ def make_other_plots(sum_signal, sum_background, signal,
         sum_signal, sum_background, cuts_to_use, 
         sys_factor=sys_factor)
 
-    fom_template = r'$\frac{{s}}{{\sqrt{{s + b + ({:.2f} \times b)^2}} }}$'
+    fom_template = (
+        r'$\sigma \equiv'
+        r'\frac{{s}}{{\sqrt{{s + b + ({:.2f} \times b)^2}} }}$')
     fom_label = fom_template.format(sys_factor)
 
     sub_plot_dir = join(put_where,signal)
