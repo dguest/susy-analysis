@@ -109,7 +109,7 @@ EventJets::EventJets(const SusyBuffer& buffer, SUSYObjDef& def,
     the_jet->SetPxPyPzE(tlv.Px(), tlv.Py(), tlv.Pz(), tlv.E()); 
 
     if (is_jet) { 
-      the_jet->set_bit(jetbit::good); 
+      the_jet->set_bit(jetbit::susy); 
     }
     
     bool low_pt_jet = the_jet->Pt() < 20*GeV;

@@ -25,7 +25,6 @@
 #include "SUSYTools/SUSYObjDef.h"
 #include "SUSYTools/FakeMetEstimator.h"
 #include "RunBits.hh"
-#include "RunBits.hh"
 #include "EventBits.hh"
 
 #include <boost/format.hpp>
@@ -174,6 +173,8 @@ run_cutflow(std::vector<std::string> files,
   
     pass_bits |= pass::grl; 
 
+    // --- preselection 
+
     if(buffer.trigger)    pass_bits |= pass::trigger; 
     if(!buffer.larError)  pass_bits |= pass::lar_error; 
 
@@ -181,6 +182,8 @@ run_cutflow(std::vector<std::string> files,
 	 ((buffer.coreFlags & 0x40000) == 0) ){ 
       pass_bits |= pass::core; 
     }
+
+    // --- object selection 
 
     std::sort(all_jets.begin(),all_jets.end(),has_lower_pt); 
     std::reverse(all_jets.begin(), all_jets.end()); 
@@ -214,28 +217,6 @@ run_cutflow(std::vector<std::string> files,
 		 << *dr_itr << std::endl; 
     }
 
-    pass_bits |= pass::jet_clean; 
-    for (EventJets::const_iterator jet_itr = susy_jets.begin(); 
-	 jet_itr != susy_jets.end(); 
-	 jet_itr++) { 
-      bool is_jet = ((*jet_itr)->bits() & jetbit::good); 
-      assert( !( (*jet_itr)->bits() & jetbit::low_pt)); 
-      bool is_veto = !is_jet;
-      if (is_veto) pass_bits &=~ pass::jet_clean; 
-    }
-    out_tree.n_susy_jets = susy_jets.size(); 
-
-    if(def.IsGoodVertex(buffer.vx_nTracks)) {
-      pass_bits |= pass::vxp_gt_4trk; 
-    }
-      
-    TVector2 met = get_met(buffer, def, info, susy_muon_idx); 
-    if (flags & cutflag::use_met_reffinal) { 
-      met.Set(buffer.MET_RefFinal_etx, buffer.MET_RefFinal_ety); 
-    }
-    if (met.Mod() > 120*GeV) { 
-      pass_bits |= pass::met; 
-    }
 
     std::vector<SelectedJet*> good_jets; 
     for (EventJets::const_iterator jet_itr = susy_jets.begin(); 
@@ -253,6 +234,52 @@ run_cutflow(std::vector<std::string> files,
 	}
       }
     }
+    set_bit(good_jets, jetbit::good); 
+
+    TVector2 met = get_met(buffer, def, info, susy_muon_idx); 
+
+    // ----- object selection is done now, from here is filling outputs ---
+
+    pass_bits |= pass::jet_clean; 
+    for (EventJets::const_iterator jet_itr = susy_jets.begin(); 
+	 jet_itr != susy_jets.end(); 
+	 jet_itr++) { 
+      bool is_jet = ((*jet_itr)->bits() & jetbit::susy); 
+      assert( !( (*jet_itr)->bits() & jetbit::low_pt)); 
+      bool is_veto = !is_jet;
+      if (is_veto) pass_bits &=~ pass::jet_clean; 
+    }
+    out_tree.n_susy_jets = susy_jets.size(); 
+
+
+
+    const unsigned n_req_jets = 3; 
+    if (good_jets.size() >= n_req_jets) { 
+      pass_bits |= pass::n_jet; 
+
+      std::vector<SelectedJet*> leading_jets(good_jets.begin(), 
+					     good_jets.begin() + n_req_jets); 
+
+      set_bit(leading_jets, jetbit::leading); 
+      assert(leading_jets.size() == n_req_jets);
+
+      out_tree.htx = get_htx(susy_jets); 
+
+      //  --- multijet things ---
+      do_multijet_calculations(leading_jets, pass_bits, out_tree, met); 
+    }
+
+
+    if(def.IsGoodVertex(buffer.vx_nTracks)) {
+      pass_bits |= pass::vxp_gt_4trk; 
+    }
+      
+    if (flags & cutflag::use_met_reffinal) { 
+      met.Set(buffer.MET_RefFinal_etx, buffer.MET_RefFinal_ety); 
+    }
+    if (met.Mod() > 120*GeV) { 
+      pass_bits |= pass::met; 
+    }
 
     out_tree.n_good_jets = good_jets.size(); 
 
@@ -264,18 +291,6 @@ run_cutflow(std::vector<std::string> files,
       pass_bits |= pass::lepton_veto; 
     }
 
-    const unsigned n_req_jets = 3; 
-    if (good_jets.size() >= n_req_jets) { 
-      pass_bits |= pass::n_jet; 
-
-      std::vector<SelectedJet*> leading_jets(good_jets.begin(), 
-					     good_jets.begin() + n_req_jets); 
-
-      assert(leading_jets.size() == n_req_jets);
-
-      //  --- multijet things ---
-      do_multijet_calculations(leading_jets, pass_bits, out_tree, met); 
-    }
 
     if (good_jets.size() >= 1) { 
       copy_jet_info(good_jets.at(0), out_tree.isr_jet); 
@@ -361,6 +376,7 @@ void fill_cjet_truth(OutTree& out_tree,
   out_tree.n_cjet = n_cjet; 
 }
 
+
 //____________________________________________________________
 // utility functions 
 
@@ -399,8 +415,31 @@ float get_sum_jetmet_dphi(const std::vector<SelectedJet*>& jets,
   return mector.DeltaPhi(sum); 
 }
 
+double get_htx(const std::vector<SelectedJet*>& jets){ 
+  double htx = 0; 
+  const unsigned required_bits = jetbit::susy; 
+  const unsigned veto_bits = jetbit::leading; 
+  for (std::vector<SelectedJet*>::const_iterator itr = jets.begin(); 
+       itr != jets.end(); itr++) { 
+    unsigned jet_bits = (*itr)->bits(); 
+    bool has_required = ( (jet_bits & required_bits) == required_bits); 
+    bool has_veto = ( (jet_bits & veto_bits) != 0); 
+    if (!has_veto && has_required) { 
+      htx += (*itr)->Pt(); 
+    }
+  }
+  return htx; 
+}
+
 bool has_lower_pt(const TLorentzVector* v1, const TLorentzVector* v2) { 
   return v1->Pt() < v2->Pt(); 
+}
+
+void set_bit(std::vector<SelectedJet*>& jets, unsigned bit) { 
+  for (std::vector<SelectedJet*>::iterator itr = jets.begin(); 
+       itr != jets.end(); itr++) { 
+    (*itr)->set_bit(bit); 
+  }
 }
 
 

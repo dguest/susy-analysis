@@ -67,6 +67,8 @@ void OutTree::init(const unsigned flags)
   m_tree->Branch("hfor_type", &hfor_type); 
   m_tree->Branch("event_number", &event_number); 
 
+  m_tree->Branch("htx", &htx); 
+
   if (flags & cutflag::save_truth) { 
     m_tree->Branch("leading_cjet_pos", &leading_cjet_pos); 
     m_tree->Branch("subleading_cjet_pos", &subleading_cjet_pos); 
@@ -94,6 +96,8 @@ void OutTree::clear_buffer() {
 
   hfor_type = -2; 
   event_number = 0; 
+
+  htx = 0; 
 
   leading_cjet_pos = -1; 
   subleading_cjet_pos = -1; 

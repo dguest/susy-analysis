@@ -1,7 +1,12 @@
 #include "PerformanceNtuple.hh"
+#include "RunBits.hh"
+#include "SmartChain.hh"
+#include "SusyBuffer.h"
 #include <string> 
 #include <fstream>
 #include <iostream>
+#include <boost/format.hpp>
+#include <boost/scoped_ptr.hpp>
 
 int make_perf_ntuple(std::string input, unsigned flags, 
 		     std::string out_file) 
@@ -22,7 +27,7 @@ int make_perf_ntuple(std::string input, unsigned flags,
   int ret_code = input_chain->Add(input.c_str(),-1); 
   if (ret_code != 1) { 
     std::string err = (boost::format("bad file: %s") % 
-		       *file_itr).str(); 
+		       input).str(); 
     throw std::runtime_error(err); 
   }
 
