@@ -61,7 +61,9 @@ def run():
     builder = HistBuilder(base_cut=base_cut)
 
     # FIXME: hack for now, change with more data
-    builder.special_limits['hard_cu'] = -0.5
+    if config_parser.has_section('limits'): 
+        for name, value in config_parser.items('limits'): 
+            builder.special_limits[name] = float(value)
     
     h5_cache = [builder.build(d) for d in distillates]
     baseline_cache = join(cache, 'baseline_cache.pkl')
