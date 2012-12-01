@@ -6,6 +6,7 @@ namespace buildflag {
   const unsigned fill_truth = 1u << 1; 
 
   const unsigned leading_jet_btag = 1u << 10; 
+  const unsigned mttop            = 1u << 11; 
 }
 
 #endif

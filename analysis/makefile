@@ -63,7 +63,7 @@ GEN_OBJ     := HistBuilder.o MaskedHistArray.o ObjKinematics.o
 GEN_OBJ     += TruthJetHists.o 
 GEN_OBJ     += HyperBuilder.o
 GEN_OBJ     += CutflowBuilder.o
-GEN_OBJ     += CutAugmenter.o
+GEN_OBJ     += CutAugmenter.o common_functions.o
 EXE_OBJ     := $(GEN_OBJ) $(TOBJ) drink.o
 PYLIB_OBJ   := $(GEN_OBJ) $(TOBJ)
 

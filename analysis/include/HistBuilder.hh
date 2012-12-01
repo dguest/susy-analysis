@@ -26,8 +26,6 @@ public:
   void save(std::string output = ""); 
   void set_float(std::string, double);
 private: 
-  double get_mttop(const std::vector<Jet>& jets, TVector2 met); 
-  double get_mttop(const Jet& jet, TVector2 met); 
   void fill_truth_hists(const std::vector<Jet>& jets, const unsigned mask); 
   typedef std::map<std::string, unsigned> CutMasks; 
 

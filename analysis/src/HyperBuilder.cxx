@@ -5,6 +5,7 @@
 #include "Histogram.hh"
 #include "MaskedHistArray.hh"
 #include "PhysicalConstants.hh"
+#include "common_functions.hh"
 #include "H5Cpp.h"
 
 #include <string> 
@@ -38,11 +39,12 @@ void HyperBuilder::init(std::string input, const unsigned flags) {
   std::vector<Axis> axes; 
   Axis leading_pt = {"leadingPt", 10, min_pt, max_pt}; 
   Axis met = {"met", 10, min_pt, max_pt}; 
-  Axis j2Cu = {"j2Cu", 10, -8, 7}; 
-  Axis j2Cb = {"j2Cb", 10, -10, 4}; 
-  Axis j3Cu = {"j3Cu", 10, -8, 7}; 
-  Axis j3Cb = {"j3Cb", 10, -10, 4}; 
+  Axis j2Cu = {"j2Cu", 10, -3, 7}; 
+  Axis j2Cb = {"j2Cb", 10, -6, 4}; 
+  Axis j3Cu = {"j3Cu", 10, -3, 7}; 
+  Axis j3Cb = {"j3Cb", 10, -6, 4}; 
   Axis j1Bu = {"j1Bu", 10, -8, 8}; 
+  Axis mttop = {"mttop", 2, 0, 600*GeV}; 
   axes.push_back(leading_pt); 
   axes.push_back(met); 
   if (m_flags & buildflag::leading_jet_btag) { 
@@ -56,6 +58,11 @@ void HyperBuilder::init(std::string input, const unsigned flags) {
     axes.push_back(j3Cu); 
   }
   axes.push_back(j3Cb); 
+
+  if (m_flags & buildflag::mttop) { 
+    axes.push_back(mttop); 
+  }
+
 
   Histogram base_hist(axes); 
   m_hists = new MaskedHistArray(base_hist); 
@@ -132,6 +139,9 @@ int HyperBuilder::build() {
       if (vars["j3Cu"] < m_hard_cu) { 
 	veto_event = true; 
       }
+    }
+    if (m_flags & buildflag::mttop) { 
+      vars["mttop"] = get_mttop(jets, m_factory->met()); 
     }
     
     if (!veto_event) { 
