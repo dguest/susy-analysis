@@ -9,8 +9,9 @@ import os
 from stop import hists
 from stop.optimize import opttools
 
-def new_name_ext(name, ext): 
-    if name in ['met','leadingPt']: 
+_changed_names = ['met','leadingPt','mttop','htx']
+def new_name_ext(name, ext, changed_names=_changed_names):
+    if name in changed_names:
         newe = [x/1e3 for x in ext]
         return name, newe, 'GeV'
     else: 

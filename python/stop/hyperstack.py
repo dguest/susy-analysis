@@ -34,6 +34,7 @@ def hypersusy(input_file, mask_list, output_file='', flags='i',
     Flags: 
         v: verbose
         i: optimize b-tag on leading (isr) jet (default true)
+        m: cut on mttop
     """
     mask_list = list(mask_list)
     if not output_file: 

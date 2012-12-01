@@ -31,6 +31,8 @@ class HistBuilder(object):
         self._base_cut = base_cut
         self._more_cuts = more_cuts
 
+        self.flags = 'vt'
+
         GeV = 1e3
         self.special_limits = { 
             'min_pt': 100*GeV, 
@@ -62,7 +64,7 @@ class HistBuilder(object):
 
         out_file = hyperstack.hypersusy(root_file, mask_list=cuts, 
                                         output_file=out_file_name, 
-                                        flags='vt', 
+                                        flags=self.flags, 
                                         limit_dict=self.special_limits)
         return out_file
 

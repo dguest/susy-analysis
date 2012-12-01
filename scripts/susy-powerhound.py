@@ -53,14 +53,18 @@ def run():
     lumi = float(tune['lumi'])
 
 
-
     base_cut = 'vxp_good'
     all_cuts = 'vxp_good+lepton_veto'
     # cut = 'ctag_mainz'
 
     builder = HistBuilder(base_cut=base_cut)
 
-    # FIXME: hack for now, change with more data
+    try: 
+        builder.flags = config_parser.get('selection','flags')
+    except ConfigParser.Error: 
+        print 'no flags found in config file, using default: {}'.format(
+            builder.flags)
+
     if config_parser.has_section('limits'): 
         for name, value in config_parser.items('limits'): 
             builder.special_limits[name] = float(value)
@@ -118,7 +122,7 @@ def optimize_signal(signal, h5_cache, meta, all_cuts, tune, plot_dir='plots',
     tagger_vars =  j3_taggers + j2_taggers + j1_taggers
     kinematic_vars = ['met','leadingPt']
     oddbals = ['leadingPt','j2Cu']
-    cuts_to_use = kinematic_vars + j2_taggers + j3_taggers
+    cuts_to_use = kinematic_vars + j2_taggers + j3_taggers + ['mttop']
 
     possible_cuts = [a.name for a in sum_signal.axes + sum_background.axes]
 
