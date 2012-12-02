@@ -141,6 +141,7 @@ class HistNd(object):
             the_axis = self._axes[ax_name]
             setattr(the_axis, ax_prop, atr)
             the_axis.name = ax_name
+
         for name, axis in self._axes.items(): 
             if not axis.valid: 
                 raise IOError("{} isn't well defined".format(name))
@@ -150,11 +151,11 @@ class HistNd(object):
                                    compression='gzip')
         ax_list = sorted([(ax.number, ax) for ax in self._axes.values()])
         for num, ax in ax_list: 
-            assert ax.type == 'bare'
             ds.attrs['{}_axis'.format(ax.name)] = num
             ds.attrs['{}_bins'.format(ax.name)] = ax.bins
             ds.attrs['{}_min'.format(ax.name)] = ax.min
             ds.attrs['{}_max'.format(ax.name)] = ax.max
+            ds.attrs['{}_type'.format(ax.name)] = ax.type
 
     def __check_consistency(self, other): 
         for axis in self._axes: 

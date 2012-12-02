@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mp
 
 import ConfigParser, argparse, copy
-
+from warnings import warn
 
 
 
@@ -79,9 +79,15 @@ def run():
 
     # this should loop over signals
     for signal in selection['signals'].split(): 
-        baseline = opttools.get_baseline(
-            baseline_cache, distillates, meta, sys_factor, 
-            lumi=lumi, signal=signal)
+        try: 
+            baseline = opttools.get_baseline(
+                baseline_cache, distillates, meta, sys_factor, 
+                lumi=lumi, signal=signal)
+        except KeyError as e: 
+            sys.stderr.write('could not find key {}, skipping {}'.format(
+                    str(e), signal))
+            continue
+                             
 
         optimize_signal(signal, 
                         h5_cache, meta, 
@@ -140,10 +146,6 @@ def optimize_signal(signal, h5_cache, meta, all_cuts, tune, plot_dir='plots',
         if not signal in cache_dict: 
             cache_dict[signal] = opttools.Optimum(
                 sum_signal, sum_background, sig_hist, sys_factor)
-        for key, val in cache_dict.iteritems(): 
-            print '{}: significance {}, nsig {}, nbg {}, j2 cu cut {}'.format(
-                key, val.significance, val.n_signal, val.n_background, 
-                val.cuts)
 
     make_other_plots(sum_signal, sum_background, signal, 
                      sys_factor, cuts_to_use, put_where='plots', 

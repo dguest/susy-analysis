@@ -155,7 +155,12 @@ def combine(h5_cache, meta, cut='vxp_good', signal='175-100'):
     sum_background = None
     sum_signal = None
 
-    signal_finder = re.compile('directCC_{}_{}'.format(*signal.split('-')))
+    try: 
+        signal_finder = re.compile(
+            'directCC_{}_{}'.format(*signal.split('-')))
+    except Exception: 
+        print 'had an issue with {}'.format(signal)
+        raise 
 
     for hyper in  h5_cache: 
         key = splitext(basename(hyper))[0].replace('_hyper','')

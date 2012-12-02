@@ -26,7 +26,7 @@ CutflowBuilder::CutflowBuilder(std::string input, const unsigned flags) :
 { 
   m_file = new TFile(input.c_str()); 
   if (!m_file) { 
-    throw std::runtime_error(input + " could not be foune"); 
+    throw std::runtime_error(input + " could not be found"); 
   }
   m_tree = dynamic_cast<TTree*>(m_file->Get("evt_tree")); 
   if (!m_tree) { 
