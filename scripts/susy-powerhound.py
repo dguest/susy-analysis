@@ -131,9 +131,24 @@ def optimize_signal(signal, h5_cache, meta, all_cuts, tune, plot_dir='plots',
     make_cutflow_plots(sum_signal, sum_background, signal, sys_factor, 
                        cuts_to_use, plot_dir, baseline)
 
+    print 'computing significance'
+    sig_hist = opttools.compute_significance(
+        sum_signal, sum_background, cuts_to_use, 
+        sys_factor=sys_factor)
+
+    with opttools.OptimaCache('optimum_cuts.pkl') as cache_dict: 
+        if not signal in cache_dict: 
+            cache_dict[signal] = opttools.Optimum(
+                sum_signal, sum_background, sig_hist, sys_factor)
+        for key, val in cache_dict.iteritems(): 
+            print '{}: significance {}, nsig {}, nbg {}, j2 cu cut {}'.format(
+                key, val.significance, val.n_signal, val.n_background, 
+                val.cuts)
+
     make_other_plots(sum_signal, sum_background, signal, 
                      sys_factor, cuts_to_use, put_where='plots', 
-                     baseline=baseline)
+                     baseline=baseline, 
+                     sig_hist=sig_hist)
 
     # compare_signal_cuts(hyperstash, all_cuts, h5_cache, meta)
 
@@ -279,12 +294,13 @@ def make_cutflow_plots(sum_signal, sum_background, signal, sys_factor,
 
 def make_other_plots(sum_signal, sum_background, signal, 
                      sys_factor, cuts_to_use, put_where='plots', 
-                     baseline=None): 
+                     baseline=None, sig_hist=None): 
 
-    print 'computing significance'
-    sig_hist = opttools.compute_significance(
-        sum_signal, sum_background, cuts_to_use, 
-        sys_factor=sys_factor)
+    if sig_hist is None:
+        print 'computing significance'
+        sig_hist = opttools.compute_significance(
+            sum_signal, sum_background, cuts_to_use, 
+            sys_factor=sys_factor)
 
     fom_template = (
         r'$\sigma \equiv'
@@ -302,6 +318,7 @@ def make_other_plots(sum_signal, sum_background, signal,
     draw.plot_1d(sig_hist, fom_label, put_where=sub_plot_dir, 
                  baseline=baseline, signal_name=signal, 
                  signal_hist=sum_signal, background_hist=sum_background)
+
 
 
 if __name__ == '__main__': 

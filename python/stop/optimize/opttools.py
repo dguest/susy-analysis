@@ -25,6 +25,9 @@ def compute_significance(signal, background, kept_axes, sys_factor=0.3):
     return sig_hist
 
 class HistBuilder(object): 
+    """
+    builds multi-dimensional histograms from a distilled dataset. 
+    """
     def __init__(self, put_where='cache', base_cut='vxp_good', 
                  more_cuts=['lepton_veto']): 
         self._cache = put_where
@@ -67,6 +70,58 @@ class HistBuilder(object):
                                         flags=self.flags, 
                                         limit_dict=self.special_limits)
         return out_file
+
+class Optimum(object): 
+    """
+    Class to store optimum cuts, signal significance, etc. for a sample.
+    """
+    cuts = None
+    significance = None
+    n_signal = None
+    n_background = None
+    def __init__(self, signal_hist, bg_hist, significance_hist=None,
+                 sys_factor=0.3): 
+        signal_hist.integrate()
+        bg_hist.integrate()
+        if significance_hist is None: 
+            denom = ( signal_hist + bg_hist + 
+                      (sys_factor * bg_hist)**2 )**0.5
+            sig_hist = sig_hist / denom
+        else:
+            sig_hist = significance_hist
+        max_index = np.unravel_index(sig_hist.array.argmax(), 
+                                     sig_hist.array.shape)
+        self.significance = sig_hist.array[max_index]
+        self.n_signal = signal_hist.array[max_index]
+        self.n_background = bg_hist.array[max_index]
+        
+        self.cuts = {}
+        for axis, cut in zip(signal_hist.axes, max_index): 
+            self.cuts[axis.name] = axis.get_bin_extent(cut)[0]
+
+
+class OptimaCache(dict): 
+    """
+    Abstraction layer for percistence of cutflow optima. 
+    """
+    def __init__(self, cache_name): 
+        self._cache_name = cache_name
+        if isfile(cache_name): 
+            with open(cache_name) as cache: 
+                cached_rep = cPickle.load(cache)
+            super(OptimaCache,self).__init__(cached_rep)
+
+    def __enter__(self):
+        return self
+    def __exit__(self, exc_type, exc_val, exc_tb): 
+        self.write()
+    
+    def write(self, cache_name=''): 
+        if not cache_name: 
+            cache_name = self._cache_name
+        with open(cache_name,'w') as cache: 
+            out_dict = dict(self)
+            cPickle.dump(out_dict, cache)
 
 def run_cutflow(root_file): 
 

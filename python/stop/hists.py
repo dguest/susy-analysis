@@ -218,6 +218,10 @@ class HistNd(object):
                 if not axis in self._axes: 
                     raise ValueError('axis {} not defined'.format(axis))
                 ax_number = self._axes[axis].number
+
+            if self._axes[axis].type == 'integral': 
+                return None
+                
             a = self._array
             if reverse: 
                 a = a.swapaxes(0,ax_number)[::-1,...].swapaxes(0,ax_number)
