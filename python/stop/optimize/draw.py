@@ -86,7 +86,7 @@ def plot_1d(sig_hist, fom_label, put_where='plots', baseline=None,
         lims = ax.get_ylim()
         ax.set_ylim(lims[0], (lims[1] - lims[0])*1.3 + lims[0])
         ax.legend(loc='upper left').get_frame().set_visible(False)
-        if signal_hist is not None: 
+        if signal_hist is not None and signal_hist.array.sum() > 0.0: 
             count_ax = ax.twinx()
             count_ax.set_yscale('log')
 
@@ -138,6 +138,7 @@ class CutflowOptimum(object):
         self.max_bins = {}
         self.ymin = None
         self._do_log = False
+        self._problem = ''
 
     @property
     def baseline(self): 
@@ -159,6 +160,9 @@ class CutflowOptimum(object):
                 sys_factor=sys_factor)
             array, extent = sig.project_1d(new)
             nonzero_array = array[array != 0.0]
+            if len(nonzero_array) == 0: 
+                self._problem = 'all bins are zero'
+                return None
             mins.append(np.min(nonzero_array))
             self._cut_tuples.append((array, extent))
             self.fom_label = self.fom_template.format(sys_factor)
@@ -167,6 +171,8 @@ class CutflowOptimum(object):
         self.ymin = min(mins)
         
     def get_efficiencies(self): 
+        if self._problem: 
+            return {}
         if not self.max_bins: 
             self.compute()
         sig_ratios = self._array_ratio(self._signal)
@@ -203,6 +209,9 @@ class CutflowOptimum(object):
         color_itr = iter(self.colors)
         fig = plt.figure(figsize=(6,4.5))
         ax = fig.add_subplot(1,1,1)
+        if self._problem: 
+            print "can't draw: {}".format(self._problem)
+            return None
         for (array, extent), cut in zip(self._cut_tuples, self.cuts): 
             if self._do_log: 
                 array = np.maximum(self.ymin, array)

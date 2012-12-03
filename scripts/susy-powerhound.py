@@ -318,7 +318,8 @@ def make_cutflow_plots(sum_signal, sum_background, signal, sys_factor,
     eff_dict = cf.get_efficiencies()
 
     with open(join(sub_plot_dir,'efficiencies.txt'),'w') as out: 
-        cutlen = max(len(c) for c in eff_dict.keys())
+        if eff_dict: 
+            cutlen = max(len(c) for c in eff_dict.keys())
         for cut, (eff, bkg) in eff_dict.iteritems(): 
             out.write('{:{}} {: 10.3} {: 10.3}\n'.format(
                     cut, cutlen, eff, bkg))
