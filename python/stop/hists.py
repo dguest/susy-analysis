@@ -176,7 +176,10 @@ class HistNd(object):
             self.__check_consistency(value)
             used = np.isfinite(self._array) * np.isfinite(value._array)
             new._array = np.zeros(self._array.shape)
-            new._array[used] = self._array[used] * value._array[used]
+            try: 
+                new._array[used] = self._array[used] * value._array[used]
+            except IndexError: 
+                new._array = self._array * value._array
         else: 
             new._array = self._array * value
         return new
@@ -246,8 +249,8 @@ class HistNd(object):
         bin_n = np.digitize([value], bin_bounds)[0]
         
         a = self._array.swapaxes(0, ax.number)
+        a = np.rollaxis(a, ax.number, 1)
         a = a[bin_n,...] 
-        a = np.rollaxis(a, ax.number - 1)
         self._array = a
         for ax_name in self._axes: 
             if self._axes[ax_name].number > ax.number: 

@@ -113,6 +113,9 @@ class Optimizer(object):
 
         self._hard_cuts = {}
 
+        if not isdir(self.plot_dir): 
+            os.mkdir(self.plot_dir)
+
     @property
     def hard_cuts(self): 
         return copy.deepcopy(self._hard_cuts)
@@ -173,7 +176,7 @@ class Optimizer(object):
         sig_hist = opttools.compute_significance(
             sum_signal, sum_background, cuts_to_use, 
             sys_factor=sys_factor)
-    
+
         with opttools.OptimaCache('optimum_cuts.pkl') as cache_dict: 
             if not signal in cache_dict: 
                 cache_dict[signal] = opttools.Optimum(
@@ -302,6 +305,8 @@ def get_signal_and_background(hyperstash, signal, all_cuts, h5_cache, meta):
 def make_cutflow_plots(sum_signal, sum_background, signal, sys_factor, 
                        cuts_to_use, plot_dir='plots' , baseline=None): 
 
+    if sum_signal.array.size == 1:  
+        return None
 
     if not isdir(plot_dir): 
         os.mkdir(plot_dir)

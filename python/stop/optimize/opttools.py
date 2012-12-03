@@ -89,15 +89,22 @@ class Optimum(object):
             sig_hist = sig_hist / denom
         else:
             sig_hist = significance_hist
-        max_index = np.unravel_index(sig_hist.array.argmax(), 
-                                     sig_hist.array.shape)
-        self.significance = sig_hist.array[max_index]
-        self.n_signal = signal_hist.array[max_index]
-        self.n_background = bg_hist.array[max_index]
-        
-        self.cuts = {}
-        for axis, cut in zip(signal_hist.axes, max_index): 
-            self.cuts[axis.name] = axis.get_bin_extent(cut)[0]
+        try: 
+            max_index = np.unravel_index(sig_hist.array.argmax(), 
+                                         sig_hist.array.shape)
+            self.significance = sig_hist.array[max_index]
+            self.n_signal = signal_hist.array[max_index]
+            self.n_background = bg_hist.array[max_index]
+
+            self.cuts = {}
+            for axis, cut in zip(signal_hist.axes, max_index): 
+                self.cuts[axis.name] = axis.get_bin_extent(cut)[0]
+
+        except ValueError: 
+            self.significance = float(sig_hist.array)
+            self.n_signal = float(signal_hist.array)
+            self.n_background = float(bg_hist.array)
+            self.cuts = {}
 
 
 class OptimaCache(dict): 

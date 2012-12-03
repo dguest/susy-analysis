@@ -98,6 +98,8 @@ def mlsp_vs_mstop_signif(optima, plot_dir):
     ax = fig.add_subplot(1,1,1)
     sc = ax.scatter(lsp, stop, c=z, norm=LogNorm())
 
+    print lsp, stop, z
+
     log_locate = LogLocator(10, np.arange(0.1,1,0.1))
     log_format = LogFormatter(10)
     cb = plt.colorbar(sc, format=log_format, ticks=log_locate)
