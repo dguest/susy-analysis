@@ -239,21 +239,24 @@ class HistNd(object):
         actually made
         """
         assert not reverse
-        ax = self._axes[axis]
+        ax = self._axes.pop(axis)
+        assert ax.type == 'integral'
+
         bin_bounds = np.linspace(ax.min,ax.max,ax.bins + 1)
         bin_n = np.digitize([value], bin_bounds)[0]
+        
+        a = self._array.swapaxes(0, ax.number)
+        a = a[bin_n,...] 
+        a = np.rollaxis(a, ax.number - 1)
+        self._array = a
+        for ax_name in self._axes: 
+            if self._axes[ax_name].number > ax.number: 
+                self._axes[ax_name].number -= 1
 
-        lowest_bound_idx = bin_n - 1
-        if lowest_bound_idx >= 0: 
-            a = self._array.swapaxes(0, ax.number)
-            a = a[lowest_bound_idx:,...] 
-            a[0,...] = 0        # zero the underflow
-            self._array = a.swapaxes(0, ax.number)
-            self._axes[axis].min = bin_bounds[lowest_bound_idx]
-            self._axes[axis].bins = len(bin_bounds[lowest_bound_idx:])
-            return bin_bounds[lowest_bound_idx]
-        else:
-            return None
+        if bin_n == 0: 
+            return float('-inf')
+        else: 
+            return bin_bounds[bin_n - 1]
         
     def reduce(self, axis): 
         """

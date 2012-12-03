@@ -158,7 +158,8 @@ class CutflowOptimum(object):
                 self._signal, self._background, kept_axes=used, 
                 sys_factor=sys_factor)
             array, extent = sig.project_1d(new)
-            mins.append(np.min(array[array != 0.0]))
+            nonzero_array = array[array != 0.0]
+            mins.append(np.min(nonzero_array))
             self._cut_tuples.append((array, extent))
             self.fom_label = self.fom_template.format(sys_factor)
 
