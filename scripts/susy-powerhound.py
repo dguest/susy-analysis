@@ -15,7 +15,7 @@ import matplotlib as mp
 
 import ConfigParser, argparse, copy
 from warnings import warn
-
+import copy 
 
 
 GeV = 1e3    
@@ -28,6 +28,7 @@ def run():
     args = parser.parse_args(sys.argv[1:])
     
     config_parser = ConfigParser.SafeConfigParser()
+    config_parser.optionxform = str # make options case sensitive
     config_parser.read([args.config])
     file_config = dict(config_parser.items('files'))
     selection = dict(config_parser.items('selection'))
@@ -77,6 +78,14 @@ def run():
     #                   all_cuts=all_cuts, tune=tune)
     
 
+    optimizer = Optimizer(h5_cache, meta, base_cuts=all_cuts, tune=tune)
+
+    if config_parser.has_section('hard_cuts'): 
+        hard_cuts = {}
+        for cut, valstr in config_parser.items('hard_cuts'): 
+            hard_cuts[cut] = float(valstr)
+        optimizer.hard_cuts = hard_cuts
+
     # this should loop over signals
     for signal in selection['signals'].split(): 
         try: 
@@ -88,72 +97,95 @@ def run():
                     str(e), signal))
             continue
                              
-
-        optimize_signal(signal, 
-                        h5_cache, meta, 
-                        all_cuts=all_cuts, tune=tune, baseline=baseline)
+        optimizer.optimize_signal(signal, baseline=baseline)
 
 
-
-def optimize_signal(signal, h5_cache, meta, all_cuts, tune, plot_dir='plots', 
-                    baseline=None): 
-
-    sys_factor = float(tune['sys_factor'])
-    lumi = float(tune['lumi'])
-
+class Optimizer(object): 
     hyperstash = 'stash.h5'
+    plot_dir = 'plots'
+    def __init__(self, h5_cache, meta, base_cuts, tune): 
+        self._h5_cache = h5_cache
+        self._meta = meta
+        self._base_cuts = base_cuts
+        self._tune = tune
+        self._sys_factor = float(tune['sys_factor'])
+        self._lumi = float(tune['lumi'])
 
-    sum_signal, sum_background = get_signal_and_background( 
-        hyperstash, signal, all_cuts, h5_cache, meta)        
+        self._hard_cuts = {}
 
-    sum_background *= lumi
-    sum_signal *= lumi
+    @property
+    def hard_cuts(self): 
+        return copy.deepcopy(self._hard_cuts)
+    @hard_cuts.setter
+    def hard_cuts(self, value): 
+        self._hard_cuts = copy.deepcopy(value)
 
-    if 'j1Bu' in [a.name for a in sum_signal.axes]: 
-        sum_signal.reduce('j1Bu')
-    if 'j1Bu' in [a.name for a in sum_background.axes]: 
-        sum_background.reduce('j1Bu')
+    def optimize_signal(self, signal, baseline=None): 
+        h5_cache = self._h5_cache
+        meta = self._meta
+        all_cuts = self._base_cuts
+        sys_factor = self._sys_factor
+        lumi = self._lumi
 
-    for axis in sum_background.axes: 
-        print 'integrating {}'.format(axis.name)
-        reverse = not bool(axis.name == 'j1Bu') 
+        hyperstash = self.hyperstash
+        plot_dir = self.plot_dir
 
-        sum_signal.integrate(axis.name, reverse=reverse)
-        sum_background.integrate(axis.name, reverse=reverse)
+        sum_signal, sum_background = get_signal_and_background( 
+            hyperstash, signal, all_cuts, h5_cache, meta)        
+    
+        sum_background *= lumi
+        sum_signal *= lumi
+    
+        if 'j1Bu' in [a.name for a in sum_signal.axes]: 
+            sum_signal.reduce('j1Bu')
+        if 'j1Bu' in [a.name for a in sum_background.axes]: 
+            sum_background.reduce('j1Bu')
+    
+        for axis in sum_background.axes: 
+            print 'integrating {}'.format(axis.name)
+            reverse = not bool(axis.name == 'j1Bu') 
+    
+            sum_signal.integrate(axis.name, reverse=reverse)
+            sum_background.integrate(axis.name, reverse=reverse)
+    
+        for cut_var, cut_value in self._hard_cuts.items(): 
+            real_cut_value = sum_signal.cut(cut_var, cut_value)
+            real_cut_value = sum_background.cut(cut_var, cut_value)
+            print 'cut {} at {}'.format(cut_var, real_cut_value)
 
+        j1_taggers = ['j1Bu']
+        j2_taggers = ['j2Cu','j2Cb']
+        j3_taggers = ['j3Cu','j3Cb']
+        tagger_vars =  j3_taggers + j2_taggers + j1_taggers
+        kinematic_vars = ['met','leadingPt']
+        oddbals = ['leadingPt','j2Cu']
+        cuts_to_use = kinematic_vars + j2_taggers + j3_taggers + ['mttop']
+    
+        possible_cuts = [
+            a.name for a in sum_signal.axes + sum_background.axes]
+    
+        cuts_to_use = [c for c in cuts_to_use if c in possible_cuts]
 
-    j1_taggers = ['j1Bu']
-    j2_taggers = ['j2Cu','j2Cb']
-    j3_taggers = ['j3Cu','j3Cb']
-    tagger_vars =  j3_taggers + j2_taggers + j1_taggers
-    kinematic_vars = ['met','leadingPt']
-    oddbals = ['leadingPt','j2Cu']
-    cuts_to_use = kinematic_vars + j2_taggers + j3_taggers + ['mttop']
-
-    possible_cuts = [a.name for a in sum_signal.axes + sum_background.axes]
-
-    cuts_to_use = [c for c in cuts_to_use if c in possible_cuts]
-
-    make_cutflow_plots(sum_signal, sum_background, signal, sys_factor, 
-                       cuts_to_use, plot_dir, baseline)
-
-    print 'computing significance'
-    sig_hist = opttools.compute_significance(
-        sum_signal, sum_background, cuts_to_use, 
-        sys_factor=sys_factor)
-
-    with opttools.OptimaCache('optimum_cuts.pkl') as cache_dict: 
-        if not signal in cache_dict: 
-            cache_dict[signal] = opttools.Optimum(
-                sum_signal, sum_background, sig_hist, sys_factor)
-
-    make_other_plots(sum_signal, sum_background, signal, 
-                     sys_factor, cuts_to_use, put_where='plots', 
-                     baseline=baseline, 
-                     sig_hist=sig_hist)
-
-    # compare_signal_cuts(hyperstash, all_cuts, h5_cache, meta)
-
+        make_cutflow_plots(sum_signal, sum_background, signal, sys_factor, 
+                           cuts_to_use, plot_dir, baseline)
+    
+        print 'computing significance'
+        sig_hist = opttools.compute_significance(
+            sum_signal, sum_background, cuts_to_use, 
+            sys_factor=sys_factor)
+    
+        with opttools.OptimaCache('optimum_cuts.pkl') as cache_dict: 
+            if not signal in cache_dict: 
+                cache_dict[signal] = opttools.Optimum(
+                    sum_signal, sum_background, sig_hist, sys_factor)
+    
+        make_other_plots(sum_signal, sum_background, signal, 
+                         sys_factor, cuts_to_use, put_where='plots', 
+                         baseline=baseline, 
+                         sig_hist=sig_hist)
+    
+        # compare_signal_cuts(hyperstash, all_cuts, h5_cache, meta)
+    
 def optimize_fuckshit(h5_cache, meta, all_cuts, tune, 
                       plot_dir='plots'): 
 
