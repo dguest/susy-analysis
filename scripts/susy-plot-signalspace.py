@@ -20,8 +20,12 @@ def run():
         'plot_dir', nargs='?', 
         default='parameter_space_plots', 
         help='default: %(default)s')
+    parser.add_argument('--baseline', nargs='?')
     args = parser.parse_args(sys.argv[1:])
     
+    if args.baseline: 
+        raise NotImplementedError('you got to get baseline working')
+
     optima = OptimaCache(args.opt_cuts)
 
     if not isdir(args.plot_dir): 
