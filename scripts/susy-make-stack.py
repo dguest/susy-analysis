@@ -432,6 +432,9 @@ def run_main():
                 hist = Hist1d(array, extent=extent, x_label=short_var, 
                               title=sample, group=group)
                 hist.cut = cut
+                hist.y_label = (
+                    r'$n$ events (${}\,\mathrm{{fb}}^{{-1}}$)'.format(
+                        lumi_fb))
                 if do_truth and args.truth != 'backgrounds': 
                     hist.title='garbage'
                 hists_by_group[(short_var, cut)].append(hist)

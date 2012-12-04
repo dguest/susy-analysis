@@ -22,9 +22,10 @@ def run():
         help='default: %(default)s')
     parser.add_argument('--baseline', nargs='?')
     args = parser.parse_args(sys.argv[1:])
-    
+
+    base_optima = None
     if args.baseline: 
-        raise NotImplementedError('you got to get baseline working')
+        base_optima = OptimaCache(args.baseline)
 
     optima = OptimaCache(args.opt_cuts)
 
@@ -37,16 +38,23 @@ def run():
     mstop, mlsp, opt = np.array(
         zip(*(get_mstop_mlsp_opt(*it) for it in optima.items())))
     diff = mstop - mlsp 
-    diff_vs_lsp = DiffVsLsp()
-    # diff_vs_lsp.do_log = False
+    diff_vs_stop = DiffVsStop()
     sig = [o.significance for o in opt]
-    diff_vs_lsp.plot(mstop, diff, sig, 'opt-diff.pdf')
+    if base_optima: 
+        base_sig = [o.significance for o in base_optima.values()]
+        ratio = list(np.array(sig) / np.array(base_sig)) # why do I need list??
+        diff_vs_stop.do_log = False
+        diff_vs_stop.cb_label = (r'$\sigma_{\mathrm{SR} }'
+                                 r' / \sigma_{ \mathrm{opt} }$')
+        diff_vs_stop.plot(mstop, diff, ratio, 'opt-ratio.pdf')
+    else: 
+        diff_vs_stop.plot(mstop, diff, sig, 'opt-diff.pdf')
 
     a_signal = optima.values()[0]
     for cut in a_signal.cuts: 
             
-        diff_vs_lsp.do_log = False
-        diff_vs_lsp.cb_label = cut
+        diff_vs_stop.do_log = False
+        diff_vs_stop.cb_label = cut
         z_vals = [o.cuts[cut] for o in opt]
         # for zinx in xrange(len(z_vals)): 
         #     if z_vals[zinx] == float('-inf'): 
@@ -54,12 +62,12 @@ def run():
             
         if cut in ['mttop','leadingPt','met']: 
             z_vals = [z / 1000.0 for z in z_vals]
-            diff_vs_lsp.cb_label += ' [GeV]'
-        diff_vs_lsp.plot(mstop, diff, z_vals, '{}.pdf'.format(cut))
+            diff_vs_stop.cb_label += ' [GeV]'
+        diff_vs_stop.plot(mstop, diff, z_vals, '{}.pdf'.format(cut))
     
 
-class DiffVsLsp(object): 
-    x_label = r'$m_{\chi}$ [GeV]'
+class DiffVsStop(object): 
+    x_label = r'$m_{\tilde{t}}$ [GeV]'
     y_label = r'$m_{\tilde{t}} - m_{\chi}$ [GeV]'
     def __init__(self, cb_label=r'$\frac{s}{\sqrt{s + b + (\sigma b)^2} }$', 
                  plot_dir='parameter_space_plots'):
