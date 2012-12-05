@@ -49,7 +49,7 @@ static PyObject* py_cutflow(PyObject *self,
   if (strchr(flags_str,'m')) flags |= cutflag::mv3; 
 
   // other taggers not implemented yet
-  assert(flags & (cutflag::jetfitter_charm | cutflag::mv3) == 0); 
+  assert( (flags & (cutflag::jetfitter_charm | cutflag::mv3)) == 0); 
 
   typedef std::vector<std::pair<std::string, int> > CCOut; 
   CCOut pass_numbers; 
