@@ -47,6 +47,8 @@ private:
   MaskedHistArray* m_mttop; 
   MaskedHistArray* m_n_good_jets; 
 
+  MaskedHistArray* m_htx; 
+
   MaskedHistArray* m_leading_cjet_rank; 
   MaskedHistArray* m_subleading_cjet_rank; 
 

@@ -46,6 +46,8 @@ HistBuilder::HistBuilder(std::string input, const unsigned flags):
   m_mttop = new MaskedHistArray(Histogram(100, 0.0, max_pt)); 
   m_n_good_jets = new MaskedHistArray(Histogram(11, -0.5, 10.5)); 
 
+  m_htx = new MaskedHistArray(Histogram(100, 0.0, max_pt)); 
+
   if (flags & buildflag::fill_truth) { 
     m_leading_cjet_rank = new MaskedHistArray(Histogram(6, -0.5, 5.5)); 
     m_subleading_cjet_rank = new MaskedHistArray(Histogram(6, -0.5, 5.5)); 
@@ -71,6 +73,8 @@ HistBuilder::~HistBuilder() {
   delete m_j3_met_dphi; 
   delete m_mttop; 
   delete m_n_good_jets; 
+
+  delete m_htx; 
 
   delete m_leading_cjet_rank; 
   delete m_subleading_cjet_rank; 
@@ -99,6 +103,8 @@ void HistBuilder::add_cut_mask(std::string name, unsigned bits)
   m_j3_met_dphi->add_mask(bits, name); 
   m_mttop->add_mask(bits, name); 
   m_n_good_jets->add_mask(bits, name); 
+
+  m_htx->add_mask(bits, name); 
 
   if (m_leading_cjet_rank) { 
     m_leading_cjet_rank->add_mask(bits, name); 
@@ -175,6 +181,8 @@ int HistBuilder::build() {
 				 fabs(met4.DeltaPhi(*itr))); 
     }
     m_min_dphi->fill(min_jetmet_dphi, mask); 
+
+    m_htx->fill(m_factory->htx(), mask); 
     
     m_n_good_jets->fill(m_factory->n_good(), mask); 
     if (m_leading_cjet_rank) { 
@@ -229,6 +237,9 @@ void HistBuilder::save(std::string output) {
 
   Group nGoodJets(file.createGroup("/nGoodJets")); 
   m_n_good_jets->write_to(nGoodJets); 
+
+  Group htx(file.createGroup("/htx"));
+  m_htx->write_to(htx); 
 
   if (m_leading_cjet_rank) { 
     Group truth(file.createGroup("/truth")); 

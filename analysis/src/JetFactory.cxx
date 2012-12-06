@@ -34,6 +34,8 @@ JetFactory::JetFactory(std::string root_file, int n_jets) :
 				     &m_leading_cjet_pos); 
   errors += m_tree->SetBranchAddress("subleading_cjet_pos", 
 				     &m_subleading_cjet_pos); 
+
+  errors += m_tree->SetBranchAddress("htx", &m_htx); 
   if (errors) { 
     throw std::runtime_error
       ((boost::format("%i branch setting errors") % errors).str()); 
@@ -94,6 +96,7 @@ int JetFactory::n_good()   const  { return m_n_good; }
 int JetFactory::n_susy()   const  { return m_n_susy; }
 int JetFactory::leading_cjet_pos() const {return m_leading_cjet_pos;}
 int JetFactory::subleading_cjet_pos() const {return m_subleading_cjet_pos;}
+double JetFactory::htx() const {return m_htx;}
 
 
 hfor::JetType JetFactory::hfor_type() const { 

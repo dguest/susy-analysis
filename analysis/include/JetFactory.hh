@@ -45,6 +45,7 @@ public:
   int leading_cjet_pos() const; 
   int subleading_cjet_pos() const; 
   hfor::JetType hfor_type() const; 
+  double htx() const; 
 private: 
   void set_buffer(std::string base_name); 
   TTree* m_tree; 
@@ -60,6 +61,8 @@ private:
   
   int m_leading_cjet_pos; 
   int m_subleading_cjet_pos; 
+
+  double m_htx; 
   
   unsigned m_flags; 
 }; 
