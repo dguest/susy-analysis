@@ -55,10 +55,16 @@ def run():
 
 
     base_cut = 'vxp_good'
-    all_cuts = 'vxp_good+lepton_veto'
-    # cut = 'ctag_mainz'
+    
+    additional_bit_cuts = ['lepton_veto']
+    if config_parser.has_section('limits'): 
+        for name, value in config_parser.items('limits'): 
+            if name in _bit_cut_dict: 
+                additional_bit_cuts += _bit_cut_dict[name]
+    all_cuts = '+'.join([base_cut] + additional_bit_cuts)
 
-    builder = HistBuilder(base_cut=base_cut)
+    builder = HistBuilder(base_cut=base_cut, 
+                          more_cuts=additional_bit_cuts)
 
     try: 
         builder.flags = config_parser.get('selection','flags')
@@ -99,6 +105,11 @@ def run():
                              
         optimizer.optimize_signal(signal, baseline=baseline)
 
+_bit_cut_dict = { 
+    'hard_cu': ['j2_anti_u', 'j3_anti_u'], 
+    'hard_cb': ['j2_anti_b', 'j3_anti_b'], 
+    'mttop':['mttop']
+}
 
 class Optimizer(object): 
     hyperstash = 'stash.h5'

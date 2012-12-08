@@ -5,6 +5,7 @@
 #include "Histogram.hh"
 #include "MaskedHistArray.hh"
 #include "PhysicalConstants.hh"
+#include "CutAugmenter.hh"
 #include "common_functions.hh"
 #include "H5Cpp.h"
 
@@ -22,12 +23,13 @@
 HyperBuilder::HyperBuilder(std::string input, const unsigned flags) : 
   m_flags(flags), 
   m_factory(0), 
+  m_augmenter(0), 
   m_hists(0), 
   m_input_file(input), 
   m_max_pt(250*GeV), 
   m_min_pt(50*GeV), 
-  m_hard_cu(0.0), 
-  m_float_cu(true)
+  m_do_cu(true), 
+  m_do_cb(true)
 { 
 }
 
@@ -50,15 +52,18 @@ void HyperBuilder::init(std::string input, const unsigned flags) {
   if (m_flags & buildflag::leading_jet_btag) { 
     axes.push_back(j1Bu); 
   }
-  if (m_float_cu) { 
+  if (m_do_cu) { 
     axes.push_back(j2Cu); 
   }
-  axes.push_back(j2Cb); 
-  if (m_float_cu) { 
+  if (m_do_cb) { 
+    axes.push_back(j2Cb); 
+  }
+  if (m_do_cu) { 
     axes.push_back(j3Cu); 
   }
-  axes.push_back(j3Cb); 
-
+  if (m_do_cb) { 
+    axes.push_back(j3Cb); 
+  }
   if (m_flags & buildflag::mttop) { 
     axes.push_back(mttop); 
   }
@@ -77,6 +82,7 @@ void HyperBuilder::init(std::string input, const unsigned flags) {
 HyperBuilder::~HyperBuilder() { 
   delete m_factory; 
   delete m_hists; 
+  delete m_augmenter; 
 }
 
 void HyperBuilder::add_cut_mask(std::string name, unsigned bits) 
@@ -113,40 +119,21 @@ int HyperBuilder::build() {
     const Jets jets = m_factory->jets(); 
     if (jets.size() < 3) continue; 
 
+    TVector2 met = m_factory->met(); 
 
-    const unsigned mask = m_factory->bits(); 
-    std::map<std::string, double> vars; 
-    vars["met"] = m_factory->met().Mod(); 
+    unsigned dist_bits = m_factory->bits(); 
+    unsigned aug_bits = m_augmenter->get_added_cuts(jets, met); 
+    assert( (dist_bits & aug_bits) == 0); 
+    const unsigned mask = (dist_bits | aug_bits); 
 
+    std::map<std::string, double> vars = get_jet_vars(jets); 
+    vars["met"] = met.Mod(); 
 
-    const Jet& jet1 = jets.at(0); 
-    vars["leadingPt"] = jet1.Pt(); 
-    vars["j1Bu"] = log(jet1.pb() / jet1.pu()); 
-
-    const Jet& jet2 = jets.at(1); 
-    vars["j2Cu"] = log(jet2.pc() / jet2.pu()); 
-    vars["j2Cb"] = log(jet2.pc() / jet2.pb()); 
-
-    const Jet& jet3 = jets.at(2); 
-    vars["j3Cu"] = log(jet3.pc() / jet3.pu()); 
-    vars["j3Cb"] = log(jet3.pc() / jet3.pb()); 
-
-    bool veto_event = false; 
-    if (!m_float_cu) { 
-      if (vars["j2Cu"] < m_hard_cu) { 
-	veto_event = true; 
-      }
-      if (vars["j3Cu"] < m_hard_cu) { 
-	veto_event = true; 
-      }
-    }
     if (m_flags & buildflag::mttop) { 
-      vars["mttop"] = get_mttop(jets, m_factory->met()); 
+      vars["mttop"] = get_mttop(jets, met); 
     }
     
-    if (!veto_event) { 
-      m_hists->fill(vars, mask); 
-    }
+    m_hists->fill(vars, mask); 
 
   }
 
@@ -154,6 +141,26 @@ int HyperBuilder::build() {
   outstream.flush(); 
 
   return 0; 
+}
+
+std::map<std::string, double> 
+HyperBuilder::get_jet_vars(const std::vector<Jet>& jets) { 
+
+  std::map<std::string, double> vars;
+
+  const Jet& jet1 = jets.at(0); 
+  vars["leadingPt"] = jet1.Pt(); 
+  vars["j1Bu"] = log(jet1.pb() / jet1.pu()); 
+
+  const Jet& jet2 = jets.at(1); 
+  vars["j2Cu"] = log(jet2.pc() / jet2.pu()); 
+  vars["j2Cb"] = log(jet2.pc() / jet2.pb()); 
+
+  const Jet& jet3 = jets.at(2); 
+  vars["j3Cu"] = log(jet3.pc() / jet3.pu()); 
+  vars["j3Cb"] = log(jet3.pc() / jet3.pb()); 
+
+  return vars; 
 }
 
 void HyperBuilder::save(std::string output) { 
@@ -167,6 +174,7 @@ void HyperBuilder::save(std::string output) {
 }
 
 void HyperBuilder::set_float(std::string name, double value) { 
+
   if (name == "max_pt") {  
     m_max_pt = value; 
     return; 
@@ -176,10 +184,19 @@ void HyperBuilder::set_float(std::string name, double value) {
     return; 
   }
   else if (name == "hard_cu") { 
-    m_hard_cu = value; 
-    m_float_cu = false; 
+    set_float("j2_anti_u", value); 
+    set_float("j3_anti_u", value); 
+    m_do_cu = false; 
+  }
+  else if (name == "hard_cb") { 
+    set_float("j2_anti_b", value); 
+    set_float("j3_anti_b", value); 
+    m_do_cb = false; 
   }
   else { 
-    throw std::runtime_error(name + " is not defined in HyperBuilder"); 
+    if (m_augmenter == 0) { 
+      m_augmenter = new CutAugmenter(); 
+    }
+    m_augmenter->set_float(name, value); 
   }
 }

@@ -8,6 +8,7 @@ namespace optcut {
   const unsigned j2_anti_u   = 1u << 23; 
   const unsigned j3_anti_b   = 1u << 24; 
   const unsigned j3_anti_u   = 1u << 25; 
+  const unsigned mttop       = 1u << 26; 
 }
 
 #endif // 

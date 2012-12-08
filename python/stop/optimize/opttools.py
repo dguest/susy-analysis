@@ -60,7 +60,7 @@ class HistBuilder(object):
         the_cut = dict(cum_cuts())[base_cut]
         full_cut_name = '+'.join([base_cut] + more_cuts)
         for cut_to_add in more_cuts: 
-            the_cut |= dict(bits.bits)[cut_to_add]
+            the_cut |= dict(bits.bits + bits.more_bits)[cut_to_add]
 
         cuts = [(full_cut_name, the_cut)]
 

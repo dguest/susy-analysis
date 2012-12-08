@@ -23,7 +23,7 @@ private:
   double m_j2_anti_u_cut; 
   double m_j3_anti_b_cut; 
   double m_j3_anti_u_cut; 
-
+  double m_mttop_cut; 
 }; 
 
 #endif 

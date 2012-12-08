@@ -1,6 +1,7 @@
 #include "CutAugmenter.hh"
 #include "CutBits.hh"
 #include "JetFactory.hh"
+#include "common_functions.hh"
 
 #include "TVector2.h"
 
@@ -13,7 +14,8 @@ CutAugmenter::CutAugmenter() :
   m_j2_anti_b_cut(-999), 
   m_j2_anti_u_cut(-999), 
   m_j3_anti_b_cut(-999), 
-  m_j3_anti_u_cut(-999)
+  m_j3_anti_u_cut(-999), 
+  m_mttop_cut(-999)
 { 
 }
 
@@ -36,8 +38,11 @@ void CutAugmenter::set_float(std::string name, double value) {
   else if (name == "j3_anti_u") { 
     m_j3_anti_u_cut = value; 
   }
+  else if (name == "mttop") { 
+    m_mttop_cut = value; 
+  }
   else { 
-    throw std::runtime_error(name + " isn't defined in HistBuilder"); 
+    throw std::runtime_error(name + " isn't defined in CutAugmenter"); 
   }
 }
 
@@ -76,6 +81,9 @@ unsigned CutAugmenter::get_added_cuts(const std::vector<Jet>& jets,
   }
   if (log(j3.pc() / j3.pu()) > m_j3_anti_u_cut) { 
     added |= j3_anti_u; 
+  }
+  if (get_mttop(jets, evt_met) > m_mttop_cut) { 
+    added |= mttop; 
   }
   return added; 
 
