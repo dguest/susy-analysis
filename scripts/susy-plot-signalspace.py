@@ -322,34 +322,5 @@ def get_mstop_mlsp_opt(name, optimum):
     stop_mass, lsp_mass = [float(x) for x in name.split('-')]
     return stop_mass, lsp_mass, optimum
 
-def get_bullshit(optima): 
-    """
-    this function may need to be revisited if scatter doesn't work 
-    for some asshole
-    """
-    stop_masses = []
-    lsp_masses = []
-
-    for cut_name, optimum in optima.items(): 
-        stop_mass, lsp_mass = [float(x) for x in cut_name.split('-')]
-        stop_masses.append(stop_mass)
-        lsp_masses.append(lsp_mass)
-        
-    sorted_stop = np.unique(stop_masses)
-    stop_mass_range = (sorted_stop[0], sorted_stop[-1])
-    stop_inc = np.diff(sorted_stop).min()
-    
-    sorted_lsp = np.unique(lsp_masses)
-    lsp_mass_range = (sorted_lsp[0], sorted_lsp[-1])
-    lsp_inc = np.diff(sorted_lsp).min()
-    # print stop_mass_range, stop_inc 
-    # print lsp_mass_range, lsp_inc
-
-    plot_lsp_range = (lsp_mass_range[0] - lsp_inc / 2, 
-                      lsp_mass_range[1] + lsp_inc / 2)
-    plot_stop_range = (stop_mass_range[0] - stop_inc / 2, 
-                       stop_mass_range[1] + stop_inc / 2)
-
-
 if __name__ == '__main__': 
     run()
