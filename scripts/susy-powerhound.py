@@ -24,6 +24,10 @@ def run():
     parser = argparse.ArgumentParser()
     parser.add_argument('config', nargs='?', help='default: %(default)s', 
                         default='optimize.cfg')
+    parser.add_argument(
+        'opt_cuts_pkl', 
+        default='optimum_cuts.pkl', 
+        help='default: %(default)s')
 
     args = parser.parse_args(sys.argv[1:])
     
@@ -85,6 +89,7 @@ def run():
     
 
     optimizer = Optimizer(h5_cache, meta, base_cuts=all_cuts, tune=tune)
+    optimizer.opt_cuts_pkl = args.opt_cuts_pkl
 
     if config_parser.has_section('hard_cuts'): 
         hard_cuts = {}
@@ -99,9 +104,8 @@ def run():
                 baseline_cache, distillates, meta, sys_factor, 
                 lumi=lumi, signal=signal)
         except KeyError as e: 
-            sys.stderr.write('could not find key {}, skipping {}'.format(
+            sys.exit('could not find key {}, abort {}'.format(
                     str(e), signal))
-            continue
                              
         optimizer.optimize_signal(signal, baseline=baseline)
 
@@ -114,6 +118,7 @@ _bit_cut_dict = {
 class Optimizer(object): 
     hyperstash = 'stash.h5'
     plot_dir = 'plots'
+    opt_cuts_pkl = 'optimum_cuts.pkl'
     def __init__(self, h5_cache, meta, base_cuts, tune): 
         self._h5_cache = h5_cache
         self._meta = meta
@@ -188,7 +193,7 @@ class Optimizer(object):
             sum_signal, sum_background, cuts_to_use, 
             sys_factor=sys_factor)
 
-        with opttools.OptimaCache('optimum_cuts.pkl') as cache_dict: 
+        with opttools.OptimaCache(self.opt_cuts_pkl) as cache_dict: 
             if not signal in cache_dict: 
                 cache_dict[signal] = opttools.Optimum(
                     sum_signal, sum_background, sig_hist, sys_factor)

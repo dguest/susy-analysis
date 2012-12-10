@@ -105,7 +105,8 @@ def fix_metpt_like(hist, draw_opts=None):
     triggers = [
         lab_first == 'met', 
         '_pt' in lab, 
-        lab_first == 'mttop'
+        lab_first == 'mttop', 
+        lab_first == 'htx', 
         ]
     anti_triggers = [ 
         'truth_label' in lab, 

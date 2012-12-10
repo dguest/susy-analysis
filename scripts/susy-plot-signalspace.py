@@ -21,7 +21,7 @@ def run():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('opt_cuts', nargs='+')
     parser.add_argument(
-        'plot_dir', nargs='?', 
+        '--plot_dir', nargs='?', 
         default='parameter_space_plots', 
         help='default: %(default)s')
     parser.add_argument('--baseline', nargs='?')
@@ -105,6 +105,9 @@ class SRPlotter(object):
     plot_dir = 'parameter_space_plots'
     def __init__(self, opt_cuts): 
         self.sr_dict = {f.split('.')[0]:OptimaCache(f) for f in opt_cuts}
+        # hackish way to keep things ordered
+        self.sr_order = [f.split('.')[0] for f in opt_cuts]
+
         self.contour_planes = {sr: [] for sr in self.sr_dict}
         self.best_plane = []
         if not isdir(self.plot_dir): 
@@ -213,8 +216,10 @@ class SRPlotter(object):
 
         fig = plt.figure(figsize=(6,4.5))
         ax = fig.add_subplot(1,1,1)
-        
-        for sr_name, sr_points in points_dict.iteritems(): 
+
+        for sr_name in self.sr_order: 
+            sr_points = points_dict[sr_name]
+        # for sr_name, sr_points in points_dict.iteritems(): 
             mstop, mlsp, sig = np.array(zip(*sr_points))
             mass_diff = mstop - mlsp
                 
