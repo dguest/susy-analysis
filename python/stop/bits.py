@@ -34,3 +34,13 @@ more_bits = [
     ('j3_anti_u' , 1 << 25), 
     ('mttop'     , 1 << 26), 
     ]
+
+_bdict = dict(more_bits)
+composite_bits = [ 
+    ('ctag', 
+     _bdict['j2_anti_b'] | _bdict['j2_anti_u'] | 
+     _bdict['j3_anti_b'] | _bdict['j3_anti_u'] ), 
+    ('monojet', 
+     _bdict['leading_jet_opt'] | _bdict['met_opt']), 
+    ]
+     

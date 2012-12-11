@@ -36,7 +36,7 @@ class DrawOpts(object):
 def build_nminus_hists(root_file, opt_cuts=_opt_cuts, 
                        basic_cuts=_basic_cuts, options=DrawOpts()): 
     base_mask = 0
-    bdict = dict(bits.better_bits + bits.more_bits)
+    bdict = dict(bits.better_bits + bits.more_bits + bits.composite_bits)
     for cut in basic_cuts + opt_cuts: 
         base_mask |= bdict[cut]
         
@@ -60,8 +60,10 @@ def build_nminus_hists(root_file, opt_cuts=_opt_cuts,
 
     return build_hists(root_file, cuts=cuts, options=options)
 
-def build_hists(root_file, put_where='cache', cuts=cum_cuts(), 
+def build_hists(root_file, put_where=None, cuts=cum_cuts(), 
                 options=DrawOpts()): 
+    if put_where is None: 
+        put_where = options.cache
     out_file_name = '{}_hists.h5'.format(os.path.splitext(root_file)[0])
     out_file_name = os.path.join(put_where,os.path.basename(out_file_name))
 
@@ -302,7 +304,7 @@ def run_main():
                         help='make n-1 histograms')
     parser.add_argument('--log','-l', action='store_true')
     parser.add_argument(
-        '--ext', choices=['.png','.pdf'], default='.png', 
+        '--ext', choices=['.png','.pdf'], default='.pdf', 
         help='produce this type of file (default %(default)s)')
     args = parser.parse_args(sys.argv[1:])
     config_parser = ConfigParser.SafeConfigParser()
@@ -347,6 +349,7 @@ def run_main():
         draw_opts.cuts = dict(
             leading_jet = float(plot_opts['leading_jet_cut_gev'])*GeV, 
             met = float(plot_opts['met_cut_gev'])*GeV, 
+            mttop = float(plot_opts['mttop_cut_gev'])*GeV, 
             j2_anti_b = float(plot_opts['j2_anti_b_cut']), 
             j2_anti_u = float(plot_opts['j2_anti_u_cut']), 
             j3_anti_b = float(plot_opts['j3_anti_b_cut']), 
@@ -369,11 +372,13 @@ def run_main():
     if args.nminus: 
         hist_builder = mappable_nminus
 
-    
-
     if config_parser.has_section('draw'): 
         draw_opts.rebin = config_parser.getint('draw','rebin')
         draw_opts.y_min = config_parser.getfloat('draw','y_min')
+        try:
+            draw_opts.cache = config_parser.get('draw', 'cache')
+        except ConfigParser.NoOptionError: 
+            draw_opts.cache = 'cache'
 
     if args.multi:
         pool = Pool(cpu_count())
