@@ -1,6 +1,7 @@
 #!/usr/bin/env python2.7
 
 from stop.optimize.opttools import combine, select_signals, HistBuilder
+from stop.optimize.opttools import SignalKeyMapper
 from stop.optimize import opttools
 from stop.optimize import draw
 from stop import hists
@@ -194,9 +195,11 @@ class Optimizer(object):
             sys_factor=sys_factor)
 
         with opttools.OptimaCache(self.opt_cuts_pkl) as cache_dict: 
-            if not signal in cache_dict: 
-                cache_dict[signal] = opttools.Optimum(
-                    sum_signal, sum_background, sig_hist, sys_factor)
+            cache_dict[signal] = opttools.Optimum(
+                sum_signal, sum_background, sig_hist, sys_factor)
+            long_key = SignalKeyMapper(meta).long_from_short(signal)
+            cache_dict[signal].signal_meta = meta[long_key]
+            cache_dict[signal].lumi = lumi
     
         make_other_plots(sum_signal, sum_background, signal, 
                          sys_factor, cuts_to_use, put_where='plots', 
@@ -281,6 +284,10 @@ def optimum_cuts_generator(hyperstash, all_cuts, variable, h5_cache,
     
 
 def get_signal_and_background(hyperstash, signal, all_cuts, h5_cache, meta): 
+    """
+    NOTE: this badly needs some refactoring in the use of the combine() 
+    function. 
+    """
     sum_signal = None
     sum_background = None
     if isfile(hyperstash): 

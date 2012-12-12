@@ -121,7 +121,8 @@ class OptimaCache(dict):
     def __enter__(self):
         return self
     def __exit__(self, exc_type, exc_val, exc_tb): 
-        self.write()
+        if exc_type is None: 
+            self.write()
     
     def write(self, cache_name=''): 
         if not cache_name: 
@@ -145,6 +146,26 @@ def run_cutflow(root_file):
 def select_signals(sample_list, signals = ['175-100']): 
     return list(sig_itr(sample_list, signals))
 
+class SignalKeyMapper(object): 
+    signal_re = re.compile('directCC_([0-9]+)_([0-9]+)')
+    def __init__(self, long_keys): 
+        self._long_from_short = {}
+        for key in long_keys: 
+            matches = self.signal_re.search(key)
+            if matches: 
+                short_key = '{}-{}'.format(*matches.groups())
+                self._long_from_short[short_key] = key
+    def long_from_short(self, key): 
+        return self._long_from_short[key]
+    def short_from_long(self, key): 
+        matches = self.signal_re.search(key)
+        if matches: 
+            return '{}-{}'.format(*matches.groups())
+        else: 
+            raise KeyError('could not map {} to a short signal name'.format(
+                    key))
+            
+
 def sig_itr(sample_list, signals): 
     signals = [s.replace('-','_') for s in signals]
     for sample in sample_list: 
@@ -163,6 +184,7 @@ def combine(h5_cache, meta, cut='vxp_good', signal='175-100'):
     sum_signal = None
 
     try: 
+        # TODO: use the class from above here
         signal_finder = re.compile(
             'directCC_{}_{}'.format(*signal.split('-')))
     except Exception: 
