@@ -32,11 +32,11 @@ def run():
     args = parser.parse_args(sys.argv[1:])
 
     if len(args.opt_cuts) > 1: 
-        run_funny(args)
+        run_multi(args)
     else:
-        run_sad(args)
+        run_single(args)
 
-def run_sad(args): 
+def run_multi(args): 
 
     base_optima = None
     if args.baseline: 
@@ -87,7 +87,7 @@ def run_sad(args):
         with open(args.t,'w') as out_file: 
             cuts.write(out_file)
 
-def run_funny(args): 
+def run_single(args): 
     base_optima = None
     if args.baseline: 
         base_optima = OptimaCache(args.baseline)
@@ -108,7 +108,6 @@ class SRPlotter(object):
         # hackish way to keep things ordered
         self.sr_order = [f.split('.')[0] for f in opt_cuts]
 
-        self.contour_planes = {sr: [] for sr in self.sr_dict}
         self.best_plane = []
         if not isdir(self.plot_dir): 
             os.mkdir(self.plot_dir)
@@ -122,13 +121,6 @@ class SRPlotter(object):
             best_sig, region = sig_sort[0]
             second_best, second_region = sig_sort[1]
             sig_dict = {name: sig for sig, name in sig_sort}
-            
-            for sr in self.contour_planes: 
-                if sr == region: 
-                    val = best_sig - second_best
-                else: 
-                    val = sig_dict[sr] - best_sig
-                self.contour_planes[sr].append((signal_name, val))
             
             self.best_plane.append( (signal_name, best_sig, region ) )
 
@@ -158,8 +150,6 @@ class SRPlotter(object):
         ax.set_xlabel(self.x_label, x=0.98, ha='right')
         ax.set_ylabel(self.y_label, y=0.98, va='top')
         cb.set_label(self.cb_label, y=0.98, va='top')
-
-        # self._draw_contours(ax)
 
         fig.savefig(join(self.plot_dir,save_name),bbox_inches='tight')
         plt.close(fig)
@@ -245,19 +235,6 @@ class SRPlotter(object):
                         s=80)#, cmap=cm)
         return sc
 
-    def _draw_contours(self, ax): 
-        """
-        broken
-        """
-        for name, plane in self.contour_planes.iteritems(): 
-            pts = []
-            for sig_name, value in plane: 
-                stop_mass, lsp_mass = [float(x) for x in sig_name.split('-')]
-                pts.append( (stop_mass, lsp_mass, value))
-            mstop, mlsp, diff = np.array(zip(*pts))
-
-            ct = ax.contour(mstop, mstop - mlsp, diff, levels=[0])
-        
 
 class DiffVsStop(object): 
     x_label = r'$m_{\tilde{t}}$ [GeV]'
