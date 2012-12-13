@@ -127,7 +127,8 @@ int HyperBuilder::build() {
     TVector2 met = m_factory->met(); 
 
     unsigned dist_bits = m_factory->bits(); 
-    unsigned aug_bits = m_augmenter->get_added_cuts(jets, met); 
+    unsigned aug_bits = 0; 
+    if (m_augmenter) aug_bits = m_augmenter->get_added_cuts(jets, met); 
     assert( (dist_bits & aug_bits) == 0); 
     const unsigned mask = (dist_bits | aug_bits); 
 
