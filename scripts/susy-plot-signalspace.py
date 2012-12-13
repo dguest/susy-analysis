@@ -288,9 +288,13 @@ class SRPlotter(object):
 
         sc = ax.scatter(mstop, mass_diff, 
                         c=sig, 
+                        norm=LogNorm(), 
                         s=_dotsize)
         
-        cb = plt.colorbar(sc)
+        log_locate = LogLocator(10, np.arange(0.1,1,0.1))
+        log_format = LogFormatter(10)
+        cb = plt.colorbar(sc, format=log_format, ticks=log_locate)
+        # cb = plt.colorbar(sc)
     
         ax.set_xlabel(self.x_label, x=0.98, ha='right')
         ax.set_ylabel(self.y_label, y=0.98, va='top')
