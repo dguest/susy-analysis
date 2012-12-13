@@ -37,6 +37,57 @@ def run():
 
     run_multi(args)
 
+def run_single(args): 
+
+    base_optima = None
+    if args.baseline: 
+        base_optima = OptimaCache(args.baseline)
+
+    optima = OptimaCache(args.opt_cuts[0])
+
+    if not isdir(args.plot_dir): 
+        os.mkdir(args.plot_dir)
+
+    # --- to shit with it, I'm going to do it the easy way 
+    mlsp_vs_mstop_signif(optima, args.plot_dir)
+
+    mstop, mlsp, opt = np.array(
+        zip(*(get_mstop_mlsp_opt(*it) for it in optima.items())))
+    diff = mstop - mlsp 
+    diff_vs_stop = DiffVsStop()
+    sig = np.array([o.significance for o in opt])
+    if base_optima: 
+        base_sig = np.array([o.significance for o in base_optima.values()])
+        ratio = sig / base_sig
+        diff_vs_stop.do_log = False
+        diff_vs_stop.cb_label = _rel_label
+        diff_vs_stop.plot(mstop, diff, ratio, 'opt-ratio.pdf')
+    else: 
+        diff_vs_stop.plot(mstop, diff, sig, 'opt-diff.pdf')
+
+    a_signal = optima.values()[0]
+
+    for cut in a_signal.cuts: 
+
+        diff_vs_stop.do_log = False
+        diff_vs_stop.cb_label = cut
+        z_vals = [o.cuts[cut] for o in opt]
+            
+        if cut in ['mttop','leadingPt','met']: 
+            z_vals = [z / 1000.0 for z in z_vals]
+            diff_vs_stop.cb_label += ' [GeV]'
+        diff_vs_stop.plot(mstop, diff, z_vals, '{}.pdf'.format(cut))
+
+    if args.t: 
+        cuts = ConfigParser.SafeConfigParser()
+        cuts.optionxform = str
+        for signame, opt in optima.iteritems(): 
+            cuts.add_section(signame)
+            for cut_name, cut_val in opt.cuts.iteritems():
+                cuts.set(signame, cut_name, str(cut_val))
+        with open(args.t,'w') as out_file: 
+            cuts.write(out_file)
+
 def run_multi(args): 
     base_optima = None
     if args.baseline: 
