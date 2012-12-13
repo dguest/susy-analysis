@@ -33,60 +33,14 @@ def run():
     parser.add_argument(
         '--ext', choices=['.png','.pdf'], default='.pdf', 
         help='produce this type of file (default %(default)s)')
+    parser.add_argument(
+        '--log', choices='r', nargs='*', default='', 
+        help='r: ratio')
+    parser.add_argument('--ratio-range', nargs=2, type=float)
     args = parser.parse_args(sys.argv[1:])
 
     run_multi(args)
 
-def run_single(args): 
-
-    base_optima = None
-    if args.baseline: 
-        base_optima = OptimaCache(args.baseline)
-
-    optima = OptimaCache(args.opt_cuts[0])
-
-    if not isdir(args.plot_dir): 
-        os.mkdir(args.plot_dir)
-
-    # --- to shit with it, I'm going to do it the easy way 
-    mlsp_vs_mstop_signif(optima, args.plot_dir)
-
-    mstop, mlsp, opt = np.array(
-        zip(*(get_mstop_mlsp_opt(*it) for it in optima.items())))
-    diff = mstop - mlsp 
-    diff_vs_stop = DiffVsStop()
-    sig = np.array([o.significance for o in opt])
-    if base_optima: 
-        base_sig = np.array([o.significance for o in base_optima.values()])
-        ratio = sig / base_sig
-        diff_vs_stop.do_log = False
-        diff_vs_stop.cb_label = _rel_label
-        diff_vs_stop.plot(mstop, diff, ratio, 'opt-ratio.pdf')
-    else: 
-        diff_vs_stop.plot(mstop, diff, sig, 'opt-diff.pdf')
-
-    a_signal = optima.values()[0]
-
-    for cut in a_signal.cuts: 
-
-        diff_vs_stop.do_log = False
-        diff_vs_stop.cb_label = cut
-        z_vals = [o.cuts[cut] for o in opt]
-            
-        if cut in ['mttop','leadingPt','met']: 
-            z_vals = [z / 1000.0 for z in z_vals]
-            diff_vs_stop.cb_label += ' [GeV]'
-        diff_vs_stop.plot(mstop, diff, z_vals, '{}.pdf'.format(cut))
-
-    if args.t: 
-        cuts = ConfigParser.SafeConfigParser()
-        cuts.optionxform = str
-        for signame, opt in optima.iteritems(): 
-            cuts.add_section(signame)
-            for cut_name, cut_val in opt.cuts.iteritems():
-                cuts.set(signame, cut_name, str(cut_val))
-        with open(args.t,'w') as out_file: 
-            cuts.write(out_file)
 
 def run_multi(args): 
     base_optima = None
@@ -105,6 +59,8 @@ def run_multi(args):
         plotter.plot_s_over_b('{}-sb{}'.format(opt_name, ext))
         plotter.plot_stats('{}-stats{}'.format(opt_name, ext))
         plotter.plot_signal_frac('{}-signalfrac{}'.format(opt_name, ext))
+
+        plotter.plot_cuts('{}-{{}}{}'.format(opt_name, ext))
     else: 
         plotter.plot('{}-significance{}'.format(sr_name, ext), 
                      vrange=(0.2,10.0))
@@ -114,8 +70,11 @@ def run_multi(args):
         plotter.plot_stats('{}-stats{}'.format(sr_name, ext))
         plotter.plot_signal_frac('{}-signalfrac{}'.format(sr_name, ext))
         if args.baseline: 
+            do_log = ('r' in args.log)
             plotter.plot_ratio(args.baseline, 
-                               '{}-vs-baseline{}'.format(sr_name, ext))
+                               '{}-vs-baseline{}'.format(sr_name, ext), 
+                               do_log=do_log, 
+                               vrange=args.ratio_range)
 
 class SRPlotter(object): 
     x_label = r'$m_{\tilde{t}}$ [GeV]'
@@ -314,7 +273,8 @@ class SRPlotter(object):
         plt.close(fig)
 
 
-    def plot_ratio(self, baseline_name, save_name):
+    def plot_ratio(self, baseline_name, save_name, vrange=None, 
+                   do_log=False):
     
         baseline = OptimaCache(baseline_name)
 
@@ -344,11 +304,24 @@ class SRPlotter(object):
         fig = plt.figure(figsize=(6,4.5))
         ax = fig.add_subplot(1,1,1)
 
+        opt_args = {}
+        if do_log: 
+            opt_args['norm'] = LogNorm()
+
+        if vrange: 
+            opt_args['vmin'] = vrange[0]
+            opt_args['vmax'] = vrange[1]
+
         sc = ax.scatter(mstop, mass_diff, 
                         c=rel_sig, 
-                        s=_dotsize)
+                        s=_dotsize, **opt_args)
         
-        cb = plt.colorbar(sc)
+        if do_log: 
+            log_locate = LogLocator(10, np.arange(0.1,1,0.1))
+            log_format = LogFormatter(10)
+            cb = plt.colorbar(sc, format=log_format, ticks=log_locate)
+        else: 
+            cb = plt.colorbar(sc)
     
         ax.set_xlabel(self.x_label, x=0.98, ha='right')
         ax.set_ylabel(self.y_label, y=0.98, va='top')
@@ -387,6 +360,63 @@ class SRPlotter(object):
         ax.set_ylabel(self.y_label, y=0.98, va='top')
 
         leg = ax.legend(scatterpoints=1, frameon=False)
+
+        fig.savefig(join(self.plot_dir,save_name),bbox_inches='tight')
+        plt.close(fig)
+
+    def plot_cuts(self, save_temp, vrange=None, do_log=False): 
+        cuts = self.best_plane[0][1].cuts.keys()
+        for cut in cuts: 
+            self.plot_cut(save_temp.format(cut), cut, vrange, do_log)
+
+    def plot_cut(self, save_name, cut, vrange=None, do_log=False):
+    
+        points = []
+        for sig_name, sr in self.best_plane:
+            stop_mass, lsp_mass = [float(x) for x in sig_name.split('-')]
+            points.append((stop_mass, lsp_mass, sr.cuts[cut]))
+
+        mstop, mlsp, sig = np.array(zip(*points))
+        mass_diff = mstop - mlsp
+
+        cb_label = cut
+        if cut in ['mttop','leadingPt','met']: 
+            sig /= 1000
+            cb_label += ' [GeV]'
+
+        fig = plt.figure(figsize=(6,4.5))
+        ax = fig.add_subplot(1,1,1)
+
+        opt_args = {}
+        if vrange: 
+            opt_args['vmin'] = vrange[0]
+            opt_args['vmax'] = vrange[1]
+        if do_log: 
+            opt_args['norm'] = LogNorm()
+
+        sc = ax.scatter(mstop, mass_diff, 
+                        c=sig, 
+                        s=_dotsize, 
+                        **opt_args)
+
+        neginfs = np.isneginf(sig)
+        if np.any(neginfs): 
+            ax.scatter(mstop[neginfs], mass_diff[neginfs], c='w', s=_dotsize)
+        
+        infs = np.isposinf(sig)
+        if np.any(infs): 
+            ax.scatter(mstop[infs], mass_diff[infs], c='magenta', s=_dotsize)
+
+        if do_log: 
+            log_locate = LogLocator(10, np.arange(0.1,1,0.1))
+            log_format = LogFormatter(10)
+            cb = plt.colorbar(sc, format=log_format, ticks=log_locate)
+        else: 
+            cb = plt.colorbar(sc)
+    
+        ax.set_xlabel(self.x_label, x=0.98, ha='right')
+        ax.set_ylabel(self.y_label, y=0.98, va='top')
+        cb.set_label(cb_label, y=0.98, va='top')
 
         fig.savefig(join(self.plot_dir,save_name),bbox_inches='tight')
         plt.close(fig)
@@ -459,6 +489,58 @@ def get_mstop_mlsp_sig(name, optimum):
 def get_mstop_mlsp_opt(name, optimum): 
     stop_mass, lsp_mass = [float(x) for x in name.split('-')]
     return stop_mass, lsp_mass, optimum
+
+
+def run_single(args): 
+
+    base_optima = None
+    if args.baseline: 
+        base_optima = OptimaCache(args.baseline)
+
+    optima = OptimaCache(args.opt_cuts[0])
+
+    if not isdir(args.plot_dir): 
+        os.mkdir(args.plot_dir)
+
+    # --- to shit with it, I'm going to do it the easy way 
+    mlsp_vs_mstop_signif(optima, args.plot_dir)
+
+    mstop, mlsp, opt = np.array(
+        zip(*(get_mstop_mlsp_opt(*it) for it in optima.items())))
+    diff = mstop - mlsp 
+    diff_vs_stop = DiffVsStop()
+    sig = np.array([o.significance for o in opt])
+    if base_optima: 
+        base_sig = np.array([o.significance for o in base_optima.values()])
+        ratio = sig / base_sig
+        diff_vs_stop.do_log = False
+        diff_vs_stop.cb_label = _rel_label
+        diff_vs_stop.plot(mstop, diff, ratio, 'opt-ratio.pdf')
+    else: 
+        diff_vs_stop.plot(mstop, diff, sig, 'opt-diff.pdf')
+
+    a_signal = optima.values()[0]
+
+    for cut in a_signal.cuts: 
+
+        diff_vs_stop.do_log = False
+        diff_vs_stop.cb_label = cut
+        z_vals = [o.cuts[cut] for o in opt]
+            
+        if cut in ['mttop','leadingPt','met']: 
+            z_vals = [z / 1000.0 for z in z_vals]
+            diff_vs_stop.cb_label += ' [GeV]'
+        diff_vs_stop.plot(mstop, diff, z_vals, '{}.pdf'.format(cut))
+
+    if args.t: 
+        cuts = ConfigParser.SafeConfigParser()
+        cuts.optionxform = str
+        for signame, opt in optima.iteritems(): 
+            cuts.add_section(signame)
+            for cut_name, cut_val in opt.cuts.iteritems():
+                cuts.set(signame, cut_name, str(cut_val))
+        with open(args.t,'w') as out_file: 
+            cuts.write(out_file)
 
 if __name__ == '__main__': 
     run()
