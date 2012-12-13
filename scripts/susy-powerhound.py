@@ -26,9 +26,10 @@ def run():
     parser.add_argument('config', nargs='?', help='default: %(default)s', 
                         default='optimize.cfg')
     parser.add_argument(
-        'opt_cuts_pkl', 
+        'opt_cuts_pkl', nargs='?', 
         default='optimum_cuts.pkl', 
         help='default: %(default)s')
+    parser.add_argument('-p', '--do-plots', action='store_true')
 
     args = parser.parse_args(sys.argv[1:])
     
@@ -91,6 +92,7 @@ def run():
 
     optimizer = Optimizer(h5_cache, meta, base_cuts=all_cuts, tune=tune)
     optimizer.opt_cuts_pkl = args.opt_cuts_pkl
+    optimizer.do_plots = args.do_plots
 
     if config_parser.has_section('hard_cuts'): 
         hard_cuts = {}
@@ -129,6 +131,7 @@ class Optimizer(object):
         self._lumi = float(tune['lumi'])
 
         self._hard_cuts = {}
+        self.do_plots = True
 
         if not isdir(self.plot_dir): 
             os.mkdir(self.plot_dir)
@@ -186,8 +189,10 @@ class Optimizer(object):
     
         cuts_to_use = [c for c in cuts_to_use if c in possible_cuts]
 
-        make_cutflow_plots(sum_signal, sum_background, signal, sys_factor, 
-                           cuts_to_use, plot_dir, baseline)
+        if self.do_plots: 
+            make_cutflow_plots(sum_signal, sum_background, signal, 
+                               sys_factor, 
+                               cuts_to_use, plot_dir, baseline)
     
         print 'computing significance'
         sig_hist = opttools.compute_significance(
@@ -201,10 +206,11 @@ class Optimizer(object):
             cache_dict[signal].signal_meta = meta[long_key]
             cache_dict[signal].lumi = lumi
     
-        make_other_plots(sum_signal, sum_background, signal, 
-                         sys_factor, cuts_to_use, put_where='plots', 
-                         baseline=baseline, 
-                         sig_hist=sig_hist)
+        if self.do_plots: 
+            make_other_plots(sum_signal, sum_background, signal, 
+                             sys_factor, cuts_to_use, put_where='plots', 
+                             baseline=baseline, 
+                             sig_hist=sig_hist)
     
         # compare_signal_cuts(hyperstash, all_cuts, h5_cache, meta)
     

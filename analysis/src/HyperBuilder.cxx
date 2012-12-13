@@ -16,6 +16,7 @@
 #include <iostream> 
 #include <ostream>
 #include <fstream>
+#include <cmath>
 
 #include "TVector2.h"
 
@@ -29,7 +30,9 @@ HyperBuilder::HyperBuilder(std::string input, const unsigned flags) :
   m_max_pt(250*GeV), 
   m_min_pt(50*GeV), 
   m_do_cu(true), 
-  m_do_cb(true)
+  m_do_cb(true), 
+  m_n_met_bins(10), 
+  m_n_pt_bins(10)
 { 
 }
 
@@ -39,8 +42,8 @@ void HyperBuilder::init(std::string input, const unsigned flags) {
   m_factory = new JetFactory(input); 
 
   std::vector<Axis> axes; 
-  Axis leading_pt = {"leadingPt", 10, min_pt, max_pt}; 
-  Axis met = {"met", 10, min_pt, max_pt}; 
+  Axis leading_pt = {"leadingPt", m_n_pt_bins, min_pt, max_pt}; 
+  Axis met = {"met", m_n_met_bins, min_pt, max_pt}; 
   Axis j2Cu = {"j2Cu", 10, -3, 7}; 
   Axis j2Cb = {"j2Cb", 10, -6, 4}; 
   Axis j3Cu = {"j3Cu", 10, -3, 7}; 
@@ -144,7 +147,7 @@ int HyperBuilder::build() {
 }
 
 std::map<std::string, double> 
-HyperBuilder::get_jet_vars(const std::vector<Jet>& jets) { 
+HyperBuilder::get_jet_vars(const std::vector<Jet>& jets) const { 
 
   std::map<std::string, double> vars;
 
@@ -193,10 +196,26 @@ void HyperBuilder::set_float(std::string name, double value) {
     set_float("j3_anti_b", value); 
     m_do_cb = false; 
   }
+  else if (name == "n_met_bins") { 
+    m_n_met_bins = int_from_double(value); 
+  }
+  else if (name == "n_pt_bins") { 
+    m_n_pt_bins = int_from_double(value); 
+  }
   else { 
     if (m_augmenter == 0) { 
       m_augmenter = new CutAugmenter(); 
     }
     m_augmenter->set_float(name, value); 
   }
+}
+
+int HyperBuilder::int_from_double(double input) const { 
+  int rounded = int(floor(input + 0.5)); 
+  if (fabs(rounded - input) > 1e-4) { 
+    throw std::runtime_error
+      ((boost::format("rounded %f to %f for int conversion") % 
+	input % rounded).str()); 
+  }
+  return rounded; 
 }
