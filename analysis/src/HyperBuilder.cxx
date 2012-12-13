@@ -55,16 +55,18 @@ void HyperBuilder::init(std::string input, const unsigned flags) {
   if (m_flags & buildflag::leading_jet_btag) { 
     axes.push_back(j1Bu); 
   }
-  if (m_do_cu) { 
+
+  bool do_c_tagging = !(m_flags & buildflag::disable_c_tags); 
+  if (m_do_cu && do_c_tagging) { 
     axes.push_back(j2Cu); 
   }
-  if (m_do_cb) { 
+  if (m_do_cb && do_c_tagging) { 
     axes.push_back(j2Cb); 
   }
-  if (m_do_cu) { 
+  if (m_do_cu && do_c_tagging) { 
     axes.push_back(j3Cu); 
   }
-  if (m_do_cb) { 
+  if (m_do_cb && do_c_tagging) { 
     axes.push_back(j3Cb); 
   }
   if (m_flags & buildflag::mttop) { 

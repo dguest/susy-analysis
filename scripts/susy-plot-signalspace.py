@@ -22,7 +22,7 @@ def run():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('opt_cuts', nargs='+')
     parser.add_argument(
-        '--plot_dir', nargs='?', 
+        '--plot-dir', nargs='?', 
         default='parameter_space_plots', 
         help='default: %(default)s')
     parser.add_argument('--baseline', nargs='?')
@@ -37,57 +37,6 @@ def run():
 
     run_multi(args)
 
-def run_single(args): 
-
-    base_optima = None
-    if args.baseline: 
-        base_optima = OptimaCache(args.baseline)
-
-    optima = OptimaCache(args.opt_cuts[0])
-
-    if not isdir(args.plot_dir): 
-        os.mkdir(args.plot_dir)
-
-    # --- to shit with it, I'm going to do it the easy way 
-    mlsp_vs_mstop_signif(optima, args.plot_dir)
-
-    mstop, mlsp, opt = np.array(
-        zip(*(get_mstop_mlsp_opt(*it) for it in optima.items())))
-    diff = mstop - mlsp 
-    diff_vs_stop = DiffVsStop()
-    sig = np.array([o.significance for o in opt])
-    if base_optima: 
-        base_sig = np.array([o.significance for o in base_optima.values()])
-        ratio = sig / base_sig
-        diff_vs_stop.do_log = False
-        diff_vs_stop.cb_label = _rel_label
-        diff_vs_stop.plot(mstop, diff, ratio, 'opt-ratio.pdf')
-    else: 
-        diff_vs_stop.plot(mstop, diff, sig, 'opt-diff.pdf')
-
-    a_signal = optima.values()[0]
-
-    for cut in a_signal.cuts: 
-
-        diff_vs_stop.do_log = False
-        diff_vs_stop.cb_label = cut
-        z_vals = [o.cuts[cut] for o in opt]
-            
-        if cut in ['mttop','leadingPt','met']: 
-            z_vals = [z / 1000.0 for z in z_vals]
-            diff_vs_stop.cb_label += ' [GeV]'
-        diff_vs_stop.plot(mstop, diff, z_vals, '{}.pdf'.format(cut))
-
-    if args.t: 
-        cuts = ConfigParser.SafeConfigParser()
-        cuts.optionxform = str
-        for signame, opt in optima.iteritems(): 
-            cuts.add_section(signame)
-            for cut_name, cut_val in opt.cuts.iteritems():
-                cuts.set(signame, cut_name, str(cut_val))
-        with open(args.t,'w') as out_file: 
-            cuts.write(out_file)
-
 def run_multi(args): 
     base_optima = None
     if args.baseline: 
@@ -97,7 +46,8 @@ def run_multi(args):
     sr_name = 'signal-regions'
     ext = args.ext
 
-    plotter = SRPlotter(args.opt_cuts)
+    plotter = SRPlotter(args.opt_cuts, plot_dir=args.plot_dir)
+
     if len(args.opt_cuts) == 1: 
         plotter.plot(opt_name + ext, vrange=(0.2,10.0))
         plotter.plot_signal('{}-signal{}'.format(opt_name, ext))
@@ -120,16 +70,21 @@ class SRPlotter(object):
     x_label = r'$m_{\tilde{t}}$ [GeV]'
     y_label = r'$m_{\tilde{t}} - m_{\chi}$ [GeV]'
     cb_label = r'$\frac{s}{\sqrt{s + b + (\sigma b)^2} }$'
-    plot_dir = 'parameter_space_plots'
-    def __init__(self, opt_cuts): 
+
+    def __init__(self, opt_cuts, plot_dir='parameter_space_plots'): 
         self.sr_dict = {f.split('.')[0]:OptimaCache(f) for f in opt_cuts}
         # hackish way to keep things ordered
         self.sr_order = [f.split('.')[0] for f in opt_cuts]
 
+        self.plot_dir = plot_dir
+
         self.best_plane = []
         if not isdir(self.plot_dir): 
             os.mkdir(self.plot_dir)
-        self.sr_colors = {sr:color for sr, color in zip(self.sr_dict,'rgkw')}
+        self.sr_colors = {sr:color for sr, color in zip(self.sr_dict,'rgkwby')}
+        self.sr_colors_list = 'rgbkwy'
+        self.color_itr = iter(self.sr_colors_list)
+        self.color_itr2 = iter(self.sr_colors_list)
 
         for signal_name in self.sr_dict.values()[0]:
             sig_opt = []
@@ -142,6 +97,10 @@ class SRPlotter(object):
             
             self.best_plane.append( (signal_name, most_significant_sr ) )
 
+    def get_marker(self,sr_name): 
+        if sr_name.startswith('y'): 
+            return next(self.color_itr2), 'D'
+        return next(self.color_itr), 'o'
 
     def plot(self, save_name, vrange=None):
     
@@ -360,11 +319,16 @@ class SRPlotter(object):
 
         for sr_name in self.sr_order: 
             sr_points = points_dict[sr_name]
+            if not sr_points: 
+                print '{} is worthless!'.format(sr_name)
+                continue
             mstop, mlsp, sig = np.array(zip(*sr_points))
             mass_diff = mstop - mlsp
-                
+
+            color, marker = self.get_marker(sr_name)
             sc = ax.scatter(mstop, mass_diff, 
-                            c=self.sr_colors[sr_name], 
+                            c=color, 
+                            marker=marker, 
                             label=sr_name, 
                             s=_dotsize)#, cmap=cm)
 
