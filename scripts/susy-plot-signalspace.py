@@ -37,6 +37,8 @@ def run():
         '--log', choices='r', nargs='*', default='', 
         help='r: ratio')
     parser.add_argument('--ratio-range', nargs=2, type=float)
+    parser.add_argument(
+        '-o','--output-pkl', help='pkl to save optimum')
     args = parser.parse_args(sys.argv[1:])
 
     run_multi(args)
@@ -61,6 +63,12 @@ def run_multi(args):
         plotter.plot_signal_frac('{}-signalfrac{}'.format(opt_name, ext))
 
         plotter.plot_cuts('{}-{{}}{}'.format(opt_name, ext))
+        if args.baseline: 
+            do_log = ('r' in args.log)
+            plotter.plot_ratio(args.baseline, 
+                               '{}-vs-baseline{}'.format(opt_name, ext), 
+                               do_log=do_log, 
+                               vrange=args.ratio_range)
     else: 
         plotter.plot('{}-significance{}'.format(sr_name, ext), 
                      vrange=(0.2,10.0))
@@ -69,12 +77,17 @@ def run_multi(args):
         plotter.plot_s_over_b('{}-sb{}'.format(sr_name, ext))
         plotter.plot_stats('{}-stats{}'.format(sr_name, ext))
         plotter.plot_signal_frac('{}-signalfrac{}'.format(sr_name, ext))
+        plotter.plot_cuts('{}-{{}}{}'.format(sr_name, ext))
         if args.baseline: 
             do_log = ('r' in args.log)
             plotter.plot_ratio(args.baseline, 
                                '{}-vs-baseline{}'.format(sr_name, ext), 
                                do_log=do_log, 
                                vrange=args.ratio_range)
+
+        if args.output_pkl: 
+            plotter.save(args.output_pkl)
+
 
 class SRPlotter(object): 
     x_label = r'$m_{\tilde{t}}$ [GeV]'
@@ -92,7 +105,7 @@ class SRPlotter(object):
         if not isdir(self.plot_dir): 
             os.mkdir(self.plot_dir)
         self.sr_colors = {sr:color for sr, color in zip(self.sr_dict,'rgkwby')}
-        self.sr_colors_list = 'rgbkwy'
+        self.sr_colors_list = list('rgbkwym') + ['pink']
         self.color_itr = iter(self.sr_colors_list)
         self.color_itr2 = iter(self.sr_colors_list)
 
@@ -146,6 +159,13 @@ class SRPlotter(object):
 
         fig.savefig(join(self.plot_dir,save_name),bbox_inches='tight')
         plt.close(fig)
+
+    def save(self, save_name):
+        # print 'saving {}'.format(save_name)
+        with OptimaCache(save_name) as cache: 
+            for sig_name, sr in self.best_plane:
+                # print sig_name
+                cache[sig_name] = sr
 
     def plot_signal(self, save_name):
     
