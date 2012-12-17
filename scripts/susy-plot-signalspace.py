@@ -117,22 +117,48 @@ class SRPlotter(object):
             best_sig_value, best_region_name = sig_sort[0]
             most_significant_sr = self.sr_dict[best_region_name][signal_name]
             most_significant_sr.name = best_region_name
-            
-            self.best_plane.append( (signal_name, most_significant_sr ) )
+
+            m_stop, m_lsp = [int(x) for x in signal_name.split('-')]
+            self.best_plane.append( (m_stop, m_lsp, most_significant_sr ) )
 
     def get_marker(self,sr_name): 
         if sr_name.startswith('y'): 
             return next(self.color_itr2), 'D'
         return next(self.color_itr), 'o'
 
+    def merge_signal_points(self, n_neighbors=1): 
+        delta_m_rows = {}
+        for m_stop, m_lsp, sr in self.best_plane: 
+            delta_m = m_stop - m_lsp
+            if not delta_m in delta_m_rows: 
+                delta_m_rows[delta_m] = [(m_lsp,sr)]
+            else: 
+                delta_m_rows[delta_m].append( (m_lsp, sr))
+
+        for delta_m, row in delta_m_rows.iteritems(): 
+            row.sort()
+            counts = [_getstats(sr) for mass, sr in row]
+
+            def get_average(center_bin): 
+                low_bin = max(center_bin - n_neighbors, 0)
+                high_bin = min(center_bin + n_neighbors + 1, len(counts))
+                n_bins = high_bin - low_bin
+                raw_average = sum(counts[low_bin:high_bin]) / n_bins
+                sr = row[center_bin][-1]
+                xs_per_evt = sr.meta.xsec_per_evt
+                adjusted_ave = raw_average * xsec_per_evt * sr.lumi
+                return adjusted_ave
+
+            ave_signal = [get_average(b) for b in xrange(len(row))] 
+        # WORK DO HERE
+
     def plot(self, save_name, vrange=None):
     
         points = []
-        for sig_name, sr in self.best_plane:
-            stop_mass, lsp_mass = [float(x) for x in sig_name.split('-')]
+        for stop_mass, lsp_mass, sr in self.best_plane:
             points.append((stop_mass, lsp_mass, sr.significance))
 
-        mstop, mlsp, sig = np.array(zip(*points))
+        mstop, mlsp, sig = np.array(zip(*points), dtype=float)
         mass_diff = mstop - mlsp
 
         fig = plt.figure(figsize=(6,4.5))
@@ -161,20 +187,17 @@ class SRPlotter(object):
         plt.close(fig)
 
     def save(self, save_name):
-        # print 'saving {}'.format(save_name)
         with OptimaCache(save_name) as cache: 
-            for sig_name, sr in self.best_plane:
-                # print sig_name
-                cache[sig_name] = sr
+            for m_stop, m_lsp, sr in self.best_plane:
+                cache['-'.format( (m_stop, m_lsp) )] = sr
 
     def plot_signal(self, save_name):
     
         points = []
-        for sig_name, sr in self.best_plane:
-            stop_mass, lsp_mass = [float(x) for x in sig_name.split('-')]
+        for stop_mass, lsp_mass, sr in self.best_plane:
             points.append((stop_mass, lsp_mass, sr.n_signal))
 
-        mstop, mlsp, sig = np.array(zip(*points))
+        mstop, mlsp, sig = np.array(zip(*points), dtype=float)
         mass_diff = mstop - mlsp
 
         fig = plt.figure(figsize=(6,4.5))
@@ -205,11 +228,10 @@ class SRPlotter(object):
             return n_sig / xpe / sr.lumi / n_signal_original
     
         points = []
-        for sig_name, sr in self.best_plane:
-            stop_mass, lsp_mass = [float(x) for x in sig_name.split('-')]
+        for stop_mass, lsp_mass, sr in self.best_plane:
             points.append((stop_mass, lsp_mass, getfrac(sr)))
 
-        mstop, mlsp, sig = np.array(zip(*points))
+        mstop, mlsp, sig = np.array(zip(*points), dtype=float)
         mass_diff = mstop - mlsp
 
         fig = plt.figure(figsize=(6,4.5))
@@ -230,19 +252,19 @@ class SRPlotter(object):
         plt.close(fig)
 
 
-    def plot_stats(self, save_name):
+    def _getstats(sr): 
+        n_sig = sr.n_signal
+        xsec_per_evt = sr.signal_meta.xsec_per_evt
+        return n_sig / xsec_per_evt / sr.lumi
 
-        def getstats(sr): 
-            n_sig = sr.n_signal
-            xsec_per_evt = sr.signal_meta.xsec_per_evt
-            return n_sig / xsec_per_evt / sr.lumi
+
+    def plot_stats(self, save_name):
     
         points = []
-        for sig_name, sr in self.best_plane:
-            stop_mass, lsp_mass = [float(x) for x in sig_name.split('-')]
-            points.append((stop_mass, lsp_mass, getstats(sr)))
+        for stop_mass, lsp_mass, sr in self.best_plane:
+            points.append((stop_mass, lsp_mass, _getstats(sr)))
 
-        mstop, mlsp, sig = np.array(zip(*points))
+        mstop, mlsp, sig = np.array(zip(*points), dtype=float)
         mass_diff = mstop - mlsp
 
         fig = plt.figure(figsize=(6,4.5))
@@ -264,12 +286,11 @@ class SRPlotter(object):
     def plot_s_over_b(self, save_name):
     
         points = []
-        for sig_name, sr in self.best_plane:
-            stop_mass, lsp_mass = [float(x) for x in sig_name.split('-')]
+        for stop_mass, lsp_mass, sr in self.best_plane:
             points.append((stop_mass, lsp_mass, 
                            (sr.n_signal / sr.n_background)))
 
-        mstop, mlsp, sig = np.array(zip(*points))
+        mstop, mlsp, sig = np.array(zip(*points), dtype=float)
         mass_diff = mstop - mlsp
 
         fig = plt.figure(figsize=(6,4.5))
@@ -299,8 +320,7 @@ class SRPlotter(object):
         baseline = OptimaCache(baseline_name)
 
         points = []
-        for sig_name, sr in self.best_plane:
-            stop_mass, lsp_mass = [float(x) for x in sig_name.split('-')]
+        for stop_mass, lsp_mass, sr in self.best_plane:
             points.append((stop_mass, lsp_mass, sr.significance))
 
         base_points = []
@@ -353,8 +373,7 @@ class SRPlotter(object):
     def plot_sr(self, save_name):
     
         points_dict = {sr:[] for sr in self.sr_dict}
-        for sig_name, sr in self.best_plane:
-            stop_mass, lsp_mass = [float(x) for x in sig_name.split('-')]
+        for stop_mass, lsp_mass, sr in self.best_plane:
             points_dict[sr.name].append( 
                 (stop_mass, lsp_mass, sr.significance))
 
@@ -385,18 +404,17 @@ class SRPlotter(object):
         plt.close(fig)
 
     def plot_cuts(self, save_temp, vrange=None, do_log=False): 
-        cuts = self.best_plane[0][1].cuts.keys()
+        cuts = self.best_plane[0][-1].cuts.keys()
         for cut in cuts: 
             self.plot_cut(save_temp.format(cut), cut, vrange, do_log)
 
     def plot_cut(self, save_name, cut, vrange=None, do_log=False):
     
         points = []
-        for sig_name, sr in self.best_plane:
-            stop_mass, lsp_mass = [float(x) for x in sig_name.split('-')]
+        for stop_mass, lsp_mass, sr in self.best_plane:
             points.append((stop_mass, lsp_mass, sr.cuts[cut]))
 
-        mstop, mlsp, sig = np.array(zip(*points))
+        mstop, mlsp, sig = np.array(zip(*points), dtype=float)
         mass_diff = mstop - mlsp
 
         cb_label = cut
