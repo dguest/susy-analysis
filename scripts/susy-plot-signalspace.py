@@ -92,7 +92,7 @@ def run_multi(args):
 class SRPlotter(object): 
     x_label = r'$m_{\tilde{t}}$ [GeV]'
     y_label = r'$m_{\tilde{t}} - m_{\chi}$ [GeV]'
-    cb_label = r'$\frac{s}{\sqrt{s + b + (\sigma b)^2} }$'
+    cb_label = r'$\frac{s}{\sqrt{b + (\sigma b)^2} }$'
 
     def __init__(self, opt_cuts, plot_dir='parameter_space_plots'): 
         self.sr_dict = {f.split('.')[0]:OptimaCache(f) for f in opt_cuts}
@@ -445,7 +445,7 @@ class SRPlotter(object):
 class DiffVsStop(object): 
     x_label = r'$m_{\tilde{t}}$ [GeV]'
     y_label = r'$m_{\tilde{t}} - m_{\chi}$ [GeV]'
-    def __init__(self, cb_label=r'$\frac{s}{\sqrt{s + b + (\sigma b)^2} }$', 
+    def __init__(self, cb_label=r'$\frac{s}{\sqrt{b + (\sigma b)^2} }$', 
                  plot_dir='parameter_space_plots'):
         self.cb_label = cb_label
         self.plot_dir = plot_dir
@@ -497,7 +497,7 @@ def mlsp_vs_mstop_signif(optima, plot_dir):
 
     ax.set_xlabel(r'$m_{\chi}$ [GeV]', x=0.98, ha='right')
     ax.set_ylabel(r'$m_{\tilde{t}}$ [GeV]', y=0.98, va='top')
-    cb.set_label(r'$\frac{s}{\sqrt{s + b + (\sigma b)^2} }$', y=0.98, va='top')
+    cb.set_label(r'$\frac{s}{\sqrt{b + (\sigma b)^2} }$', y=0.98, va='top')
     fig.savefig(join(plot_dir,'optimum.pdf'),bbox_inches='tight')
     plt.close(fig)
 

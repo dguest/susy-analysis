@@ -10,6 +10,17 @@ import cPickle, copy
 
 import ConfigParser, argparse
 
+def get_significance(signal, background, sys_factor): 
+    """
+    this should be the _only_ way significance is calculated for the sake 
+    of consistency 
+    """
+    denom = ( background + 
+              (sys_factor * background)**2 )**0.5
+    sig_hist = signal / denom
+    return sig_hist
+    
+
 def compute_significance(signal, background, kept_axes, sys_factor=0.3): 
     signal = copy.deepcopy(signal)
     background = copy.deepcopy(background)
@@ -18,11 +29,7 @@ def compute_significance(signal, background, kept_axes, sys_factor=0.3):
             signal.reduce(axis.name)
             background.reduce(axis.name)
 
-    denom = ( signal + background + 
-              (sys_factor * background)**2 )**0.5
-    
-    sig_hist = signal / denom
-    return sig_hist
+    return get_significance(signal, background, sys_factor)
 
 class HistBuilder(object): 
     """
@@ -84,9 +91,7 @@ class Optimum(object):
         signal_hist.integrate()
         bg_hist.integrate()
         if significance_hist is None: 
-            denom = ( signal_hist + bg_hist + 
-                      (sys_factor * bg_hist)**2 )**0.5
-            sig_hist = sig_hist / denom
+            sig_hist = get_significance(signal_hist, bg_hist, sys_factor)
         else:
             sig_hist = significance_hist
         try: 
@@ -250,6 +255,5 @@ def get_baseline(comparison_pkl,
         else: 
             total_bg += count
 
-    baseline_signif = total_signal / (
-        total_signal + total_bg + (sys_factor * total_bg)**2)**0.5
+    baseline_signif = get_significance(total_signal, total_bg, sys_factor)
     return baseline_signif
