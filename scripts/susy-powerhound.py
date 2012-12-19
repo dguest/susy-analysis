@@ -314,7 +314,12 @@ def get_signal_and_background(hyperstash, signal, all_cuts, h5_cache, meta):
             sig_iter(h5_cache), meta, cut=all_cuts, signal=signal)
 
         with h5py.File(hyperstash,'a') as hdf: 
-            sum_signal.write_to(hdf, signal)
+            try: 
+                sum_signal.write_to(hdf, signal)
+            except AttributeError: 
+                print 'problem with {}'.format(signal)
+                raise 
+                
     if not sum_background: 
         def bkg_iter(h5_cache): 
             sig_finder = re.compile('directCC_[0-9]+_[0-9]+')

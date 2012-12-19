@@ -137,7 +137,7 @@ class SRPlotter(object):
 
         for delta_m, row in delta_m_rows.iteritems(): 
             row.sort()
-            counts = [_getstats(sr) for mass, sr in row]
+            counts = [self._getstats(sr) for mass, sr in row]
 
             def get_average(center_bin): 
                 low_bin = max(center_bin - n_neighbors, 0)
@@ -252,7 +252,7 @@ class SRPlotter(object):
         plt.close(fig)
 
 
-    def _getstats(sr): 
+    def _getstats(self,sr): 
         n_sig = sr.n_signal
         xsec_per_evt = sr.signal_meta.xsec_per_evt
         return n_sig / xsec_per_evt / sr.lumi
@@ -262,7 +262,7 @@ class SRPlotter(object):
     
         points = []
         for stop_mass, lsp_mass, sr in self.best_plane:
-            points.append((stop_mass, lsp_mass, _getstats(sr)))
+            points.append((stop_mass, lsp_mass, self._getstats(sr)))
 
         mstop, mlsp, sig = np.array(zip(*points), dtype=float)
         mass_diff = mstop - mlsp
