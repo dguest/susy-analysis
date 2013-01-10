@@ -45,6 +45,14 @@ private:
   int m_n_met_bins; 
   int m_n_pt_bins; 
 
+  double m_min_cu; 
+  double m_max_cu; 
+  int m_n_cu_bins; 
+
+  double m_min_cb; 
+  double m_max_cb; 
+  int m_n_cb_bins; 
+
 };
 
 

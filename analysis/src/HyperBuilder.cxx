@@ -32,7 +32,13 @@ HyperBuilder::HyperBuilder(std::string input, const unsigned flags) :
   m_do_cu(true), 
   m_do_cb(true), 
   m_n_met_bins(10), 
-  m_n_pt_bins(10)
+  m_n_pt_bins(10), 
+  m_min_cu(-3), 
+  m_max_cu(7), 
+  m_n_cu_bins(10), 
+  m_min_cb(-6), 
+  m_max_cb(4), 
+  m_n_cb_bins(10)
 { 
 }
 
@@ -44,10 +50,10 @@ void HyperBuilder::init(std::string input, const unsigned flags) {
   std::vector<Axis> axes; 
   Axis leading_pt = {"leadingPt", m_n_pt_bins, min_pt, max_pt}; 
   Axis met = {"met", m_n_met_bins, min_pt, max_pt}; 
-  Axis j2Cu = {"j2Cu", 10, -3, 7}; 
-  Axis j2Cb = {"j2Cb", 10, -6, 4}; 
-  Axis j3Cu = {"j3Cu", 10, -3, 7}; 
-  Axis j3Cb = {"j3Cb", 10, -6, 4}; 
+  Axis j2Cu = {"j2Cu", m_n_cu_bins, m_min_cu, m_max_cu}; 
+  Axis j2Cb = {"j2Cb", m_n_cb_bins, m_min_cb, m_max_cb}; 
+  Axis j3Cu = {"j3Cu", m_n_cu_bins, m_min_cu, m_max_cu}; 
+  Axis j3Cb = {"j3Cb", m_n_cb_bins, m_min_cb, m_max_cb}; 
   Axis j1Bu = {"j1Bu", 10, -8, 8}; 
   Axis mttop = {"mttop", 2, 0, 600*GeV}; 
   axes.push_back(leading_pt); 
@@ -205,6 +211,28 @@ void HyperBuilder::set_float(std::string name, double value) {
   else if (name == "n_pt_bins") { 
     m_n_pt_bins = int_from_double(value); 
   }
+
+  else if (name == "min_cu") { 
+    m_min_cu = value; 
+  }
+  else if (name == "max_cu") { 
+    m_max_cu = value; 
+  }
+  else if (name == "n_cu_bins") { 
+    m_n_cu_bins = int_from_double(value); 
+  }
+
+  else if (name == "min_cb") { 
+    m_min_cb = value; 
+  }
+  else if (name == "max_cb") { 
+    m_max_cb = value; 
+  }
+  else if (name == "n_cb_bins") { 
+    m_n_cb_bins = int_from_double(value); 
+  }
+
+
   else { 
     if (m_augmenter == 0) { 
       m_augmenter = new CutAugmenter(); 
