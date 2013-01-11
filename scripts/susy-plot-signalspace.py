@@ -189,7 +189,7 @@ class SRPlotter(object):
     def save(self, save_name):
         with OptimaCache(save_name) as cache: 
             for m_stop, m_lsp, sr in self.best_plane:
-                cache['-'.format( (m_stop, m_lsp) )] = sr
+                cache['{}-{}'.format( m_stop, m_lsp )] = sr
 
     def plot_signal(self, save_name):
     
