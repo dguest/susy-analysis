@@ -304,7 +304,7 @@ def run_main():
                         help='make n-1 histograms')
     parser.add_argument('--log','-l', action='store_true')
     parser.add_argument(
-        '--ext', choices=['.png','.pdf'], default='.pdf', 
+        '--ext', choices=['.png','.pdf','.eps'], default='.pdf', 
         help='produce this type of file (default %(default)s)')
     args = parser.parse_args(sys.argv[1:])
     config_parser = ConfigParser.SafeConfigParser()

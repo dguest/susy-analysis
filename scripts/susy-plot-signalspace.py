@@ -31,7 +31,7 @@ def run():
                         default=None,
                         help='save textfile of cuts (default %(const)s)')
     parser.add_argument(
-        '--ext', choices=['.png','.pdf'], default='.pdf', 
+        '--ext', choices=['.png','.pdf','.eps'], default='.pdf', 
         help='produce this type of file (default %(default)s)')
     parser.add_argument(
         '--log', choices='r', nargs='*', default='', 

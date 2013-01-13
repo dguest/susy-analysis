@@ -18,7 +18,7 @@ def run(args):
 
     config = SafeConfigParser()
     config.optionxform = str
-    config.read(['optimize.cfg'])
+    config.read([args.base])
     
     head_row = ['region']
     pt_row = [r'$\pt$ cut']
@@ -41,7 +41,14 @@ def run(args):
     
             config.set('hard_cuts', 'met', str(round_met*GeV))
             config.set('hard_cuts', 'leadingPt', str(pt_cut*GeV))
-            
+            if args.anti_u: 
+                for argn in xrange(2): 
+                    if args.anti_u[argn] == 'ni': 
+                        args.anti_u[argn] = '-inf'
+                config.set('hard_cuts', 'j2Cu', args.anti_u[0])
+                config.set('hard_cuts', 'j3Cu', args.anti_u[1])
+                
+
             if args.c is not None: 
                 if args.c: 
                     out_name = '{}{}-{}.cfg'.format(region_name, subreg_n, 
@@ -59,9 +66,12 @@ def run(args):
     
 if __name__ == '__main__': 
     parser = ArgumentParser()
+    parser.add_argument('base', help='base config file', nargs='?', 
+                        default='optimize.cfg')
     parser.add_argument('-l', action='store_true', help='latex output')
     parser.add_argument('-c', nargs='?', const='', default=None, 
                         help='make cfg files with extension C')
     parser.add_argument('--sr4', action='store_true', help='use sr 4')
+    parser.add_argument('--anti-u', nargs=2, help='ni for negitive inf')
     args = parser.parse_args(sys.argv[1:])
     run(args)
