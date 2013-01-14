@@ -4,17 +4,21 @@
 Script to submit prun jobs to skim D3PDs
 """
 
-import sys, os
+import sys, os, re
 import argparse
 from subprocess import Popen, PIPE
 from multiprocessing import Pool
 
+def _get_ptag(ds_name): 
+    return re.compile('_p([0-9]{3,5})').search(ds_name).group(1)
+
 def submit_ds(ds_name, debug=False, version=3, used_vars='used_vars.txt'): 
 
     user = os.path.expandvars('$USER')
-    output_base = '.'.join(ds_name.split('.')[:4])
-    out_ds = 'user.{user}.{in_ds}.skim_v{version}/'.format(
-        user=user, in_ds=output_base, version=version)
+    output_base = '.'.join(ds_name.split('.')[:3])
+    rev_number = _get_ptag(ds_name)
+    out_ds = 'user.{user}.{in_ds}.skim_p{rev}_v{version}/'.format(
+        user=user, in_ds=output_base, version=version, rev=rev_number)
 
     build_string = 'echo %IN | sed \'s/,/\\n/g\' > grid_files.txt'
 
@@ -71,7 +75,7 @@ if __name__ == '__main__':
                 if dataset: 
                     datasets.append(dataset)
 
-    if len(sys.argv) == 1: 
+    else: 
         for ds_name in sys.stdin.readlines(): 
             datasets.append(ds_name.strip())
 
