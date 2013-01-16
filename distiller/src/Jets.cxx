@@ -112,13 +112,18 @@ EventJets::EventJets(const SusyBuffer& buffer, SUSYObjDef& def,
       the_jet->set_bit(jetbit::susy); 
     }
     
-    bool low_pt_jet = the_jet->Pt() < JET_PT_CUT;
-    if (low_pt_jet) { 
+    if (the_jet->Pt() < JET_PT_CUT) { 
       the_jet->set_bit(jetbit::low_pt); 
+    }
+    if (the_jet->Pt() > SIGNAL_JET_PT_CUT) { 
+      the_jet->set_bit(jetbit::signal_pt); 
     }
     
     if (fabs(the_jet->Eta()) > JET_ETA_CUT) { 
       the_jet->set_bit(jetbit::high_eta); 
+    }
+    if (fabs(the_jet->Eta()) < JET_TAGGING_ETA_LIM) { 
+      the_jet->set_bit(jetbit::taggable_eta); 
     }
 
     // overlap removal 

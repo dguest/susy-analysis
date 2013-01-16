@@ -8,6 +8,10 @@
 #include "BitmapCutflow.hh"
 #include "SmartChain.hh"
 
+#include "RunBits.hh"
+#include "EventBits.hh"
+#include "EventConstants.hh"
+
 #include <iostream>
 #include <fstream>
 #include <algorithm>
@@ -24,8 +28,6 @@
 #include <stdexcept> 
 #include "SUSYTools/SUSYObjDef.h"
 #include "SUSYTools/FakeMetEstimator.h"
-#include "RunBits.hh"
-#include "EventBits.hh"
 
 #include <boost/format.hpp>
 #include <boost/scoped_ptr.hpp>
@@ -224,10 +226,10 @@ run_cutflow(std::vector<std::string> files,
 	 jet_itr != preselection_jets.end(); jet_itr++) { 
 
       const SelectedJet& jet = **jet_itr; 
-      bool good_pt = jet.Pt() > 30*GeV; 
-      bool good_eta = fabs(jet.Eta()) < 2.5;
-      bool good_jvf = jet.jvf() > 0.5; 
-      if (good_pt && good_eta && good_jvf) { 
+      bool signal_pt = (jet.bits() & jetbit::signal_pt); 
+      bool tag_eta = (jet.bits() & jetbit::taggable_eta);
+      bool leading_jet = (*jet_itr == *preselection_jets.begin()); 
+      if (signal_pt && (tag_eta || leading_jet)) { 
 	signal_jets.push_back(*jet_itr); 
 	bool good_isr_pt = jet.Pt() > 120*GeV;
 	if (good_isr_pt) { 
@@ -342,13 +344,13 @@ void do_multijet_calculations(const std::vector<SelectedJet*>& leading_jets,
 			      const TVector2& met) 
 { 
   float dphi_sum = get_sum_jetmet_dphi(leading_jets, met); 
-  if (dphi_sum > 0.4) { 
+  if (dphi_sum > MIN_DPHI_JET_MET) { 
     pass_bits |= pass::dphi_jetmet_sum; 
   }
   out_tree.sum_jetmet_dphi = dphi_sum; 
 
   float dphi_min = get_min_jetmet_dphi(leading_jets, met); 
-  if (dphi_min > 0.4) { 
+  if (dphi_min > MIN_DPHI_JET_MET) { 
     pass_bits |= pass::dphi_jetmet_min; 
   }
   out_tree.min_jetmet_dphi = dphi_min; 
