@@ -4,7 +4,7 @@ USE_LIBS="ApplyJetCalibration CalibrationDataInterface egammaAnalysisUtils\
  egammaEvent GoodRunsLists JetResolution JetSelectorTools JetUncertainties\
  MissingETUtility MuonEfficiencyCorrections MuonMomentumCorrections\
  ObjectSelectorCore PileupReweighting ReweightUtils\
- TrigRootAnalysis FudgeMCTool PhotonIDTool\
+ TrigRootAnalysis TauCorrections\
  SUSYTools"
 
 USE_HEADER="SUSYTools MissingETUtility egammaAnalysisUtils"
