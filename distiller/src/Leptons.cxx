@@ -4,6 +4,7 @@
 #include "RunBits.hh"
 #include "RunBits.hh"
 #include "constants.hh"
+#include "LeptonConstants.hh"
 
 #include <cassert>
 
@@ -122,7 +123,8 @@ bool check_if_electron(int iEl,
      buffer.el_MET_Egamma10NoTau_wet->at(iEl).at(0), 
      // buffer.el_MET_Egamma10NoTau_wet ->at(iEl),
      flags & cutflag::is_data, 
-     10*GeV			// et cut
+     ELECTRON_ET_CUT,			// et cut
+     ELECTRON_ETA_CUT
      );
 
   return pass_el; 
@@ -160,7 +162,9 @@ bool check_if_muon(int iMu,
      buffer.mu_staco_nSCTHoles                    ->at(iMu),
      buffer.mu_staco_nTRTHits                     ->at(iMu),
      buffer.mu_staco_nTRTOutliers                 ->at(iMu),
-     flags & cutflag::is_data);
+     flags & cutflag::is_data, 
+     MUON_PT_CUT, 
+     MUON_ETA_CUT);
 
 
 }

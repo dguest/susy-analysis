@@ -3,7 +3,7 @@
 #include "constants.hh"
 #include "RunInfo.hh"
 #include "RunBits.hh"
-#include "RunBits.hh"
+#include "JetConstants.hh"
 
 #include "SUSYTools/SUSYObjDef.h"
 
@@ -112,11 +112,14 @@ EventJets::EventJets(const SusyBuffer& buffer, SUSYObjDef& def,
       the_jet->set_bit(jetbit::susy); 
     }
     
-    bool low_pt_jet = the_jet->Pt() < 20*GeV;
+    bool low_pt_jet = the_jet->Pt() < JET_PT_CUT;
     if (low_pt_jet) { 
       the_jet->set_bit(jetbit::low_pt); 
     }
     
+    if (fabs(the_jet->Eta()) > JET_ETA_CUT) { 
+      the_jet->set_bit(jetbit::high_eta); 
+    }
 
     // overlap removal 
     double min_delta_r = 10; 
@@ -202,8 +205,8 @@ bool check_if_jet(int iJet,
      buffer.vx_nTracks,             
      info.run_number, 
      flags & cutflag::is_data, 
-     20000.0, 	// pt cut
-     10,	// eta cut, was 2.8 but changed to comply with Jan
+     JET_PT_CUT, 	// pt cut
+     JET_ETA_CUT,	// eta cut, was 2.8 but changed to comply with Jan
      JetID::VeryLooseBad,
      SystErr::NONE);
     

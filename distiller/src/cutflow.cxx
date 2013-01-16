@@ -192,14 +192,15 @@ run_cutflow(std::vector<std::string> files,
       copy_jet_info(all_jets.at(0), out_tree.leading_jet_uncensored); 
     }
     
-    std::vector<SelectedJet*> susy_jets; 
+    std::vector<SelectedJet*> preselection_jets; 
     for (EventJets::const_iterator jet_itr = all_jets.begin(); 
 	 jet_itr != all_jets.end(); 
 	 jet_itr++) {
       const SelectedJet& jet = **jet_itr; 
       bool is_low_pt = (jet.bits() & jetbit::low_pt); 
-      if (!is_low_pt) { 
-	susy_jets.push_back(*jet_itr); 
+      bool is_high_eta = (jet.bits() & jetbit::high_eta); 
+      if (!is_low_pt && !is_high_eta) { 
+	preselection_jets.push_back(*jet_itr); 
       }
     }
 
@@ -207,9 +208,9 @@ run_cutflow(std::vector<std::string> files,
     std::vector<int> susy_muon_idx = get_indices(susy_muons); 
     
     std::vector<double> jet_dr = remove_overlaping(susy_electrons, 
-						   susy_jets, 0.2); 
-    remove_overlaping(susy_jets, susy_electrons, 0.4); 
-    remove_overlaping(susy_jets, susy_muons, 0.4); 
+						   preselection_jets, 0.2); 
+    remove_overlaping(preselection_jets, susy_electrons, 0.4); 
+    remove_overlaping(preselection_jets, susy_muons, 0.4); 
 
     for (std::vector<double>::const_iterator dr_itr = jet_dr.begin(); 
 	 dr_itr != jet_dr.end(); dr_itr++) { 
@@ -218,52 +219,53 @@ run_cutflow(std::vector<std::string> files,
     }
 
 
-    std::vector<SelectedJet*> good_jets; 
-    for (EventJets::const_iterator jet_itr = susy_jets.begin(); 
-	 jet_itr != susy_jets.end(); jet_itr++) { 
+    std::vector<SelectedJet*> signal_jets; 
+    for (EventJets::const_iterator jet_itr = preselection_jets.begin(); 
+	 jet_itr != preselection_jets.end(); jet_itr++) { 
 
       const SelectedJet& jet = **jet_itr; 
       bool good_pt = jet.Pt() > 30*GeV; 
       bool good_eta = fabs(jet.Eta()) < 2.5;
       bool good_jvf = jet.jvf() > 0.5; 
       if (good_pt && good_eta && good_jvf) { 
-	good_jets.push_back(*jet_itr); 
+	signal_jets.push_back(*jet_itr); 
 	bool good_isr_pt = jet.Pt() > 120*GeV;
 	if (good_isr_pt) { 
 	  pass_bits |= pass::leading_jet; 
 	}
       }
     }
-    set_bit(good_jets, jetbit::good); 
+    set_bit(signal_jets, jetbit::good); 
 
     TVector2 met = get_met(buffer, def, info, susy_muon_idx); 
 
     // ----- object selection is done now, from here is filling outputs ---
 
     pass_bits |= pass::jet_clean; 
-    for (EventJets::const_iterator jet_itr = susy_jets.begin(); 
-	 jet_itr != susy_jets.end(); 
+    for (EventJets::const_iterator jet_itr = preselection_jets.begin(); 
+	 jet_itr != preselection_jets.end(); 
 	 jet_itr++) { 
       bool is_jet = ((*jet_itr)->bits() & jetbit::susy); 
       assert( !( (*jet_itr)->bits() & jetbit::low_pt)); 
+      assert( !( (*jet_itr)->bits() & jetbit::high_eta)); 
       bool is_veto = !is_jet;
       if (is_veto) pass_bits &=~ pass::jet_clean; 
     }
-    out_tree.n_susy_jets = susy_jets.size(); 
+    out_tree.n_susy_jets = preselection_jets.size(); 
 
 
 
     const unsigned n_req_jets = 3; 
-    if (good_jets.size() >= n_req_jets) { 
+    if (signal_jets.size() >= n_req_jets) { 
       pass_bits |= pass::n_jet; 
 
-      std::vector<SelectedJet*> leading_jets(good_jets.begin(), 
-					     good_jets.begin() + n_req_jets); 
+      std::vector<SelectedJet*> leading_jets(signal_jets.begin(), 
+					     signal_jets.begin() + n_req_jets); 
 
       set_bit(leading_jets, jetbit::leading); 
       assert(leading_jets.size() == n_req_jets);
 
-      out_tree.htx = get_htx(susy_jets); 
+      out_tree.htx = get_htx(preselection_jets); 
 
       //  --- multijet things ---
       do_multijet_calculations(leading_jets, pass_bits, out_tree, met); 
@@ -281,10 +283,10 @@ run_cutflow(std::vector<std::string> files,
       pass_bits |= pass::met; 
     }
 
-    out_tree.n_good_jets = good_jets.size(); 
+    out_tree.n_good_jets = signal_jets.size(); 
 
     if (flags & cutflag::save_truth) { 
-      fill_cjet_truth(out_tree, good_jets); 
+      fill_cjet_truth(out_tree, signal_jets); 
     }
 
     if (susy_electrons.size() == 0 && susy_muons.size() == 0) { 
@@ -292,18 +294,18 @@ run_cutflow(std::vector<std::string> files,
     }
 
 
-    if (good_jets.size() >= 1) { 
-      copy_jet_info(good_jets.at(0), out_tree.isr_jet); 
+    if (signal_jets.size() >= 1) { 
+      copy_jet_info(signal_jets.at(0), out_tree.isr_jet); 
     }
-    if (good_jets.size() >= 2) { 
-      copy_jet_info(good_jets.at(1), out_tree.leading_jet);
-      if (pass_mainz_ctag(good_jets.at(1)) ) { 
+    if (signal_jets.size() >= 2) { 
+      copy_jet_info(signal_jets.at(1), out_tree.leading_jet);
+      if (pass_mainz_ctag(signal_jets.at(1)) ) { 
 	pass_bits |= pass::ctag_mainz; 
       }
     }
-    if (good_jets.size() >= 3) { 
-      copy_jet_info(good_jets.at(2), out_tree.subleading_jet); 
-      if (pass_mainz_ctag(good_jets.at(2)) ) { 
+    if (signal_jets.size() >= 3) { 
+      copy_jet_info(signal_jets.at(2), out_tree.subleading_jet); 
+      if (pass_mainz_ctag(signal_jets.at(2)) ) { 
 	pass_bits |= pass::ctag_mainz; 
       }
     }
