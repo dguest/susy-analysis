@@ -36,6 +36,7 @@ public:
   double pu() const; 
   double pc() const; 
   int flavor_truth_label() const; 
+  bool has_truth() const; 
 private: 
   double m_cnn_b; 
   double m_cnn_c; 
@@ -57,6 +58,7 @@ private:
   EventJets(const EventJets&) {}; 
   const SusyBuffer* m_buffer; 
   friend class SelectedJet; 
+  unsigned m_flags; 
 }; 
 
 bool check_if_jet(int iJet, 

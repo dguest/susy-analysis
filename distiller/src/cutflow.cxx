@@ -95,6 +95,7 @@ run_cutflow(std::vector<std::string> files,
 
   // unsigned branches = branches::run_num | branches::trigger; 
   unsigned branches = branches::all; 
+  if (! (flags & cutflag::is_data) ) branches |= branches::truth; 
 
   BranchNames branch_names; 
   branch_names.trigger = "EF_xe80_tclcw_loose"; 
@@ -287,7 +288,7 @@ run_cutflow(std::vector<std::string> files,
 
     out_tree.n_good_jets = signal_jets.size(); 
 
-    if (flags & cutflag::save_truth) { 
+    if ( !(flags & cutflag::is_data)) { 
       fill_cjet_truth(out_tree, signal_jets); 
     }
 
@@ -460,7 +461,9 @@ void copy_jet_info(const SelectedJet* in, OutTree::Jet& jet)
   jet.cnn_b = in->pb(); 
   jet.cnn_c = in->pc(); 
   jet.cnn_u = in->pu(); 
-  jet.flavor_truth_label = in->flavor_truth_label(); 
+  if (in->has_truth()) { 
+    jet.flavor_truth_label = in->flavor_truth_label(); 
+  }
   jet.cnn_log_cu = log( in->pc() / in->pu() ) ; 
   jet.cnn_log_cb = log( in->pc() / in->pb() ) ; 
 }
@@ -547,7 +550,8 @@ int main(int narg, char* argv[])
   flags |= verbose; 
   flags |= is_atlfast; 
   flags |= debug_cutflow; 
-  flags |= save_truth; 
+
+  flags |= is_data; 
 
   // run the main routine 
   typedef std::vector<std::pair<std::string, int> > CCOut; 

@@ -31,8 +31,12 @@ SelectedJet::SelectedJet(const EventJets* parent, int jet_index):
   m_cnn_b = buffer.jet_flavor_component_jfitcomb_pb->at(jet_index); 
   m_cnn_c = buffer.jet_flavor_component_jfitcomb_pc->at(jet_index); 
   m_cnn_u = buffer.jet_flavor_component_jfitcomb_pu->at(jet_index); 
-  m_flavor_truth_label = buffer.jet_flavor_truth_label->at(jet_index); 
-
+  if ( !(parent->m_flags & cutflag::is_data)) { 
+    m_flavor_truth_label = buffer.jet_flavor_truth_label->at(jet_index); 
+  }
+  else { 
+    m_flavor_truth_label = -1; 
+  }
 
 }
   
@@ -67,6 +71,7 @@ double SelectedJet::pu() const {
   return m_cnn_u; 
 }
 int SelectedJet::flavor_truth_label() const { 
+  assert(m_flavor_truth_label != -1); 
   return m_flavor_truth_label; 
 }
 
@@ -80,10 +85,15 @@ void SelectedJet::set_bit(unsigned bit) {
 void SelectedJet::unset_bit(unsigned bit) { 
   m_bits &=~ bit; 
 }
+bool SelectedJet::has_truth() const { 
+  return (m_flavor_truth_label != -1); 
+}
+
 
 EventJets::EventJets(const SusyBuffer& buffer, SUSYObjDef& def, 
 		     unsigned flags, const RunInfo& info): 
-  m_buffer(&buffer)
+  m_buffer(&buffer), 
+  m_flags(flags)
 { 
 
   assert(buffer.jet_pt); 
@@ -176,12 +186,17 @@ bool check_if_jet(int iJet,
   assert(buffer.jet_fracSamplingMax    );
   assert(buffer.jet_SamplingMax        );
   assert(buffer.jet_NegativeE          );
-  assert(buffer.jet_flavor_truth_label );
   assert(buffer.jet_emscale_E          );
   assert(buffer.jet_emscale_eta        );
   assert(buffer.jet_EtaOrigin          );
   assert(buffer.jet_PhiOrigin          );
   assert(buffer.jet_MOrigin            );
+
+  int flavor_truth_label = 0; 
+  if ( !(flags & cutflag::is_data)) { 
+    assert(buffer.jet_flavor_truth_label); 
+    flavor_truth_label = buffer.jet_flavor_truth_label->at(iJet); 
+  }
     
   return def.FillJet
     (iJet, 
@@ -200,7 +215,7 @@ bool check_if_jet(int iJet,
      buffer.jet_fracSamplingMax    ->at(iJet),
      buffer.jet_SamplingMax        ->at(iJet), 
      buffer.jet_NegativeE          ->at(iJet), 
-     buffer.jet_flavor_truth_label ->at(iJet), 
+     flavor_truth_label, 
      buffer.jet_constscale_E       ->at(iJet),
      buffer.jet_constscale_eta     ->at(iJet), 
      buffer.jet_EtaOrigin          ->at(iJet), 

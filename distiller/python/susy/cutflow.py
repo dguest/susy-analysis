@@ -15,7 +15,6 @@ def cutflow(input_files, run_number, flags, output_ntuple = ''):
         w: save c-tag flavor weights
         p: use low pt jets
         d: debug susytools (don't pipe output to /dev/null)
-        t: save truth info
         c: save JetFitterCharm weights
         m: save mv3 weights
 

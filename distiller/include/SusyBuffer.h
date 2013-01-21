@@ -19,6 +19,7 @@ namespace branches {
   const unsigned unleash_sharktopus  = 1u << 6; 
   const unsigned mv3     = 1u << 7; 
   const unsigned jfc     = 1u << 8; 
+  const unsigned truth   = 1u << 9; 
 }
 
 struct BranchNames 

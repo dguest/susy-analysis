@@ -15,7 +15,7 @@ namespace cutflag {
   const unsigned no_jet_recal     = 1u << 10; 
   const unsigned is_atlfast       = 1u << 11; 
   const unsigned debug_cutflow    = 1u << 12; 
-  const unsigned save_truth       = 1u << 13; 
+  // const unsigned save_truth       = 1u << 13; 
   const unsigned jetfitter_charm  = 1u << 14; 
   const unsigned mv3              = 1u << 15; 
 }

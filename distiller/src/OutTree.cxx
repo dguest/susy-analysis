@@ -27,7 +27,7 @@ void OutTree::Jet::set_branches(TTree* tree, std::string prefix,
   tree->Branch((prefix + "pt").c_str(), &pt); 
   tree->Branch((prefix + "eta").c_str(), &eta); 
   tree->Branch((prefix + "phi").c_str(), &phi); 
-  if (flags & cutflag::save_truth) { 
+  if ( !(flags & cutflag::is_data)) { 
   tree->Branch((prefix + "flavor_truth_label").c_str(), 
 		 &flavor_truth_label); 
   }
@@ -64,12 +64,12 @@ void OutTree::init(const unsigned flags)
   m_tree->Branch("n_susy_jets", &n_susy_jets); 
   m_tree->Branch("n_good_jets", &n_good_jets); 
 
-  m_tree->Branch("hfor_type", &hfor_type); 
   m_tree->Branch("event_number", &event_number); 
 
   m_tree->Branch("htx", &htx); 
 
-  if (flags & cutflag::save_truth) { 
+  if ( !(flags & cutflag::is_data)) { 
+    m_tree->Branch("hfor_type", &hfor_type); 
     m_tree->Branch("leading_cjet_pos", &leading_cjet_pos); 
     m_tree->Branch("subleading_cjet_pos", &subleading_cjet_pos); 
     m_tree->Branch("n_cjet", &n_cjet); 
