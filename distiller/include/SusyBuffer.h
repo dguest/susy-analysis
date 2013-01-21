@@ -11,18 +11,6 @@
 #include <vector> 
 
 
-namespace branches { 
-  const unsigned trigger = 1u << 0; 
-  const unsigned run_num = 1u << 1; 
-  const unsigned others  = 1u << 5; 
-  const unsigned all     = trigger | others | run_num; 
-  const unsigned unleash_sharktopus  = 1u << 6; 
-  const unsigned mv3     = 1u << 7; 
-  const unsigned jfc     = 1u << 8; 
-  const unsigned truth   = 1u << 9; 
-  const unsigned spartid = 1u << 10; 
-}
-
 struct BranchNames 
 { 
   std::string trigger; 

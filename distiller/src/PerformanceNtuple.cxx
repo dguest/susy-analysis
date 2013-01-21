@@ -31,7 +31,7 @@ int make_perf_ntuple(std::string input, unsigned flags,
     throw std::runtime_error(err); 
   }
 
-  unsigned branches = branches::all | branches::mv3 | branches::jfc; 
+  unsigned branches = cutflag::mv3 | cutflag::jetfitter_charm; 
 
   BranchNames branch_names; 
   branch_names.trigger = "EF_xe80_tclcw_loose"; 
