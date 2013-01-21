@@ -1,6 +1,5 @@
 #include "OutTree.hh"
 #include "RunBits.hh"
-#include "RunBits.hh"
 
 #include "TFile.h"
 #include "TTree.h"
@@ -27,7 +26,7 @@ void OutTree::Jet::set_branches(TTree* tree, std::string prefix,
   tree->Branch((prefix + "pt").c_str(), &pt); 
   tree->Branch((prefix + "eta").c_str(), &eta); 
   tree->Branch((prefix + "phi").c_str(), &phi); 
-  if ( !(flags & cutflag::is_data)) { 
+  if ( flags & cutflag::truth) { 
   tree->Branch((prefix + "flavor_truth_label").c_str(), 
 		 &flavor_truth_label); 
   }
@@ -68,11 +67,15 @@ void OutTree::init(const unsigned flags)
 
   m_tree->Branch("htx", &htx); 
 
-  if ( !(flags & cutflag::is_data)) { 
+  if ( flags & cutflag::truth) { 
     m_tree->Branch("hfor_type", &hfor_type); 
     m_tree->Branch("leading_cjet_pos", &leading_cjet_pos); 
     m_tree->Branch("subleading_cjet_pos", &subleading_cjet_pos); 
     m_tree->Branch("n_cjet", &n_cjet); 
+    if (flags & cutflag::spartid) { 
+      m_tree->Branch("spart1_pdgid", &spart1_pdgid); 
+      m_tree->Branch("spart2_pdgid", &spart2_pdgid); 
+    }
   }
 
   leading_jet.set_branches(m_tree, "jet2_", flags); 
@@ -101,6 +104,9 @@ void OutTree::clear_buffer() {
 
   leading_cjet_pos = -1; 
   subleading_cjet_pos = -1; 
+  n_cjet = 0; 
+  spart1_pdgid = 0; 
+  spart2_pdgid = 0; 
 
   leading_jet.clear(); 
   subleading_jet.clear(); 

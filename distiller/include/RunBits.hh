@@ -18,6 +18,13 @@ namespace cutflag {
   // const unsigned save_truth       = 1u << 13; 
   const unsigned jetfitter_charm  = 1u << 14; 
   const unsigned mv3              = 1u << 15; 
+
+  const unsigned spartid          = 1u << 22; 
+  const unsigned truth            = 1u << 23; 
+
+  const unsigned can_set_at_runtime = (spartid | truth); 
+
+  const unsigned unleash_sharktopus = 1u << 31; 
 }
 
 #endif //RUN_BITS_H

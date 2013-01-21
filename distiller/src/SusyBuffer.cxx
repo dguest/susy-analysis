@@ -7,11 +7,12 @@
 
 #include "SusyBuffer.h"
 #include "SmartChain.hh"
+#include "RunBits.hh"
 
-SusyBuffer::SusyBuffer(SmartChain *fChain, unsigned br, BranchNames names)
+SusyBuffer::SusyBuffer(SmartChain *fChain, unsigned& br, BranchNames names)
 {
 
-  using namespace branches; 
+  using namespace cutflag; 
 
   std::string jc = "jet_AntiKt4LCTopo"; 
 
@@ -143,12 +144,27 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, unsigned br, BranchNames names)
   fChain->SetBranchAddress(jc + "_constscale_eta", &jet_constscale_eta, true); 
   fChain->SetBranchAddress(jc + "_flavor_weight_JetFitterCOMBNN", &jet_flavor_weight_JetFitterCOMBNN, true); 
   if (br & truth) { 
-    fChain->SetBranchAddress(jc + "_flavor_truth_label", 
-			     &jet_flavor_truth_label, true); 
+    try { 
+      fChain->SetBranchAddress(jc + "_flavor_truth_label", 
+			       &jet_flavor_truth_label, true); 
+    }
+    catch (std::runtime_error& e) { 
+      br &=~ truth; 
+    }
+    try { 
+      fChain->SetBranchAddress("SUSY_Spart1_pdgId", &spart1_pdgid, true); 
+      fChain->SetBranchAddress("SUSY_Spart2_pdgId", &spart2_pdgid, true); 
+    }
+    catch (std::runtime_error& e) { 
+      br &=~ spartid; 
+    }
   }
-  fChain->SetBranchAddress(jc + "_flavor_component_jfitcomb_pu", &jet_flavor_component_jfitcomb_pu, true);
-  fChain->SetBranchAddress(jc + "_flavor_component_jfitcomb_pb", &jet_flavor_component_jfitcomb_pb, true);
-  fChain->SetBranchAddress(jc + "_flavor_component_jfitcomb_pc", &jet_flavor_component_jfitcomb_pc, true);
+  fChain->SetBranchAddress(jc + "_flavor_component_jfitcomb_pu", 
+			   &jet_flavor_component_jfitcomb_pu, true);
+  fChain->SetBranchAddress(jc + "_flavor_component_jfitcomb_pb", 
+			   &jet_flavor_component_jfitcomb_pb, true);
+  fChain->SetBranchAddress(jc + "_flavor_component_jfitcomb_pc", 
+			   &jet_flavor_component_jfitcomb_pc, true);
   fChain->SetBranchAddress("vx_nTracks", &vx_nTracks, true); 
 
   if (br & mv3) { 
@@ -161,7 +177,7 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, unsigned br, BranchNames names)
 			     &jet_flavor_weight_MV3_cVSu, do_mv3); 
   }
 
-  if (br & jfc) { 
+  if (br & jetfitter_charm) { 
     bool do_jfc = true; 
     fChain->SetBranchAddress(jc + "_flavor_component_jfitc_pu", 
 			     &jet_flavor_component_jfitc_pu, do_jfc);

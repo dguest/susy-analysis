@@ -29,6 +29,8 @@ public:
   int leading_cjet_pos; 
   int subleading_cjet_pos; 
   int n_cjet; 
+  int spart1_pdgid; 
+  int spart2_pdgid; 
 
   double htx; 
   

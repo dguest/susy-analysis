@@ -31,7 +31,7 @@ SelectedJet::SelectedJet(const EventJets* parent, int jet_index):
   m_cnn_b = buffer.jet_flavor_component_jfitcomb_pb->at(jet_index); 
   m_cnn_c = buffer.jet_flavor_component_jfitcomb_pc->at(jet_index); 
   m_cnn_u = buffer.jet_flavor_component_jfitcomb_pu->at(jet_index); 
-  if ( !(parent->m_flags & cutflag::is_data)) { 
+  if ( parent->m_flags & cutflag::truth) { 
     m_flavor_truth_label = buffer.jet_flavor_truth_label->at(jet_index); 
   }
   else { 
@@ -193,7 +193,7 @@ bool check_if_jet(int iJet,
   assert(buffer.jet_MOrigin            );
 
   int flavor_truth_label = 0; 
-  if ( !(flags & cutflag::is_data)) { 
+  if ( flags & cutflag::truth ) { 
     assert(buffer.jet_flavor_truth_label); 
     flavor_truth_label = buffer.jet_flavor_truth_label->at(iJet); 
   }

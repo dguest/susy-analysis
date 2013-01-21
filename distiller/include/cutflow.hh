@@ -22,7 +22,7 @@ class OutTree;
 
 std::vector<std::pair<std::string, int> >
 run_cutflow(std::vector<std::string> files, 
-	    RunInfo info, const unsigned flags = 0, 
+	    RunInfo info, unsigned flags = 0, 
 	    std::string out_ntuple_name = ""); 
 
 void do_multijet_calculations(const std::vector<SelectedJet*>& leading_jets, 
@@ -32,6 +32,8 @@ void do_multijet_calculations(const std::vector<SelectedJet*>& leading_jets,
 
 void fill_cjet_truth(OutTree& out_tree, 
 		     const std::vector<SelectedJet*>& jets); 
+void fill_event_truth(OutTree& out_tree, const SusyBuffer& buffer, 
+		      unsigned branches); 
 
 float get_min_jetmet_dphi(const std::vector<SelectedJet*>&, 
 			  const TVector2& ); 

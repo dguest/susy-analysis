@@ -62,7 +62,7 @@ void copy_jet_info(const SelectedJet* , OutTree::Jet&);
  
 std::vector<std::pair<std::string, int> >
 run_cutflow(std::vector<std::string> files, 
-	    RunInfo info, const unsigned flags, 
+	    RunInfo info, unsigned flags, 
 	    std::string out_ntuple_name) {  
 
   std::ofstream nullstream("/dev/null"); 
@@ -93,14 +93,14 @@ run_cutflow(std::vector<std::string> files,
 
   SUSYObjDef def; 
 
-  // unsigned branches = branches::run_num | branches::trigger; 
-  unsigned branches = branches::all; 
-  if (! (flags & cutflag::is_data) ) branches |= branches::truth; 
+  if (! (flags & cutflag::is_data) ) { 
+    flags |= (cutflag::truth | cutflag::spartid); 
+  }
 
   BranchNames branch_names; 
   branch_names.trigger = "EF_xe80_tclcw_loose"; 
 
-  SusyBuffer buffer(input_chain.get(), branches, branch_names); 
+  SusyBuffer buffer(input_chain.get(), flags, branch_names); 
   int n_entries = input_chain->GetEntries(); 
 
   if (flags & cutflag::get_branches) { 
@@ -288,8 +288,9 @@ run_cutflow(std::vector<std::string> files,
 
     out_tree.n_good_jets = signal_jets.size(); 
 
-    if ( !(flags & cutflag::is_data)) { 
+    if ( flags & cutflag::truth ) { 
       fill_cjet_truth(out_tree, signal_jets); 
+      fill_event_truth(out_tree, buffer, flags); 
     }
 
     if (susy_electrons.size() == 0 && susy_muons.size() == 0) { 
@@ -318,7 +319,6 @@ run_cutflow(std::vector<std::string> files,
     out_tree.met = met.Mod(); 
     out_tree.met_phi = met.Phi(); 
 
-    out_tree.hfor_type = buffer.hfor_type; 
     out_tree.event_number = buffer.EventNumber; 
 
     out_tree.fill(); 
@@ -356,6 +356,15 @@ void do_multijet_calculations(const std::vector<SelectedJet*>& leading_jets,
   }
   out_tree.min_jetmet_dphi = dphi_min; 
 
+}
+
+void fill_event_truth(OutTree& out_tree, const SusyBuffer& buffer, 
+		      unsigned flags) { 
+  out_tree.hfor_type = buffer.hfor_type; 
+  if (flags & cutflag::spartid) { 
+    out_tree.spart1_pdgid = buffer.spart1_pdgid; 
+    out_tree.spart2_pdgid = buffer.spart2_pdgid; 
+  }
 }
 
 void fill_cjet_truth(OutTree& out_tree, 
@@ -551,7 +560,7 @@ int main(int narg, char* argv[])
   flags |= is_atlfast; 
   flags |= debug_cutflow; 
 
-  flags |= is_data; 
+  // flags |= is_data; 
 
   // run the main routine 
   typedef std::vector<std::pair<std::string, int> > CCOut; 

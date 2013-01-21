@@ -20,6 +20,7 @@ namespace branches {
   const unsigned mv3     = 1u << 7; 
   const unsigned jfc     = 1u << 8; 
   const unsigned truth   = 1u << 9; 
+  const unsigned spartid = 1u << 10; 
 }
 
 struct BranchNames 
@@ -46,6 +47,8 @@ public :
   unsigned        coreFlags; 
 
   int hfor_type; 
+  int spart1_pdgid; 
+  int spart2_pdgid; 
 
   // MET things
   vector<float>*          jet_pt;
@@ -156,7 +159,7 @@ public :
 
   double sharktopus; 
 
-  SusyBuffer(SmartChain *tree, unsigned use_branches, 
+  SusyBuffer(SmartChain *tree, unsigned& use_branches, 
 	     BranchNames names );
 };
 
