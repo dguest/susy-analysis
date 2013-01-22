@@ -15,7 +15,11 @@ def _get_ptag(ds_name):
 def submit_ds(ds_name, debug=False, version=3, used_vars='used_vars.txt'): 
 
     user = os.path.expandvars('$USER')
-    output_base = '.'.join(ds_name.split('.')[:3])
+    if ds_name.startswith('user'): 
+        preskim_name = '.'.join(ds_name.split('.')[2:])
+    else: 
+        preskim_name = ds_name
+    output_base = '.'.join(preskim_name.split('.')[:3])
     rev_number = _get_ptag(ds_name)
     out_ds = 'user.{user}.{in_ds}.skim_p{rev}_v{version}/'.format(
         user=user, in_ds=output_base, version=version, rev=rev_number)
