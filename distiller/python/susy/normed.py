@@ -63,10 +63,10 @@ class NormedCutflow(object):
             spl = line.split()
             ds = Dataset()
             ds.name = spl[0]
-            ds.xsec = float(spl[2])
+            ds.total_xsec = float(spl[2])
             ds.filteff = float(spl[3])
             ds.kfactor = 1
-            ds.evts = int(spl[4])
+            ds.n_raw_entries = int(spl[4])
             yield ds.name, ds
 
     def _susy_itr(self,txt_file): 
@@ -86,7 +86,7 @@ class NormedCutflow(object):
             ds = Dataset()
             ds.id = int(spl[0])
             ds.name = spl[1]
-            ds.xsec = float(spl[2])
+            ds.total_xsec = float(spl[2])
             ds.kfactor = float(spl[3])
             ds.filteff = float(spl[4])
             
@@ -109,8 +109,8 @@ class NormedCutflow(object):
         else: 
             matches = self._ds_match(ds_key, lookup_location)
         
-        self.get_dataset(ds_key).files += matches
-        return self.get_dataset(ds_key).files
+        self.get_dataset(ds_key).d3pds += matches
+        return self.get_dataset(ds_key).d3pds
 
     def _ds_match(self, ds_key, location): 
         """
@@ -164,7 +164,7 @@ class NormedCutflow(object):
             run_number = 180614 # FIXME: obviously not right...
 
         if need_rebuild: 
-            input_files = self.get_dataset(ds_key).files
+            input_files = self.get_dataset(ds_key).d3pds
             if 'v' in flags: 
                 print '--- distilling {} ---'.format(ds_key)
             cut_counts = cutflow.cutflow(input_files, run_number, 
@@ -182,15 +182,16 @@ class NormedCutflow(object):
         n_events = max(count for name, count in cut_counts)
         dataset = self.get_dataset(ds_key)
 
-        if dataset.evts and n_events != dataset.evts: 
-            frac_in_file = float(n_events) / float(dataset.evts)
+        if dataset.n_raw_entries and n_events != dataset.n_raw_entries: 
+            frac_in_file = float(n_events) / float(dataset.n_raw_entries)
             warnings.warn(
                 "number of events in {} ({}) "
                 "doesn't match expected {} ({:.1%} diff)".format(
-                    ds_key, n_events, dataset.evts, frac_in_file - 1), 
+                    ds_key, n_events, dataset.n_raw_entries, 
+                    frac_in_file - 1), 
                 stacklevel=2)
         
-        dataset.evts = n_events
+        dataset.n_raw_entries = n_events
         
         int_xsec_per_evt = dataset.corrected_xsec() / float(n_events) * lumi
 
