@@ -16,6 +16,7 @@ class Dataset(object):
         self.total_xsec = -1
 
         self.d3pds = []
+        self.physics_type = ''
         self.skim_path = ''
         self.hist_path = ''
 
@@ -29,19 +30,21 @@ class Dataset(object):
         """
         return self.corrected_xsec() / self.evts
 
-class DatasetContainer(dict): 
+class DatasetCache(dict): 
     """
     A dict where dataset meta is stored. 
 
     Has a constructor / write method to take care of pickling. 
     In the future the constructor may deal with schema changes. 
+
+    (hopefully that means yaml at some point)
     """
     def __init__(self, cache_name): 
         self._cache_name = cache_name
         if isfile(cache_name): 
             with open(cache_name) as cache: 
                 cached_dict = cPickle.loac(cache)
-            super(DatasetContainer, self).__init__(cached_dict)
+            super(DatasetCache, self).__init__(cached_dict)
 
     def __enter__(self): 
         return self
@@ -56,3 +59,36 @@ class DatasetContainer(dict):
             out_dict = dict(self)
             cPickle.dump(out_dict, cache)
 
+class MetaFactory(object): 
+    """
+    This pulls together: 
+     - steering list
+     - susy xsection / n events info
+
+    and generates the meta file, which is used to steer everything up to 
+    histogram generation. 
+    """
+    def __init__(self, ds_list): 
+        """
+        list of datasets to map out. If a list entry has two values, the 
+        second is the physics type
+        """
+        pass
+
+    def lookup_susy(self, susy_file): 
+        """
+        Matches whatever datasets have a cross section listed in the susy file.
+        """
+        pass 
+    
+    def lookup_signal(self, signal_file): 
+        """
+        Matches some other lookup file format. 
+        """
+        pass
+
+    def write_meta(self, output_file_name): 
+        """
+        write out the meta info
+        """
+        pass
