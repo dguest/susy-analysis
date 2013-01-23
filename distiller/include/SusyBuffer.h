@@ -22,9 +22,6 @@ class SmartChain;
 
 class SusyBuffer {
 public :
-  
-  // TChain          *fChain;   //!pointer to the analyzed TTree or TChain
-  // Int_t           fCurrent; //!current Tree number in a TChain
 
   // Declaration of leaf types
   unsigned int RunNumber; 
@@ -37,6 +34,7 @@ public :
   int hfor_type; 
   int spart1_pdgid; 
   int spart2_pdgid; 
+  float mc_event_weight; 
 
   // MET things
   vector<float>*          jet_pt;
@@ -149,6 +147,9 @@ public :
 
   SusyBuffer(SmartChain *tree, unsigned& use_branches, 
 	     BranchNames names );
+
+private: 
+  void set_mc_branches(SmartChain* chain, unsigned& br, std::string jc); 
 };
 
 #endif

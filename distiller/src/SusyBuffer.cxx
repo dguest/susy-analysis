@@ -1,5 +1,3 @@
-#ifndef SusyBuffer_cxx
-#define SusyBuffer_cxx
 #include <TH2.h>
 #include <TStyle.h>
 #include <TCanvas.h>
@@ -143,22 +141,11 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, unsigned& br, BranchNames names)
   fChain->SetBranchAddress(jc + "_constscale_E",   &jet_constscale_E, true); 
   fChain->SetBranchAddress(jc + "_constscale_eta", &jet_constscale_eta, true); 
   fChain->SetBranchAddress(jc + "_flavor_weight_JetFitterCOMBNN", &jet_flavor_weight_JetFitterCOMBNN, true); 
-  if (br & truth) { 
-    try { 
-      fChain->SetBranchAddress(jc + "_flavor_truth_label", 
-			       &jet_flavor_truth_label, true); 
-    }
-    catch (std::runtime_error& e) { 
-      br &=~ truth; 
-    }
-    try { 
-      fChain->SetBranchAddress("SUSY_Spart1_pdgId", &spart1_pdgid, true); 
-      fChain->SetBranchAddress("SUSY_Spart2_pdgId", &spart2_pdgid, true); 
-    }
-    catch (std::runtime_error& e) { 
-      br &=~ spartid; 
-    }
+
+  if (br & truth ) { 
+    set_mc_branches(fChain, br, jc);
   }
+
   fChain->SetBranchAddress(jc + "_flavor_component_jfitcomb_pu", 
 			   &jet_flavor_component_jfitcomb_pu, true);
   fChain->SetBranchAddress(jc + "_flavor_component_jfitcomb_pb", 
@@ -193,5 +180,27 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, unsigned& br, BranchNames names)
 
 }
 
-#endif 
+void SusyBuffer::set_mc_branches(SmartChain* chain, 
+				 unsigned& br, 
+				 std::string jc)
+{
+  using namespace cutflag; 
+  try { 
+    chain->SetBranchAddress(jc + "_flavor_truth_label", 
+			     &jet_flavor_truth_label, true); 
+    chain->SetBranchAddress("mc_event_weight", &mc_event_weight, true); 
+  }
+  catch (std::runtime_error& e) { 
+    br &=~ truth; 
+  }
+  try { 
+    chain->SetBranchAddress("SUSY_Spart1_pdgId", &spart1_pdgid, true); 
+    chain->SetBranchAddress("SUSY_Spart2_pdgId", &spart2_pdgid, true); 
+  }
+  catch (std::runtime_error& e) { 
+    br &=~ spartid; 
+  }
+}
+
+
 

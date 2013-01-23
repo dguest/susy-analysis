@@ -20,39 +20,6 @@ OutTree::OutTree(std::string file, std::string tree, const unsigned flags):
   }
 }
 
-void OutTree::Jet::set_branches(TTree* tree, std::string prefix, 
-				unsigned flags) 
-{
-  tree->Branch((prefix + "pt").c_str(), &pt); 
-  tree->Branch((prefix + "eta").c_str(), &eta); 
-  tree->Branch((prefix + "phi").c_str(), &phi); 
-  if ( flags & cutflag::truth) { 
-  tree->Branch((prefix + "flavor_truth_label").c_str(), 
-		 &flavor_truth_label); 
-  }
-  if (flags & cutflag::save_flavor_wt) { 
-    tree->Branch((prefix + "cnn_b").c_str(), &cnn_b); 
-    tree->Branch((prefix + "cnn_c").c_str(), &cnn_c); 
-    tree->Branch((prefix + "cnn_u").c_str(), &cnn_u); 
-  }
-  if (flags & cutflag::save_ratios) { 
-    tree->Branch((prefix + "cnn_log_cb").c_str(), &cnn_log_cb); 
-    tree->Branch((prefix + "cnn_log_cu").c_str(), &cnn_log_cu); 
-  }
-}
-
-void OutTree::Jet::clear() 
-{
-  pt = -1; 
-  eta = -10; 
-  phi = -10; 
-  flavor_truth_label = -1; 
-  cnn_b = -1; 
-  cnn_c = -1; 
-  cnn_u = -1; 
-  cnn_log_cu = -1000; 
-  cnn_log_cb = -1000; 
-}
 
 void OutTree::init(const unsigned flags) 
 { 
@@ -72,6 +39,7 @@ void OutTree::init(const unsigned flags)
     m_tree->Branch("leading_cjet_pos", &leading_cjet_pos); 
     m_tree->Branch("subleading_cjet_pos", &subleading_cjet_pos); 
     m_tree->Branch("n_cjet", &n_cjet); 
+    m_tree->Branch("mc_event_weight", &mc_event_weight); 
     if (flags & cutflag::spartid) { 
       m_tree->Branch("spart1_pdgid", &spart1_pdgid); 
       m_tree->Branch("spart2_pdgid", &spart2_pdgid); 
@@ -105,6 +73,7 @@ void OutTree::clear_buffer() {
   leading_cjet_pos = -1; 
   subleading_cjet_pos = -1; 
   n_cjet = 0; 
+  mc_event_weight = 0; 
   spart1_pdgid = 0; 
   spart2_pdgid = 0; 
 
@@ -131,3 +100,36 @@ void OutTree::fill()
   }
 }
 
+void OutTree::Jet::set_branches(TTree* tree, std::string prefix, 
+				unsigned flags) 
+{
+  tree->Branch((prefix + "pt").c_str(), &pt); 
+  tree->Branch((prefix + "eta").c_str(), &eta); 
+  tree->Branch((prefix + "phi").c_str(), &phi); 
+  if ( flags & cutflag::truth) { 
+  tree->Branch((prefix + "flavor_truth_label").c_str(), 
+		 &flavor_truth_label); 
+  }
+  if (flags & cutflag::save_flavor_wt) { 
+    tree->Branch((prefix + "cnn_b").c_str(), &cnn_b); 
+    tree->Branch((prefix + "cnn_c").c_str(), &cnn_c); 
+    tree->Branch((prefix + "cnn_u").c_str(), &cnn_u); 
+  }
+  if (flags & cutflag::save_ratios) { 
+    tree->Branch((prefix + "cnn_log_cb").c_str(), &cnn_log_cb); 
+    tree->Branch((prefix + "cnn_log_cu").c_str(), &cnn_log_cu); 
+  }
+}
+
+void OutTree::Jet::clear() 
+{
+  pt = -1; 
+  eta = -10; 
+  phi = -10; 
+  flavor_truth_label = -1; 
+  cnn_b = -1; 
+  cnn_c = -1; 
+  cnn_u = -1; 
+  cnn_log_cu = -1000; 
+  cnn_log_cb = -1000; 
+}

@@ -365,6 +365,13 @@ void fill_event_truth(OutTree& out_tree, const SusyBuffer& buffer,
     out_tree.spart1_pdgid = buffer.spart1_pdgid; 
     out_tree.spart2_pdgid = buffer.spart2_pdgid; 
   }
+
+  if (fabs(buffer.mc_event_weight) < 2.0) { 
+    out_tree.mc_event_weight = buffer.mc_event_weight; 
+  }
+  else { 
+    out_tree.mc_event_weight = 1.0; 
+  }
 }
 
 void fill_cjet_truth(OutTree& out_tree, 

@@ -29,6 +29,7 @@ public:
   int leading_cjet_pos; 
   int subleading_cjet_pos; 
   int n_cjet; 
+  float mc_event_weight; 
   int spart1_pdgid; 
   int spart2_pdgid; 
 
