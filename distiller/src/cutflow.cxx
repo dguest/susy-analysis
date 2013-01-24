@@ -7,6 +7,7 @@
 #include "RunInfo.hh"
 #include "BitmapCutflow.hh"
 #include "SmartChain.hh"
+#include "CollectionTreeReport.hh"
 
 #include "RunBits.hh"
 #include "EventBits.hh"
@@ -74,6 +75,7 @@ run_cutflow(std::vector<std::string> files,
   std::ostream dbg_stream(out_buffer); 
 
   boost::scoped_ptr<SmartChain> input_chain(new SmartChain("susy")); 
+  CollectionTreeReport ct_report("CollectionTree"); 
 
   if (files.size() == 0) { 
     throw std::runtime_error("I need files to run!"); 
@@ -89,6 +91,7 @@ run_cutflow(std::vector<std::string> files,
       throw std::runtime_error(err); 
     }
   }
+  ct_report.add_files(files); 
 
 
   SUSYObjDef def; 
@@ -335,7 +338,12 @@ run_cutflow(std::vector<std::string> files,
   dbg_file.close(); 
 
   def.finalize(); 
-  return cutflow.get(); 
+
+  typedef std::pair<std::string, int> Cut; 
+  Cut total_events(std::make_pair("total_events", ct_report.total_entries()));
+  std::vector<Cut> cutflow_vec = cutflow.get(); 
+  cutflow_vec.insert(cutflow_vec.begin(),total_events); 
+  return cutflow_vec;
 	 
 }
 

@@ -17,7 +17,7 @@ private:
 class BitmapCutflow 
 { 
 public: 
-  BitmapCutflow(std::string first_name = "n_events"); 
+  BitmapCutflow(std::string first_name = "n_skimmed_events"); 
   void add(std::string name, unsigned mask); 
   int fill(const unsigned mask); 
   std::vector< std::pair<std::string, int> > get() const; 
