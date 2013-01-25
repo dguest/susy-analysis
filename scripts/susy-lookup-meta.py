@@ -16,33 +16,42 @@ import os, sys
 from stop.meta import MetaFactory, DatasetCache
 import argparse, ConfigParser
 
-def run(): 
-    
+def _get_ami_client(): 
     client = AMIClient()
     if not os.path.exists(AMI_CONFIG):
        create_auth_config()
     client.read_config(AMI_CONFIG)
+    return client
 
+def _get_parser(): 
     parser = argparse.ArgumentParser(
-        # parents=[preparser], 
+        formatter_class=argparse.RawDescriptionHelpFormatter, 
         description=__doc__, 
         epilog='Author: Dan Guest', 
         )
 
+    def_meta = 'meta.pkl'
     defaults = { 
-        'output_pickle': 'meta.pkl', 
+        'output_pickle': def_meta, 
+        'base_meta': def_meta, 
         }
+    
+    d = 'default: %(default)s'
 
     parser.set_defaults(**defaults)
     parser.add_argument('steering_file')
-    parser.add_argument('--susy-lookup', help='default: %(default)s')
-    parser.add_argument('--output-pickle', help='default: %(default)s')
-    parser.add_argument('--config-file', help='default: %(default)s', 
+    parser.add_argument('--susy-lookup', help=d)
+    parser.add_argument('--output-pickle', help=d)
+    parser.add_argument('--config-file', help=d, 
                         default='stop.cfg')
-    parser.add_argument('--base-meta', help='use this for a basis', 
-                        default='meta.pkl')
+    parser.add_argument('--base-meta', 
+                        help='use this for a basis ({})'.format(d))
 
-    args = parser.parse_args(sys.argv[1:])
+
+    return parser
+
+def run(): 
+    args = _get_parser().parse_args(sys.argv[1:])
 
     config_parser = ConfigParser.SafeConfigParser()
     config_parser.read([args.config_file])
@@ -64,10 +73,12 @@ def run():
     if args.susy_lookup: 
        with open(args.susy_lookup) as susy:
           mf.lookup_susy(susy)
+
+    client = _get_ami_client()
+
     mf.lookup_ami(client)
     mf.dump_sources()
     mf.write_meta(args.output_pickle)
-    
 
 if __name__ == '__main__': 
    run()
