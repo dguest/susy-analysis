@@ -1,34 +1,73 @@
 #!/usr/bin/env python2.7
+"""
+Script to consolidate all the needed meta info in one place. 
+
+Should be usable in a few ways: 
+ - to generate a meta file that is read in by susy-run-cutflow. The cutflow 
+   routine is responsible for mapping out the datasets and running over 
+   them 
+ - to update the meta info before feeding the meta info to stacking routines.
+"""
+
 
 from pyAMI.client import AMIClient
 from pyAMI.auth import AMI_CONFIG, create_auth_config
-from pyAMI.query import get_dataset_info
-import os
+import os, sys
+from stop.meta import MetaFactory, DatasetCache
+import argparse, ConfigParser
 
-client = AMIClient()
-if not os.path.exists(AMI_CONFIG):
-   create_auth_config()
-client.read_config(AMI_CONFIG)
+def run(): 
+    
+    client = AMIClient()
+    if not os.path.exists(AMI_CONFIG):
+       create_auth_config()
+    client.read_config(AMI_CONFIG)
 
-print AMI_CONFIG
+    parser = argparse.ArgumentParser(
+        # parents=[preparser], 
+        description=__doc__, 
+        epilog='Author: Dan Guest', 
+        )
 
-dataset = 'mc12_8TeV.157872.MadGraphPythia_AUET2BCTEQ6L1_SM_TT_directCC_175_170.merge.NTUP_SUSY.e1355_a159_a171_r3549_p1032'
-#'mc11_7TeV.125206.PowHegPythia_VBFH130_tautauhh.evgen.EVNT.e893'
-info = get_dataset_info(client, dataset)
-nfiles = info.info['nFiles']
-total_events = info.info['totalEvents']
-try: 
-   filt_eff = info.extra['GenFiltEff_mean']
-except KeyError: 
-   filt_eff = info.extra['approx_GenFiltEff']
+    defaults = { 
+        'output_pickle': 'meta.pkl', 
+        }
 
+    parser.set_defaults(**defaults)
+    parser.add_argument('steering_file')
+    parser.add_argument('--susy-lookup', help='default: %(default)s')
+    parser.add_argument('--output-pickle', help='default: %(default)s')
+    parser.add_argument('--config-file', help='default: %(default)s', 
+                        default='stop.cfg')
+    parser.add_argument('--base-meta', help='use this for a basis', 
+                        default='meta.pkl')
 
-try: 
-   xsec = info.extra['crossSection_mean']
-except KeyError:
-   xsec = info.extra['approx_crossSection']
+    args = parser.parse_args(sys.argv[1:])
 
-print 'files: {}, evt: {}, filteff: {}, xsec: {}'.format(
-   nfiles, total_events, filt_eff, xsec)
-                                                         
-print info 
+    config_parser = ConfigParser.SafeConfigParser()
+    config_parser.read([args.config_file])
+
+    if not os.path.isfile(args.base_meta): 
+       args.base_meta = None
+
+    if args.base_meta: 
+       datasets = DatasetCache(args.base_meta)
+    else: 
+       datasets = None
+    mf = MetaFactory(datasets)
+    with open(args.steering_file) as steering: 
+       mf.build_base_ds(steering)
+    
+    mf.verbose = True
+    mf.no_ami_overwrite = True
+    mf.dump_sources()
+    if args.susy_lookup: 
+       with open(args.susy_lookup) as susy:
+          mf.lookup_susy(susy)
+    mf.lookup_ami(client)
+    mf.dump_sources()
+    mf.write_meta(args.output_pickle)
+    
+
+if __name__ == '__main__': 
+   run()
