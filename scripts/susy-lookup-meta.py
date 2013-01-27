@@ -37,14 +37,13 @@ def _get_parser():
               ' or an existing meta file ({})'.format(d)))
     parser.add_argument('--susy-lookup', help=d)
     parser.add_argument('--output-pickle', help=d)
-    parser.add_argument('--config-file', help=d, 
-                        default='stop.cfg')
     parser.add_argument('--add-meta', 
                         help='add this meta ({})'.format(d))
     parser.add_argument('-f', action='store_true',
                         help='force overwrite of meta (if it exists)')
     parser.add_argument('-a', action='store_true',
                         help='ami lookup')
+    parser.add_argument('-t', '--trust-ds-names', action='store_true')
     parser.add_argument('-d','--dump', action='store_true')
     parser.add_argument(
         '--write-steering', help='rewrite steering file')
@@ -58,9 +57,6 @@ def run():
     if os.path.isfile(args.output_pickle) and text_in and not args.f: 
         sys.exit('output-pickle exists already, refusing to overwrite')
 
-    config_parser = ConfigParser.SafeConfigParser()
-    config_parser.read([args.config_file])
-
     mf = MetaFactory(args.steering_file)
     
     mf.verbose = True
@@ -72,12 +68,8 @@ def run():
     mf.processes = 10
     if args.a: 
         print 'looking up names in ami'
-        mf.lookup_ami_names()
+        mf.lookup_ami_names(args.trust_ds_names)
         mf.write_meta(args.output_pickle)
-        mf.lookup_ami(stream=sys.stdout)
-    if args.dump: 
-        mf.dump()
-    mf.write_meta(args.output_pickle)
     if args.write_steering: 
         missing = [ds.name for ds in mf.get_unnamed_ds()]
         if missing: 
@@ -87,6 +79,11 @@ def run():
         with open(args.write_steering, 'w') as st: 
             for ds in mf.get_found_full_ds_names(): 
                 st.write(ds.strip('/') + '/\n')
+    if args.a: 
+        mf.lookup_ami(stream=sys.stdout)
+    if args.dump: 
+        mf.dump()
+    mf.write_meta(args.output_pickle)
 
 if __name__ == '__main__': 
    run()

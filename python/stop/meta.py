@@ -32,6 +32,8 @@ class Dataset(object):
         self.full_name = ''
         self.full_unchecked_name = ''
 
+        self.bugs = set()
+
     def corrected_xsec(self): 
         assert all(x > 0 for x in [
                 self.total_xsec, self.kfactor, self.filteff])
@@ -235,7 +237,12 @@ class MetaFactory(object):
         
         return {ds.id: ds for ds in datasets}
 
-    def lookup_ami_names(self):
+    def lookup_ami_names(self, trust_names=False):
+
+        if trust_names: 
+            for ds in self._datasets.values(): 
+                if ds.full_unchecked_name: 
+                    ds.full_name = ds.full_unchecked_name
 
         datasets = self._datasets.values()
         no_full_name_ds = [ds for ds in datasets if not ds.full_name]
@@ -269,7 +276,11 @@ class MetaFactory(object):
             try: 
                 ds.filteff = float(info.extra['GenFiltEff_mean'])
             except KeyError: 
-                ds.filteff = float(info.extra['approx_GenFiltEff'])
+                try: 
+                    ds.filteff = float(info.extra['approx_GenFiltEff'])
+                except: 
+                    ds.bugs.add('no filter efficiency')
+                    ds.filteff = 1.0
 
         if not ds.total_xsec_fb: 
             try: 
