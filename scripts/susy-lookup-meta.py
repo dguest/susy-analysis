@@ -37,8 +37,8 @@ def _get_parser():
               ' or an existing meta file ({})'.format(d)))
     parser.add_argument('--susy-lookup', help=d)
     parser.add_argument('--output-pickle', help=d)
-    parser.add_argument('--add-meta', 
-                        help='add this meta ({})'.format(d))
+    # parser.add_argument('--add-meta', 
+    #                     help='add this meta ({})'.format(d))
     parser.add_argument('-f', action='store_true',
                         help='force overwrite of meta (if it exists)')
     parser.add_argument('-a', action='store_true',

@@ -278,7 +278,7 @@ class MetaFactory(object):
             except KeyError: 
                 try: 
                     ds.filteff = float(info.extra['approx_GenFiltEff'])
-                except: 
+                except KeyError: 
                     ds.bugs.add('no filter efficiency')
                     ds.filteff = 1.0
 
@@ -286,8 +286,12 @@ class MetaFactory(object):
             try: 
                 xsec = float(info.extra['crossSection_mean'])
             except KeyError:
-                xsec = float(info.extra['approx_crossSection'])
-            ds.total_xsec_fb = xsec * 1000.0
+                try: 
+                    xsec = float(info.extra['approx_crossSection'])
+                except KeyError: 
+                    ds.bugs.add('no cross section')
+
+                ds.total_xsec_fb = xsec * 1000.0
     
         ds.n_expected_entries = int(info.info['totalEvents'])
     
