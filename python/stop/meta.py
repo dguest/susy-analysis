@@ -31,7 +31,7 @@ class Dataset(object):
         self.physics_type = ''
         self.meta_sources = set()
         self.full_name = ''
-        self.full_unchecked_name = ''
+        self.full_unchecked_name = '' # FIXME: remove this
 
         self.bugs = set()
 
@@ -50,10 +50,8 @@ class Dataset(object):
             return '{:20}:{}'.format(name,getattr(self,name))
 
         out = ''
-        nonsimple = ['corrected_xsec','xsec_per_evt']
-        for attrib in dir(self):
-            if attrib.startswith('__') or attrib in nonsimple: 
-                continue
+        for attrib in self.__dict__:
+
             if out: 
                 out += '\n'
             out += stringify(attrib)
@@ -77,6 +75,12 @@ class Dataset(object):
     def yml_dict(self): 
         return dict(self._yml_iter())
 
+    def from_yml(self, yml_dict): 
+        for key, value in yml_dict.items(): 
+            if isinstance(getattr(self, key), set): 
+                value = set(value)
+            setattr(self, key, value)
+
 class DatasetCache(dict): 
     """
     A dict where dataset meta is stored. 
@@ -95,7 +99,12 @@ class DatasetCache(dict):
                 super(DatasetCache, self).__init__(cached_dict)
             if cache_name.endswith('.yml'): 
                 with open(cache_name) as cache: 
-                    pass
+                    yml_dict = yaml.load(cache)
+                for ds_id, yml_ds in yml_dict.iteritems(): 
+                    ds = Dataset()
+                    ds.from_yml(yml_ds)
+                    self[ds_id] = ds
+
 
     def __enter__(self): 
         return self
@@ -144,8 +153,8 @@ class MetaFactory(object):
         self._datasets = None
         if steering is None: 
             self._datasets = DatasetCache()
-        elif steering.endswith('.pkl'): 
-            self._datasets = self._build_from_meta_pkl(steering)
+        elif steering.endswith('.pkl') or steering.endswith('.yml'): 
+            self._datasets = self._build_from_meta(steering)
         elif steering.endswith('.txt'): 
             with open(steering) as ds_list:
                 self.add_ugly_ds_list(ds_list)
@@ -156,7 +165,7 @@ class MetaFactory(object):
         self.no_ami_overwrite = False
         self.verbose = False
 
-    def _build_from_meta_pkl(self, meta_file_name): 
+    def _build_from_meta(self, meta_file_name): 
         return DatasetCache(meta_file_name)
 
     def _dataset_from_name(self, entry): 
