@@ -12,7 +12,7 @@ class Dataset(object):
     """
     container for dataset info
     """
-    def __init__(self, yaml_file=None): 
+    def __init__(self): 
         self.origin = ''
         self.id = 0
         self.name = ''
@@ -34,8 +34,6 @@ class Dataset(object):
         self.full_unchecked_name = ''
 
         self.bugs = set()
-        if yaml_file: 
-            pass
 
     def corrected_xsec(self): 
         assert all(x > 0 for x in [
@@ -91,9 +89,13 @@ class DatasetCache(dict):
     def __init__(self, cache_name=''): 
         self._cache_name = cache_name
         if isfile(cache_name): 
-            with open(cache_name) as cache: 
-                cached_dict = cPickle.load(cache)
-            super(DatasetCache, self).__init__(cached_dict)
+            if cache_name.endswith('.pkl'): 
+                with open(cache_name) as cache: 
+                    cached_dict = cPickle.load(cache)
+                super(DatasetCache, self).__init__(cached_dict)
+            if cache_name.endswith('.yml'): 
+                with open(cache_name) as cache: 
+                    pass
 
     def __enter__(self): 
         return self
@@ -113,7 +115,8 @@ class DatasetCache(dict):
         elif cache_name.endswith('.yml'): 
             with open(cache_name, 'w') as cache: 
                 out_list = [ds.yml_dict() for ds in self.values()]
-                cache.write(yaml.dump_all(out_list))
+                out_dict = {ds['id']:ds for ds in out_list}
+                cache.write(yaml.dump(out_dict))
                     
 
 def _get_ami_client(): 
