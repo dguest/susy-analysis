@@ -74,8 +74,7 @@ def run():
         print 'looking up names in ami'
         mf.lookup_ami_names()
         mf.write_meta(args.output_pickle)
-        print 'looking up data in ami'
-        mf.lookup_ami()
+        mf.lookup_ami(stream=sys.stdout)
     if args.dump: 
         mf.dump()
     mf.write_meta(args.output_pickle)

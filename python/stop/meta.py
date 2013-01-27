@@ -30,7 +30,7 @@ class Dataset(object):
         self.physics_type = ''
         self.meta_sources = set()
         self.full_name = ''
-        self.steering_name = ''
+        self.full_unchecked_name = ''
 
     def corrected_xsec(self): 
         assert all(x > 0 for x in [
@@ -127,6 +127,50 @@ class MetaFactory(object):
     def _build_from_meta_pkl(self, meta_file_name): 
         return DatasetCache(meta_file_name)
 
+    def _dataset_from_name(self, entry): 
+        """
+        tries to build a dataset from a logical name. 
+        returns partial info if that's all we can find. 
+        """
+        fields = entry.split('#')[0].strip().split('.')
+        if fields[0] == 'user': 
+            fields = non_comment_fields[2:]
+        ds = Dataset()
+        try: 
+            ds.origin, ds.id, ds.name, prod, group, tags = fields
+            required = [ 
+                'SUSY' in group, 
+                prod == 'merge', 
+                self._find_tag(tags)
+                ]
+            if not all(required): 
+                raise ValueError('{} is not a ds name'.format(
+                        '.'.join(fields)))
+                                 
+            ds.tags = tags.rstrip('/')
+            ds.full_unchecked_name = entry.strip()
+        except ValueError as e: 
+            try: 
+                ds.origin, ds.id, ds.name = fields[0:3]
+                others = fields[3:]
+                for field in others: 
+                    if self._find_tag(field): 
+                        ds.tags = field.rstrip('/')
+
+            except ValueError as e: 
+                if 'to unpack' in str(e):
+                    raise ValueError(
+                        "{} isn't parseable as ds name".format(entry))
+                else: 
+                    raise 
+        return ds
+
+            
+    def _find_tag(self, field): 
+        tag_re = re.compile('e[0-9]+(_[asr][0-9]+)+_p[0-9]+')
+        return tag_re.search(field)
+        
+
     def add_ugly_ds_list(self, ds_list): 
         """
         this has been hacked to work with vincent's weird ds names
@@ -137,28 +181,11 @@ class MetaFactory(object):
             datasets = DatasetCache()
 
         for entry in ds_list: 
-            fields = entry.split('#')[0].strip().split('.')
-            if not fields: 
+            real_entry = entry.split('#')[0].strip()
+            if not real_entry: 
                 continue
-            if fields[0] == 'user': 
-                fields = non_comment_fields[2:]
-            ds = Dataset()
-            try: 
-                ds.origin, ds.id, ds.name = fields[0:3]
-                others = fields[3:]
-            except ValueError as e: 
-                if 'to unpack' in str(e):
-                    raise ValueError(
-                        "{} isn't parseable as ds name".format(entry))
-                else: 
-                    raise 
+            ds = self._dataset_from_name(real_entry)
 
-            ds.steering_name = entry.strip()
-                
-            tag_re = re.compile('e[0-9]+(_[asr][0-9]+)+_p[0-9]+')
-            for field in others: 
-                if tag_re.search(field):
-                    ds.tags = field.rstrip('/')
             if not ds.id in datasets: 
                 datasets[ds.id] = ds
         self._datasets = datasets
@@ -216,12 +243,16 @@ class MetaFactory(object):
         full_named_datasets = self._lookup_ami_names(no_full_name_ds)
         self._datasets.update( full_named_datasets )
 
-    def lookup_ami(self, client=_get_ami_client()): 
+    def lookup_ami(self, client=_get_ami_client(), stream=None): 
         """
         Matches ami
         """
-
-        for ds_id, ds in self._datasets.iteritems(): 
+        tot = len(self._datasets)
+        for n, (ds_id, ds) in enumerate(self._datasets.iteritems()): 
+            if stream: 
+                stream.write('\rlooking up data in ami'
+                             ' ({} of {})'.format(n, tot))
+                stream.flush()
             if 'ami' in ds.meta_sources and not self.retry_ami: 
                 continue
             if 'susy lookup' in ds.meta_sources and self.no_ami_overwrite: 
@@ -230,6 +261,8 @@ class MetaFactory(object):
             info = query.get_dataset_info(client, ds.full_name)
 
             self._write_ami_info_where_empty(ds, info)
+        if stream: 
+            stream.write('\n')
 
     def _write_ami_info_where_empty(self,ds, info): 
         if not ds.filteff:
@@ -300,10 +333,10 @@ def match_dataset(blob):
     if ds.full_name: 
         return ds.full_name
 
-    if ds.steering_name: 
+    if ds.full_unchecked_name: 
         try: 
-            query.get_dataset_info(client, ds.steering_name)
-            return ds.steering_name
+            query.get_dataset_info(client, ds.full_unchecked_name)
+            return ds.full_unchecked_name
         except: 
             pass
         
