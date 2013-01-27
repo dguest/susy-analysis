@@ -12,7 +12,7 @@ class Dataset(object):
     """
     container for dataset info
     """
-    def __init__(self): 
+    def __init__(self, yaml_file=None): 
         self.origin = ''
         self.id = 0
         self.name = ''
@@ -34,6 +34,8 @@ class Dataset(object):
         self.full_unchecked_name = ''
 
         self.bugs = set()
+        if yaml_file: 
+            pass
 
     def corrected_xsec(self): 
         assert all(x > 0 for x in [
@@ -58,7 +60,7 @@ class Dataset(object):
                 out += '\n'
             out += stringify(attrib)
         return out
-    def yml_iter(self): 
+    def _yml_iter(self): 
         ordered = ['id']
         for key in ordered: 
             yield key, self.__dict__[key]
@@ -66,12 +68,16 @@ class Dataset(object):
             skip_conditions = [ 
                 not value, 
                 key in ordered, 
+                key is 'full_unchecked_name', 
                 ]
             if any(skip_conditions): 
                 continue
-            if isinstance(value, set): 
+            if isinstance(value, set):
                 yield key, list(value)
-            yield key, value
+            else: 
+                yield key, value
+    def yml_dict(self): 
+        return dict(self._yml_iter())
 
 class DatasetCache(dict): 
     """
@@ -106,7 +112,7 @@ class DatasetCache(dict):
                 cPickle.dump(out_dict, cache)
         elif cache_name.endswith('.yml'): 
             with open(cache_name, 'w') as cache: 
-                out_list = [dict(ds.yml_iter()) for ds in self.values()]
+                out_list = [ds.yml_dict() for ds in self.values()]
                 cache.write(yaml.dump_all(out_list))
                     
 
@@ -160,21 +166,24 @@ class MetaFactory(object):
             fields = non_comment_fields[2:]
         ds = Dataset()
         try: 
-            ds.origin, ds.id, ds.name, prod, group, tags = fields
+            ds.origin, ds_id, ds.name, prod, group, tags = fields
             required = [ 
                 'SUSY' in group, 
                 prod == 'merge', 
                 self._find_tag(tags)
                 ]
+
             if not all(required): 
                 raise ValueError('{} is not a ds name'.format(
                         '.'.join(fields)))
                                  
+            ds.id = int(ds_id)
             ds.tags = tags.rstrip('/')
-            ds.full_unchecked_name = entry.strip()
+            ds.full_unchecked_name = entry.strip().rstrip('/')
         except ValueError as e: 
             try: 
                 ds.origin, ds.id, ds.name = fields[0:3]
+                ds.id = int(ds.id)
                 others = fields[3:]
                 for field in others: 
                     if self._find_tag(field): 
@@ -261,9 +270,11 @@ class MetaFactory(object):
     def lookup_ami_names(self, trust_names=False):
 
         if trust_names: 
+            print 'assuming input names are right'
             for ds in self._datasets.values(): 
                 if ds.full_unchecked_name: 
                     ds.full_name = ds.full_unchecked_name
+            return 
 
         datasets = self._datasets.values()
         no_full_name_ds = [ds for ds in datasets if not ds.full_name]
@@ -285,6 +296,7 @@ class MetaFactory(object):
                 continue
             if 'susy lookup' in ds.meta_sources and self.no_ami_overwrite: 
                 continue
+
 
             info = query.get_dataset_info(client, ds.full_name)
 
