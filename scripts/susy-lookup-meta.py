@@ -36,7 +36,7 @@ def _get_parser():
         help=('either a textfile of datasets'
               ' or an existing meta file ({})'.format(d)))
     parser.add_argument('--susy-lookup', help=d)
-    parser.add_argument('--output-pickle', help=d)
+    parser.add_argument('--output-meta', help=d, dest='output_pickle')
     # parser.add_argument('--add-meta', 
     #                     help='add this meta ({})'.format(d))
     parser.add_argument('-f', action='store_true',
@@ -55,7 +55,9 @@ def run():
 
     text_in = args.steering_file.endswith('.txt')
     if os.path.isfile(args.output_pickle) and text_in and not args.f: 
-        sys.exit('output-pickle exists already, refusing to overwrite')
+        sys.exit(
+            'output {} exists already, refusing to overwrite'.format(
+                args.output_pickle))
 
     mf = MetaFactory(args.steering_file)
     

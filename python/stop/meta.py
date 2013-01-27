@@ -6,6 +6,7 @@ from pyAMI.client import AMIClient
 from pyAMI.auth import AMI_CONFIG, create_auth_config
 import re
 import multiprocessing
+import yaml
 
 class Dataset(object): 
     """
@@ -57,6 +58,20 @@ class Dataset(object):
                 out += '\n'
             out += stringify(attrib)
         return out
+    def yml_iter(self): 
+        ordered = ['id']
+        for key in ordered: 
+            yield key, self.__dict__[key]
+        for key, value in self.__dict__.iteritems(): 
+            skip_conditions = [ 
+                not value, 
+                key in ordered, 
+                ]
+            if any(skip_conditions): 
+                continue
+            if isinstance(value, set): 
+                yield key, list(value)
+            yield key, value
 
 class DatasetCache(dict): 
     """
@@ -85,9 +100,15 @@ class DatasetCache(dict):
             cache_name = self._cache_name
             if not cache_name: 
                 raise ValueError('no file name given')
-        with open(cache_name, 'w') as cache: 
-            out_dict = dict(self)
-            cPickle.dump(out_dict, cache)
+        if cache_name.endswith('.pkl'): 
+            with open(cache_name, 'w') as cache: 
+                out_dict = dict(self)
+                cPickle.dump(out_dict, cache)
+        elif cache_name.endswith('.yml'): 
+            with open(cache_name, 'w') as cache: 
+                out_list = [dict(ds.yml_iter()) for ds in self.values()]
+                cache.write(yaml.dump_all(out_list))
+                    
 
 def _get_ami_client(): 
     client = AMIClient()
@@ -290,8 +311,9 @@ class MetaFactory(object):
                     xsec = float(info.extra['approx_crossSection'])
                 except KeyError: 
                     ds.bugs.add('no cross section')
+                    xsec = 0
 
-                ds.total_xsec_fb = xsec * 1000.0
+            ds.total_xsec_fb = xsec * 1000.0
     
         ds.n_expected_entries = int(info.info['totalEvents'])
     
