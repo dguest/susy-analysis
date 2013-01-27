@@ -1,20 +1,26 @@
-
 from os.path import isfile
+import os
 import cPickle
 from pyAMI import query
+from pyAMI.client import AMIClient
+from pyAMI.auth import AMI_CONFIG, create_auth_config
+import re
+import multiprocessing
 
 class Dataset(object): 
     """
     container for dataset info
     """
     def __init__(self): 
+        self.origin = ''
         self.id = 0
         self.name = ''
-        self.kfactor = 1
-        self.filteff = 1
+        self.tags = ''
+        self.kfactor = 0
+        self.filteff = 0
 
         self.n_raw_entries = 0
-        self.total_xsec = -1
+        self.total_xsec_fb = 0
         self.n_expected_entries = 0
 
         self.d3pds = []
@@ -24,9 +30,11 @@ class Dataset(object):
         self.physics_type = ''
         self.meta_sources = set()
         self.full_name = ''
+        self.steering_name = ''
 
     def corrected_xsec(self): 
-        assert all(x >= 0 for x in [self.total_xsec, self.kfactor, self.filteff])
+        assert all(x > 0 for x in [
+                self.total_xsec, self.kfactor, self.filteff])
         return self.total_xsec * self.kfactor * self.filteff
     @property
     def xsec_per_evt(self): 
@@ -79,6 +87,13 @@ class DatasetCache(dict):
             out_dict = dict(self)
             cPickle.dump(out_dict, cache)
 
+def _get_ami_client(): 
+    client = AMIClient()
+    if not os.path.exists(AMI_CONFIG):
+       create_auth_config()
+    client.read_config(AMI_CONFIG)
+    return client
+
 class MetaFactory(object): 
     """
     This pulls together: 
@@ -88,33 +103,65 @@ class MetaFactory(object):
     and generates the meta file, which is used to steer everything up to 
     histogram generation. 
     """
-    def __init__(self, cache=None): 
+    def __init__(self, steering=None): 
         """
+        Initalize from either: 
+         - a text file list of datasets
+         - an existing meta file
         """
-        self._datasets = cache
-        if cache is None: 
+        self._datasets = None
+        if steering is None: 
             self._datasets = DatasetCache()
-        self.mc_tag = 'mc12_8TeV'
-        self.p_tag = 'p1181'
-        self.datatype_tag = 'SUSY'
+        elif steering.endswith('.pkl'): 
+            self._datasets = self._build_from_meta_pkl(steering)
+        elif steering.endswith('.txt'): 
+            with open(steering) as ds_list:
+                self.add_ugly_ds_list(ds_list)
+        else: 
+            raise ValueError('{} is an unsupported file for MetaFactory'
+                             'constructor')
         self.retry_ami = False
         self.no_ami_overwrite = False
         self.verbose = False
 
-    def build_base_ds(self, ds_list): 
+    def _build_from_meta_pkl(self, meta_file_name): 
+        return DatasetCache(meta_file_name)
+
+    def add_ugly_ds_list(self, ds_list): 
         """
-        this should probably work based on the full ds name (unfortunately)
+        this has been hacked to work with vincent's weird ds names
         """
+        if self._datasets:
+            datasets = self._datasets
+        else:
+            datasets = DatasetCache()
+
         for entry in ds_list: 
-            non_comment_fields = entry.split('#')[0].strip().split()
-            if not non_comment_fields: 
+            fields = entry.split('#')[0].strip().split('.')
+            if not fields: 
                 continue
-            ds_id = non_comment_fields[0]
-            if ds_id in self._datasets: 
-                continue
-            dataset = Dataset()
-            dataset.id = ds_id
-            self._datasets[ds_id] = dataset
+            if fields[0] == 'user': 
+                fields = non_comment_fields[2:]
+            ds = Dataset()
+            try: 
+                ds.origin, ds.id, ds.name = fields[0:3]
+                others = fields[3:]
+            except ValueError as e: 
+                if 'to unpack' in str(e):
+                    raise ValueError(
+                        "{} isn't parseable as ds name".format(entry))
+                else: 
+                    raise 
+
+            ds.steering_name = entry.strip()
+                
+            tag_re = re.compile('e[0-9]+(_[asr][0-9]+)+_p[0-9]+')
+            for field in others: 
+                if tag_re.search(field):
+                    ds.tags = field.rstrip('/')
+            if not ds.id in datasets: 
+                datasets[ds.id] = ds
+        self._datasets = datasets
 
     def lookup_susy(self, susy_file): 
         """
@@ -139,10 +186,8 @@ class MetaFactory(object):
             if ds_id in self._datasets: 
                 ds = self._datasets[ds_id]
                 ds.id = int(spl[0])
-                if ds.name and not ds.name == spl[1]: 
-                    self._print('what the fuck {} != {}'.format(
-                            ds.name, spl[1]))
-                ds.total_xsec = float(spl[2])
+                ds.name = spl[1]
+                ds.total_xsec_fb = float(spl[2])
                 ds.kfactor = float(spl[3])
                 ds.filteff = float(spl[4])
                 ds.meta_sources.add('susy lookup')
@@ -151,59 +196,145 @@ class MetaFactory(object):
         if self.verbose: 
             print print_string
 
-    def lookup_ami(self, client): 
+    def _lookup_ami_names(self, datasets): 
+
+        client = _get_ami_client()
+        pool_tuples = [(client, ds) for ds in datasets]
+        pool = multiprocessing.Pool(self.processes)
+        full_ds_names = pool.map(match_dataset, pool_tuples)
+
+        for full_name, ds in zip(full_ds_names, datasets): 
+            ds.full_name = full_name
+        
+        return {ds.id: ds for ds in datasets}
+
+    def lookup_ami_names(self):
+
+        datasets = self._datasets.values()
+        no_full_name_ds = [ds for ds in datasets if not ds.full_name]
+        
+        full_named_datasets = self._lookup_ami_names(no_full_name_ds)
+        self._datasets.update( full_named_datasets )
+
+    def lookup_ami(self, client=_get_ami_client()): 
         """
         Matches ami
         """
+
         for ds_id, ds in self._datasets.iteritems(): 
             if 'ami' in ds.meta_sources and not self.retry_ami: 
                 continue
             if 'susy lookup' in ds.meta_sources and self.no_ami_overwrite: 
                 continue
-            wildcarded = r'{mc}%{key}%{datatype}%{p_tag}%'.format(
-                mc=self.mc_tag, key=ds.id, datatype=self.datatype_tag, 
-                p_tag=self.p_tag)
-            self._print('trying to match {}'.format(wildcarded))
-            match_sets = query.get_datasets(client,wildcarded)
-            if len(match_sets) != 1: 
-                set_names = [s['logicalDatasetName'] for s in match_sets]
-                self._print('match problem with {}, matches:'.format(
-                        wildcarded))
-                for s in set_names: 
-                    self._print('\t' + s)
-                continue
-            full_name = match_sets[0]['logicalDatasetName']
-            self._print( 'matched: {}'.format(full_name))
-            info = query.get_dataset_info(client, full_name)
 
+            info = query.get_dataset_info(client, ds.full_name)
+
+            self._write_ami_info_where_empty(ds, info)
+
+    def _write_ami_info_where_empty(self,ds, info): 
+        if not ds.filteff:
             try: 
                 ds.filteff = float(info.extra['GenFiltEff_mean'])
             except KeyError: 
                 ds.filteff = float(info.extra['approx_GenFiltEff'])
 
+        if not ds.total_xsec_fb: 
             try: 
-                ds.total_xsec = float(info.extra['crossSection_mean'])
+                xsec = float(info.extra['crossSection_mean'])
             except KeyError:
-                ds.total_xsec = float(info.extra['approx_crossSection'])
-
-            ds.n_expected_entries = int(info.info['totalEvents'])
-
-            ds.full_name = full_name
-            ds.meta_sources.add('ami')
+                xsec = float(info.extra['approx_crossSection'])
+            ds.total_xsec_fb = xsec * 1000.0
+    
+        ds.n_expected_entries = int(info.info['totalEvents'])
+    
+        ds.meta_sources.add('ami')
             
 
     def write_meta(self, output_file_name): 
         """
         write out the meta info
         """
-        print 'writing {}'.format(output_file_name)
         self._datasets.write(output_file_name)
 
+    def get_found_full_ds_names(self): 
+        full_names = []
+        for ds in self._datasets.values(): 
+            if ds.full_name:
+                full_names.append(ds.full_name)
+        return sorted(full_names)
+    def get_unnamed_ds(self): 
+        missing = []
+        for ds in self._datasets.values(): 
+            if not ds.full_name: 
+                missing.append(ds)
+        return missing
+
     def dump(self): 
-        for name, ds in self._datasets.iteritems(): 
-            print name
+        for ds_id, ds in self._datasets.iteritems(): 
+            print ds.name
             print ds
+            print
 
     def dump_sources(self): 
-        for name, ds in self._datasets.iteritems(): 
-            print '{}: {}'.format(name,ds.meta_sources)
+        for ds_id, ds in self._datasets.iteritems(): 
+            print '{} -- sources: {}'.format(ds.id,' '.join(ds.meta_sources))
+
+
+_wild_template = r'{o}.{ds_id}.{name}%NTUP%{tags}/'
+_aggressive_wild_template = r'{o}.{ds_id}%NTUP%{tags}/'
+def _wildcard_match_ami(client, ds, match_template=_wild_template): 
+    wildcarded = match_template.format(
+        o=ds.origin, ds_id=ds.id, name=ds.name, tags=ds.tags)
+
+    print 'trying to match {}'.format(wildcarded)
+    match_sets = query.get_datasets(client,wildcarded)
+    if len(match_sets) != 1: 
+        raise DatasetMatchError(
+            'could not match dataset with {}'.format(wildcarded), 
+            match_sets)
+    return match_sets[0]['logicalDatasetName']
+
+
+def match_dataset(blob): 
+    client, ds = blob
+    if ds.full_name: 
+        return ds.full_name
+
+    if ds.steering_name: 
+        try: 
+            query.get_dataset_info(client, ds.steering_name)
+            return ds.steering_name
+        except: 
+            pass
+        
+    try: 
+        full_name = _wildcard_match_ami(
+            client, ds, _aggressive_wild_template)
+        print 'matched {}'.format(full_name)
+    except DatasetMatchError as e: 
+        try: 
+            full_name = _wildcard_match_ami(
+                client, ds, _wild_template)
+            print 'matched {}'.format(full_name)
+        except DatasetMatchError as e: 
+            full_name = None 
+            print e
+    return full_name
+
+class DatasetMatchError(ValueError): 
+    def __init__(self, info, matches): 
+        super(DatasetMatchError, self).__init__(info)
+        self.matches = matches
+
+    def __str__(self): 
+        problem = super(DatasetMatchError,self).__str__()
+        problem += ' matches: '
+        for match in self.matches: 
+            try: 
+                st = match['logicalDatasetName']
+            except TypeError: 
+                st = str(match)
+            problem += ('\n\t' + st)
+        if len(self.matches) == 0: 
+            problem += ('none')
+        return problem
