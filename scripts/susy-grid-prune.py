@@ -3,7 +3,7 @@
 """
 Script to submit prun jobs to skim D3PDs. 
 
-Uses filter-and-merge-d3pd.py
+Creates a skimmer.py in the current directory. 
 """
 
 import sys, os, re
@@ -28,27 +28,18 @@ def submit_ds(ds_name, debug=False, version=3, used_vars='used_vars.txt'):
     out_ds = 'user.{user}.{in_ds}.skim_p{rev}_v{version}/'.format(
         user=user, in_ds=output_base, version=version, rev=rev_number)
 
-    build_string = 'echo %IN | sed \'s/,/\\n/g\' > grid_files.txt'
-
-    run_args = [
-        '--in=grid_files.txt',
-        '--out=skim-output.root', 
-        '--tree=susy', 
-        '--keep-all-trees', 
-        '--var={}'.format(used_vars), 
-        ]
-    run_string = 'filter-and-merge-d3pd.py ' + ' '.join(run_args)
+    run_string = 'python skimmer.py {} %IN'.format(used_vars)
 
     input_args = [
         '--inDS=' + ds_name,
         '--outDS=' + out_ds,
         '--outputs=skim-output.root', 
-        '--excludeFile=*.tar,*.log,*.sh,*.py,*.out,*.root',
+        '--excludeFile=*.tar,*.log,*.sh,*.out,*.root',
         '--extFile={}'.format(used_vars), 
         '--athenaTag=17.2.1', 
         ]
 
-    exec_string = '' + '; '.join([build_string, run_string]) + ''
+    exec_string = run_string
 
     
     submit_string = ['prun','--exec',exec_string] + input_args
@@ -57,6 +48,39 @@ def submit_ds(ds_name, debug=False, version=3, used_vars='used_vars.txt'):
     ps = Popen(submit_string)
     ps.communicate()
     return out_ds
+
+_skimmer = """
+import sys
+from ROOT import TChain, TFile, TTree
+
+branches = open(sys.argv[1])
+
+susy_chain = TChain('susy')
+collection_chain = TChain('CollectionTree')
+
+out_file = TFile('skim-output.root', 'recreate')
+
+for f in sys.argv[2].split(','): 
+    print 'adding', f
+    ret = susy_chain.Add(f,-1)
+    if ret != 1: 
+        raise RuntimeError(f + ' susy is fucked')
+    ret = collection_chain.Add(f,-1)
+    if ret != 1: 
+        raise RuntimeError(f + ' CollectionTree is fucked')
+
+susy_chain.SetBranchStatus('*',0)
+for branch in branches: 
+    print 'setting', branch.strip()
+    susy_chain.SetBranchStatus(branch.strip(), 1)
+
+out_susy = susy_chain.CloneTree()
+out_collection = collection_chain.CloneTree()
+
+out_file.WriteTObject(out_susy)
+out_file.WriteTObject(out_collection)
+"""
+
 
 if __name__ == '__main__': 
     parser = argparse.ArgumentParser(description=__doc__)
@@ -98,6 +122,10 @@ if __name__ == '__main__':
 
     if not os.path.isfile(used_vars): 
         sys.exit('you need {}!'.format(used_vars))
+
+    if not os.path.isfile('skimmer.py'): 
+        with open('skimmer.py','w') as sk: 
+            sk.write(_skimmer)
 
     if args.ds_list: 
         with open(args.ds_list) as ds_list: 
