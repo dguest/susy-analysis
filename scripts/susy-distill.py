@@ -22,6 +22,8 @@ def run():
                         help='print more help')
     parser.add_argument('--d3pd-dir', default='D3PDs',
                         help='input d3pd directory' + dp)
+    parser.add_argument('-f', action='store_true', 
+                        help='force rebuild')
     args = parser.parse_args(sys.argv[1:])
 
     fail_conditions = [ 
@@ -32,6 +34,8 @@ def run():
         sys.exit("misconfiguration! maybe you're missing some inputs")
 
     distiller = Distiller(args)
+    if args.f: 
+        distiller.force_rebuild = True
     if args.verbose: 
         print 'mapping inputs'
     distiller.find_input_files(args.d3pd_dir)

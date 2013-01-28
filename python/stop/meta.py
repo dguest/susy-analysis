@@ -77,7 +77,7 @@ class Dataset(object):
 
     def from_yml(self, yml_dict): 
         for key, value in yml_dict.items(): 
-            if isinstance(getattr(self, key), set): 
+            if hasattr(self,key) and isinstance(getattr(self, key), set): 
                 value = set(value)
             setattr(self, key, value)
 

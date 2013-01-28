@@ -14,6 +14,7 @@ class Distiller(object):
         self.meta_info_path = config.meta_info_path
         self.base_flags = 'r'
         self.verbose = False
+        self.force_rebuild = False
         if hasattr(config,'verbose') and config.verbose: 
             print 'running {} in verbose mode'.format(__name__)
             self.base_flags += 'v'
@@ -65,6 +66,7 @@ class Distiller(object):
                 flags = self._get_flags(ds)
                 build_conditions = [
                     not ds.skim_path, 
+                    self.force_rebuild, 
                     ]
                 skip_conditions = [ 
                     not ds.d3pds
@@ -83,7 +85,7 @@ class Distiller(object):
                         flags=ds.distill_flags, 
                         output_ntuple=ds.skim_path)
                     ds.n_raw_entries = dict(cut_counts)['total_events']
-                    ds.cutflow = dict(cut_counts)
+                    ds.cutflow = [list(c) for c in cut_counts]
                 elif self.verbose: 
                     print 'skipped {}'.format(ds.id)
                     
