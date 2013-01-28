@@ -1,19 +1,29 @@
 #!/usr/bin/env python2.7
+"""
+A simpler distillation script. 
+"""
 
 from susy.distiller import Distiller
-from argparse import ArgumentParser
+import argparse 
 # from ConfigParser import SafeConfigParser as Config
 import sys
 from os.path import isfile, isdir
 
 def run(): 
-    parser = ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(
+        description=__doc__)
     parser.add_argument(
-        'meta-info', destination='meta_info_path', 
-        help='input meta file for steering')
-    parser.add_argument('-o','--out-dir', default='whiskey')
-    parser.add_argument('-v','--verbose', action='store_true')
-    parser.add_argument('--d3pd-dir', default='D3PDs')
+        'meta-info-path', 
+        # help='input meta file for steering'
+        )
+    d = 'default: %(default)s'
+    dp = ' ({})'.format(d)
+    parser.add_argument('-o','--out-dir', help='output directory' + dp, 
+                        default='whiskey')
+    parser.add_argument('-v','--verbose', action='store_true', 
+                        help='print more help')
+    parser.add_argument('--d3pd-dir', default='D3PDs',
+                        help='input d3pd directory' + dp)
     args = parser.parse_args(sys.argv[1:])
 
     fail_conditions = [ 
