@@ -15,7 +15,9 @@ class Distiller(object):
         self.base_flags = 'r'
         self.verbose = False
         if hasattr(config,'verbose') and config.verbose: 
+            print 'running {} in verbose mode'.format(__name__)
             self.base_flags += 'v'
+            self.verbose = True
 
         self.setup_work_area()
 
@@ -25,7 +27,7 @@ class Distiller(object):
         """
         def supply_dir(dname): 
             if not isdir(dname): 
-                os.mkdirs(dname)
+                os.makedirs(dname)
         supply_dir(self.out_dir)
         
     def find_input_files(self, path): 
@@ -34,13 +36,13 @@ class Distiller(object):
         """
         with DatasetCache(self.meta_info_path) as cache: 
             for ds_id, ds in cache.iteritems(): 
-                globstr = '{path}/*{ds_id}*{tags}*/*.root*'.format(
-                    path=path, ds_id=ds_id, tags=ds.tags)
+                globstr = '{path}/*{ds_id}*/*.root*'.format(
+                    path=path, ds_id=ds_id)
                 files = glob.glob(globstr)
                 ds.d3pds = files
-                if not files and self.verbose: 
-                    print 'WARNING: no files found for ds {} {}'.format(
-                        ds.id, ds.name)
+                if not files and self.verbose:
+                    print 'WARNING: no files found for ds {} with {}'.format(
+                        ds.id, globstr)
 
     def _get_flags(self, ds): 
         flags = self.base_flags
@@ -60,12 +62,19 @@ class Distiller(object):
     def distill(self): 
         with DatasetCache(self.meta_info_path) as cache: 
             for ds_id, ds in cache.iteritems(): 
-                flags += self._get_cutflow_flags(ds)
+                flags = self._get_flags(ds)
                 build_conditions = [
                     not ds.skim_path, 
                     ]
+                skip_conditions = [ 
+                    not ds.d3pds
+                    ]
+                if any(skip_conditions): 
+                    if self.verbose: 
+                        print 'skipping {}'.format(ds.id)
+                    continue
                 if any(build_conditions): 
-                    skim_name = '{id}.root'.format(ds.id)
+                    skim_name = '{}.root'.format(ds.id)
                     ds.skim_path = join(self.out_dir, skim_name)
                     ds.distill_flags = flags
                     cut_counts = cutflow.cutflow(
@@ -75,6 +84,8 @@ class Distiller(object):
                         output_ntuple=ds.skim_path)
                     ds.n_raw_entries = dict(cut_counts)['total_events']
                     ds.cutflow = dict(cut_counts)
+                elif self.verbose: 
+                    print 'skipped {}'.format(ds.id)
                     
     def _signal_finder(self, name): 
         """

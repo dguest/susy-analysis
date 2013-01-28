@@ -12,10 +12,8 @@ from os.path import isfile, isdir
 def run(): 
     parser = argparse.ArgumentParser(
         description=__doc__)
-    parser.add_argument(
-        'meta-info-path', 
-        # help='input meta file for steering'
-        )
+    parser.add_argument('meta_info_path', help='input meta file for steering')
+
     d = 'default: %(default)s'
     dp = ' ({})'.format(d)
     parser.add_argument('-o','--out-dir', help='output directory' + dp, 
@@ -34,7 +32,11 @@ def run():
         sys.exit("misconfiguration! maybe you're missing some inputs")
 
     distiller = Distiller(args)
+    if args.verbose: 
+        print 'mapping inputs'
     distiller.find_input_files(args.d3pd_dir)
+    if args.verbose: 
+        print 'running distill'
     distiller.distill()
 
 if __name__ == '__main__': 
