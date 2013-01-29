@@ -110,11 +110,11 @@ void OutTree::Jet::set_branches(TTree* tree, std::string prefix,
   tree->Branch((prefix + "flavor_truth_label").c_str(), 
 		 &flavor_truth_label); 
   }
-  if (flags & cutflag::save_flavor_wt) { 
-    tree->Branch((prefix + "cnn_b").c_str(), &cnn_b); 
-    tree->Branch((prefix + "cnn_c").c_str(), &cnn_c); 
-    tree->Branch((prefix + "cnn_u").c_str(), &cnn_u); 
-  }
+
+  tree->Branch((prefix + "cnn_b").c_str(), &cnn_b); 
+  tree->Branch((prefix + "cnn_c").c_str(), &cnn_c); 
+  tree->Branch((prefix + "cnn_u").c_str(), &cnn_u); 
+
   if (flags & cutflag::save_ratios) { 
     tree->Branch((prefix + "cnn_log_cb").c_str(), &cnn_log_cb); 
     tree->Branch((prefix + "cnn_log_cu").c_str(), &cnn_log_cu); 
