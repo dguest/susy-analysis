@@ -104,7 +104,7 @@ class Distiller(object):
     def prepare_dataset_meta(self):
         with DatasetCache(self.meta_info_path) as cache: 
             for ds_id, ds in cache.iteritems(): 
-                skim_name = '{}.root'.format(ds.id)
+                skim_name = '{}.root'.format(ds.key)
                 ds.skim_path = join(self.out_dir, skim_name)
                 ds.distill_flags = self._get_flags(ds)
                 ds.need_rerun = self._needs_rerun(ds)
