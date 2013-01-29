@@ -7,6 +7,7 @@ from pyAMI.auth import AMI_CONFIG, create_auth_config
 import re
 import multiprocessing
 import yaml
+from warnings import warn
 
 class Dataset(object): 
     """
@@ -81,6 +82,20 @@ class Dataset(object):
                 value = set(value)
             setattr(self, key, value)
 
+    @property
+    def key(self): 
+        """
+        should be used to identify datasets in the dict
+        """
+        if self.origin.startswith('mc'): 
+            char = 's'
+        elif self.origin.startswith('data'): 
+            char = 'd'
+        else: 
+            warn("not sure if ds with id {} is mc or data".format(self.id))
+            char = 'q'
+        return '{}{}'.format(char,self.id)
+
 class DatasetCache(dict): 
     """
     A dict where dataset meta is stored. 
@@ -100,10 +115,12 @@ class DatasetCache(dict):
             if cache_name.endswith('.yml'): 
                 with open(cache_name) as cache: 
                     yml_dict = yaml.load(cache)
-                for ds_id, yml_ds in yml_dict.iteritems(): 
+                for ds_key, yml_ds in yml_dict.iteritems(): 
                     ds = Dataset()
                     ds.from_yml(yml_ds)
-                    self[ds_id] = ds
+                    if ds_key != ds.key: 
+                        warn('changing ds keys in {}'.format(cache_name))
+                    self[ds.key] = ds
 
 
     def __enter__(self): 
@@ -123,8 +140,8 @@ class DatasetCache(dict):
                 cPickle.dump(out_dict, cache)
         elif cache_name.endswith('.yml'): 
             with open(cache_name, 'w') as cache: 
-                out_list = [ds.yml_dict() for ds in self.values()]
-                out_dict = {ds['id']:ds for ds in out_list}
+                out_list = [(ds.key, ds.yml_dict()) for ds in self.values()]
+                out_dict = dict(out_list)
                 cache.write(yaml.dump(out_dict))
                     
 
@@ -233,8 +250,8 @@ class MetaFactory(object):
                 continue
             ds = self._dataset_from_name(real_entry)
 
-            if not ds.id in datasets: 
-                datasets[ds.id] = ds
+            if not ds.key in datasets: 
+                datasets[ds.key] = ds
         self._datasets = datasets
 
     def lookup_susy(self, susy_file): 
@@ -257,8 +274,8 @@ class MetaFactory(object):
             spl = clean_line.split()
             name = spl[1]
             ds_id = spl[0]
-            if ds_id in self._datasets: 
-                ds = self._datasets[ds_id]
+            if ds_key in self._datasets: 
+                ds = self._datasets[ds_key]
                 ds.id = int(spl[0])
                 ds.name = spl[1]
                 ds.total_xsec_fb = float(spl[2])
@@ -282,7 +299,7 @@ class MetaFactory(object):
             if hasattr(ds, 'full_unchecked_name'): 
                 del ds.full_unchecked_name
         
-        return {ds.id: ds for ds in datasets}
+        return {ds.key: ds for ds in datasets}
 
     def lookup_ami_names(self, trust_names=False):
 
@@ -309,7 +326,7 @@ class MetaFactory(object):
         Matches ami
         """
         tot = len(self._datasets)
-        for n, (ds_id, ds) in enumerate(self._datasets.iteritems()): 
+        for n, (ds_key, ds) in enumerate(self._datasets.iteritems()): 
             if stream: 
                 stream.write('\rlooking up data in ami'
                              ' ({} of {})'.format(n, tot))
@@ -319,15 +336,19 @@ class MetaFactory(object):
             if 'susy lookup' in ds.meta_sources and self.no_ami_overwrite: 
                 continue
 
-
-            info = query.get_dataset_info(client, ds.full_name)
+            if ds.full_name: 
+                info = query.get_dataset_info(client, ds.full_name)
+                if ds.origin.startswith('mc'): 
+                    self._write_mc_ami_info(ds, info)
+                self._write_ami_info(ds, info)
+            else: 
+                ds.bugs.add('ambiguous dataset')
             
-            if ds.origin.startswith('mc'): 
-                self._write_ami_info_where_empty(ds, info)
+
         if stream: 
             stream.write('\n')
 
-    def _write_ami_info_where_empty(self,ds, info): 
+    def _write_mc_ami_info(self, ds, info):
         if not ds.filteff:
             try: 
                 ds.filteff = float(info.extra['GenFiltEff_mean'])
@@ -350,6 +371,7 @@ class MetaFactory(object):
 
             ds.total_xsec_fb = xsec * 1000.0
     
+    def _write_ami_info(self, ds, info): 
         ds.n_expected_entries = int(info.info['totalEvents'])
     
         ds.meta_sources.add('ami')
@@ -375,13 +397,13 @@ class MetaFactory(object):
         return missing
 
     def dump(self): 
-        for ds_id, ds in self._datasets.iteritems(): 
+        for ds_key, ds in self._datasets.iteritems(): 
             print ds.name
             print ds
             print
 
     def dump_sources(self): 
-        for ds_id, ds in self._datasets.iteritems(): 
+        for ds_key, ds in self._datasets.iteritems(): 
             print '{} -- sources: {}'.format(ds.id,' '.join(ds.meta_sources))
 
 
