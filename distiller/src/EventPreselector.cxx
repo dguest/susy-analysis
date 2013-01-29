@@ -7,8 +7,11 @@
 
 EventPreselector::EventPreselector(unsigned flags, std::string grl) : 
   m_flags(flags), 
-  m_grl(new Grl(grl))
+  m_grl(0)
 {
+  if (grl.size()) { 
+    m_grl = new Grl(grl); 
+  }
 }
 
 EventPreselector::~EventPreselector() { 
@@ -23,7 +26,10 @@ unsigned EventPreselector::get_preselection_flags(const SusyBuffer& buffer) {
 
   if ( m_flags & cutflag::is_data ) { 
     if (buffer.coreFlags & 0x40000) pass_bits |= pass::core; 
-    if (m_grl->has_lb(buffer.RunNumber, buffer.lbn)) pass_bits |= pass::grl; 
+    if (m_grl) { 
+      if (m_grl->has_lb(buffer.RunNumber, buffer.lbn)) 
+	pass_bits |= pass::grl; 
+    }
   }
   else { 
     pass_bits |= pass::core; 

@@ -10,7 +10,7 @@ class SusyBuffer;
 class EventPreselector: public boost::noncopyable
 { 
 public: 
-  EventPreselector(unsigned flags, std::string grl); 
+  EventPreselector(unsigned flags, std::string grl = ""); 
   ~EventPreselector(); 
   unsigned get_preselection_flags(const SusyBuffer& buffer); 
 private: 

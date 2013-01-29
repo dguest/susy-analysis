@@ -109,6 +109,7 @@ EventJets::EventJets(const SusyBuffer& buffer, SUSYObjDef& def,
       //JVF>0.75, pt>20GeV, isGoodJet (from SUSYTools), ...)
 
     // must initalize all jets
+
     bool is_jet = check_if_jet(jet_n, buffer, def, flags, info); 
 
     SelectedJet* the_jet = new SelectedJet(this, jet_n); 

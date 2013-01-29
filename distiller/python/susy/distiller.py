@@ -1,6 +1,6 @@
 from stop.meta import DatasetCache
 from susy import cutflow
-import re, os, glob
+import re, os, glob, sys
 from os.path import isdir, join, isfile
 
 def _run_distill(ds): 
@@ -27,6 +27,7 @@ class Distiller(object):
         self.base_flags = ''
         self.verbose = False
         self.force_rebuild = False
+        self.warn_stream = sys.stdout
         if hasattr(config,'verbose') and config.verbose: 
             print 'running {} in verbose mode'.format(__name__)
             self.base_flags += 'v'
@@ -48,16 +49,17 @@ class Distiller(object):
         maps out root files and adds the meta info to the 
         """
         with DatasetCache(self.meta_info_path) as cache: 
-            for ds_id, ds in cache.iteritems(): 
-                globstr = '{path}/*{ds_id}*/*.root*'.format(
-                    path=path, ds_id=ds_id)
+            for ds_key, ds in cache.iteritems(): 
+                globstr = '{path}/*{origin}*{ds_id}*/*.root*'.format(
+                    path=path, origin=ds.origin, ds_id=ds.id)
                 files = glob.glob(globstr)
                 ds.d3pds = files
                 if files and 'no d3pds' in ds.bugs: 
                     ds.bugs.remove('no d3pds')
                 if not files and self.verbose:
-                    print 'WARNING: no files found for ds {} with {}'.format(
-                        ds.id, globstr)
+                    self.warn_stream.write(
+                        'WARNING: no files found for ds {} with {}\n'.format(
+                            ds.id, globstr))
 
     def _get_flags(self, ds): 
         """
@@ -92,7 +94,7 @@ class Distiller(object):
         if not isfile(ds.skim_path): 
             return True
         skim_mtime = os.stat(ds.skim_path).st_mtime
-        if any(os.stat(d3pd).st_mtime > skim_mtime): 
+        if any(os.stat(d3pd).st_mtime > skim_mtime for d3pd in ds.d3pds): 
             return True
         
         if self.force_rebuild: 
@@ -115,8 +117,6 @@ class Distiller(object):
                 if ds.need_rerun: 
                     updated_ds = _run_distill(ds)
                     ds = updated_ds
-                elif self.verbose: 
-                    print 'skipped {}'.format(ds.id)
                     
     def _signal_finder(self, name): 
         """

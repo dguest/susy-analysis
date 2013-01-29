@@ -60,7 +60,7 @@ TOBJ        := SusyBuffer.o
 T_DICTS     := $(TOBJ:.o=Dict.o)
 GEN_OBJ     := cutflow.o OutTree.o Jets.o Leptons.o BitmapCutflow.o Grl.o
 GEN_OBJ     += SmartChain.o PerformanceNtuple.o CollectionTreeReport.o 
-GEN_OBJ     += EventPreselector.o
+GEN_OBJ     += EventPreselector.o 
 EXE_OBJ     := $(GEN_OBJ) $(T_DICTS) $(TOBJ)
 PYLIB_OBJ   := $(GEN_OBJ) $(T_DICTS) $(TOBJ)
 

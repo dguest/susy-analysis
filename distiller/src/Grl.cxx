@@ -8,9 +8,8 @@
 Grl::Grl(std::string grl_location): 
   m_grl(0)
 { 
-  if (grl_location.size() == 0) { 
-    return; 
-  }
+  assert(grl_location.size()); 
+
   Root::TGoodRunsListReader reader(grl_location.c_str(), true); 
   reader.AddXMLFile(grl_location.c_str()); 
   reader.Interpret(); 
@@ -23,6 +22,5 @@ Grl::~Grl() {
 }
 
 bool Grl::has_lb(int run_number, int lbn){ 
-  assert(m_grl); 
   return m_grl->HasRunLumiBlock(run_number, lbn); 
 }
