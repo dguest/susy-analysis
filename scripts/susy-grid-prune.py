@@ -81,6 +81,18 @@ out_file.WriteTObject(out_susy)
 out_file.WriteTObject(out_collection)
 """
 
+class LocalSkimmer(object): 
+    script_name = 'skimmer.py'
+    def __init__(self): 
+        if os.path.isfile(self.script_name): 
+            os.remove(self.script_name)
+        with open(self.script_name,'w') as sk: 
+            sk.write(_skimmer)
+    def __enter__(self): 
+        return self
+    def __exit__(self, ex_type, ex_val, trace): 
+        os.remove(self.script_name)
+        
 
 if __name__ == '__main__': 
     parser = argparse.ArgumentParser(description=__doc__)
@@ -109,23 +121,21 @@ if __name__ == '__main__':
         config.add_section('variables')
         config.set('variables','varlist',args.varlist)
 
+    if not find_executable('prun'): 
+        raise OSError("prun isn't defined, you need to set it up")
+
+
     version = config.getint('version', 'version')
     config.set('version','version',str(version + 1))
 
     used_vars = config.get('variables','varlist')
 
-    if not find_executable('prun'): 
-        raise OSError("prun isn't defined, you need to set it up")
-    
     datasets = []
 
 
     if not os.path.isfile(used_vars): 
         sys.exit('you need {}!'.format(used_vars))
 
-    if not os.path.isfile('skimmer.py'): 
-        with open('skimmer.py','w') as sk: 
-            sk.write(_skimmer)
 
     if args.ds_list: 
         with open(args.ds_list) as ds_list: 
@@ -145,7 +155,8 @@ if __name__ == '__main__':
             return submit_ds(ds, args.debug, version, used_vars=used_vars)
 
         pool = Pool(10)
-        output_datasets = pool.map(submit, datasets)
+        with LocalSkimmer(): 
+            output_datasets = pool.map(submit, datasets)
         for ds in output_datasets: 
             output_datasets_list.write(ds + '\n')
     else: 
@@ -157,3 +168,6 @@ if __name__ == '__main__':
     # record version if things worked
     with open(args.config,'w') as cfg: 
         config.write(cfg)
+
+
+
