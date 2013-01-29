@@ -22,7 +22,7 @@ def _get_parser():
         epilog='Author: Dan Guest', 
         )
 
-    def_meta = 'meta.pkl'
+    def_meta = 'meta.yml'
     defaults = { 
         'output_pickle': def_meta, 
         'steering_file': def_meta
@@ -54,7 +54,7 @@ def run():
     args = _get_parser().parse_args(sys.argv[1:])
 
     text_in = args.steering_file.endswith('.txt')
-    if os.path.isfile(args.output_pickle) and text_in and not args.f: 
+    if os.path.isfile(args.output_pickle) and not args.f: 
         sys.exit(
             'output {} exists already, refusing to overwrite'.format(
                 args.output_pickle))

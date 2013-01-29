@@ -31,7 +31,7 @@ class Dataset(object):
         self.physics_type = ''
         self.meta_sources = set()
         self.full_name = ''
-        self.full_unchecked_name = '' # FIXME: remove this
+        # self.full_unchecked_name = '' # FIXME: remove this
 
         self.bugs = set()
 
@@ -173,9 +173,11 @@ class MetaFactory(object):
         tries to build a dataset from a logical name. 
         returns partial info if that's all we can find. 
         """
+        entry = entry.split('_tid')[0]
+
         fields = entry.split('#')[0].strip().split('.')
         if fields[0] == 'user': 
-            fields = non_comment_fields[2:]
+            fields = fields[2:]
         ds = Dataset()
         try: 
             ds.origin, ds_id, ds.name, prod, group, tags = fields
@@ -211,8 +213,9 @@ class MetaFactory(object):
 
             
     def _find_tag(self, field): 
-        tag_re = re.compile('e[0-9]+(_[asr][0-9]+)+_p[0-9]+')
-        return tag_re.search(field)
+        mc_re = re.compile('e[0-9]+(_[asr][0-9]+)+_p[0-9]+')
+        data_re = re.compile('f[0-9]+(_[a-z][0-9]+)+_p[0-9]+')
+        return mc_re.search(field) or data_re.search(field)
         
 
     def add_ugly_ds_list(self, ds_list): 
@@ -276,6 +279,8 @@ class MetaFactory(object):
 
         for full_name, ds in zip(full_ds_names, datasets): 
             ds.full_name = full_name
+            if hasattr(ds, 'full_unchecked_name'): 
+                del ds.full_unchecked_name
         
         return {ds.id: ds for ds in datasets}
 
@@ -284,8 +289,13 @@ class MetaFactory(object):
         if trust_names: 
             print 'assuming input names are right'
             for ds in self._datasets.values(): 
-                if ds.full_unchecked_name: 
-                    ds.full_name = ds.full_unchecked_name
+                try: 
+                    if ds.full_unchecked_name: 
+                        ds.full_name = ds.full_unchecked_name
+                        del ds.full_unchecked_name
+                except AttributeError: 
+                    pass
+                
             return 
 
         datasets = self._datasets.values()
@@ -311,8 +321,9 @@ class MetaFactory(object):
 
 
             info = query.get_dataset_info(client, ds.full_name)
-
-            self._write_ami_info_where_empty(ds, info)
+            
+            if ds.origin.startswith('mc'): 
+                self._write_ami_info_where_empty(ds, info)
         if stream: 
             stream.write('\n')
 
@@ -377,8 +388,12 @@ class MetaFactory(object):
 _wild_template = r'{o}.{ds_id}.{name}%NTUP%{tags}/'
 _aggressive_wild_template = r'{o}.{ds_id}%NTUP%{tags}/'
 def _wildcard_match_ami(client, ds, match_template=_wild_template): 
+    if 'data' in ds.origin: 
+        ds_id = '{:08}'.format(ds.id)
+    else: 
+        ds_id = '{:06}'.format(ds.id)
     wildcarded = match_template.format(
-        o=ds.origin, ds_id=ds.id, name=ds.name, tags=ds.tags)
+        o=ds.origin, ds_id=ds_id, name=ds.name, tags=ds.tags)
 
     print 'trying to match {}'.format(wildcarded)
     match_sets = query.get_datasets(client,wildcarded)
@@ -394,12 +409,12 @@ def match_dataset(blob):
     if ds.full_name: 
         return ds.full_name
 
-    if ds.full_unchecked_name: 
-        try: 
+    try: 
+        if ds.full_unchecked_name: 
             query.get_dataset_info(client, ds.full_unchecked_name)
             return ds.full_unchecked_name
-        except: 
-            pass
+    except: 
+        pass
         
     try: 
         full_name = _wildcard_match_ami(
