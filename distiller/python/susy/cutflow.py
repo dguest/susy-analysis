@@ -1,7 +1,8 @@
 import _cutflow 
 import warnings
+from os.path import isfile
 
-def cutflow(input_files, run_number, flags, output_ntuple = ''): 
+def cutflow(input_files, run_number, flags, grl='', output_ntuple=''): 
     """
     Returns a list of pairs: (cut_name, n_passing). If output_ntuple is 
     given will also write an ntuple. 
@@ -28,9 +29,12 @@ def cutflow(input_files, run_number, flags, output_ntuple = ''):
     if not input_files: 
         raise IOError("can't run cutflow, input files don't exist")
 
+    if grl and not isfile(grl): 
+        raise IOError('grl {} not found'.format(grl))
+
     try: 
         cut_out = _cutflow._cutflow(input_files, run_number, flags, 
-                                    output_ntuple)
+                                    grl, output_ntuple)
     except RuntimeError as er: 
         if 'a' in flags and 'bad file:' in str(er): 
             bad_file = str(er).split(':')[-1].strip()

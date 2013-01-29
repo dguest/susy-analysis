@@ -7,7 +7,7 @@ USE_LIBS="ApplyJetCalibration CalibrationDataInterface egammaAnalysisUtils\
  TrigRootAnalysis TauCorrections\
  SUSYTools"
 
-USE_HEADER="SUSYTools MissingETUtility egammaAnalysisUtils"
+USE_HEADER="SUSYTools MissingETUtility egammaAnalysisUtils GoodRunsLists"
 
 
 if [[ $1 == '-l' ]]

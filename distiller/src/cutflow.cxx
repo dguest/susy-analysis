@@ -8,6 +8,7 @@
 #include "BitmapCutflow.hh"
 #include "SmartChain.hh"
 #include "CollectionTreeReport.hh"
+#include "EventPreselector.hh"
 
 #include "RunBits.hh"
 #include "EventBits.hh"
@@ -19,7 +20,7 @@
 #include <string> 
 #include <streambuf>
 #include <cassert>
-#include <cstdlib>
+#include <cstdlib> // getenv, others
 #include <cstdio>
 #include <map>
 #include "TChain.h"
@@ -32,26 +33,6 @@
 
 #include <boost/format.hpp>
 #include <boost/scoped_ptr.hpp>
-
-/* NOTES:
-
-need to get proper condition for first trigger statement (not isSignal)
-remove isSignal = true
-
-el_wet  set to zero, not passed properly
-
-where Jan used jetsEMscale, we just have baseline_jets container
-    (may need to fix this later)
-
-all the cuts have been negated now, for the continue statement logic
-
-putting off the badz0wrtPVmuon (superfluous at the moment, not easy to implement)
-
-DONE: m_combNN_btag_wt = 0; 	// TODO: find this branch and set it  
-
-run number is set, why?
-
- */
 
 //_________________________________________________________________
 // forward declare utility 
@@ -116,6 +97,8 @@ run_cutflow(std::vector<std::string> files,
     branch_save.close(); 
   }
 
+  EventPreselector event_preselector(flags, info.grl); 
+
   // dump stdout from susytools init to /dev/null 
   std::string out_file = "/dev/null"; 
   if (flags & cutflag::debug_susy) { 
@@ -176,18 +159,10 @@ run_cutflow(std::vector<std::string> files,
     std::vector<Muon*> susy_muons = filter_susy(all_muons); 
 
     unsigned pass_bits = 0; 
-  
-    pass_bits |= pass::grl; 
 
     // --- preselection 
 
-    if(buffer.trigger)    pass_bits |= pass::trigger; 
-    if(!buffer.larError)  pass_bits |= pass::lar_error; 
-
-    if ( !(flags & cutflag::is_data ) ||
-	 ((buffer.coreFlags & 0x40000) == 0) ){ 
-      pass_bits |= pass::core; 
-    }
+    pass_bits |= event_preselector.get_preselection_flags(buffer); 
 
     // --- object selection 
 

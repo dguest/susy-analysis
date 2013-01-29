@@ -27,9 +27,9 @@ public :
   unsigned int RunNumber; 
   unsigned int EventNumber; 
   unsigned lbn; 
-  Bool_t          trigger; 
-  Float_t         averageIntPerXing;
-  UInt_t          larError;
+  bool          trigger; 
+  float         averageIntPerXing;
+  unsigned        larError;
   unsigned        coreFlags; 
 
   int hfor_type; 
@@ -63,7 +63,7 @@ public :
   float MET_RefFinal_ety; 
   
   vector<float>   *jet_jvtxf; 
-  Int_t           el_n;
+  int             el_n;
   vector<int>     *el_author;
   vector<unsigned int> *el_OQ;
   // vector<unsigned int> *el_OQRecalc;
@@ -76,7 +76,7 @@ public :
   vector<float>   *el_tracketa;
   vector<int>     *el_nPixHits;
   vector<int>     *el_nSCTHits;
-  Int_t           mu_staco_n;
+  int           mu_staco_n;
   vector<float>   *mu_staco_E;
   vector<float>   *mu_staco_pt;
   vector<float>   *mu_staco_eta;
@@ -103,7 +103,7 @@ public :
   vector<int>     *mu_staco_nPixelDeadSensors;
   vector<int>     *mu_staco_nSCTDeadSensors;
   vector<int>     *mu_staco_expectBLayerHit;
-  Int_t           jet_n;
+  int           jet_n;
   vector<float>   *jet_E;
   vector<float>   *jet_eta;
   vector<float>   *jet_phi;

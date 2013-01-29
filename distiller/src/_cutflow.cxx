@@ -16,13 +16,16 @@ static PyObject* py_cutflow(PyObject *self,
 {
   PyObject* py_input_files; 
   const char* flags_str = ""; 
+  const char* grl_char = ""; 
   const char* out_ntuple = ""; 
 
   RunInfo info; 
+
   bool ok = PyArg_ParseTuple
-    (args,"Oi|ss:cutflow", &py_input_files, &info.run_number, 
-     &flags_str, &out_ntuple); 
+    (args,"Oi|sss:cutflow", &py_input_files, &info.run_number, 
+     &flags_str, &grl_char, &out_ntuple); 
   if (!ok) return NULL;
+  info.grl = grl_char ? grl_char : std::string(); 
 
   int n_files = PyList_Size(py_input_files); 
   if (PyErr_Occurred()) return NULL; 
