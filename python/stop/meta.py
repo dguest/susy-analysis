@@ -62,7 +62,7 @@ class Dataset(object):
             yield key, self.__dict__[key]
         for key, value in self.__dict__.iteritems(): 
             skip_conditions = [ 
-                not value, 
+                not value and value is not False, 
                 key in ordered, 
                 key is 'full_unchecked_name', 
                 ]

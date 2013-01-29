@@ -1,7 +1,19 @@
 from stop.meta import DatasetCache
 from susy import cutflow
 import re, os, glob
-from os.path import isdir, join
+from os.path import isdir, join, isfile
+
+def _run_distill(ds): 
+    cut_counts = cutflow.cutflow(
+        input_files=ds.d3pds, 
+        run_number=ds.id, 
+        flags=ds.distill_flags, 
+        output_ntuple=ds.skim_path)
+    ds.n_raw_entries = dict(cut_counts)['total_events']
+    ds.cutflow = [list(c) for c in cut_counts]
+    ds.need_rerun = False
+    return ds
+    
 
 class Distiller(object): 
     """
@@ -12,7 +24,7 @@ class Distiller(object):
     def __init__(self, config): 
         self.out_dir = config.out_dir
         self.meta_info_path = config.meta_info_path
-        self.base_flags = 'r'
+        self.base_flags = ''
         self.verbose = False
         self.force_rebuild = False
         if hasattr(config,'verbose') and config.verbose: 
@@ -41,11 +53,16 @@ class Distiller(object):
                     path=path, ds_id=ds_id)
                 files = glob.glob(globstr)
                 ds.d3pds = files
+                if files and 'no d3pds' in ds.bugs: 
+                    ds.bugs.remove('no d3pds')
                 if not files and self.verbose:
                     print 'WARNING: no files found for ds {} with {}'.format(
                         ds.id, globstr)
 
     def _get_flags(self, ds): 
+        """
+        get ds flags (translated internally to bitmask)
+        """
         flags = self.base_flags
 
         if ds.origin.startswith('data'): 
@@ -60,32 +77,44 @@ class Distiller(object):
 
         return flags
 
+    def _needs_rerun(self, ds): 
+        """
+        check a dataset for rerunning, based on age of input and output
+        files. May add to bug set if inputs are missing. 
+        """
+        if not ds.d3pds: 
+            ds.bugs.add('no d3pds')
+            return False
+        for d3pd in ds.d3pds: 
+            if not isfile(d3pd): 
+                raise IOError('d3pd {} not found'.format(d3pd))
+
+        if not isfile(ds.skim_path): 
+            return True
+        skim_mtime = os.stat(ds.skim_path).st_mtime
+        if any(os.stat(d3pd).st_mtime > skim_mtime): 
+            return True
+        
+        if self.force_rebuild: 
+            return True
+
+        return False
+
+
+    def prepare_dataset_meta(self):
+        with DatasetCache(self.meta_info_path) as cache: 
+            for ds_id, ds in cache.iteritems(): 
+                skim_name = '{}.root'.format(ds.id)
+                ds.skim_path = join(self.out_dir, skim_name)
+                ds.distill_flags = self._get_flags(ds)
+                ds.need_rerun = self._needs_rerun(ds)
+
     def distill(self): 
         with DatasetCache(self.meta_info_path) as cache: 
             for ds_id, ds in cache.iteritems(): 
-                flags = self._get_flags(ds)
-                build_conditions = [
-                    not ds.skim_path, 
-                    self.force_rebuild, 
-                    ]
-                skip_conditions = [ 
-                    not ds.d3pds
-                    ]
-                if any(skip_conditions): 
-                    if self.verbose: 
-                        print 'skipping {}'.format(ds.id)
-                    continue
-                if any(build_conditions): 
-                    skim_name = '{}.root'.format(ds.id)
-                    ds.skim_path = join(self.out_dir, skim_name)
-                    ds.distill_flags = flags
-                    cut_counts = cutflow.cutflow(
-                        input_files=ds.d3pds, 
-                        run_number=ds.id, 
-                        flags=ds.distill_flags, 
-                        output_ntuple=ds.skim_path)
-                    ds.n_raw_entries = dict(cut_counts)['total_events']
-                    ds.cutflow = [list(c) for c in cut_counts]
+                if ds.need_rerun: 
+                    updated_ds = _run_distill(ds)
+                    ds = updated_ds
                 elif self.verbose: 
                     print 'skipped {}'.format(ds.id)
                     

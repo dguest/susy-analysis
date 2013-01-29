@@ -24,6 +24,9 @@ def run():
                         help='input d3pd directory' + dp)
     parser.add_argument('-f', action='store_true', 
                         help='force rebuild')
+    parser.add_argument(
+        '-m', '--update-meta', action='store_true', 
+        help='update meta only, don\'t rerun distiller')
     args = parser.parse_args(sys.argv[1:])
 
     fail_conditions = [ 
@@ -39,6 +42,10 @@ def run():
     if args.verbose: 
         print 'mapping inputs'
     distiller.find_input_files(args.d3pd_dir)
+    distiller.prepare_dataset_meta()
+    if args.update_meta: 
+        print 'updated meta, quitting'
+        return None
     if args.verbose: 
         print 'running distill'
     distiller.distill()
