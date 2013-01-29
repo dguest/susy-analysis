@@ -26,6 +26,7 @@ public :
   // Declaration of leaf types
   unsigned int RunNumber; 
   unsigned int EventNumber; 
+  unsigned lbn; 
   Bool_t          trigger; 
   Float_t         averageIntPerXing;
   UInt_t          larError;

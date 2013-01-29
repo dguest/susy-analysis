@@ -18,6 +18,7 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, unsigned& br, BranchNames names)
 
   fChain->SetBranchAddress("RunNumber", &RunNumber, true);  
   fChain->SetBranchAddress("EventNumber", &EventNumber, true); 
+  fChain->SetBranchAddress("lbn", &lbn, true); 
 
   fChain->SetBranchAddress(names.trigger.c_str(), &trigger, true); 
   fChain->SetBranchAddress("coreFlags", &coreFlags, true); 
