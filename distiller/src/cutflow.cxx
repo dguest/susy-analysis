@@ -46,7 +46,7 @@ std::vector<std::pair<std::string, int> >
 run_cutflow(std::vector<std::string> files, 
 	    RunInfo info, unsigned flags, 
 	    std::string out_ntuple_name) {  
-
+  typedef std::vector<SelectedJet*> Jets; 
   std::ofstream nullstream("/dev/null"); 
   std::ofstream dbg_file("cutflow-dbg.txt"); 
   std::streambuf* out_buffer = nullstream.rdbuf(); 
@@ -173,7 +173,7 @@ run_cutflow(std::vector<std::string> files,
       copy_jet_info(all_jets.at(0), out_tree.leading_jet_uncensored); 
     }
     
-    std::vector<SelectedJet*> preselection_jets; 
+    Jets preselection_jets; 
     for (EventJets::const_iterator jet_itr = all_jets.begin(); 
 	 jet_itr != all_jets.end(); 
 	 jet_itr++) {
@@ -189,9 +189,10 @@ run_cutflow(std::vector<std::string> files,
     std::vector<int> susy_muon_idx = get_indices(susy_muons); 
     
     std::vector<double> jet_dr = remove_overlaping(susy_electrons, 
-						   preselection_jets, 0.2); 
-    remove_overlaping(preselection_jets, susy_electrons, 0.4); 
-    remove_overlaping(preselection_jets, susy_muons, 0.4); 
+						   preselection_jets, 
+						   REMOVE_JET_CONE); 
+    remove_overlaping(preselection_jets, susy_electrons, REMOVE_EL_CONE); 
+    remove_overlaping(preselection_jets, susy_muons, REMOVE_MU_CONE); 
 
     for (std::vector<double>::const_iterator dr_itr = jet_dr.begin(); 
 	 dr_itr != jet_dr.end(); dr_itr++) { 
@@ -199,9 +200,8 @@ run_cutflow(std::vector<std::string> files,
 		 << *dr_itr << std::endl; 
     }
 
-
-    std::vector<SelectedJet*> signal_jets; 
-    for (EventJets::const_iterator jet_itr = preselection_jets.begin(); 
+    Jets signal_jets; 
+    for (Jets::const_iterator jet_itr = preselection_jets.begin(); 
 	 jet_itr != preselection_jets.end(); jet_itr++) { 
 
       const SelectedJet& jet = **jet_itr; 
@@ -219,77 +219,49 @@ run_cutflow(std::vector<std::string> files,
     set_bit(signal_jets, jetbit::good); 
 
     TVector2 met = get_met(buffer, def, info, susy_muon_idx); 
+    if (flags & cutflag::use_met_reffinal) { 
+      met.Set(buffer.MET_RefFinal_etx, buffer.MET_RefFinal_ety); 
+    }
 
     // ----- object selection is done now, from here is filling outputs ---
 
-    pass_bits |= pass::jet_clean; 
-    for (EventJets::const_iterator jet_itr = preselection_jets.begin(); 
-	 jet_itr != preselection_jets.end(); 
-	 jet_itr++) { 
-      bool is_jet = ((*jet_itr)->bits() & jetbit::susy); 
-      assert( !( (*jet_itr)->bits() & jetbit::low_pt)); 
-      assert( !( (*jet_itr)->bits() & jetbit::high_eta)); 
-      bool is_veto = !is_jet;
-      if (is_veto) pass_bits &=~ pass::jet_clean; 
-    }
     out_tree.n_susy_jets = preselection_jets.size(); 
-
-
+    pass_bits |= jet_cleaning_bit(preselection_jets); 
 
     const unsigned n_req_jets = 3; 
     if (signal_jets.size() >= n_req_jets) { 
       pass_bits |= pass::n_jet; 
 
-      std::vector<SelectedJet*> leading_jets(signal_jets.begin(), 
-					     signal_jets.begin() + n_req_jets); 
-
+      Jets leading_jets(signal_jets.begin(), 
+			signal_jets.begin() + n_req_jets); 
       set_bit(leading_jets, jetbit::leading); 
       assert(leading_jets.size() == n_req_jets);
 
       out_tree.htx = get_htx(preselection_jets); 
 
-      //  --- multijet things ---
-      do_multijet_calculations(leading_jets, pass_bits, out_tree, met); 
+      out_tree.min_jetmet_dphi = get_min_jetmet_dphi(leading_jets, met); 
+      if (out_tree.min_jetmet_dphi > MIN_DPHI_JET_MET) { 
+	pass_bits |= pass::dphi_jetmet_min; 
+      }
+
     }
 
+    copy_leading_jet_info(signal_jets, out_tree); 
+    pass_bits |= get_ctag_bits(signal_jets); 
 
     if(def.IsGoodVertex(buffer.vx_nTracks)) {
       pass_bits |= pass::vxp_gt_4trk; 
     }
-      
-    if (flags & cutflag::use_met_reffinal) { 
-      met.Set(buffer.MET_RefFinal_etx, buffer.MET_RefFinal_ety); 
+    if (susy_electrons.size() == 0 && susy_muons.size() == 0) { 
+      pass_bits |= pass::lepton_veto; 
     }
     if (met.Mod() > 120*GeV) { 
       pass_bits |= pass::met; 
     }
 
-    out_tree.n_good_jets = signal_jets.size(); 
-
     if ( flags & cutflag::truth ) { 
       fill_cjet_truth(out_tree, signal_jets); 
       fill_event_truth(out_tree, buffer, flags); 
-    }
-
-    if (susy_electrons.size() == 0 && susy_muons.size() == 0) { 
-      pass_bits |= pass::lepton_veto; 
-    }
-
-
-    if (signal_jets.size() >= 1) { 
-      copy_jet_info(signal_jets.at(0), out_tree.isr_jet); 
-    }
-    if (signal_jets.size() >= 2) { 
-      copy_jet_info(signal_jets.at(1), out_tree.leading_jet);
-      if (pass_mainz_ctag(signal_jets.at(1)) ) { 
-	pass_bits |= pass::ctag_mainz; 
-      }
-    }
-    if (signal_jets.size() >= 3) { 
-      copy_jet_info(signal_jets.at(2), out_tree.subleading_jet); 
-      if (pass_mainz_ctag(signal_jets.at(2)) ) { 
-	pass_bits |= pass::ctag_mainz; 
-      }
     }
 
     cutflow.fill(pass_bits); 
@@ -322,23 +294,35 @@ run_cutflow(std::vector<std::string> files,
 	 
 }
 
-void do_multijet_calculations(const std::vector<SelectedJet*>& leading_jets, 
-			      unsigned& pass_bits, 
-			      OutTree& out_tree, 
-			      const TVector2& met) 
-{ 
-  float dphi_sum = get_sum_jetmet_dphi(leading_jets, met); 
-  if (dphi_sum > MIN_DPHI_JET_MET) { 
-    pass_bits |= pass::dphi_jetmet_sum; 
+void copy_leading_jet_info(const std::vector<SelectedJet*>& signal_jets, 
+			   OutTree& out_tree)
+{
+  if (signal_jets.size() >= 1) { 
+    copy_jet_info(signal_jets.at(0), out_tree.isr_jet); 
   }
-  out_tree.sum_jetmet_dphi = dphi_sum; 
-
-  float dphi_min = get_min_jetmet_dphi(leading_jets, met); 
-  if (dphi_min > MIN_DPHI_JET_MET) { 
-    pass_bits |= pass::dphi_jetmet_min; 
+  if (signal_jets.size() >= 2) { 
+    copy_jet_info(signal_jets.at(1), out_tree.leading_jet);
   }
-  out_tree.min_jetmet_dphi = dphi_min; 
+  if (signal_jets.size() >= 3) { 
+    copy_jet_info(signal_jets.at(2), out_tree.subleading_jet); 
+  }
+  out_tree.n_good_jets = signal_jets.size(); 
 
+}
+
+unsigned jet_cleaning_bit(const std::vector<SelectedJet*>& preselection_jets)
+{
+  typedef std::vector<SelectedJet*> Jets; 
+  unsigned pass_bits = pass::jet_clean; 
+  for (Jets::const_iterator jet_itr = preselection_jets.begin(); 
+       jet_itr != preselection_jets.end(); 
+       jet_itr++) { 
+    bool clean_jet = ((*jet_itr)->bits() & jetbit::susy); 
+    assert( !( (*jet_itr)->bits() & jetbit::low_pt)); 
+    assert( !( (*jet_itr)->bits() & jetbit::high_eta)); 
+    if (!clean_jet) pass_bits &=~ pass::jet_clean; 
+  }
+  return pass_bits; 
 }
 
 void fill_event_truth(OutTree& out_tree, const SusyBuffer& buffer, 
@@ -380,16 +364,52 @@ void fill_cjet_truth(OutTree& out_tree,
   out_tree.n_cjet = n_cjet; 
 }
 
-
-//____________________________________________________________
-// utility functions 
+//___________________________________________________________
+// ctag bits 
 
 bool pass_mainz_ctag(const SelectedJet* jet){ 
-
   bool pass = (jet->combNN_btag() > -2.55 && 
 	       jet->combNN_btag() < 1.0); 
   return pass; 
 }
+bool pass_anti_b_ctag(const SelectedJet* jet) { 
+  return log(jet->pc() / jet->pb() ) > COMBNN_LOG_CB_CUT; 
+}
+bool pass_anti_u_ctag(const SelectedJet* jet, float cut) { 
+  return log(jet->pc() / jet->pu() ) > cut; 
+}
+unsigned get_ctag_bits(const std::vector<SelectedJet*>& signal_jets) 
+{ 
+  const float MED = COMBNN_MED_LOG_CU_CUT; 
+  const float TGT = COMBNN_TIGHT_LOG_CU_CUT; 
+  unsigned pass_bits = 0; 
+  if (signal_jets.size() >= 1) { 
+    const SelectedJet* jet = signal_jets.at(0); 
+    if (pass_anti_b_ctag(jet))      pass_bits |= pass::jet1_anti_b; 
+    if (pass_anti_u_ctag(jet, MED)) pass_bits |= pass::jet1_anti_u_medium; 
+    if (pass_anti_u_ctag(jet, TGT)) pass_bits |= pass::jet1_anti_u_tight; 
+  }
+  if (signal_jets.size() >= 2) { 
+    const SelectedJet* jet = signal_jets.at(1); 
+    if (pass_anti_b_ctag(jet))      pass_bits |= pass::jet2_anti_b; 
+    if (pass_anti_u_ctag(jet, MED)) pass_bits |= pass::jet2_anti_u_medium; 
+    if (pass_anti_u_ctag(jet, TGT)) pass_bits |= pass::jet2_anti_u_tight; 
+    if (pass_mainz_ctag(jet))       pass_bits |= pass::ctag_mainz; 
+  }
+  if (signal_jets.size() >= 3) { 
+    const SelectedJet* jet = signal_jets.at(2); 
+    if (pass_anti_b_ctag(jet))      pass_bits |= pass::jet3_anti_b; 
+    if (pass_anti_u_ctag(jet, MED)) pass_bits |= pass::jet3_anti_u_medium; 
+    if (pass_anti_u_ctag(jet, TGT)) pass_bits |= pass::jet3_anti_u_tight; 
+    if (pass_mainz_ctag(jet))       pass_bits |= pass::ctag_mainz; 
+  }
+  return pass_bits; 
+}
+
+
+//____________________________________________________________
+// utility functions 
+
 
 
 float get_min_jetmet_dphi(const std::vector<SelectedJet*>& jets, 
@@ -406,18 +426,6 @@ float get_min_jetmet_dphi(const std::vector<SelectedJet*>& jets,
   return min_dphi; 
 }
 
-float get_sum_jetmet_dphi(const std::vector<SelectedJet*>& jets, 
-			  const TVector2& met){ 
-  typedef std::vector<SelectedJet*> JVec; 
-  typedef JVec::const_iterator JItr; 
-  TLorentzVector sum; 
-  for(JItr itr = jets.begin(); itr != jets.end(); itr++){
-    sum += **itr; 
-  }
-  TLorentzVector mector; 
-  mector.SetPtEtaPhiE(1,0,met.Phi(),1); 
-  return mector.DeltaPhi(sum); 
-}
 
 double get_htx(const std::vector<SelectedJet*>& jets){ 
   double htx = 0; 

@@ -25,10 +25,11 @@ run_cutflow(std::vector<std::string> files,
 	    RunInfo info, unsigned flags = 0, 
 	    std::string out_ntuple_name = ""); 
 
-void do_multijet_calculations(const std::vector<SelectedJet*>& leading_jets, 
-			      unsigned& pass_bits, 
-			      OutTree& out_tree, 
-			      const TVector2& met); 
+
+void copy_leading_jet_info(const std::vector<SelectedJet*>& signal_jets, 
+			   OutTree& out_tree); 
+
+unsigned jet_cleaning_bit(const std::vector<SelectedJet*>& preselection_jets);
 
 void fill_cjet_truth(OutTree& out_tree, 
 		     const std::vector<SelectedJet*>& jets); 
@@ -36,9 +37,6 @@ void fill_event_truth(OutTree& out_tree, const SusyBuffer& buffer,
 		      unsigned branches); 
 
 float get_min_jetmet_dphi(const std::vector<SelectedJet*>&, 
-			  const TVector2& ); 
-
-float get_sum_jetmet_dphi(const std::vector<SelectedJet*>&, 
 			  const TVector2& ); 
 
 double get_htx(const std::vector<SelectedJet*>&);
@@ -54,9 +52,10 @@ std::vector<int> get_indices(const T&);
 template<typename T>
 std::vector<T*> filter_susy(const std::vector<T*>&); 
 
-
 bool pass_mainz_ctag(const SelectedJet* jet); 
-
+bool pass_anti_b_ctag(const SelectedJet* jet); 
+bool pass_anti_u_ctag(const SelectedJet* jet, float cut); 
+unsigned get_ctag_bits(const std::vector<SelectedJet*>& jets); 
 
 TVector2 get_met(const SusyBuffer& buffer, 
 		 SUSYObjDef& def, 
