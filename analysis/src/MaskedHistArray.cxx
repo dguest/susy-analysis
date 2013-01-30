@@ -7,6 +7,7 @@
 #include <utility>
 #include <string> 
 #include <cassert> 
+#include <stdexcept> 
 
 MaskedHist::MaskedHist(const Histogram& base_hist, unsigned mask, 
 		       std::string name, unsigned anti): 
@@ -15,6 +16,9 @@ MaskedHist::MaskedHist(const Histogram& base_hist, unsigned mask,
   m_name(name), 
   m_anti(anti)
 {
+  if (m_anti & m_mask) { 
+    throw std::runtime_error(__FILE__ ": mask and antimask bits overlap")
+  }
 }
 void MaskedHist::write_to(H5::CommonFG& out_file, std::string stub, 
 			  std::string tag) const { 
