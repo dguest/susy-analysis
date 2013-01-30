@@ -3,6 +3,7 @@ from susy import cutflow
 import re, os, glob, sys
 from os.path import isdir, join, isfile
 
+
 def _run_distill(ds): 
     cut_counts = cutflow.cutflow(
         input_files=ds.d3pds, 
@@ -34,6 +35,12 @@ class Distiller(object):
             self.verbose = True
 
         self.setup_work_area()
+        try: 
+            self.grl = config.grl
+            if not isfile(self.grl): 
+                raise IOError("GRL {} doesn't exist".format(self.grl))
+        except AttributeError: 
+            self.grl = ''
 
     def setup_work_area(self): 
         """
