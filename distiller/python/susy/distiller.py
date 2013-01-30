@@ -97,6 +97,11 @@ class Distiller(object):
         for d3pd in ds.d3pds: 
             if not isfile(d3pd): 
                 raise IOError('d3pd {} not found'.format(d3pd))
+        
+        if ds.origin.startswith('data'): 
+            has_grl = hasattr(ds,'grl') and ds.grl
+            if has_grl and ds.grl != self.grl
+                return True
 
         if not isfile(ds.skim_path): 
             return True
@@ -117,6 +122,7 @@ class Distiller(object):
                 ds.skim_path = join(self.out_dir, skim_name)
                 ds.distill_flags = self._get_flags(ds)
                 ds.need_rerun = self._needs_rerun(ds)
+                ds.grl = self.grl
 
     def distill(self): 
         with DatasetCache(self.meta_info_path) as cache: 
