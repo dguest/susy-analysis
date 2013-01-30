@@ -1,46 +1,51 @@
+"""
+Here be bitdefs. 
 
-other_bits = [
-    'n_events','GRL','EF_xe80_tclcw_loose','lar_error','core','jet_clean',
-    'vxp_good', 'leading_jet_120', 'met_120', 'n_jet_geq_3', 
-    'dphi_jetmet_sum', 'lepton_veto', 'ctag_mainz', 
-    ]
-
-
+ TODO: this should be replaced with something more automated
+       probably best to write the bits to a tree when running the 
+       cutflow. 
+"""
 bits = [
-    ("all", 0), 
-    ("grl",  1 << 2), 
-    ("trigger",  1 << 3), 
-    ("lar_error",  1 << 4), 
-    ("core",  1 << 5), 
-    ("jet_clean",  1 << 6), 
-    ("vxp_gt_4trk",  1 << 7), 
-    ("leading_jet",  1 << 8), 
-    ("met",  1 << 9), 
-    ("n_jet",  1 << 10), 
-    # ("dphi_jetmet_sum",  1 << 12), 
-    ("dphi_jetmet_min",  1 << 11), 
-    ("lepton_veto",  1 << 13), 
-    ("ctag_mainz",  1 << 14), 
+    ("all",                  0), 
+    ("grl",                  1 <<  0),
+    ("trigger",              1 <<  1),
+    ("lar_error",            1 <<  2),
+    ("core",                 1 <<  3),
+    ("jet_clean",            1 <<  4),
+    ("vxp_gt_4trk",          1 <<  5),
+    ("leading_jet",          1 <<  6),
+    ("met",                  1 <<  7),
+    ("n_jet",                1 <<  8),
+    ("dphi_jetmet_min",      1 <<  9),
+    ("lepton_veto",          1 << 10),
+    ("ctag_mainz",           1 << 11),
+
+    ("jet1_anti_b"        ,  1 << 12),
+    ("jet1_anti_u_medium" ,  1 << 13),
+    ("jet1_anti_u_tight"  ,  1 << 14),
+    ("jet2_anti_b"        ,  1 << 15),
+    ("jet2_anti_u_medium" ,  1 << 16),
+    ("jet2_anti_u_tight"  ,  1 << 17),
+    ("jet3_anti_b"        ,  1 << 18),
+    ("jet3_anti_u_medium" ,  1 << 19),
+    ("jet3_anti_u_tight"  ,  1 << 20),
+
+    ('mttop'     ,           1 << 21), 
+    ('j2_anti_b' ,           1 << 22), 
+    ('j2_anti_u' ,           1 << 23), 
+    ('j3_anti_b' ,           1 << 24), 
+    ('j3_anti_u' ,           1 << 25), 
     ]
 
-better_bits = [(new, val) for new, (old, val) in zip(other_bits,bits)]
-
-more_bits = [ 
-    ('leading_jet_opt', 1 << 20), 
-    ('met_opt', 1 << 21), 
-    ('j2_anti_b' , 1 << 22), 
-    ('j2_anti_u' , 1 << 23), 
-    ('j3_anti_b' , 1 << 24), 
-    ('j3_anti_u' , 1 << 25), 
-    ('mttop'     , 1 << 26), 
-    ]
-
-_bdict = dict(more_bits)
+_bdict = dict(bits)
 composite_bits = [ 
-    ('ctag', 
+    ('ctag_opt', 
      _bdict['j2_anti_b'] | _bdict['j2_anti_u'] | 
      _bdict['j3_anti_b'] | _bdict['j3_anti_u'] ), 
     ('monojet', 
-     _bdict['leading_jet_opt'] | _bdict['met_opt']), 
+     _bdict['leading_jet'] | _bdict['met']), 
+    ('ctag', 
+     _bdict['jet2_anti_b'] | 
+     _bdict['jet3_anti_b'] | _bdict['jet3_anti_u_tight'])
     ]
      
