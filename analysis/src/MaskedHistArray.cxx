@@ -17,7 +17,7 @@ MaskedHist::MaskedHist(const Histogram& base_hist, unsigned mask,
   m_anti(anti)
 {
   if (m_anti & m_mask) { 
-    throw std::runtime_error(__FILE__ ": mask and antimask bits overlap")
+    throw std::runtime_error(__FILE__ ": mask and antimask bits overlap"); 
   }
 }
 void MaskedHist::write_to(H5::CommonFG& out_file, std::string stub, 

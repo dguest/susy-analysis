@@ -6,7 +6,6 @@
 #include "MaskedHistArray.hh"
 #include "PhysicalConstants.hh"
 #include "TruthJetHists.hh"
-#include "CutBits.hh"
 #include "CutAugmenter.hh"
 #include "common_functions.hh"
 #include "H5Cpp.h"
@@ -18,6 +17,8 @@
 #include <iostream> 
 #include <ostream>
 #include <fstream>
+
+#include "distiller/EventBits.hh"
 
 #include "TVector2.h"
 

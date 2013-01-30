@@ -1,12 +1,13 @@
 #include "CutAugmenter.hh"
-#include "CutBits.hh"
 #include "JetFactory.hh"
 #include "common_functions.hh"
 
-#include "TVector2.h"
-
 #include <vector> 
 #include <stdexcept> 
+
+#include "distiller/EventBits.hh"
+
+#include "TVector2.h"
 
 CutAugmenter::CutAugmenter() : 
   m_leading_jet_pt_cut(-1), 
@@ -48,17 +49,16 @@ void CutAugmenter::set_float(std::string name, double value) {
 
 unsigned CutAugmenter::get_added_cuts(const std::vector<Jet>& jets, 
 				      const TVector2& evt_met) const { 
-  using namespace optcut; 
   unsigned added = 0; 
   if (evt_met.Mod() > m_met_cut) { 
-    added |= met; 
+    added |= pass::met; 
   }
 
   if (jets.size() <= 0) { 
     return added; 
   }
   if (jets.at(0).Pt() > m_leading_jet_pt_cut) { 
-    added |= leading_jet; 
+    added |= pass::leading_jet; 
   }
 
   if (jets.size() <= 1) { 
@@ -66,10 +66,10 @@ unsigned CutAugmenter::get_added_cuts(const std::vector<Jet>& jets,
   }
   const Jet& j2 = jets.at(1); 
   if (log(j2.pc() / j2.pb()) > m_j2_anti_b_cut) { 
-    added |= j2_anti_b; 
+    added |= pass::j2_anti_b_opt; 
   }
   if (log(j2.pc() / j2.pu()) > m_j2_anti_u_cut) { 
-    added |= j2_anti_u; 
+    added |= pass::j2_anti_u_opt; 
   }
 
   if (jets.size() <= 2) { 
@@ -77,13 +77,13 @@ unsigned CutAugmenter::get_added_cuts(const std::vector<Jet>& jets,
   }
   const Jet& j3 = jets.at(2); 
   if (log(j3.pc() / j3.pb()) > m_j3_anti_b_cut) { 
-    added |= j3_anti_b; 
+    added |= pass::j3_anti_b_opt; 
   }
   if (log(j3.pc() / j3.pu()) > m_j3_anti_u_cut) { 
-    added |= j3_anti_u; 
+    added |= pass::j3_anti_u_opt; 
   }
   if (get_mttop(jets, evt_met) > m_mttop_cut) { 
-    added |= mttop; 
+    added |= pass::mttop; 
   }
   return added; 
 
