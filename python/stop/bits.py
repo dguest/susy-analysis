@@ -6,7 +6,6 @@ Here be bitdefs.
        cutflow. 
 """
 bits = [
-    ("all",                  0), 
     ("grl",                  1 <<  0),
     ("trigger",              1 <<  1),
     ("lar_error",            1 <<  2),

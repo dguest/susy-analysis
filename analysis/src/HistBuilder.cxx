@@ -90,7 +90,7 @@ void HistBuilder::add_cut_mask(std::string name, unsigned bits)
 {
   CutMasks::const_iterator pos = m_cut_masks.find(name); 
   if (pos != m_cut_masks.end()) { 
-    throw std::runtime_error("tried to overwrite " + name); 
+    throw std::runtime_error("tried to overwrite cut mask \"" + name + "\""); 
   }
   m_cut_masks[name] = bits; 
   m_jet1_hists->add_mask(bits, name); 
@@ -148,7 +148,6 @@ int HistBuilder::build() {
 
     if (m_cut_augmenter) { 
       unsigned added_cuts = m_cut_augmenter->get_added_cuts(jets, met); 
-      assert( (added_cuts & mask) == 0); 
       mask |= added_cuts; 
     }
 

@@ -135,7 +135,7 @@ int HyperBuilder::build() {
     unsigned dist_bits = m_factory->bits(); 
     unsigned aug_bits = 0; 
     if (m_augmenter) aug_bits = m_augmenter->get_added_cuts(jets, met); 
-    assert( (dist_bits & aug_bits) == 0); 
+
     const unsigned mask = (dist_bits | aug_bits); 
 
     std::map<std::string, double> vars = get_jet_vars(jets); 

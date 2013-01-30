@@ -13,7 +13,7 @@ limit_dict = {
 hyperstack.hypersusy(
     sys.argv[1], [('all',0)], 'hyper.h5', flags='v', limit_dict=limit_dict)
 
-all_cuts = [('all',0)] + bits.more_bits
+all_cuts = [('all',0)] + bits.bits
 
 every_cut = 0
 for cut, bit in all_cuts: 
