@@ -9,17 +9,20 @@
 class SmartChain: public TChain { 
 public: 
   SmartChain(std::string tree_name); 
-  
+  int Add(std::string file_name, int nentries = -1); 
   template<typename T, typename Z>
   void SetBranchAddress(T name, Z branch, 
   			bool turnon = false); 
 
   std::vector<std::string> get_all_branch_names() const; 
 private: 
+  typedef std::vector<std::string> Strings; 
   void SetBranchAddressPrivate(std::string name, void* branch, 
 			       bool turnon = false); 
-  std::vector<std::string> m_set_branches; 
+  Strings get_bad_files() const; 
+  Strings m_set_branches; 
   std::set<std::string> m_set_branch_set; 
+  Strings m_files; 
 }; 
 
 // -------- implementation -----
