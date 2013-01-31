@@ -2,6 +2,12 @@ import _cutflow
 import warnings
 from os.path import isfile
 
+class CorruptedCutflow(list): 
+    def __init__(self, cutlist, files_used): 
+        super(CorruptedCutflow,self).__init__(cutlist)
+        self.files_used = files_used
+
+
 def cutflow(input_files, run_number, flags, grl='', output_ntuple=''): 
     """
     Returns a list of pairs: (cut_name, n_passing). If output_ntuple is 
@@ -40,12 +46,13 @@ def cutflow(input_files, run_number, flags, grl='', output_ntuple=''):
             remaining_files = [f for f in input_files if f != bad_file]
             if remaining_files:
                 warnings.warn('removed {}, retrying'.format(bad_file))
-                return cutflow(remaining_files, run_number, flags, 
-                               grl, output_ntuple)
+                
+                cutlist = cutflow(remaining_files, run_number, flags, 
+                                  grl, output_ntuple)
+                return CorruptedCutflow(cutlist, remaining_files)
         raise RuntimeError('{} in cutflow'.format(str(er)))
 
     return cut_out
-
 
         
 def make_perf_ntuple(input_file, flags, output_ntuple=''): 

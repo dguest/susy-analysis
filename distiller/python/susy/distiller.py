@@ -19,10 +19,13 @@ def _run_distill(ds):
         ds.n_raw_entries = dict(cut_counts)['total_events']
         ds.cutflow = [list(c) for c in cut_counts]
         ds.need_rerun = False
-        if 'bad files' in ds.bugs: 
-            ds.bugs.remove('bad files')
+        if isinstance(cut_counts, cutflow.CorruptedCutflow): 
+            ds.n_corrupted_files = len(ds.d3pds) - len(cut_counts.files_used)
+            ds.bugs.add('bad files')
+        else: 
+            ds.bugs -= set(['bad files'])
     except RuntimeError as er: 
-        if 'bad files:' in str(er): 
+        if 'bad file:' in str(er): 
             ds.bugs.add('bad files')
         else: 
             raise 
