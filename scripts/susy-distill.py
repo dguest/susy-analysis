@@ -31,6 +31,7 @@ def run():
     parser.add_argument(
         '-m', '--update-meta', action='store_true', 
         help='update meta only, don\'t rerun distiller')
+    parser.add_argument('--grl', default=''); 
     args = parser.parse_args(sys.argv[1:])
 
     fail_conditions = [ 

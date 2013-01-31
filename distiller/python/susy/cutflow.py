@@ -41,7 +41,7 @@ def cutflow(input_files, run_number, flags, grl='', output_ntuple=''):
             if remaining_files:
                 warnings.warn('removed {}, retrying'.format(bad_file))
                 return cutflow(remaining_files, run_number, flags, 
-                               output_ntuple)
+                               grl, output_ntuple)
         raise RuntimeError('{} in cutflow'.format(str(er)))
 
     return cut_out

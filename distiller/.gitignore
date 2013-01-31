@@ -7,3 +7,4 @@
 *.pkl
 local.mk
 cleanup/
+*.xml

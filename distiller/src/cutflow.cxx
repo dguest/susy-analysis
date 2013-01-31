@@ -46,6 +46,7 @@ std::vector<std::pair<std::string, int> >
 run_cutflow(std::vector<std::string> files, 
 	    RunInfo info, unsigned flags, 
 	    std::string out_ntuple_name) {  
+  gErrorIgnoreLevel = kWarning;
   typedef std::vector<SelectedJet*> Jets; 
   std::ofstream nullstream("/dev/null"); 
   std::ofstream dbg_file("cutflow-dbg.txt"); 
@@ -97,9 +98,8 @@ run_cutflow(std::vector<std::string> files,
     branch_save.close(); 
   }
 
-  EventPreselector event_preselector(flags, info.grl); 
+  // --- redirect stdout for the initialization of annoying root tools ---
 
-  // dump stdout from susytools init to /dev/null 
   std::string out_file = "/dev/null"; 
   if (flags & cutflag::debug_susy) { 
     out_file = "susy-dbg.txt"; 
@@ -110,6 +110,7 @@ run_cutflow(std::vector<std::string> files,
   int output_dup = dup(fileno(stdout)); 
   freopen(out_file.c_str(), "w", stdout); 
 
+  EventPreselector event_preselector(flags, info.grl); 
   def.initialize(flags & cutflag::is_data, flags & cutflag::is_atlfast); 
   if (flags & cutflag::no_jet_recal) { 
     def.SetJetCalib(false); 
@@ -548,6 +549,7 @@ int main(int narg, char* argv[])
 
   RunInfo info; 
   info.run_number = 180614; 
+  info.grl = "grl.xml"; 
   srand(0); 
   using namespace cutflag; 
   unsigned flags = verbose | is_signal | debug_susy; 
@@ -560,7 +562,7 @@ int main(int narg, char* argv[])
   flags |= is_atlfast; 
   flags |= debug_cutflow; 
 
-  // flags |= is_data; 
+  flags |= is_data; 
 
   // run the main routine 
   typedef std::vector<std::pair<std::string, int> > CCOut; 

@@ -6,15 +6,21 @@ from multiprocessing import Pool
 
 def _run_distill(ds): 
     print 'starting {} {}'.format(ds.id,ds.name)
+    grl = ''
+    if hasattr(ds,'grl'): 
+        grl = ds.grl
     try: 
         cut_counts = cutflow.cutflow(
             input_files=ds.d3pds, 
             run_number=ds.id, 
             flags=ds.distill_flags, 
+            grl=grl, 
             output_ntuple=ds.skim_path)
         ds.n_raw_entries = dict(cut_counts)['total_events']
         ds.cutflow = [list(c) for c in cut_counts]
         ds.need_rerun = False
+        if 'bad files' in ds.bugs: 
+            ds.bugs.remove('bad files')
     except RuntimeError as er: 
         if 'bad files:' in str(er): 
             ds.bugs.add('bad files')
@@ -45,7 +51,7 @@ class Distiller(object):
         self.setup_work_area()
         try: 
             self.grl = config.grl
-            if not isfile(self.grl): 
+            if self.grl and not isfile(self.grl): 
                 raise IOError("GRL {} doesn't exist".format(self.grl))
         except AttributeError: 
             self.grl = ''
