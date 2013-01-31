@@ -6,14 +6,20 @@ from multiprocessing import Pool
 
 def _run_distill(ds): 
     print 'starting {} {}'.format(ds.id,ds.name)
-    cut_counts = cutflow.cutflow(
-        input_files=ds.d3pds, 
-        run_number=ds.id, 
-        flags=ds.distill_flags, 
-        output_ntuple=ds.skim_path)
-    ds.n_raw_entries = dict(cut_counts)['total_events']
-    ds.cutflow = [list(c) for c in cut_counts]
-    ds.need_rerun = False
+    try: 
+        cut_counts = cutflow.cutflow(
+            input_files=ds.d3pds, 
+            run_number=ds.id, 
+            flags=ds.distill_flags, 
+            output_ntuple=ds.skim_path)
+        ds.n_raw_entries = dict(cut_counts)['total_events']
+        ds.cutflow = [list(c) for c in cut_counts]
+        ds.need_rerun = False
+    except RuntimeError as er: 
+        if 'bad files:' in str(er): 
+            ds.bugs.add('bad files')
+        else: 
+            raise 
     print 'done with {}'.format(ds.name)
     return ds
     
