@@ -259,6 +259,7 @@ class MetaFactory(object):
         Matches whatever datasets have a cross section listed in the susy file.
         """
         id_line = ''
+        split_dict = {}
         for line in susy_file: 
 
             # first line of the susy textfile is some kind of 
@@ -273,15 +274,19 @@ class MetaFactory(object):
 
             spl = clean_line.split()
             name = spl[1]
-            ds_id = spl[0]
-            if ds_key in self._datasets: 
-                ds = self._datasets[ds_key]
+            ds_id = int(spl[0])
+            split_dict[ds_id] = spl
+
+        for ds in self._datasets.values(): 
+            if ds.id in split_dict: 
+                spl = split_dict[ds.id]
                 ds.id = int(spl[0])
                 ds.name = spl[1]
                 ds.total_xsec_fb = float(spl[2])
                 ds.kfactor = float(spl[3])
                 ds.filteff = float(spl[4])
                 ds.meta_sources.add('susy lookup')
+                ds.bugs -= set(['no cross section','no filter efficiency'])
     
     def _print(self, print_string): 
         if self.verbose: 
