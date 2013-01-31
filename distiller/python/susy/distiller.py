@@ -143,7 +143,10 @@ class Distiller(object):
                 ds.skim_path = join(self.out_dir, skim_name)
                 ds.distill_flags = self._get_flags(ds)
                 ds.need_rerun = self._needs_rerun(ds)
-                ds.grl = self.grl
+                if ds.origin.startswith('data'): 
+                    ds.grl = self.grl
+                else: 
+                    ds.grl = ''
 
     def distill(self): 
         with DatasetCache(self.meta_info_path) as cache: 
