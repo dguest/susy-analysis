@@ -1,6 +1,8 @@
 #include "SmartChain.hh"
 #include "TChain.h"
+#include "TFile.h"
 #include <boost/format.hpp>
+
 
 SmartChain::SmartChain(std::string tree_name): 
   TChain(tree_name.c_str()), 
@@ -56,25 +58,21 @@ void SmartChain::SetBranchAddressPrivate(std::string name, void* branch,
   m_set_branch_set.insert(name); 
 }
 
-std::vector<std::string> SmartChain::get_bad_files() const { 
-  Strings bad_files; 
-  for (Strings::const_iterator itr = m_files.begin(); 
-       itr != m_files.end(); itr++) { 
-    bad_files.push_back(*itr); 
-  }
-  return bad_files; 
-}
 
 void SmartChain::throw_bad_branch(std::string name) const { 
-  std::string issue = (boost::format("can't find branch %s") % name).str(); 
-  Strings bad_files = get_bad_files(); 
-  if (bad_files.size()) issue.append(" bad files: "); 
-  for (Strings::const_iterator itr = bad_files.begin(); 
-       itr != bad_files.end(); itr++) {
-    issue.append(*itr); 
-    if (*itr != *bad_files.rbegin()) issue.append(", "); 
-  }
-	 
+  std::string issue = (boost::format("can't find branch %s, ") % name).str(); 
+  std::string file = GetFile()->GetName(); 
+  issue.append("bad file: " + file); 
   throw std::runtime_error(issue); 
 
+}
+
+std::string SmartChain::get_files_string() const { 
+  std::string issue = " files: "; 
+  for (Strings::const_iterator itr = m_files.begin(); 
+       itr != m_files.end(); itr++) {
+    issue.append(*itr); 
+    if (*itr != *m_files.rbegin()) issue.append(", "); 
+  }
+  return issue; 
 }

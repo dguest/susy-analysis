@@ -20,8 +20,8 @@ private:
   typedef std::vector<std::string> Strings; 
   void SetBranchAddressPrivate(std::string name, void* branch, 
 			       bool turnon = false); 
-  Strings get_bad_files() const; 
   void throw_bad_branch(std::string name) const; 
+  std::string get_files_string() const; 
   Strings m_set_branches; 
   std::set<std::string> m_set_branch_set; 
   Strings m_files; 
