@@ -33,7 +33,7 @@ def submit_ds(ds_name, debug=False, version=3, used_vars='used_vars.txt'):
     input_args = [
         '--inDS=' + ds_name,
         '--outDS=' + out_ds,
-        '--outputs=skim-output.root', 
+        '--outputs=skim-output.root,set-branches.txt', 
         '--excludeFile=*.tar,*.log,*.sh,*.out,*.root',
         '--extFile={}'.format(used_vars), 
         '--athenaTag=17.2.1', 
@@ -70,9 +70,12 @@ for f in sys.argv[2].split(','):
         raise RuntimeError(f + ' CollectionTree is fucked')
 
 susy_chain.SetBranchStatus('*',0)
+set_branches = open('set-branches.txt','w')
 for branch in branches: 
     print 'setting', branch.strip()
     susy_chain.SetBranchStatus(branch.strip(), 1)
+    set_branches.write(branch.strip())
+set_branches.close()
 
 out_susy = susy_chain.CloneTree()
 out_collection = collection_chain.CloneTree()
