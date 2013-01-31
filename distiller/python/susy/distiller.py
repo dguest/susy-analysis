@@ -5,7 +5,7 @@ from os.path import isdir, join, isfile
 from multiprocessing import Pool
 
 def _run_distill(ds): 
-    print 'starting {} {}'.format(ds.id,ds.name)
+    print '{} starting, type: {}'.format(ds.id,ds.name)
     grl = ''
     if hasattr(ds,'grl'): 
         grl = ds.grl
@@ -26,7 +26,7 @@ def _run_distill(ds):
             ds.bugs.add('bad files')
         else: 
             raise 
-    print 'done with {}'.format(ds.name)
+    print '{} done'.format(ds.id)
     return ds
     
 
