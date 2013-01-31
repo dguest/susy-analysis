@@ -43,7 +43,7 @@ static PyObject* py_cutflow(PyObject *self,
   if (strchr(flags_str,'d')) flags |= cutflag::is_data; 
   if (strchr(flags_str,'s')) flags |= cutflag::is_signal; 
   if (strchr(flags_str,'p')) flags |= cutflag::use_low_pt_jets; 
-  if (strchr(flags_str,'d')) flags |= cutflag::debug_susy; 
+  if (strchr(flags_str,'b')) flags |= cutflag::debug_susy; 
   if (strchr(flags_str,'r')) flags |= cutflag::save_ratios; 
   if (strchr(flags_str,'f')) flags |= cutflag::is_atlfast; 
   if (strchr(flags_str,'c')) flags |= cutflag::jetfitter_charm; 

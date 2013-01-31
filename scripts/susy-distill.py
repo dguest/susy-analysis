@@ -8,6 +8,7 @@ import argparse
 # from ConfigParser import SafeConfigParser as Config
 import sys
 from os.path import isfile, isdir
+from multiprocessing import cpu_count
 
 def run(): 
     parser = argparse.ArgumentParser(
@@ -20,6 +21,9 @@ def run():
                         default='whiskey')
     parser.add_argument('-v','--verbose', action='store_true', 
                         help='print more help')
+    parser.add_argument(
+        '-n','--ncore', default=1, const=cpu_count(), nargs='?', 
+        help='run multicore (no arg defaults to number of machine cpu)')
     parser.add_argument('--d3pd-dir', default='D3PDs',
                         help='input d3pd directory' + dp)
     parser.add_argument('-f', action='store_true', 

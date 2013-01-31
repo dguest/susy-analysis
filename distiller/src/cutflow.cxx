@@ -107,6 +107,7 @@ run_cutflow(std::vector<std::string> files,
   else { 
     gErrorIgnoreLevel = kError;
   }
+  int output_dup = dup(fileno(stdout)); 
   freopen(out_file.c_str(), "w", stdout); 
 
   def.initialize(flags & cutflag::is_data, flags & cutflag::is_atlfast); 
@@ -116,8 +117,8 @@ run_cutflow(std::vector<std::string> files,
 
   // Restore old cout.
   if (flags & cutflag::verbose) { 
-    fclose(stdout); 
-    freopen("/dev/tty","w",stdout); 
+    dup2(output_dup, fileno(stdout)); 
+    close(output_dup); 
   }
 
   // --- output things ---
@@ -274,12 +275,13 @@ run_cutflow(std::vector<std::string> files,
     out_tree.fill(); 
  
   }
-  std::cout << "\n"; 
-  
   // restore cout if not already done
-  if (!flags & cutflag::verbose) { 
-    fclose(stdout); 
-    freopen("/dev/stdout","w",stdout); 
+  if (flags & cutflag::verbose) { 
+    std::cout << "\n";  
+  } 
+  else {  
+    dup2(output_dup, fileno(stdout)); 
+    close(output_dup); 
   }
   
   dbg_file.close(); 

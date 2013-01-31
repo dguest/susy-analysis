@@ -2,9 +2,10 @@ from stop.meta import DatasetCache
 from susy import cutflow
 import re, os, glob, sys
 from os.path import isdir, join, isfile
-
+from multiprocessing import Pool
 
 def _run_distill(ds): 
+    print 'starting {} {}'.format(ds.id,ds.name)
     cut_counts = cutflow.cutflow(
         input_files=ds.d3pds, 
         run_number=ds.id, 
@@ -13,6 +14,7 @@ def _run_distill(ds):
     ds.n_raw_entries = dict(cut_counts)['total_events']
     ds.cutflow = [list(c) for c in cut_counts]
     ds.need_rerun = False
+    print 'done with {}'.format(ds.name)
     return ds
     
 
@@ -41,6 +43,10 @@ class Distiller(object):
                 raise IOError("GRL {} doesn't exist".format(self.grl))
         except AttributeError: 
             self.grl = ''
+        try: 
+            self.ncore = config.ncore
+        except AttributeError: 
+            self.ncore = 1
 
     def setup_work_area(self): 
         """
@@ -84,6 +90,9 @@ class Distiller(object):
         if self._signal_finder(ds.name): 
             flags += 's'
 
+        if not flags: 
+            return '_'          # placeholder
+
         return flags
 
     def _needs_rerun(self, ds): 
@@ -100,7 +109,7 @@ class Distiller(object):
         
         if ds.origin.startswith('data'): 
             has_grl = hasattr(ds,'grl') and ds.grl
-            if has_grl and ds.grl != self.grl
+            if has_grl and ds.grl != self.grl: 
                 return True
 
         if not isfile(ds.skim_path): 
@@ -126,10 +135,17 @@ class Distiller(object):
 
     def distill(self): 
         with DatasetCache(self.meta_info_path) as cache: 
-            for ds_id, ds in cache.iteritems(): 
-                if ds.need_rerun: 
-                    updated_ds = _run_distill(ds)
-                    ds = updated_ds
+            if self.ncore == 1: 
+                for ds_id, ds in cache.iteritems(): 
+                    if ds.need_rerun: 
+                        updated_ds = _run_distill(ds)
+                        ds = updated_ds
+            else: 
+                pool = Pool(self.ncore)
+                rerun_ds = [ds for ds in cache.values() if ds.need_rerun]
+                filled_datasets = pool.map(_run_distill,rerun_ds)
+                for ds in filled_datasets: 
+                    cache[ds.key] = ds
                     
     def _signal_finder(self, name): 
         """
