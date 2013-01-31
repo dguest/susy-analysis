@@ -61,6 +61,10 @@ static PyObject* py_cutflow(PyObject *self,
     PyErr_SetString(PyExc_RuntimeError, e.what()); 
     return NULL; 
   }
+  catch (...) { 
+    PyErr_SetString(PyExc_Exception, "unknown exception"); 
+    return NULL; 
+  }
 
   PyObject* out_list = PyList_New(0); 
   for (CCOut::const_iterator itr = pass_numbers.begin(); 
