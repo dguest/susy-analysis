@@ -21,6 +21,8 @@ def run():
                         default='whiskey')
     parser.add_argument('-v','--verbose', action='store_true', 
                         help='print more help')
+    parser.add_argument('-a','--aggressive', action='store_true', 
+                        help='remove bad files and retry')
     parser.add_argument(
         '-n','--ncore', default=1, const=cpu_count(), nargs='?', 
         help='run multicore (no arg defaults to number of machine cpu)')

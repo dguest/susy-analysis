@@ -55,10 +55,14 @@ class Distiller(object):
                 raise IOError("GRL {} doesn't exist".format(self.grl))
         except AttributeError: 
             self.grl = ''
+
         try: 
             self.ncore = config.ncore
         except AttributeError: 
             self.ncore = 1
+
+        if hasattr(config,'aggressive') and config.aggressive: 
+            self.base_flags += 'a'
 
     def setup_work_area(self): 
         """
