@@ -25,7 +25,7 @@ static PyObject* py_cutflow(PyObject *self,
     (args,"Oi|sss:cutflow", &py_input_files, &info.run_number, 
      &flags_str, &grl_char, &out_ntuple); 
   if (!ok) return NULL;
-  info.grl = grl_char ? grl_char : std::string(); 
+  info.grl = strlen(grl_char) ? grl_char : std::string();  
 
   int n_files = PyList_Size(py_input_files); 
   if (PyErr_Occurred()) return NULL; 
