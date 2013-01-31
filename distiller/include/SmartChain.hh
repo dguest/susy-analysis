@@ -10,6 +10,7 @@ class SmartChain: public TChain {
 public: 
   SmartChain(std::string tree_name); 
   int Add(std::string file_name, int nentries = -1); 
+  int GetEntry(int entry_n); 
   template<typename T, typename Z>
   void SetBranchAddress(T name, Z branch, 
   			bool turnon = false); 
@@ -20,9 +21,11 @@ private:
   void SetBranchAddressPrivate(std::string name, void* branch, 
 			       bool turnon = false); 
   Strings get_bad_files() const; 
+  void throw_bad_branch(std::string name) const; 
   Strings m_set_branches; 
   std::set<std::string> m_set_branch_set; 
   Strings m_files; 
+  int m_last_tree; 		// to trigger branch check 
 }; 
 
 // -------- implementation -----

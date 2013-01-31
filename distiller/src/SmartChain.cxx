@@ -3,13 +3,27 @@
 #include <boost/format.hpp>
 
 SmartChain::SmartChain(std::string tree_name): 
-  TChain(tree_name.c_str())
+  TChain(tree_name.c_str()), 
+  m_last_tree(-1)
 { 
 }
 
 int SmartChain::Add(std::string file_name, int nentries) { 
   m_files.push_back(file_name); 
   return TChain::Add(file_name.c_str(), nentries); 
+}
+int SmartChain::GetEntry(int entry_n) { 
+  int this_tree_n = GetTreeNumber(); 
+  if (this_tree_n != m_last_tree) { 
+    for (Strings::const_iterator br_itr = m_set_branches.begin(); 
+	 br_itr != m_set_branches.end(); br_itr++) { 
+      if (!GetBranch(br_itr->c_str())) { 
+	throw_bad_branch(*br_itr); 
+      }
+    }
+    m_last_tree = this_tree_n; 
+  }
+  return TChain::GetEntry(entry_n); 
 }
 
 std::vector<std::string> SmartChain::get_all_branch_names() const { 
@@ -29,16 +43,7 @@ void SmartChain::SetBranchAddressPrivate(std::string name, void* branch,
     throw std::runtime_error(issue); 
   }
   if (!GetBranch(name.c_str())) { 
-    std::string issue = (boost::format("can't find branch %s") % name).str(); 
-    Strings bad_files = get_bad_files(); 
-    if (bad_files.size()) issue.append(" bad files: "); 
-    for (Strings::const_iterator itr = bad_files.begin(); 
-	 itr != bad_files.end(); itr++) {
-      issue.append(*itr); 
-      if (*itr != *bad_files.rbegin()) issue.append(", "); 
-    }
-	 
-    throw std::runtime_error(issue); 
+    throw_bad_branch(name); 
   }
 
   m_set_branches.push_back(name);
@@ -58,4 +63,18 @@ std::vector<std::string> SmartChain::get_bad_files() const {
     bad_files.push_back(*itr); 
   }
   return bad_files; 
+}
+
+void SmartChain::throw_bad_branch(std::string name) const { 
+  std::string issue = (boost::format("can't find branch %s") % name).str(); 
+  Strings bad_files = get_bad_files(); 
+  if (bad_files.size()) issue.append(" bad files: "); 
+  for (Strings::const_iterator itr = bad_files.begin(); 
+       itr != bad_files.end(); itr++) {
+    issue.append(*itr); 
+    if (*itr != *bad_files.rbegin()) issue.append(", "); 
+  }
+	 
+  throw std::runtime_error(issue); 
+
 }
