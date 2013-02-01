@@ -69,8 +69,6 @@ void set_bit(std::vector<SelectedJet*>& jets, unsigned bit);
 // --- io things ----
 
 
-
-
 // ---- templates -----
 
 template<typename M, typename A>
