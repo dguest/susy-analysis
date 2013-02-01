@@ -50,11 +50,11 @@ static PyObject* py_cutflow(PyObject *self,
   try { 
     pass_numbers = run_cutflow(input_files, info, flags, out_ntuple); 
   }
-  catch (std::runtime_error e) { 
+  catch (std::runtime_error& e) { 
     PyErr_SetString(PyExc_RuntimeError, e.what()); 
     return NULL; 
   }
-  catch (std::exception e) { 
+  catch (std::exception& e) { 
     PyErr_SetString(PyExc_Exception, e.what()); 
     return NULL; 
   }
