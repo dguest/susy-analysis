@@ -15,6 +15,7 @@ int SmartChain::Add(std::string file_name, int nentries) {
   return TChain::Add(file_name.c_str(), nentries); 
 }
 int SmartChain::GetEntry(int entry_n) { 
+  int return_val = TChain::GetEntry(entry_n); 
   int this_tree_n = GetTreeNumber(); 
   if (this_tree_n != m_last_tree) { 
     for (Strings::const_iterator br_itr = m_set_branches.begin(); 
@@ -25,7 +26,7 @@ int SmartChain::GetEntry(int entry_n) {
     }
     m_last_tree = this_tree_n; 
   }
-  return TChain::GetEntry(entry_n); 
+  return return_val; 
 }
 
 std::vector<std::string> SmartChain::get_all_branch_names() const { 
