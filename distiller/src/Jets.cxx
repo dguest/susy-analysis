@@ -147,26 +147,6 @@ void EventJets::fill(const SusyBuffer& buffer, SUSYObjDef& def,
       the_jet->set_bit(jetbit::taggable_eta); 
     }
 
-    // overlap removal 
-    double min_delta_r = 10; 
-    for (int el_n = 0; el_n < buffer.el_n; el_n++) { 
-      TLorentzVector el; 
-      if (buffer.el_cl_pt->at(el_n) == 0.0) 
-	continue; 
-      el.SetPtEtaPhiE(buffer.el_cl_pt->at(el_n), 
-		      buffer.el_cl_eta->at(el_n), 
-		      buffer.el_cl_phi->at(el_n), 
-		      buffer.el_cl_E->at(el_n)); 
-      float delta_r = el.DeltaR(*the_jet); 
-      if (delta_r < 0.2) { 
-	min_delta_r = delta_r; 
-	break; 
-      }
-    }
-    if (min_delta_r < 0.2) { 
-      the_jet->set_bit(jetbit::el_overlap); 
-    }
-
   }
 }
 

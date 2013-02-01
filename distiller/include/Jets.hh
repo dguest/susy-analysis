@@ -12,7 +12,7 @@ class RunInfo;
 namespace jetbit { 
   const unsigned susy            = 1u << 0; 
   const unsigned low_pt          = 1u << 1; 
-  const unsigned el_overlap      = 1u << 2; 
+  // const unsigned el_overlap      = 1u << 2; 
   const unsigned good            = 1u << 3; 
   const unsigned leading         = 1u << 4; 
   const unsigned high_eta        = 1u << 5; 

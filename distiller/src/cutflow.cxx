@@ -551,7 +551,7 @@ int main(int narg, char* argv[])
 
   RunInfo info; 
   info.run_number = 180614; 
-  info.grl = "grl.xml"; 
+  // info.grl = "grl.xml"; 
   srand(0); 
   using namespace cutflag; 
   unsigned flags = verbose | is_signal | debug_susy; 
@@ -564,7 +564,7 @@ int main(int narg, char* argv[])
   flags |= is_atlfast; 
   flags |= debug_cutflow; 
 
-  flags |= is_data; 
+  // flags |= is_data; 
 
   // run the main routine 
   typedef std::vector<std::pair<std::string, int> > CCOut; 
