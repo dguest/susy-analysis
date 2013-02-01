@@ -249,5 +249,18 @@ bool check_buffer(const SusyBuffer& buffer) {
   assert(int(buffer.jet_EtaOrigin       ->size()) == buffer.jet_n);
   assert(int(buffer.jet_PhiOrigin       ->size()) == buffer.jet_n);
   assert(int(buffer.jet_MOrigin         ->size()) == buffer.jet_n);
+
+  assert(buffer.jet_jvtxf); 
+  assert(buffer.jet_flavor_component_jfitcomb_pb);
+  assert(buffer.jet_flavor_component_jfitcomb_pc);
+  assert(buffer.jet_flavor_component_jfitcomb_pu);
+  assert(buffer.jet_flavor_truth_label); 
+
+  assert(int(buffer.jet_jvtxf->size()) == buffer.jet_n); 
+  assert(int(buffer.jet_flavor_component_jfitcomb_pb) == buffer.jet_n);
+  assert(int(buffer.jet_flavor_component_jfitcomb_pc) == buffer.jet_n);
+  assert(int(buffer.jet_flavor_component_jfitcomb_pu) == buffer.jet_n);
+  assert(int(buffer.jet_flavor_truth_label->size()) == buffer.jet_n); 
+  
   return true; 
 }
