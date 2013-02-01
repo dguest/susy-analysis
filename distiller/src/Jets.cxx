@@ -254,7 +254,6 @@ bool check_buffer(const SusyBuffer& buffer) {
   assert(buffer.jet_flavor_component_jfitcomb_pb);
   assert(buffer.jet_flavor_component_jfitcomb_pc);
   assert(buffer.jet_flavor_component_jfitcomb_pu);
-  assert(buffer.jet_flavor_truth_label); 
 
   assert(int(buffer.jet_jvtxf->size()) == buffer.jet_n); 
   assert(int(buffer.jet_flavor_component_jfitcomb_pb->size()) 
@@ -263,7 +262,6 @@ bool check_buffer(const SusyBuffer& buffer) {
 	 == buffer.jet_n);
   assert(int(buffer.jet_flavor_component_jfitcomb_pu->size()) 
 	 == buffer.jet_n);
-  assert(int(buffer.jet_flavor_truth_label->size()) == buffer.jet_n); 
   
   return true; 
 }

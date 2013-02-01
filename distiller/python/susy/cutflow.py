@@ -23,6 +23,7 @@ def cutflow(input_files, run_number, flags, grl='', output_ntuple=''):
         b: debug susytools (don't pipe output to /dev/null)
         c: save JetFitterCharm weights
         m: save mv3 weights
+        i: get sparticle id (requires truth)
 
         a: aggressive --- remove bad files and retry
 

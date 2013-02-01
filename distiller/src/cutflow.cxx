@@ -78,8 +78,13 @@ run_cutflow(std::vector<std::string> files,
 
   SUSYObjDef def; 
 
-  if (! (flags & cutflag::is_data) ) { 
-    flags |= (cutflag::truth | cutflag::spartid); 
+  if (flags & cutflag::is_data ) { 
+    if (flags & cutflag::spartid) { 
+      throw std::logic_error("sparticle ID and data flags cannot coexist"); 
+    }
+  }
+  else{ 
+    flags |= cutflag::truth; 
   }
 
   BranchNames branch_names; 

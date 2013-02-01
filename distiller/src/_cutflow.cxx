@@ -85,6 +85,7 @@ static unsigned get_flags(const char* flags_str)
   if (strchr(flags_str,'f')) flags |= cutflag::is_atlfast; 
   if (strchr(flags_str,'c')) flags |= cutflag::jetfitter_charm; 
   if (strchr(flags_str,'m')) flags |= cutflag::mv3; 
+  if (strchr(flags_str,'i')) flags |= cutflag::spartid; 
   return flags; 
 }
 
