@@ -56,6 +56,8 @@ public:
 private: 
   EventJets() {}; 
   EventJets(const EventJets&) {}; 
+  void fill(const SusyBuffer& buffer, SUSYObjDef& def, 
+	    unsigned flags, const RunInfo& info);
   const SusyBuffer* m_buffer; 
   friend class SelectedJet; 
   unsigned m_flags; 

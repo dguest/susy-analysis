@@ -8,6 +8,7 @@
 #include "SUSYTools/SUSYObjDef.h"
 
 #include <cassert> 
+#include <stdexcept>
 
 SelectedJet::SelectedJet(const EventJets* parent, int jet_index): 
   m_bits(0)
@@ -101,7 +102,16 @@ EventJets::EventJets(const SusyBuffer& buffer, SUSYObjDef& def,
   assert(buffer.el_cl_eta); 
   assert(buffer.el_cl_phi); 
   assert(buffer.el_cl_E); 
+  try { 
+    fill(buffer, def, flags, info);
+  }
+  catch (std::out_of_range& e) { 
+    throw std::out_of_range("vector out of range in jets constructor"); 
+  }
 
+}
+void EventJets::fill(const SusyBuffer& buffer, SUSYObjDef& def, 
+		     unsigned flags, const RunInfo& info) { 
   const int n_jets = buffer.jet_n; 
   for (int jet_n = 0; jet_n < n_jets; jet_n++){ 
     

@@ -7,7 +7,7 @@
 #include "LeptonConstants.hh"
 
 #include <cassert>
-
+#include <stdexcept>
 
 #include "TLorentzVector.h"
 #include "SUSYTools/SUSYObjDef.h"
@@ -45,10 +45,14 @@ EventElectrons::EventElectrons(const SusyBuffer& buffer, SUSYObjDef& def,
   m_flags(flags), 
   m_info(&info)
 {
-  for (int iii = 0; iii < buffer.el_n; iii++) { 
-    push_back(new Electron(this, iii)); 
+  try { 
+    for (int iii = 0; iii < buffer.el_n; iii++) { 
+      push_back(new Electron(this, iii)); 
+    }
   }
-  
+  catch (std::out_of_range& e) { 
+    throw std::out_of_range("out of range in electron constructor"); 
+  }
 }
 
 EventElectrons::~EventElectrons() { 
@@ -89,9 +93,15 @@ EventMuons::EventMuons(const SusyBuffer& buffer, SUSYObjDef& def,
   m_flags(flags), 
   m_info(&info)
 {
-  for (int iii = 0; iii < buffer.mu_staco_n; iii++) { 
-    push_back(new Muon(this, iii)); 
+  try { 
+    for (int iii = 0; iii < buffer.mu_staco_n; iii++) { 
+      push_back(new Muon(this, iii)); 
+    }
   }
+  catch (std::out_of_range& e) { 
+    throw std::out_of_range("out of range in muon constructor"); 
+  }
+
 }
 EventMuons::~EventMuons() { 
   for (iterator itr = begin(); itr != end() ; itr++) { 
