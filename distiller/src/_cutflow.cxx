@@ -11,6 +11,8 @@
 #include "PerformanceNtuple.hh"
 #include "RunInfo.hh"
 
+static unsigned get_flags(const char* flag_str); 
+
 static PyObject* py_cutflow(PyObject *self, 
 			    PyObject *args)
 {
@@ -38,16 +40,7 @@ static PyObject* py_cutflow(PyObject *self,
     input_files.push_back(file_name);     
   }
   
-  unsigned flags = 0; 
-  if (strchr(flags_str,'v')) flags |= cutflag::verbose; 
-  if (strchr(flags_str,'d')) flags |= cutflag::is_data; 
-  if (strchr(flags_str,'s')) flags |= cutflag::is_signal; 
-  if (strchr(flags_str,'p')) flags |= cutflag::use_low_pt_jets; 
-  if (strchr(flags_str,'b')) flags |= cutflag::debug_susy; 
-  if (strchr(flags_str,'r')) flags |= cutflag::save_ratios; 
-  if (strchr(flags_str,'f')) flags |= cutflag::is_atlfast; 
-  if (strchr(flags_str,'c')) flags |= cutflag::jetfitter_charm; 
-  if (strchr(flags_str,'m')) flags |= cutflag::mv3; 
+  unsigned flags = get_flags(flags_str); 
 
   // other taggers not implemented yet
   assert( (flags & (cutflag::jetfitter_charm | cutflag::mv3)) == 0); 
@@ -61,8 +54,8 @@ static PyObject* py_cutflow(PyObject *self,
     PyErr_SetString(PyExc_RuntimeError, e.what()); 
     return NULL; 
   }
-  catch (...) { 
-    PyErr_SetString(PyExc_Exception, "unknown exception"); 
+  catch (std::exception e) { 
+    PyErr_SetString(PyExc_Exception, e.what()); 
     return NULL; 
   }
 
@@ -79,6 +72,22 @@ static PyObject* py_cutflow(PyObject *self,
   return out_list; 
 
 }
+
+static unsigned get_flags(const char* flags_str) 
+{
+  unsigned flags = 0; 
+  if (strchr(flags_str,'v')) flags |= cutflag::verbose; 
+  if (strchr(flags_str,'d')) flags |= cutflag::is_data; 
+  if (strchr(flags_str,'s')) flags |= cutflag::is_signal; 
+  if (strchr(flags_str,'p')) flags |= cutflag::use_low_pt_jets; 
+  if (strchr(flags_str,'b')) flags |= cutflag::debug_susy; 
+  if (strchr(flags_str,'r')) flags |= cutflag::save_ratios; 
+  if (strchr(flags_str,'f')) flags |= cutflag::is_atlfast; 
+  if (strchr(flags_str,'c')) flags |= cutflag::jetfitter_charm; 
+  if (strchr(flags_str,'m')) flags |= cutflag::mv3; 
+  return flags; 
+}
+
 
 static PyObject* py_perf_ntuple(PyObject *self, 
 				PyObject *args)
