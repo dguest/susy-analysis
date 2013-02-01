@@ -142,7 +142,8 @@ run_cutflow(std::vector<std::string> files,
   int one_percent = n_entries /  100; 
 
   for (int evt_n = 0; evt_n < n_entries; evt_n++) { 
-    if (evt_n % one_percent == 0 || evt_n == n_entries - 1 ) { 
+    if (( one_percent && (evt_n % one_percent == 0))
+	|| evt_n == n_entries - 1 ) { 
       std::cout << boost::format("\r%i of %i (%.1f%%) processed") % 
 	(evt_n + 1) % n_entries % ( (evt_n + 1) / one_percent); 
       std::cout.flush(); 
