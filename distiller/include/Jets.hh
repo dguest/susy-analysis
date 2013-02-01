@@ -69,5 +69,7 @@ bool check_if_jet(int iJet,
 		  const unsigned flags, 
 		  const RunInfo& info); 
 
+bool check_buffer(const SusyBuffer& buffer); 
+
 
 #endif // JETS_H

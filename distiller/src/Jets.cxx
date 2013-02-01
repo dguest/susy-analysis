@@ -162,26 +162,8 @@ bool check_if_jet(int iJet,
 		  const unsigned flags, 
 		  const RunInfo& info){ 
 
-  assert(buffer.jet_pt                 );
-  assert(buffer.jet_eta                );
-  assert(buffer.jet_phi                );
-  assert(buffer.jet_E                  );
-  assert(buffer.jet_emscale_eta        );
-  assert(buffer.jet_emfrac             );
-  assert(buffer.jet_hecf               );
-  assert(buffer.jet_LArQuality         );
-  assert(buffer.jet_HECQuality         );
-  assert(buffer.jet_AverageLArQF       );
-  assert(buffer.jet_Timing             );
-  assert(buffer.jet_sumPtTrk           );
-  assert(buffer.jet_fracSamplingMax    );
-  assert(buffer.jet_SamplingMax        );
-  assert(buffer.jet_NegativeE          );
-  assert(buffer.jet_emscale_E          );
-  assert(buffer.jet_emscale_eta        );
-  assert(buffer.jet_EtaOrigin          );
-  assert(buffer.jet_PhiOrigin          );
-  assert(buffer.jet_MOrigin            );
+
+  assert(check_buffer(buffer)); 
 
   int flavor_truth_label = 0; 
   if ( flags & cutflag::truth ) { 
@@ -221,4 +203,50 @@ bool check_if_jet(int iJet,
      JetID::VeryLooseBad,
      SystErr::NONE);
     
+}
+
+bool check_buffer(const SusyBuffer& buffer) { 
+
+  assert(buffer.jet_pt                 );
+  assert(buffer.jet_eta                );
+  assert(buffer.jet_phi                );
+  assert(buffer.jet_E                  );
+  assert(buffer.jet_emscale_eta        );
+  assert(buffer.jet_emfrac             );
+  assert(buffer.jet_hecf               );
+  assert(buffer.jet_LArQuality         );
+  assert(buffer.jet_HECQuality         );
+  assert(buffer.jet_AverageLArQF       );
+  assert(buffer.jet_Timing             );
+  assert(buffer.jet_sumPtTrk           );
+  assert(buffer.jet_fracSamplingMax    );
+  assert(buffer.jet_SamplingMax        );
+  assert(buffer.jet_NegativeE          );
+  assert(buffer.jet_emscale_E          );
+  assert(buffer.jet_emscale_eta        );
+  assert(buffer.jet_EtaOrigin          );
+  assert(buffer.jet_PhiOrigin          );
+  assert(buffer.jet_MOrigin            );
+
+  assert(buffer.jet_pt                 ->size() == buffer.jet_n);
+  assert(buffer.jet_eta                ->size() == buffer.jet_n);
+  assert(buffer.jet_phi                ->size() == buffer.jet_n);
+  assert(buffer.jet_E                  ->size() == buffer.jet_n);
+  assert(buffer.jet_emscale_eta        ->size() == buffer.jet_n);
+  assert(buffer.jet_emfrac             ->size() == buffer.jet_n);
+  assert(buffer.jet_hecf               ->size() == buffer.jet_n);
+  assert(buffer.jet_LArQuality         ->size() == buffer.jet_n);
+  assert(buffer.jet_HECQuality         ->size() == buffer.jet_n);
+  assert(buffer.jet_AverageLArQF       ->size() == buffer.jet_n);
+  assert(buffer.jet_Timing             ->size() == buffer.jet_n);
+  assert(buffer.jet_sumPtTrk           ->size() == buffer.jet_n);
+  assert(buffer.jet_fracSamplingMax    ->size() == buffer.jet_n);
+  assert(buffer.jet_SamplingMax        ->size() == buffer.jet_n);
+  assert(buffer.jet_NegativeE          ->size() == buffer.jet_n);
+  assert(buffer.jet_emscale_E          ->size() == buffer.jet_n);
+  assert(buffer.jet_emscale_eta        ->size() == buffer.jet_n);
+  assert(buffer.jet_EtaOrigin          ->size() == buffer.jet_n);
+  assert(buffer.jet_PhiOrigin          ->size() == buffer.jet_n);
+  assert(buffer.jet_MOrigin            ->size() == buffer.jet_n);
+  return true; 
 }
