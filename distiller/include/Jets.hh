@@ -70,6 +70,8 @@ bool check_if_jet(int iJet,
 		  const RunInfo& info); 
 
 bool check_buffer(const SusyBuffer& buffer); 
-
+namespace CHECK { 
+  void throw_size(std::string formattable_err, int expected, int actual); 
+}
 
 #endif // JETS_H
