@@ -194,12 +194,14 @@ void SusyBuffer::set_mc_branches(SmartChain* chain,
   catch (std::runtime_error& e) { 
     br &=~ truth; 
   }
-  try { 
-    chain->SetBranchAddress("SUSY_Spart1_pdgId", &spart1_pdgid, true); 
-    chain->SetBranchAddress("SUSY_Spart2_pdgId", &spart2_pdgid, true); 
-  }
-  catch (std::runtime_error& e) { 
-    br &=~ spartid; 
+  if (br & spartid) { 
+    try { 
+      chain->SetBranchAddress("SUSY_Spart1_pdgId", &spart1_pdgid, true); 
+      chain->SetBranchAddress("SUSY_Spart2_pdgId", &spart2_pdgid, true); 
+    }
+    catch (std::runtime_error& e) { 
+      br &=~ spartid; 
+    }
   }
 }
 

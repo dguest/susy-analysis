@@ -10,6 +10,10 @@
 #include <cassert> 
 #include <stdexcept>
 
+#define CHECK_SIZE(BRANCH, SIZE)	\
+  if (!BRANCH || (int(BRANCH->size()) != SIZE))	\
+    throw std::runtime_error("branch " #BRANCH " is the corrupted")
+
 SelectedJet::SelectedJet(const EventJets* parent, int jet_index): 
   m_bits(0)
 { 
@@ -102,12 +106,9 @@ EventJets::EventJets(const SusyBuffer& buffer, SUSYObjDef& def,
   assert(buffer.el_cl_eta); 
   assert(buffer.el_cl_phi); 
   assert(buffer.el_cl_E); 
-  try { 
-    fill(buffer, def, flags, info);
-  }
-  catch (std::out_of_range& e) { 
-    throw std::out_of_range("vector out of range in jets constructor"); 
-  }
+
+  fill(buffer, def, flags, info);
+
 
 }
 void EventJets::fill(const SusyBuffer& buffer, SUSYObjDef& def, 
@@ -167,8 +168,7 @@ bool check_if_jet(int iJet,
 
   int flavor_truth_label = 0; 
   if ( flags & cutflag::truth ) { 
-    assert(buffer.jet_flavor_truth_label); 
-    assert(int(buffer.jet_flavor_truth_label->size()) == buffer.jet_n); 
+    CHECK_SIZE(buffer.jet_flavor_truth_label, buffer.jet_n); 
     flavor_truth_label = buffer.jet_flavor_truth_label->at(iJet); 
   }
     
@@ -206,62 +206,33 @@ bool check_if_jet(int iJet,
     
 }
 
+
+
 bool check_buffer(const SusyBuffer& buffer) { 
 
-  assert(buffer.jet_pt                 );
-  assert(buffer.jet_eta                );
-  assert(buffer.jet_phi                );
-  assert(buffer.jet_E                  );
-  assert(buffer.jet_emscale_eta        );
-  assert(buffer.jet_emfrac             );
-  assert(buffer.jet_hecf               );
-  assert(buffer.jet_LArQuality         );
-  assert(buffer.jet_HECQuality         );
-  assert(buffer.jet_AverageLArQF       );
-  assert(buffer.jet_Timing             );
-  assert(buffer.jet_sumPtTrk           );
-  assert(buffer.jet_fracSamplingMax    );
-  assert(buffer.jet_SamplingMax        );
-  assert(buffer.jet_NegativeE          );
-  assert(buffer.jet_emscale_E          );
-  assert(buffer.jet_emscale_eta        );
-  assert(buffer.jet_EtaOrigin          );
-  assert(buffer.jet_PhiOrigin          );
-  assert(buffer.jet_MOrigin            );
-
-  assert(int(buffer.jet_pt              ->size()) == buffer.jet_n);
-  assert(int(buffer.jet_eta             ->size()) == buffer.jet_n);
-  assert(int(buffer.jet_phi             ->size()) == buffer.jet_n);
-  assert(int(buffer.jet_E               ->size()) == buffer.jet_n);
-  assert(int(buffer.jet_emscale_eta     ->size()) == buffer.jet_n);
-  assert(int(buffer.jet_emfrac          ->size()) == buffer.jet_n);
-  assert(int(buffer.jet_hecf            ->size()) == buffer.jet_n);
-  assert(int(buffer.jet_LArQuality      ->size()) == buffer.jet_n);
-  assert(int(buffer.jet_HECQuality      ->size()) == buffer.jet_n);
-  assert(int(buffer.jet_AverageLArQF    ->size()) == buffer.jet_n);
-  assert(int(buffer.jet_Timing          ->size()) == buffer.jet_n);
-  assert(int(buffer.jet_sumPtTrk        ->size()) == buffer.jet_n);
-  assert(int(buffer.jet_fracSamplingMax ->size()) == buffer.jet_n);
-  assert(int(buffer.jet_SamplingMax     ->size()) == buffer.jet_n);
-  assert(int(buffer.jet_NegativeE       ->size()) == buffer.jet_n);
-  assert(int(buffer.jet_emscale_E       ->size()) == buffer.jet_n);
-  assert(int(buffer.jet_emscale_eta     ->size()) == buffer.jet_n);
-  assert(int(buffer.jet_EtaOrigin       ->size()) == buffer.jet_n);
-  assert(int(buffer.jet_PhiOrigin       ->size()) == buffer.jet_n);
-  assert(int(buffer.jet_MOrigin         ->size()) == buffer.jet_n);
-
-  assert(buffer.jet_jvtxf); 
-  assert(buffer.jet_flavor_component_jfitcomb_pb);
-  assert(buffer.jet_flavor_component_jfitcomb_pc);
-  assert(buffer.jet_flavor_component_jfitcomb_pu);
-
-  assert(int(buffer.jet_jvtxf->size()) == buffer.jet_n); 
-  assert(int(buffer.jet_flavor_component_jfitcomb_pb->size()) 
-	 == buffer.jet_n);
-  assert(int(buffer.jet_flavor_component_jfitcomb_pc->size()) 
-	 == buffer.jet_n);
-  assert(int(buffer.jet_flavor_component_jfitcomb_pu->size()) 
-	 == buffer.jet_n);
-  
+  CHECK_SIZE(buffer.jet_pt                          , buffer.jet_n);
+  CHECK_SIZE(buffer.jet_eta                         , buffer.jet_n);
+  CHECK_SIZE(buffer.jet_phi                         , buffer.jet_n);
+  CHECK_SIZE(buffer.jet_E                           , buffer.jet_n);
+  CHECK_SIZE(buffer.jet_emscale_eta                 , buffer.jet_n);
+  CHECK_SIZE(buffer.jet_emfrac                      , buffer.jet_n);
+  CHECK_SIZE(buffer.jet_hecf                        , buffer.jet_n);
+  CHECK_SIZE(buffer.jet_LArQuality                  , buffer.jet_n);
+  CHECK_SIZE(buffer.jet_HECQuality                  , buffer.jet_n);
+  CHECK_SIZE(buffer.jet_AverageLArQF                , buffer.jet_n);
+  CHECK_SIZE(buffer.jet_Timing                      , buffer.jet_n);
+  CHECK_SIZE(buffer.jet_sumPtTrk                    , buffer.jet_n);
+  CHECK_SIZE(buffer.jet_fracSamplingMax             , buffer.jet_n);
+  CHECK_SIZE(buffer.jet_SamplingMax                 , buffer.jet_n);
+  CHECK_SIZE(buffer.jet_NegativeE                   , buffer.jet_n);
+  CHECK_SIZE(buffer.jet_emscale_E                   , buffer.jet_n);
+  CHECK_SIZE(buffer.jet_emscale_eta                 , buffer.jet_n);
+  CHECK_SIZE(buffer.jet_EtaOrigin                   , buffer.jet_n);
+  CHECK_SIZE(buffer.jet_PhiOrigin                   , buffer.jet_n);
+  CHECK_SIZE(buffer.jet_MOrigin                     , buffer.jet_n);
+  CHECK_SIZE(buffer.jet_jvtxf                       , buffer.jet_n);
+  CHECK_SIZE(buffer.jet_flavor_component_jfitcomb_pb, buffer.jet_n);
+  CHECK_SIZE(buffer.jet_flavor_component_jfitcomb_pc, buffer.jet_n);
+  CHECK_SIZE(buffer.jet_flavor_component_jfitcomb_pu, buffer.jet_n);
   return true; 
 }
