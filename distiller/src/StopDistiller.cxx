@@ -59,7 +59,6 @@ StopDistiller::StopDistiller(const std::vector<std::string>& in,
   setup_chain(in); 
   setup_susytools(); 
   setup_outputs(); 
-  m_event_preselector = new EventPreselector(flags, info.grl); 
 }
 
 StopDistiller::~StopDistiller() { 
@@ -336,10 +335,10 @@ void StopDistiller::setup_susytools() {
   if (m_flags & cutflag::no_jet_recal) { 
     m_def->SetJetCalib(false); 
   }
+  m_event_preselector = new EventPreselector(m_flags, m_info.grl); 
 
   dup2(output_dup, fileno(stdout)); 
   close(output_dup); 
-
 }
 
 void StopDistiller::setup_outputs() { 
