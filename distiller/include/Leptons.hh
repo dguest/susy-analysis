@@ -70,6 +70,8 @@ bool check_if_electron(int iEl,
 		       const unsigned flags, 
 		       const RunInfo& info);
 
+bool el_size_check(const SusyBuffer& buffer); 
+
 bool check_if_muon(int iMu,
 		   const SusyBuffer& buffer, 
 		   SUSYObjDef& def, 

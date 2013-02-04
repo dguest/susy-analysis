@@ -5,6 +5,7 @@
 #include "RunBits.hh"
 #include "constants.hh"
 #include "LeptonConstants.hh"
+#include "CheckSize.hh"
 
 #include <cassert>
 #include <stdexcept>
@@ -45,6 +46,7 @@ EventElectrons::EventElectrons(const SusyBuffer& buffer, SUSYObjDef& def,
   m_flags(flags), 
   m_info(&info)
 {
+  assert(el_size_check(buffer)); 
   try { 
     for (int iii = 0; iii < buffer.el_n; iii++) { 
       push_back(new Electron(this, iii)); 
@@ -140,6 +142,20 @@ bool check_if_electron(int iEl,
   return pass_el; 
   //info.isAF2
   //NOTE: el_wet set to zero, couldn't match variable in D3PD
+}
+
+bool el_size_check(const SusyBuffer& buffer) { 
+  CHECK_SIZE(buffer.el_cl_eta    , buffer.el_n);
+  CHECK_SIZE(buffer.el_cl_phi    , buffer.el_n);
+  CHECK_SIZE(buffer.el_cl_E      , buffer.el_n);
+  CHECK_SIZE(buffer.el_tracketa  , buffer.el_n);
+  CHECK_SIZE(buffer.el_trackphi  , buffer.el_n);
+  CHECK_SIZE(buffer.el_author    , buffer.el_n);
+  CHECK_SIZE(buffer.el_mediumPP  , buffer.el_n);
+  CHECK_SIZE(buffer.el_OQ        , buffer.el_n);
+  CHECK_SIZE(buffer.el_nPixHits  , buffer.el_n);
+  CHECK_SIZE(buffer.el_nSCTHits  , buffer.el_n);
+  return true; 
 }
 
 bool check_if_muon(int iMu,

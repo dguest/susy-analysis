@@ -37,7 +37,13 @@ void SmartChain::SetBranchAddressPrivate(std::string name, void* branch,
 					 bool turnon) { 
 
   if (turnon) { 
-    SetBranchStatus(name.c_str(), 1); 
+    unsigned branches_found = 0; 
+    SetBranchStatus(name.c_str(), 1, &branches_found); 
+    if (branches_found != 1) { 
+      std::string prob = (boost::format("found %i branches trying to set %s")
+			  % branches_found % name).str();
+      throw std::runtime_error(prob);
+    }
   }
   int return_code = TChain::SetBranchAddress(name.c_str(), branch); 
   if (return_code != 0 && return_code != 5 ){ 
