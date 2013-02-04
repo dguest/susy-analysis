@@ -53,11 +53,12 @@ StopDistiller::StopDistiller(const std::vector<std::string>& in,
   m_cutflow(0)
 { 
   gErrorIgnoreLevel = kWarning;
-  configure_flags(); 
+  setup_flags(); 
   setup_streams(); 
   setup_chain(in); 
   setup_susytools(); 
   setup_outputs(); 
+  m_event_preselector = new EventPreselector(flags, info.grl); 
 }
 
 StopDistiller::~StopDistiller() { 
@@ -79,103 +80,6 @@ StopDistiller::~StopDistiller() {
   delete m_cutflow; 
 }
 
-void StopDistiller::setup_chain(const std::vector<std::string>& in) { 
-  m_chain = new SmartChain("susy"); 
-  m_ct_report = new CollectionTreeReport("CollectionTree"); 
-
-  if (in.size() == 0) { 
-    throw std::runtime_error("I need files to run!"); 
-  }
-
-  for (std::vector<std::string>::const_iterator file_itr = in.begin(); 
-       file_itr != in.end(); 
-       file_itr++) { 
-    int ret_code = m_chain->Add(file_itr->c_str(),-1); 
-    if (ret_code != 1) { 
-      std::string err = (boost::format("bad file: %s") % 
-			 *file_itr).str(); 
-      throw std::runtime_error(err); 
-    }
-  }
-  m_ct_report->add_files(in); 
-
-  BranchNames branch_names; 
-  branch_names.trigger = m_info.trigger;
-
-  m_susy_buffer = new SusyBuffer(m_chain, m_flags, branch_names); 
-
-  if (m_flags & cutflag::get_branches) { 
-    std::vector<std::string> br_names = m_chain->get_all_branch_names();
-    ofstream branch_save("all-set-branches.txt"); 
-    for (std::vector<std::string>::const_iterator itr = br_names.begin(); 
-	 itr != br_names.end(); itr++) { 
-      branch_save << *itr << std::endl;
-    }
-    branch_save.close(); 
-  }
-
-}
-
-void StopDistiller::setup_susytools() { 
-  m_def = new SUSYObjDef; 
-
-  std::string out_file = "/dev/null"; 
-  if (m_flags & cutflag::debug_susy) { 
-    out_file = m_susy_dbg_file; 
-  }
-  else { 
-    gErrorIgnoreLevel = kError;
-  }
-  int output_dup = dup(fileno(stdout)); 
-  freopen(out_file.c_str(), "w", stdout); 
-
-  m_def->initialize(m_flags & cutflag::is_data, 
-		    m_flags & cutflag::is_atlfast); 
-  if (m_flags & cutflag::no_jet_recal) { 
-    m_def->SetJetCalib(false); 
-  }
-
-  dup2(output_dup, fileno(stdout)); 
-  close(output_dup); 
-
-}
-
-void StopDistiller::setup_streams() { 
-  if (m_flags & cutflag::debug_cutflow) { 
-    m_norm_dbg_file = new std::ofstream("distiller-dbg.txt"); 
-  }
-}
-
-void StopDistiller::configure_flags() { 
-  if (m_flags & cutflag::is_data ) { 
-    if (m_flags & cutflag::spartid) { 
-      throw std::logic_error("sparticle ID and data flags cannot coexist"); 
-    }
-  }
-  else{ 
-    m_flags |= cutflag::truth; 
-  }
-
-}
-
-void StopDistiller::setup_outputs() { 
-  m_out_tree = new OutTree(m_out_ntuple_name, "evt_tree", m_flags); 
-  m_cutflow = new BitmapCutflow;
-  m_cutflow->add("GRL"                   , pass::grl            );  
-  m_cutflow->add(m_info.trigger          , pass::trigger        );
-  m_cutflow->add("lar_error"             , pass::lar_error      );
-  m_cutflow->add("core"                  , pass::core           );
-  m_cutflow->add("jet_clean"             , pass::jet_clean      );
-  m_cutflow->add("vxp_good"              , pass::vxp_gt_4trk    );
-  m_cutflow->add("leading_jet_120"       , pass::leading_jet    );
-  m_cutflow->add("met_120"               , pass::met            );
-  m_cutflow->add("n_jet_geq_3"           , pass::n_jet          );
-  m_cutflow->add("dphi_jetmet_min"       , pass::dphi_jetmet_min);
-  m_cutflow->add("lepton_veto"           , pass::lepton_veto    );
-  m_cutflow->add("ctag_mainz"            , pass::ctag_mainz     ); 
-
-}
-
 StopDistiller::Cutflow StopDistiller::run_cutflow() { 
   m_n_entries = m_chain->GetEntries(); 
   m_one_percent = m_n_entries / 100; 
@@ -187,13 +91,11 @@ StopDistiller::Cutflow StopDistiller::run_cutflow() {
   }
   std::ostream debug_stream(debug_buffer); 
 
-  // redirect the stdout stuff (from susytools)
-  std::string out_file = "/dev/null"; 
-  if (m_flags & cutflag::debug_susy) { 
-    out_file = m_susy_dbg_file; 
-  }
+  // redirect the stdout stuff 
   int output_dup = dup(fileno(stdout)); 
-  freopen(out_file.c_str(), "w", stdout); 
+  if ( ! (m_flags & cutflag::verbose)) { 
+    freopen("/dev/null", "w", stdout); 
+  }
 
   // ------- event loop -------
   for (int evt_n = 0; evt_n < m_n_entries; evt_n++) { 
@@ -202,10 +104,10 @@ StopDistiller::Cutflow StopDistiller::run_cutflow() {
   if (m_flags & cutflag::verbose) { 
     std::cout << "\n";  
   } 
-
-  // restore stdout
-  dup2(output_dup, fileno(stdout)); 
-  close(output_dup); 
+  else { 
+    dup2(output_dup, fileno(stdout)); 
+    close(output_dup); 
+  }
 
   typedef std::pair<std::string, int> Cut; 
   Cut total_events(std::make_pair("total_events", 
@@ -213,17 +115,6 @@ StopDistiller::Cutflow StopDistiller::run_cutflow() {
   std::vector<Cut> cutflow_vec = m_cutflow->get(); 
   cutflow_vec.insert(cutflow_vec.begin(),total_events); 
   return cutflow_vec;
-
-}
-
-void StopDistiller::print_progress(int entry_n, std::ostream& stream) { 
-  if (m_one_percent) { 
-    if (( entry_n % m_one_percent == 0) || entry_n == m_n_entries - 1 ) { 
-      stream << boost::format("\r%i of %i (%.1f%%) processed") % 
-	(entry_n + 1) % m_n_entries % ( (entry_n + 1) / m_one_percent); 
-      stream.flush(); 
-    }
-  }
 
 }
 
@@ -360,4 +251,115 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   m_out_tree->fill(); 
 
 }
+
+
+void StopDistiller::setup_flags() { 
+  if (m_flags & cutflag::is_data ) { 
+    if (m_flags & cutflag::spartid) { 
+      throw std::logic_error("sparticle ID and data flags cannot coexist"); 
+    }
+  }
+  else{ 
+    m_flags |= cutflag::truth; 
+  }
+
+}
+
+void StopDistiller::setup_streams() { 
+  if (m_flags & cutflag::debug_cutflow) { 
+    m_norm_dbg_file = new std::ofstream("distiller-dbg.txt"); 
+  }
+}
+
+void StopDistiller::setup_chain(const std::vector<std::string>& in) { 
+  m_chain = new SmartChain("susy"); 
+  m_ct_report = new CollectionTreeReport("CollectionTree"); 
+
+  if (in.size() == 0) { 
+    throw std::runtime_error("I need files to run!"); 
+  }
+
+  for (std::vector<std::string>::const_iterator file_itr = in.begin(); 
+       file_itr != in.end(); 
+       file_itr++) { 
+    int ret_code = m_chain->Add(file_itr->c_str(),-1); 
+    if (ret_code != 1) { 
+      std::string err = (boost::format("bad file: %s") % 
+			 *file_itr).str(); 
+      throw std::runtime_error(err); 
+    }
+  }
+  m_ct_report->add_files(in); 
+
+  BranchNames branch_names; 
+  branch_names.trigger = m_info.trigger;
+
+  m_susy_buffer = new SusyBuffer(m_chain, m_flags, branch_names); 
+
+  if (m_flags & cutflag::get_branches) { 
+    std::vector<std::string> br_names = m_chain->get_all_branch_names();
+    ofstream branch_save("all-set-branches.txt"); 
+    for (std::vector<std::string>::const_iterator itr = br_names.begin(); 
+	 itr != br_names.end(); itr++) { 
+      branch_save << *itr << std::endl;
+    }
+    branch_save.close(); 
+  }
+
+}
+
+void StopDistiller::setup_susytools() { 
+  m_def = new SUSYObjDef; 
+
+  std::string out_file = "/dev/null"; 
+  if (m_flags & cutflag::debug_susy) { 
+    out_file = m_susy_dbg_file; 
+  }
+  else { 
+    gErrorIgnoreLevel = kError;
+  }
+  int output_dup = dup(fileno(stdout)); 
+  freopen(out_file.c_str(), "w", stdout); 
+
+  m_def->initialize(m_flags & cutflag::is_data, 
+		    m_flags & cutflag::is_atlfast); 
+  if (m_flags & cutflag::no_jet_recal) { 
+    m_def->SetJetCalib(false); 
+  }
+
+  dup2(output_dup, fileno(stdout)); 
+  close(output_dup); 
+
+}
+
+void StopDistiller::setup_outputs() { 
+  m_out_tree = new OutTree(m_out_ntuple_name, "evt_tree", m_flags); 
+  m_cutflow = new BitmapCutflow;
+  m_cutflow->add("GRL"                   , pass::grl            );  
+  m_cutflow->add(m_info.trigger          , pass::trigger        );
+  m_cutflow->add("lar_error"             , pass::lar_error      );
+  m_cutflow->add("core"                  , pass::core           );
+  m_cutflow->add("jet_clean"             , pass::jet_clean      );
+  m_cutflow->add("vxp_good"              , pass::vxp_gt_4trk    );
+  m_cutflow->add("leading_jet_120"       , pass::leading_jet    );
+  m_cutflow->add("met_120"               , pass::met            );
+  m_cutflow->add("n_jet_geq_3"           , pass::n_jet          );
+  m_cutflow->add("dphi_jetmet_min"       , pass::dphi_jetmet_min);
+  m_cutflow->add("lepton_veto"           , pass::lepton_veto    );
+  m_cutflow->add("ctag_mainz"            , pass::ctag_mainz     ); 
+
+}
+
+
+void StopDistiller::print_progress(int entry_n, std::ostream& stream) { 
+  if (m_one_percent) { 
+    if (( entry_n % m_one_percent == 0) || entry_n == m_n_entries - 1 ) { 
+      stream << boost::format("\r%i of %i (%.1f%%) processed") % 
+	(entry_n + 1) % m_n_entries % ( (entry_n + 1) / m_one_percent); 
+      stream.flush(); 
+    }
+  }
+
+}
+
 

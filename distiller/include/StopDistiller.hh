@@ -32,13 +32,14 @@ public:
   Cutflow run_cutflow();
 private: 
   typedef std::vector<SelectedJet*> Jets; 
+  void process_event(int entry_n, std::ostream&); 
+  void setup_flags(); 
+  void setup_streams(); 
   void setup_chain(const std::vector<std::string>& in); 
   void setup_susytools(); 
-  void setup_streams(); 
-  void configure_flags(); 
   void setup_outputs(); 
+
   void print_progress(int entry_n, std::ostream&); 
-  void process_event(int entry_n, std::ostream&); 
   RunInfo m_info; 
   unsigned m_flags; 
   std::string m_out_ntuple_name; 

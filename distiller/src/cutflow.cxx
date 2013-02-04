@@ -23,7 +23,7 @@ int main(int narg, char* argv[])
   info.trigger = "EF_xe80_tclcw_loose";
   srand(0); 
   using namespace cutflag; 
-  unsigned flags = verbose | is_signal | debug_susy; 
+  unsigned flags = is_signal; 
 
   flags |= get_branches; 
   flags |= save_ratios; 
@@ -31,7 +31,8 @@ int main(int narg, char* argv[])
   // flags |= use_met_reffinal; 
   flags |= verbose; 
   flags |= is_atlfast; 
-  flags |= debug_cutflow; 
+  // flags |= debug_cutflow; 
+  // flags |= debug_susy; 
 
   // flags |= is_data; 
 
@@ -50,6 +51,7 @@ int main(int narg, char* argv[])
 
   }
 
+  std::cout << "done" << std::endl;
   return 0; 
 
 }
