@@ -21,8 +21,11 @@ def _run_distill(ds):
             output_ntuple=ds.skim_path)
         ds.n_raw_entries = dict(cut_counts)['total_events']
         ds.cutflow = [list(c) for c in cut_counts]
-        if 'read_errors' in [n for n,c in cut_counts]: 
-            ds.read_errors = dict(cut_counts)['read_errors']
+        cut_names = [n for n,c in cut_counts]
+        _read_err = 'read_errors'
+        if _read_err in cut_names: 
+            ds.read_errors = dict(cut_counts)[_read_err]
+            ds.cutflow.remove(cut_names.index(_read_err))
         ds.need_rerun = False
         if isinstance(cut_counts, cutflow.CorruptedCutflow): 
             ds.n_corrupted_files = len(ds.d3pds) - len(cut_counts.files_used)
