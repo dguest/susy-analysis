@@ -1,0 +1,374 @@
+#include "StopDistiller.hh"
+#include "RunBits.hh"
+#include "distill_tools.hh"
+#include <fstream>
+
+#include <iostream>
+
+#include "TError.h"
+
+
+// header dump (clean me up)
+
+#include "distill_tools.hh"
+#include "SusyBuffer.h"
+#include "OutTree.hh"
+#include "Jets.hh"
+#include "Leptons.hh"
+#include "constants.hh"
+#include "RunInfo.hh"
+#include "BitmapCutflow.hh"
+#include "SmartChain.hh"
+#include "CollectionTreeReport.hh"
+#include "EventPreselector.hh"
+
+#include "RunBits.hh"
+#include "EventBits.hh"
+#include "EventConstants.hh"
+
+#include <iostream>
+#include <fstream>
+#include <algorithm>
+#include <string> 
+#include <streambuf>
+#include <cassert>
+#include <cstdlib> // getenv, others
+#include <cstdio>
+#include <map>
+#include "TChain.h"
+#include "TVector2.h"
+#include "TError.h"
+#include <math.h>
+#include <stdexcept> 
+#include "SUSYTools/SUSYObjDef.h"
+#include "SUSYTools/FakeMetEstimator.h"
+
+#include <boost/format.hpp>
+#include <boost/scoped_ptr.hpp>
+
+
+
+StopDistiller::StopDistiller(const std::vector<std::string>& in, 
+			     const RunInfo& info, unsigned flags, 
+			     std::string out): 
+  m_info(info), 
+  m_flags(flags), 
+  m_out_ntuple_name(out), 
+  m_susy_dbg_file("susy-debug.txt"), 
+  m_norm_dbg_file(0), 
+  m_null_file(new std::ofstream("/dev/null")), 
+  m_chain(0), 
+  m_ct_report(0), 
+  m_susy_buffer(0), 
+  m_def(0), 
+  m_event_preselector(0), 
+  m_out_tree(0), 
+  m_cutflow(0)
+{ 
+  gErrorIgnoreLevel = kWarning;
+  configure_flags(); 
+  setup_streams(); 
+  setup_chain(in); 
+  setup_susytools(); 
+  setup_outputs(); 
+}
+
+StopDistiller::~StopDistiller() { 
+  if (m_norm_dbg_file) { 
+    m_norm_dbg_file->close(); 
+    delete m_norm_dbg_file; 
+  }
+  delete m_null_file; 
+  delete m_chain; 
+  delete m_ct_report; 
+  delete m_susy_buffer; 
+  if (m_def) { 
+    m_def->finalize(); 
+    delete m_def; 
+  }
+
+  delete m_event_preselector; 
+  delete m_out_tree; 
+  delete m_cutflow; 
+}
+
+void StopDistiller::setup_chain(const std::vector<std::string> in) { 
+  m_chain = new SmartChain("susy"); 
+  m_ct_report = new ct_report("CollectionTree"); 
+
+  if (in.size() == 0) { 
+    throw std::runtime_error("I need files to run!"); 
+  }
+
+  for (std::vector<std::string>::const_iterator file_itr = in.begin(); 
+       file_itr != in.end(); 
+       file_itr++) { 
+    int ret_code = m_chain->Add(file_itr->c_str(),-1); 
+    if (ret_code != 1) { 
+      std::string err = (boost::format("bad file: %s") % 
+			 *file_itr).str(); 
+      throw std::runtime_error(err); 
+    }
+  }
+  m_ct_report.add_files(in); 
+
+  BranchNames branch_names; 
+  branch_names.trigger = "EF_xe80_tclcw_loose"; 
+
+  m_susy_buffer = new SusyBuffer(m_chain, m_flags, branch_names); 
+
+  if (m_flags & cutflag::get_branches) { 
+    std::vector<std::string> br_names = m_chain->get_all_branch_names();
+    ofstream branch_save("all-set-branches.txt"); 
+    for (std::vector<std::string>::const_iterator itr = br_names.begin(); 
+	 itr != br_names.end(); itr++) { 
+      branch_save << *itr << std::endl;
+    }
+    branch_save.close(); 
+  }
+
+}
+
+void StopDistiller::setup_susytools() { 
+  m_def = new SUSYObjDef; 
+
+  std::string out_file = "/dev/null"; 
+  if (m_flags & cutflag::debug_susy) { 
+    out_file = m_susy_dbg_file; 
+  }
+  else { 
+    gErrorIgnoreLevel = kError;
+  }
+  int output_dup = dup(fileno(stdout)); 
+  freopen(out_file.c_str(), "w", stdout); 
+
+  m_def.initialize(flags & cutflag::is_data, flags & cutflag::is_atlfast); 
+  if (m_flags & cutflag::no_jet_recal) { 
+    m_def->SetJetCalib(false); 
+  }
+
+  dup2(output_dup, fileno(stdout)); 
+  close(output_dup); 
+
+}
+
+void StopDistiller::setup_streams() { 
+  if (m_flags & cutflag::debug_cutflow) { 
+    m_norm_dbg_file = new std::ofstream("distiller-dbg.txt"); 
+  }
+}
+
+void StopDistiller::configure_flags() { 
+  if (m_flags & cutflag::is_data ) { 
+    if (m_flags & cutflag::spartid) { 
+      throw std::logic_error("sparticle ID and data flags cannot coexist"); 
+    }
+  }
+  else{ 
+    m_flags |= cutflag::truth; 
+  }
+
+}
+
+void StopDistiller::setup_outputs() { 
+  m_out_tree = new OutTree(m_out_ntuple_name, "evt_tree", m_flags); 
+  m_cutflow = BitmapCutflow; 
+  m_cutflow.add("GRL"                   , pass::grl            );  
+  m_cutflow.add(branch_names.trigger    , pass::trigger        );
+  m_cutflow.add("lar_error"             , pass::lar_error      );
+  m_cutflow.add("core"                  , pass::core           );
+  m_cutflow.add("jet_clean"             , pass::jet_clean      );
+  m_cutflow.add("vxp_good"              , pass::vxp_gt_4trk    );
+  m_cutflow.add("leading_jet_120"       , pass::leading_jet    );
+  m_cutflow.add("met_120"               , pass::met            );
+  m_cutflow.add("n_jet_geq_3"           , pass::n_jet          );
+  m_cutflow.add("dphi_jetmet_min"       , pass::dphi_jetmet_min);
+  m_cutflow.add("lepton_veto"           , pass::lepton_veto    );
+  m_cutflow.add("ctag_mainz"            , pass::ctag_mainz     ); 
+
+}
+
+StopDistiller::Cutflow StopDistiller::run_cutflow() { 
+  m_n_entries = m_chain->GetEntries(); 
+  m_one_percent = m_chain / 100; 
+
+  // first setup my debug stream
+  std::streambuf debug_buffer = m_null_file->rdbuf(); 
+  if (m_norm_dbg_file) { 
+    debug_buffer = m_norm_dbg_file->rdbuf(); 
+  }
+  std::ostream debug_stream(debug_buffer); 
+
+  // redirect the stdout stuff (from susytools)
+  std::string out_file = "/dev/null"; 
+  if (m_flags & cutflag::debug_susy) { 
+    out_file = m_susy_dbg_file; 
+  }
+  int output_dup = dup(fileno(stdout)); 
+  freopen(out_file.c_str(), "w", stdout); 
+
+  // ------- event loop -------
+  for (int evt_n = 0; evt_n < m_n_entries; evt_n++) { 
+    process_event(evt_n, debug_stream); 
+  }
+  if (m_flags & cutflag::verbose) { 
+    std::cout << "\n";  
+  } 
+
+  // restore stdout
+  dup2(output_dup, fileno(stdout)); 
+  close(output_dup); 
+
+  typedef std::pair<std::string, int> Cut; 
+  Cut total_events(std::make_pair("total_events", 
+				  m_ct_report->total_entries()));
+  std::vector<Cut> cutflow_vec = m_cutflow->get(); 
+  cutflow_vec.insert(cutflow_vec.begin(),total_events); 
+  return cutflow_vec;
+
+}
+
+void StopDistiller::print_progress(int entry_n, std::ostream& stream) { 
+  if (m_one_percent) { 
+    if (( entry_n % one_percent == 0) || entry_n == m_n_entries - 1 ) { 
+      stream << boost::format("\r%i of %i (%.1f%%) processed") % 
+	(entry_n + 1) % m_n_entries % ( (entry_n + 1) / m_one_percent); 
+      stream.flush(); 
+    }
+  }
+
+}
+
+void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) { 
+  if (m_flags & cutflag::verbose) { 
+    print_progress(event_n, std::cout); 
+  }
+  m_chain->GetEntry(evt_n); 
+
+  m_def->Reset(); 
+  m_out_tree.clear_buffer(); 
+    
+  EventJets all_jets(*m_susy_buffer, *m_def, m_flags, m_info); 
+  EventElectrons all_electrons(*m_susy_buffer, *m_def, m_flags, m_info); 
+  EventMuons all_muons(*m_susy_buffer, *m_def, m_flags, m_info); 
+
+  std::vector<Electron*> susy_electrons = filter_susy(all_electrons); 
+  std::vector<Muon*> susy_muons = filter_susy(all_muons); 
+
+  unsigned pass_bits = 0; 
+
+  // --- preselection 
+
+  pass_bits |= event_preselector.get_preselection_flags(*buffer); 
+
+  // --- object selection 
+
+  std::sort(all_jets.begin(),all_jets.end(),has_lower_pt); 
+  std::reverse(all_jets.begin(), all_jets.end()); 
+
+  if (all_jets.size()) { 
+    copy_jet_info(all_jets.at(0), m_out_tree->leading_jet_uncensored); 
+  }
+    
+  Jets preselection_jets; 
+  for (EventJets::const_iterator jet_itr = all_jets.begin(); 
+       jet_itr != all_jets.end(); 
+       jet_itr++) {
+    const SelectedJet& jet = **jet_itr; 
+    bool is_low_pt = (jet.bits() & jetbit::low_pt); 
+    bool is_high_eta = (jet.bits() & jetbit::high_eta); 
+    if (!is_low_pt && !is_high_eta) { 
+      preselection_jets.push_back(*jet_itr); 
+    }
+  }
+
+  // need to get susy muon indices before overlap
+  std::vector<int> susy_muon_idx = get_indices(susy_muons); 
+    
+  std::vector<double> jet_dr = remove_overlaping(susy_electrons, 
+						 preselection_jets, 
+						 REMOVE_JET_CONE); 
+  remove_overlaping(preselection_jets, susy_electrons, REMOVE_EL_CONE); 
+  remove_overlaping(preselection_jets, susy_muons, REMOVE_MU_CONE); 
+
+  for (std::vector<double>::const_iterator dr_itr = jet_dr.begin(); 
+       dr_itr != jet_dr.end(); dr_itr++) { 
+    dbg_stream << "evt " << m_susy_buffer->EventNumber 
+	       << ", removed jet -- dR = " 
+	       << *dr_itr << std::endl; 
+  }
+
+  Jets signal_jets; 
+  for (Jets::const_iterator jet_itr = preselection_jets.begin(); 
+       jet_itr != preselection_jets.end(); jet_itr++) { 
+
+    const SelectedJet& jet = **jet_itr; 
+    bool signal_pt = (jet.bits() & jetbit::signal_pt); 
+    bool tag_eta = (jet.bits() & jetbit::taggable_eta);
+    bool leading_jet = (*jet_itr == *preselection_jets.begin()); 
+    if (signal_pt && (tag_eta || leading_jet)) { 
+      signal_jets.push_back(*jet_itr); 
+      bool good_isr_pt = jet.Pt() > 120*GeV;
+      if (good_isr_pt) { 
+	pass_bits |= pass::leading_jet; 
+      }
+    }
+  }
+  set_bit(signal_jets, jetbit::good); 
+
+  TVector2 met = get_met(*buffer, *m_def, m_info, susy_muon_idx); 
+  if (m_flags & cutflag::use_met_reffinal) { 
+    met.Set(m_susy_buffer->MET_RefFinal_etx, m_susy_buffer->MET_RefFinal_ety); 
+  }
+
+  // ----- object selection is done now, from here is filling outputs ---
+
+  m_out_tree->n_susy_jets = preselection_jets.size(); 
+  pass_bits |= jet_cleaning_bit(preselection_jets); 
+
+  const unsigned n_req_jets = 3; 
+  if (signal_jets.size() >= n_req_jets) { 
+    pass_bits |= pass::n_jet; 
+
+    Jets leading_jets(signal_jets.begin(), 
+		      signal_jets.begin() + n_req_jets); 
+    set_bit(leading_jets, jetbit::leading); 
+    assert(leading_jets.size() == n_req_jets);
+
+    m_out_tree->htx = get_htx(preselection_jets); 
+
+    m_out_tree->min_jetmet_dphi = get_min_jetmet_dphi(leading_jets, met); 
+    if (m_out_tree->min_jetmet_dphi > MIN_DPHI_JET_MET) { 
+      pass_bits |= pass::dphi_jetmet_min; 
+    }
+
+  }
+
+  copy_leading_jet_info(signal_jets, m_out_tree); 
+  pass_bits |= get_ctag_bits(signal_jets); 
+
+  if(m_def->IsGoodVertex(m_susy_buffer->vx_nTracks)) {
+    pass_bits |= pass::vxp_gt_4trk; 
+  }
+  if (susy_electrons.size() == 0 && susy_muons.size() == 0) { 
+    pass_bits |= pass::lepton_veto; 
+  }
+  if (met.Mod() > 120*GeV) { 
+    pass_bits |= pass::met; 
+  }
+
+  if ( m_flags & cutflag::truth ) { 
+    fill_cjet_truth(m_out_tree, signal_jets); 
+    fill_event_truth(m_out_tree, *buffer, m_flags); 
+  }
+
+  cutflow.fill(pass_bits); 
+  m_out_tree->pass_bits = pass_bits; 
+  m_out_tree->met = met.Mod(); 
+  m_out_tree->met_phi = met.Phi(); 
+
+  m_out_tree->event_number = m_susy_buffer->EventNumber; 
+
+  m_out_tree->fill(); 
+
+}

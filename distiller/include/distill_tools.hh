@@ -1,5 +1,5 @@
-#ifndef CUTFLOW_H
-#define CUTFLOW_H
+#ifndef DISTILL_TOOLS_HH
+#define DISTILL_TOOLS_HH
 
 class SusyBuffer; 
 class SUSYObjDef; 
@@ -122,4 +122,4 @@ std::vector<T*> filter_susy(const std::vector<T*>& in)
 }
 
 
-#endif //CUTFLOW_H
+#endif 

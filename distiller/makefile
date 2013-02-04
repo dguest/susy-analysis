@@ -58,10 +58,10 @@ PY_LDFLAGS += -shared
 # ---- define objects
 TOBJ        := SusyBuffer.o
 T_DICTS     := $(TOBJ:.o=Dict.o)
-GEN_OBJ     := cutflow.o OutTree.o Jets.o Leptons.o BitmapCutflow.o Grl.o
+GEN_OBJ     := distill_tools.o OutTree.o Jets.o Leptons.o BitmapCutflow.o Grl.o
 GEN_OBJ     += SmartChain.o PerformanceNtuple.o CollectionTreeReport.o 
-GEN_OBJ     += EventPreselector.o 
-EXE_OBJ     := $(GEN_OBJ) $(T_DICTS) $(TOBJ)
+GEN_OBJ     += EventPreselector.o StopDistiller.o
+EXE_OBJ     := $(GEN_OBJ) $(T_DICTS) $(TOBJ) cutflow.o
 PYLIB_OBJ   := $(GEN_OBJ) $(T_DICTS) $(TOBJ)
 
 PY_OBJ       := _cutflow.o
