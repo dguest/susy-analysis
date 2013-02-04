@@ -11,6 +11,7 @@
 #include "SmartChain.hh"
 #include "CollectionTreeReport.hh"
 #include "EventPreselector.hh"
+#include "CheckSize.hh"
 
 #include "RunBits.hh"
 #include "EventBits.hh"
@@ -98,8 +99,14 @@ StopDistiller::Cutflow StopDistiller::run_cutflow() {
   }
 
   // ------- event loop -------
+  int n_error = 0; 
   for (int evt_n = 0; evt_n < m_n_entries; evt_n++) { 
-    process_event(evt_n, debug_stream); 
+    try { 
+      process_event(evt_n, debug_stream); 
+    }
+    catch (EventReadError& e) { 
+      n_error++; 
+    }
   }
   if (m_flags & cutflag::verbose) { 
     std::cout << "\n";  
@@ -114,6 +121,9 @@ StopDistiller::Cutflow StopDistiller::run_cutflow() {
 				  m_ct_report->total_entries()));
   std::vector<Cut> cutflow_vec = m_cutflow->get(); 
   cutflow_vec.insert(cutflow_vec.begin(),total_events); 
+  if (n_error) { 
+    cutflow_vec.push_back(std::make_pair("read_errors",n_error)); 
+  }
   return cutflow_vec;
 
 }

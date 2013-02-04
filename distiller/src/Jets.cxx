@@ -4,6 +4,7 @@
 #include "RunInfo.hh"
 #include "RunBits.hh"
 #include "JetConstants.hh"
+#include "CheckSize.hh"
 
 #include "SUSYTools/SUSYObjDef.h"
 
@@ -11,17 +12,6 @@
 #include <stdexcept>
 #include <boost/format.hpp>
 
-#define CHECK_SIZE(BRANCH, SIZE)\
-  CHECK::throw_size("branch " #BRANCH " has wrong number"		\
-	     " of entries, expected %i, found %i", SIZE, BRANCH->size())
-
-void CHECK::throw_size(std::string formattable, int expected, int actual){
-  if (expected != actual){ 
-    std::string err = (boost::format(formattable) % expected % 
-		       actual).str();	
-    throw std::runtime_error(err); 
-  }
-}
 
 
 SelectedJet::SelectedJet(const EventJets* parent, int jet_index): 
