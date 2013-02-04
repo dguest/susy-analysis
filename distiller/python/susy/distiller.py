@@ -5,6 +5,9 @@ from os.path import isdir, join, isfile
 from multiprocessing import Pool
 
 def _run_distill(ds): 
+    """
+    Note: need to rework the interface between this and cutflow.cutflow
+    """
     print '{} starting, type: {}'.format(ds.id,ds.name)
     grl = ''
     if hasattr(ds,'grl'): 
@@ -18,6 +21,8 @@ def _run_distill(ds):
             output_ntuple=ds.skim_path)
         ds.n_raw_entries = dict(cut_counts)['total_events']
         ds.cutflow = [list(c) for c in cut_counts]
+        if 'read_errors' in [n for n,c in cut_counts]: 
+            ds.read_errors = dict(cut_counts)['read_errors']
         ds.need_rerun = False
         if isinstance(cut_counts, cutflow.CorruptedCutflow): 
             ds.n_corrupted_files = len(ds.d3pds) - len(cut_counts.files_used)
