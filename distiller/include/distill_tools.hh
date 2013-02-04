@@ -18,12 +18,11 @@ class OutTree;
 #include <set>
 #include <cassert>
 
+// fix this somehow
+#include "OutTree.hh"
 
 
-std::vector<std::pair<std::string, int> >
-run_cutflow(std::vector<std::string> files, 
-	    RunInfo info, unsigned flags = 0, 
-	    std::string out_ntuple_name = ""); 
+void copy_jet_info(const SelectedJet* , OutTree::Jet&); 
 
 
 void copy_leading_jet_info(const std::vector<SelectedJet*>& signal_jets, 

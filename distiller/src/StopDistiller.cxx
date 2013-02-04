@@ -1,16 +1,6 @@
 #include "StopDistiller.hh"
-#include "RunBits.hh"
 #include "distill_tools.hh"
-#include <fstream>
 
-#include <iostream>
-
-#include "TError.h"
-
-
-// header dump (clean me up)
-
-#include "distill_tools.hh"
 #include "SusyBuffer.h"
 #include "OutTree.hh"
 #include "Jets.hh"
@@ -28,24 +18,21 @@
 
 #include <iostream>
 #include <fstream>
-#include <algorithm>
 #include <string> 
 #include <streambuf>
 #include <cassert>
 #include <cstdlib> // getenv, others
 #include <cstdio>
 #include <map>
-#include "TChain.h"
+
 #include "TVector2.h"
 #include "TError.h"
-#include <math.h>
+
 #include <stdexcept> 
 #include "SUSYTools/SUSYObjDef.h"
 #include "SUSYTools/FakeMetEstimator.h"
 
 #include <boost/format.hpp>
-#include <boost/scoped_ptr.hpp>
-
 
 
 StopDistiller::StopDistiller(const std::vector<std::string>& in, 
@@ -92,9 +79,9 @@ StopDistiller::~StopDistiller() {
   delete m_cutflow; 
 }
 
-void StopDistiller::setup_chain(const std::vector<std::string> in) { 
+void StopDistiller::setup_chain(const std::vector<std::string>& in) { 
   m_chain = new SmartChain("susy"); 
-  m_ct_report = new ct_report("CollectionTree"); 
+  m_ct_report = new CollectionTreeReport("CollectionTree"); 
 
   if (in.size() == 0) { 
     throw std::runtime_error("I need files to run!"); 
@@ -110,10 +97,10 @@ void StopDistiller::setup_chain(const std::vector<std::string> in) {
       throw std::runtime_error(err); 
     }
   }
-  m_ct_report.add_files(in); 
+  m_ct_report->add_files(in); 
 
   BranchNames branch_names; 
-  branch_names.trigger = "EF_xe80_tclcw_loose"; 
+  branch_names.trigger = m_info.trigger;
 
   m_susy_buffer = new SusyBuffer(m_chain, m_flags, branch_names); 
 
@@ -142,7 +129,8 @@ void StopDistiller::setup_susytools() {
   int output_dup = dup(fileno(stdout)); 
   freopen(out_file.c_str(), "w", stdout); 
 
-  m_def.initialize(flags & cutflag::is_data, flags & cutflag::is_atlfast); 
+  m_def->initialize(m_flags & cutflag::is_data, 
+		    m_flags & cutflag::is_atlfast); 
   if (m_flags & cutflag::no_jet_recal) { 
     m_def->SetJetCalib(false); 
   }
@@ -172,28 +160,28 @@ void StopDistiller::configure_flags() {
 
 void StopDistiller::setup_outputs() { 
   m_out_tree = new OutTree(m_out_ntuple_name, "evt_tree", m_flags); 
-  m_cutflow = BitmapCutflow; 
-  m_cutflow.add("GRL"                   , pass::grl            );  
-  m_cutflow.add(branch_names.trigger    , pass::trigger        );
-  m_cutflow.add("lar_error"             , pass::lar_error      );
-  m_cutflow.add("core"                  , pass::core           );
-  m_cutflow.add("jet_clean"             , pass::jet_clean      );
-  m_cutflow.add("vxp_good"              , pass::vxp_gt_4trk    );
-  m_cutflow.add("leading_jet_120"       , pass::leading_jet    );
-  m_cutflow.add("met_120"               , pass::met            );
-  m_cutflow.add("n_jet_geq_3"           , pass::n_jet          );
-  m_cutflow.add("dphi_jetmet_min"       , pass::dphi_jetmet_min);
-  m_cutflow.add("lepton_veto"           , pass::lepton_veto    );
-  m_cutflow.add("ctag_mainz"            , pass::ctag_mainz     ); 
+  m_cutflow = new BitmapCutflow;
+  m_cutflow->add("GRL"                   , pass::grl            );  
+  m_cutflow->add(m_info.trigger          , pass::trigger        );
+  m_cutflow->add("lar_error"             , pass::lar_error      );
+  m_cutflow->add("core"                  , pass::core           );
+  m_cutflow->add("jet_clean"             , pass::jet_clean      );
+  m_cutflow->add("vxp_good"              , pass::vxp_gt_4trk    );
+  m_cutflow->add("leading_jet_120"       , pass::leading_jet    );
+  m_cutflow->add("met_120"               , pass::met            );
+  m_cutflow->add("n_jet_geq_3"           , pass::n_jet          );
+  m_cutflow->add("dphi_jetmet_min"       , pass::dphi_jetmet_min);
+  m_cutflow->add("lepton_veto"           , pass::lepton_veto    );
+  m_cutflow->add("ctag_mainz"            , pass::ctag_mainz     ); 
 
 }
 
 StopDistiller::Cutflow StopDistiller::run_cutflow() { 
   m_n_entries = m_chain->GetEntries(); 
-  m_one_percent = m_chain / 100; 
+  m_one_percent = m_n_entries / 100; 
 
   // first setup my debug stream
-  std::streambuf debug_buffer = m_null_file->rdbuf(); 
+  std::filebuf* debug_buffer = m_null_file->rdbuf(); 
   if (m_norm_dbg_file) { 
     debug_buffer = m_norm_dbg_file->rdbuf(); 
   }
@@ -230,7 +218,7 @@ StopDistiller::Cutflow StopDistiller::run_cutflow() {
 
 void StopDistiller::print_progress(int entry_n, std::ostream& stream) { 
   if (m_one_percent) { 
-    if (( entry_n % one_percent == 0) || entry_n == m_n_entries - 1 ) { 
+    if (( entry_n % m_one_percent == 0) || entry_n == m_n_entries - 1 ) { 
       stream << boost::format("\r%i of %i (%.1f%%) processed") % 
 	(entry_n + 1) % m_n_entries % ( (entry_n + 1) / m_one_percent); 
       stream.flush(); 
@@ -241,12 +229,12 @@ void StopDistiller::print_progress(int entry_n, std::ostream& stream) {
 
 void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) { 
   if (m_flags & cutflag::verbose) { 
-    print_progress(event_n, std::cout); 
+    print_progress(evt_n, std::cout); 
   }
   m_chain->GetEntry(evt_n); 
 
   m_def->Reset(); 
-  m_out_tree.clear_buffer(); 
+  m_out_tree->clear_buffer(); 
     
   EventJets all_jets(*m_susy_buffer, *m_def, m_flags, m_info); 
   EventElectrons all_electrons(*m_susy_buffer, *m_def, m_flags, m_info); 
@@ -259,7 +247,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
 
   // --- preselection 
 
-  pass_bits |= event_preselector.get_preselection_flags(*buffer); 
+  pass_bits |= m_event_preselector->get_preselection_flags(*m_susy_buffer); 
 
   // --- object selection 
 
@@ -316,7 +304,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   }
   set_bit(signal_jets, jetbit::good); 
 
-  TVector2 met = get_met(*buffer, *m_def, m_info, susy_muon_idx); 
+  TVector2 met = get_met(*m_susy_buffer, *m_def, m_info, susy_muon_idx); 
   if (m_flags & cutflag::use_met_reffinal) { 
     met.Set(m_susy_buffer->MET_RefFinal_etx, m_susy_buffer->MET_RefFinal_ety); 
   }
@@ -344,7 +332,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
 
   }
 
-  copy_leading_jet_info(signal_jets, m_out_tree); 
+  copy_leading_jet_info(signal_jets, *m_out_tree); 
   pass_bits |= get_ctag_bits(signal_jets); 
 
   if(m_def->IsGoodVertex(m_susy_buffer->vx_nTracks)) {
@@ -358,11 +346,11 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   }
 
   if ( m_flags & cutflag::truth ) { 
-    fill_cjet_truth(m_out_tree, signal_jets); 
-    fill_event_truth(m_out_tree, *buffer, m_flags); 
+    fill_cjet_truth(*m_out_tree, signal_jets); 
+    fill_event_truth(*m_out_tree, *m_susy_buffer, m_flags); 
   }
 
-  cutflow.fill(pass_bits); 
+  m_cutflow->fill(pass_bits); 
   m_out_tree->pass_bits = pass_bits; 
   m_out_tree->met = met.Mod(); 
   m_out_tree->met_phi = met.Phi(); 
@@ -372,3 +360,4 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   m_out_tree->fill(); 
 
 }
+

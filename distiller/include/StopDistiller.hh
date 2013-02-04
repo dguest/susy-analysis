@@ -1,21 +1,24 @@
+#ifndef STOP_DISTILLER_HH
+#define STOP_DISTILLER_HH
 #include <boost/noncopyable.hpp>
 #include <vector> 
 #include <string>
 #include "RunInfo.hh"		// could we remove this struct?  
 // #include <fstream>
 
-class TChain; 
+class SmartChain; 
 class CollectionTreeReport; 
 class SusyBuffer; 
 class SUSYObjDef; 
 class EventPreselector; 
 class OutTree; 
 class BitmapCutflow; 
+class SelectedJet; 
 
 namespace std { 
-  class streambuf; 
-  class ofstream; 
-  class ostream; 
+  // class streambuf; 
+  // class ofstream; 
+  // class ostream; 
 }
 
 class StopDistiller : public boost::noncopyable
@@ -44,7 +47,7 @@ private:
   int m_one_percent; 
   std::ofstream* m_norm_dbg_file; 
   std::ofstream* m_null_file; 
-  TChain* m_chain; 
+  SmartChain* m_chain; 
   CollectionTreeReport* m_ct_report; 
   SusyBuffer* m_susy_buffer; 
   SUSYObjDef* m_def; 
@@ -52,3 +55,5 @@ private:
   OutTree* m_out_tree; 
   BitmapCutflow* m_cutflow; 
 }; 
+
+#endif

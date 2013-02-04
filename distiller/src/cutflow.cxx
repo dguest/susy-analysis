@@ -1,42 +1,16 @@
 #include "distill_tools.hh"
-#include "SusyBuffer.h"
-#include "OutTree.hh"
-#include "Jets.hh"
-#include "Leptons.hh"
-#include "constants.hh"
-#include "RunInfo.hh"
-#include "BitmapCutflow.hh"
-#include "SmartChain.hh"
-#include "CollectionTreeReport.hh"
-#include "EventPreselector.hh"
+#include "StopDistiller.hh"
 
 #include "RunBits.hh"
-#include "EventBits.hh"
-#include "EventConstants.hh"
 
 #include <iostream>
-#include <fstream>
-#include <algorithm>
-#include <string> 
-#include <streambuf>
-#include <cassert>
-#include <cstdlib> // getenv, others
-#include <cstdio>
-#include <map>
-#include "TChain.h"
-#include "TVector2.h"
-#include "TError.h"
-#include <math.h>
-#include <stdexcept> 
-#include "SUSYTools/SUSYObjDef.h"
 #include "SUSYTools/FakeMetEstimator.h"
 
 #include <boost/format.hpp>
-#include <boost/scoped_ptr.hpp>
 
 int main(int narg, char* argv[])
 {
-  cout<< "in main" << endl;
+  std::cout<< "in main" << std::endl;
 
   std::vector<std::string> input_files; 
   for (int n = 1; n < narg; n++) { 
@@ -46,6 +20,7 @@ int main(int narg, char* argv[])
   RunInfo info; 
   info.run_number = 180614; 
   // info.grl = "grl.xml"; 
+  info.trigger = "EF_xe80_tclcw_loose";
   srand(0); 
   using namespace cutflag; 
   unsigned flags = verbose | is_signal | debug_susy; 
@@ -61,11 +36,9 @@ int main(int narg, char* argv[])
   // flags |= is_data; 
 
   // run the main routine 
+  StopDistiller distiller(input_files, info, flags, "output_skim.root"); 
+  StopDistiller::Cutflow cut_counters = distiller.run_cutflow(); 
   typedef std::vector<std::pair<std::string, int> > CCOut; 
-  CCOut cut_counters = run_cutflow(input_files, 
-				   info, 
-				   flags, 
-				   "output_skim.root"); 
 
   float firstcut = cut_counters.at(0).second; 
   for (CCOut::const_iterator cut_itr = cut_counters.begin(); 

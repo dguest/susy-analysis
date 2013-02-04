@@ -6,7 +6,8 @@
 #include <map>
 #include <stdexcept>
 
-#include "cutflow.hh"
+#include "StopDistiller.hh"
+
 #include "RunBits.hh"
 #include "PerformanceNtuple.hh"
 #include "RunInfo.hh"
@@ -28,6 +29,7 @@ static PyObject* py_cutflow(PyObject *self,
      &flags_str, &grl_char, &out_ntuple); 
   if (!ok) return NULL;
   info.grl = strlen(grl_char) ? grl_char : std::string();  
+  info.trigger = "EF_xe80_tclcw_loose"; 
 
   int n_files = PyList_Size(py_input_files); 
   if (PyErr_Occurred()) return NULL; 
@@ -48,7 +50,8 @@ static PyObject* py_cutflow(PyObject *self,
   typedef std::vector<std::pair<std::string, int> > CCOut; 
   CCOut pass_numbers; 
   try { 
-    pass_numbers = run_cutflow(input_files, info, flags, out_ntuple); 
+    StopDistiller distiller(input_files, info, flags, out_ntuple); 
+    pass_numbers = distiller.run_cutflow(); 
   }
   catch (std::runtime_error& e) { 
     PyErr_SetString(PyExc_RuntimeError, e.what()); 
