@@ -20,7 +20,7 @@ int main(int narg, char* argv[])
   RunInfo info; 
   info.run_number = 180614; 
   // info.grl = "grl.xml"; 
-  info.trigger = "EF_xe80_tclcw_loose";
+  info.trigger = "EF_xe80_tclcw_tight";
   srand(0); 
   using namespace cutflag; 
   unsigned flags = is_signal; 
