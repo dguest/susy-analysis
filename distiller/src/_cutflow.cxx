@@ -101,29 +101,36 @@ static bool fill_run_info(PyObject* dict, RunInfo* info) {
     }
     std::string ckey = PyString_AsString(key); 
     if (ckey == "run_number") {
-      info->run_number = PyInt_AsLong(value); 
-      if (PyErr_Occurred()) return false; 
+      if (!safe_copy(value, info->run_number)) return false; 
     }
     else if (ckey == "grl") { 
-      info->grl = PyString_AsString(value); 
-      if (PyErr_Occurred()) return false; 
+      if (!safe_copy(value, info->grl)) return false; 
     }
     else if (ckey == "trigger") { 
-      info->trigger = PyString_AsString(value); 
-      if (PyErr_Occurred()) return false; 
+      if (!safe_copy(value, info->trigger)) return false; 
     }
     else if (ckey == "btag_cal_dir") { 
-      info->btag_cal_dir = PyString_AsString(value); 
-      if (PyErr_Occurred()) return false; 
+      if (!safe_copy(value, info->btag_cal_dir)) return false; 
     }
     else if (ckey == "btag_cal_file") { 
-      info->btag_cal_file = PyString_AsString(value); 
-      if (PyErr_Occurred()) return false; 
+      if (!safe_copy(value, info->btag_cal_file)) return false;
     }
   }
   return true; 
 }
 
+static bool safe_copy(PyObject* value, std::string& dest) { 
+  char* str = PyString_AsString(value); 
+  if (PyErr_Occurred()) return false; 
+  dest = str; 
+  return true; 
+}
+static bool safe_copy(PyObject* value, int& dest) { 
+  int the_int = PyInt_AsLong(value); 
+  if (PyErr_Occurred()) return false; 
+  dest = the_int; 
+  return true; 
+}
 
 static PyMethodDef methods[] = {
   {"_cutflow", py_cutflow, METH_VARARGS, 
