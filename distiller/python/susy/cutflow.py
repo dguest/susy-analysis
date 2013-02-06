@@ -38,9 +38,17 @@ def cutflow(input_files, run_number, flags, grl='', output_ntuple=''):
     if grl and not isfile(grl): 
         raise IOError('grl {} not found'.format(grl))
 
+    input_dict = { 
+        'run_number':run_number, 
+        'grl': grl, 
+        'trigger': 'EF_xe80_tclcw_loose'
+        'btag_cal_dir':'', 
+        'btag_cal_file':'', 
+        }
+
     try: 
-        cut_out = _cutflow._cutflow(input_files, run_number, flags, 
-                                    grl, output_ntuple)
+        cut_out = _cutflow._cutflow(
+            input_files, input_dict, flags, output_ntuple)
     except RuntimeError as er: 
         if 'a' in flags and 'bad file:' in str(er): 
             bad_file = str(er).split(':')[-1].strip()

@@ -6,29 +6,25 @@
 #include <map>
 #include <stdexcept>
 
+#include "_cutflow.hh"
 #include "StopDistiller.hh"
 
 #include "RunBits.hh"
 #include "RunInfo.hh"
 
-static unsigned get_flags(const char* flag_str); 
 
 static PyObject* py_cutflow(PyObject *self, 
 			    PyObject *args)
 {
   PyObject* py_input_files; 
   const char* flags_str = ""; 
-  const char* grl_char = ""; 
   const char* out_ntuple = ""; 
-
   RunInfo info; 
 
   bool ok = PyArg_ParseTuple
-    (args,"Oi|sss:cutflow", &py_input_files, &info.run_number, 
-     &flags_str, &grl_char, &out_ntuple); 
+    (args,"OO&|ss:cutflow", &py_input_files, fill_run_info, &info, 
+     &flags_str, &out_ntuple); 
   if (!ok) return NULL;
-  info.grl = strlen(grl_char) ? grl_char : std::string();  
-  info.trigger = "EF_xe80_tclcw_loose"; 
 
   int n_files = PyList_Size(py_input_files); 
   if (PyErr_Occurred()) return NULL; 
@@ -91,7 +87,42 @@ static unsigned get_flags(const char* flags_str)
   return flags; 
 }
 
-
+static bool fill_run_info(PyObject* dict, RunInfo* info) { 
+  if (!dict) return false; 
+  if (!PyDict_Check(dict)) return false; 
+  PyObject* key; 
+  PyObject* value; 
+  Py_ssize_t pos = 0; 
+  while(PyDict_Next(dict, &pos, &key, &value)) { 
+    if (!PyString_Check(key)) { 
+      PyErr_SetString(PyExc_ValueError, 
+		      "cutflow info dict includec non-string"); 
+      return false; 
+    }
+    std::string ckey = PyString_AsString(key); 
+    if (ckey == "run_number") {
+      info->run_number = PyInt_AsLong(value); 
+      if (PyErr_Occurred()) return false; 
+    }
+    else if (ckey == "grl") { 
+      info->grl = PyString_AsString(value); 
+      if (PyErr_Occurred()) return false; 
+    }
+    else if (ckey == "trigger") { 
+      info->trigger = PyString_AsString(value); 
+      if (PyErr_Occurred()) return false; 
+    }
+    else if (ckey == "btag_cal_dir") { 
+      info->btag_cal_dir = PyString_AsString(value); 
+      if (PyErr_Occurred()) return false; 
+    }
+    else if (ckey == "btag_cal_file") { 
+      info->btag_cal_file = PyString_AsString(value); 
+      if (PyErr_Occurred()) return false; 
+    }
+  }
+  return true; 
+}
 
 
 static PyMethodDef methods[] = {
