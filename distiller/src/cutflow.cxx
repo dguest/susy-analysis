@@ -14,14 +14,13 @@ int main(int narg, char* argv[])
 
   std::vector<std::string> input_files; 
   for (int n = 1; n < narg; n++) { 
-    std::cout << "adding " << argv[n] << std::endl;
     input_files.push_back(argv[n]); 
   }
 
   RunInfo info; 
   info.run_number = 180614; 
-  info.grl = "grl.xml"; 
-  info.trigger = "EF_xe80_tclcw_loose";
+  // info.grl = "grl.xml"; 
+  info.trigger = "EF_xe80_tclcw_tight";
   srand(0); 
   using namespace cutflag; 
   unsigned flags = is_signal; 
@@ -31,11 +30,11 @@ int main(int narg, char* argv[])
   // flags |= raw_evt_info; 
   // flags |= use_met_reffinal; 
   flags |= verbose; 
-  // flags |= is_atlfast; 
+  flags |= is_atlfast; 
   // flags |= debug_cutflow; 
   // flags |= debug_susy; 
 
-  flags |= is_data; 
+  // flags |= is_data; 
 
   // run the main routine 
   StopDistiller distiller(input_files, info, flags, "output_skim.root"); 
