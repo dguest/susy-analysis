@@ -1,5 +1,5 @@
-#ifndef _CUTFLOW_HH
-#define _CUTFLOW_HH
+#ifndef _DISTILLER_HH
+#define _DISTILLER_HH
 
 #include <Python.h>
 

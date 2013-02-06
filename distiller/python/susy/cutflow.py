@@ -1,4 +1,4 @@
-import _cutflow 
+import _distiller 
 import warnings
 from os.path import isfile
 
@@ -47,7 +47,7 @@ def cutflow(input_files, run_number, flags, grl='', output_ntuple=''):
         }
 
     try: 
-        cut_out = _cutflow._cutflow(
+        cut_out = _distiller._distiller(
             input_files, input_dict, flags, output_ntuple)
     except RuntimeError as er: 
         if 'a' in flags and 'bad file:' in str(er): 

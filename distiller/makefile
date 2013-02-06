@@ -65,11 +65,11 @@ GEN_OBJ     += BtagCalibration.o Grl.o
 EXE_OBJ     := $(GEN_OBJ) $(T_DICTS) $(TOBJ) cutflow.o
 PYLIB_OBJ   := $(GEN_OBJ) $(T_DICTS) $(TOBJ)
 
-PY_OBJ       := _cutflow.o
+PY_OBJ       := _distiller.o
 
 ALLOBJ       := $(GEN_OBJ) $(PY_OBJ)
 
-ALLOUTPUT    := cutflow python/susy/_cutflow.so
+ALLOUTPUT    := cutflow python/susy/_distiller.so
 
 all: $(ALLOUTPUT) 
 
@@ -77,7 +77,7 @@ cutflow: $(EXE_OBJ:%=$(BIN)/%)
 	@echo "linking $^ --> $@"
 	@$(CXX) -o $@ $^ $(LIBS) $(LDFLAGS)
 
-python/susy/_cutflow.so: $(PYLIB_OBJ:%=$(BIN)/%) $(PY_OBJ:%=$(BIN)/%)
+python/susy/_distiller.so: $(PYLIB_OBJ:%=$(BIN)/%) $(PY_OBJ:%=$(BIN)/%)
 	@mkdir -p python/susy
 	@echo "linking $^ --> $@"
 	@$(CXX) -o $@ $^ $(LIBS) $(PY_LDFLAGS)

@@ -6,14 +6,14 @@
 #include <map>
 #include <stdexcept>
 
-#include "_cutflow.hh"
+#include "_distiller.hh"
 #include "StopDistiller.hh"
 
 #include "RunBits.hh"
 #include "RunInfo.hh"
 
 
-static PyObject* py_cutflow(PyObject *self, 
+static PyObject* py_distiller(PyObject *self, 
 			    PyObject *args)
 {
   PyObject* py_input_files; 
@@ -22,7 +22,7 @@ static PyObject* py_cutflow(PyObject *self,
   RunInfo info; 
 
   bool ok = PyArg_ParseTuple
-    (args,"OO&|ss:cutflow", &py_input_files, fill_run_info, &info, 
+    (args,"OO&|ss:distiller", &py_input_files, fill_run_info, &info, 
      &flags_str, &out_ntuple); 
   if (!ok) return NULL;
 
@@ -94,9 +94,9 @@ static bool fill_run_info(PyObject* dict, RunInfo* info) {
   PyObject* value; 
   Py_ssize_t pos = 0; 
   while(PyDict_Next(dict, &pos, &key, &value)) { 
-    if (!PyString_Check(key)) { 
+    if (!PyString_Check(key) || PyString_Size(key) == 0) { 
       PyErr_SetString(PyExc_ValueError, 
-		      "cutflow info dict includec non-string"); 
+		      "distiller info dict includes non-string key"); 
       return false; 
     }
     std::string ckey = PyString_AsString(key); 
@@ -114,6 +114,11 @@ static bool fill_run_info(PyObject* dict, RunInfo* info) {
     }
     else if (ckey == "btag_cal_file") { 
       if (!safe_copy(value, info->btag_cal_file)) return false;
+    }
+    else { 
+      std::string err = "got unknown string in distiller info dict: " + ckey; 
+      PyErr_SetString(PyExc_ValueError, err.c_str()); 
+      return false; 
     }
   }
   return true; 
@@ -133,7 +138,7 @@ static bool safe_copy(PyObject* value, int& dest) {
 }
 
 static PyMethodDef methods[] = {
-  {"_cutflow", py_cutflow, METH_VARARGS, 
+  {"_distiller", py_distiller, METH_VARARGS, 
    "cutflow(input_file, flags) --> cuts_list\n"
    "flags:\n"
    "\tv: verbose\n"},
@@ -142,9 +147,9 @@ static PyMethodDef methods[] = {
 
 extern "C" { 
 
-  PyMODINIT_FUNC init_cutflow(void)
+  PyMODINIT_FUNC init_distiller(void)
   {
-    Py_InitModule("_cutflow", methods);
+    Py_InitModule("_distiller", methods);
   }
 
 }
