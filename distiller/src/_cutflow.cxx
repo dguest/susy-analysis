@@ -9,7 +9,6 @@
 #include "StopDistiller.hh"
 
 #include "RunBits.hh"
-#include "PerformanceNtuple.hh"
 #include "RunInfo.hh"
 
 static unsigned get_flags(const char* flag_str); 
@@ -93,32 +92,6 @@ static unsigned get_flags(const char* flags_str)
 }
 
 
-static PyObject* py_perf_ntuple(PyObject *self, 
-				PyObject *args)
-{
-  const char* input_file = ""; 
-  const char* flags_str = ""; 
-  const char* out_ntuple = ""; 
-
-  bool ok = PyArg_ParseTuple
-    (args,"s|ss:cutflow", &input_file, &flags_str, &out_ntuple); 
-  if (!ok) return NULL;
-  
-  unsigned flags = 0; 
-  if (strchr(flags_str,'c')) flags |= cutflag::jetfitter_charm; 
-  if (strchr(flags_str,'m')) flags |= cutflag::mv3; 
-
-  int return_code = 0; 
-  try { 
-    return_code = make_perf_ntuple(input_file, flags, out_ntuple); 
-  }
-  catch (std::runtime_error e) { 
-    PyErr_SetString(PyExc_RuntimeError, e.what()); 
-    return NULL; 
-  }
-
-  return Py_BuildValue("i", return_code);
-}
 
 
 static PyMethodDef methods[] = {
@@ -126,7 +99,6 @@ static PyMethodDef methods[] = {
    "cutflow(input_file, flags) --> cuts_list\n"
    "flags:\n"
    "\tv: verbose\n"},
-  {"_make_perf_ntuple", py_perf_ntuple, METH_VARARGS, "nothings"}, 
   {NULL, NULL, 0, NULL}   /* sentinel */
 };
 
