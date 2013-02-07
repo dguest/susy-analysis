@@ -36,15 +36,16 @@ Jet1DHists::~Jet1DHists()
 
 }
 
-void Jet1DHists::add_mask(unsigned bitmask, std::string name) { 
-  m_pt->add_mask(bitmask, name);       
-  m_eta->add_mask(bitmask, name);      
-  m_cnnLogCb->add_mask(bitmask, name); 
-  m_cnnLogCu->add_mask(bitmask, name);
-  m_cnnLogBu->add_mask(bitmask, name); 
+void Jet1DHists::add_mask(unsigned bitmask, std::string name, 
+			  unsigned antimask) { 
+  m_pt->add_mask(bitmask,  name, antimask);       
+  m_eta->add_mask(bitmask, name, antimask);      
+  m_cnnLogCb->add_mask(bitmask, name, antimask); 
+  m_cnnLogCu->add_mask(bitmask, name, antimask);
+  m_cnnLogBu->add_mask(bitmask, name, antimask); 
 
   if (m_truth_label) { 
-    m_truth_label->add_mask(bitmask, name); 
+    m_truth_label->add_mask(bitmask, name, antimask); 
   }
 } 
 

@@ -20,12 +20,13 @@ TruthJetHists::~TruthJetHists() {
   delete m_other; 
 }
 
-void TruthJetHists::add_mask(unsigned bitmask, std::string name) { 
-  m_bottom->add_mask(bitmask, name);  
-  m_charm->add_mask(bitmask, name);  
-  m_light->add_mask(bitmask, name);  
-  m_tau->add_mask(bitmask, name);  
-  m_other->add_mask(bitmask, name);  
+void TruthJetHists::add_mask(unsigned bitmask, std::string name, 
+			     unsigned antimask) { 
+  m_bottom->add_mask(bitmask, name, antimask);  
+  m_charm->add_mask(bitmask,  name, antimask);  
+  m_light->add_mask(bitmask,  name, antimask);  
+  m_tau->add_mask(bitmask,    name, antimask);  
+  m_other->add_mask(bitmask,  name, antimask);  
 }
 
 void TruthJetHists::write_to(H5::CommonFG& file) { 

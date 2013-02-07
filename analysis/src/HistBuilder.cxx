@@ -86,33 +86,34 @@ HistBuilder::~HistBuilder() {
   delete m_cut_augmenter; 
 }
 
-void HistBuilder::add_cut_mask(std::string name, unsigned bits)
+void HistBuilder::add_cut_mask(std::string name, unsigned bits, 
+			       unsigned antibits)
 {
   CutMasks::const_iterator pos = m_cut_masks.find(name); 
   if (pos != m_cut_masks.end()) { 
     throw std::runtime_error("tried to overwrite cut mask \"" + name + "\""); 
   }
   m_cut_masks[name] = bits; 
-  m_jet1_hists->add_mask(bits, name); 
-  m_jet2_hists->add_mask(bits, name); 
-  m_jet3_hists->add_mask(bits, name); 
+  m_jet1_hists->add_mask(bits, name, antibits); 
+  m_jet2_hists->add_mask(bits, name, antibits); 
+  m_jet3_hists->add_mask(bits, name, antibits); 
 
-  m_met->add_mask(bits, name); 
-  m_min_dphi->add_mask(bits, name); 
-  m_j1_met_dphi->add_mask(bits, name); 
-  m_j2_met_dphi->add_mask(bits, name); 
-  m_j3_met_dphi->add_mask(bits, name); 
-  m_mttop->add_mask(bits, name); 
-  m_n_good_jets->add_mask(bits, name); 
+  m_met->add_mask(bits, name, antibits); 
+  m_min_dphi->add_mask(bits, name, antibits); 
+  m_j1_met_dphi->add_mask(bits, name, antibits); 
+  m_j2_met_dphi->add_mask(bits, name, antibits); 
+  m_j3_met_dphi->add_mask(bits, name, antibits); 
+  m_mttop->add_mask(bits, name, antibits); 
+  m_n_good_jets->add_mask(bits, name, antibits); 
 
-  m_htx->add_mask(bits, name); 
+  m_htx->add_mask(bits, name, antibits); 
 
   if (m_leading_cjet_rank) { 
-    m_leading_cjet_rank->add_mask(bits, name); 
-    m_subleading_cjet_rank->add_mask(bits, name); 
-    m_jet1_truth->add_mask(bits, name); 
-    m_jet2_truth->add_mask(bits, name); 
-    m_jet3_truth->add_mask(bits, name); 
+    m_leading_cjet_rank->add_mask(bits, name, antibits); 
+    m_subleading_cjet_rank->add_mask(bits, name, antibits); 
+    m_jet1_truth->add_mask(bits, name, antibits); 
+    m_jet2_truth->add_mask(bits, name, antibits); 
+    m_jet3_truth->add_mask(bits, name, antibits); 
   }  
 }
 

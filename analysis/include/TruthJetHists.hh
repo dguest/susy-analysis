@@ -15,7 +15,8 @@ class TruthJetHists: public boost::noncopyable
 public: 
   TruthJetHists(double max_pt, const unsigned flags); 
   ~TruthJetHists(); 
-  void add_mask(unsigned bitmask, std::string name = ""); 
+  void add_mask(unsigned bitmask, std::string name = "", 
+		unsigned antimask = 0); 
   void write_to(H5::CommonFG&); 
   void fill(const Jet&, unsigned mask); 
 private: 
