@@ -118,7 +118,11 @@ bool check_if_electron(int iEl,
 		       SUSYObjDef& def,
 		       const unsigned flags, 
 		       const RunInfo& info){
-  
+
+  if (buffer.el_MET_Egamma10NoTau_wet->at(iEl).size() == 0) { 
+    CHECK::throw_size("wet branch entry %i is empty, need %i entry", iEl, 1); 
+  }
+
   bool pass_el = def.FillElectron
     (iEl,
      buffer.RunNumber,
@@ -155,6 +159,7 @@ bool el_size_check(const SusyBuffer& buffer) {
   CHECK_SIZE(buffer.el_OQ        , buffer.el_n);
   CHECK_SIZE(buffer.el_nPixHits  , buffer.el_n);
   CHECK_SIZE(buffer.el_nSCTHits  , buffer.el_n);
+  CHECK_SIZE(buffer.el_MET_Egamma10NoTau_wet, buffer.el_n); 
   return true; 
 }
 
