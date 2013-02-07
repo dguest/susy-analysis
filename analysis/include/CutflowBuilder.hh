@@ -15,7 +15,7 @@ class CutflowBuilder : public boost::noncopyable
 public: 
   CutflowBuilder(std::string input, const unsigned flags = 0); 
   ~CutflowBuilder(); 
-  void add_cut_mask(std::string, unsigned bits); 
+  void add_cut_mask(std::string, unsigned bits, unsigned antibits = 0); 
   int build(); 
   void save(std::string output = ""); 
   void set_float(std::string, double); 
@@ -24,6 +24,7 @@ private:
   TFile* m_file; 
   TTree* m_tree; 
   unsigned m_mask; 
+  unsigned m_antimask; 
 
   unsigned m_pass_bits; 
   int m_hfor_type; 

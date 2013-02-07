@@ -96,8 +96,10 @@ HyperBuilder::~HyperBuilder() {
   delete m_augmenter; 
 }
 
-void HyperBuilder::add_cut_mask(std::string name, unsigned bits) 
+void HyperBuilder::add_cut_mask(std::string name, unsigned bits, 
+				unsigned antibits) 
 {
+  if (antibits) throw std::logic_error("antibits not defined in " __FILE__); 
   m_cut_masks.push_back(std::make_pair(name, bits)); 
 }
 

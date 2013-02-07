@@ -19,7 +19,7 @@ class HyperBuilder : public boost::noncopyable
 public: 
   HyperBuilder(std::string input, const unsigned flags = 0); 
   ~HyperBuilder(); 
-  void add_cut_mask(std::string name, unsigned bits); 
+  void add_cut_mask(std::string name, unsigned bits, unsigned antibits = 0); 
   int build(); 
   void save(std::string output = ""); 
   void set_float(std::string, double); 

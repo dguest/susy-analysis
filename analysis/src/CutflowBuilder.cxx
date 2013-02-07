@@ -18,6 +18,7 @@ CutflowBuilder::CutflowBuilder(std::string input, const unsigned flags) :
   m_file(0), 
   m_tree(0), 
   m_mask(0), 
+  m_antimask(0), 
 
   m_pass_bits(0), 
   m_hfor_type(0), 
@@ -49,9 +50,11 @@ CutflowBuilder::~CutflowBuilder() {
   delete m_file; 
 }
 
-void CutflowBuilder::add_cut_mask(std::string, unsigned bits) 
+void CutflowBuilder::add_cut_mask(std::string, unsigned bits, 
+				  unsigned antibits) 
 {
-  m_mask |= bits; 
+  m_mask |= bits;
+  m_antimask |= antibits; 
 }
 
 int CutflowBuilder::build() { 
@@ -76,6 +79,7 @@ int CutflowBuilder::build() {
     }
     m_tree->GetEntry(entry); 
     if (m_hfor_type == 4) continue; 
+    if (m_pass_bits & m_antimask) continue; 
     if ( (m_pass_bits & m_mask) == m_mask) { 
       n_pass++; 
     }

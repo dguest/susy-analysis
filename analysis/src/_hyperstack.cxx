@@ -39,9 +39,10 @@ static PyObject* py_analysis_alg(PyObject *self, PyObject *args)
       PyObject* entry = PyList_GetItem(bits, bit_n); 
       const char* name = ""; 
       unsigned mask = 0; 
-      ok = PyArg_ParseTuple(entry, "sk:parsemask", &name, &mask); 
+      unsigned antimask = 0; 
+      ok = PyArg_ParseTuple(entry, "sk|k:parsemask", &name, &mask, &antimask); 
       if (!ok) return NULL; 
-      builder.add_cut_mask(name, mask); 
+      builder.add_cut_mask(name, mask, antimask); 
     }
     PyObject* dic_key = 0; 
     PyObject* dic_val = 0; 
