@@ -35,10 +35,15 @@ def _run_distill(ds):
         else: 
             ds.bugs -= set(['bad files'])
     except RuntimeError as er: 
-        if 'bad file:' in str(er): 
+        bad_file_strings = [ 
+            'bad file:' in str(er), 
+            'missing branch:' in str(er), 
+            ]
+        if any(bad_file_strings): 
             ds.bugs.add('bad files')
         else: 
-            raise 
+            raise
+
     print '{} done'.format(ds.id)
     return ds
     
