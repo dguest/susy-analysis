@@ -136,7 +136,7 @@ int HyperBuilder::build() {
 
     unsigned dist_bits = m_factory->bits(); 
     unsigned aug_bits = 0; 
-    if (m_augmenter) aug_bits = m_augmenter->get_added_cuts(jets, met); 
+    if (m_augmenter) m_augmenter->set_cutmask(aug_bits, jets, met); 
 
     const unsigned mask = (dist_bits | aug_bits); 
 

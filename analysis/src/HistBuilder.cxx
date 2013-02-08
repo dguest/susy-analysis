@@ -141,8 +141,7 @@ int HistBuilder::build() {
     const TLorentzVector met4(met.Px(), met.Py(), 0, 0); 
 
     if (m_cut_augmenter) { 
-      unsigned added_cuts = m_cut_augmenter->get_added_cuts(jets, met); 
-      mask |= added_cuts; 
+      m_cut_augmenter->set_cutmask(mask, jets, met); 
     }
 
     m_met->fill(met.Mod(), mask); 

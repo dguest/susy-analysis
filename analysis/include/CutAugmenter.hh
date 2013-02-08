@@ -14,8 +14,8 @@ class CutAugmenter: public boost::noncopyable
 public: 
   CutAugmenter(); 
   void set_float(std::string, double);
-  unsigned get_added_cuts(const std::vector<Jet>&, 
-			  const TVector2& ) const; 
+  void set_cutmask(unsigned& mask, const std::vector<Jet>&, 
+		   const TVector2& ) const; 
 private: 
   double m_leading_jet_pt_cut; 
   double m_met_cut; 

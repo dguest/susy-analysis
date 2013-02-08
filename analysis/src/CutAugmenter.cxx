@@ -47,22 +47,31 @@ void CutAugmenter::set_float(std::string name, double value) {
   }
 }
 
-unsigned CutAugmenter::get_added_cuts(const std::vector<Jet>& jets, 
-				      const TVector2& evt_met) const { 
-  unsigned added = 0; 
-  if (evt_met.Mod() > m_met_cut) { 
-    added |= pass::met; 
+void CutAugmenter::set_cutmask(unsigned& added, 
+			       const std::vector<Jet>& jets, 
+			       const TVector2& evt_met) const { 
+  if (m_met_cut > 0) { 
+    if (evt_met.Mod() > m_met_cut) { 
+      added |= pass::met; 
+    }
+    else { 
+      added &=~ pass::met; 
+    }
   }
 
   if (jets.size() <= 0) { 
-    return added; 
+    return; 
   }
-  if (jets.at(0).Pt() > m_leading_jet_pt_cut) { 
-    added |= pass::leading_jet; 
+  if (m_leading_jet_pt_cut > 0) { 
+    if (jets.at(0).Pt() > m_leading_jet_pt_cut) { 
+      added |= pass::leading_jet; 
+    }
+    else { 
+      added &=~ pass::leading_jet; 
+    }
   }
-
   if (jets.size() <= 1) { 
-    return added; 
+    return; 
   }
   const Jet& j2 = jets.at(1); 
   if (log(j2.pc() / j2.pb()) > m_j2_anti_b_cut) { 
@@ -73,7 +82,7 @@ unsigned CutAugmenter::get_added_cuts(const std::vector<Jet>& jets,
   }
 
   if (jets.size() <= 2) { 
-    return added; 
+    return; 
   }
   const Jet& j3 = jets.at(2); 
   if (log(j3.pc() / j3.pb()) > m_j3_anti_b_cut) { 
@@ -85,6 +94,5 @@ unsigned CutAugmenter::get_added_cuts(const std::vector<Jet>& jets,
   if (get_mttop(jets, evt_met) > m_mttop_cut) { 
     added |= pass::mttop; 
   }
-  return added; 
 
 }
