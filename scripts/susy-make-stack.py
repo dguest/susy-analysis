@@ -6,6 +6,7 @@ from stop.hists import Hist1d, Stack
 from stop.profile import cum_cuts
 from stop import hyperstack
 from stop import bits
+from stop import style
 import ConfigParser, argparse
 from hdroot import hd_from_root
 import h5py
@@ -154,20 +155,7 @@ def combine_backgrounds(hists, draw_opts=None):
         'Zlljets':'Zll', 
         'Wjets':'Wlnu'
         }
-    finders = [
-        (r'$Z \to \nu \nu$ + jets', 'Znunujets','orange'), 
-        (r'$Z \to ll$ + jets',      'Zll','c'), 
-        (r'$W \to l \nu$ + jets',   'Wlnu','red'), 
-        (r'$W$ + jets',             'Wjets','green'), 
-        (r'$t\bar{t}$',             'ttbar','b'),
-
-        ('charm','charm','g'), 
-        ('bottom','bottom','red'), 
-        ('light','light','blue'), 
-        ('tau','tau','pink'), 
-        ('other','other','orange'), 
-        
-        ]
+    finders = style.physics_labels
     
     for h in hists: 
         hist_name = h.title

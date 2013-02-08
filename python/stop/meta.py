@@ -95,6 +95,12 @@ class Dataset(object):
             warn("not sure if ds with id {} is mc or data".format(self.id))
             char = 'q'
         return '{}{}'.format(char,self.id)
+    @property
+    def is_data(self): 
+        if self.origin.startswith('data'): 
+            return True
+        else:
+            return False
 
 class DatasetCache(dict): 
     """
