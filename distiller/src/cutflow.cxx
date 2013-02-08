@@ -23,18 +23,20 @@ int main(int narg, char* argv[])
   info.trigger = "EF_xe80_tclcw_tight";
   srand(0); 
   using namespace cutflag; 
-  unsigned flags = is_signal; 
+  unsigned flags = 0;
 
   flags |= get_branches; 
   flags |= save_ratios; 
   // flags |= raw_evt_info; 
   // flags |= use_met_reffinal; 
   flags |= verbose; 
-  flags |= is_atlfast; 
   // flags |= debug_cutflow; 
   // flags |= debug_susy; 
 
-  // flags |= is_data; 
+  // flags |= is_atlfast; 
+  flags |= is_data; 
+  // flags |= is_signal; 
+
 
   // run the main routine 
   StopDistiller distiller(input_files, info, flags, "output_skim.root"); 

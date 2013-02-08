@@ -25,7 +25,7 @@ unsigned EventPreselector::get_preselection_flags(const SusyBuffer& buffer) {
   if(!buffer.larError)  pass_bits |= pass::lar_error; 
 
   if ( m_flags & cutflag::is_data ) { 
-    if (buffer.coreFlags & 0x40000) pass_bits |= pass::core; 
+    if ( (buffer.coreFlags & 0x40000) == 0) pass_bits |= pass::core; 
     if (m_grl) { 
       if (m_grl->has_lb(buffer.RunNumber, buffer.lbn)) 
 	pass_bits |= pass::grl; 
