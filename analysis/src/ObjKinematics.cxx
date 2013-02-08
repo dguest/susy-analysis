@@ -19,6 +19,7 @@ Jet1DHists::Jet1DHists(double max_pt, const unsigned flags, std::string tag):
   m_cnnLogCb = new MaskedHistArray(Histogram(100, -10, 10), tag); 
   m_cnnLogCu = new MaskedHistArray(Histogram(100, -10, 10), tag); 
   m_cnnLogBu = new MaskedHistArray(Histogram(100, -10, 10), tag); 
+  m_met_dphi = new MaskedHistArray(Histogram(100, -3.2, 3.2), tag); 
 
   if (flags & buildflag::fill_truth) { 
     m_truth_label = new MaskedHistArray(Histogram(21, -0.5, 20.5), tag); 
@@ -31,6 +32,7 @@ Jet1DHists::~Jet1DHists()
   delete m_cnnLogCb; 
   delete m_cnnLogCu; 
   delete m_cnnLogBu;
+  delete m_met_dphi; 
 
   delete m_truth_label; 
 
@@ -43,6 +45,7 @@ void Jet1DHists::add_mask(unsigned bitmask, std::string name,
   m_cnnLogCb->add_mask(bitmask, name, antimask); 
   m_cnnLogCu->add_mask(bitmask, name, antimask);
   m_cnnLogBu->add_mask(bitmask, name, antimask); 
+  m_met_dphi->add_mask(bitmask, name, antimask); 
 
   if (m_truth_label) { 
     m_truth_label->add_mask(bitmask, name, antimask); 
@@ -62,6 +65,8 @@ void Jet1DHists::write_to(H5::CommonFG& file, std::string stub,
   m_cnnLogCu->write_to(logCu); 
   Group logBu(file.createGroup("logBu")); 
   m_cnnLogBu->write_to(logBu); 
+  Group metDphi(file.createGroup("metDphi")); 
+  m_met_dphi->write_to(metDphi); 
 
   if (m_truth_label) { 
     Group truth(file.createGroup("truth")); 
@@ -82,6 +87,7 @@ void Jet1DHists::fill(const Jet& jet, const unsigned mask) {
   m_cnnLogCu->fill(log(jet.pc() / jet.pu()), mask); 
   m_cnnLogCb->fill(log(jet.pc() / jet.pb()), mask); 
   m_cnnLogBu->fill(log(jet.pb() / jet.pu()), mask); 
+  m_met_dphi->fill(jet.met_dphi(), mask); 
 
   if (m_truth_label) { 
     int label = jet.flavor_truth_label(); 

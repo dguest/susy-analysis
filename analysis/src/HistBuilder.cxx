@@ -26,9 +26,6 @@ HistBuilder::HistBuilder(std::string input, const unsigned flags):
   m_flags(flags), 
   m_leading_cjet_rank(0), 
   m_subleading_cjet_rank(0), 
-  m_jet1_truth(0), 
-  m_jet2_truth(0), 
-  m_jet3_truth(0), 
   m_cut_augmenter(0)
 { 
   const double max_pt = 1e3*GeV; 
@@ -41,9 +38,6 @@ HistBuilder::HistBuilder(std::string input, const unsigned flags):
 
   m_met = new MaskedHistArray(Histogram(100, 0.0, max_pt)); 
   m_min_dphi = new MaskedHistArray(Histogram(100, 0.0, M_PI)); 
-  m_j1_met_dphi = new MaskedHistArray(Histogram(100, 0.0, M_PI)); 
-  m_j2_met_dphi = new MaskedHistArray(Histogram(100, 0.0, M_PI)); 
-  m_j3_met_dphi = new MaskedHistArray(Histogram(100, 0.0, M_PI)); 
   m_mttop = new MaskedHistArray(Histogram(100, 0.0, max_pt)); 
   m_n_good_jets = new MaskedHistArray(Histogram(11, -0.5, 10.5)); 
 
@@ -69,9 +63,6 @@ HistBuilder::~HistBuilder() {
 
   delete m_met; 
   delete m_min_dphi; 
-  delete m_j1_met_dphi; 
-  delete m_j2_met_dphi; 
-  delete m_j3_met_dphi; 
   delete m_mttop; 
   delete m_n_good_jets; 
 
@@ -100,9 +91,6 @@ void HistBuilder::add_cut_mask(std::string name, unsigned bits,
 
   m_met->add_mask(bits, name, antibits); 
   m_min_dphi->add_mask(bits, name, antibits); 
-  m_j1_met_dphi->add_mask(bits, name, antibits); 
-  m_j2_met_dphi->add_mask(bits, name, antibits); 
-  m_j3_met_dphi->add_mask(bits, name, antibits); 
   m_mttop->add_mask(bits, name, antibits); 
   m_n_good_jets->add_mask(bits, name, antibits); 
 
@@ -157,20 +145,14 @@ int HistBuilder::build() {
     if (jets.size() >= 1) { 
       const Jet& jet = jets.at(0); 
       m_jet1_hists->fill(jet,mask); 
-      double dphi = met4.DeltaPhi(jet); 
-      m_j1_met_dphi->fill(fabs(dphi), mask); 
     }
     if (jets.size() >= 2) { 
       const Jet& jet = jets.at(1); 
       m_jet2_hists->fill(jet,mask); 
-      double dphi = met4.DeltaPhi(jet); 
-      m_j2_met_dphi->fill(fabs(dphi), mask); 
     }
     if (jets.size() >= 3) { 
       const Jet& jet = jets.at(2); 
       m_jet3_hists->fill(jet, mask); 
-      double dphi = met4.DeltaPhi(jet); 
-      m_j3_met_dphi->fill(fabs(dphi), mask); 
       double mttop = get_mttop(std::vector<Jet>(jets.begin(), 
 						jets.begin() + 3), met); 
       m_mttop->fill(mttop, mask); 
@@ -225,13 +207,6 @@ void HistBuilder::save(std::string output) {
   m_met->write_to(met);
   Group min_dphi(file.createGroup("/minDphi")); 
   m_min_dphi->write_to(min_dphi); 
-
-  Group j1_met_dphi(file.createGroup("/j1MetDphi")); 
-  m_j1_met_dphi->write_to(j1_met_dphi); 
-  Group j2_met_dphi(file.createGroup("/j2MetDphi")); 
-  m_j2_met_dphi->write_to(j2_met_dphi); 
-  Group j3_met_dphi(file.createGroup("/j3MetDphi")); 
-  m_j3_met_dphi->write_to(j3_met_dphi); 
 
   Group mttop(file.createGroup("/mttop")); 
   m_mttop->write_to(mttop); 

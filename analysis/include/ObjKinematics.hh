@@ -26,6 +26,7 @@ private:
   MaskedHistArray* m_cnnLogCb; 
   MaskedHistArray* m_cnnLogCu; 
   MaskedHistArray* m_cnnLogBu; 
+  MaskedHistArray* m_met_dphi; 
 
   void write_truth_info(H5::CommonFG&); 
   MaskedHistArray* m_truth_label; 

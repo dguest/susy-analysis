@@ -93,6 +93,7 @@ std::vector<Jet> JetFactory::jets() const {
       return jets_out; 
     }
     jets_out.push_back(Jet(*itr,m_flags)); 
+    jets_out.rbegin()->set_event_met(met()); 
   }
   return jets_out; 
 }
@@ -112,6 +113,9 @@ double JetFactory::htx() const {return m_htx;}
 
 
 hfor::JetType JetFactory::hfor_type() const { 
+  if (m_flags & ioflag::no_truth) { 
+    throw std::runtime_error("no truth info found, can't get hfor type"); 
+  }
   using namespace hfor; 
   switch (m_hfor_type) { 
   case -1: return NONE; 
@@ -175,16 +179,22 @@ Jet::Jet(JetBuffer* basis, unsigned flags):
   m_pc(basis->cnn_c), 
   m_pu(basis->cnn_u), 
   m_truth_label(basis->flavor_truth_label), 
+  m_met_dphi(0), 
   m_flags(flags)
 {
   SetPtEtaPhiM(basis->pt, basis->eta, basis->phi, 0); 
 }
+void Jet::set_event_met(const TVector2& met) { 
+  TLorentzVector met_4vec(met.X(), met.Y(), 0, 1); 
+  m_met_dphi = met_4vec.DeltaPhi(*this); 
+}
+double Jet::met_dphi() const {return m_met_dphi; }
 double Jet::pb() const {req_flavor(); return m_pb; } 
 double Jet::pc() const {req_flavor(); return m_pc; } 
 double Jet::pu() const {req_flavor(); return m_pu; } 
 int    Jet::flavor_truth_label() const { 
   if (m_flags & ioflag::no_truth) { 
-    throw std::runtime_error("no truth info found"); 
+    throw std::runtime_error("no truth info, can't get flavor truth label"); 
   }
   return m_truth_label; 
 }

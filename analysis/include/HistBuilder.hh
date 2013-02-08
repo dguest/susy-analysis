@@ -41,9 +41,6 @@ private:
 
   MaskedHistArray* m_met; 
   MaskedHistArray* m_min_dphi; 
-  MaskedHistArray* m_j1_met_dphi; 
-  MaskedHistArray* m_j2_met_dphi; 
-  MaskedHistArray* m_j3_met_dphi; 
   MaskedHistArray* m_mttop; 
   MaskedHistArray* m_n_good_jets; 
 

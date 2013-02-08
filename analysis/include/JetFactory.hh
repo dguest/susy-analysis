@@ -71,6 +71,8 @@ class Jet: public TLorentzVector
 {
 public: 
   Jet(JetBuffer* basis, unsigned flags = 0); 
+  void set_event_met(const TVector2& met); 
+  double met_dphi() const; 
   double pb() const; 
   double pc() const; 
   double pu() const; 
@@ -82,6 +84,7 @@ private:
   double m_pc; 
   double m_pu; 
   int m_truth_label; 
+  double m_met_dphi; 
 
   unsigned m_flags; 
 }; 
