@@ -13,7 +13,7 @@ class TVector2;
 
 namespace ioflag {
   const unsigned no_flavor = 1u << 0; 
-  const unsigned no_truth  = 1u << 0; 
+  const unsigned no_truth  = 1u << 1; 
 }
 
 struct JetBuffer

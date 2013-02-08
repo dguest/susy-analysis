@@ -37,6 +37,7 @@ bits = [
     ]
 
 _bdict = dict(bits)
+
 composite_bits = [ 
     ('ctag_opt', 
      _bdict['j2_anti_b'] | _bdict['j2_anti_u'] | 
@@ -45,6 +46,10 @@ composite_bits = [
      _bdict['leading_jet'] | _bdict['met']), 
     ('ctag', 
      _bdict['jet2_anti_b'] | 
-     _bdict['jet3_anti_b'] | _bdict['jet3_anti_u_tight'])
+     _bdict['jet3_anti_b'] | _bdict['jet3_anti_u_tight']), 
+    ('preselection', 
+     _bdict['grl'] | _bdict['trigger'] | _bdict['lar_error'] | 
+     _bdict['core'] | _bdict['jet_clean'] | _bdict['vxp_gt_4trk'] | 
+     _bdict['n_jet'] | _bdict['dphi_jetmet_min'] | _bdict['lepton_veto'])
     ]
      

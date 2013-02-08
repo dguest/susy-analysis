@@ -11,7 +11,11 @@
 #include "TTree.h"
 
 JetFactory::JetFactory(std::string root_file, int n_jets) : 
+  m_hfor_type(-1), 
+  m_leading_cjet_pos(-1), 
+  m_subleading_cjet_pos(-1), 
   m_flags(0)
+
 {
   m_file = new TFile(root_file.c_str()); 
   if (!m_file) { 
@@ -28,12 +32,20 @@ JetFactory::JetFactory(std::string root_file, int n_jets) :
   errors += m_tree->SetBranchAddress("min_jetmet_dphi", &m_dphi); 
   errors += m_tree->SetBranchAddress("n_good_jets", &m_n_good); 
   errors += m_tree->SetBranchAddress("n_susy_jets", &m_n_susy); 
-  errors += m_tree->SetBranchAddress("hfor_type", &m_hfor_type); 
 
-  errors += m_tree->SetBranchAddress("leading_cjet_pos", 
+  bool has_truth = (m_tree->GetBranch("hfor_type") && 
+		    m_tree->GetBranch("leading_cjet_pos") && 
+		    m_tree->GetBranch("subleading_cjet_pos") ); 
+  if (has_truth) {
+    errors += m_tree->SetBranchAddress("hfor_type", &m_hfor_type); 
+    errors += m_tree->SetBranchAddress("leading_cjet_pos", 
 				     &m_leading_cjet_pos); 
-  errors += m_tree->SetBranchAddress("subleading_cjet_pos", 
-				     &m_subleading_cjet_pos); 
+    errors += m_tree->SetBranchAddress("subleading_cjet_pos", 
+				       &m_subleading_cjet_pos); 
+  }
+  else { 
+    m_flags |= ioflag::no_truth; 
+  }
 
   errors += m_tree->SetBranchAddress("htx", &m_htx); 
   if (errors) { 
@@ -178,7 +190,8 @@ int    Jet::flavor_truth_label() const {
 }
 
 bool Jet::has_flavor() const { 
-  return !(m_flags & ioflag::no_flavor); 
+  bool no_flavor = (m_flags & ioflag::no_flavor); 
+  return !no_flavor; 
 }
 
 void Jet::req_flavor() const 
@@ -188,4 +201,3 @@ void Jet::req_flavor() const
   }
   
 }
-
