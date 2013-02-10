@@ -36,16 +36,11 @@ class Dataset(object):
 
         self.bugs = set()
 
-    def corrected_xsec(self): 
-        assert all(x > 0 for x in [
-                self.total_xsec, self.kfactor, self.filteff])
-        return self.total_xsec * self.kfactor * self.filteff
     @property
-    def xsec_per_evt(self): 
-        """
-        corrected cross section / number of events
-        """
-        return self.corrected_xsec() / self.evts
+    def effective_luminosity_fb(self): 
+        corrected_x = self.total_xsec_fb * self.kfactor * self.filteff
+        return self.n_raw_entries / corrected_x
+
     def __str__(self): 
         def stringify(name): 
             return '{:20}:{}'.format(name,getattr(self,name))
