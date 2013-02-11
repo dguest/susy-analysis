@@ -123,7 +123,7 @@ def run():
         variable, cut = id_tup
         stack_name = '_'.join([variable.replace('/','-'), cut])
         stack = hists.Stack(stack_name)
-        stack.y_min = 0.1
+        stack.y_min = 1.0
         stack.add_backgrounds(stack_mc_lists[id_tup])
         stack.add_data(stack_data[id_tup])
         stack.ax.set_yscale('log')

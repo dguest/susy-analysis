@@ -387,27 +387,27 @@ class Stack(object):
             if not xlabel: 
                 self.ax.set_xlabel(hist.x_label, x=0.98, ha='right')
 
+            fill_color = hist.color
+            if not fill_color: 
+                fill_color = next(color_itr)
+
             if self._y_sum is None:
                 self._y_sum = y_vals
             else: 
                 self._y_sum = self._y_sum + y_vals
 
-            tmp_sum = self._y_sum[:]
+            tmp_sum = np.array(self._y_sum[:])
             if self.y_min is not None: 
                 tmp_sum[tmp_sum < self.y_min] = self.y_min
-            
-            fill_color = hist.color
-            if not fill_color: 
-                fill_color = next(color_itr)
 
-            self.ax.fill_between(x_vals, self._y_sum, last_plot, 
+            self.ax.fill_between(x_vals, tmp_sum, last_plot, 
                                  facecolor=fill_color)
             proxy = plt.Rectangle((0, 0), 1, 1, fc=fill_color, 
                                   label=hist.title)
 
             self._bg_proxy_legs.append( (proxy,hist.title)) 
 
-            last_plot = self._y_sum
+            last_plot = tmp_sum
 
     def add_signals(self, hist_list): 
         color_itr = iter(self.colors)
@@ -429,7 +429,7 @@ class Stack(object):
         if self.x_vals is None: 
             self.x_vals = x_vals
         if self.y_min is not None: 
-            good_yvals = y_vals > self.y_min
+            good_yvals = y_vals >= (self.y_min - 0.1)
             x_vals = x_vals[good_yvals]
             y_vals = y_vals[good_yvals] 
 
