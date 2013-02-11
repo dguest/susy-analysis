@@ -429,17 +429,23 @@ class Stack(object):
         if self.x_vals is None: 
             self.x_vals = x_vals
         if self.y_min is not None: 
-            good_yvals = y_vals >= (self.y_min - 0.1)
+            good_yvals = y_vals >= self.y_min
             x_vals = x_vals[good_yvals]
             y_vals = y_vals[good_yvals] 
+        y_error = np.sqrt(y_vals)
+        y_err_up = y_error
+        y_err_down = y_error
+        y_err_down[y_vals < 1.1] = 0.9
 
-        plt_handle, = self.ax.plot(x_vals, y_vals, 'k.')
-        self._proxy_legs.append( (plt_handle, hist.title))
+        line,cap,notsure = self.ax.errorbar(x_vals, y_vals, 
+                                            ms=10, fmt='k.', 
+                                            yerr=[y_err_down, y_err_up])
+        self._proxy_legs.append( (line, hist.title))
     
     def add_legend(self): 
         all_legs = chain(self._proxy_legs,reversed(self._bg_proxy_legs))
         proxies = zip(*all_legs)
-        legend = self.ax.legend(*proxies)
+        legend = self.ax.legend(*proxies, numpoints=1)
         legend.get_frame().set_linewidth(0)
         legend.get_frame().set_alpha(0)
             

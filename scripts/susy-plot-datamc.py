@@ -97,6 +97,7 @@ def run():
                     hist = Hist1d(*HistNd(h5hist).project_1d('x'))
                     hist.scale(lumi_scale)
                     hist.color = style.type_dict[physics_type].color
+                    hist.title = style.type_dict[physics_type].tex
                     idx_tuple = (physics_type, variable, cut_name)
                     if not idx_tuple in plots_dict: 
                         plots_dict[idx_tuple] = hist
@@ -123,10 +124,10 @@ def run():
         variable, cut = id_tup
         stack_name = '_'.join([variable.replace('/','-'), cut])
         stack = hists.Stack(stack_name)
-        stack.y_min = 1.0
+        stack.y_min = 0.1
+        stack.ax.set_yscale('log')
         stack.add_backgrounds(stack_mc_lists[id_tup])
         stack.add_data(stack_data[id_tup])
-        stack.ax.set_yscale('log')
         stack.add_legend()
         save_name = join(plot_dir, stack_name) + '.pdf'
         stack.save(save_name)
