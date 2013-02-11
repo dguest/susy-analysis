@@ -192,7 +192,7 @@ class MetaFactory(object):
         else: 
             raise ValueError('{} is an unsupported file for MetaFactory'
                              'constructor')
-        self.retry_ami = False
+        self.clear_ami = False
         self.no_ami_overwrite = False
         self.verbose = False
 
@@ -296,7 +296,7 @@ class MetaFactory(object):
                 spl = split_dict[ds.id]
                 ds.id = int(spl[0])
                 ds.name = spl[1]
-                ds.total_xsec_fb = float(spl[2]) / 1e3
+                ds.total_xsec_fb = float(spl[2]) * 1e3
                 ds.kfactor = float(spl[3])
                 ds.filteff = float(spl[4])
                 ds.meta_sources.add('susy lookup')
@@ -344,13 +344,16 @@ class MetaFactory(object):
         """
         Matches ami
         """
+        if self.clear_ami: 
+            for ds in self._datasets: 
+                self._datasets[ds].meta_sources -= set(['ami'])
         tot = len(self._datasets)
         for n, (ds_key, ds) in enumerate(self._datasets.iteritems()): 
             if stream: 
                 stream.write('\rlooking up data in ami'
                              ' ({} of {})'.format(n, tot))
                 stream.flush()
-            if 'ami' in ds.meta_sources and not self.retry_ami: 
+            if 'ami' in ds.meta_sources:
                 continue
             if 'susy lookup' in ds.meta_sources and self.no_ami_overwrite: 
                 continue
@@ -378,17 +381,35 @@ class MetaFactory(object):
                     ds.bugs.add('no filter efficiency')
                     ds.filteff = 1.0
 
-        if not ds.total_xsec_fb: 
-            try: 
-                xsec = float(info.extra['crossSection_mean'])
-            except KeyError:
-                try: 
-                    xsec = float(info.extra['approx_crossSection'])
-                except KeyError: 
-                    ds.bugs.add('no cross section')
-                    xsec = 0
+        try: 
+            new_xsec = self._get_ami_cross_section(info)
+        except KeyError: 
+            if not ds.total_xsec_fb:
+                ds.bugs.add('no cross section')
+            return 
 
-            ds.total_xsec_fb = xsec
+        if not ds.total_xsec_fb:
+            ds.total_xsec_fb = new_xsec
+        else:
+            diff = ds.total_xsec_fb - new_xsec
+            rel_dif = abs(diff / ds.total_xsec_fb)
+            if rel_dif > 0.1: 
+                warn('for sample {id} {name}: '
+                     'ami gives xsec of {ami} fb, '
+                     'susytools gives {st} (diff {diff:.1%})'.format(
+                        id=ds.id, name=ds.name, 
+                        ami=new_xsec, st=ds.total_xsec_fb, 
+                        diff=rel_dif))
+
+
+    def _get_ami_cross_section(self,info): 
+        xsec = 0
+        try: 
+            xsec = float(info.extra['crossSection_mean']) 
+        except KeyError:
+            xsec = float(info.extra['approx_crossSection']) 
+        
+        return xsec * 1e6
     
     def _write_ami_info(self, ds, info): 
         ds.n_expected_entries = int(info.info['totalEvents'])

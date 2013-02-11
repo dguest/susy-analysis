@@ -43,7 +43,8 @@ def _get_parser():
                         help='force overwrite of meta (if it exists)')
     parser.add_argument('-a', action='store_true',
                         help='ami lookup')
-    parser.add_argument('--rerun-ami', action='store_true')
+    parser.add_argument('--clear-ami', action='store_true', 
+                        help='clear ami lookup flag (to force rerun)')
     parser.add_argument('-t', '--trust-ds-names', action='store_true')
     parser.add_argument('-d','--dump', action='store_true')
     parser.add_argument(
@@ -61,7 +62,7 @@ def run():
                 args.output_pickle))
 
     mf = MetaFactory(args.steering_file)
-    mf.retry_ami = args.rerun_ami
+    mf.clear_ami = args.clear_ami
 
     mf.verbose = True
 
