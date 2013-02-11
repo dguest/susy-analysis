@@ -5,6 +5,7 @@ physics_labels = [
     (r'$W$ + jets',             'Wjets','green'), 
     (r'$t\bar{t}$',             'ttbar','b'),
     (r'diboson',                'diboson','pink'), 
+    (r'Data',                   'data'   , 'black'), 
 
     ('charm','charm','g'), 
     ('bottom','bottom','red'), 

@@ -67,7 +67,8 @@ class Hist1d(object):
         self._array[bins] = ave
     def get_xy_pts(self): 
         """
-        returns slightly hacked xy pairs which can be fed to plt.plot()
+        returns xy pairs which can be fed to plt.plot() to generate a 
+        step plot
         """
         y_vals = self._array[1:-1] # no overflow
         double_y_vals = np.dstack((y_vals,y_vals)).flatten()
@@ -75,6 +76,15 @@ class Hist1d(object):
         double_x_vals = np.dstack((x_vals,x_vals)).flatten()[1:-1]
 
         return double_x_vals, double_y_vals
+
+    def get_data_xy(self): 
+        """
+        returns points at the bin centers
+        """
+        y_vals = self._array[1:-1]
+        n_pts = len(y_vals)*2 + 1
+        x_vals = np.linspace(*self.extent, num=n_pts)[1:-1:2]
+        return x_vals, y_vals
 
 class HistNd(object): 
     """
@@ -413,6 +423,18 @@ class Stack(object):
             style = color + '--'
             plt_handle, = self.ax.plot(x_vals,y_vals,style, linewidth=2.0)
             self._proxy_legs.append( (plt_handle, hist.title))
+
+    def add_data(self, hist): 
+        x_vals, y_vals = hist.get_data_xy()
+        if self.x_vals is None: 
+            self.x_vals = x_vals
+        if self.y_min is not None: 
+            good_yvals = y_vals > self.y_min
+            x_vals = x_vals[good_yvals]
+            y_vals = y_vals[good_yvals] 
+
+        plt_handle, = self.ax.plot(x_vals, y_vals, 'k.')
+        self._proxy_legs.append( (plt_handle, hist.title))
     
     def add_legend(self): 
         all_legs = chain(self._proxy_legs,reversed(self._bg_proxy_legs))

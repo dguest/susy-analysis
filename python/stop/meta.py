@@ -38,7 +38,20 @@ class Dataset(object):
 
     @property
     def effective_luminosity_fb(self): 
-        corrected_x = self.total_xsec_fb * self.kfactor * self.filteff
+        if not self.kfactor: 
+            warn('no kfactor for {} {}, assuming 1'.format(
+                    self.id, self.name))
+            kfactor = 1.0
+        else: 
+            kfactor = self.kfactor
+        if not self.filteff: 
+            warn('no filt eff for {} {}, assuming 1'.format(
+                    self.id, self.name)) 
+            filt_eff = 1.0
+        else: 
+            filt_eff = self.filteff
+
+        corrected_x = self.total_xsec_fb * kfactor * filt_eff
         return self.n_raw_entries / corrected_x
 
     def __str__(self): 
