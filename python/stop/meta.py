@@ -296,7 +296,7 @@ class MetaFactory(object):
                 spl = split_dict[ds.id]
                 ds.id = int(spl[0])
                 ds.name = spl[1]
-                ds.total_xsec_fb = float(spl[2])
+                ds.total_xsec_fb = float(spl[2]) / 1e3
                 ds.kfactor = float(spl[3])
                 ds.filteff = float(spl[4])
                 ds.meta_sources.add('susy lookup')
@@ -388,7 +388,7 @@ class MetaFactory(object):
                     ds.bugs.add('no cross section')
                     xsec = 0
 
-            ds.total_xsec_fb = xsec * 1000.0
+            ds.total_xsec_fb = xsec
     
     def _write_ami_info(self, ds, info): 
         ds.n_expected_entries = int(info.info['totalEvents'])

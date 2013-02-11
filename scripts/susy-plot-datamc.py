@@ -9,44 +9,6 @@ from stop import style, meta, hists
 _files = glob.glob('hackhist2/*.h5')
 _meta = 'filter-meta.yml'
 
-def print_hist(h5hist, name): 
-    hist = Hist1d(*HistNd(h5hist).project_1d('x'))
-
-    fig = plt.figure(figsize=(8,6))
-    ax = fig.add_subplot(1,1,1)
-    ax.plot(*hist.get_xy_pts())
-    fig.savefig(name, bbox_inches='tight')
-
-class Plots(object): 
-    def __init__(self, name, path): 
-        self.name = name
-        self.path = path
-        self.plots = {}
-        self.ext = '.pdf'
-    def eat(self, hfile): 
-        for pname, hplot in hfile[self.path].iteritems(): 
-            if not pname in self.plots: 
-                hist = Hist1d(*HistNd(hplot).project_1d('x'))
-                self.plots[pname] = hist
-            else: 
-                self.plots[pname] += Hist1d(*HistNd(hplot).project_1d('x'))
-    def rebin(self, n=4): 
-        for name in self.plots: 
-            self.plots[name].scale(n)
-            self.plots[name].average_bins(n)
-            self.rebin_factor = n
-    def save_overlay(self, base_dir): 
-        fig = plt.figure(figsize=(8,6))
-        ax = fig.add_subplot(1,1,1) 
-        for pname, hist in self.plots.iteritems(): 
-            leg_name = '{}: {}'.format(pname, float(hist) / self.rebin_factor)
-            ax.plot(*hist.get_xy_pts(), label=leg_name)
-        ax.legend()
-        if not isdir(base_dir): 
-            os.makedirs(base_dir)
-        out_name = join(base_dir, '{}{}'.format(self.name, self.ext))
-        fig.savefig(out_name, bbox_inches='tight')
-
 _plot_vars = [ 
     'jet1/pt', 
     'jet2/pt', 
@@ -78,7 +40,7 @@ def run():
         if physics_type == 'data': 
             lumi_scale = 1.0
         else: 
-            lumi_scale = _lumi_fb / file_meta.effective_luminosity_fb * 1000
+            lumi_scale = _lumi_fb / file_meta.effective_luminosity_fb 
         with h5py.File(f) as hfile: 
             for variable in _plot_vars: 
                 for cut_name, h5hist in hfile[variable].iteritems(): 
