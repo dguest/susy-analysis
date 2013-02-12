@@ -3,6 +3,8 @@ import numpy as np
 from itertools import chain
 from collections import defaultdict
 import copy
+from stop import stattest
+from math import sqrt, erf
 
 class Hist1d(object): 
     """
@@ -432,10 +434,16 @@ class Stack(object):
             good_yvals = y_vals >= self.y_min
             x_vals = x_vals[good_yvals]
             y_vals = y_vals[good_yvals] 
-        y_error = np.sqrt(y_vals)
-        y_err_up = y_error
-        y_err_down = y_error
-        y_err_down[y_vals < 1.1] = 0.9
+        
+        y_err_up = []
+        y_err_down = []
+        tail_prob = 1.0 - erf(1/sqrt(2)) # one sigma
+        for val in y_vals: 
+            low, high = stattest.poisson_interval(int(round(val)), tail_prob)
+            if low < self.y_min: 
+                low = self.y_min
+            y_err_down.append(val - low)
+            y_err_up.append(high - val)
 
         line,cap,notsure = self.ax.errorbar(x_vals, y_vals, 
                                             ms=10, fmt='k.', 
