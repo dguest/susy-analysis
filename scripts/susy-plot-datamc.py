@@ -3,13 +3,14 @@
 uses run / mc meta data and histogram files to produce stack plots
 """
 
-from stop.hists import Hist1d, HistNd
+from stop.hists import Hist1d
 import matplotlib.pyplot as plt
-import h5py, glob, os, sys
+import glob, os, sys
 from os.path import join, isdir, dirname, splitext, basename, isfile
 from stop import style, meta, hists
 import argparse
 import ConfigParser
+from stop.aggregator import SampleAggregator
 
 _files = glob.glob('hackhist2/*.h5')
 _meta = 'filter-meta.yml'
@@ -81,6 +82,9 @@ def run():
     print_plots(args, *sort_data_mc(hist1_dict))
 
 def hist1_from_histn(physics, variable, cut, histn, lumi_fb): 
+    if physics not in style.type_dict:
+        raise ValueError("what the fuck is {}?".format(pt))
+
     y_vals, extent = histn.project_1d('x')
     base_var = variable.split('/')[-1]
     if base_var in style.ax_labels: 
@@ -137,55 +141,6 @@ def print_plots(args, stack_data, stack_mc_lists):
         stack.save(save_name)
         stack.close()
         
-class SampleAggregator(object): 
-    """
-    Takes some meta data and whiskey as an input, produces aggrigated 
-    histograms. 
-    """
-    def __init__(self, meta_path, whiskey, variables): 
-        self.whiskey = whiskey
-        self.variables = variables
-        self.filter_meta = meta.DatasetCache(meta_path)
-        physics_types = {ds.physics_type for ds in self.filter_meta.values()}
-        for pt in physics_types:
-            if pt not in style.type_dict:
-                raise ValueError("what the fuck is {}?".format(pt))
-        self.lumi_fb = 15.0
-
-    def aggregate(self): 
-        plots_dict = {}
-        all_cuts_used = set()
-        for f in self.whiskey: 
-            meta_name = basename(splitext(f)[0])
-            if meta_name not in self.filter_meta: 
-                continue
-    
-            file_meta = self.filter_meta[meta_name]
-            if file_meta.bugs: 
-                print "uh oh, bugs: {} in {}".format(file_meta.bugs, meta_name)
-                continue
-    
-            physics_type = file_meta.physics_type
-            if physics_type == 'data': 
-                lumi_scale = 1.0
-            else: 
-                lumi_scale = (self.lumi_fb / 
-                              file_meta.effective_luminosity_fb )
-    
-            with h5py.File(f) as hfile: 
-                for variable in self.variables: 
-                    for cut_name, h5hist in hfile[variable].iteritems(): 
-                        hist = HistNd(h5hist)
-                        hist *= lumi_scale
-                        idx_tuple = (physics_type, variable, cut_name)
-                        if not idx_tuple in plots_dict: 
-                            plots_dict[idx_tuple] = hist
-                        else: 
-                            plots_dict[idx_tuple] += hist
-                        all_cuts_used.add(cut_name)
-
-        self.all_cuts_used = all_cuts_used
-        self.plots_dict = plots_dict
 
 if __name__ == '__main__': 
     run()
