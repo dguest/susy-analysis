@@ -22,6 +22,33 @@ _plot_vars = [
     ]
 _lumi_fb = 15.0
 
+def run(): 
+    args = get_config()
+    aggregator = SampleAggregator(args.meta_data, args.files, args.variables)
+    aggregator.lumi_fb = args.lumi_fb
+    aggregator.aggregate()
+
+    all_cuts_used = aggregator.all_cuts_used
+    plots_dict = aggregator.plots_dict
+
+    stack_mc_lists = {(v,c):[] for v in args.variables for c in all_cuts_used}
+    stack_data = {}
+            
+    for (physics_type, variable, cut), hist in plots_dict.iteritems(): 
+        tup = (variable, cut)
+        if physics_type == 'data': 
+            if tup in stack_data: 
+                raise ValueError('doubling the data')
+            stack_data[(variable, cut)] = hist
+        else: 
+            stack_mc_lists[(variable, cut)].append(hist)
+
+    for tup in stack_mc_lists: 
+        stack_mc_lists[tup].sort()
+
+    print_plots(args, stack_data, stack_mc_lists)
+
+
 def get_config(): 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('config_file', nargs='?', default=None, 
@@ -65,76 +92,6 @@ def get_config():
     args.files = glob.glob('{}/*.h5'.format(args.hists_dir))
     return args
 
-def run(): 
-
-    args = get_config()
-
-    filter_meta = meta.DatasetCache(args.meta_data)
-    physics_types = {ds.physics_type for ds in filter_meta.values()}
-    for pt in physics_types:
-        if pt not in style.type_dict:
-            raise ValueError("what the fuck is {}?".format(pt))
-
-    plots_dict = {}
-    all_cuts_used = set()
-    for f in args.files: 
-        meta_name = basename(splitext(f)[0])
-        if meta_name not in filter_meta: 
-            continue
-
-        file_meta = filter_meta[meta_name]
-        if file_meta.bugs: 
-            print "uh oh, bugs: {} in {}".format(file_meta.bugs, meta_name)
-            continue
-
-        physics_type = file_meta.physics_type
-        if physics_type == 'data': 
-            lumi_scale = 1.0
-        else: 
-            lumi_scale = args.lumi_fb / file_meta.effective_luminosity_fb 
-
-        with h5py.File(f) as hfile: 
-            for variable in args.variables: 
-                for cut_name, h5hist in hfile[variable].iteritems(): 
-                    nd_hist = HistNd(h5hist)
-                    y_vals, extent = nd_hist.project_1d('x')
-                    base_var = variable.split('/')[-1]
-                    if base_var in style.ax_labels: 
-                        var_sty = style.ax_labels[base_var]
-                        extent = [var_sty.rescale(x) for x in extent]
-                        x_ax_lab = var_sty.axis_label
-                    else: 
-                        x_ax_lab = base_var
-                    hist = Hist1d(y_vals, extent)
-                    hist.scale(lumi_scale)
-                    hist.rebin(4)
-                    hist.x_label = x_ax_lab
-                    hist.y_label = style.event_label(args.lumi_fb)
-                    hist.color = style.type_dict[physics_type].color
-                    hist.title = style.type_dict[physics_type].tex
-                    idx_tuple = (physics_type, variable, cut_name)
-                    if not idx_tuple in plots_dict: 
-                        plots_dict[idx_tuple] = hist
-                    else: 
-                        plots_dict[idx_tuple] += hist
-                    all_cuts_used.add(cut_name)
-
-    stack_mc_lists = {(v,c):[] for v in args.variables for c in all_cuts_used}
-    stack_data = {}
-            
-    for (physics_type, variable, cut), hist in plots_dict.iteritems(): 
-        tup = (variable, cut)
-        if physics_type == 'data': 
-            if tup in stack_data: 
-                raise ValueError('doubling the data')
-            stack_data[(variable, cut)] = hist
-        else: 
-            stack_mc_lists[(variable, cut)].append(hist)
-
-    for tup in stack_mc_lists: 
-        stack_mc_lists[tup].sort()
-
-    print_plots(args, stack_data, stack_mc_lists)
 
 def print_plots(args, stack_data, stack_mc_lists): 
 
@@ -154,6 +111,69 @@ def print_plots(args, stack_data, stack_mc_lists):
         stack.save(save_name)
         stack.close()
         
+class SampleAggregator(object): 
+    """
+    Takes some meta data and whiskey as an input, produces aggrigated 
+    histograms. 
+    """
+    def __init__(self, meta_path, whiskey, variables): 
+        self.whiskey = whiskey
+        self.variables = variables
+        self.filter_meta = meta.DatasetCache(meta_path)
+        physics_types = {ds.physics_type for ds in self.filter_meta.values()}
+        for pt in physics_types:
+            if pt not in style.type_dict:
+                raise ValueError("what the fuck is {}?".format(pt))
+        self.lumi_fb = 15.0
+
+    def aggregate(self): 
+        plots_dict = {}
+        all_cuts_used = set()
+        for f in self.whiskey: 
+            meta_name = basename(splitext(f)[0])
+            if meta_name not in self.filter_meta: 
+                continue
+    
+            file_meta = self.filter_meta[meta_name]
+            if file_meta.bugs: 
+                print "uh oh, bugs: {} in {}".format(file_meta.bugs, meta_name)
+                continue
+    
+            physics_type = file_meta.physics_type
+            if physics_type == 'data': 
+                lumi_scale = 1.0
+            else: 
+                lumi_scale = self.lumi_fb / file_meta.effective_luminosity_fb 
+    
+            with h5py.File(f) as hfile: 
+                for variable in self.variables: 
+                    for cut_name, h5hist in hfile[variable].iteritems(): 
+                        nd_hist = HistNd(h5hist)
+                        y_vals, extent = nd_hist.project_1d('x')
+                        base_var = variable.split('/')[-1]
+                        if base_var in style.ax_labels: 
+                            var_sty = style.ax_labels[base_var]
+                            extent = [var_sty.rescale(x) for x in extent]
+                            x_ax_lab = var_sty.axis_label
+                        else: 
+                            x_ax_lab = base_var
+                        hist = Hist1d(y_vals, extent)
+                        hist.scale(lumi_scale)
+                        hist.rebin(4)
+                        hist.x_label = x_ax_lab
+                        hist.y_label = style.event_label(self.lumi_fb)
+                        hist.color = style.type_dict[physics_type].color
+                        hist.title = style.type_dict[physics_type].tex
+                        idx_tuple = (physics_type, variable, cut_name)
+                        if not idx_tuple in plots_dict: 
+                            plots_dict[idx_tuple] = hist
+                        else: 
+                            plots_dict[idx_tuple] += hist
+                        all_cuts_used.add(cut_name)
+
+        self.all_cuts_used = all_cuts_used
+        self.plots_dict = plots_dict
+
 
 if __name__ == '__main__': 
     run()
