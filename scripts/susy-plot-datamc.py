@@ -94,8 +94,20 @@ def run():
         with h5py.File(f) as hfile: 
             for variable in args.variables: 
                 for cut_name, h5hist in hfile[variable].iteritems(): 
-                    hist = Hist1d(*HistNd(h5hist).project_1d('x'))
+                    nd_hist = HistNd(h5hist)
+                    if 
+                    y_vals, extent = nd_hist.project_1d('x')
+                    base_var = variable.split('/')[-1]
+                    if base_var in style.ax_labels: 
+                        var_sty = style.ax_labels[base_var]
+                        extent = [var_sty.rescale(x) for x in extent]
+                        x_ax_lab = var_sty.axis_label
+                    else: 
+                        x_ax_lab = base_var
+                    hist = Hist1d(y_vals, extent)
                     hist.scale(lumi_scale)
+                    hist.x_label = x_ax_lab
+                    hist.y_label = style.event_label(args.lumi_fb)
                     hist.color = style.type_dict[physics_type].color
                     hist.title = style.type_dict[physics_type].tex
                     idx_tuple = (physics_type, variable, cut_name)
@@ -116,6 +128,9 @@ def run():
             stack_data[(variable, cut)] = hist
         else: 
             stack_mc_lists[(variable, cut)].append(hist)
+
+    for tup in stack_mc_lists: 
+        stack_mc_lists[tup].sort()
 
     plot_dir = args.outplot_dir
     if not isdir(plot_dir): 
