@@ -15,10 +15,10 @@ class SampleAggregator(object):
         self.variables = variables
         self.filter_meta = meta.DatasetCache(meta_path)
         self.lumi_fb = 15.0
+        self.plots_dict = None
 
     def aggregate(self): 
         plots_dict = {}
-        all_cuts_used = set()
         for f in self.whiskey: 
             meta_name = basename(splitext(f)[0])
             if meta_name not in self.filter_meta: 
@@ -47,7 +47,5 @@ class SampleAggregator(object):
                             plots_dict[idx_tuple] = hist
                         else: 
                             plots_dict[idx_tuple] += hist
-                        all_cuts_used.add(cut_name)
 
-        self.all_cuts_used = all_cuts_used
         self.plots_dict = plots_dict
