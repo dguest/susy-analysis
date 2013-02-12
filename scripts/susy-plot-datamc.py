@@ -26,6 +26,8 @@ def get_config():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('config_file', nargs='?', default=None, 
                         help='defaults to *.cfg')
+    parser.add_argument('-o', '--output-ext', default='.pdf', 
+                        help='(default: %(default)s)')
     args = parser.parse_args(sys.argv[1:])
     if not args.config_file: 
         config_files = glob.glob('*.cfg')
@@ -95,7 +97,6 @@ def run():
             for variable in args.variables: 
                 for cut_name, h5hist in hfile[variable].iteritems(): 
                     nd_hist = HistNd(h5hist)
-                    if 
                     y_vals, extent = nd_hist.project_1d('x')
                     base_var = variable.split('/')[-1]
                     if base_var in style.ax_labels: 
@@ -132,6 +133,10 @@ def run():
     for tup in stack_mc_lists: 
         stack_mc_lists[tup].sort()
 
+    print_plots(args, stack_data, stack_mc_lists)
+
+def print_plots(args, stack_data, stack_mc_lists): 
+
     plot_dir = args.outplot_dir
     if not isdir(plot_dir): 
         os.mkdir(plot_dir)
@@ -144,7 +149,7 @@ def run():
         stack.add_backgrounds(stack_mc_lists[id_tup])
         stack.add_data(stack_data[id_tup])
         stack.add_legend()
-        save_name = join(plot_dir, stack_name) + '.pdf'
+        save_name = join(plot_dir, stack_name) + args.output_ext
         stack.save(save_name)
         stack.close()
         

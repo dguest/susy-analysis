@@ -1,5 +1,11 @@
 #!/usr/bin/env python2.7
 
+"""
+this is the old plot-making routine. It's supposed to be replaced with 
+susy-plot-datamc, so consider it deprecated. 
+"""
+
+
 import os, re, glob, cPickle, sys, cProfile
 import collections, warnings
 from stop.hists import Hist1d, Stack
