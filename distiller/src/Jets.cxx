@@ -4,6 +4,7 @@
 #include "RunInfo.hh"
 #include "RunBits.hh"
 #include "JetConstants.hh"
+#include "BtagCalibration.hh"
 #include "CheckSize.hh"
 
 #include "SUSYTools/SUSYObjDef.h"
@@ -93,7 +94,48 @@ void SelectedJet::unset_bit(unsigned bit) {
 bool SelectedJet::has_truth() const { 
   return (m_flavor_truth_label != -1); 
 }
-
+void SelectedJet::set_scale_factors(const BtagCalibration* cal){ 
+  if (!has_truth() || cal == 0) { 
+    return;
+  }
+  btag::Flavor flavor;
+  switch (m_flavor_truth_label) { 
+  case 0: flavor = btag::U; break;
+  case 4: flavor = btag::C; break; 
+  case 5: flavor = btag::B; break; 
+  case 15: flavor = btag::T; break;
+  default: 
+    std::string err = (boost::format("unknown pdgid: %i") % 
+		       m_flavor_truth_label).str(); 
+    throw std::runtime_error(err); 
+  }
+  
+}
+void SelectedJet::set_scale_factor(btag::Flavor flavor, 
+				   btag::Tagger tagger) { 
+  if (m_scale_factor.size() <= size_t(tagger)) { 
+    size_t n_missing = size_t(tagger) - m_scale_factor.size() + 1; 
+    m_scale_factor.insert(m_scale_factor.end(), n_missing,
+			  std::make_pair(0,0) ); 
+  }
+  if (m_ineff_scale_factor.size() <= size_t(tagger)) { 
+    size_t n_missing = size_t(tagger) - m_ineff_scale_factor.size() + 1; 
+    m_ineff_scale_factor.insert(m_ineff_scale_factor.end(), n_missing, 
+				std::make_pair(0,0) ); 
+  }
+  // ********************* work do here ***************************
+  
+}
+std::pair<double, double> SelectedJet::scale_factor(btag::Tagger t) 
+  const 
+{
+  return m_scale_factor.at(t); 
+}
+std::pair<double, double> SelectedJet::ineff_scale_factor(btag::Tagger t) 
+  const 
+{
+  return m_ineff_scale_factor.at(t); 
+}
 
 EventJets::EventJets(const SusyBuffer& buffer, SUSYObjDef& def, 
 		     unsigned flags, const RunInfo& info): 
@@ -157,82 +199,99 @@ EventJets::~EventJets() {
   }
 }
 
-bool check_if_jet(int iJet, 
-		  const SusyBuffer& buffer, 
-		  SUSYObjDef& def, 
-		  const unsigned flags, 
-		  const RunInfo& info){ 
+namespace { 
+  // forward dec for systematic translation
+  SystErr::Syste get_susytools_systematic(systematic::Systematic syst); 
+
+  bool check_if_jet(int iJet, 
+		    const SusyBuffer& buffer, 
+		    SUSYObjDef& def, 
+		    const unsigned flags, 
+		    const RunInfo& info){ 
 
 
-  assert(check_buffer(buffer)); 
+    assert(check_buffer(buffer)); 
 
-  int flavor_truth_label = 0; 
-  if ( flags & cutflag::truth ) { 
-    CHECK_SIZE(buffer.jet_flavor_truth_label, buffer.jet_n); 
-    flavor_truth_label = buffer.jet_flavor_truth_label->at(iJet); 
+    int flavor_truth_label = 0; 
+    if ( flags & cutflag::truth ) { 
+      CHECK_SIZE(buffer.jet_flavor_truth_label, buffer.jet_n); 
+      flavor_truth_label = buffer.jet_flavor_truth_label->at(iJet); 
+    }
+    
+    return def.FillJet
+      (iJet, 
+       buffer.jet_pt                 ->at(iJet), 
+       buffer.jet_eta                ->at(iJet), 
+       buffer.jet_phi                ->at(iJet),
+       buffer.jet_E                  ->at(iJet), 
+       buffer.jet_emscale_eta        ->at(iJet), 
+       buffer.jet_emfrac             ->at(iJet), 
+       buffer.jet_hecf               ->at(iJet),
+       buffer.jet_LArQuality         ->at(iJet), 
+       buffer.jet_HECQuality         ->at(iJet), 
+       buffer.jet_AverageLArQF       ->at(iJet), 
+       buffer.jet_Timing             ->at(iJet), 
+       buffer.jet_sumPtTrk           ->at(iJet), 
+       buffer.jet_fracSamplingMax    ->at(iJet),
+       buffer.jet_SamplingMax        ->at(iJet), 
+       buffer.jet_NegativeE          ->at(iJet), 
+       flavor_truth_label, 
+       buffer.jet_constscale_E       ->at(iJet),
+       buffer.jet_constscale_eta     ->at(iJet), 
+       buffer.jet_EtaOrigin          ->at(iJet), 
+       buffer.jet_PhiOrigin          ->at(iJet), 
+       buffer.jet_MOrigin            ->at(iJet), 
+       buffer.averageIntPerXing,
+       buffer.vx_nTracks,             
+       info.run_number, 
+       flags & cutflag::is_data, 
+       JET_PT_CUT, 	// pt cut
+       JET_ETA_CUT,	// eta cut, was 2.8 but changed to comply with Jan
+       JetID::VeryLooseBad,
+       get_susytools_systematic(info.systematic));
+    
   }
-    
-  return def.FillJet
-    (iJet, 
-     buffer.jet_pt                 ->at(iJet), 
-     buffer.jet_eta                ->at(iJet), 
-     buffer.jet_phi                ->at(iJet),
-     buffer.jet_E                  ->at(iJet), 
-     buffer.jet_emscale_eta        ->at(iJet), 
-     buffer.jet_emfrac             ->at(iJet), 
-     buffer.jet_hecf               ->at(iJet),
-     buffer.jet_LArQuality         ->at(iJet), 
-     buffer.jet_HECQuality         ->at(iJet), 
-     buffer.jet_AverageLArQF       ->at(iJet), 
-     buffer.jet_Timing             ->at(iJet), 
-     buffer.jet_sumPtTrk           ->at(iJet), 
-     buffer.jet_fracSamplingMax    ->at(iJet),
-     buffer.jet_SamplingMax        ->at(iJet), 
-     buffer.jet_NegativeE          ->at(iJet), 
-     flavor_truth_label, 
-     buffer.jet_constscale_E       ->at(iJet),
-     buffer.jet_constscale_eta     ->at(iJet), 
-     buffer.jet_EtaOrigin          ->at(iJet), 
-     buffer.jet_PhiOrigin          ->at(iJet), 
-     buffer.jet_MOrigin            ->at(iJet), 
-     buffer.averageIntPerXing,
-     buffer.vx_nTracks,             
-     info.run_number, 
-     flags & cutflag::is_data, 
-     JET_PT_CUT, 	// pt cut
-     JET_ETA_CUT,	// eta cut, was 2.8 but changed to comply with Jan
-     JetID::VeryLooseBad,
-     SystErr::NONE);
-    
-}
 
 
 
-bool check_buffer(const SusyBuffer& buffer) { 
+  bool check_buffer(const SusyBuffer& buffer) { 
 
-  CHECK_SIZE(buffer.jet_pt                          , buffer.jet_n);
-  CHECK_SIZE(buffer.jet_eta                         , buffer.jet_n);
-  CHECK_SIZE(buffer.jet_phi                         , buffer.jet_n);
-  CHECK_SIZE(buffer.jet_E                           , buffer.jet_n);
-  CHECK_SIZE(buffer.jet_emscale_eta                 , buffer.jet_n);
-  CHECK_SIZE(buffer.jet_emfrac                      , buffer.jet_n);
-  CHECK_SIZE(buffer.jet_hecf                        , buffer.jet_n);
-  CHECK_SIZE(buffer.jet_LArQuality                  , buffer.jet_n);
-  CHECK_SIZE(buffer.jet_HECQuality                  , buffer.jet_n);
-  CHECK_SIZE(buffer.jet_AverageLArQF                , buffer.jet_n);
-  CHECK_SIZE(buffer.jet_Timing                      , buffer.jet_n);
-  CHECK_SIZE(buffer.jet_sumPtTrk                    , buffer.jet_n);
-  CHECK_SIZE(buffer.jet_fracSamplingMax             , buffer.jet_n);
-  CHECK_SIZE(buffer.jet_SamplingMax                 , buffer.jet_n);
-  CHECK_SIZE(buffer.jet_NegativeE                   , buffer.jet_n);
-  CHECK_SIZE(buffer.jet_emscale_E                   , buffer.jet_n);
-  CHECK_SIZE(buffer.jet_emscale_eta                 , buffer.jet_n);
-  CHECK_SIZE(buffer.jet_EtaOrigin                   , buffer.jet_n);
-  CHECK_SIZE(buffer.jet_PhiOrigin                   , buffer.jet_n);
-  CHECK_SIZE(buffer.jet_MOrigin                     , buffer.jet_n);
-  CHECK_SIZE(buffer.jet_jvtxf                       , buffer.jet_n);
-  CHECK_SIZE(buffer.jet_flavor_component_jfitcomb_pb, buffer.jet_n);
-  CHECK_SIZE(buffer.jet_flavor_component_jfitcomb_pc, buffer.jet_n);
-  CHECK_SIZE(buffer.jet_flavor_component_jfitcomb_pu, buffer.jet_n);
-  return true; 
+    CHECK_SIZE(buffer.jet_pt                          , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_eta                         , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_phi                         , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_E                           , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_emscale_eta                 , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_emfrac                      , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_hecf                        , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_LArQuality                  , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_HECQuality                  , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_AverageLArQF                , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_Timing                      , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_sumPtTrk                    , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_fracSamplingMax             , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_SamplingMax                 , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_NegativeE                   , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_emscale_E                   , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_emscale_eta                 , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_EtaOrigin                   , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_PhiOrigin                   , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_MOrigin                     , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_jvtxf                       , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_flavor_component_jfitcomb_pb, buffer.jet_n);
+    CHECK_SIZE(buffer.jet_flavor_component_jfitcomb_pc, buffer.jet_n);
+    CHECK_SIZE(buffer.jet_flavor_component_jfitcomb_pu, buffer.jet_n);
+    return true; 
+  }
+
+  SystErr::Syste get_susytools_systematic(systematic::Systematic syst) { 
+    using namespace systematic; 
+    switch (syst) { 
+    case NONE: return SystErr::NONE; 
+    case JESUP: return SystErr::JESUP; 
+    case JESDOWN: return SystErr::JESDOWN; 
+    default: 
+      throw std::logic_error("got undedined systematic in " __FILE__); 
+    }
+  }
+
 }

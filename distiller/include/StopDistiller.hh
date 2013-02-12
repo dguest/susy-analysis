@@ -14,6 +14,7 @@ class EventPreselector;
 class OutTree; 
 class BitmapCutflow; 
 class SelectedJet; 
+class BtagCalibration; 
 
 namespace std { 
   // class streambuf; 
@@ -55,6 +56,7 @@ private:
   EventPreselector* m_event_preselector; 
   OutTree* m_out_tree; 
   BitmapCutflow* m_cutflow; 
+  BtagCalibration* m_btag_calibration; 
 }; 
 
 #endif

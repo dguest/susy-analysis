@@ -11,6 +11,7 @@
 
 #include "RunBits.hh"
 #include "RunInfo.hh"
+#include "systematic_defs.hh"
 
 
 static PyObject* py_distiller(PyObject *self, 
@@ -115,6 +116,9 @@ static bool fill_run_info(PyObject* dict, RunInfo* info) {
     else if (ckey == "btag_cal_file") { 
       if (!safe_copy(value, info->btag_cal_file)) return false;
     }
+    else if (ckey == "systematic") { 
+      if (!safe_copy(value, info->systematic)) return false; 
+    }
     else { 
       std::string err = "got unknown string in distiller info dict: " + ckey; 
       PyErr_SetString(PyExc_ValueError, err.c_str()); 
@@ -135,6 +139,29 @@ static bool safe_copy(PyObject* value, int& dest) {
   if (PyErr_Occurred()) return false; 
   dest = the_int; 
   return true; 
+}
+static bool safe_copy(PyObject* value, systematic::Systematic& dest) { 
+  char* sysname = PyString_AsString(value); 
+  if (PyErr_Occurred()) return false; 
+  std::string name(sysname); 
+  using namespace systematic; 
+  if (name == "JESUP") { 
+    dest = JESUP; 
+    return true; 
+  }
+  else if (name == "JESDOWN") { 
+    dest = JESDOWN; 
+    return true; 
+  }
+  else if (name == "NONE") { 
+    dest = NONE; 
+    return true; 
+  }
+  else { 
+    std::string problem = "got undefined systematic: " + name; 
+    PyErr_SetString(PyExc_IOError,problem.c_str()); 
+    return false; 
+  }
 }
 
 static PyMethodDef methods[] = {

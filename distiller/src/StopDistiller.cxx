@@ -11,6 +11,7 @@
 #include "SmartChain.hh"
 #include "CollectionTreeReport.hh"
 #include "EventPreselector.hh"
+#include "BtagCalibration.hh"
 #include "CheckSize.hh"
 
 #include "RunBits.hh"
@@ -51,7 +52,8 @@ StopDistiller::StopDistiller(const std::vector<std::string>& in,
   m_def(0), 
   m_event_preselector(0), 
   m_out_tree(0), 
-  m_cutflow(0)
+  m_cutflow(0), 
+  m_btag_calibration(0)
 { 
   gErrorIgnoreLevel = kWarning;
   setup_flags(); 
@@ -78,6 +80,7 @@ StopDistiller::~StopDistiller() {
   delete m_event_preselector; 
   delete m_out_tree; 
   delete m_cutflow; 
+  delete m_btag_calibration; 
 }
 
 StopDistiller::Cutflow StopDistiller::run_cutflow() { 
@@ -206,7 +209,8 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
 
   TVector2 met = get_met(*m_susy_buffer, *m_def, m_info, susy_muon_idx); 
   if (m_flags & cutflag::use_met_reffinal) { 
-    met.Set(m_susy_buffer->MET_RefFinal_etx, m_susy_buffer->MET_RefFinal_ety); 
+    met.Set(m_susy_buffer->MET_RefFinal_etx, 
+	    m_susy_buffer->MET_RefFinal_ety); 
   }
 
   // ----- object selection is done now, from here is filling outputs ---
@@ -336,6 +340,10 @@ void StopDistiller::setup_susytools() {
     m_def->SetJetCalib(false); 
   }
   m_event_preselector = new EventPreselector(m_flags, m_info.grl); 
+  if (m_info.btag_cal_dir.size() && m_info.btag_cal_file.size()) { 
+    m_btag_calibration = new BtagCalibration(m_info.btag_cal_file, 
+					     m_info.btag_cal_dir); 
+  }
 
   dup2(output_dup, fileno(stdout)); 
   close(output_dup); 

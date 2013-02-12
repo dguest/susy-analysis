@@ -3,11 +3,13 @@
 
 #include "TLorentzVector.h"
 #include <vector> 
+#include "btag_defs.hh"
 
 class EventJets; 
 class SusyBuffer; 
 class SUSYObjDef; 
 class RunInfo; 
+class BtagCalibration; 
 
 namespace jetbit { 
   const unsigned susy            = 1u << 0; 
@@ -23,6 +25,7 @@ namespace jetbit {
 
 class SelectedJet: public TLorentzVector { 
 public: 
+  typedef std::pair<double, double> CalResult; 
   SelectedJet(const EventJets* container, int jet_index); 
   double combNN_btag() const; 
   int index() const;
@@ -37,7 +40,11 @@ public:
   double pc() const; 
   int flavor_truth_label() const; 
   bool has_truth() const; 
+  void set_scale_factors(const BtagCalibration*); 
+  CalResult scale_factor(btag::Tagger) const; 
+  CalResult ineff_scale_factor(btag::Tagger) const; 
 private: 
+  void set_scale_factor(btag::Flavor, btag::Tagger); 
   double m_cnn_b; 
   double m_cnn_c; 
   double m_cnn_u; 
@@ -45,6 +52,8 @@ private:
   float m_jvf; //jet_jvtxf
   unsigned m_bits; 
   int m_flavor_truth_label; 
+  std::vector<CalResult> m_scale_factor; 
+  std::vector<CalResult> m_ineff_scale_factor; 
 }; 
 
 class EventJets: public std::vector<SelectedJet*> 
@@ -63,12 +72,15 @@ private:
   unsigned m_flags; 
 }; 
 
-bool check_if_jet(int iJet, 
-		  const SusyBuffer& buffer, 
-		  SUSYObjDef& def, 
-		  const unsigned flags, 
-		  const RunInfo& info); 
+namespace { 
+  bool check_if_jet(int iJet, 
+		    const SusyBuffer& buffer, 
+		    SUSYObjDef& def, 
+		    const unsigned flags, 
+		    const RunInfo& info); 
 
-bool check_buffer(const SusyBuffer& buffer); 
+  bool check_buffer(const SusyBuffer& buffer); 
+  
+}
 
 #endif // JETS_H

@@ -4,17 +4,15 @@
 #include <boost/noncopyable.hpp>
 #include <string> 
 #include <map>
+#include "btag_defs.hh"
+
+class BaselineJet; 
 
 namespace Analysis { 
   class CalibrationDataInterfaceROOT; 
   class CalibrationDataVariables; 
 }
 
-namespace btag { 
-  enum Uncertainty { None, Total, Statistical, Systematic };
-  enum Tagger { CNN_LOOSE, CNN_MEDIUM, CNN_TIGHT }; 
-  enum Flavor { B, C, U, T}; 
-}
 
 class BtagCalibration : boost::noncopyable 
 {

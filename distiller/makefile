@@ -61,7 +61,7 @@ T_DICTS     := $(TOBJ:.o=Dict.o)
 GEN_OBJ     := distill_tools.o OutTree.o Jets.o Leptons.o BitmapCutflow.o 
 GEN_OBJ     += SmartChain.o CollectionTreeReport.o 
 GEN_OBJ     += EventPreselector.o StopDistiller.o CheckSize.o
-GEN_OBJ     += BtagCalibration.o Grl.o
+GEN_OBJ     += BtagCalibration.o Grl.o RunInfo.o
 EXE_OBJ     := $(GEN_OBJ) $(T_DICTS) $(TOBJ) cutflow.o
 PYLIB_OBJ   := $(GEN_OBJ) $(T_DICTS) $(TOBJ)
 
