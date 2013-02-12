@@ -73,26 +73,12 @@ def run():
     aggregator.lumi_fb = args.lumi_fb
     aggregator.aggregate()
 
-    all_cuts_used = aggregator.all_cuts_used
-    plots_dict = aggregator.plots_dict
+    hist1_dict = {}
+    for tup, hist in aggregator.plots_dict.iteritems():
+        hist1_dict[tup] = hist1_from_histn(*tup, histn=hist, 
+                                            lumi_fb=args.lumi_fb)
 
-    # todo: we should do the conversion before sorting into lists
-    hist_data = aggregator.get_data()
-    stack_data = {}
-    for tup, hist in hist_data.iteritems(): 
-        stack_data[tup] = hist1_from_histn(hist.physics, *tup, histn=hist, 
-                                           lumi_fb=args.lumi_fb)
-
-    stack_mc_lists = {}
-    hist_mc_lists = aggregator.get_mc_lists()
-    for tup, histlist in hist_mc_lists.iteritems(): 
-        stack_mc_lists[tup] = []
-        for hist in histlist: 
-            stack_mc_lists[tup].append(
-                hist1_from_histn(hist.physics, *tup, histn=hist, 
-                                 lumi_fb=args.lumi_fb))
-
-    print_plots(args, stack_data, stack_mc_lists)
+    print_plots(args, *sort_data_mc(hist1_dict))
 
 def hist1_from_histn(physics, variable, cut, histn, lumi_fb): 
     y_vals, extent = histn.project_1d('x')
@@ -111,6 +97,26 @@ def hist1_from_histn(physics, variable, cut, histn, lumi_fb):
     hist.color = style.type_dict[physics].color
     hist.title = style.type_dict[physics].tex
     return hist
+
+def sort_data_mc(hist1_dict): 
+    stack_data = {}
+    all_cuts = set(c for p,v,c in hist1_dict.keys())
+    variables = set(v for p,v,c in hist1_dict.keys())
+    lists = {(v,c):[] for v in variables for c in all_cuts}
+    for threetup, hist in hist1_dict.iteritems(): 
+        physics_type, variable, cut = threetup
+        tup = (variable, cut)
+        if physics_type == 'data': 
+            if tup in stack_data: 
+                raise ValueError('doubling the data')
+            stack_data[(variable, cut)] = hist
+        else: 
+            lists[(variable, cut)].append(hist)
+
+    for tup in lists: 
+        lists[tup].sort()
+
+    return stack_data, lists
 
 
 def print_plots(args, stack_data, stack_mc_lists): 
@@ -163,14 +169,14 @@ class SampleAggregator(object):
             if physics_type == 'data': 
                 lumi_scale = 1.0
             else: 
-                lumi_scale = self.lumi_fb / file_meta.effective_luminosity_fb 
+                lumi_scale = (self.lumi_fb / 
+                              file_meta.effective_luminosity_fb )
     
             with h5py.File(f) as hfile: 
                 for variable in self.variables: 
                     for cut_name, h5hist in hfile[variable].iteritems(): 
                         hist = HistNd(h5hist)
                         hist *= lumi_scale
-                    
                         idx_tuple = (physics_type, variable, cut_name)
                         if not idx_tuple in plots_dict: 
                             plots_dict[idx_tuple] = hist
@@ -180,38 +186,6 @@ class SampleAggregator(object):
 
         self.all_cuts_used = all_cuts_used
         self.plots_dict = plots_dict
-
-    def get_mc_lists(self): 
-        """
-        ugly, remove
-        """
-        lists = {(v,c):[] for v in self.variables for c in self.all_cuts_used}
-        for threetup, hist in self.plots_dict.iteritems(): 
-            physics_type, variable, cut = threetup
-            tup = (variable, cut)
-            if physics_type != 'data': 
-                hist.physics = physics_type
-                lists[(variable, cut)].append(hist)
-
-        for tup in lists: 
-            lists[tup].sort()
-
-        return lists
-    
-    def get_data(self): 
-        """
-        ugly, remove
-        """
-        stack_data = {}
-        for threetup, hist in self.plots_dict.iteritems(): 
-            physics_type, variable, cut = threetup
-            tup = (variable, cut)
-            if physics_type == 'data': 
-                hist.physics = physics_type
-                if tup in stack_data: 
-                    raise ValueError('doubling the data')
-                stack_data[(variable, cut)] = hist
-        return stack_data
 
 if __name__ == '__main__': 
     run()
