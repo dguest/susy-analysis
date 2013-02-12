@@ -22,33 +22,6 @@ _plot_vars = [
     ]
 _lumi_fb = 15.0
 
-def run(): 
-    args = get_config()
-    aggregator = SampleAggregator(args.meta_data, args.files, args.variables)
-    aggregator.lumi_fb = args.lumi_fb
-    aggregator.aggregate()
-
-    all_cuts_used = aggregator.all_cuts_used
-    plots_dict = aggregator.plots_dict
-
-    stack_mc_lists = {(v,c):[] for v in args.variables for c in all_cuts_used}
-    stack_data = {}
-            
-    for (physics_type, variable, cut), hist in plots_dict.iteritems(): 
-        tup = (variable, cut)
-        if physics_type == 'data': 
-            if tup in stack_data: 
-                raise ValueError('doubling the data')
-            stack_data[(variable, cut)] = hist
-        else: 
-            stack_mc_lists[(variable, cut)].append(hist)
-
-    for tup in stack_mc_lists: 
-        stack_mc_lists[tup].sort()
-
-    print_plots(args, stack_data, stack_mc_lists)
-
-
 def get_config(): 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('config_file', nargs='?', default=None, 
@@ -92,6 +65,21 @@ def get_config():
     args.files = glob.glob('{}/*.h5'.format(args.hists_dir))
     return args
 
+
+
+def run(): 
+    args = get_config()
+    aggregator = SampleAggregator(args.meta_data, args.files, args.variables)
+    aggregator.lumi_fb = args.lumi_fb
+    aggregator.aggregate()
+
+    all_cuts_used = aggregator.all_cuts_used
+    plots_dict = aggregator.plots_dict
+
+    stack_data = aggregator.get_data()
+    stack_mc_lists = aggregator.get_mc_lists()
+
+    print_plots(args, stack_data, stack_mc_lists)
 
 def print_plots(args, stack_data, stack_mc_lists): 
 
@@ -174,6 +162,29 @@ class SampleAggregator(object):
         self.all_cuts_used = all_cuts_used
         self.plots_dict = plots_dict
 
+    def get_mc_lists(self): 
+        lists = {(v,c):[] for v in self.variables for c in self.all_cuts_used}
+        for threetup, hist in self.plots_dict.iteritems(): 
+            physics_type, variable, cut = threetup
+            tup = (variable, cut)
+            if physics_type != 'data': 
+                lists[(variable, cut)].append(hist)
+
+        for tup in lists: 
+            lists[tup].sort()
+
+        return lists
+    
+    def get_data(self): 
+        stack_data = {}
+        for threetup, hist in self.plots_dict.iteritems(): 
+            physics_type, variable, cut = threetup
+            tup = (variable, cut)
+            if physics_type == 'data': 
+                if tup in stack_data: 
+                    raise ValueError('doubling the data')
+                stack_data[(variable, cut)] = hist
+        return stack_data
 
 if __name__ == '__main__': 
     run()
