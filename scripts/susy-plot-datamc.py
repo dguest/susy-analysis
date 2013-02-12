@@ -107,6 +107,7 @@ def run():
                         x_ax_lab = base_var
                     hist = Hist1d(y_vals, extent)
                     hist.scale(lumi_scale)
+                    hist.rebin(4)
                     hist.x_label = x_ax_lab
                     hist.y_label = style.event_label(args.lumi_fb)
                     hist.color = style.type_dict[physics_type].color

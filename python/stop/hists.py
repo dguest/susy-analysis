@@ -53,6 +53,19 @@ class Hist1d(object):
     
     def scale(self, factor): 
         self._array = self._array * factor
+    def rebin(self, n_bins): 
+        center_bins = self._array[1:-1]
+        n_old = len(center_bins)
+        if not n_old % n_bins == 0: 
+            raise ValueError("rebinning: {} doesn't go into {}".format(
+                    n_bins, n_old))
+        newcenter = center_bins.reshape((-1, n_bins)).sum(axis=1)
+        newhist = np.zeros(n_old / n_bins + 2)
+        newhist[0] = self._array[0]
+        newhist[1:-1] = newcenter
+        newhist[-1] = self._array[-1]
+        self._array = newhist
+        
     def average_bins(self, bins): 
         """
         either average bin range or all bins. 
