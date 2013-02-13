@@ -1,6 +1,6 @@
 import _distiller 
 import warnings
-from os.path import isfile, isdir
+from os.path import isfile, isdir, expanduser, expandvars
 
 class CorruptedCutflow(list): 
     def __init__(self, cutlist, files_used): 
@@ -36,15 +36,9 @@ def cutflow(input_files, run_number, flags, grl='', output_ntuple='',
     if not input_files: 
         raise IOError("can't run cutflow, input files don't exist")
 
-    if grl and not isfile(grl): 
-        raise IOError('grl {} not found'.format(grl))
-
-    if btag_cal_dir and not isdir(btag_cal_dir): 
-        raise IOError('btagging calibration directory'
-                      ' ({}) doesn\'t exits'.format(btag_cal_dir))
-    if btag_cal_file and not isfile(btag_cal_file): 
-        raise IOError('btagging calibration file \'{}\' not foune'.format(
-                btag_cal_file))
+    grl = _get_fixed_pathname(grl) 
+    btag_cal_dir = _get_fixed_pathname(btag_cal_dir)
+    btag_cal_file = _get_fixed_pathname(btag_cal_file)
                 
     input_dict = { 
         'run_number':run_number, 
@@ -71,6 +65,26 @@ def cutflow(input_files, run_number, flags, grl='', output_ntuple='',
         raise 
 
     return cut_out
+
+def _get_fixed_btag_cal_dir(btag_cal_dir): 
+    if btag_cal_dir: 
+        if not isdir(btag_cal_dir): 
+            raise IOError('btagging calibration directory'
+                          ' ({}) doesn\'t exits'.format(btag_cal_dir))
+        if not btag_cal_dir.endswith('/'): 
+            btag_cal_dir += '/'
+    return btag_cal_dir
+
+def _get_fixed_pathname(orig_path):
+    if not orig_path: 
+        return ''
+    expanded = expandvars(expanduser(orig_path))
+    if isdir(expanded): 
+        if not expanded.endswith('/'): 
+            expanded += '/'
+    elif not isfile(expanded): 
+        raise IOError("requested file '{}' can't be found".format(expanded))
+    return expanded
 
         
 def make_perf_ntuple(input_file, flags, output_ntuple=''): 
