@@ -16,6 +16,15 @@ namespace ioflag {
   const unsigned no_truth  = 1u << 1; 
 }
 
+struct TaggingOP 
+{
+  double scale_factor; 
+  double fail_factor; 
+  double scale_factor_err; 
+  double fail_factor_err; 
+  void set_addresses(TTree*, std::string prefix);
+}; 
+
 struct JetBuffer
 { 
   double pt; 
@@ -26,6 +35,8 @@ struct JetBuffer
   double cnn_c; 
   double cnn_u; 
   int flavor_truth_label; 
+  TaggingOP cnn_medium; 
+  TaggingOP cnn_loose; 
 };
 
 class JetFactory

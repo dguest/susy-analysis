@@ -184,6 +184,12 @@ void JetFactory::set_buffer(std::string base_name)
 
 }
 
+void TaggingOP::set_addresses(TTree* tree, std::string prefix) { 
+  int errors = 0; 
+  // ****************** work do here ******************
+
+}
+
 Jet::Jet(JetBuffer* basis, unsigned flags): 
   m_pb(basis->cnn_b), 
   m_pc(basis->cnn_c), 
