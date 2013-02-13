@@ -35,12 +35,13 @@ def run():
     parser.add_argument(
         '--systematic', default='nominal', 
         choices={'nominal', 'JESUP', 'JESDOWN'})
-    parser.add_argument('-o','--out-dir', 
-                        help='output directory (defaults to systematic)')
+    parser.add_argument(
+        '-o','--out-dir', 
+        help='output directory (defaults to lowercase systematic)')
     args = parser.parse_args(sys.argv[1:])
 
     if not args.out_dir: 
-        args.out_dir = args.systematic
+        args.out_dir = args.systematic.lower()
 
     fail_conditions = [ 
         not isdir(args.d3pd_dir), 
