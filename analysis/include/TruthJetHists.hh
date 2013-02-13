@@ -18,7 +18,7 @@ public:
   void add_mask(unsigned bitmask, std::string name = "", 
 		unsigned antimask = 0); 
   void write_to(H5::CommonFG&); 
-  void fill(const Jet&, unsigned mask); 
+  void fill(const Jet&, unsigned mask, double weight = 1.0); 
 private: 
   Jet1DHists* m_bottom; 
   Jet1DHists* m_charm; 

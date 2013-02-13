@@ -26,7 +26,8 @@ public:
   void save(std::string output = ""); 
   void set_float(std::string, double);
 private: 
-  void fill_truth_hists(const std::vector<Jet>& jets, const unsigned mask); 
+  void fill_truth_hists(const std::vector<Jet>& jets, 
+			const unsigned mask, double weight); 
   typedef std::map<std::string, unsigned> CutMasks; 
 
   const unsigned m_flags; 

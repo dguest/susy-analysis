@@ -64,7 +64,7 @@ private:
   int m_subleading_cjet_pos; 
 
   double m_htx; 
-  double m_mc_event_weight; 
+  float m_mc_event_weight; 
   
   unsigned m_flags; 
 }; 
