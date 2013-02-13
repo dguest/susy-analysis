@@ -17,10 +17,13 @@ def run():
 
     d = 'default: %(default)s'
     dp = ' ({})'.format(d)
-    parser.add_argument('-o','--out-dir', help='output directory' + dp, 
-                        default='whiskey')
     parser.add_argument('-v','--verbose', action='store_true', 
                         help='print more help')
+    parser.add_argument('-f', action='store_true', 
+                        help='force rebuild')
+    parser.add_argument(
+        '-m', '--update-meta', action='store_true', 
+        help='update meta only, don\'t rerun distiller')
     parser.add_argument('-a','--aggressive', action='store_true', 
                         help='remove bad files and retry')
     parser.add_argument(
@@ -28,12 +31,12 @@ def run():
         help='run multicore (no arg defaults to number of machine cpu)')
     parser.add_argument('--d3pd-dir', default='D3PDs',
                         help='input d3pd directory' + dp)
-    parser.add_argument('-f', action='store_true', 
-                        help='force rebuild')
-    parser.add_argument(
-        '-m', '--update-meta', action='store_true', 
-        help='update meta only, don\'t rerun distiller')
     parser.add_argument('--grl', default=''); 
+    parser.add_argument(
+        '--systematic', default='nominal', 
+        choices={'nominal', 'JESUP', 'JESDOWN'})
+    parser.add_argument('-o','--out-dir', help='output directory' + dp, 
+                        default='whiskey')
     args = parser.parse_args(sys.argv[1:])
 
     fail_conditions = [ 
@@ -49,7 +52,7 @@ def run():
     if args.verbose: 
         print 'mapping inputs'
     distiller.find_input_files(args.d3pd_dir)
-    distiller.prepare_dataset_meta()
+    distiller.prepare_dataset_meta(args.systematic)
     if args.update_meta: 
         print 'updated meta, quitting'
         return None

@@ -13,14 +13,19 @@ def _run_distill(ds):
     if hasattr(ds,'grl'): 
         grl = ds.grl
     try: 
+        systematic = ds.need_rerun
+        syst_internal = 'NONE' if systematic == 'nominal' else systematic
         cut_counts = cutflow.cutflow(
             input_files=ds.d3pds, 
             run_number=ds.id, 
             flags=ds.distill_flags, 
             grl=grl, 
-            output_ntuple=ds.skim_path)
+            systematic=syst_internal, 
+            output_ntuple=ds.skim_paths[systematic])
         ds.n_raw_entries = dict(cut_counts)['total_events']
-        ds.cutflow = [list(c) for c in cut_counts]
+        if not hasattr(ds,'cutflow') or isinstance(ds.cutflow, list): 
+            ds.cutflow = {}
+        ds.cutflow[systematic] = [list(c) for c in cut_counts]
 
         cut_names = [n for n,c in cut_counts]
         _read_err = 'read_errors'
@@ -129,7 +134,7 @@ class Distiller(object):
 
         return flags
 
-    def _needs_rerun(self, ds): 
+    def _needs_rerun(self, ds, systematic): 
         """
         check a dataset for rerunning, based on age of input and output
         files. May add to bug set if inputs are missing. 
@@ -144,27 +149,29 @@ class Distiller(object):
         if ds.origin.startswith('data'): 
             has_grl = hasattr(ds,'grl') and ds.grl
             if has_grl and ds.grl != self.grl: 
-                return True
+                return systematic
 
-        if not isfile(ds.skim_path): 
-            return True
-        skim_mtime = os.stat(ds.skim_path).st_mtime
+        if not systematic in ds.skim_paths: 
+            return systematic
+        if not isfile(ds.skim_paths[systematic]): 
+            return systematic
+        skim_mtime = os.stat(ds.skim_paths[systematic]).st_mtime
         if any(os.stat(d3pd).st_mtime > skim_mtime for d3pd in ds.d3pds): 
-            return True
+            return systematic
         
         if self.force_rebuild: 
-            return True
+            return systematic
 
         return False
 
 
-    def prepare_dataset_meta(self):
+    def prepare_dataset_meta(self, systematic='nominal'):
         with DatasetCache(self.meta_info_path) as cache: 
             for ds_id, ds in cache.iteritems(): 
                 skim_name = '{}.root'.format(ds.key)
-                ds.skim_path = join(self.out_dir, skim_name)
+                ds.skim_paths[systematic] = join(self.out_dir, skim_name)
                 ds.distill_flags = self._get_flags(ds)
-                ds.need_rerun = self._needs_rerun(ds)
+                ds.need_rerun = self._needs_rerun(ds, systematic)
                 if ds.origin.startswith('data'): 
                     ds.grl = self.grl
                 else: 
