@@ -42,9 +42,9 @@ public:
   bool has_truth() const; 
   void set_scale_factors(const BtagCalibration*); 
   CalResult scale_factor(btag::Tagger) const; 
-  CalResult ineff_scale_factor(btag::Tagger) const; 
+  CalResult fail_factor(btag::Tagger) const; 
 private: 
-  void set_scale_factor(btag::Flavor, btag::Tagger); 
+  void set_scale_factors(btag::Flavor, btag::Tagger); 
   double m_cnn_b; 
   double m_cnn_c; 
   double m_cnn_u; 
@@ -53,7 +53,7 @@ private:
   unsigned m_bits; 
   int m_flavor_truth_label; 
   std::vector<CalResult> m_scale_factor; 
-  std::vector<CalResult> m_ineff_scale_factor; 
+  std::vector<CalResult> m_fail_factor;  
 }; 
 
 class EventJets: public std::vector<SelectedJet*> 

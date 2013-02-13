@@ -1,6 +1,5 @@
 #include "BtagCalibration.hh"
 #include "CalibrationDataInterface/CalibrationDataInterfaceROOT.h"
-#include "Jets.hh"
 #include <stdexcept> 
 #include <cassert> 
 

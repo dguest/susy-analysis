@@ -111,19 +111,19 @@ void SelectedJet::set_scale_factors(const BtagCalibration* cal){
   }
   
 }
-void SelectedJet::set_scale_factor(btag::Flavor flavor, 
+void SelectedJet::set_scale_factors(btag::Flavor flavor, 
 				   btag::Tagger tagger) { 
   if (m_scale_factor.size() <= size_t(tagger)) { 
     size_t n_missing = size_t(tagger) - m_scale_factor.size() + 1; 
     m_scale_factor.insert(m_scale_factor.end(), n_missing,
 			  std::make_pair(0,0) ); 
   }
-  if (m_ineff_scale_factor.size() <= size_t(tagger)) { 
-    size_t n_missing = size_t(tagger) - m_ineff_scale_factor.size() + 1; 
-    m_ineff_scale_factor.insert(m_ineff_scale_factor.end(), n_missing, 
+  if (m_fail_factor.size() <= size_t(tagger)) { 
+    size_t n_missing = size_t(tagger) - m_fail_factor.size() + 1; 
+    m_fail_factor.insert(m_fail_factor.end(), n_missing, 
 				std::make_pair(0,0) ); 
   }
-  // ********************* work do here ***************************
+  
   
 }
 std::pair<double, double> SelectedJet::scale_factor(btag::Tagger t) 
@@ -131,10 +131,10 @@ std::pair<double, double> SelectedJet::scale_factor(btag::Tagger t)
 {
   return m_scale_factor.at(t); 
 }
-std::pair<double, double> SelectedJet::ineff_scale_factor(btag::Tagger t) 
+std::pair<double, double> SelectedJet::fail_factor(btag::Tagger t) 
   const 
 {
-  return m_ineff_scale_factor.at(t); 
+  return m_fail_factor.at(t); 
 }
 
 EventJets::EventJets(const SusyBuffer& buffer, SUSYObjDef& def, 
