@@ -26,7 +26,7 @@ class Dataset(object):
         self.n_expected_entries = 0
 
         self.d3pds = []
-        self.skim_path = ''
+        self.skim_paths = {}
 
         self.physics_type = ''
         self.meta_sources = set()
@@ -34,6 +34,14 @@ class Dataset(object):
 
         self.bugs = set()
 
+    @property
+    def skim_path(self): 
+        warn('skim_path is deprecated, use dict skim_paths', FutureWarning)
+        return self.skim_paths['nominal']
+    @skim_path.setter
+    def skim_path(self, value): 
+        warn('skim_path is deprecated, use dict skim_paths', FutureWarning)
+        self.skim_paths['nominal'] = value
 
     @property
     def effective_luminosity_fb(self): 
@@ -66,13 +74,12 @@ class Dataset(object):
         return out
     def _yml_iter(self): 
         build_from_full_name = set(['id', 'origin', 'tags', 'name'])
-        has_full_name = 'full_name' in self.__dict__
 
         for key, value in self.__dict__.iteritems(): 
             skip_conditions = [ 
                 not value and value is not False, 
                 key == 'full_unchecked_name', 
-                has_full_name and key in build_from_full_name, 
+                self.full_name and key in build_from_full_name, 
                 ]
             if any(skip_conditions): 
                 continue
