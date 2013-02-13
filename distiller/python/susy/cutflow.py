@@ -1,6 +1,6 @@
 import _distiller 
 import warnings
-from os.path import isfile
+from os.path import isfile, isdir
 
 class CorruptedCutflow(list): 
     def __init__(self, cutlist, files_used): 
@@ -9,7 +9,7 @@ class CorruptedCutflow(list):
 
 
 def cutflow(input_files, run_number, flags, grl='', output_ntuple='', 
-            btag_cal_file='', btag_cal_dir=''): 
+            btag_cal_file='', btag_cal_dir='', systematic='NONE'): 
     """
     Returns a list of pairs: (cut_name, n_passing). If output_ntuple is 
     given will also write an ntuple. 
@@ -39,12 +39,20 @@ def cutflow(input_files, run_number, flags, grl='', output_ntuple='',
     if grl and not isfile(grl): 
         raise IOError('grl {} not found'.format(grl))
 
+    if btag_cal_dir and not isdir(btag_cal_dir): 
+        raise IOError('btagging calibration directory'
+                      ' ({}) doesn\'t exits'.format(btag_cal_dir))
+    if btag_cal_file and not isfile(btag_cal_file): 
+        raise IOError('btagging calibration file \'{}\' not foune'.format(
+                btag_cal_file))
+                
     input_dict = { 
         'run_number':run_number, 
         'grl': grl, 
         'trigger': 'EF_xe80_tclcw_tight', 
         'btag_cal_dir':btag_cal_dir, 
         'btag_cal_file':btag_cal_file, 
+        'systematic':systematic, 
         }
 
     try: 
@@ -60,7 +68,7 @@ def cutflow(input_files, run_number, flags, grl='', output_ntuple='',
                 cutlist = cutflow(remaining_files, run_number, flags, 
                                   grl, output_ntuple)
                 return CorruptedCutflow(cutlist, remaining_files)
-        raise RuntimeError('{} in cutflow'.format(str(er)))
+        raise 
 
     return cut_out
 
