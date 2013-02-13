@@ -9,6 +9,7 @@
 #include "SmartChain.hh"
 #include "CollectionTreeReport.hh"
 #include "EventPreselector.hh"
+#include "BtagCalibration.hh"
 
 #include "RunBits.hh"
 #include "EventBits.hh"
@@ -36,7 +37,7 @@
 
 //_________________________________________________________________
 // jet utility 
-void copy_jet_info(const SelectedJet* in, OutTree::Jet& jet)
+void copy_jet_info(const SelectedJet* in, outtree::Jet& jet)
 {
 
   assert(in->Pt()); 
@@ -48,9 +49,21 @@ void copy_jet_info(const SelectedJet* in, OutTree::Jet& jet)
   jet.cnn_u = in->pu(); 
   if (in->has_truth()) { 
     jet.flavor_truth_label = in->flavor_truth_label(); 
+    copy_scale_factor(in, jet.cnn_medium, btag::CNN_MEDIUM); 
+    copy_scale_factor(in, jet.cnn_loose, btag::CNN_LOOSE); 
   }
   jet.cnn_log_cu = log( in->pc() / in->pu() ) ; 
   jet.cnn_log_cb = log( in->pc() / in->pb() ) ; 
+}
+
+void copy_scale_factor(const SelectedJet* in, outtree::ScaleFactor& factor, 
+		       btag::Tagger tagger) { 
+  SelectedJet::CalResult scale_factor = in->scale_factor(tagger); 
+  SelectedJet::CalResult fail_factor = in->fail_factor(tagger); 
+  factor.scale_factor = scale_factor.first; 
+  factor.scale_factor_err = scale_factor.second; 
+  factor.fail_factor = fail_factor.first; 
+  factor.fail_factor_err = fail_factor.second; 
 }
 
 //_________________________________________________________________
@@ -58,7 +71,7 @@ void copy_jet_info(const SelectedJet* in, OutTree::Jet& jet)
  
 
 void copy_leading_jet_info(const std::vector<SelectedJet*>& signal_jets, 
-			   OutTree& out_tree)
+			   outtree::OutTree& out_tree)
 {
   if (signal_jets.size() >= 1) { 
     copy_jet_info(signal_jets.at(0), out_tree.isr_jet); 
@@ -88,7 +101,7 @@ unsigned jet_cleaning_bit(const std::vector<SelectedJet*>& preselection_jets)
   return pass_bits; 
 }
 
-void fill_event_truth(OutTree& out_tree, const SusyBuffer& buffer, 
+void fill_event_truth(outtree::OutTree& out_tree, const SusyBuffer& buffer, 
 		      unsigned flags) { 
   out_tree.hfor_type = buffer.hfor_type; 
   if (flags & cutflag::spartid) { 
@@ -104,7 +117,7 @@ void fill_event_truth(OutTree& out_tree, const SusyBuffer& buffer,
   }
 }
 
-void fill_cjet_truth(OutTree& out_tree, 
+void fill_cjet_truth(outtree::OutTree& out_tree, 
 		     const std::vector<SelectedJet*>& jets)
 {
   int leading_pos = -1; 
@@ -217,6 +230,13 @@ void set_bit(std::vector<SelectedJet*>& jets, unsigned bit) {
   }
 }
 
+void calibrate_jets(std::vector<SelectedJet*> jets, 
+		    const BtagCalibration* cal) { 
+  typedef std::vector<SelectedJet*> Jets; 
+  for (Jets::iterator jitr = jets.begin(); jitr != jets.end(); jitr++) { 
+    (*jitr)->set_scale_factors(cal); 
+  }
+}
 
 //____________________________________________________________________
 // io functions 

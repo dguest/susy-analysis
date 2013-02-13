@@ -35,10 +35,10 @@ BtagCalibration::scale_factor(double pt, double eta,
   return get_cdi(tagger)->getScaleFactor(vars, label, op, unct);
 }
 BtagCalibration::CalResult 
-BtagCalibration::ineff_scale_factor(double pt, double eta, 
-				    btag::Flavor flavor, 
-				    btag::Tagger tagger, 
-				    btag::Uncertainty uncert) const { 
+BtagCalibration::fail_factor(double pt, double eta, 
+			     btag::Flavor flavor, 
+			     btag::Tagger tagger, 
+			     btag::Uncertainty uncert) const { 
   CalVars vars = get_vars(pt, eta); 
   std::string op = get_op(tagger); 
   std::string label = get_label(flavor); 

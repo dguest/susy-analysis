@@ -8,31 +8,39 @@ class SelectedJet;
 class TFile; 
 class TVector2; 
 class RunInfo; 
-class OutTree; 
+namespace outtree { 
+  class OutTree; 
+  class Jet; 
+  class ScaleFactor; 
+}; 
+class BtagCalibration; 
 
 #include "TLorentzVector.h"
-#include "TChain.h"
+// #include "TChain.h"
 #include <vector> 
 #include <string> 
 #include <map>
 #include <set>
 #include <cassert>
-
+#include "btag_defs.hh"
 // fix this somehow
-#include "OutTree.hh"
+// #include "OutTree.hh"
 
 
-void copy_jet_info(const SelectedJet* , OutTree::Jet&); 
 
+void copy_jet_info(const SelectedJet* , outtree::Jet&); 
+void copy_scale_factor(const SelectedJet*, outtree::ScaleFactor&, 
+		       btag::Tagger); 
 
 void copy_leading_jet_info(const std::vector<SelectedJet*>& signal_jets, 
-			   OutTree& out_tree); 
+			   outtree::OutTree& out_tree); 
 
 unsigned jet_cleaning_bit(const std::vector<SelectedJet*>& preselection_jets);
 
-void fill_cjet_truth(OutTree& out_tree, 
+void fill_cjet_truth(outtree::OutTree& out_tree, 
 		     const std::vector<SelectedJet*>& jets); 
-void fill_event_truth(OutTree& out_tree, const SusyBuffer& buffer, 
+
+void fill_event_truth(outtree::OutTree& out_tree, const SusyBuffer& buffer, 
 		      unsigned branches); 
 
 float get_min_jetmet_dphi(const std::vector<SelectedJet*>&, 
@@ -64,6 +72,8 @@ TVector2 get_met(const SusyBuffer& buffer,
 bool has_lower_pt(const TLorentzVector*, const TLorentzVector*); 
 
 void set_bit(std::vector<SelectedJet*>& jets, unsigned bit); 
+
+void calibrate_jets(std::vector<SelectedJet*> jets, const BtagCalibration*); 
 
 // --- io things ----
 

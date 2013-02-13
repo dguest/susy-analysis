@@ -44,7 +44,7 @@ public:
   CalResult scale_factor(btag::Tagger) const; 
   CalResult fail_factor(btag::Tagger) const; 
 private: 
-  void set_scale_factors(btag::Flavor, btag::Tagger); 
+  void set_scale_factors(btag::Flavor, btag::Tagger, const BtagCalibration*); 
   double m_cnn_b; 
   double m_cnn_c; 
   double m_cnn_u; 

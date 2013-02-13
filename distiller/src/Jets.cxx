@@ -109,10 +109,12 @@ void SelectedJet::set_scale_factors(const BtagCalibration* cal){
 		       m_flavor_truth_label).str(); 
     throw std::runtime_error(err); 
   }
-  
+  set_scale_factors(flavor, btag::CNN_MEDIUM, cal); 
+  set_scale_factors(flavor, btag::CNN_LOOSE, cal); 
 }
 void SelectedJet::set_scale_factors(btag::Flavor flavor, 
-				   btag::Tagger tagger) { 
+				    btag::Tagger tagger, 
+				    const BtagCalibration* cal) { 
   if (m_scale_factor.size() <= size_t(tagger)) { 
     size_t n_missing = size_t(tagger) - m_scale_factor.size() + 1; 
     m_scale_factor.insert(m_scale_factor.end(), n_missing,
@@ -121,19 +123,25 @@ void SelectedJet::set_scale_factors(btag::Flavor flavor,
   if (m_fail_factor.size() <= size_t(tagger)) { 
     size_t n_missing = size_t(tagger) - m_fail_factor.size() + 1; 
     m_fail_factor.insert(m_fail_factor.end(), n_missing, 
-				std::make_pair(0,0) ); 
+			 std::make_pair(0,0) ); 
   }
-  
-  
+  m_scale_factor.at(tagger) = cal->scale_factor(Pt(), Eta(), flavor, tagger); 
+  m_fail_factor.at(tagger) = cal->fail_factor(Pt(), Eta(), flavor, tagger); 
 }
 std::pair<double, double> SelectedJet::scale_factor(btag::Tagger t) 
   const 
 {
+  if (m_scale_factor.size() <= size_t(t)) { 
+    throw std::range_error("tried to access undefined scale factor"); 
+  }
   return m_scale_factor.at(t); 
 }
 std::pair<double, double> SelectedJet::fail_factor(btag::Tagger t) 
   const 
 {
+  if (m_fail_factor.size() <= size_t(t)) { 
+    throw std::range_error("tried to access undefined fail factor"); 
+  }
   return m_fail_factor.at(t); 
 }
 

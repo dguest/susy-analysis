@@ -11,7 +11,9 @@ class CollectionTreeReport;
 class SusyBuffer; 
 class SUSYObjDef; 
 class EventPreselector; 
-class OutTree; 
+namespace outtree { 
+  class OutTree; 
+}
 class BitmapCutflow; 
 class SelectedJet; 
 class BtagCalibration; 
@@ -54,7 +56,7 @@ private:
   SusyBuffer* m_susy_buffer; 
   SUSYObjDef* m_def; 
   EventPreselector* m_event_preselector; 
-  OutTree* m_out_tree; 
+  outtree::OutTree* m_out_tree; 
   BitmapCutflow* m_cutflow; 
   BtagCalibration* m_btag_calibration; 
 }; 

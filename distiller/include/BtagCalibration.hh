@@ -24,10 +24,10 @@ public:
 			 btag::Flavor flavor, 
 			 btag::Tagger tagger, 
 			 btag::Uncertainty = btag::Total) const;
-  CalResult ineff_scale_factor(double pt, double eta, 
-			       btag::Flavor flavor,
-			       btag::Tagger tagger, 
-			       btag::Uncertainty = btag::Total) const;
+  CalResult fail_factor(double pt, double eta, 
+			btag::Flavor flavor,
+			btag::Tagger tagger, 
+			btag::Uncertainty = btag::Total) const;
 private: 
   typedef Analysis::CalibrationDataInterfaceROOT CDI; 
   typedef Analysis::CalibrationDataVariables CalVars; 
