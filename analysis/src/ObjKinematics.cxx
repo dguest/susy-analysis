@@ -81,17 +81,17 @@ void Jet1DHists::write_truth_info(H5::CommonFG& truth){
   m_truth_label->write_to(label); 
 }
 
-void Jet1DHists::fill(const Jet& jet, const unsigned mask) { 
-  m_pt->fill(jet.Pt(), mask); 
-  m_eta->fill(jet.Eta(), mask); 
-  m_cnnLogCu->fill(log(jet.pc() / jet.pu()), mask); 
-  m_cnnLogCb->fill(log(jet.pc() / jet.pb()), mask); 
-  m_cnnLogBu->fill(log(jet.pb() / jet.pu()), mask); 
-  m_met_dphi->fill(jet.met_dphi(), mask); 
+void Jet1DHists::fill(const Jet& jet, const unsigned mask, double w) { 
+  m_pt->fill(jet.Pt(), mask, w); 
+  m_eta->fill(jet.Eta(), mask, w); 
+  m_cnnLogCu->fill(log(jet.pc() / jet.pu()), mask, w); 
+  m_cnnLogCb->fill(log(jet.pc() / jet.pb()), mask, w); 
+  m_cnnLogBu->fill(log(jet.pb() / jet.pu()), mask, w); 
+  m_met_dphi->fill(jet.met_dphi(), mask, w); 
 
   if (m_truth_label) { 
     int label = jet.flavor_truth_label(); 
-    m_truth_label->fill(label, mask); 
+    m_truth_label->fill(label, mask, w); 
   }
 
 }
