@@ -46,6 +46,7 @@ public:
   int subleading_cjet_pos() const; 
   hfor::JetType hfor_type() const; 
   double htx() const; 
+  double event_weight() const; 
 private: 
   void set_buffer(std::string base_name); 
   TTree* m_tree; 
@@ -63,6 +64,7 @@ private:
   int m_subleading_cjet_pos; 
 
   double m_htx; 
+  double m_mc_event_weight; 
   
   unsigned m_flags; 
 }; 

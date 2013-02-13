@@ -42,6 +42,8 @@ JetFactory::JetFactory(std::string root_file, int n_jets) :
 				     &m_leading_cjet_pos); 
     errors += m_tree->SetBranchAddress("subleading_cjet_pos", 
 				       &m_subleading_cjet_pos); 
+    errors += m_tree->SetBranchAddress("mc_event_weight", 
+				       &m_mc_event_weight); 
   }
   else { 
     m_flags |= ioflag::no_truth; 
@@ -110,7 +112,15 @@ int JetFactory::n_susy()   const  { return m_n_susy; }
 int JetFactory::leading_cjet_pos() const {return m_leading_cjet_pos;}
 int JetFactory::subleading_cjet_pos() const {return m_subleading_cjet_pos;}
 double JetFactory::htx() const {return m_htx;}
-
+double JetFactory::event_weight() const 
+{
+  if (m_flags & ioflag::no_truth) { 
+    return 1.0; 
+  }
+  else { 
+    return m_mc_event_weight; 
+  }
+}
 
 hfor::JetType JetFactory::hfor_type() const { 
   if (m_flags & ioflag::no_truth) { 
