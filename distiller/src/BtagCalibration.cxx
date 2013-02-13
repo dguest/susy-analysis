@@ -6,12 +6,18 @@
 Analysis::Uncertainty get_unct(btag::Uncertainty); 
 
 BtagCalibration::BtagCalibration(std::string clb_file, 
-				 std::string file_path)
+				 std::string file_path): 
+  m_jet_author("AntiKt4TopoLCJVF")
 {
   using namespace btag; 
   m_cnn = new CDI("JetFitterCOMBCharm", clb_file, file_path); 
-  m_ops[CNN_LOOSE] = "-1.0_0.0"; 
-  m_ops[CNN_MEDIUM] = "-1.0_-0.82"; 
+  m_ops[CNN_LOOSE] = "-1_0_0_0"; 
+  m_ops[CNN_MEDIUM] = "-1_0_-0_82"; 
+  if (! m_cnn->getBinnedScaleFactors(m_jet_author, 
+				     get_label(btag::B), 
+				     m_ops[CNN_MEDIUM])) { 
+    throw std::runtime_error("btag calibration information not found"); 
+  }
   // m_ops[CNN_TIGHT] = "XXX"; 
   m_interfaces[CNN_LOOSE] = m_cnn; 
   m_interfaces[CNN_MEDIUM] = m_cnn; 
@@ -69,7 +75,7 @@ Analysis::CalibrationDataVariables BtagCalibration::get_vars(double pt,
 							     double eta) 
   const { 
   CalVars vars; 
-  vars.jetAuthor = "AntiKt4TopoLCJVF"; 
+  vars.jetAuthor = m_jet_author; 
   vars.jetPt = pt; 
   vars.jetEta = eta; 
   return vars; 

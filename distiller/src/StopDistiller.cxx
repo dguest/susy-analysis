@@ -158,6 +158,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   std::reverse(all_jets.begin(), all_jets.end()); 
 
   if (all_jets.size()) { 
+    all_jets.at(0)->set_scale_factors(m_btag_calibration); 
     copy_jet_info(all_jets.at(0), m_out_tree->leading_jet_uncensored); 
   }
     

@@ -40,6 +40,7 @@ private:
   CDI* m_cnn; 
   Interfaces m_interfaces; 
   Names m_ops; 
+  std::string m_jet_author; 
 }; 
 
 #endif 
