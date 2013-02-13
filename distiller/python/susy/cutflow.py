@@ -8,7 +8,8 @@ class CorruptedCutflow(list):
         self.files_used = files_used
 
 
-def cutflow(input_files, run_number, flags, grl='', output_ntuple=''): 
+def cutflow(input_files, run_number, flags, grl='', output_ntuple='', 
+            btag_cal_file='', btag_cal_dir=''): 
     """
     Returns a list of pairs: (cut_name, n_passing). If output_ntuple is 
     given will also write an ntuple. 
@@ -42,8 +43,8 @@ def cutflow(input_files, run_number, flags, grl='', output_ntuple=''):
         'run_number':run_number, 
         'grl': grl, 
         'trigger': 'EF_xe80_tclcw_tight', 
-        'btag_cal_dir':'', 
-        'btag_cal_file':'', 
+        'btag_cal_dir':btag_cal_dir, 
+        'btag_cal_file':btag_cal_file, 
         }
 
     try: 

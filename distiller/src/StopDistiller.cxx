@@ -345,7 +345,7 @@ void StopDistiller::setup_susytools() {
     m_def->SetJetCalib(false); 
   }
   m_event_preselector = new EventPreselector(m_flags, m_info.grl); 
-  if (m_info.btag_cal_dir.size() && m_info.btag_cal_file.size()) { 
+  if (m_info.btag_cal_file.size()) { 
     m_btag_calibration = new BtagCalibration(m_info.btag_cal_file, 
 					     m_info.btag_cal_dir); 
   }

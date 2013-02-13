@@ -9,13 +9,13 @@ BtagCalibration::BtagCalibration(std::string clb_file,
 				 std::string file_path)
 {
   using namespace btag; 
-  m_cnn = new CDI("XXX", clb_file, file_path); 
-  m_ops[CNN_LOOSE] = "XXX"; 
-  m_ops[CNN_MEDIUM] = "XXX"; 
-  m_ops[CNN_TIGHT] = "XXX"; 
+  m_cnn = new CDI("JetFitterCOMBCharm", clb_file, file_path); 
+  m_ops[CNN_LOOSE] = "-1.0_0.0"; 
+  m_ops[CNN_MEDIUM] = "-1.0_-0.82"; 
+  // m_ops[CNN_TIGHT] = "XXX"; 
   m_interfaces[CNN_LOOSE] = m_cnn; 
   m_interfaces[CNN_MEDIUM] = m_cnn; 
-  m_interfaces[CNN_TIGHT] = m_cnn; 
+  // m_interfaces[CNN_TIGHT] = m_cnn; 
 }
 
 BtagCalibration::~BtagCalibration() { 
@@ -69,7 +69,7 @@ Analysis::CalibrationDataVariables BtagCalibration::get_vars(double pt,
 							     double eta) 
   const { 
   CalVars vars; 
-  vars.jetAuthor = "AntiKt4TopoLC"; 
+  vars.jetAuthor = "AntiKt4TopoLCJVF"; 
   vars.jetPt = pt; 
   vars.jetEta = eta; 
   return vars; 
