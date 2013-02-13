@@ -27,14 +27,13 @@ class Dataset(object):
 
         self.d3pds = []
         self.skim_path = ''
-        self.hist_path = ''
 
         self.physics_type = ''
         self.meta_sources = set()
         self.full_name = ''
-        # self.full_unchecked_name = '' # FIXME: remove this
 
         self.bugs = set()
+
 
     @property
     def effective_luminosity_fb(self): 
@@ -66,14 +65,14 @@ class Dataset(object):
             out += stringify(attrib)
         return out
     def _yml_iter(self): 
-        ordered = ['id']
-        for key in ordered: 
-            yield key, self.__dict__[key]
+        build_from_full_name = set(['id', 'origin', 'tags', 'name'])
+        has_full_name = 'full_name' in self.__dict__
+
         for key, value in self.__dict__.iteritems(): 
             skip_conditions = [ 
                 not value and value is not False, 
-                key in ordered, 
-                key is 'full_unchecked_name', 
+                key == 'full_unchecked_name', 
+                has_full_name and key in build_from_full_name, 
                 ]
             if any(skip_conditions): 
                 continue
@@ -88,6 +87,12 @@ class Dataset(object):
         for key, value in yml_dict.items(): 
             if hasattr(self,key) and isinstance(getattr(self, key), set): 
                 value = set(value)
+            elif key == 'full_name': 
+                spl = value.split('.')
+                self.origin = spl[0]
+                self.id = int(spl[1])
+                self.name = spl[2]
+                self.tags = spl[-1]
             setattr(self, key, value)
 
     @property
