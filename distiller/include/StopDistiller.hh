@@ -51,6 +51,7 @@ private:
   int m_one_percent; 
   std::ofstream* m_norm_dbg_file; 
   std::ofstream* m_null_file; 
+  std::streambuf* m_debug_buffer; 
   SmartChain* m_chain; 
   CollectionTreeReport* m_ct_report; 
   SusyBuffer* m_susy_buffer; 

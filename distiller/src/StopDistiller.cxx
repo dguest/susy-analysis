@@ -88,11 +88,7 @@ StopDistiller::Cutflow StopDistiller::run_cutflow() {
   m_one_percent = m_n_entries / 100; 
 
   // first setup my debug stream
-  std::filebuf* debug_buffer = m_null_file->rdbuf(); 
-  if (m_norm_dbg_file) { 
-    debug_buffer = m_norm_dbg_file->rdbuf(); 
-  }
-  std::ostream debug_stream(debug_buffer); 
+  std::ostream debug_stream(m_debug_buffer); 
 
   // redirect the stdout stuff 
   int output_dup = dup(fileno(stdout)); 
@@ -287,6 +283,12 @@ void StopDistiller::setup_flags() {
 void StopDistiller::setup_streams() { 
   if (m_flags & cutflag::debug_cutflow) { 
     m_norm_dbg_file = new std::ofstream("distiller-dbg.txt"); 
+  }
+  if (m_norm_dbg_file) { 
+    m_debug_buffer = m_norm_dbg_file->rdbuf(); 
+  }
+  else { 
+    m_debug_buffer = m_null_file->rdbuf(); 
   }
 }
 
