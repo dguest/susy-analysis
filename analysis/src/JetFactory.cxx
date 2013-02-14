@@ -254,6 +254,10 @@ double Jet::get_scalefactor(syst::Systematic systematic)
   if (!m_btag_scaler) { 
     throw std::logic_error("asked for scale factor in uncalibrated jet"); 
   }
+  if (!m_event_flags) { 
+    throw std::logic_error("tried to get scalefactor with no event flags"
+			   " assuming this is an error"); 
+  }
   return m_btag_scaler->get_scalefactor(m_event_flags, m_truth_label, 
 					systematic); 
 }
