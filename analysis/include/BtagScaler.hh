@@ -6,7 +6,7 @@
 
 class TTree; 
 
-namespace btag 
+namespace syst
 { 
   enum Systematic { NONE, BUP, BDOWN, CUP, CDOWN, UUP, UDOWN, TUP, TDOWN}; 
 }; 
@@ -22,7 +22,7 @@ public:
   BtagScaler(TTree*, std::string prefix, 
 	     unsigned required, unsigned veto = 0); 
   double get_scalefactor(unsigned evt_mask, int flavor, 
-			 btag::Systematic = btag::NONE); 
+			 syst::Systematic = syst::NONE); 
 private: 
   void safeset(TTree*, std::string branch, void* address); 
   unsigned m_required; 

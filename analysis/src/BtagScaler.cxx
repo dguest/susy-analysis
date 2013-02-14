@@ -15,9 +15,9 @@ BtagScaler::BtagScaler(TTree* tree, std::string prefix, unsigned required,
 }
 
 double BtagScaler::get_scalefactor(unsigned evt_mask, int flavor, 
-				   btag::Systematic syst)
+				   syst::Systematic syst)
 {
-  using namespace btag; 
+  using namespace syst; 
   bool pass = (evt_mask & m_required) && !(evt_mask | m_veto); 
   double base = pass ? m_scale_factor: m_fail_factor; 
   double err_up = pass ? m_scale_factor_err: -m_fail_factor_err;
