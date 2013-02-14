@@ -41,7 +41,6 @@ public:
 		unsigned required, unsigned veto = 0); 
   int entries() const; 
   void entry(int); 
-  Jet jet(int) const; 
   std::vector<Jet> jets() const; 
   TVector2 met() const; 
   unsigned bits() const; 
@@ -54,6 +53,7 @@ public:
   double htx() const; 
   double event_weight() const; 
 private: 
+  Jet jet(int) const; 		// not fully supported
   void set_buffer(std::string base_name); 
   TTree* m_tree; 
   TFile* m_file; 
@@ -80,14 +80,14 @@ class Jet: public TLorentzVector
 public: 
   Jet(JetBuffer* basis, unsigned flags = 0); 
   void set_event_met(const TVector2& met); 
+  void set_event_flags(unsigned); 
   double met_dphi() const; 
   double pb() const; 
   double pc() const; 
   double pu() const; 
   int flavor_truth_label() const; 
   bool has_flavor() const; 
-  double get_scalefactor(unsigned event_flags, 
-			 syst::Systematic = syst::NONE) const; 
+  double get_scalefactor(syst::Systematic = syst::NONE) const; 
 private: 
   void req_flavor() const; 	// throws rumtime_error if no flavor
   double m_pb; 
@@ -97,6 +97,7 @@ private:
   double m_met_dphi; 
 
   unsigned m_flags; 
+  unsigned m_event_flags; 
   BtagScaler* m_btag_scaler; 
 }; 
 

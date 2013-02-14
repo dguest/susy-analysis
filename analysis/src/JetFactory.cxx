@@ -120,7 +120,9 @@ std::vector<Jet> JetFactory::jets() const {
       return jets_out; 
     }
     jets_out.push_back(Jet(*itr,m_flags)); 
-    jets_out.rbegin()->set_event_met(met()); 
+    Jet& jet = *jets_out.rbegin(); 
+    jet.set_event_met(met()); 
+    jet.set_event_flags(m_bits); 
   }
   return jets_out; 
 }
@@ -218,6 +220,7 @@ Jet::Jet(JetBuffer* basis, unsigned flags):
   m_truth_label(basis->flavor_truth_label), 
   m_met_dphi(0), 
   m_flags(flags), 
+  m_event_flags(0), 
   m_btag_scaler(basis->btag_scaler)
 {
   SetPtEtaPhiM(basis->pt, basis->eta, basis->phi, 0); 
@@ -226,6 +229,9 @@ void Jet::set_event_met(const TVector2& met) {
   TLorentzVector met_4vec(met.X(), met.Y(), 0, 1); 
   m_met_dphi = met_4vec.DeltaPhi(*this); 
 }
+void Jet::set_event_flags(unsigned evt_flags) { 
+  m_event_flags = evt_flags; 
+} 
 double Jet::met_dphi() const {return m_met_dphi; }
 double Jet::pb() const {req_flavor(); return m_pb; } 
 double Jet::pc() const {req_flavor(); return m_pc; } 
@@ -242,13 +248,13 @@ bool Jet::has_flavor() const {
   return !no_flavor; 
 }
 
-double Jet::get_scalefactor(unsigned evt_flags, syst::Systematic systematic) 
+double Jet::get_scalefactor(syst::Systematic systematic) 
   const 
 { 
   if (!m_btag_scaler) { 
     throw std::logic_error("asked for scale factor in uncalibrated jet"); 
   }
-  return m_btag_scaler->get_scalefactor(evt_flags, flavor_truth_label(), 
+  return m_btag_scaler->get_scalefactor(m_event_flags, m_truth_label, 
 					systematic); 
 }
 
