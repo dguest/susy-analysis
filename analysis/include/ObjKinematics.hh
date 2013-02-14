@@ -19,7 +19,7 @@ public:
 		unsigned antimask = 0); 
   void write_to(H5::CommonFG&, std::string stub = "", 
 		std::string postfix = "_cut_"); 
-  void fill(const Jet&, unsigned = 0); 
+  void fill(const Jet&, unsigned = 0, double weight = 1.0); 
 private: 
   MaskedHistArray* m_pt; 
   MaskedHistArray* m_eta; 
