@@ -9,6 +9,7 @@
 #include "CutAugmenter.hh"
 #include "common_functions.hh"
 #include "H5Cpp.h"
+#include "BtagScaler.hh"
 
 #include <string> 
 #include <stdexcept>

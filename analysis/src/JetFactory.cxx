@@ -1,4 +1,5 @@
 #include "JetFactory.hh"
+#include "BtagScaler.hh"
 
 #include <string> 
 #include <vector> 
@@ -9,6 +10,11 @@
 #include "TVector2.h"
 #include "TFile.h"
 #include "TTree.h"
+
+JetBuffer::JetBuffer() : 
+  btag_scaler(0)
+{ 
+}
 
 JetFactory::JetFactory(std::string root_file, int n_jets) : 
   m_hfor_type(-1), 
@@ -65,10 +71,29 @@ JetFactory::~JetFactory()
   for (std::vector<JetBuffer*>::iterator itr = m_jet_buffers.begin(); 
        itr != m_jet_buffers.end(); 
        itr++) { 
+    if ( (*itr)->btag_scaler) { 
+      delete (*itr)->btag_scaler; 
+    }
     delete *itr; 
     *itr = 0; 
   }
   delete m_file; 
+}
+
+void JetFactory::set_btag(size_t jet_n, std::string tagger, 
+			  unsigned required, unsigned veto) { 
+  if (m_jet_buffers.size() < jet_n) { 
+    throw std::out_of_range("asked for out of range jet in " __FILE__); 
+  }
+  std::string full_branch_name = (boost::format("jet%i_") % jet_n).str(); 
+  full_branch_name.append(tagger + "_"); 
+  JetBuffer* buffer = m_jet_buffers.at(jet_n); 
+  if (buffer->btag_scaler) { 
+    delete buffer->btag_scaler; 
+    buffer->btag_scaler = 0; 
+  }
+  buffer->btag_scaler = new BtagScaler(m_tree, full_branch_name, 
+				       required, veto); 
 }
 
 int JetFactory::entries() const { 
@@ -144,8 +169,9 @@ void JetFactory::set_buffer(std::string base_name)
 {
   using namespace std; 
   int errors = 0; 
-  JetBuffer* b = new JetBuffer; 
-  m_jet_buffers.push_back(b); 
+  m_jet_buffers.push_back(new JetBuffer); 
+  JetBuffer* b = *m_jet_buffers.rbegin(); 
+  b->btag_scaler = 0; 
   string pt = base_name + "pt"; 
   string eta = base_name + "eta"; 
   string phi = base_name + "phi"; 
@@ -184,11 +210,6 @@ void JetFactory::set_buffer(std::string base_name)
 
 }
 
-void TaggingOP::set_addresses(TTree* tree, std::string prefix) { 
-  int errors = 0; 
-  // ****************** work do here ******************
-
-}
 
 Jet::Jet(JetBuffer* basis, unsigned flags): 
   m_pb(basis->cnn_b), 
@@ -196,7 +217,8 @@ Jet::Jet(JetBuffer* basis, unsigned flags):
   m_pu(basis->cnn_u), 
   m_truth_label(basis->flavor_truth_label), 
   m_met_dphi(0), 
-  m_flags(flags)
+  m_flags(flags), 
+  m_btag_scaler(basis->btag_scaler)
 {
   SetPtEtaPhiM(basis->pt, basis->eta, basis->phi, 0); 
 }
@@ -218,6 +240,16 @@ int    Jet::flavor_truth_label() const {
 bool Jet::has_flavor() const { 
   bool no_flavor = (m_flags & ioflag::no_flavor); 
   return !no_flavor; 
+}
+
+double Jet::get_scalefactor(unsigned evt_flags, syst::Systematic systematic) 
+  const 
+{ 
+  if (!m_btag_scaler) { 
+    throw std::logic_error("asked for scale factor in uncalibrated jet"); 
+  }
+  return m_btag_scaler->get_scalefactor(evt_flags, flavor_truth_label(), 
+					systematic); 
 }
 
 void Jet::req_flavor() const 

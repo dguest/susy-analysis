@@ -5,25 +5,18 @@
 #include <vector> 
 #include "TLorentzVector.h"
 #include "HforTypeDef.hh"
+#include "systematic_defs.hh"
 
 class Jet; 
 class TTree;
 class TFile; 
 class TVector2;
+class BtagScaler; 
 
 namespace ioflag {
   const unsigned no_flavor = 1u << 0; 
   const unsigned no_truth  = 1u << 1; 
 }
-
-struct TaggingOP 
-{
-  double scale_factor; 
-  double fail_factor; 
-  double scale_factor_err; 
-  double fail_factor_err; 
-  void set_addresses(TTree*, std::string prefix);
-}; 
 
 struct JetBuffer
 { 
@@ -35,8 +28,8 @@ struct JetBuffer
   double cnn_c; 
   double cnn_u; 
   int flavor_truth_label; 
-  TaggingOP cnn_medium; 
-  TaggingOP cnn_loose; 
+  BtagScaler* btag_scaler; 
+  JetBuffer(); 
 };
 
 class JetFactory
@@ -44,6 +37,8 @@ class JetFactory
 public: 
   JetFactory(std::string root_file, int n_jets = 3); 
   ~JetFactory(); 
+  void set_btag(size_t jet_n, std::string tagger, 
+		unsigned required, unsigned veto = 0); 
   int entries() const; 
   void entry(int); 
   Jet jet(int) const; 
@@ -91,6 +86,8 @@ public:
   double pu() const; 
   int flavor_truth_label() const; 
   bool has_flavor() const; 
+  double get_scalefactor(unsigned event_flags, 
+			 syst::Systematic = syst::NONE) const; 
 private: 
   void req_flavor() const; 	// throws rumtime_error if no flavor
   double m_pb; 
@@ -100,6 +97,7 @@ private:
   double m_met_dphi; 
 
   unsigned m_flags; 
+  BtagScaler* m_btag_scaler; 
 }; 
 
 #endif // JET_FACTORY_H
