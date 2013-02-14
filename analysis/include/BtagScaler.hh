@@ -3,13 +3,10 @@
 
 #include <string> 
 #include <boost/noncopyable.hpp>
+#include "systematic_defs.hh"
 
 class TTree; 
 
-namespace syst
-{ 
-  enum Systematic { NONE, BUP, BDOWN, CUP, CDOWN, UUP, UDOWN, TUP, TDOWN}; 
-}; 
 
 // Class is set on a tree with a mask and antimask to determine whether 
 // a given btagger was passed. 
