@@ -53,8 +53,8 @@ def _run_distill(ds):
             ds.bugs.add('bad files')
         else: 
             raise
-    except StandardError as er: 
-        print er
+    except KeyError as er: 
+        print 'KeyError in distillation: {}'.format(er)
         raise
 
     print '{} done'.format(ds.id)
