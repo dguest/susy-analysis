@@ -43,23 +43,23 @@ void TruthJetHists::write_to(H5::CommonFG& file) {
   m_other->write_to(other); 
 }
 
-void TruthJetHists::fill(const Jet& jet, unsigned mask) { 
+void TruthJetHists::fill(const Jet& jet, unsigned mask, double w) { 
   int label = jet.flavor_truth_label(); 
   switch (label) { 
   case BOTTOM: 
-    m_bottom->fill(jet, mask); 
+    m_bottom->fill(jet, mask, w); 
     return; 
   case CHARM: 
-    m_charm->fill(jet, mask); 
+    m_charm->fill(jet, mask, w); 
     return; 
   case LIGHT: 
-    m_light->fill(jet, mask); 
+    m_light->fill(jet, mask, w); 
     return; 
   case TAU:
-    m_tau->fill(jet, mask); 
+    m_tau->fill(jet, mask, w); 
     return; 
   default: 
-    m_other->fill(jet, mask); 
+    m_other->fill(jet, mask, w); 
     return; 
   }
 }

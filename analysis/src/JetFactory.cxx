@@ -1,4 +1,5 @@
 #include "JetFactory.hh"
+#include "BtagScaler.hh"
 
 #include <string> 
 #include <vector> 
@@ -9,6 +10,11 @@
 #include "TVector2.h"
 #include "TFile.h"
 #include "TTree.h"
+
+JetBuffer::JetBuffer() : 
+  btag_scaler(0)
+{ 
+}
 
 JetFactory::JetFactory(std::string root_file, int n_jets) : 
   m_hfor_type(-1), 
@@ -42,6 +48,8 @@ JetFactory::JetFactory(std::string root_file, int n_jets) :
 				     &m_leading_cjet_pos); 
     errors += m_tree->SetBranchAddress("subleading_cjet_pos", 
 				       &m_subleading_cjet_pos); 
+    errors += m_tree->SetBranchAddress("mc_event_weight", 
+				       &m_mc_event_weight); 
   }
   else { 
     m_flags |= ioflag::no_truth; 
@@ -63,10 +71,29 @@ JetFactory::~JetFactory()
   for (std::vector<JetBuffer*>::iterator itr = m_jet_buffers.begin(); 
        itr != m_jet_buffers.end(); 
        itr++) { 
+    if ( (*itr)->btag_scaler) { 
+      delete (*itr)->btag_scaler; 
+    }
     delete *itr; 
     *itr = 0; 
   }
   delete m_file; 
+}
+
+void JetFactory::set_btag(size_t jet_n, std::string tagger, 
+			  unsigned required, unsigned veto) { 
+  if (m_jet_buffers.size() < jet_n) { 
+    throw std::out_of_range("asked for out of range jet in " __FILE__); 
+  }
+  std::string full_branch_name = (boost::format("jet%i_") % jet_n).str(); 
+  full_branch_name.append(tagger + "_"); 
+  JetBuffer* buffer = m_jet_buffers.at(jet_n); 
+  if (buffer->btag_scaler) { 
+    delete buffer->btag_scaler; 
+    buffer->btag_scaler = 0; 
+  }
+  buffer->btag_scaler = new BtagScaler(m_tree, full_branch_name, 
+				       required, veto); 
 }
 
 int JetFactory::entries() const { 
@@ -93,7 +120,9 @@ std::vector<Jet> JetFactory::jets() const {
       return jets_out; 
     }
     jets_out.push_back(Jet(*itr,m_flags)); 
-    jets_out.rbegin()->set_event_met(met()); 
+    Jet& jet = *jets_out.rbegin(); 
+    jet.set_event_met(met()); 
+    jet.set_event_flags(m_bits); 
   }
   return jets_out; 
 }
@@ -110,7 +139,15 @@ int JetFactory::n_susy()   const  { return m_n_susy; }
 int JetFactory::leading_cjet_pos() const {return m_leading_cjet_pos;}
 int JetFactory::subleading_cjet_pos() const {return m_subleading_cjet_pos;}
 double JetFactory::htx() const {return m_htx;}
-
+double JetFactory::event_weight() const 
+{
+  if (m_flags & ioflag::no_truth) { 
+    return 1.0; 
+  }
+  else { 
+    return m_mc_event_weight; 
+  }
+}
 
 hfor::JetType JetFactory::hfor_type() const { 
   if (m_flags & ioflag::no_truth) { 
@@ -134,8 +171,9 @@ void JetFactory::set_buffer(std::string base_name)
 {
   using namespace std; 
   int errors = 0; 
-  JetBuffer* b = new JetBuffer; 
-  m_jet_buffers.push_back(b); 
+  m_jet_buffers.push_back(new JetBuffer); 
+  JetBuffer* b = *m_jet_buffers.rbegin(); 
+  b->btag_scaler = 0; 
   string pt = base_name + "pt"; 
   string eta = base_name + "eta"; 
   string phi = base_name + "phi"; 
@@ -174,13 +212,16 @@ void JetFactory::set_buffer(std::string base_name)
 
 }
 
+
 Jet::Jet(JetBuffer* basis, unsigned flags): 
   m_pb(basis->cnn_b), 
   m_pc(basis->cnn_c), 
   m_pu(basis->cnn_u), 
   m_truth_label(basis->flavor_truth_label), 
   m_met_dphi(0), 
-  m_flags(flags)
+  m_flags(flags), 
+  m_event_flags(0), 
+  m_btag_scaler(basis->btag_scaler)
 {
   SetPtEtaPhiM(basis->pt, basis->eta, basis->phi, 0); 
 }
@@ -188,6 +229,9 @@ void Jet::set_event_met(const TVector2& met) {
   TLorentzVector met_4vec(met.X(), met.Y(), 0, 1); 
   m_met_dphi = met_4vec.DeltaPhi(*this); 
 }
+void Jet::set_event_flags(unsigned evt_flags) { 
+  m_event_flags = evt_flags; 
+} 
 double Jet::met_dphi() const {return m_met_dphi; }
 double Jet::pb() const {req_flavor(); return m_pb; } 
 double Jet::pc() const {req_flavor(); return m_pc; } 
@@ -202,6 +246,20 @@ int    Jet::flavor_truth_label() const {
 bool Jet::has_flavor() const { 
   bool no_flavor = (m_flags & ioflag::no_flavor); 
   return !no_flavor; 
+}
+
+double Jet::get_scalefactor(syst::Systematic systematic) 
+  const 
+{ 
+  if (!m_btag_scaler) { 
+    throw std::logic_error("asked for scale factor in uncalibrated jet"); 
+  }
+  if (!m_event_flags) { 
+    throw std::logic_error("tried to get scalefactor with no event flags"
+			   " assuming this is an error"); 
+  }
+  return m_btag_scaler->get_scalefactor(m_event_flags, m_truth_label, 
+					systematic); 
 }
 
 void Jet::req_flavor() const 

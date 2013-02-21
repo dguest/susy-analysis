@@ -44,9 +44,15 @@ composite_bits = [
      _bdict['j3_anti_b'] | _bdict['j3_anti_u'] ), 
     ('monojet', 
      _bdict['leading_jet'] | _bdict['met']), 
-    ('ctag', 
+    ('ctag_tight', 
      _bdict['jet2_anti_b'] | 
      _bdict['jet3_anti_b'] | _bdict['jet3_anti_u_tight']), 
+    ('ctag_medium_asym', 
+     _bdict['jet2_anti_b'] | 
+     _bdict['jet3_anti_b'] | _bdict['jet3_anti_u_medium']), 
+    ('ctag_medium_sym', 
+     _bdict['jet2_anti_b'] | _bdict['jet2_anti_u_medium'] | 
+     _bdict['jet3_anti_b'] | _bdict['jet3_anti_u_medium']), 
     ('preselection', 
      _bdict['grl'] | _bdict['trigger'] | _bdict['lar_error'] | 
      _bdict['core'] | #this was set wrong in the distiller

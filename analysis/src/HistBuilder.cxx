@@ -9,6 +9,7 @@
 #include "CutAugmenter.hh"
 #include "common_functions.hh"
 #include "H5Cpp.h"
+#include "BtagScaler.hh"
 
 #include <string> 
 #include <stdexcept>
@@ -139,27 +140,28 @@ int HistBuilder::build() {
     unsigned mask = m_factory->bits(); 
     const TVector2 met = m_factory->met(); 
     const TLorentzVector met4(met.Px(), met.Py(), 0, 0); 
+    double weight = m_factory->event_weight(); 
 
     if (m_cut_augmenter) { 
       m_cut_augmenter->set_cutmask(mask, jets, met); 
     }
 
-    m_met->fill(met.Mod(), mask); 
+    m_met->fill(met.Mod(), mask, weight); 
 
     if (jets.size() >= 1) { 
       const Jet& jet = jets.at(0); 
-      m_jet1_hists->fill(jet,mask); 
+      m_jet1_hists->fill(jet,mask, weight); 
     }
     if (jets.size() >= 2) { 
       const Jet& jet = jets.at(1); 
-      m_jet2_hists->fill(jet,mask); 
+      m_jet2_hists->fill(jet,mask, weight); 
     }
     if (jets.size() >= 3) { 
       const Jet& jet = jets.at(2); 
-      m_jet3_hists->fill(jet, mask); 
+      m_jet3_hists->fill(jet, mask, weight); 
       double mttop = get_mttop(std::vector<Jet>(jets.begin(), 
 						jets.begin() + 3), met); 
-      m_mttop->fill(mttop, mask); 
+      m_mttop->fill(mttop, mask, weight); 
     }
 
     double min_jetmet_dphi = 10; 
@@ -167,15 +169,16 @@ int HistBuilder::build() {
       min_jetmet_dphi = std::min(min_jetmet_dphi, 
 				 fabs(met4.DeltaPhi(*itr))); 
     }
-    m_min_dphi->fill(min_jetmet_dphi, mask); 
+    m_min_dphi->fill(min_jetmet_dphi, mask, weight); 
 
-    m_htx->fill(m_factory->htx(), mask); 
+    m_htx->fill(m_factory->htx(), mask, weight); 
     
-    m_n_good_jets->fill(m_factory->n_good(), mask); 
+    m_n_good_jets->fill(m_factory->n_good(), mask, weight); 
     if (m_leading_cjet_rank) { 
-      m_leading_cjet_rank->fill(m_factory->leading_cjet_pos(), mask); 
-      m_subleading_cjet_rank->fill(m_factory->subleading_cjet_pos(), mask); 
-      fill_truth_hists(jets, mask); 
+      m_leading_cjet_rank->fill(m_factory->leading_cjet_pos(), mask, weight); 
+      m_subleading_cjet_rank->fill(m_factory->subleading_cjet_pos(), 
+				   mask, weight); 
+      fill_truth_hists(jets, mask, weight); 
     }
 
   }
@@ -186,11 +189,11 @@ int HistBuilder::build() {
 }
 
 void HistBuilder::fill_truth_hists(const std::vector<Jet>& jets, 
-				   const unsigned mask) { 
+				   const unsigned mask, double weight) { 
   unsigned n_jets = jets.size(); 
-  if (n_jets >= 1) m_jet1_truth->fill(jets.at(0), mask); 
-  if (n_jets >= 2) m_jet2_truth->fill(jets.at(1), mask); 
-  if (n_jets >= 3) m_jet3_truth->fill(jets.at(2), mask); 
+  if (n_jets >= 1) m_jet1_truth->fill(jets.at(0), mask, weight); 
+  if (n_jets >= 2) m_jet2_truth->fill(jets.at(1), mask, weight); 
+  if (n_jets >= 3) m_jet3_truth->fill(jets.at(2), mask, weight); 
 }
 
 void HistBuilder::save(std::string output) { 
