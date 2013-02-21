@@ -12,6 +12,9 @@ def _run_distill(ds):
     grl = ''
     if hasattr(ds,'grl'): 
         grl = ds.grl
+    btag_env = ''
+    if hasattr(ds, 'btag_env'): 
+        btag_env = ds.btag_env
     try: 
         systematic = ds.need_rerun
         syst_internal = 'NONE' if systematic == 'nominal' else systematic
@@ -22,7 +25,7 @@ def _run_distill(ds):
             grl=grl, 
             systematic=syst_internal, 
             output_ntuple=ds.skim_paths[systematic], 
-            btag_cal_file=ds.btag_env, 
+            btag_cal_file=btag_env, 
             btag_cal_dir=ds.calibration_dir)
         ds.n_raw_entries = dict(cut_counts)['total_events']
         if not hasattr(ds,'cutflow') or isinstance(ds.cutflow, list): 
