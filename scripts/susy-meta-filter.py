@@ -5,7 +5,7 @@ import argparse
 from stop.meta import DatasetCache
 from os.path import isfile
 """
-Script to filter meta info. 
+Script to filter meta info. May be worth rewriting to dump to stdout. 
 """
 
 def _get_parser(): 
