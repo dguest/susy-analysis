@@ -30,14 +30,14 @@ def _run_distill(ds):
         ds.n_raw_entries = dict(cut_counts)['total_events']
         if not hasattr(ds,'cutflow') or isinstance(ds.cutflow, list): 
             ds.cutflow = {}
-        cutflow = [list(c) for c in cut_counts]
+        cut_list = [list(c) for c in cut_counts]
 
-        cut_names = [n for n,c in cutflow]
+        cut_names = [n for n,c in cut_list]
         _read_err = 'read_errors'
         if _read_err in cut_names: 
             ds.read_errors = dict(cut_counts)[_read_err]
-            del cutflow[cut_names.index(_read_err)]
-        ds.cutflow[systematic] = cutflow
+            del cut_list[cut_names.index(_read_err)]
+        ds.cutflow[systematic] = cut_list
 
         ds.need_rerun = False
         if isinstance(cut_counts, cutflow.CorruptedCutflow): 
