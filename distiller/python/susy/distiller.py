@@ -30,13 +30,14 @@ def _run_distill(ds):
         ds.n_raw_entries = dict(cut_counts)['total_events']
         if not hasattr(ds,'cutflow') or isinstance(ds.cutflow, list): 
             ds.cutflow = {}
-        ds.cutflow[systematic] = [list(c) for c in cut_counts]
+        cutflow = [list(c) for c in cut_counts]
 
-        cut_names = [n for n,c in cut_counts]
+        cut_names = [n for n,c in cutflow]
         _read_err = 'read_errors'
         if _read_err in cut_names: 
             ds.read_errors = dict(cut_counts)[_read_err]
-            del ds.cutflow[cut_names.index(_read_err)]
+            del cutflow[cut_names.index(_read_err)]
+        ds.cutflow[systematic] = cutflow
 
         ds.need_rerun = False
         if isinstance(cut_counts, cutflow.CorruptedCutflow): 
@@ -53,9 +54,6 @@ def _run_distill(ds):
             ds.bugs.add('bad files')
         else: 
             raise
-    except KeyError as er: 
-        print 'KeyError in distillation: {}'.format(er)
-        raise
 
     print '{} done'.format(ds.id)
     return ds
@@ -208,8 +206,7 @@ class Distiller(object):
             else: 
                 pool = Pool(self.ncore)
                 rerun_ds = [ds for ds in cache.values() if ds.need_rerun]
-                filled_datasets = pool.map(_run_distill, rerun_ds, 
-                                           chunksize=1)
+                filled_datasets = pool.map(_run_distill, rerun_ds)
                 for ds in filled_datasets: 
                     cache[ds.key] = ds
                     
