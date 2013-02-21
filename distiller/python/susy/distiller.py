@@ -1,7 +1,7 @@
 from stop.meta import DatasetCache
 from susy import cutflow
 import re, os, glob, sys
-from os.path import isdir, join, isfile
+from os.path import isdir, join, isfile, expanduser
 from multiprocessing import Pool
 
 def _run_distill(ds): 
@@ -82,7 +82,7 @@ class Distiller(object):
         except AttributeError: 
             self.grl = ''
         
-        self.calibration_dir = config.calibration_dir
+        self.calibration_dir = expanduser(config.calibration_dir)
         if not isdir(self.calibration_dir): 
             raise IOError("Calibration dir {} doesn't exist".format(
                     self.calibration_dir))
