@@ -100,6 +100,7 @@ def hist1_from_histn(physics, variable, cut, histn, lumi_fb):
     hist.y_label = style.event_label(lumi_fb)
     hist.color = style.type_dict[physics].color
     hist.title = style.type_dict[physics].tex
+    hist.title += r': {:.1f} Evt'.format(float(hist))
     return hist
 
 def sort_data_mc(hist1_dict): 
@@ -135,9 +136,13 @@ def print_plots(args, stack_data, stack_mc_lists):
         stack.y_min = 0.1
         stack.ax.set_yscale('log')
         stack.add_backgrounds(stack_mc_lists[id_tup])
-        stack.add_data(stack_data[id_tup])
+        save_base = join(plot_dir, stack_name)
+        if save_base.endswith('_cr'): 
+            stack.add_data(stack_data[id_tup])
+        else: 
+            print '{} is blinded, not showing data'.format(save_base)
         stack.add_legend()
-        save_name = join(plot_dir, stack_name) + args.output_ext
+        save_name = save_base + args.output_ext
         stack.save(save_name)
         stack.close()
         
