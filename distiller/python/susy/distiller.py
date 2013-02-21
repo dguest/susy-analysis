@@ -21,7 +21,9 @@ def _run_distill(ds):
             flags=ds.distill_flags, 
             grl=grl, 
             systematic=syst_internal, 
-            output_ntuple=ds.skim_paths[systematic])
+            output_ntuple=ds.skim_paths[systematic], 
+            btag_cal_file=ds.btag_cal_file, 
+            btag_cal_dir=ds.calibration_dir)
         ds.n_raw_entries = dict(cut_counts)['total_events']
         if not hasattr(ds,'cutflow') or isinstance(ds.cutflow, list): 
             ds.cutflow = {}
@@ -66,6 +68,7 @@ class Distiller(object):
         self.verbose = False
         self.force_rebuild = False
         self.warn_stream = sys.stdout
+        self.btag_env = 'BTagCalibration.env'
         if hasattr(config,'verbose') and config.verbose: 
             print 'running {} in verbose mode'.format(__name__)
             self.base_flags += 'v'
@@ -78,6 +81,11 @@ class Distiller(object):
                 raise IOError("GRL {} doesn't exist".format(self.grl))
         except AttributeError: 
             self.grl = ''
+        
+        self.calibration_dir = config.calibration_dir
+        if not isdir(self.calibration_dir): 
+            raise IOError("Calibration dir {} doesn't exist".format(
+                    self.calibration_dir))
 
         try: 
             self.ncore = config.ncore
@@ -166,16 +174,23 @@ class Distiller(object):
 
 
     def prepare_dataset_meta(self, systematic='nominal'):
+        btag_env = join(self.calibration_dir, self.btag_env)
+        if not isfile(btag_env): 
+            raise IOError("{} not found".format(btag_env))
+        
         with DatasetCache(self.meta_info_path) as cache: 
             for ds_id, ds in cache.iteritems(): 
                 skim_name = '{}.root'.format(ds.key)
                 ds.skim_paths[systematic] = join(self.out_dir, skim_name)
                 ds.distill_flags = self._get_flags(ds)
                 ds.need_rerun = self._needs_rerun(ds, systematic)
+                ds.calibration_dir = self.calibration_dir
                 if ds.origin.startswith('data'): 
                     ds.grl = self.grl
+                    ds.btag_env = ''
                 else: 
                     ds.grl = ''
+                    ds.btag_env = btag_env
 
     def distill(self): 
         with DatasetCache(self.meta_info_path) as cache: 

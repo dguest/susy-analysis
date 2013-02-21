@@ -31,7 +31,8 @@ def run():
         help='run multicore (no arg defaults to number of machine cpu)')
     parser.add_argument('--d3pd-dir', default='D3PDs',
                         help='input d3pd directory' + dp)
-    parser.add_argument('--grl', default=''); 
+    parser.add_argument('--grl', default='')
+    parser.add_argument('--calibration-dir', default='~/calibration')
     parser.add_argument(
         '--systematic', default='nominal', 
         choices={'nominal', 'JESUP', 'JESDOWN'})
