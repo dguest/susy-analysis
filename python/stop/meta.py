@@ -154,6 +154,8 @@ class DatasetCache(dict):
     def __exit__(self, exe_type, exe_val, exe_tb): 
         if exe_type is None: 
             self.write()
+        else: 
+            self.write('meta-fail-dump.yml')
 
     def write(self, cache_name=''): 
         if not cache_name: 
