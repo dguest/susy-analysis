@@ -208,7 +208,8 @@ class Distiller(object):
             else: 
                 pool = Pool(self.ncore)
                 rerun_ds = [ds for ds in cache.values() if ds.need_rerun]
-                filled_datasets = pool.map(_run_distill,rerun_ds)
+                filled_datasets = pool.map(_run_distill, rerun_ds, 
+                                           chunksize=1)
                 for ds in filled_datasets: 
                     cache[ds.key] = ds
                     
