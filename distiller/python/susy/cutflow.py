@@ -66,15 +66,6 @@ def cutflow(input_files, run_number, flags, grl='', output_ntuple='',
 
     return cut_out
 
-def _get_fixed_btag_cal_dir(btag_cal_dir): 
-    if btag_cal_dir: 
-        if not isdir(btag_cal_dir): 
-            raise IOError('btagging calibration directory'
-                          ' ({}) doesn\'t exits'.format(btag_cal_dir))
-        if not btag_cal_dir.endswith('/'): 
-            btag_cal_dir += '/'
-    return btag_cal_dir
-
 def _get_fixed_pathname(orig_path):
     if not orig_path: 
         return ''
