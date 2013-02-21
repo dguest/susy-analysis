@@ -53,6 +53,9 @@ def _run_distill(ds):
             ds.bugs.add('bad files')
         else: 
             raise
+    except StandardError as er: 
+        print er
+        raise
 
     print '{} done'.format(ds.id)
     return ds
