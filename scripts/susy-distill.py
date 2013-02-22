@@ -39,6 +39,7 @@ def run():
     parser.add_argument(
         '-o','--out-dir', 
         help='output directory (defaults to lowercase systematic)')
+    parser.add_argument('-i', action='store_true', help='save sparticle id')
     args = parser.parse_args(sys.argv[1:])
 
     if not args.out_dir: 

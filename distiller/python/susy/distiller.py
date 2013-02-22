@@ -99,6 +99,9 @@ class Distiller(object):
         if hasattr(config,'aggressive') and config.aggressive: 
             self.base_flags += 'a'
 
+        if hasattr(config,'i') and config.i: 
+            self.base_flags += 'i'
+
     def setup_work_area(self): 
         """
         This builds directories for output files. Called by init too. 
