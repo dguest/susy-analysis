@@ -272,15 +272,12 @@ TVector2 get_met(const SusyBuffer& buffer,
      buffer.el_MET_Egamma10NoTau_wpx,
      buffer.el_MET_Egamma10NoTau_wpy,
      buffer.el_MET_Egamma10NoTau_statusWord,
-     buffer.MET_Egamma10NoTau_SoftJets_etx,
-     buffer.MET_Egamma10NoTau_SoftJets_ety,
-     buffer.MET_Egamma10NoTau_SoftJets_sumet,                                
      buffer.MET_Egamma10NoTau_CellOut_etx, //CellOut
      buffer.MET_Egamma10NoTau_CellOut_ety, //CellOut
      buffer.MET_Egamma10NoTau_CellOut_sumet, //CellOut
-     buffer.MET_Egamma10NoTau_CellOut_etx, //CellOut Eflow
-     buffer.MET_Egamma10NoTau_CellOut_ety, //CellOut Eflow
-     buffer.MET_Egamma10NoTau_CellOut_sumet, //CellOut Eflow
+     buffer.MET_CellOut_Eflow_STVF_etx, 
+     buffer.MET_CellOut_Eflow_STVF_ety,
+     buffer.MET_CellOut_Eflow_STVF_sumet,		  
      buffer.MET_Egamma10NoTau_RefGamma_etx,
      buffer.MET_Egamma10NoTau_RefGamma_ety,
      buffer.MET_Egamma10NoTau_RefGamma_sumet,

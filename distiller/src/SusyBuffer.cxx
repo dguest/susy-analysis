@@ -27,6 +27,10 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, unsigned& br, BranchNames names)
 
   fChain->SetBranchAddress(jc + "_jvtxf", 
 			   &jet_jvtxf, true); 
+  fChain->SetBranchAddress("averageIntPerXing", &averageIntPerXing, true); 
+  fChain->SetBranchAddress("larError", &larError, true); 
+
+  fChain->SetBranchAddress("Eventshape_rhoKt4LC", &Eventshape_rhoKt4LC); 
 
   // MET garbage
   fChain->SetBranchAddress(jc + "_MET_Egamma10NoTau_wet", 
@@ -50,18 +54,20 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, unsigned& br, BranchNames names)
 			   true); 
 
 
-  fChain->SetBranchAddress("MET_Egamma10NoTau_SoftJets_etx"  ,
-			   &MET_Egamma10NoTau_SoftJets_etx, true);
-  fChain->SetBranchAddress("MET_Egamma10NoTau_SoftJets_ety"  ,
-			   &MET_Egamma10NoTau_SoftJets_ety, true);   
-  fChain->SetBranchAddress("MET_Egamma10NoTau_SoftJets_sumet",
-			   &MET_Egamma10NoTau_SoftJets_sumet, true);
   fChain->SetBranchAddress("MET_Egamma10NoTau_CellOut_etx"   ,
 			   &MET_Egamma10NoTau_CellOut_etx, true);  
   fChain->SetBranchAddress("MET_Egamma10NoTau_CellOut_ety"   ,
 			   &MET_Egamma10NoTau_CellOut_ety, true);    
   fChain->SetBranchAddress("MET_Egamma10NoTau_CellOut_sumet" ,
 			   &MET_Egamma10NoTau_CellOut_sumet, true);
+
+  fChain->SetBranchAddress("MET_Egamma10NoTau_CellOut_Eflow_STVF_etx",
+			   &MET_CellOut_Eflow_STVF_etx, true);  
+  fChain->SetBranchAddress("MET_Egamma10NoTau_CellOut_Eflow_STVF_ety",
+			   &MET_CellOut_Eflow_STVF_ety, true);  
+  fChain->SetBranchAddress("MET_Egamma10NoTau_CellOut_Eflow_STVF_sumet",
+			   &MET_CellOut_Eflow_STVF_sumet, true);  
+
   fChain->SetBranchAddress("MET_Egamma10NoTau_RefGamma_etx"  ,
 			   &MET_Egamma10NoTau_RefGamma_etx, true);  
   fChain->SetBranchAddress("MET_Egamma10NoTau_RefGamma_ety"  ,
@@ -73,8 +79,6 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, unsigned& br, BranchNames names)
   fChain->SetBranchAddress("MET_RefFinal_ety", &MET_RefFinal_ety, true); 
 
  
-  fChain->SetBranchAddress("averageIntPerXing", &averageIntPerXing, true); 
-  fChain->SetBranchAddress("larError", &larError, true); 
   fChain->SetBranchAddress("el_n", &el_n, true); 
   fChain->SetBranchAddress("el_author", &el_author, true); 
   fChain->SetBranchAddress("el_OQ", &el_OQ, true); 
@@ -114,33 +118,30 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, unsigned& br, BranchNames names)
   fChain->SetBranchAddress("mu_staco_nPixelDeadSensors", &mu_staco_nPixelDeadSensors, true); 
   fChain->SetBranchAddress("mu_staco_nSCTDeadSensors", &mu_staco_nSCTDeadSensors, true); 
   fChain->SetBranchAddress("mu_staco_expectBLayerHit", &mu_staco_expectBLayerHit, true); 
+
   fChain->SetBranchAddress(jc + "_n", &jet_n, true); 
-  fChain->SetBranchAddress(jc + "_E", &jet_E, true); 
   fChain->SetBranchAddress(jc + "_pt", &jet_pt, true); 
   fChain->SetBranchAddress(jc + "_eta", &jet_eta, true); 
   fChain->SetBranchAddress(jc + "_phi", &jet_phi, true); 
-  fChain->SetBranchAddress(jc + "_EtaOrigin", &jet_EtaOrigin, true); 
-  fChain->SetBranchAddress(jc + "_PhiOrigin", &jet_PhiOrigin, true); 
-  fChain->SetBranchAddress(jc + "_MOrigin", &jet_MOrigin, true); 
-  fChain->SetBranchAddress(jc + "_Timing", &jet_Timing, true); 
-  fChain->SetBranchAddress(jc + "_LArQuality", &jet_LArQuality, true); 
-  fChain->SetBranchAddress(jc + "_sumPtTrk", &jet_sumPtTrk, true); 
-  fChain->SetBranchAddress(jc + "_HECQuality", &jet_HECQuality, true); 
-  fChain->SetBranchAddress(jc + "_NegativeE", &jet_NegativeE, true); 
-  fChain->SetBranchAddress(jc + "_AverageLArQF", &jet_AverageLArQF, true); 
-  fChain->SetBranchAddress(jc + "_BCH_CORR_CELL", &jet_BCH_CORR_CELL, true); 
-  fChain->SetBranchAddress(jc + "_BCH_CORR_DOTX", &jet_BCH_CORR_DOTX, true); 
-  fChain->SetBranchAddress(jc + "_BCH_CORR_JET", &jet_BCH_CORR_JET, true); 
-  fChain->SetBranchAddress(jc + "_SamplingMax", 
-			   &jet_SamplingMax, true); 
-  fChain->SetBranchAddress(jc + "_fracSamplingMax", 
-			   &jet_fracSamplingMax, true); 
-  fChain->SetBranchAddress(jc + "_hecf", &jet_hecf, true); 
-  fChain->SetBranchAddress(jc + "_emfrac", &jet_emfrac, true); 
-  fChain->SetBranchAddress(jc + "_emscale_E", &jet_emscale_E, true); 
-  fChain->SetBranchAddress(jc + "_emscale_eta", &jet_emscale_eta, true); 
-  fChain->SetBranchAddress(jc + "_constscale_E",   &jet_constscale_E, true); 
+  fChain->SetBranchAddress(jc + "_E", &jet_E, true); 
   fChain->SetBranchAddress(jc + "_constscale_eta", &jet_constscale_eta, true); 
+  fChain->SetBranchAddress(jc + "_constscale_phi", &jet_constscale_phi, true); 
+  fChain->SetBranchAddress(jc + "_constscale_E",   &jet_constscale_E, true); 
+  fChain->SetBranchAddress(jc + "_constscale_m", &jet_constscale_m, true); 
+  fChain->SetBranchAddress(jc + "_ActiveAreaPx",   &jet_ActiveAreaPx, true); 
+  fChain->SetBranchAddress(jc + "_ActiveAreaPy",   &jet_ActiveAreaPy, true); 
+  fChain->SetBranchAddress(jc + "_ActiveAreaPz",   &jet_ActiveAreaPz, true); 
+  fChain->SetBranchAddress(jc + "_ActiveAreaE",   &jet_ActiveAreaE, true); 
+  fChain->SetBranchAddress(jc + "_emfrac", &jet_emfrac, true); 
+  fChain->SetBranchAddress(jc + "_hecf", &jet_hecf, true); 
+  fChain->SetBranchAddress(jc + "_LArQuality", &jet_LArQuality, true); 
+  fChain->SetBranchAddress(jc + "_HECQuality", &jet_HECQuality, true); 
+  fChain->SetBranchAddress(jc + "_AverageLArQF", &jet_AverageLArQF, true); 
+  fChain->SetBranchAddress(jc + "_Timing", &jet_Timing, true); 
+  fChain->SetBranchAddress(jc + "_sumPtTrk", &jet_sumPtTrk, true); 
+  fChain->SetBranchAddress(jc +"_fracSamplingMax", &jet_fracSamplingMax,true); 
+  fChain->SetBranchAddress(jc + "_SamplingMax", &jet_SamplingMax, true); 
+  fChain->SetBranchAddress(jc + "_NegativeE", &jet_NegativeE, true); 
   fChain->SetBranchAddress(jc + "_flavor_weight_JetFitterCOMBNN", &jet_flavor_weight_JetFitterCOMBNN, true); 
 
   if (br & truth ) { 

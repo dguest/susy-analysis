@@ -232,7 +232,15 @@ namespace {
        buffer.jet_eta                ->at(iJet), 
        buffer.jet_phi                ->at(iJet),
        buffer.jet_E                  ->at(iJet), 
-       buffer.jet_emscale_eta        ->at(iJet), 
+       buffer.jet_constscale_eta        ->at(iJet), 
+       buffer.jet_constscale_phi        ->at(iJet), 
+       buffer.jet_constscale_E        ->at(iJet), 
+       buffer.jet_constscale_m        ->at(iJet),
+       buffer.jet_ActiveAreaPx->at(iJet), 
+       buffer.jet_ActiveAreaPy->at(iJet), 
+       buffer.jet_ActiveAreaPz->at(iJet), 
+       buffer.jet_ActiveAreaE->at(iJet), 
+       buffer.Eventshape_rhoKt4LC, 
        buffer.jet_emfrac             ->at(iJet), 
        buffer.jet_hecf               ->at(iJet),
        buffer.jet_LArQuality         ->at(iJet), 
@@ -244,17 +252,12 @@ namespace {
        buffer.jet_SamplingMax        ->at(iJet), 
        buffer.jet_NegativeE          ->at(iJet), 
        flavor_truth_label, 
-       buffer.jet_constscale_E       ->at(iJet),
-       buffer.jet_constscale_eta     ->at(iJet), 
-       buffer.jet_EtaOrigin          ->at(iJet), 
-       buffer.jet_PhiOrigin          ->at(iJet), 
-       buffer.jet_MOrigin            ->at(iJet), 
        buffer.averageIntPerXing,
        buffer.vx_nTracks,             
        info.run_number, 
        flags & cutflag::is_data, 
-       JET_PT_CUT, 	// pt cut
-       JET_ETA_CUT,	// eta cut, was 2.8 but changed to comply with Jan
+       JET_PT_CUT, 	
+       JET_ETA_CUT,	
        JetID::VeryLooseBad,
        get_susytools_systematic(info.systematic));
     
@@ -263,31 +266,28 @@ namespace {
 
 
   bool check_buffer(const SusyBuffer& buffer) { 
-
-    CHECK_SIZE(buffer.jet_pt                          , buffer.jet_n);
-    CHECK_SIZE(buffer.jet_eta                         , buffer.jet_n);
-    CHECK_SIZE(buffer.jet_phi                         , buffer.jet_n);
-    CHECK_SIZE(buffer.jet_E                           , buffer.jet_n);
-    CHECK_SIZE(buffer.jet_emscale_eta                 , buffer.jet_n);
-    CHECK_SIZE(buffer.jet_emfrac                      , buffer.jet_n);
-    CHECK_SIZE(buffer.jet_hecf                        , buffer.jet_n);
-    CHECK_SIZE(buffer.jet_LArQuality                  , buffer.jet_n);
-    CHECK_SIZE(buffer.jet_HECQuality                  , buffer.jet_n);
-    CHECK_SIZE(buffer.jet_AverageLArQF                , buffer.jet_n);
-    CHECK_SIZE(buffer.jet_Timing                      , buffer.jet_n);
-    CHECK_SIZE(buffer.jet_sumPtTrk                    , buffer.jet_n);
-    CHECK_SIZE(buffer.jet_fracSamplingMax             , buffer.jet_n);
-    CHECK_SIZE(buffer.jet_SamplingMax                 , buffer.jet_n);
-    CHECK_SIZE(buffer.jet_NegativeE                   , buffer.jet_n);
-    CHECK_SIZE(buffer.jet_emscale_E                   , buffer.jet_n);
-    CHECK_SIZE(buffer.jet_emscale_eta                 , buffer.jet_n);
-    CHECK_SIZE(buffer.jet_EtaOrigin                   , buffer.jet_n);
-    CHECK_SIZE(buffer.jet_PhiOrigin                   , buffer.jet_n);
-    CHECK_SIZE(buffer.jet_MOrigin                     , buffer.jet_n);
-    CHECK_SIZE(buffer.jet_jvtxf                       , buffer.jet_n);
-    CHECK_SIZE(buffer.jet_flavor_component_jfitcomb_pb, buffer.jet_n);
-    CHECK_SIZE(buffer.jet_flavor_component_jfitcomb_pc, buffer.jet_n);
-    CHECK_SIZE(buffer.jet_flavor_component_jfitcomb_pu, buffer.jet_n);
+    CHECK_SIZE(buffer.jet_pt                  , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_eta                 , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_phi                 , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_E                   , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_constscale_eta      , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_constscale_phi      , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_constscale_E        , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_constscale_m        , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_ActiveAreaPx        , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_ActiveAreaPy        , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_ActiveAreaPz        , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_ActiveAreaE         , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_emfrac              , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_hecf                , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_LArQuality          , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_HECQuality          , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_AverageLArQF        , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_Timing              , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_sumPtTrk            , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_fracSamplingMax     , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_SamplingMax         , buffer.jet_n);
+    CHECK_SIZE(buffer.jet_NegativeE           , buffer.jet_n);
     return true; 
   }
 

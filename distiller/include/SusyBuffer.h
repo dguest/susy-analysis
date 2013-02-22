@@ -37,8 +37,10 @@ public :
   int spart2_pdgid; 
   float mc_event_weight; 
 
+  //Random Event
+  float Eventshape_rhoKt4LC; 
+
   // MET things
-  vector<float>*          jet_pt;
   vector<vector<float> >*    jet_MET_Egamma10NoTau_wet;
   vector<vector<float> >*    jet_MET_Egamma10NoTau_wpx;
   vector<vector<float> >*    jet_MET_Egamma10NoTau_wpy;
@@ -49,12 +51,12 @@ public :
   vector<vector<float> >*    el_MET_Egamma10NoTau_wpy;
   vector<vector<unsigned> >* el_MET_Egamma10NoTau_statusWord;
 
-  float MET_Egamma10NoTau_SoftJets_etx;
-  float MET_Egamma10NoTau_SoftJets_ety;
-  float MET_Egamma10NoTau_SoftJets_sumet;                                
   float MET_Egamma10NoTau_CellOut_etx; //CellOut
   float MET_Egamma10NoTau_CellOut_ety; //CellOut
   float MET_Egamma10NoTau_CellOut_sumet; //CellOut
+  float MET_CellOut_Eflow_STVF_etx;
+  float MET_CellOut_Eflow_STVF_ety; 
+  float MET_CellOut_Eflow_STVF_sumet;
   float MET_Egamma10NoTau_RefGamma_etx;
   float MET_Egamma10NoTau_RefGamma_ety;
   float MET_Egamma10NoTau_RefGamma_sumet;
@@ -103,38 +105,41 @@ public :
   vector<int>     *mu_staco_nPixelDeadSensors;
   vector<int>     *mu_staco_nSCTDeadSensors;
   vector<int>     *mu_staco_expectBLayerHit;
+
+  // Jet Stuff
   int           jet_n;
-  vector<float>   *jet_E;
+  vector<float>   *jet_pt;
   vector<float>   *jet_eta;
   vector<float>   *jet_phi;
-  vector<float>   *jet_EtaOrigin;
-  vector<float>   *jet_PhiOrigin;
-  vector<float>   *jet_MOrigin;
-  vector<float>   *jet_Timing;
+  vector<float>   *jet_E;
+  vector<float>   *jet_constscale_eta;
+  vector<float>   *jet_constscale_phi;
+  vector<float>   *jet_constscale_E;
+  vector<float>   *jet_constscale_m;
+  vector<float>   *jet_ActiveAreaPx; 
+  vector<float>   *jet_ActiveAreaPy; 
+  vector<float>   *jet_ActiveAreaPz; 
+  vector<float>   *jet_ActiveAreaE; 
+  // Event Shape is defined above
+  vector<float>   *jet_emfrac;
+  vector<float>   *jet_hecf;
   vector<float>   *jet_LArQuality;
-  vector<float>   *jet_sumPtTrk;
   vector<float>   *jet_HECQuality;
-  vector<float>   *jet_NegativeE;
   vector<float>   *jet_AverageLArQF;
-  vector<float>   *jet_BCH_CORR_CELL;
-  vector<float>   *jet_BCH_CORR_DOTX;
-  vector<float>   *jet_BCH_CORR_JET;
+  vector<float>   *jet_Timing;
+  vector<float>   *jet_sumPtTrk;
   vector<float>   *jet_fracSamplingMax;
   vector<int>     *jet_SamplingMax;
-  vector<float>   *jet_hecf;
-  vector<float>   *jet_emfrac;
-  vector<float>   *jet_emscale_E;
-  vector<float>   *jet_emscale_eta;
-  vector<float>   *jet_constscale_E;
-  vector<float>   *jet_constscale_eta;
-  vector<float>   *jet_flavor_weight_JetFitterCOMBNN;
+  vector<float>   *jet_NegativeE;
   vector<int>     *jet_flavor_truth_label;
+  // mu = averageIntPerXing defined elsewhere 
+  vector<int>     *vx_nTracks;
+  // run number is somewhere else 
+
+  vector<float>   *jet_flavor_weight_JetFitterCOMBNN;
   vector<float>     *jet_flavor_component_jfitcomb_pu;
   vector<float>     *jet_flavor_component_jfitcomb_pb;
   vector<float>     *jet_flavor_component_jfitcomb_pc;
-  vector<int>     *vx_nTracks;
-  vector<vector<int> > *trig_RoI_EF_b_Rec__TrackParticleContainer;
-  vector<vector<int> > *trig_RoI_EF_b_Rec__TrackParticleContainerStatus;
 
   vector<float>     *jet_flavor_component_jfitc_pu;
   vector<float>     *jet_flavor_component_jfitc_pb;
