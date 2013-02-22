@@ -487,9 +487,11 @@ class MetaFactory(object):
 
 
 _wild_template = r'{o}.{ds_id}.{name}%NTUP%{tags}/'
-_aggressive_wild_template = r'{o}.{ds_id}%NTUP%{tags}/'
+_susy_wild_template = r'{o}.{ds_id}%NTUP_SUSY%{tags}/'
 def _wildcard_match_ami(client, ds, match_template=_wild_template): 
-    if 'data' in ds.origin: 
+    if ds.is_data: 
+        if isinstance(ds.id, str): 
+            raise DatasetMatchError('not even trying to match dataperiod','')
         ds_id = '{:08}'.format(ds.id)
     else: 
         ds_id = '{:06}'.format(ds.id)
@@ -519,12 +521,12 @@ def match_dataset(blob):
         
     try: 
         full_name = _wildcard_match_ami(
-            client, ds, _aggressive_wild_template)
+            client, ds, _wild_template)
         print 'matched {}'.format(full_name)
     except DatasetMatchError as e: 
         try: 
             full_name = _wildcard_match_ami(
-                client, ds, _wild_template)
+                client, ds, _susy_wild_template)
             print 'matched {}'.format(full_name)
         except DatasetMatchError as e: 
             full_name = None 
