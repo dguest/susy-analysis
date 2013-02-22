@@ -17,7 +17,6 @@ def cutflow(input_files, run_number, flags, grl='', output_ntuple='',
     Flags: 
         v: verbose
         d: is data
-        s: is signal
         f: is atlfast
         r: save c-tag ratios
         p: use low pt jets
@@ -25,6 +24,7 @@ def cutflow(input_files, run_number, flags, grl='', output_ntuple='',
         c: save JetFitterCharm weights
         m: save mv3 weights
         i: get sparticle id (requires truth)
+        g: get branches as textfile
 
         a: aggressive --- remove bad files and retry
 

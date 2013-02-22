@@ -4,7 +4,7 @@
 namespace cutflag { 
   const unsigned verbose          = 1u << 0; 
   const unsigned is_data          = 1u << 1; 
-  const unsigned is_signal        = 1u << 2;  
+  // const unsigned is_signal        = 1u << 2;  
   const unsigned use_low_pt_jets  = 1u << 3; 
   const unsigned debug_susy       = 1u << 4; 
   const unsigned raw_evt_info     = 1u << 5; 
