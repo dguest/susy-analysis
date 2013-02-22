@@ -108,7 +108,7 @@ Jet JetFactory::jet(int jet_number) const {
   JetBuffer* the_buffer = m_jet_buffers.at(jet_number); 
   assert(the_buffer); 
   if (the_buffer->pt <= 0) { 
-    throw std::range_error("asked for undefined jet"); 
+    throw std::out_of_range("asked for undefined jet"); 
   }
   return Jet(the_buffer, m_flags); 
 }

@@ -133,7 +133,7 @@ std::pair<double, double> SelectedJet::scale_factor(btag::Tagger t)
   const 
 {
   if (m_scale_factor.size() <= size_t(t)) { 
-    throw std::range_error("tried to access undefined scale factor"); 
+    throw std::out_of_range("tried to access undefined scale factor"); 
   }
   return m_scale_factor.at(t); 
 }
@@ -141,7 +141,7 @@ std::pair<double, double> SelectedJet::fail_factor(btag::Tagger t)
   const 
 {
   if (m_fail_factor.size() <= size_t(t)) { 
-    throw std::range_error("tried to access undefined fail factor"); 
+    throw std::out_of_range("tried to access undefined fail factor"); 
   }
   return m_fail_factor.at(t); 
 }
