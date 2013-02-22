@@ -16,13 +16,15 @@ from ConfigParser import SafeConfigParser
 def _get_ptag(ds_name): 
     return re.compile('_p([0-9]{3,5})').search(ds_name).group(1)
 
+def _strip_front(ds_name): 
+    if not any(ds_name.startswith(x) for x in ['data','mc']): 
+        return _strip_front('.'.join(ds_name.split('.')[1:]))
+    return ds_name
+
 def submit_ds(ds_name, debug=False, version=3, used_vars='used_vars.txt'): 
 
     user = os.path.expandvars('$USER')
-    if ds_name.startswith('user'): 
-        preskim_name = '.'.join(ds_name.split('.')[2:])
-    else: 
-        preskim_name = ds_name
+    preskim_name = _strip_front(ds_name)
     output_base = '.'.join(preskim_name.split('.')[:3])
     rev_number = _get_ptag(ds_name)
     out_ds = 'user.{user}.{in_ds}.skim_p{rev}_v{version}/'.format(
