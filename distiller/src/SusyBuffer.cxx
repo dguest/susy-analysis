@@ -16,168 +16,168 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, unsigned& br, BranchNames names)
 
   fChain->SetBranchStatus("*",0); 
 
-  fChain->SetBranchAddress("RunNumber", &RunNumber, true);  
-  fChain->SetBranchAddress("EventNumber", &EventNumber, true); 
-  fChain->SetBranchAddress("lbn", &lbn, true); 
+  fChain->SetBranch("RunNumber", &RunNumber);  
+  fChain->SetBranch("EventNumber", &EventNumber); 
+  fChain->SetBranch("lbn", &lbn); 
 
-  fChain->SetBranchAddress(names.trigger, &trigger, true); 
-  fChain->SetBranchAddress("coreFlags", &coreFlags, true); 
+  fChain->SetBranch(names.trigger, &trigger); 
+  fChain->SetBranch("coreFlags", &coreFlags); 
   
-  fChain->SetBranchAddress("top_hfor_type", &hfor_type, true); 
+  fChain->SetBranch("top_hfor_type", &hfor_type); 
 
-  fChain->SetBranchAddress(jc + "_jvtxf", 
-			   &jet_jvtxf, true); 
-  fChain->SetBranchAddress("averageIntPerXing", &averageIntPerXing, true); 
-  fChain->SetBranchAddress("larError", &larError, true); 
+  fChain->SetBranch(jc + "_jvtxf", 
+		    &jet_jvtxf); 
+  fChain->SetBranch("averageIntPerXing", &averageIntPerXing); 
+  fChain->SetBranch("larError", &larError); 
 
-  fChain->SetBranchAddress("Eventshape_rhoKt4LC", &Eventshape_rhoKt4LC); 
+  fChain->SetBranch("Eventshape_rhoKt4LC", &Eventshape_rhoKt4LC); 
 
   // MET garbage
-  fChain->SetBranchAddress(jc + "_MET_Egamma10NoTau_wet", 
-			   &jet_MET_Egamma10NoTau_wet, true); 
-  fChain->SetBranchAddress(jc + "_MET_Egamma10NoTau_wpx",
-			   &jet_MET_Egamma10NoTau_wpx, true); 
-  fChain->SetBranchAddress(jc + "_MET_Egamma10NoTau_wpy", 
-			   &jet_MET_Egamma10NoTau_wpy, true); 
-  fChain->SetBranchAddress(jc + "_MET_Egamma10NoTau_statusWord", 
-			   &jet_MET_Egamma10NoTau_statusWord, 
-			   true); 
+  fChain->SetBranch(jc + "_MET_Egamma10NoTau_wet", 
+		    &jet_MET_Egamma10NoTau_wet); 
+  fChain->SetBranch(jc + "_MET_Egamma10NoTau_wpx",
+		    &jet_MET_Egamma10NoTau_wpx); 
+  fChain->SetBranch(jc + "_MET_Egamma10NoTau_wpy", 
+		    &jet_MET_Egamma10NoTau_wpy); 
+  fChain->SetBranch(jc + "_MET_Egamma10NoTau_statusWord", 
+		    &jet_MET_Egamma10NoTau_statusWord, 
+		    true); 
 
-  fChain->SetBranchAddress("el_MET_Egamma10NoTau_wet", 
-			   &el_MET_Egamma10NoTau_wet, true); 
-  fChain->SetBranchAddress("el_MET_Egamma10NoTau_wpx",
-			   &el_MET_Egamma10NoTau_wpx, true); 
-  fChain->SetBranchAddress("el_MET_Egamma10NoTau_wpy", 
-			   &el_MET_Egamma10NoTau_wpy, true); 
-  fChain->SetBranchAddress("el_MET_Egamma10NoTau_statusWord", 
-			   &el_MET_Egamma10NoTau_statusWord, 
-			   true); 
+  fChain->SetBranch("el_MET_Egamma10NoTau_wet", 
+		    &el_MET_Egamma10NoTau_wet); 
+  fChain->SetBranch("el_MET_Egamma10NoTau_wpx",
+		    &el_MET_Egamma10NoTau_wpx); 
+  fChain->SetBranch("el_MET_Egamma10NoTau_wpy", 
+		    &el_MET_Egamma10NoTau_wpy); 
+  fChain->SetBranch("el_MET_Egamma10NoTau_statusWord", 
+		    &el_MET_Egamma10NoTau_statusWord, 
+		    true); 
 
 
-  fChain->SetBranchAddress("MET_Egamma10NoTau_CellOut_etx"   ,
-			   &MET_Egamma10NoTau_CellOut_etx, true);  
-  fChain->SetBranchAddress("MET_Egamma10NoTau_CellOut_ety"   ,
-			   &MET_Egamma10NoTau_CellOut_ety, true);    
-  fChain->SetBranchAddress("MET_Egamma10NoTau_CellOut_sumet" ,
-			   &MET_Egamma10NoTau_CellOut_sumet, true);
+  fChain->SetBranch("MET_Egamma10NoTau_CellOut_etx"   ,
+		    &MET_Egamma10NoTau_CellOut_etx);  
+  fChain->SetBranch("MET_Egamma10NoTau_CellOut_ety"   ,
+		    &MET_Egamma10NoTau_CellOut_ety);    
+  fChain->SetBranch("MET_Egamma10NoTau_CellOut_sumet" ,
+		    &MET_Egamma10NoTau_CellOut_sumet);
 
-  fChain->SetBranchAddress("MET_Egamma10NoTau_CellOut_Eflow_STVF_etx",
-			   &MET_CellOut_Eflow_STVF_etx, true);  
-  fChain->SetBranchAddress("MET_Egamma10NoTau_CellOut_Eflow_STVF_ety",
-			   &MET_CellOut_Eflow_STVF_ety, true);  
-  fChain->SetBranchAddress("MET_Egamma10NoTau_CellOut_Eflow_STVF_sumet",
-			   &MET_CellOut_Eflow_STVF_sumet, true);  
+  fChain->SetBranch("MET_Egamma10NoTau_CellOut_Eflow_STVF_etx",
+		    &MET_CellOut_Eflow_STVF_etx);  
+  fChain->SetBranch("MET_Egamma10NoTau_CellOut_Eflow_STVF_ety",
+		    &MET_CellOut_Eflow_STVF_ety);  
+  fChain->SetBranch("MET_Egamma10NoTau_CellOut_Eflow_STVF_sumet",
+		    &MET_CellOut_Eflow_STVF_sumet);  
 
-  fChain->SetBranchAddress("MET_Egamma10NoTau_RefGamma_etx"  ,
-			   &MET_Egamma10NoTau_RefGamma_etx, true);  
-  fChain->SetBranchAddress("MET_Egamma10NoTau_RefGamma_ety"  ,
-			   &MET_Egamma10NoTau_RefGamma_ety, true);   
-  fChain->SetBranchAddress("MET_Egamma10NoTau_RefGamma_sumet",
-			   &MET_Egamma10NoTau_RefGamma_sumet, true);
+  fChain->SetBranch("MET_Egamma10NoTau_RefGamma_etx"  ,
+		    &MET_Egamma10NoTau_RefGamma_etx);  
+  fChain->SetBranch("MET_Egamma10NoTau_RefGamma_ety"  ,
+		    &MET_Egamma10NoTau_RefGamma_ety);   
+  fChain->SetBranch("MET_Egamma10NoTau_RefGamma_sumet",
+		    &MET_Egamma10NoTau_RefGamma_sumet);
 
-  fChain->SetBranchAddress("MET_RefFinal_etx", &MET_RefFinal_etx, true); 
-  fChain->SetBranchAddress("MET_RefFinal_ety", &MET_RefFinal_ety, true); 
+  fChain->SetBranch("MET_RefFinal_etx", &MET_RefFinal_etx); 
+  fChain->SetBranch("MET_RefFinal_ety", &MET_RefFinal_ety); 
 
  
-  fChain->SetBranchAddress("el_n", &el_n, true); 
-  fChain->SetBranchAddress("el_author", &el_author, true); 
-  fChain->SetBranchAddress("el_OQ", &el_OQ, true); 
-  fChain->SetBranchAddress("el_mediumPP", &el_mediumPP, true); 
-  fChain->SetBranchAddress("el_cl_E", &el_cl_E, true); 
-  fChain->SetBranchAddress("el_cl_eta", &el_cl_eta, true); 
-  fChain->SetBranchAddress("el_cl_phi", &el_cl_phi, true); 
-  fChain->SetBranchAddress("el_cl_pt", &el_cl_pt, true); 
-  fChain->SetBranchAddress("el_trackphi", &el_trackphi, true); 
-  fChain->SetBranchAddress("el_tracketa", &el_tracketa, true); 
-  fChain->SetBranchAddress("el_nPixHits", &el_nPixHits, true); 
-  fChain->SetBranchAddress("el_nSCTHits", &el_nSCTHits, true); 
-  fChain->SetBranchAddress("mu_staco_n", &mu_staco_n, true); 
-  fChain->SetBranchAddress("mu_staco_E", &mu_staco_E, true); 
-  fChain->SetBranchAddress("mu_staco_pt", &mu_staco_pt, true); 
-  fChain->SetBranchAddress("mu_staco_eta", &mu_staco_eta, true); 
-  fChain->SetBranchAddress("mu_staco_phi", &mu_staco_phi, true); 
-  fChain->SetBranchAddress("mu_staco_charge", &mu_staco_charge, true); 
-  fChain->SetBranchAddress("mu_staco_isCombinedMuon", &mu_staco_isCombinedMuon, true); 
-  fChain->SetBranchAddress("mu_staco_isSegmentTaggedMuon", &mu_staco_isSegmentTaggedMuon, true); 
-  fChain->SetBranchAddress("mu_staco_loose", &mu_staco_loose, true); 
-  fChain->SetBranchAddress("mu_staco_id_theta_exPV", &mu_staco_id_theta_exPV, true); 
-  fChain->SetBranchAddress("mu_staco_id_qoverp_exPV", &mu_staco_id_qoverp_exPV, true); 
-  fChain->SetBranchAddress("mu_staco_me_theta_exPV", &mu_staco_me_theta_exPV, true); 
-  fChain->SetBranchAddress("mu_staco_me_qoverp_exPV", &mu_staco_me_qoverp_exPV, true); 
-  fChain->SetBranchAddress("mu_staco_ms_phi", &mu_staco_ms_phi, true); 
-  fChain->SetBranchAddress("mu_staco_ms_theta", &mu_staco_ms_theta, true); 
-  fChain->SetBranchAddress("mu_staco_ms_qoverp", &mu_staco_ms_qoverp, true); 
-  fChain->SetBranchAddress("mu_staco_id_theta", &mu_staco_id_theta, true); 
-  fChain->SetBranchAddress("mu_staco_nBLHits", &mu_staco_nBLHits, true); 
-  fChain->SetBranchAddress("mu_staco_nPixHits", &mu_staco_nPixHits, true); 
-  fChain->SetBranchAddress("mu_staco_nSCTHits", &mu_staco_nSCTHits, true); 
-  fChain->SetBranchAddress("mu_staco_nTRTHits", &mu_staco_nTRTHits, true); 
-  fChain->SetBranchAddress("mu_staco_nPixHoles", &mu_staco_nPixHoles, true); 
-  fChain->SetBranchAddress("mu_staco_nSCTHoles", &mu_staco_nSCTHoles, true); 
-  fChain->SetBranchAddress("mu_staco_nTRTOutliers", &mu_staco_nTRTOutliers, true); 
-  fChain->SetBranchAddress("mu_staco_nPixelDeadSensors", &mu_staco_nPixelDeadSensors, true); 
-  fChain->SetBranchAddress("mu_staco_nSCTDeadSensors", &mu_staco_nSCTDeadSensors, true); 
-  fChain->SetBranchAddress("mu_staco_expectBLayerHit", &mu_staco_expectBLayerHit, true); 
+  fChain->SetBranch("el_n", &el_n); 
+  fChain->SetBranch("el_author", &el_author); 
+  fChain->SetBranch("el_OQ", &el_OQ); 
+  fChain->SetBranch("el_mediumPP", &el_mediumPP); 
+  fChain->SetBranch("el_cl_E", &el_cl_E); 
+  fChain->SetBranch("el_cl_eta", &el_cl_eta); 
+  fChain->SetBranch("el_cl_phi", &el_cl_phi); 
+  fChain->SetBranch("el_cl_pt", &el_cl_pt); 
+  fChain->SetBranch("el_trackphi", &el_trackphi); 
+  fChain->SetBranch("el_tracketa", &el_tracketa); 
+  fChain->SetBranch("el_nPixHits", &el_nPixHits); 
+  fChain->SetBranch("el_nSCTHits", &el_nSCTHits); 
+  fChain->SetBranch("mu_staco_n", &mu_staco_n); 
+  fChain->SetBranch("mu_staco_E", &mu_staco_E); 
+  fChain->SetBranch("mu_staco_pt", &mu_staco_pt); 
+  fChain->SetBranch("mu_staco_eta", &mu_staco_eta); 
+  fChain->SetBranch("mu_staco_phi", &mu_staco_phi); 
+  fChain->SetBranch("mu_staco_charge", &mu_staco_charge); 
+  fChain->SetBranch("mu_staco_isCombinedMuon", &mu_staco_isCombinedMuon); 
+  fChain->SetBranch("mu_staco_isSegmentTaggedMuon", &mu_staco_isSegmentTaggedMuon); 
+  fChain->SetBranch("mu_staco_loose", &mu_staco_loose); 
+  fChain->SetBranch("mu_staco_id_theta_exPV", &mu_staco_id_theta_exPV); 
+  fChain->SetBranch("mu_staco_id_qoverp_exPV", &mu_staco_id_qoverp_exPV); 
+  fChain->SetBranch("mu_staco_me_theta_exPV", &mu_staco_me_theta_exPV); 
+  fChain->SetBranch("mu_staco_me_qoverp_exPV", &mu_staco_me_qoverp_exPV); 
+  fChain->SetBranch("mu_staco_ms_phi", &mu_staco_ms_phi); 
+  fChain->SetBranch("mu_staco_ms_theta", &mu_staco_ms_theta); 
+  fChain->SetBranch("mu_staco_ms_qoverp", &mu_staco_ms_qoverp); 
+  fChain->SetBranch("mu_staco_id_theta", &mu_staco_id_theta); 
+  fChain->SetBranch("mu_staco_nBLHits", &mu_staco_nBLHits); 
+  fChain->SetBranch("mu_staco_nPixHits", &mu_staco_nPixHits); 
+  fChain->SetBranch("mu_staco_nSCTHits", &mu_staco_nSCTHits); 
+  fChain->SetBranch("mu_staco_nTRTHits", &mu_staco_nTRTHits); 
+  fChain->SetBranch("mu_staco_nPixHoles", &mu_staco_nPixHoles); 
+  fChain->SetBranch("mu_staco_nSCTHoles", &mu_staco_nSCTHoles); 
+  fChain->SetBranch("mu_staco_nTRTOutliers", &mu_staco_nTRTOutliers); 
+  fChain->SetBranch("mu_staco_nPixelDeadSensors", &mu_staco_nPixelDeadSensors); 
+  fChain->SetBranch("mu_staco_nSCTDeadSensors", &mu_staco_nSCTDeadSensors); 
+  fChain->SetBranch("mu_staco_expectBLayerHit", &mu_staco_expectBLayerHit); 
 
-  fChain->SetBranchAddress(jc + "_n", &jet_n, true); 
-  fChain->SetBranchAddress(jc + "_pt", &jet_pt, true); 
-  fChain->SetBranchAddress(jc + "_eta", &jet_eta, true); 
-  fChain->SetBranchAddress(jc + "_phi", &jet_phi, true); 
-  fChain->SetBranchAddress(jc + "_E", &jet_E, true); 
-  fChain->SetBranchAddress(jc + "_constscale_eta", &jet_constscale_eta, true); 
-  fChain->SetBranchAddress(jc + "_constscale_phi", &jet_constscale_phi, true); 
-  fChain->SetBranchAddress(jc + "_constscale_E",   &jet_constscale_E, true); 
-  fChain->SetBranchAddress(jc + "_constscale_m", &jet_constscale_m, true); 
-  fChain->SetBranchAddress(jc + "_ActiveAreaPx",   &jet_ActiveAreaPx, true); 
-  fChain->SetBranchAddress(jc + "_ActiveAreaPy",   &jet_ActiveAreaPy, true); 
-  fChain->SetBranchAddress(jc + "_ActiveAreaPz",   &jet_ActiveAreaPz, true); 
-  fChain->SetBranchAddress(jc + "_ActiveAreaE",   &jet_ActiveAreaE, true); 
-  fChain->SetBranchAddress(jc + "_emfrac", &jet_emfrac, true); 
-  fChain->SetBranchAddress(jc + "_hecf", &jet_hecf, true); 
-  fChain->SetBranchAddress(jc + "_LArQuality", &jet_LArQuality, true); 
-  fChain->SetBranchAddress(jc + "_HECQuality", &jet_HECQuality, true); 
-  fChain->SetBranchAddress(jc + "_AverageLArQF", &jet_AverageLArQF, true); 
-  fChain->SetBranchAddress(jc + "_Timing", &jet_Timing, true); 
-  fChain->SetBranchAddress(jc + "_sumPtTrk", &jet_sumPtTrk, true); 
-  fChain->SetBranchAddress(jc +"_fracSamplingMax", &jet_fracSamplingMax,true); 
-  fChain->SetBranchAddress(jc + "_SamplingMax", &jet_SamplingMax, true); 
-  fChain->SetBranchAddress(jc + "_NegativeE", &jet_NegativeE, true); 
-  fChain->SetBranchAddress(jc + "_flavor_weight_JetFitterCOMBNN", &jet_flavor_weight_JetFitterCOMBNN, true); 
+  fChain->SetBranch(jc + "_n", &jet_n); 
+  fChain->SetBranch(jc + "_pt", &jet_pt); 
+  fChain->SetBranch(jc + "_eta", &jet_eta); 
+  fChain->SetBranch(jc + "_phi", &jet_phi); 
+  fChain->SetBranch(jc + "_E", &jet_E); 
+  fChain->SetBranch(jc + "_constscale_eta", &jet_constscale_eta); 
+  fChain->SetBranch(jc + "_constscale_phi", &jet_constscale_phi); 
+  fChain->SetBranch(jc + "_constscale_E",   &jet_constscale_E); 
+  fChain->SetBranch(jc + "_constscale_m", &jet_constscale_m); 
+  fChain->SetBranch(jc + "_ActiveAreaPx",   &jet_ActiveAreaPx); 
+  fChain->SetBranch(jc + "_ActiveAreaPy",   &jet_ActiveAreaPy); 
+  fChain->SetBranch(jc + "_ActiveAreaPz",   &jet_ActiveAreaPz); 
+  fChain->SetBranch(jc + "_ActiveAreaE",   &jet_ActiveAreaE); 
+  fChain->SetBranch(jc + "_emfrac", &jet_emfrac); 
+  fChain->SetBranch(jc + "_hecf", &jet_hecf); 
+  fChain->SetBranch(jc + "_LArQuality", &jet_LArQuality); 
+  fChain->SetBranch(jc + "_HECQuality", &jet_HECQuality); 
+  fChain->SetBranch(jc + "_AverageLArQF", &jet_AverageLArQF); 
+  fChain->SetBranch(jc + "_Timing", &jet_Timing); 
+  fChain->SetBranch(jc + "_sumPtTrk", &jet_sumPtTrk); 
+  fChain->SetBranch(jc +"_fracSamplingMax", &jet_fracSamplingMax); 
+  fChain->SetBranch(jc + "_SamplingMax", &jet_SamplingMax); 
+  fChain->SetBranch(jc + "_NegativeE", &jet_NegativeE); 
+  fChain->SetBranch(jc + "_flavor_weight_JetFitterCOMBNN", &jet_flavor_weight_JetFitterCOMBNN); 
 
   if (br & truth ) { 
     set_mc_branches(fChain, br, jc);
   }
 
-  fChain->SetBranchAddress(jc + "_flavor_component_jfitcomb_pu", 
-			   &jet_flavor_component_jfitcomb_pu, true);
-  fChain->SetBranchAddress(jc + "_flavor_component_jfitcomb_pb", 
-			   &jet_flavor_component_jfitcomb_pb, true);
-  fChain->SetBranchAddress(jc + "_flavor_component_jfitcomb_pc", 
-			   &jet_flavor_component_jfitcomb_pc, true);
-  fChain->SetBranchAddress("vx_nTracks", &vx_nTracks, true); 
+  fChain->SetBranch(jc + "_flavor_component_jfitcomb_pu", 
+		    &jet_flavor_component_jfitcomb_pu);
+  fChain->SetBranch(jc + "_flavor_component_jfitcomb_pb", 
+		    &jet_flavor_component_jfitcomb_pb);
+  fChain->SetBranch(jc + "_flavor_component_jfitcomb_pc", 
+		    &jet_flavor_component_jfitcomb_pc);
+  fChain->SetBranch("vx_nTracks", &vx_nTracks); 
 
   if (br & mv3) { 
     bool do_mv3 = true;
-    fChain->SetBranchAddress(jc + "_flavor_weight_MV3_bVSu", 
-			     &jet_flavor_weight_MV3_bVSu, do_mv3); 
-    fChain->SetBranchAddress(jc + "_flavor_weight_MV3_bVSc", 
-			     &jet_flavor_weight_MV3_bVSc, do_mv3); 
-    fChain->SetBranchAddress(jc + "_flavor_weight_MV3_cVSu", 
-			     &jet_flavor_weight_MV3_cVSu, do_mv3); 
+    fChain->SetBranch(jc + "_flavor_weight_MV3_bVSu", 
+		      &jet_flavor_weight_MV3_bVSu, do_mv3); 
+    fChain->SetBranch(jc + "_flavor_weight_MV3_bVSc", 
+		      &jet_flavor_weight_MV3_bVSc, do_mv3); 
+    fChain->SetBranch(jc + "_flavor_weight_MV3_cVSu", 
+		      &jet_flavor_weight_MV3_cVSu, do_mv3); 
   }
 
   if (br & jetfitter_charm) { 
     bool do_jfc = true; 
-    fChain->SetBranchAddress(jc + "_flavor_component_jfitc_pu", 
-			     &jet_flavor_component_jfitc_pu, do_jfc);
-    fChain->SetBranchAddress(jc + "_flavor_component_jfitc_pb", 
-			     &jet_flavor_component_jfitc_pb, do_jfc);
-    fChain->SetBranchAddress(jc + "_flavor_component_jfitc_pc", 
-			     &jet_flavor_component_jfitc_pc, do_jfc);
+    fChain->SetBranch(jc + "_flavor_component_jfitc_pu", 
+		      &jet_flavor_component_jfitc_pu, do_jfc);
+    fChain->SetBranch(jc + "_flavor_component_jfitc_pb", 
+		      &jet_flavor_component_jfitc_pb, do_jfc);
+    fChain->SetBranch(jc + "_flavor_component_jfitc_pc", 
+		      &jet_flavor_component_jfitc_pc, do_jfc);
   }
 
   if (br & unleash_sharktopus){  
-    fChain->SetBranchAddress("sharktopus",&sharktopus, true); 
+    fChain->SetBranch("sharktopus",&sharktopus); 
   }
 
 }
@@ -188,17 +188,17 @@ void SusyBuffer::set_mc_branches(SmartChain* chain,
 {
   using namespace cutflag; 
   try { 
-    chain->SetBranchAddress(jc + "_flavor_truth_label", 
-			     &jet_flavor_truth_label, true); 
-    chain->SetBranchAddress("mc_event_weight", &mc_event_weight, true); 
+    chain->SetBranch(jc + "_flavor_truth_label", 
+		     &jet_flavor_truth_label); 
+    chain->SetBranch("mc_event_weight", &mc_event_weight); 
   }
   catch (std::runtime_error& e) { 
     br &=~ truth; 
   }
   if (br & spartid) { 
     try { 
-      chain->SetBranchAddress("SUSY_Spart1_pdgId", &spart1_pdgid, true); 
-      chain->SetBranchAddress("SUSY_Spart2_pdgId", &spart2_pdgid, true); 
+      chain->SetBranch("SUSY_Spart1_pdgId", &spart1_pdgid); 
+      chain->SetBranch("SUSY_Spart2_pdgId", &spart2_pdgid); 
     }
     catch (std::runtime_error& e) { 
       br &=~ spartid; 

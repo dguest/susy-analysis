@@ -12,8 +12,8 @@ public:
   int Add(std::string file_name, int nentries = -1); 
   int GetEntry(int entry_n); 
   template<typename T, typename Z>
-  void SetBranchAddress(T name, Z branch, 
-  			bool turnon = false); 
+  void SetBranch(T name, Z branch, 
+		 bool turnon = true); 
 
   std::vector<std::string> get_all_branch_names() const; 
 private: 
@@ -32,8 +32,7 @@ private:
 
 
 template<typename T, typename Z>
-void SmartChain::SetBranchAddress(T name, Z branch, 
-				  bool turnon) { 
+void SmartChain::SetBranch(T name, Z branch, bool turnon) { 
   *branch = 0; 
   SetBranchAddressPrivate(name, branch, turnon); 
 }
