@@ -112,6 +112,7 @@ namespace outtree {
     if ( flags & cutflag::truth) { 
       tree->Branch((prefix + "flavor_truth_label").c_str(), 
 		   &flavor_truth_label); 
+      cnn_tight.set_branches(tree, prefix + "cnn_tight_", flags); 
       cnn_medium.set_branches(tree, prefix + "cnn_medium_", flags); 
       cnn_loose.set_branches(tree, prefix + "cnn_loose_", flags); 
     }

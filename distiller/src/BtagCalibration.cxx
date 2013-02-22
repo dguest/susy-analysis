@@ -13,15 +13,17 @@ BtagCalibration::BtagCalibration(std::string clb_file,
   m_cnn = new CDI("JetFitterCOMBCharm", clb_file, file_path); 
   m_ops[CNN_LOOSE] = "-1_0_0_0"; 
   m_ops[CNN_MEDIUM] = "-1_0_-0_82"; 
-  if (! m_cnn->getBinnedScaleFactors(m_jet_author, 
-				     get_label(btag::B), 
-				     m_ops[CNN_MEDIUM])) { 
-    throw std::runtime_error("btag calibration information not found"); 
-  }
-  // m_ops[CNN_TIGHT] = "XXX"; 
+  m_ops[CNN_TIGHT] = "-1_0_1_0"; 
   m_interfaces[CNN_LOOSE] = m_cnn; 
   m_interfaces[CNN_MEDIUM] = m_cnn; 
-  // m_interfaces[CNN_TIGHT] = m_cnn; 
+  m_interfaces[CNN_TIGHT] = m_cnn; 
+  for (Names::const_iterator itr = m_ops.begin(); itr != m_ops.end(); itr++){
+    if (! m_cnn->getBinnedScaleFactors(m_jet_author, 
+				       get_label(btag::B), 
+				       itr->second)) { 
+      throw std::runtime_error("btag calibration information not found"); 
+    }
+  }
 }
 
 BtagCalibration::~BtagCalibration() { 

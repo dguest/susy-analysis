@@ -109,6 +109,7 @@ void SelectedJet::set_scale_factors(const BtagCalibration* cal){
 		       m_flavor_truth_label).str(); 
     throw std::runtime_error(err); 
   }
+  set_scale_factors(flavor, btag::CNN_TIGHT, cal); 
   set_scale_factors(flavor, btag::CNN_MEDIUM, cal); 
   set_scale_factors(flavor, btag::CNN_LOOSE, cal); 
 }

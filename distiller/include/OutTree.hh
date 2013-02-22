@@ -34,6 +34,7 @@ namespace outtree {
     double cnn_log_cu; 
     double cnn_log_cb; 
 
+    ScaleFactor cnn_tight; 
     ScaleFactor cnn_medium; 
     ScaleFactor cnn_loose; 
 
