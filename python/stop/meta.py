@@ -114,7 +114,8 @@ class Dataset(object):
         else: 
             warn("not sure if ds with id {} is mc or data".format(self.id))
             char = 'q'
-        return '{}{}'.format(char,self.id)
+        ds_id = self.id
+        return '{}{}'.format(char, ds_id)
     @property
     def is_data(self): 
         if self.origin.startswith('data'): 
@@ -219,8 +220,20 @@ class MetaFactory(object):
         entry = entry.split('_tid')[0]
 
         fields = entry.split('#')[0].strip().split('.')
-        if fields[0] == 'user': 
-            fields = fields[2:]
+        
+        if not any(fields[0].startswith(x) for x in ['data','mc']): 
+            stripped_name = '.'.join(fields[1:])
+            if stripped_name: 
+                try: 
+                    return self._dataset_from_name(stripped_name)
+                except ValueError as er: 
+                    if "can't find origin" in str(er): 
+                        raise ValueError("can't find origin for {}".format(
+                                entry.strip()))
+                    else: 
+                        raise
+            else: 
+                raise ValueError("can't find origin")
         ds = Dataset()
         try: 
             ds.origin, ds_id, ds.name, prod, group, tags = fields
@@ -233,14 +246,14 @@ class MetaFactory(object):
             if not all(required): 
                 raise ValueError('{} is not a ds name'.format(
                         '.'.join(fields)))
-                                 
-            ds.id = int(ds_id)
+
+            ds.id = self._get_id(ds_id)
             ds.tags = tags.rstrip('/')
             ds.full_unchecked_name = entry.strip().rstrip('/')
         except ValueError as e: 
             try: 
-                ds.origin, ds.id, ds.name = fields[0:3]
-                ds.id = int(ds.id)
+                ds.origin, ds_id, ds.name = fields[0:3]
+                ds.id = self._get_id(ds_id)
                 others = fields[3:]
                 for field in others: 
                     if self._find_tag(field): 
@@ -253,12 +266,22 @@ class MetaFactory(object):
                 else: 
                     raise 
         return ds
-
             
+    def _get_id(self, ds_id): 
+        try: 
+            return int(ds_id)
+        except ValueError: 
+            return ds_id[0].upper() + ds_id[1:]
+
     def _find_tag(self, field): 
         mc_re = re.compile('e[0-9]+(_[asr][0-9]+)+_p[0-9]+')
         data_re = re.compile('f[0-9]+(_[a-z][0-9]+)+_p[0-9]+')
-        return mc_re.search(field) or data_re.search(field)
+        mainz_data_re = re.compile('(re|t0)pro[0-9]+_v[0-9]+_p[0-9]+')
+        regexes = [mc_re, data_re, mainz_data_re]
+        for regex in regexes: 
+            if regex.search(field): 
+                return True
+        return False
         
 
     def add_ugly_ds_list(self, ds_list): 
@@ -299,9 +322,13 @@ class MetaFactory(object):
                 continue
 
             spl = clean_line.split()
-            name = spl[1]
-            ds_id = int(spl[0])
+            try: 
+                name = spl[1]
+                ds_id = int(spl[0])
+            except IndexError: 
+                raise ValueError("can't parse {}".format(clean_line))
             split_dict[ds_id] = spl
+            
 
         for ds in self._datasets.values(): 
             if ds.id in split_dict: 
