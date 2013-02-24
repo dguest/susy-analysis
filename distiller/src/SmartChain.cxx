@@ -12,6 +12,10 @@ SmartChain::SmartChain(std::string tree_name):
 
 int SmartChain::Add(std::string file_name, int nentries) { 
   m_files.push_back(file_name); 
+  TFile file(file_name.c_str()); 
+  if (!file.IsOpen() || file.IsZombie()) { 
+    throw std::runtime_error("bad file: " + file_name); 
+  }
   return TChain::Add(file_name.c_str(), nentries); 
 }
 int SmartChain::GetEntry(int entry_n) { 
