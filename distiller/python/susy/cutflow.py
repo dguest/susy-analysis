@@ -60,7 +60,9 @@ def cutflow(input_files, run_number, flags, grl='', output_ntuple='',
                 warnings.warn('removed {}, retrying'.format(bad_file))
                 
                 cutlist = cutflow(remaining_files, run_number, flags, 
-                                  grl, output_ntuple)
+                                  grl, output_ntuple, 
+                                  btag_cal_file=btag_cal_file, 
+                                  btag_cal_dir=btag_cal_dir)
                 return CorruptedCutflow(cutlist, remaining_files)
         raise 
 
