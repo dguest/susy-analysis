@@ -35,7 +35,7 @@ def run():
     parser.add_argument('--calibration-dir', default='~/calibration')
     parser.add_argument(
         '--systematic', default='nominal', 
-        choices={'nominal', 'JESUP', 'JESDOWN'})
+        choices={'baseline', 'JESUP', 'JESDOWN'})
     parser.add_argument(
         '-o','--out-dir', 
         help='output directory (defaults to lowercase systematic)')

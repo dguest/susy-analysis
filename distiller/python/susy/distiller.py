@@ -17,7 +17,7 @@ def _run_distill(ds):
         btag_env = ds.btag_env
     try: 
         systematic = ds.need_rerun
-        syst_internal = 'NONE' if systematic == 'nominal' else systematic
+        syst_internal = 'NONE' if systematic == 'baseline' else systematic
         cut_counts = cutflow.cutflow(
             input_files=ds.d3pds, 
             run_number=ds.id, 
@@ -180,7 +180,7 @@ class Distiller(object):
         return False
 
 
-    def prepare_dataset_meta(self, systematic='nominal'):
+    def prepare_dataset_meta(self, systematic='baseline'):
         btag_env = join(self.calibration_dir, self.btag_env)
         if not isfile(btag_env): 
             raise IOError("{} not found".format(btag_env))
