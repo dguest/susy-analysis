@@ -34,7 +34,7 @@ def run():
     parser.add_argument('--grl', default='')
     parser.add_argument('--calibration-dir', default='~/calibration')
     parser.add_argument(
-        '--systematic', default='nominal', 
+        '--systematic', default='baseline', 
         choices={'baseline', 'JESUP', 'JESDOWN'})
     parser.add_argument(
         '-o','--out-dir', 
