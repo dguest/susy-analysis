@@ -36,6 +36,10 @@ int SmartChain::GetEntry(int entry_n) {
 std::vector<std::string> SmartChain::get_all_branch_names() const { 
   return m_set_branches; 
 }
+std::string SmartChain::get_current_file() const { 
+  assert(m_last_tree < m_files.size()); 
+  return m_files.at(m_last_tree); 
+}
 
 void SmartChain::SetBranchAddressPrivate(std::string name, void* branch, 
 					 bool turnon) { 

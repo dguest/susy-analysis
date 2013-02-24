@@ -105,6 +105,13 @@ StopDistiller::Cutflow StopDistiller::run_cutflow() {
     catch (EventReadError& e) { 
       n_error++; 
     }
+    catch (std::logic_error& e) { 
+      std::string err_tpl = "logic error in %s, event %i: %s"; 
+      std::string err = (boost::format(err_tpl) % 
+			 m_chain->get_current_file() % 
+			 evt_n % e.what()).str();
+      throw std::logic_error(err); 
+    }
   }
   if (m_flags & cutflag::verbose) { 
     std::cout << "\n";  

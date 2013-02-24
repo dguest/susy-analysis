@@ -16,6 +16,7 @@ public:
 		 bool turnon = true); 
 
   std::vector<std::string> get_all_branch_names() const; 
+  std::string get_current_file() const; 
 private: 
   typedef std::vector<std::string> Strings; 
   void SetBranchAddressPrivate(std::string name, void* branch, 
