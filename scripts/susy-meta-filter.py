@@ -4,8 +4,9 @@ import os, sys
 import argparse
 from stop.meta import DatasetCache
 from os.path import isfile
+from tempfile import TemporaryFile
 """
-Script to filter meta info. May be worth rewriting to dump to stdout. 
+Script to filter meta info. 
 """
 
 def _get_parser(): 
@@ -16,7 +17,11 @@ def _get_parser():
         )
     parser.add_argument('input_meta', nargs='+')
     parser.add_argument('-c', '--strip-cutflow', action='store_true')
-    parser.add_argument('-d', '--split-data', action='store_true')
+    parser.add_argument('-d', '--strip-data', action='store_true')
+    parser.add_argument('-s', '--strip-simulation', action='store_true')
+    parser.add_argument('-f', '--strip-filepaths', action='store_true')
+    parser.add_argument('-i', '--write-to-input', action='store_true')
+    parser.add_argument('-o', '--output')
     return parser
 
 def run(): 
@@ -30,40 +35,40 @@ def run():
         if overlap: 
             raise IOError("found repeat keys {}".format(overlap))
         original.update(new_cache)
-    data_out = 'data.yml'
-    mc_out = 'mc.yml'
-    everything_out = 'all.yml'
-    if args.split_data: 
-        data_meta = DatasetCache(data_out)
-        mc_meta = DatasetCache(mc_out)
-        everything_meta = None
-        all_outputs = [data_out, mc_out]
+
+    if not args.output: 
+        out = TemporaryFile()
     else: 
-        data_meta = None
-        mc_meta = None
-        everything_meta = DatasetCache(everything_out)
-        all_outputs = [everything_out]
+        out = args.output
+
+    output = DatasetCache(out)
         
-    if any(isfile(x) for x in all_outputs): 
-        raise IOError("won't overwrite output files {}".format(all_outputs))
+    if isinstance(out, str) and isfile(out): 
+        raise IOError("won't overwrite output file {}".format(out))
     
     for key, item in original.iteritems(): 
         if args.strip_cutflow and hasattr(item,'cutflow'): 
             del item.cutflow
-        if data_meta is not None: 
-            if item.is_data: 
-                data_meta[key] = item
-            else: 
-                mc_meta[key] = item 
-        else:
-            everything_meta[key] = item
+        if args.strip_filepaths: 
+            item.d3pds = []
+            item.skim_paths = {}
+            
+        if args.strip_data and item.is_data: 
+            continue
+        if args.strip_simulation and not item.is_data: 
+            continue
+        output[key] = item 
 
-    if data_meta: 
-        data_meta.write()
-    if mc_meta: 
-        mc_meta.write()
-    if everything_meta: 
-        everything_meta.write()
+    output.write()
+    if not args.output and not args.write_to_input: 
+        out.seek(0)
+        for line in out: 
+            print line.rstrip()
+    if args.write_to_input: 
+        with open(args.input_meta[0],'w') as outfile: 
+            out.seek(0)
+            for line in out: 
+                outfile.write(line)
 
 if __name__ == '__main__': 
     run()

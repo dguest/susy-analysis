@@ -133,8 +133,9 @@ class DatasetCache(dict):
     (hopefully that means yaml at some point)
     """
     def __init__(self, cache_name=''): 
-        self._cache_name = cache_name
-        if isfile(cache_name): 
+        self._cache = cache_name
+            
+        if isinstance(cache_name, str) and isfile(cache_name): 
             if cache_name.endswith('.pkl'): 
                 with open(cache_name) as cache: 
                     cached_dict = cPickle.load(cache)
@@ -142,12 +143,15 @@ class DatasetCache(dict):
             if cache_name.endswith('.yml'): 
                 with open(cache_name) as cache: 
                     yml_dict = yaml.load(cache)
-                for ds_key, yml_ds in yml_dict.iteritems(): 
-                    ds = Dataset()
-                    ds.from_yml(yml_ds)
-                    if ds_key != ds.key: 
-                        warn('changing ds keys in {}'.format(cache_name))
-                    self[ds.key] = ds
+                self._from_yml(yml_dict)
+
+    def _from_yml(self, yml_dict): 
+        for ds_key, yml_ds in yml_dict.iteritems(): 
+            ds = Dataset()
+            ds.from_yml(yml_ds)
+            if ds_key != ds.key: 
+                warn('changing ds keys in {}'.format(cache_name))
+            self[ds.key] = ds
 
 
     def __enter__(self): 
@@ -156,11 +160,20 @@ class DatasetCache(dict):
         if exe_type is None: 
             self.write()
 
-    def write(self, cache_name=''): 
-        if not cache_name: 
-            cache_name = self._cache_name
-            if not cache_name: 
-                raise ValueError('no file name given')
+    def write(self, cache=''): 
+        if not cache: 
+            cache = self._cache
+            if not cache: 
+                raise ValueError('no file to write to')
+            if isinstance(cache, str): 
+                self._write_to_file(cache)
+            else: 
+                out_list = [(ds.key, ds.yml_dict()) for ds in self.values()]
+                out_dict = dict(out_list)
+                cache.write(yaml.dump(out_dict))
+                
+
+    def _write_to_file(self, cache_name): 
         if cache_name.endswith('.pkl'): 
             with open(cache_name, 'w') as cache: 
                 out_dict = dict(self)
