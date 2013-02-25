@@ -108,7 +108,8 @@ class PlanePlotter(object):
             y = sr_y[sr]
             marker = {
                 'A':'^', 
-                'B':'o', 
+                'B':'s', 
+                'C':'o', 
                 }[sr[0]]
             color = self.sr_color_list[int(sr[1]) - 1]
             sc = ax.scatter(x, y, 
@@ -134,6 +135,9 @@ class PlanePlotter(object):
 def run(): 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('input_textfiles', nargs='+')
+    d = 'default: %(default)s'
+    parser.add_argument('--regions-name', default='sr.pdf', help=d)
+    parser.add_argument('--significance-name', default='sig.pdf', help=d)
     args = parser.parse_args(sys.argv[1:])
     best_sr = {}
     for f in args.input_textfiles: 
@@ -143,8 +147,8 @@ def run():
                 best_sr[key] = sr_dict[key]
     
     plotter = PlanePlotter(best_sr)
-    plotter.plot_splane('test.pdf')
-    plotter.plot_srs('srs.pdf')
+    plotter.plot_splane(args.regions_name)
+    plotter.plot_srs(args.significance_name)
         
 
 if __name__ == '__main__': 
