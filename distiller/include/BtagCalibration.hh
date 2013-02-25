@@ -27,14 +27,6 @@ public:
   typedef std::pair<double, double> CalResult; 
   BtagCalibration(std::string calibration_file, std::string file_path); 
   ~BtagCalibration(); 
-  CalResult pass_factor(double pt, double eta, 
-			btag::Flavor flavor, 
-			btag::Tagger tagger, 
-			btag::Uncertainty = btag::Total) const;
-  CalResult fail_factor(double pt, double eta, 
-			btag::Flavor flavor,
-			btag::Tagger tagger, 
-			btag::Uncertainty = btag::Total) const;
   CalResult applied_factor(const JetTagFactorInputs& jet_tf_inputs,  
 			   btag::Tagger tagger, 
 			   btag::Uncertainty = btag::Total) const; 
@@ -43,6 +35,14 @@ public:
   bool pass_anti_b(const JetTagFactorInputs& jet_tf_inputs, 
 		   btag::Tagger) const; 
 private: 
+  CalResult pass_factor(double pt, double eta, 
+			btag::Flavor flavor, 
+			btag::Tagger tagger, 
+			btag::Uncertainty = btag::Total) const;
+  CalResult fail_factor(double pt, double eta, 
+			btag::Flavor flavor,
+			btag::Tagger tagger, 
+			btag::Uncertainty = btag::Total) const;
   typedef Analysis::CalibrationDataInterfaceROOT CDI; 
   typedef Analysis::CalibrationDataVariables CalVars; 
   typedef std::map<btag::Tagger, CDI*> Interfaces;
