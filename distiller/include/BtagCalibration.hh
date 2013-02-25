@@ -27,10 +27,10 @@ public:
   typedef std::pair<double, double> CalResult; 
   BtagCalibration(std::string calibration_file, std::string file_path); 
   ~BtagCalibration(); 
-  CalResult scale_factor(double pt, double eta, 
-			 btag::Flavor flavor, 
-			 btag::Tagger tagger, 
-			 btag::Uncertainty = btag::Total) const;
+  CalResult pass_factor(double pt, double eta, 
+			btag::Flavor flavor, 
+			btag::Tagger tagger, 
+			btag::Uncertainty = btag::Total) const;
   CalResult fail_factor(double pt, double eta, 
 			btag::Flavor flavor,
 			btag::Tagger tagger, 

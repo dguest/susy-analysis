@@ -61,8 +61,6 @@ template<typename T>
 std::vector<T*> filter_susy(const std::vector<T*>&); 
 
 bool pass_mainz_ctag(const SelectedJet* jet); 
-bool pass_anti_b_ctag(const SelectedJet* jet); 
-bool pass_anti_u_ctag(const SelectedJet* jet, float cut); 
 ull_t get_ctag_bits(const std::vector<SelectedJet*>& jets); 
 
 TVector2 get_met(const SusyBuffer& buffer, 

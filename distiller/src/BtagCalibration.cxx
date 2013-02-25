@@ -38,7 +38,7 @@ BtagCalibration::~BtagCalibration() {
 }
 
 BtagCalibration::CalResult 
-BtagCalibration::scale_factor(double pt, double eta, 
+BtagCalibration::pass_factor(double pt, double eta, 
 			      btag::Flavor flavor, 
 			      btag::Tagger tagger, 
 			      btag::Uncertainty uncert) const { 
@@ -66,8 +66,8 @@ BtagCalibration::applied_factor(const JetTagFactorInputs& tf_inputs,
 				btag::Uncertainty uncertainty) const { 
 
   if (pass_anti_b(tf_inputs, tagger) && pass_anti_u(tf_inputs, tagger)) { 
-    return scale_factor(tf_inputs.pt, tf_inputs.eta, tf_inputs.flavor, 
-			tagger, uncertainty); 
+    return pass_factor(tf_inputs.pt, tf_inputs.eta, tf_inputs.flavor, 
+		       tagger, uncertainty); 
   }
   else { 
     return fail_factor(tf_inputs.pt, tf_inputs.eta, tf_inputs.flavor, 

@@ -147,15 +147,11 @@ namespace outtree {
 				 unsigned flags)
   {
     tree->Branch((prefix + "scale_factor").c_str(), &scale_factor);
-    tree->Branch((prefix + "fail_factor").c_str(), &fail_factor); 
     tree->Branch((prefix + "scale_factor_err").c_str(), &scale_factor_err);
-    tree->Branch((prefix + "fail_factor_err").c_str(), &fail_factor_err); 
   }
   void ScaleFactor::clear() { 
     scale_factor = -1; 
-    fail_factor = -1; 
     scale_factor_err = -1; 
-    fail_factor_err = -1; 
   }
 
 }; 

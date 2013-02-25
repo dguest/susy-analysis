@@ -13,9 +13,7 @@ namespace outtree {
   {
   public:
     double scale_factor; 
-    double fail_factor; 
     double scale_factor_err; 
-    double fail_factor_err; 
   private: 
     friend class Jet; 
     void set_branches(TTree*, std::string prefix, unsigned flags); 

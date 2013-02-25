@@ -120,14 +120,18 @@ void SelectedJet::set_scale_factors(btag::Flavor flavor,
     size_t n_missing = size_t(tagger) - m_scale_factor.size() + 1; 
     m_scale_factor.insert(m_scale_factor.end(), n_missing,
 			  std::make_pair(0,0) ); 
+    m_pass_anti_b_tag.insert(m_pass_anti_b_tag.end(), n_missing, false); 
+    m_pass_anti_u_tag.insert(m_pass_anti_u_tag.end(), n_missing, false); 
   }
-  if (m_fail_factor.size() <= size_t(tagger)) { 
-    size_t n_missing = size_t(tagger) - m_fail_factor.size() + 1; 
-    m_fail_factor.insert(m_fail_factor.end(), n_missing, 
-			 std::make_pair(0,0) ); 
-  }
-  m_scale_factor.at(tagger) = cal->scale_factor(Pt(), Eta(), flavor, tagger); 
-  m_fail_factor.at(tagger) = cal->fail_factor(Pt(), Eta(), flavor, tagger); 
+  JetTagFactorInputs in; 
+  in.pt = Pt(); 
+  in.eta = Eta(); 
+  in.anti_b = log(m_cnn_c / m_cnn_b); 
+  in.anti_u = log(m_cnn_c / m_cnn_u); 
+  in.flavor = flavor; 
+  m_scale_factor.at(tagger) = cal->applied_factor(in, tagger); 
+  m_pass_anti_u_tag.at(tagger) = cal->pass_anti_u(in, tagger); 
+  m_pass_anti_b_tag.at(tagger) = cal->pass_anti_b(in, tagger); 
 }
 std::pair<double, double> SelectedJet::scale_factor(btag::Tagger t) 
   const 
@@ -137,13 +141,17 @@ std::pair<double, double> SelectedJet::scale_factor(btag::Tagger t)
   }
   return m_scale_factor.at(t); 
 }
-std::pair<double, double> SelectedJet::fail_factor(btag::Tagger t) 
-  const 
-{
-  if (m_fail_factor.size() <= size_t(t)) { 
-    throw std::out_of_range("tried to access undefined fail factor"); 
+bool SelectedJet::pass_anti_u(btag::Tagger t) const { 
+  if (m_pass_anti_u_tag.size() <= size_t(t)) { 
+    throw std::out_of_range("tried to access undefined scale factor"); 
   }
-  return m_fail_factor.at(t); 
+  return m_pass_anti_u_tag.at(t); 
+}
+bool SelectedJet::pass_anti_b(btag::Tagger t) const { 
+  if (m_pass_anti_b_tag.size() <= size_t(t)) { 
+    throw std::out_of_range("tried to access undefined scale factor"); 
+  }
+  return m_pass_anti_b_tag.at(t); 
 }
 
 EventJets::EventJets(const SusyBuffer& buffer, SUSYObjDef& def, 
