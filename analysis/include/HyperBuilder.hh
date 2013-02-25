@@ -5,6 +5,7 @@
 #include <map>
 #include <vector> 
 #include <boost/noncopyable.hpp>
+#include "typedefs.hh"
 
 class JetFactory; 
 class Histogram; 
@@ -19,7 +20,7 @@ class HyperBuilder : public boost::noncopyable
 public: 
   HyperBuilder(std::string input, const unsigned flags = 0); 
   ~HyperBuilder(); 
-  void add_cut_mask(std::string name, unsigned bits, unsigned antibits = 0); 
+  void add_cut_mask(std::string name, ull_t bits, ull_t antibits = 0); 
   int build(); 
   void save(std::string output = ""); 
   void set_float(std::string, double); 
@@ -27,7 +28,7 @@ private:
   void init(std::string input, const unsigned flags = 0); 
   std::map<std::string, double> get_jet_vars(const std::vector<Jet>&) const; 
   int int_from_double(double) const; 
-  typedef std::vector<std::pair<std::string, unsigned> > CutMasks; 
+  typedef std::vector<std::pair<std::string, ull_t> > CutMasks; 
   const unsigned m_flags; 
   JetFactory* m_factory;
   CutAugmenter* m_augmenter; 

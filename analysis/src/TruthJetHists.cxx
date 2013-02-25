@@ -20,8 +20,8 @@ TruthJetHists::~TruthJetHists() {
   delete m_other; 
 }
 
-void TruthJetHists::add_mask(unsigned bitmask, std::string name, 
-			     unsigned antimask) { 
+void TruthJetHists::add_mask(ull_t bitmask, std::string name, 
+			     ull_t antimask) { 
   m_bottom->add_mask(bitmask, name, antimask);  
   m_charm->add_mask(bitmask,  name, antimask);  
   m_light->add_mask(bitmask,  name, antimask);  
@@ -43,7 +43,7 @@ void TruthJetHists::write_to(H5::CommonFG& file) {
   m_other->write_to(other); 
 }
 
-void TruthJetHists::fill(const Jet& jet, unsigned mask, double w) { 
+void TruthJetHists::fill(const Jet& jet, ull_t mask, double w) { 
   int label = jet.flavor_truth_label(); 
   switch (label) { 
   case BOTTOM: 

@@ -38,8 +38,8 @@ Jet1DHists::~Jet1DHists()
 
 }
 
-void Jet1DHists::add_mask(unsigned bitmask, std::string name, 
-			  unsigned antimask) { 
+void Jet1DHists::add_mask(ull_t bitmask, std::string name, 
+			  ull_t antimask) { 
   m_pt->add_mask(bitmask,  name, antimask);       
   m_eta->add_mask(bitmask, name, antimask);      
   m_cnnLogCb->add_mask(bitmask, name, antimask); 
@@ -81,7 +81,7 @@ void Jet1DHists::write_truth_info(H5::CommonFG& truth){
   m_truth_label->write_to(label); 
 }
 
-void Jet1DHists::fill(const Jet& jet, const unsigned mask, double w) { 
+void Jet1DHists::fill(const Jet& jet, const ull_t mask, double w) { 
   m_pt->fill(jet.Pt(), mask, w); 
   m_eta->fill(jet.Eta(), mask, w); 
   m_cnnLogCu->fill(log(jet.pc() / jet.pu()), mask, w); 

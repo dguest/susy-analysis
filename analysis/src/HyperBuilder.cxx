@@ -96,8 +96,7 @@ HyperBuilder::~HyperBuilder() {
   delete m_augmenter; 
 }
 
-void HyperBuilder::add_cut_mask(std::string name, unsigned bits, 
-				unsigned antibits) 
+void HyperBuilder::add_cut_mask(std::string name, ull_t bits, ull_t antibits) 
 {
   if (antibits) throw std::logic_error("antibits not defined in " __FILE__); 
   m_cut_masks.push_back(std::make_pair(name, bits)); 
@@ -134,11 +133,11 @@ int HyperBuilder::build() {
 
     TVector2 met = m_factory->met(); 
 
-    unsigned dist_bits = m_factory->bits(); 
-    unsigned aug_bits = 0; 
+    ull_t dist_bits = m_factory->bits(); 
+    ull_t aug_bits = 0; 
     if (m_augmenter) m_augmenter->set_cutmask(aug_bits, jets, met); 
 
-    const unsigned mask = (dist_bits | aug_bits); 
+    const ull_t mask = (dist_bits | aug_bits); 
 
     std::map<std::string, double> vars = get_jet_vars(jets); 
     vars["met"] = met.Mod(); 

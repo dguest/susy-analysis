@@ -2,9 +2,10 @@
 #include <stdexcept> 
 #include "TTree.h"
 #include <boost/format.hpp>
+#include "typedefs.hh"
 
-BtagScaler::BtagScaler(TTree* tree, std::string prefix, unsigned required, 
-		       unsigned veto): 
+BtagScaler::BtagScaler(TTree* tree, std::string prefix, ull_t required, 
+		       ull_t veto): 
   m_required(required), 
   m_veto(veto)
 {
@@ -14,7 +15,7 @@ BtagScaler::BtagScaler(TTree* tree, std::string prefix, unsigned required,
   safeset(tree, prefix + "fail_factor_err", &m_fail_factor_err); 
 }
 
-double BtagScaler::get_scalefactor(unsigned evt_mask, int flavor, 
+double BtagScaler::get_scalefactor(ull_t evt_mask, int flavor, 
 				   syst::Systematic syst)
 {
   using namespace syst; 

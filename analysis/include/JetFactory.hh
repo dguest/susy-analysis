@@ -6,6 +6,7 @@
 #include "TLorentzVector.h"
 #include "HforTypeDef.hh"
 #include "systematic_defs.hh"
+#include "typedefs.hh"
 
 class Jet; 
 class TTree;
@@ -43,7 +44,7 @@ public:
   void entry(int); 
   std::vector<Jet> jets() const; 
   TVector2 met() const; 
-  unsigned bits() const; 
+  ull_t bits() const; 
   double dphi() const; 
   int n_good() const; 
   int n_susy() const; 
@@ -60,7 +61,7 @@ private:
   std::vector<JetBuffer*> m_jet_buffers; 
   double m_met; 
   double m_met_phi; 
-  unsigned m_bits; 
+  ull_t m_bits; 
   double m_dphi; 
   int m_n_good; 
   int m_n_susy; 
@@ -80,7 +81,7 @@ class Jet: public TLorentzVector
 public: 
   Jet(JetBuffer* basis, unsigned flags = 0); 
   void set_event_met(const TVector2& met); 
-  void set_event_flags(unsigned); 
+  void set_event_flags(ull_t); 
   double met_dphi() const; 
   double pb() const; 
   double pc() const; 
@@ -97,7 +98,7 @@ private:
   double m_met_dphi; 
 
   unsigned m_flags; 
-  unsigned m_event_flags; 
+  ull_t m_event_flags; 
   BtagScaler* m_btag_scaler; 
 }; 
 

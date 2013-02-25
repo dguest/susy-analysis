@@ -10,6 +10,7 @@
 #include "common_functions.hh"
 #include "H5Cpp.h"
 #include "BtagScaler.hh"
+#include "typedefs.hh"
 
 #include <string> 
 #include <stdexcept>
@@ -81,8 +82,8 @@ HistBuilder::~HistBuilder() {
   delete m_cut_augmenter; 
 }
 
-void HistBuilder::add_cut_mask(std::string name, unsigned bits, 
-			       unsigned antibits)
+void HistBuilder::add_cut_mask(std::string name, ull_t bits, 
+			       ull_t antibits)
 {
   CutMasks::const_iterator pos = m_cut_masks.find(name); 
   if (pos != m_cut_masks.end()) { 
@@ -137,7 +138,7 @@ int HistBuilder::build() {
     }
 
     const Jets jets = m_factory->jets(); 
-    unsigned mask = m_factory->bits(); 
+    ull_t mask = m_factory->bits(); 
     const TVector2 met = m_factory->met(); 
     const TLorentzVector met4(met.Px(), met.Py(), 0, 0); 
     double weight = m_factory->event_weight(); 
@@ -189,7 +190,7 @@ int HistBuilder::build() {
 }
 
 void HistBuilder::fill_truth_hists(const std::vector<Jet>& jets, 
-				   const unsigned mask, double weight) { 
+				   const ull_t mask, double weight) { 
   unsigned n_jets = jets.size(); 
   if (n_jets >= 1) m_jet1_truth->fill(jets.at(0), mask, weight); 
   if (n_jets >= 2) m_jet2_truth->fill(jets.at(1), mask, weight); 

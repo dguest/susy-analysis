@@ -132,7 +132,7 @@ TVector2 JetFactory::met()   const  {
   met.SetMagPhi(m_met, m_met_phi); 
   return met; 
 }
-unsigned JetFactory::bits() const  { return m_bits; }
+ull_t JetFactory::bits() const  { return m_bits; }
 double JetFactory::dphi()  const  { return m_dphi; }
 int JetFactory::n_good()   const  { return m_n_good; }
 int JetFactory::n_susy()   const  { return m_n_susy; }
@@ -229,7 +229,7 @@ void Jet::set_event_met(const TVector2& met) {
   TLorentzVector met_4vec(met.X(), met.Y(), 0, 1); 
   m_met_dphi = met_4vec.DeltaPhi(*this); 
 }
-void Jet::set_event_flags(unsigned evt_flags) { 
+void Jet::set_event_flags(ull_t evt_flags) { 
   m_event_flags = evt_flags; 
 } 
 double Jet::met_dphi() const {return m_met_dphi; }

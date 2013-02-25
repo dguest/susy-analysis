@@ -47,7 +47,7 @@ void CutAugmenter::set_float(std::string name, double value) {
   }
 }
 
-void CutAugmenter::set_cutmask(unsigned& added, 
+void CutAugmenter::set_cutmask(ull_t& added, 
 			       const std::vector<Jet>& jets, 
 			       const TVector2& evt_met) const { 
   if (m_met_cut > 0) { 

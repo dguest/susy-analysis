@@ -4,6 +4,7 @@
 #include <string> 
 #include <boost/noncopyable.hpp>
 #include "systematic_defs.hh"
+#include "typedefs.hh"
 
 class TTree; 
 
@@ -17,13 +18,13 @@ class BtagScaler: boost::noncopyable
 {
 public: 
   BtagScaler(TTree*, std::string prefix, 
-	     unsigned required, unsigned veto = 0); 
-  double get_scalefactor(unsigned evt_mask, int flavor, 
+	     ull_t required, ull_t veto = 0); 
+  double get_scalefactor(ull_t evt_mask, int flavor, 
 			 syst::Systematic = syst::NONE); 
 private: 
   void safeset(TTree*, std::string branch, void* address); 
-  unsigned m_required; 
-  unsigned m_veto; 
+  ull_t m_required; 
+  ull_t m_veto; 
 
   // these guys are pointed to by the tree, don't try to reset them
   double m_scale_factor; 

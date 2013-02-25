@@ -5,6 +5,7 @@
 #include <map>
 #include <vector> 
 #include <boost/noncopyable.hpp>
+#include "typedefs.hh"
 
 class JetFactory; 
 class Histogram; 
@@ -21,14 +22,14 @@ class HistBuilder : public boost::noncopyable
 public: 
   HistBuilder(std::string input, const unsigned flags = 0); 
   ~HistBuilder(); 
-  void add_cut_mask(std::string name, unsigned bits, unsigned antibits = 0); 
+  void add_cut_mask(std::string name, ull_t bits, ull_t antibits = 0); 
   int build(); 
   void save(std::string output = ""); 
   void set_float(std::string, double);
 private: 
   void fill_truth_hists(const std::vector<Jet>& jets, 
-			const unsigned mask, double weight); 
-  typedef std::map<std::string, unsigned> CutMasks; 
+			const ull_t mask, double weight); 
+  typedef std::map<std::string, ull_t> CutMasks; 
 
   const unsigned m_flags; 
 

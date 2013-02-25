@@ -5,6 +5,7 @@
 // #include <map>
 #include <vector> 
 #include <boost/noncopyable.hpp>
+#include "typedefs.hh"
 
 class Jet; 
 class TVector2; 
@@ -14,7 +15,7 @@ class CutAugmenter: public boost::noncopyable
 public: 
   CutAugmenter(); 
   void set_float(std::string, double);
-  void set_cutmask(unsigned& mask, const std::vector<Jet>&, 
+  void set_cutmask(ull_t& mask, const std::vector<Jet>&, 
 		   const TVector2& ) const; 
 private: 
   double m_leading_jet_pt_cut; 

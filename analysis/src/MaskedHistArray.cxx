@@ -9,8 +9,8 @@
 #include <cassert> 
 #include <stdexcept> 
 
-MaskedHist::MaskedHist(const Histogram& base_hist, unsigned mask, 
-		       std::string name, unsigned anti): 
+MaskedHist::MaskedHist(const Histogram& base_hist, ull_t mask, 
+		       std::string name, ull_t anti): 
   Histogram(base_hist), 
   m_mask(mask), 
   m_name(name), 
@@ -44,8 +44,8 @@ MaskedHistArray::MaskedHistArray(const Histogram& base_hist,
 }
 
 
-void MaskedHistArray::add_mask(unsigned bitmask, std::string name, 
-			       unsigned anti) 
+void MaskedHistArray::add_mask(ull_t bitmask, std::string name, 
+			       ull_t anti) 
 { 
   m_hists.push_back(MaskedHist(m_base_hist, bitmask, name, anti)); 
   assert(m_names.count(name) == 0); 
