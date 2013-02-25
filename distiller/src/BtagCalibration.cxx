@@ -24,6 +24,12 @@ BtagCalibration::BtagCalibration(std::string clb_file,
       throw std::runtime_error("btag calibration information not found"); 
     }
   }
+  m_anti_u_cuts[CNN_LOOSE] = -999; 
+  m_anti_u_cuts[CNN_MEDIUM] = -0.82; 
+  m_anti_u_cuts[CNN_TIGHT] = 1.0; 
+  m_anti_b_cuts[CNN_LOOSE]  = -1.0; 
+  m_anti_b_cuts[CNN_MEDIUM] = -1.0;
+  m_anti_b_cuts[CNN_TIGHT]  = -1.0;
 }
 
 BtagCalibration::~BtagCalibration() { 
@@ -53,6 +59,41 @@ BtagCalibration::fail_factor(double pt, double eta,
   Analysis::Uncertainty unct = get_unct(uncert); 
   return get_cdi(tagger)->getInefficiencyScaleFactor(vars, label, op, unct);
 }
+
+BtagCalibration::CalResult
+BtagCalibration::applied_factor(const JetTagFactorInputs& tf_inputs, 
+				btag::Tagger tagger, 
+				btag::Uncertainty uncertainty) const { 
+
+  if (pass_anti_b(tf_inputs, tagger) && pass_anti_u(tf_inputs, tagger)) { 
+    return scale_factor(tf_inputs.pt, tf_inputs.eta, tf_inputs.flavor, 
+			tagger, uncertainty); 
+  }
+  else { 
+    return fail_factor(tf_inputs.pt, tf_inputs.eta, tf_inputs.flavor, 
+		       tagger, uncertainty); 
+  }
+}
+
+bool BtagCalibration::pass_anti_u(const JetTagFactorInputs& tf_inputs, 
+				  btag::Tagger tagger) 
+  const { 
+  CutValue::const_iterator ucut = m_anti_u_cuts.find(tagger); 
+  if (ucut == m_anti_u_cuts.end() ) { 
+    throw std::logic_error("asked for undefined tagger in " __FILE__); 
+  }
+  return tf_inputs.anti_u > ucut->second; 
+}
+bool BtagCalibration::pass_anti_b(const JetTagFactorInputs& tf_inputs, 
+				  btag::Tagger tagger) 
+  const { 
+  CutValue::const_iterator bcut = m_anti_b_cuts.find(tagger); 
+  if (bcut == m_anti_b_cuts.end() ) { 
+    throw std::logic_error("asked for undefined tagger in " __FILE__); 
+  }
+  return tf_inputs.anti_b > bcut->second; 
+}
+
 
 // private stuff
 
