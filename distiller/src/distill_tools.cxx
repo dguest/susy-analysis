@@ -87,10 +87,10 @@ void copy_leading_jet_info(const std::vector<SelectedJet*>& signal_jets,
 
 }
 
-unsigned jet_cleaning_bit(const std::vector<SelectedJet*>& preselection_jets)
+ull_t jet_cleaning_bit(const std::vector<SelectedJet*>& preselection_jets)
 {
   typedef std::vector<SelectedJet*> Jets; 
-  unsigned pass_bits = pass::jet_clean; 
+  ull_t pass_bits = pass::jet_clean; 
   for (Jets::const_iterator jet_itr = preselection_jets.begin(); 
        jet_itr != preselection_jets.end(); 
        jet_itr++) { 
@@ -155,11 +155,11 @@ bool pass_anti_b_ctag(const SelectedJet* jet) {
 bool pass_anti_u_ctag(const SelectedJet* jet, float cut) { 
   return log(jet->pc() / jet->pu() ) > cut; 
 }
-unsigned get_ctag_bits(const std::vector<SelectedJet*>& signal_jets) 
+ull_t get_ctag_bits(const std::vector<SelectedJet*>& signal_jets) 
 { 
   const float MED = COMBNN_MED_LOG_CU_CUT; 
   const float TGT = COMBNN_TIGHT_LOG_CU_CUT; 
-  unsigned pass_bits = 0; 
+  ull_t pass_bits = 0; 
   if (signal_jets.size() >= 1) { 
     const SelectedJet* jet = signal_jets.at(0); 
     if (pass_anti_b_ctag(jet))      pass_bits |= pass::jet1_anti_b; 

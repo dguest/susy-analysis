@@ -2,6 +2,7 @@
 #define OUT_TREE_H
 
 #include <string> 
+#include "typedefs.hh"
 
 class TFile; 
 class TTree; 
@@ -54,7 +55,7 @@ namespace outtree {
     void fill(); 
     void clear_buffer(); 
   
-    unsigned pass_bits; 
+    ull_t pass_bits; 
     double met; 
     double met_phi; 
     double min_jetmet_dphi; 

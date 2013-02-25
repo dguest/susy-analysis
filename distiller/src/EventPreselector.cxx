@@ -19,8 +19,8 @@ EventPreselector::~EventPreselector() {
   m_grl = 0; 
 }
 
-unsigned EventPreselector::get_preselection_flags(const SusyBuffer& buffer) { 
-  unsigned pass_bits = 0; 
+ull_t EventPreselector::get_preselection_flags(const SusyBuffer& buffer) { 
+  ull_t pass_bits = 0; 
   if(buffer.trigger)    pass_bits |= pass::trigger; 
   if(!buffer.larError)  pass_bits |= pass::lar_error; 
 

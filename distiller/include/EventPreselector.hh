@@ -3,6 +3,7 @@
 
 #include <boost/noncopyable.hpp>
 #include <string>
+#include "typedefs.hh"
 
 class Grl; 
 class SusyBuffer; 
@@ -12,7 +13,7 @@ class EventPreselector: public boost::noncopyable
 public: 
   EventPreselector(unsigned flags, std::string grl = ""); 
   ~EventPreselector(); 
-  unsigned get_preselection_flags(const SusyBuffer& buffer); 
+  ull_t get_preselection_flags(const SusyBuffer& buffer); 
 private: 
   const unsigned m_flags; 
   Grl* m_grl; 

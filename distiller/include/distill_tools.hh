@@ -23,6 +23,7 @@ class BtagCalibration;
 #include <set>
 #include <cassert>
 #include "btag_defs.hh"
+#include "typedefs.hh"
 // fix this somehow
 // #include "OutTree.hh"
 
@@ -35,7 +36,7 @@ void copy_scale_factor(const SelectedJet*, outtree::ScaleFactor&,
 void copy_leading_jet_info(const std::vector<SelectedJet*>& signal_jets, 
 			   outtree::OutTree& out_tree); 
 
-unsigned jet_cleaning_bit(const std::vector<SelectedJet*>& preselection_jets);
+ull_t jet_cleaning_bit(const std::vector<SelectedJet*>& preselection_jets);
 
 void fill_cjet_truth(outtree::OutTree& out_tree, 
 		     const std::vector<SelectedJet*>& jets); 
@@ -62,7 +63,7 @@ std::vector<T*> filter_susy(const std::vector<T*>&);
 bool pass_mainz_ctag(const SelectedJet* jet); 
 bool pass_anti_b_ctag(const SelectedJet* jet); 
 bool pass_anti_u_ctag(const SelectedJet* jet, float cut); 
-unsigned get_ctag_bits(const std::vector<SelectedJet*>& jets); 
+ull_t get_ctag_bits(const std::vector<SelectedJet*>& jets); 
 
 TVector2 get_met(const SusyBuffer& buffer, 
 		 SUSYObjDef& def, 

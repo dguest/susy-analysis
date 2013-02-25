@@ -25,11 +25,11 @@ BitmapCutflow::BitmapCutflow(std::string first_name):
 { 
 }
 
-void BitmapCutflow::add(std::string name, unsigned mask) { 
+void BitmapCutflow::add(std::string name, ull_t mask) { 
   m_mask_name.push_back(std::make_pair(mask, name)); 
 }
 
-int BitmapCutflow::fill(const unsigned mask) { 
+int BitmapCutflow::fill(const ull_t mask) { 
   int n_passed = 0; 
   m_counter[m_first_name]++; 
   for (MaskName::const_iterator itr = m_mask_name.begin(); 

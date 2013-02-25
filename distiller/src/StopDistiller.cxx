@@ -149,7 +149,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   std::vector<Electron*> susy_electrons = filter_susy(all_electrons); 
   std::vector<Muon*> susy_muons = filter_susy(all_muons); 
 
-  unsigned pass_bits = 0; 
+  ull_t pass_bits = 0; 
 
   // --- preselection 
 
