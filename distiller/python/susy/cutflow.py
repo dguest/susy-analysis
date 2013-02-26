@@ -63,6 +63,9 @@ def cutflow(input_files, flags, grl='', output_ntuple='',
                                   btag_cal_file=btag_cal_file, 
                                   btag_cal_dir=btag_cal_dir)
                 return CorruptedCutflow(cutlist, remaining_files)
+            else: 
+                warnings.warn('removed last file in ds: {}'.format(
+                        input_files))
         raise 
 
     return cut_out
