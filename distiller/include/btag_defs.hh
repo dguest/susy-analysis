@@ -3,7 +3,7 @@
 namespace btag { 
   enum Uncertainty { None, Total, Statistical, Systematic };
   enum Tagger { CNN_LOOSE, CNN_MEDIUM, CNN_TIGHT }; 
-  enum Flavor { B, C, U, T}; 
+  enum Flavor { B, C, U, T, DATA}; 
 }
 
 

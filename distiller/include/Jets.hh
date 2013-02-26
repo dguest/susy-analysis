@@ -40,12 +40,12 @@ public:
   double pc() const; 
   int flavor_truth_label() const; 
   bool has_truth() const; 
-  void set_scale_factors(const BtagCalibration*); 
+  void set_flavor_tag(const BtagCalibration*); 
   CalResult scale_factor(btag::Tagger) const; 
   bool pass_anti_u(btag::Tagger) const; 
   bool pass_anti_b(btag::Tagger) const; 
 private: 
-  void set_scale_factors(btag::Flavor, btag::Tagger, const BtagCalibration*); 
+  void set_flavor_tag(btag::Flavor, btag::Tagger, const BtagCalibration*); 
   double m_cnn_b; 
   double m_cnn_c; 
   double m_cnn_u; 

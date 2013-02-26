@@ -226,7 +226,7 @@ void calibrate_jets(std::vector<SelectedJet*> jets,
 		    const BtagCalibration* cal) { 
   typedef std::vector<SelectedJet*> Jets; 
   for (Jets::iterator jitr = jets.begin(); jitr != jets.end(); jitr++) { 
-    (*jitr)->set_scale_factors(cal); 
+    (*jitr)->set_flavor_tag(cal); 
   }
 }
 

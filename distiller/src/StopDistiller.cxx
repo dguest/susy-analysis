@@ -161,7 +161,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   std::reverse(all_jets.begin(), all_jets.end()); 
 
   if (all_jets.size()) { 
-    all_jets.at(0)->set_scale_factors(m_btag_calibration); 
+    all_jets.at(0)->set_flavor_tag(m_btag_calibration); 
     copy_jet_info(all_jets.at(0), m_out_tree->leading_jet_uncensored); 
   }
     
@@ -219,10 +219,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
 
   // ----- object selection is done now, from here is filling outputs ---
 
-  if ( m_flags & cutflag::truth ) { 
-    calibrate_jets(signal_jets, m_btag_calibration); 
-  }
-
+  calibrate_jets(signal_jets, m_btag_calibration); 
 
   m_out_tree->n_susy_jets = preselection_jets.size(); 
   pass_bits |= jet_cleaning_bit(preselection_jets); 
@@ -355,10 +352,9 @@ void StopDistiller::setup_susytools() {
     m_def->SetJetCalib(false); 
   }
   m_event_preselector = new EventPreselector(m_flags, m_info.grl); 
-  if (m_info.btag_cal_file.size()) { 
-    m_btag_calibration = new BtagCalibration(m_info.btag_cal_file, 
-					     m_info.btag_cal_dir); 
-  }
+  m_btag_calibration = new BtagCalibration(m_info.btag_cal_file, 
+					   m_info.btag_cal_dir); 
+
 
   dup2(output_dup, fileno(stdout)); 
   close(output_dup); 

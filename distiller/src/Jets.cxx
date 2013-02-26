@@ -94,12 +94,10 @@ void SelectedJet::unset_bit(unsigned bit) {
 bool SelectedJet::has_truth() const { 
   return (m_flavor_truth_label != -1); 
 }
-void SelectedJet::set_scale_factors(const BtagCalibration* cal){ 
-  if (!has_truth() || cal == 0) { 
-    return;
-  }
+void SelectedJet::set_flavor_tag(const BtagCalibration* cal){ 
   btag::Flavor flavor;
   switch (m_flavor_truth_label) { 
+  case -1: flavor = btag::DATA; break; 
   case 0: flavor = btag::U; break;
   case 4: flavor = btag::C; break; 
   case 5: flavor = btag::B; break; 
@@ -109,13 +107,13 @@ void SelectedJet::set_scale_factors(const BtagCalibration* cal){
 		       m_flavor_truth_label).str(); 
     throw std::runtime_error(err); 
   }
-  set_scale_factors(flavor, btag::CNN_TIGHT, cal); 
-  set_scale_factors(flavor, btag::CNN_MEDIUM, cal); 
-  set_scale_factors(flavor, btag::CNN_LOOSE, cal); 
+  set_flavor_tag(flavor, btag::CNN_TIGHT, cal); 
+  set_flavor_tag(flavor, btag::CNN_MEDIUM, cal); 
+  set_flavor_tag(flavor, btag::CNN_LOOSE, cal); 
 }
-void SelectedJet::set_scale_factors(btag::Flavor flavor, 
-				    btag::Tagger tagger, 
-				    const BtagCalibration* cal) { 
+void SelectedJet::set_flavor_tag(btag::Flavor flavor, 
+				 btag::Tagger tagger, 
+				 const BtagCalibration* cal) { 
   if (m_scale_factor.size() <= size_t(tagger)) { 
     size_t n_missing = size_t(tagger) - m_scale_factor.size() + 1; 
     m_scale_factor.insert(m_scale_factor.end(), n_missing,
@@ -129,7 +127,9 @@ void SelectedJet::set_scale_factors(btag::Flavor flavor,
   in.anti_b = log(m_cnn_c / m_cnn_b); 
   in.anti_u = log(m_cnn_c / m_cnn_u); 
   in.flavor = flavor; 
-  m_scale_factor.at(tagger) = cal->applied_factor(in, tagger); 
+  if (flavor != btag::DATA) { 
+    m_scale_factor.at(tagger) = cal->applied_factor(in, tagger); 
+  }
   m_pass_anti_u_tag.at(tagger) = cal->pass_anti_u(in, tagger); 
   m_pass_anti_b_tag.at(tagger) = cal->pass_anti_b(in, tagger); 
 }

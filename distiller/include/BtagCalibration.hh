@@ -48,6 +48,7 @@ private:
   typedef std::map<btag::Tagger, CDI*> Interfaces;
   typedef std::map<btag::Tagger, std::string> Names; 
   typedef std::map<btag::Tagger, double> CutValue; 
+  void check_cdi() const; 
   std::string get_op(btag::Tagger) const; 
   CDI* get_cdi(btag::Tagger) const; 
   CalVars get_vars(double pt, double eta) const; 

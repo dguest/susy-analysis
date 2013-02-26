@@ -7,22 +7,21 @@ Analysis::Uncertainty get_unct(btag::Uncertainty);
 
 BtagCalibration::BtagCalibration(std::string clb_file, 
 				 std::string file_path): 
+  m_cnn(0), 
   m_jet_author("AntiKt4TopoLCJVF")
 {
   using namespace btag; 
-  m_cnn = new CDI("JetFitterCOMBCharm", clb_file, file_path); 
+  if (clb_file.size() && file_path.size()) { 
+    m_cnn = new CDI("JetFitterCOMBCharm", clb_file, file_path); 
+  }
   m_ops[CNN_LOOSE] = "-1_0_0_0"; 
   m_ops[CNN_MEDIUM] = "-1_0_-0_82"; 
   m_ops[CNN_TIGHT] = "-1_0_1_0"; 
   m_interfaces[CNN_LOOSE] = m_cnn; 
   m_interfaces[CNN_MEDIUM] = m_cnn; 
   m_interfaces[CNN_TIGHT] = m_cnn; 
-  for (Names::const_iterator itr = m_ops.begin(); itr != m_ops.end(); itr++){
-    if (! m_cnn->getBinnedScaleFactors(m_jet_author, 
-				       get_label(btag::B), 
-				       itr->second)) { 
-      throw std::runtime_error("btag calibration information not found"); 
-    }
+  if (m_cnn) { 
+    check_cdi(); 
   }
   m_anti_u_cuts[CNN_LOOSE] = -999; 
   m_anti_u_cuts[CNN_MEDIUM] = -0.82; 
@@ -96,6 +95,15 @@ bool BtagCalibration::pass_anti_b(const JetTagFactorInputs& tf_inputs,
 
 
 // private stuff
+void BtagCalibration::check_cdi() const { 
+  for (Names::const_iterator itr = m_ops.begin(); itr != m_ops.end(); itr++){
+    if (! m_cnn->getBinnedScaleFactors(m_jet_author, 
+				       get_label(btag::B), 
+				       itr->second)) { 
+      throw std::runtime_error("btag calibration information not found"); 
+    }
+  }
+}
 
 BtagCalibration::CDI* BtagCalibration::get_cdi(btag::Tagger t)
   const { 
