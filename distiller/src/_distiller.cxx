@@ -15,7 +15,7 @@
 
 
 static PyObject* py_distiller(PyObject *self, 
-			    PyObject *args)
+			      PyObject *args)
 {
   PyObject* py_input_files; 
   const char* flags_str = ""; 
@@ -101,10 +101,7 @@ static bool fill_run_info(PyObject* dict, RunInfo* info) {
       return false; 
     }
     std::string ckey = PyString_AsString(key); 
-    if (ckey == "run_number") {
-      if (!safe_copy(value, info->run_number)) return false; 
-    }
-    else if (ckey == "grl") { 
+    if (ckey == "grl") { 
       if (!safe_copy(value, info->grl)) return false; 
     }
     else if (ckey == "trigger") { 

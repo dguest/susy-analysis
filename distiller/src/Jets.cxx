@@ -263,7 +263,7 @@ namespace {
        flavor_truth_label, 
        buffer.averageIntPerXing,
        buffer.vx_nTracks,             
-       info.run_number, 
+       buffer.RunNumber, 
        flags & cutflag::is_data, 
        JET_PT_CUT, 	
        JET_ETA_CUT,	

@@ -20,7 +20,6 @@ def _run_distill(ds):
         syst_internal = 'NONE' if systematic == 'baseline' else systematic
         cut_counts = cutflow.cutflow(
             input_files=ds.d3pds, 
-            run_number=ds.id, 
             flags=ds.distill_flags, 
             grl=grl, 
             systematic=syst_internal, 

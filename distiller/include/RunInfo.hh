@@ -6,7 +6,6 @@
 
 struct RunInfo { 
   systematic::Systematic systematic; 
-  int run_number; 
   std::string grl; 
   std::string trigger; 
   std::string btag_cal_dir; 

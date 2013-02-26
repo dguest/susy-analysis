@@ -40,7 +40,6 @@ def cutflow(input_files, run_number, flags, grl='', output_ntuple='',
     btag_cal_file = _get_fixed_pathname(btag_cal_file)
                 
     input_dict = { 
-        'run_number':run_number, 
         'grl': grl, 
         'trigger': 'EF_xe80_tclcw_tight', 
         'btag_cal_dir':btag_cal_dir, 
@@ -59,7 +58,7 @@ def cutflow(input_files, run_number, flags, grl='', output_ntuple='',
             if remaining_files:
                 warnings.warn('removed {}, retrying'.format(bad_file))
                 
-                cutlist = cutflow(remaining_files, run_number, flags, 
+                cutlist = cutflow(remaining_files, flags, 
                                   grl, output_ntuple, 
                                   btag_cal_file=btag_cal_file, 
                                   btag_cal_dir=btag_cal_dir)
@@ -92,7 +91,7 @@ def print_raw_cutflow(input_file):
     """
     prints the raw cutflow, descending in n passing cut
     """
-    cut_counts = cutflow(input_file, run_number, 'vs')
+    cut_counts = cutflow(input_file, 'vs')
     sorted_counts = sorted(cut_counts, key=lambda cut: cut[1], reverse=True)
     for name, count in sorted_counts: 
         print '{:>20}: {}'.format(name,count)

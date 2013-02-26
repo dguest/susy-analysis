@@ -18,7 +18,6 @@ int main(int narg, char* argv[])
   }
 
   RunInfo info; 
-  info.run_number = 180614; 
   // info.grl = "grl.xml"; 
   info.trigger = "EF_xe80_tclcw_tight";
   srand(0); 
