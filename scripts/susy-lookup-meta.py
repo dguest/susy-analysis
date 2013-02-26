@@ -57,9 +57,10 @@ def run():
 
     text_in = args.steering_file.endswith('.txt')
     if os.path.isfile(args.output_pickle) and not args.f: 
-        sys.exit(
-            'output {} exists already, refusing to overwrite'.format(
-                args.output_pickle))
+        if not args.write_steering or args.a: 
+            sys.exit(
+                'output {} exists already, refusing to overwrite'.format(
+                    args.output_pickle))
 
     mf = MetaFactory(args.steering_file)
     mf.clear_ami = args.clear_ami
@@ -84,6 +85,7 @@ def run():
         with open(args.write_steering, 'w') as st: 
             for ds in mf.get_found_full_ds_names(): 
                 st.write(ds.strip('/') + '/\n')
+        return 
     if args.a: 
         mf.lookup_ami(stream=sys.stdout)
     if args.dump: 
