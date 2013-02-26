@@ -90,7 +90,7 @@ class LocalSkimmer(object):
     script_name = 'skimmer.py'
     def __init__(self, all_the_cuts=''): 
         self.all_the_cuts = all_the_cuts
-    def __enter__(self, all_the_cuts): 
+    def __enter__(self): 
         if os.path.isfile(self.script_name): 
             os.remove(self.script_name)
         self.write()

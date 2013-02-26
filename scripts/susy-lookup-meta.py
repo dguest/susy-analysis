@@ -24,7 +24,7 @@ def _get_parser():
 
     def_meta = 'meta.yml'
     defaults = { 
-        'output_pickle': def_meta, 
+        'output_pickle': None, 
         'steering_file': def_meta
         }
     
@@ -55,7 +55,11 @@ def _get_parser():
 def run(): 
     args = _get_parser().parse_args(sys.argv[1:])
 
-    text_in = args.steering_file.endswith('.txt')
+    if not args.output_pickle: 
+        if args.steering_file.endswith('.yml'): 
+            args.output_pickle = args.steering_file
+        else: 
+            args.output_pickle = 'meta.yml'
     if os.path.isfile(args.output_pickle) and not args.f: 
         if not args.write_steering or args.a: 
             sys.exit(
