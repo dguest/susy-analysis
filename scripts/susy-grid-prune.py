@@ -51,7 +51,7 @@ def submit_ds(ds_name, debug=False, version=3, used_vars='used_vars.txt'):
     ps.communicate()
     return out_ds
 
-_skimmer = """
+_skimmer = r"""
 import sys
 from ROOT import TChain, TFile, TTree
 
@@ -76,10 +76,10 @@ set_branches = open('set-branches.txt','w')
 for branch in branches: 
     print 'setting', branch.strip()
     susy_chain.SetBranchStatus(branch.strip(), 1)
-    set_branches.write(branch.strip())
+    set_branches.write(branch.strip() + '\n')
 set_branches.close()
 
-out_susy = susy_chain.CloneTree()
+out_susy = susy_chain.CopyTree('{all_the_cuts}')
 out_collection = collection_chain.CloneTree()
 
 out_file.WriteTObject(out_susy)
@@ -88,16 +88,40 @@ out_file.WriteTObject(out_collection)
 
 class LocalSkimmer(object): 
     script_name = 'skimmer.py'
-    def __init__(self): 
+    def __init__(self, all_the_cuts=''): 
+        self.all_the_cuts = all_the_cuts
+    def __enter__(self, all_the_cuts): 
         if os.path.isfile(self.script_name): 
             os.remove(self.script_name)
+        self.write()
+    def write(self): 
         with open(self.script_name,'w') as sk: 
-            sk.write(_skimmer)
-    def __enter__(self): 
+            sk.write(_skimmer.format(all_the_cuts=self.all_the_cuts))
         return self
     def __exit__(self, ex_type, ex_val, trace): 
         os.remove(self.script_name)
         
+def get_config(config_name): 
+    config = SafeConfigParser()
+    config.read([config_name])
+    if not config.has_section('version'): 
+        config.add_section('version')
+        config.set('version','version','0')
+    if not config.has_section('variables'): 
+        config.add_section('variables')
+        config.set('variables','varlist',args.varlist)
+    if not config.has_section('cuts'): 
+        config.add_section('cuts')
+        config.set('cuts', 'met_low', '70000')
+    return config
+
+def get_cuts_and_vars(cuts_dict): 
+    cuts = []
+    variables = []
+    if 'met_low' in cuts_dict: 
+        cuts.append('MET_RefFinal_et > {}'.format(cuts_dict['met_low']))
+        variables.append('MET_RefFinal_et')
+    return ' && '.join(cuts), variables
 
 if __name__ == '__main__': 
     parser = argparse.ArgumentParser(description=__doc__)
@@ -113,34 +137,34 @@ if __name__ == '__main__':
                         'default: %(default)s')
     parser.add_argument('--config', default='submit.cfg', 
                         help='default: %(default)s')
+    parser.add_argument('--get-slimmer', action='store_true')
     args = parser.parse_args()
 
-    config = SafeConfigParser()
-    config.read([args.config])
-    if not config.has_section('version'): 
-        config.add_section('version')
-        config.set('version','version','0')
+
+    config = get_config(args.config)
+    if not os.path.isfile(args.config): 
+        print 'writing config'
         with open(args.config,'w') as cfg: 
             config.write(cfg)
-    if not config.has_section('variables'): 
-        config.add_section('variables')
-        config.set('variables','varlist',args.varlist)
+        sys.exit('wrote config, exiting')
+
+    cuts, add_vars = get_cuts_and_vars(dict(config.items('cuts')))
+
+    if args.get_slimmer: 
+        LocalSkimmer(cuts).write()
+        sys.exit('got skimmer, exiting...')
 
     if not find_executable('prun'): 
         raise OSError("prun isn't defined, you need to set it up")
-
 
     version = config.getint('version', 'version')
     config.set('version','version',str(version + 1))
 
     used_vars = config.get('variables','varlist')
-
     datasets = []
-
 
     if not os.path.isfile(used_vars): 
         sys.exit('you need {}!'.format(used_vars))
-
 
     if args.ds_list: 
         with open(args.ds_list) as ds_list: 
@@ -160,14 +184,15 @@ if __name__ == '__main__':
             return submit_ds(ds, args.debug, version, used_vars=used_vars)
 
         pool = Pool(10)
-        with LocalSkimmer(): 
+        with LocalSkimmer(cuts): 
             output_datasets = pool.map(submit, datasets)
         for ds in output_datasets: 
             output_datasets_list.write(ds + '\n')
     else: 
             
         for ds in datasets: 
-            out_ds = submit_ds(ds, args.debug, version)
+            with LocalSkimmer(cuts): 
+                out_ds = submit_ds(ds, args.debug, version)
             output_datasets_list.write(out_ds + '\n')
 
     # record version if things worked
