@@ -152,7 +152,7 @@ class DatasetCache(dict):
             ds = Dataset()
             ds.from_yml(yml_ds)
             if ds_key != ds.key: 
-                warn('changing ds keys in {}'.format(cache_name))
+                warn('changing ds keys in {}'.format(self._cache))
             self[ds.key] = ds
 
 
