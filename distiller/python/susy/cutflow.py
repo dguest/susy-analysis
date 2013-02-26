@@ -7,7 +7,7 @@ class CorruptedCutflow(list):
         self.files_used = files_used
 
 
-def cutflow(input_files, run_number, flags, grl='', output_ntuple='', 
+def cutflow(input_files, flags, grl='', output_ntuple='', 
             btag_cal_file='', btag_cal_dir='', systematic='NONE'): 
     """
     Returns a list of pairs: (cut_name, n_passing). If output_ntuple is 
