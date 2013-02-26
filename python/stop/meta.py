@@ -115,6 +115,8 @@ class Dataset(object):
             warn("not sure if ds with id {} is mc or data".format(self.id))
             char = 'q'
         ds_id = self.id
+        if isinstance(ds_id, str): 
+            ds_id = ds_id[0].upper() + ds_id[1:]
         return '{}{}'.format(char, ds_id)
     @property
     def is_data(self): 
@@ -284,7 +286,10 @@ class MetaFactory(object):
         try: 
             return int(ds_id)
         except ValueError: 
-            return ds_id[0].upper() + ds_id[1:]
+            if not isinstance(ds_id, str): 
+                raise ValueError(
+                    "ds id {} should be an int or string".format(ds_id))
+            return ds_id
 
     def _find_tag(self, field): 
         mc_re = re.compile('e[0-9]+(_[asr][0-9]+)+_p[0-9]+')
