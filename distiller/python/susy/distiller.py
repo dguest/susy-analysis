@@ -3,6 +3,7 @@ from susy import cutflow
 import re, os, glob, sys
 from os.path import isdir, join, isfile, expanduser
 from multiprocessing import Pool
+from warnings import warn
 
 def _run_distill(ds): 
     """
@@ -51,6 +52,7 @@ def _run_distill(ds):
             ]
         if any(bad_file_strings): 
             ds.bugs.add('bad files')
+            warn(er)
         else: 
             raise
 
