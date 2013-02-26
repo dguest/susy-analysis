@@ -196,7 +196,6 @@ if __name__ == '__main__':
     parser.add_argument('--full-log', default='full-ds-submit.log')
     args = parser.parse_args()
 
-
     config = get_config(args.config)
     if not os.path.isfile(args.config): 
         print 'writing config'
