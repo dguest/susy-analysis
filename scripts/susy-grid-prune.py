@@ -9,9 +9,10 @@ Creates a skimmer.py in the current directory.
 import sys, os, re
 import argparse
 from subprocess import Popen, PIPE
-from multiprocessing import Pool
+from multiprocessing import Pool, Process, Queue
 from distutils.spawn import find_executable
 from ConfigParser import SafeConfigParser
+import yaml
 
 def _get_ptag(ds_name): 
     return re.compile('_p([0-9]{3,5})').search(ds_name).group(1)
@@ -21,7 +22,8 @@ def _strip_front(ds_name):
         return _strip_front('.'.join(ds_name.split('.')[1:]))
     return ds_name
 
-def submit_ds(ds_name, debug=False, version=3, used_vars='used_vars.txt'): 
+def submit_ds(ds_name, debug=False, version=3, used_vars='used_vars.txt', 
+              out_talk=None, in_tar=None): 
 
     user = os.path.expandvars('$USER')
     preskim_name = _strip_front(ds_name)
@@ -40,6 +42,8 @@ def submit_ds(ds_name, debug=False, version=3, used_vars='used_vars.txt'):
         '--extFile={}'.format(used_vars), 
         '--athenaTag=17.2.1', 
         ]
+    if in_tar: 
+        input_args.append('--inTarBal={}'.format(in_tar))
 
     exec_string = run_string
 
@@ -47,9 +51,11 @@ def submit_ds(ds_name, debug=False, version=3, used_vars='used_vars.txt'):
     submit_string = ['prun','--exec',exec_string] + input_args
     if debug:
         submit_string = ['echo'] + submit_string
-    ps = Popen(submit_string)
-    ps.communicate()
-    return out_ds
+    ps = Popen(submit_string, stdout=PIPE, stderr=PIPE)
+    out, err = ps.communicate()
+    if out_talk: 
+        out_talk.put(out + err)
+    return out_ds, out, err
 
 _skimmer = r"""
 import sys
@@ -88,18 +94,38 @@ out_file.WriteTObject(out_collection)
 
 class LocalSkimmer(object): 
     script_name = 'skimmer.py'
-    def __init__(self, all_the_cuts=''): 
+    def __init__(self, vars_file, all_the_cuts='', tarball=None): 
         self.all_the_cuts = all_the_cuts
+        self.vars_file = vars_file
+        self.tarball = tarball
     def __enter__(self): 
         if os.path.isfile(self.script_name): 
             os.remove(self.script_name)
         self.write()
+        if self.tarball: 
+            self.tar()
     def write(self): 
         with open(self.script_name,'w') as sk: 
             sk.write(_skimmer.format(all_the_cuts=self.all_the_cuts))
         return self
+    def tar(self): 
+        user = os.path.expandvars('$USER')
+        input_args = [
+            '--exec="echo"', 
+            '--outDS=user.{}.nothing/'.format(user),
+            '--excludeFile=*.tar,*.log,*.sh,*.out,*.root',
+            '--extFile={}'.format(self.vars_file), 
+            '--outTarBall={}'.format(self.tarball), 
+            '--noSubmit', 
+            ]
+        submit_string = ['prun'] + input_args
+        ps = Popen(submit_string)
+        ps.communicate()
+        
     def __exit__(self, ex_type, ex_val, trace): 
         os.remove(self.script_name)
+        if self.tarball: 
+            os.remove(self.tarball)
         
 def get_config(config_name): 
     config = SafeConfigParser()
@@ -123,6 +149,35 @@ def get_cuts_and_vars(cuts_dict):
         variables.append('MET_RefFinal_et')
     return ' && '.join(cuts), variables
 
+class Reporter(Process): 
+    def __init__(self, n_datasets): 
+        super(Reporter,self).__init__()
+        self.queue = Queue()
+        self.n_datasets = n_datasets
+        self.n_answer = 0
+        self.output = sys.stdout
+        
+    def run(self): 
+        not_dead = True
+        while not_dead: 
+            message = self.queue.get()
+            if message.lower() == 'kill': 
+                not_dead = False
+                continue
+            else: 
+                self.n_answer += 1
+                self.output.write(
+                    '\r{} of {} done'.format(self.n_answer, self.n_datasets))
+                self.output.flush()
+        self.output.write('\n')
+    def close(self): 
+        """
+        to be called externally
+        """
+        self.queue.put('kill')
+        self.queue.close()
+        self.join()
+
 if __name__ == '__main__': 
     parser = argparse.ArgumentParser(description=__doc__)
 
@@ -130,7 +185,7 @@ if __name__ == '__main__':
     parser.add_argument('--debug', action='store_true')
     parser.add_argument('--mono', action='store_true',
                         help="don't multiprocess")
-    parser.add_argument('--out-name', default='output_datasets.txt', 
+    parser.add_argument('--out-name', default='output-datasets.txt', 
                         help='default: %(default)s')
     parser.add_argument('--varlist', default='used_vars.txt', 
                         help='list of variables to include '
@@ -138,6 +193,7 @@ if __name__ == '__main__':
     parser.add_argument('--config', default='submit.cfg', 
                         help='default: %(default)s')
     parser.add_argument('--get-slimmer', action='store_true')
+    parser.add_argument('--full-log', default='full-ds-submit.log')
     args = parser.parse_args()
 
 
@@ -178,20 +234,34 @@ if __name__ == '__main__':
             datasets.append(ds_name.strip())
 
     output_datasets_list = open(args.out_name,'w')
-
+    out_log = open(args.full_log,'w')
+    tarball = 'jobtar.tar'
     if not args.mono:
+        reporter = Reporter(len(datasets))
+        reporter.start()
         def submit(ds): 
-            return submit_ds(ds, args.debug, version, used_vars=used_vars)
+            return submit_ds(ds, args.debug, version, 
+                             used_vars=used_vars, 
+                             out_talk=reporter.queue, 
+                             in_tar=tarball)
 
         pool = Pool(10)
-        with LocalSkimmer(cuts): 
-            output_datasets = pool.map(submit, datasets)
+        with LocalSkimmer(used_vars, cuts, tarball=tarball): 
+            out_tuples = pool.map(submit, datasets)
+        reporter.close()
+        output_datasets = [ds for ds, out, err in out_tuples]
         for ds in output_datasets: 
             output_datasets_list.write(ds + '\n')
+        for ds, out, err in out_tuples: 
+            out_log.write('--- {} ---\n'.format(ds))
+            out_log.write(err)
+            out_log.write(out)
+            out_log.write('\n')
+                          
     else: 
             
         for ds in datasets: 
-            with LocalSkimmer(cuts): 
+            with LocalSkimmer(used_vars, cuts, tarball=tarball): 
                 out_ds = submit_ds(ds, args.debug, version)
             output_datasets_list.write(out_ds + '\n')
 
