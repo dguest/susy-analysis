@@ -4,7 +4,7 @@ A simpler distillation script.
 """
 
 from susy.distiller import Distiller
-import argparse 
+import argparse
 # from ConfigParser import SafeConfigParser as Config
 import sys
 from os.path import isfile, isdir
@@ -26,20 +26,21 @@ def run():
         help='update meta only, don\'t rerun distiller')
     parser.add_argument('-a','--aggressive', action='store_true', 
                         help='remove bad files and retry')
+    parser.add_argument('-i', action='store_true', help='save sparticle id')
     parser.add_argument(
         '-n','--ncore', default=1, const=cpu_count(), nargs='?', 
         help='run multicore (no arg defaults to number of machine cpu)')
     parser.add_argument('--d3pd-dir', default='D3PDs',
                         help='input d3pd directory' + dp)
     parser.add_argument('--grl', default='')
-    parser.add_argument('--calibration-dir', default='~/calibration')
+    parser.add_argument('--calibration-dir', default='~/calibration', 
+                        help=dp)
     parser.add_argument(
         '--systematic', default='baseline', 
         choices={'baseline', 'JESUP', 'JESDOWN'})
     parser.add_argument(
         '-o','--out-dir', 
         help='output directory (defaults to lowercase systematic)')
-    parser.add_argument('-i', action='store_true', help='save sparticle id')
     args = parser.parse_args(sys.argv[1:])
 
     if not args.out_dir: 

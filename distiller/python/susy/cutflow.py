@@ -1,4 +1,3 @@
-import _distiller 
 import warnings
 from os.path import isfile, isdir, expanduser, expandvars
 
@@ -50,6 +49,7 @@ def cutflow(input_files, run_number, flags, grl='', output_ntuple='',
         }
 
     try: 
+        import _distiller 
         cut_out = _distiller._distiller(
             input_files, input_dict, flags, output_ntuple)
     except RuntimeError as er: 
