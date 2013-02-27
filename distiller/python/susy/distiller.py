@@ -45,14 +45,15 @@ def _run_distill(ds):
             ds.bugs.add('bad files')
         else: 
             ds.bugs -= set(['bad files'])
+        if hasattr(ds,'missing_branch'): 
+            del ds.missing_branch
     except RuntimeError as er: 
-        bad_file_strings = [ 
-            'bad file:' in str(er), 
-            'missing branch:' in str(er), 
-            ]
-        if any(bad_file_strings): 
+        if 'bad file:' in str(er): 
             ds.bugs.add('bad files')
-            warn(er)
+            ds.n_corrupted_files = len(ds.d3pds)
+            warn(str(er))
+        elif 'missing branch:' in str(er): 
+            ds.missing_branch = str(er).split(':')[-1].strip()
         else: 
             raise
 
