@@ -166,9 +166,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   }
     
   Jets preselection_jets; 
-  for (EventJets::const_iterator jet_itr = all_jets.begin(); 
-       jet_itr != all_jets.end(); 
-       jet_itr++) {
+  for (auto jet_itr = all_jets.begin(); jet_itr != all_jets.end(); jet_itr++) {
     const SelectedJet& jet = **jet_itr; 
     bool is_low_pt = (jet.bits() & jetbit::low_pt); 
     bool is_high_eta = (jet.bits() & jetbit::high_eta); 
@@ -186,7 +184,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   remove_overlaping(preselection_jets, susy_electrons, REMOVE_EL_CONE); 
   remove_overlaping(preselection_jets, susy_muons, REMOVE_MU_CONE); 
 
-  for (std::vector<double>::const_iterator dr_itr = jet_dr.begin(); 
+  for (auto dr_itr = jet_dr.begin(); 
        dr_itr != jet_dr.end(); dr_itr++) { 
     dbg_stream << "evt " << m_susy_buffer->EventNumber 
 	       << ", removed jet -- dR = " 

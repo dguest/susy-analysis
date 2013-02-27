@@ -41,8 +41,8 @@ PY_LIB   +=   $(shell $(PY_CONFIG) --libs)
 
 
 # --- set compiler and flags (roll c options and include paths together)
-CXX          := g++
-CXXFLAGS     := -O2 -Wall -fPIC -I$(INC) $(SUSY_INC:%=-I%) -g
+CXX          := g++44
+CXXFLAGS     := -O2 -Wall -fPIC -I$(INC) $(SUSY_INC:%=-I%) -g -std=c++0x
 LDFLAGS      := -Wl,-no-undefined
 LIBS         := $(shell ./map_libs.sh -l $(ROOTCORE_ROOT))
 
@@ -102,7 +102,7 @@ $(DICT)/%Dict.cxx: %.h LinkDef.hh
 $(BIN)/%Dict.o: $(DICT)/%Dict.cxx 
 	@mkdir -p $(BIN)
 	@echo compiling dict $@
-	@$(CC) $(CXXFLAGS) $(ROOTCFLAGS) -c $< -o $@
+	@$(CXX) $(CXXFLAGS) $(ROOTCFLAGS) -c $< -o $@
 
 # compile rule
 $(BIN)/%.o: %.cxx
@@ -123,7 +123,7 @@ DEPTARGSTR = -MT $(BIN)/$*.o -MT $(DEP)/$*.d
 $(DEP)/%.d: %.cxx
 	@echo making dependencies for $<
 	@mkdir -p $(DEP)
-	@$(CXX) -MM -MP $(DEPTARGSTR) $(CXXFLAGS) $< -o $@ 
+	@$(CXX) -MM -MP $(DEPTARGSTR) $(CXXFLAGS) $(PY_FLAGS) $< -o $@ 
 
 # clean
 .PHONY : clean rmdep
