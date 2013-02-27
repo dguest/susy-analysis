@@ -32,6 +32,12 @@ def cutflow(input_files, flags, grl='', output_ntuple='',
     if isinstance(input_files, str): 
         input_files = [input_files]
 
+    assert isinstance(flags, str)
+    assert isinstance(grl, str)
+    assert isinstance(btag_cal_dir, str)
+    assert isinstance(btag_cal_file, str)
+    assert isinstance(systematic, str)
+
     if not input_files: 
         raise IOError("can't run cutflow, input files don't exist")
 
