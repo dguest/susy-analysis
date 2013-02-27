@@ -7,15 +7,15 @@ class FakeMetEstimator;
 class SelectedJet;
 class TFile; 
 class TVector2; 
-class RunInfo; 
+struct RunInfo; 
 namespace outtree { 
   class OutTree; 
   class Jet; 
   class ScaleFactor; 
 }; 
 class BtagCalibration; 
+class TLorentzVector; 
 
-#include "TLorentzVector.h"
 // #include "TChain.h"
 #include <vector> 
 #include <string> 

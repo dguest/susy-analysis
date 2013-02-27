@@ -10,7 +10,7 @@
 class JetFactory; 
 class Histogram; 
 class MaskedHistArray; 
-class Axis; 
+struct Axis; 
 class Jet; 
 class CutAugmenter; 
 

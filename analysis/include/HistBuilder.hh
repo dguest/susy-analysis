@@ -11,7 +11,7 @@ class JetFactory;
 class Histogram; 
 class MaskedHistArray; 
 class TruthJetHists; 
-class Axis; 
+struct Axis; 
 class Jet1DHists; 
 class Jet; 
 class TVector2; 

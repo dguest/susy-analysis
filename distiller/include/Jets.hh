@@ -8,7 +8,7 @@
 class EventJets; 
 class SusyBuffer; 
 class SUSYObjDef; 
-class RunInfo; 
+struct RunInfo; 
 class BtagCalibration; 
 
 namespace jetbit { 

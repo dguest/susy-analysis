@@ -7,7 +7,7 @@ class EventElectrons;
 class EventMuons; 
 class SusyBuffer; 
 class SUSYObjDef; 
-class RunInfo; 
+struct RunInfo; 
 
 class Electron: public TLorentzVector 
 { 
