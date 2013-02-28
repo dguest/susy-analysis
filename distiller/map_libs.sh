@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 
 USE_LIBS="
- SUSYTools ApplyJetCalibration CalibrationDataInterface egammaAnalysisUtils\
- egammaEvent GoodRunsLists JetResolution JetSelectorTools JetUncertainties\
+ SUSYTools GoodRunsLists\
+ ApplyJetResolutionSmearing ApplyJetCalibration CalibrationDataInterface\
+ egammaAnalysisUtils\
+ egammaEvent JetResolution JetSelectorTools JetUncertainties\
  MissingETUtility MuonEfficiencyCorrections MuonMomentumCorrections\
  ObjectSelectorCore PileupReweighting ReweightUtils\
- TrigRootAnalysis TauCorrections ApplyJetResolutionSmearing\
+ TrigRootAnalysis TauCorrections\
  TrigMuonEfficiency ElectronEfficiencyCorrection PATCore"
 
 USE_HEADER="SUSYTools MissingETUtility egammaAnalysisUtils GoodRunsLists\
