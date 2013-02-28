@@ -46,7 +46,7 @@ def cutflow(input_files, flags, grl='', output_ntuple='',
     if not input_files: 
         raise IOError("can't run cutflow, input files don't exist")
 
-    grl = _get_fixed_pathname(join(cal_dir,grl)) 
+    grl = _get_fixed_pathname(grl) 
     cal_dir = _get_fixed_pathname(cal_dir)
     btag_cal_file = _get_fixed_pathname(btag_cal_file)
                 

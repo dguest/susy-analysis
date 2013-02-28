@@ -81,17 +81,16 @@ class Distiller(object):
             self.verbose = True
 
         self.setup_work_area()
-        try: 
-            self.grl = config.grl
-            if self.grl and not isfile(self.grl): 
-                raise IOError("GRL {} doesn't exist".format(self.grl))
-        except AttributeError: 
-            self.grl = ''
         
         self.calibration_dir = expanduser(config.calibration_dir)
         if not isdir(self.calibration_dir): 
             raise IOError("Calibration dir {} doesn't exist".format(
                     self.calibration_dir))
+        self.grl = ''
+        if hasattr(config, 'grl')
+            self.grl = config.grl
+            if not isfile(join(self.calibration_dir,self.grl): 
+                raise IOError("GRL {} doesn't exist".format(self.grl))
 
         try: 
             self.ncore = config.ncore
@@ -184,6 +183,7 @@ class Distiller(object):
 
     def prepare_dataset_meta(self, systematic='baseline'):
         btag_env = join(self.calibration_dir, self.btag_env)
+        grl = join(self.calibration_dir, self.grl)
         if not isfile(btag_env): 
             raise IOError("{} not found".format(btag_env))
         
@@ -195,7 +195,7 @@ class Distiller(object):
                 ds.need_rerun = self._needs_rerun(ds, systematic)
                 ds.calibration_dir = self.calibration_dir
                 if ds.origin.startswith('data'): 
-                    ds.grl = self.grl
+                    ds.grl = grl
                     ds.btag_env = ''
                 else: 
                     ds.grl = ''
