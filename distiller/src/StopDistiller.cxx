@@ -44,6 +44,7 @@ StopDistiller::StopDistiller(const std::vector<std::string>& in,
   m_flags(flags), 
   m_out_ntuple_name(out), 
   m_susy_dbg_file("susy-debug.txt"), 
+  m_required_for_save(0), 
   m_norm_dbg_file(0), 
   m_null_file(new std::ofstream("/dev/null")), 
   m_chain(0), 
@@ -265,7 +266,12 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
 
   m_out_tree->event_number = m_susy_buffer->EventNumber; 
 
-  m_out_tree->fill(); 
+  if (m_flags & cutflag::save_all_events) { 
+    m_out_tree->fill(); 
+  }
+  else if ( (pass_bits & m_required_for_save) == m_required_for_save) { 
+    m_out_tree->fill(); 
+  }
 
 }
 
@@ -275,9 +281,9 @@ void StopDistiller::setup_flags() {
     if (m_flags & cutflag::spartid) { 
       throw std::logic_error("sparticle ID and data flags cannot coexist"); 
     }
-  }
-  else{ 
-    m_flags |= cutflag::truth; 
+    if (m_flags & cutflag::truth) { 
+      throw std::logic_error("truth and data flags cannot coexist"); 
+    }
   }
 
 }
@@ -373,7 +379,13 @@ void StopDistiller::setup_outputs() {
   m_cutflow->add("dphi_jetmet_min"       , pass::dphi_jetmet_min);
   m_cutflow->add("lepton_veto"           , pass::lepton_veto    );
   m_cutflow->add("ctag_mainz"            , pass::ctag_mainz     ); 
-
+  ull_t preselection = pass::grl | pass::trigger | pass::core | 
+    pass::lar_error; 
+  m_required_for_save = preselection; 
+  m_required_for_save |= pass::jet_clean; 
+  m_required_for_save |= pass::vxp_gt_4trk; 
+  m_required_for_save |= pass::leading_jet | pass::met; 
+  m_required_for_save |= pass::n_jet; 
 }
 
 

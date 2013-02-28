@@ -151,11 +151,12 @@ public :
 
   double sharktopus; 
 
-  SusyBuffer(SmartChain *tree, unsigned& use_branches, 
+  SusyBuffer(SmartChain *tree, const unsigned use_branches, 
 	     BranchNames names );
 
 private: 
-  void set_mc_branches(SmartChain* chain, unsigned& br, std::string jc); 
+  void set_mc_branches(SmartChain* chain, const unsigned br, 
+		       std::string jc); 
 };
 
 #endif

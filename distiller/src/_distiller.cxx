@@ -75,16 +75,23 @@ static PyObject* py_distiller(PyObject *self,
 static unsigned get_flags(const char* flags_str) 
 {
   unsigned flags = 0; 
-  if (strchr(flags_str,'v')) flags |= cutflag::verbose; 
-  if (strchr(flags_str,'d')) flags |= cutflag::is_data; 
-  if (strchr(flags_str,'p')) flags |= cutflag::use_low_pt_jets; 
+  // flag 'a' is reserved for 'aggressive'
   if (strchr(flags_str,'b')) flags |= cutflag::debug_susy; 
-  if (strchr(flags_str,'r')) flags |= cutflag::save_ratios; 
-  if (strchr(flags_str,'f')) flags |= cutflag::is_atlfast; 
   if (strchr(flags_str,'c')) flags |= cutflag::jetfitter_charm; 
-  if (strchr(flags_str,'m')) flags |= cutflag::mv3; 
-  if (strchr(flags_str,'i')) flags |= cutflag::spartid; 
+  if (strchr(flags_str,'d')) {
+    flags |= cutflag::is_data; 
+  }
+  else { 
+    flags |= cutflag::truth; 
+  }
+  if (strchr(flags_str,'e')) flags |= cutflag::save_all_events; 
+  if (strchr(flags_str,'f')) flags |= cutflag::is_atlfast; 
   if (strchr(flags_str,'g')) flags |= cutflag::get_branches; 
+  if (strchr(flags_str,'i')) flags |= cutflag::spartid; 
+  if (strchr(flags_str,'m')) flags |= cutflag::mv3; 
+  if (strchr(flags_str,'p')) flags |= cutflag::use_low_pt_jets; 
+  if (strchr(flags_str,'r')) flags |= cutflag::save_ratios; 
+  if (strchr(flags_str,'v')) flags |= cutflag::verbose; 
   return flags; 
 }
 

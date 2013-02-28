@@ -7,7 +7,8 @@
 #include "SmartChain.hh"
 #include "RunBits.hh"
 
-SusyBuffer::SusyBuffer(SmartChain *fChain, unsigned& br, BranchNames names)
+SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br, 
+		       BranchNames names)
 {
 
   using namespace cutflag; 
@@ -183,26 +184,16 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, unsigned& br, BranchNames names)
 }
 
 void SusyBuffer::set_mc_branches(SmartChain* chain, 
-				 unsigned& br, 
+				 const unsigned br, 
 				 std::string jc)
 {
   using namespace cutflag; 
-  try { 
-    chain->SetBranch(jc + "_flavor_truth_label", 
+  chain->SetBranch(jc + "_flavor_truth_label", 
 		     &jet_flavor_truth_label); 
-    chain->SetBranch("mc_event_weight", &mc_event_weight); 
-  }
-  catch (std::runtime_error& e) { 
-    br &=~ truth; 
-  }
+  chain->SetBranch("mc_event_weight", &mc_event_weight); 
   if (br & spartid) { 
-    try { 
-      chain->SetBranch("SUSY_Spart1_pdgId", &spart1_pdgid); 
-      chain->SetBranch("SUSY_Spart2_pdgId", &spart2_pdgid); 
-    }
-    catch (std::runtime_error& e) { 
-      br &=~ spartid; 
-    }
+    chain->SetBranch("SUSY_Spart1_pdgId", &spart1_pdgid); 
+    chain->SetBranch("SUSY_Spart2_pdgId", &spart2_pdgid); 
   }
 }
 

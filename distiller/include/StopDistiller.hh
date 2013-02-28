@@ -4,7 +4,7 @@
 #include <vector> 
 #include <string>
 #include "RunInfo.hh"		// could we remove this struct?  
-// #include <fstream>
+#include "typedefs.hh"
 
 class SmartChain; 
 class CollectionTreeReport; 
@@ -17,12 +17,6 @@ namespace outtree {
 class BitmapCutflow; 
 class SelectedJet; 
 class BtagCalibration; 
-
-namespace std { 
-  // class streambuf; 
-  // class ofstream; 
-  // class ostream; 
-}
 
 class StopDistiller : public boost::noncopyable
 { 
@@ -44,11 +38,12 @@ private:
 
   void print_progress(int entry_n, std::ostream&); 
   RunInfo m_info; 
-  unsigned m_flags; 
+  const unsigned m_flags; 
   std::string m_out_ntuple_name; 
   std::string m_susy_dbg_file; 
   int m_n_entries; 
   int m_one_percent; 
+  ull_t m_required_for_save; 
   std::ofstream* m_norm_dbg_file; 
   std::ofstream* m_null_file; 
   std::streambuf* m_debug_buffer; 

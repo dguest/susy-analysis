@@ -14,18 +14,19 @@ def cutflow(input_files, flags, grl='', output_ntuple='',
     given will also write an ntuple. 
 
     Flags: 
-        v: verbose
-        d: is data
-        f: is atlfast
-        r: save c-tag ratios
-        p: use low pt jets
+        a: aggressive --- remove bad files and retry
         b: debug susytools (don't pipe output to /dev/null)
         c: save JetFitterCharm weights
-        m: save mv3 weights
-        i: get sparticle id (requires truth)
+        d: is data
+        e: save all events (don't do further skimming)
+        f: is atlfast
         g: get branches as textfile
+        i: get sparticle id (requires truth)
+        m: save mv3 weights
+        p: use low pt jets
+        r: save c-tag ratios
+        v: verbose
 
-        a: aggressive --- remove bad files and retry
 
     This is a python-level interface for the compiled cutflow routine. 
     """
