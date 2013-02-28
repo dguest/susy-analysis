@@ -10,9 +10,7 @@ BtagScaler::BtagScaler(TTree* tree, std::string prefix, ull_t required,
   m_veto(veto)
 {
   safeset(tree, prefix + "scale_factor", &m_scale_factor); 
-  safeset(tree, prefix + "fail_factor", &m_fail_factor); 
   safeset(tree, prefix + "scale_factor_err", &m_scale_factor_err); 
-  safeset(tree, prefix + "fail_factor_err", &m_fail_factor_err); 
 }
 
 double BtagScaler::get_scalefactor(ull_t evt_mask, int flavor, 
@@ -20,8 +18,8 @@ double BtagScaler::get_scalefactor(ull_t evt_mask, int flavor,
 {
   using namespace syst; 
   bool pass = (evt_mask & m_required) && !(evt_mask | m_veto); 
-  double base = pass ? m_scale_factor: m_fail_factor; 
-  double err_up = pass ? m_scale_factor_err: -m_fail_factor_err;
+  double base = m_scale_factor;
+  double err_up = pass ? m_scale_factor_err: -m_scale_factor_err;
   double err_down = -err_up; 
   switch (syst) { 
   case NONE: 

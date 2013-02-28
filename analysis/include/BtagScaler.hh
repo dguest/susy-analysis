@@ -28,9 +28,7 @@ private:
 
   // these guys are pointed to by the tree, don't try to reset them
   double m_scale_factor; 
-  double m_fail_factor; 
   double m_scale_factor_err; 
-  double m_fail_factor_err; 
 }; 
 
 #endif 
