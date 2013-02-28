@@ -60,8 +60,9 @@ PY_LDFLAGS += $(PY_LIB)
 PY_LDFLAGS += -shared
 
 # dependency flags
+DEP        := $(BIN)
 DEPINCLUDE := -I$(INC) $(SUSY_INC:%=-I%) -I$(shell root-config --incdir)
-DEPFLAGS   := -M -MP -MT $(BIN)/$*.o -MT $(DEP)/$*.d $(DEPINCLUDE) $(PY_FLAGS)
+DEPFLAGS    = -M -MP -MT $(BIN)/$*.o -MT $(DEP)/$*.d $(DEPINCLUDE) $(PY_FLAGS)
 
 # ---- define objects
 TOBJ        := SusyBuffer.o
@@ -112,13 +113,12 @@ $(BIN)/%Dict.o: $(DICT)/%Dict.cxx
 	@$(CXX) $(CXXFLAGS) $(ROOTCFLAGS) -c $< -o $@
 
 # compile rule
-$(BIN)/%.o: %.cxx
+$(DEP)/%.o: %.cxx
 	@echo compiling $<
-	@mkdir -p $(BIN)
+	@mkdir -p $(DEP)
 	@$(CXX) -c $(CXXFLAGS) $< -o $@
 
 # use auto dependency generation
-DEP = $(BIN)
 
 ifneq ($(MAKECMDGOALS),clean)
 ifneq ($(MAKECMDGOALS),rmdep)
@@ -126,9 +126,9 @@ include  $(ALLOBJ:%.o=$(DEP)/%.d)
 endif
 endif
 
-$(DEP)/%.d: %.cxx
+$(BIN)/%.d: %.cxx
 	@echo making dependencies for $<
-	@mkdir -p $(DEP)
+	@mkdir -p $(BIN)
 	@$(CXX) $(DEPFLAGS) $< -o $@ 
 
 # clean
