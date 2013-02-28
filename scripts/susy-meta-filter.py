@@ -19,7 +19,7 @@ def _get_parser():
     parser.add_argument('-c', '--strip-cutflow', action='store_true')
     parser.add_argument('-d', '--strip-data', action='store_true')
     parser.add_argument('-s', '--strip-simulation', action='store_true')
-    parser.add_argument('-f', '--strip-filepaths', action='store_true')
+    parser.add_argument('-m', '--strip-distiller-meta', action='store_true')
     parser.add_argument('-i', '--write-to-input', action='store_true')
     parser.add_argument('-o', '--output')
     return parser
@@ -49,9 +49,15 @@ def run():
     for key, item in original.iteritems(): 
         if args.strip_cutflow and hasattr(item,'cutflow'): 
             del item.cutflow
-        if args.strip_filepaths: 
+        if args.strip_distiller_meta: 
             item.d3pds = []
             item.skim_paths = {}
+            item.grl = ''
+            item.distill_flags = ''
+            item.calibration_dir = ''
+            item.n_raw_entries = ''
+            item.n_corrupted_files = 0
+            item.need_rerun = None
             
         if args.strip_data and item.is_data: 
             continue

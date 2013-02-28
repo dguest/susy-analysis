@@ -67,6 +67,7 @@ def cutflow(input_files, flags, grl='', output_ntuple='',
 
 
 def _aggressive_distill(input_files, input_dict, flags, output_ntuple): 
+    import _distiller 
     try: 
         cut_out = _distiller._distiller(
             input_files, input_dict, flags, output_ntuple)

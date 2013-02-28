@@ -87,9 +87,9 @@ class Distiller(object):
             raise IOError("Calibration dir {} doesn't exist".format(
                     self.calibration_dir))
         self.grl = ''
-        if hasattr(config, 'grl')
+        if hasattr(config, 'grl'):
             self.grl = config.grl
-            if not isfile(join(self.calibration_dir,self.grl): 
+            if not isfile(join(self.calibration_dir,self.grl)): 
                 raise IOError("GRL {} doesn't exist".format(self.grl))
 
         try: 
