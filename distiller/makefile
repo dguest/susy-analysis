@@ -41,8 +41,9 @@ PY_LIB   +=   $(shell $(PY_CONFIG) --libs)
 
 
 # --- set compiler and flags (roll c options and include paths together)
-ifndef CXX
 CXX          := g++44
+ifdef CXX_LOCAL
+CXX          := $(CXX_LOCAL)
 endif
 CXXFLAGS     := -O2 -Wall -fPIC -I$(INC) $(SUSY_INC:%=-I%) -g -std=c++0x
 LDFLAGS      := -Wl,-no-undefined
@@ -57,6 +58,10 @@ LIBS         += $(ROOTLIBS)
 PY_LDFLAGS := $(LDFLAGS)
 PY_LDFLAGS += $(PY_LIB)
 PY_LDFLAGS += -shared
+
+# dependency flags
+DEPINCLUDE := -I$(INC) $(SUSY_INC:%=-I%) -I$(shell root-config --incdir)
+DEPFLAGS   := -M -MP -MT $(BIN)/$*.o -MT $(DEP)/$*.d $(DEPINCLUDE) $(PY_FLAGS)
 
 # ---- define objects
 TOBJ        := SusyBuffer.o
@@ -121,11 +126,10 @@ include  $(ALLOBJ:%.o=$(DEP)/%.d)
 endif
 endif
 
-DEPTARGSTR = -MT $(BIN)/$*.o -MT $(DEP)/$*.d
 $(DEP)/%.d: %.cxx
 	@echo making dependencies for $<
 	@mkdir -p $(DEP)
-	@$(CXX) -MM -MP $(DEPTARGSTR) $(CXXFLAGS) $(PY_FLAGS) $< -o $@ 
+	@$(CXX) $(DEPFLAGS) $< -o $@ 
 
 # clean
 .PHONY : clean rmdep
