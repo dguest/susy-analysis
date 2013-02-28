@@ -39,8 +39,6 @@ static PyObject* py_distiller(PyObject *self,
   }
   
   unsigned flags = get_flags(flags_str); 
-
-  // other taggers not implemented yet
   assert( (flags & (cutflag::jetfitter_charm | cutflag::mv3)) == 0); 
 
   typedef std::vector<std::pair<std::string, int> > CCOut; 
@@ -59,7 +57,7 @@ static PyObject* py_distiller(PyObject *self,
   }
 
   PyObject* out_list = PyList_New(0); 
-  for (CCOut::const_iterator itr = pass_numbers.begin(); 
+  for (auto itr = pass_numbers.begin(); 
        itr != pass_numbers.end(); 
        itr++){ 
     PyObject* tuple = Py_BuildValue("si", itr->first.c_str(), itr->second);
