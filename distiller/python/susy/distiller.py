@@ -26,7 +26,7 @@ def _run_distill(ds):
             systematic=syst_internal, 
             output_ntuple=ds.skim_paths[systematic], 
             btag_cal_file=btag_env, 
-            btag_cal_dir=ds.calibration_dir)
+            cal_dir=ds.calibration_dir)
         ds.n_raw_entries = dict(cut_counts)['total_events']
         if not hasattr(ds,'cutflow') or isinstance(ds.cutflow, list): 
             ds.cutflow = {}
