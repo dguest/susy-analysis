@@ -11,6 +11,7 @@ from stop import style, meta, hists
 import argparse
 import ConfigParser
 from stop.aggregator import SampleAggregator
+import yaml
 
 _plot_vars = [ 
     'jet1/pt', 
@@ -70,7 +71,7 @@ def run():
     args = get_config()
     aggregator = SampleAggregator(args.meta_data, args.files, args.variables)
     if args.dump_yaml: 
-        print aggregator.yaml_objects()
+        print yaml.dump(aggregator.get_all_objects())
         sys.exit('dumped yaml, quitting...')
     aggregator.lumi_fb = args.lumi_fb
     aggregator.aggregate()
