@@ -65,12 +65,12 @@ public:
   EventJets(const SusyBuffer& buffer, SUSYObjDef& def, 
 	    unsigned flags, const RunInfo& info);
   ~EventJets(); 
+  void dump_debug(std::ostream&); 
 private: 
   EventJets() {}; 
   EventJets(const EventJets&) {}; 
   void fill(const SusyBuffer& buffer, SUSYObjDef& def, 
 	    unsigned flags, const RunInfo& info);
-  int n_jets_under_min() const; 
   const SusyBuffer* m_buffer; 
   friend class SelectedJet; 
   unsigned m_flags; 

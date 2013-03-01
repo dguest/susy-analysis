@@ -210,14 +210,15 @@ void EventJets::fill(const SusyBuffer& buffer, SUSYObjDef& def,
   }
 }
 
-int EventJets::n_jets_under_min() const { 
-  return m_jets_under_uncalibrated_min; 
-}
-
 EventJets::~EventJets() { 
   for (iterator itr = begin(); itr != end(); itr++) { 
     delete *itr; 
   }
+}
+
+void EventJets::dump_debug(std::ostream& stream) { 
+  stream << "n jets under " << UNCALIBRATED_JET_PT_MIN << ": " 
+	 << m_jets_under_uncalibrated_min; 
 }
 
 namespace { 
