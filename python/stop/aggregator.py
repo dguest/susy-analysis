@@ -3,6 +3,7 @@ from stop.hists import HistNd
 from os.path import basename, splitext
 import h5py
 import warnings
+import yaml
 
 class SampleAggregator(object): 
     """
@@ -21,6 +22,20 @@ class SampleAggregator(object):
                 'bad files', 
                 'ambiguous dataset', 
                 ])
+
+    def _get_objects(self, h5_cont): 
+        objects = {}
+        for name, val in h5_cont.items(): 
+            if isinstance(val, h5py.Group): 
+                objects[str(name)] = self._get_objects(val) 
+            else: 
+                objects[str(name)] = list(val.shape)
+        return objects
+
+    def yaml_objects(self): 
+        with h5py.File(self.whiskey[0]) as hfile: 
+            objects = self._get_objects(hfile)
+        return yaml.dump(objects)
 
     def _check_for_bugs(self, ds): 
         if ds.bugs: 

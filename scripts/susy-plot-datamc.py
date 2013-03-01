@@ -26,6 +26,7 @@ def get_config():
                         help='defaults to *.cfg')
     parser.add_argument('-o', '--output-ext', default='.pdf', 
                         help='(default: %(default)s)')
+    parser.add_argument('--dump-yaml', action='store_true')
     args = parser.parse_args(sys.argv[1:])
     if not args.config_file: 
         config_files = glob.glob('*.cfg')
@@ -68,6 +69,9 @@ def get_config():
 def run(): 
     args = get_config()
     aggregator = SampleAggregator(args.meta_data, args.files, args.variables)
+    if args.dump_yaml: 
+        print aggregator.yaml_objects()
+        sys.exit('dumped yaml, quitting...')
     aggregator.lumi_fb = args.lumi_fb
     aggregator.aggregate()
 
