@@ -4,6 +4,21 @@ from os.path import basename, splitext
 import h5py
 import warnings
 
+def _get_objects(h5_cont): 
+    objects = {}
+    for name, val in h5_cont.items(): 
+        if isinstance(val, h5py.Group): 
+            objects[str(name)] = _get_objects(val) 
+        else: 
+            objects[str(name)] = list(val.shape)
+    return objects
+
+def get_all_objects(filepath): 
+    with h5py.File(filepath) as hfile: 
+        objects = _get_objects(hfile)
+    return objects
+
+
 class SampleAggregator(object): 
     """
     Takes some meta data and whiskey as an input, produces aggrigated 
@@ -22,19 +37,6 @@ class SampleAggregator(object):
                 'ambiguous dataset', 
                 ])
 
-    def _get_objects(self, h5_cont): 
-        objects = {}
-        for name, val in h5_cont.items(): 
-            if isinstance(val, h5py.Group): 
-                objects[str(name)] = self._get_objects(val) 
-            else: 
-                objects[str(name)] = list(val.shape)
-        return objects
-
-    def get_all_objects(self): 
-        with h5py.File(self.whiskey[0]) as hfile: 
-            objects = self._get_objects(hfile)
-        return objects
 
     def _check_for_bugs(self, ds): 
         if ds.bugs: 

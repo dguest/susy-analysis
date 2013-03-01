@@ -10,7 +10,7 @@ from os.path import join, isdir, dirname, splitext, basename, isfile
 from stop import style, meta, hists
 import argparse
 import ConfigParser
-from stop.aggregator import SampleAggregator
+from stop.aggregator import SampleAggregator, get_all_objects
 import yaml
 
 _plot_vars = [ 
@@ -19,27 +19,52 @@ _plot_vars = [
     'jet3/pt', 
     'met'
     ]
-_lumi_fb = 15.0
+_lumi_fb = 20.661
+
+def _listify(prefix ,node):
+    """
+    magic function to get the bottom-level directories
+    """
+    outlist = []
+    for name, subnode in node.items(): 
+        full_prefix = '/'.join([prefix, name])
+        try: 
+            newlist = _listify(full_prefix, subnode)
+            outlist += newlist
+        except AttributeError: 
+            return [prefix]
+    return [v.lstrip('/') for v in outlist]
+
+def vars_from_yaml(yaml_text): 
+    top_node = yaml.load(yaml_text)
+    return _listify('',top_node)
+
+def get_config_file(): 
+    config_files = glob.glob('*.cfg')
+    if len(config_files) > 1: 
+        raise IOError('multiple config files found, not sure what to use')
+    elif len(config_files) < 1: 
+        raise IOError('name a config file')
+    args.config_file = config_files[0]
 
 def get_config(): 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('config_file', nargs='?', default=None, 
-                        help='defaults to *.cfg')
+                        help='defaults to *.cfg, can also give an .h5 basis')
     parser.add_argument('-o', '--output-ext', default='.pdf', 
                         help='(default: %(default)s)')
     parser.add_argument('--dump-yaml', action='store_true')
     args = parser.parse_args(sys.argv[1:])
     if not args.config_file: 
-        config_files = glob.glob('*.cfg')
-        if len(config_files) > 1: 
-            raise IOError('multiple config files found, not sure what to use')
-        elif len(config_files) < 1: 
-            raise IOError('name a config file')
-        args.config_file = config_files[0]
-    
+        args.config_file = get_config_file()
     config = ConfigParser.SafeConfigParser()
-    if not isfile(args.config_file): 
-        print 'no config file, {} found. Creating with defaults'.format(
+    if isfile(args.config_file) and args.config_file.endswith('.h5'): 
+        _plot_vars = _listify('',get_all_objects(args.config_file))
+        args.config_file = 'plot.cfg'
+        if isfile(args.config_file): 
+            os.remove(args.config_file)
+    if not isfile(args.config_file):
+        print 'Creating config file {}'.format(
             args.config_file)
         config.add_section('paths')
         paths = [ 
@@ -61,6 +86,9 @@ def get_config():
     args.hists_dir = config.get('paths','hists')
     args.outplot_dir = config.get('paths','outplot_dir')
     args.variables = config.get('plot_opts','vars').split()
+    if len(args.variables) == 1 and args.variables[0].endswith('.yml'): 
+        with open(args.variables) as yml_file: 
+            args.variables = vars_from_yaml(yml_file)
     args.lumi_fb = config.getfloat('plot_opts','lumi_fb')
     args.files = glob.glob('{}/*.h5'.format(args.hists_dir))
     return args
@@ -69,10 +97,11 @@ def get_config():
 
 def run(): 
     args = get_config()
-    aggregator = SampleAggregator(args.meta_data, args.files, args.variables)
     if args.dump_yaml: 
-        print yaml.dump(aggregator.get_all_objects())
+        yaml_text = yaml.dump(get_all_objects(args.files[0]))
+        print yaml_text
         sys.exit('dumped yaml, quitting...')
+    aggregator = SampleAggregator(args.meta_data, args.files, args.variables)
     aggregator.lumi_fb = args.lumi_fb
     aggregator.aggregate()
 
@@ -97,7 +126,9 @@ def hist1_from_histn(physics, variable, cut, histn, lumi_fb):
         x_ax_lab = base_var
 
     hist = Hist1d(y_vals, extent)
-    hist.rebin(4)
+    n_center_bins = len(y_vals) - 2 
+    if n_center_bins > 50 and n_center_bins % 4 == 0: 
+        hist.rebin(4)
     hist.x_label = x_ax_lab
     hist.y_label = style.event_label(lumi_fb)
     hist.color = style.type_dict[physics].color
