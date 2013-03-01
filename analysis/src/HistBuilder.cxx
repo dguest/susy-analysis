@@ -36,9 +36,17 @@ HistBuilder::HistBuilder(std::string input, const unsigned flags):
   const double max_pt = 1e3*GeV; 
   
   m_factory = new JetFactory(input); 
-  m_factory->set_btag(1, "cnn_loose", pass::jet2_anti_b); 
-  m_factory->set_btag(2, "cnn_tight", 
-		      pass::jet3_anti_b | pass::jet3_anti_u_tight); 
+  if (! (flags & buildflag::is_data) ) { 
+    try { 
+      m_factory->set_btag(1, "cnn_loose", pass::jet2_anti_b); 
+      m_factory->set_btag(2, "cnn_tight", 
+			  pass::jet3_anti_b | pass::jet3_anti_u_tight); 
+    }
+    catch (std::runtime_error& err) { 
+      std::string app = " file: " + input; 
+      throw std::runtime_error(err.what() + app); 
+    }
+  }
 
   m_jet1_hists = new Jet1DHists(max_pt, flags); 
   m_jet2_hists = new Jet1DHists(max_pt, flags); 

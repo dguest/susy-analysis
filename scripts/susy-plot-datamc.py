@@ -12,9 +12,6 @@ import argparse
 import ConfigParser
 from stop.aggregator import SampleAggregator
 
-_files = glob.glob('hackhist2/*.h5')
-_meta = 'filter-meta.yml'
-
 _plot_vars = [ 
     'jet1/pt', 
     'jet2/pt', 

@@ -96,6 +96,7 @@ static unsigned parse_flags(const char* flags){
   unsigned bitflags = 0; 
   if(strchr(flags,'v')) bitflags |= verbose; 
   if(strchr(flags,'t')) bitflags |= fill_truth; 
+  if(strchr(flags,'d')) bitflags |= is_data; 
   if(strchr(flags,'i')) bitflags |= leading_jet_btag; 
   if(strchr(flags,'m')) bitflags |= mttop; 
   if(strchr(flags,'b')) bitflags |= disable_c_tags; 

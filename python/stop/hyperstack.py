@@ -19,6 +19,7 @@ def stacksusy(input_file, mask_list, output_file='', flags='',
     Flags: 
         v: verbose
         t: fill_truth
+        d: is data
     """
     mask_list = list(mask_list)
     if not output_file: 
