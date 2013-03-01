@@ -70,17 +70,20 @@ private:
   EventJets(const EventJets&) {}; 
   void fill(const SusyBuffer& buffer, SUSYObjDef& def, 
 	    unsigned flags, const RunInfo& info);
+  int n_jets_under_min() const; 
   const SusyBuffer* m_buffer; 
   friend class SelectedJet; 
   unsigned m_flags; 
+  int m_jets_under_uncalibrated_min; 
 }; 
 
-namespace { 
-  bool check_if_jet(int iJet, 
-		    const SusyBuffer& buffer, 
-		    SUSYObjDef& def, 
-		    const unsigned flags, 
-		    const RunInfo& info); 
+namespace {
+  bool has_min_pt(int iJet, const SusyBuffer& buffer, float pt); 
+  bool fill_jet(int iJet, 
+		const SusyBuffer& buffer, 
+		SUSYObjDef& def, 
+		const unsigned flags, 
+		const RunInfo& info); 
 
   bool check_buffer(const SusyBuffer& buffer); 
   

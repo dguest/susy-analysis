@@ -157,7 +157,8 @@ bool SelectedJet::pass_anti_b(btag::Tagger t) const {
 EventJets::EventJets(const SusyBuffer& buffer, SUSYObjDef& def, 
 		     unsigned flags, const RunInfo& info): 
   m_buffer(&buffer), 
-  m_flags(flags)
+  m_flags(flags), 
+  m_jets_under_uncalibrated_min(0)
 { 
 
   assert(buffer.jet_pt); 
@@ -174,16 +175,15 @@ void EventJets::fill(const SusyBuffer& buffer, SUSYObjDef& def,
 		     unsigned flags, const RunInfo& info) { 
   const int n_jets = buffer.jet_n; 
   for (int jet_n = 0; jet_n < n_jets; jet_n++){ 
-    
-      //add the "standard quality" cuts here ************************
-      //JVF>0.75, pt>20GeV, isGoodJet (from SUSYTools), ...)
 
-    // must initalize all jets
+    if (!has_min_pt(jet_n, buffer, UNCALIBRATED_JET_PT_MIN)) {
+      m_jets_under_uncalibrated_min++; 
+    } 
 
-    bool is_jet = check_if_jet(jet_n, buffer, def, flags, info); 
+    bool is_jet = fill_jet(jet_n, buffer, def, flags, info); 
 
-    SelectedJet* the_jet = new SelectedJet(this, jet_n); 
-    push_back(the_jet); 
+    push_back(new SelectedJet(this, jet_n)); 
+    SelectedJet* the_jet = *rbegin(); 
 
     // susytools corrected tlv
     TLorentzVector tlv = def.GetJetTLV(); 
@@ -210,6 +210,10 @@ void EventJets::fill(const SusyBuffer& buffer, SUSYObjDef& def,
   }
 }
 
+int EventJets::n_jets_under_min() const { 
+  return m_jets_under_uncalibrated_min; 
+}
+
 EventJets::~EventJets() { 
   for (iterator itr = begin(); itr != end(); itr++) { 
     delete *itr; 
@@ -220,12 +224,16 @@ namespace {
   // forward dec for systematic translation
   SystErr::Syste get_susytools_systematic(systematic::Systematic syst); 
 
-  bool check_if_jet(int iJet, 
-		    const SusyBuffer& buffer, 
-		    SUSYObjDef& def, 
-		    const unsigned flags, 
-		    const RunInfo& info){ 
+  bool has_min_pt(int jet_n, const SusyBuffer& buffer, float pt_cut) { 
+    CHECK_SIZE(buffer.jet_pt, buffer.jet_n); 
+    return buffer.jet_pt->at(jet_n) >= pt_cut; 
+  } 
 
+  bool fill_jet(int iJet, 
+		const SusyBuffer& buffer, 
+		SUSYObjDef& def, 
+		const unsigned flags, 
+		const RunInfo& info){ 
 
     assert(check_buffer(buffer)); 
 
