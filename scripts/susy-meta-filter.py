@@ -21,6 +21,8 @@ def _get_parser():
     parser.add_argument('-s', '--strip-simulation', action='store_true')
     parser.add_argument('-m', '--strip-distiller-meta', action='store_true')
     parser.add_argument('-i', '--write-to-input', action='store_true')
+    parser.add_argument('-t', '--filter-and-set-physicstype', 
+                        action='store_true')
     parser.add_argument('-o', '--output')
     return parser
 
@@ -63,6 +65,12 @@ def run():
             continue
         if args.strip_simulation and not item.is_data: 
             continue
+        if args.filter_and_set_physicstype: 
+            from stop.runtypes import set_dataset_physics_type
+            is_set = set_dataset_physics_type(item)
+            if not is_set: 
+                continue
+
         output[key] = item 
 
     output.write()

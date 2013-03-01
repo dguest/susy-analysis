@@ -2,6 +2,7 @@ from stop import meta
 from stop.hists import HistNd
 from os.path import basename, splitext
 import h5py
+import warnings
 
 class SampleAggregator(object): 
     """
@@ -16,6 +17,31 @@ class SampleAggregator(object):
         self.filter_meta = meta.DatasetCache(meta_path)
         self.lumi_fb = 15.0
         self.plots_dict = None
+        self.tolerable_bugs = set([
+                'bad files', 
+                'ambiguous dataset', 
+                ])
+
+    def _check_for_bugs(self, ds): 
+        if ds.bugs: 
+            if ds.bugs - self.tolerable_bugs:
+                print "uh oh, bugs: {} in {}".format(
+                    ds.bugs, ds.key)
+                return True
+            if 'bad files' in ds.bugs: 
+                try: 
+                    nbad = ds.n_corrupted_files
+                except AttributeError: 
+                    nbad = 'unknown number of'
+                warnings.warn('{} bad files in {}'.format(nbad,ds.key))
+                return False
+            if 'ambiguous dataset' in ds.bugs: 
+                if ds.is_data: 
+                    warnings.warn('you should probably fix the ambi ds thing')
+                    return False
+                else: 
+                    print 'ambiguous dataset in {}, skipping'.format(ds.key)
+                    return True
 
     def aggregate(self): 
         plots_dict = {}
@@ -25,10 +51,9 @@ class SampleAggregator(object):
                 continue
     
             file_meta = self.filter_meta[meta_name]
-            if file_meta.bugs: 
-                print "uh oh, bugs: {} in {}".format(
-                    file_meta.bugs, meta_name)
+            if self._check_for_bugs(file_meta): 
                 continue
+            
     
             physics_type = file_meta.physics_type
             if physics_type == 'data': 
