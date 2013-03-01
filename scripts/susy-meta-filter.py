@@ -26,6 +26,14 @@ def _get_parser():
     parser.add_argument('-o', '--output')
     return parser
 
+def correct_general(ds): 
+    """
+    fix any generally stale stuff around the ds
+    """
+    if ds.is_data: 
+        ds.bugs -= set(['ambiguous dataset'])
+
+
 def run(): 
     args = _get_parser().parse_args(sys.argv[1:])
     original = DatasetCache(args.input_meta[0])
@@ -71,6 +79,7 @@ def run():
             if not is_set: 
                 continue
 
+        correct_general(item)
         output[key] = item 
 
     output.write()

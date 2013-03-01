@@ -420,7 +420,7 @@ class MetaFactory(object):
                 if ds.origin.startswith('mc'): 
                     self._write_mc_ami_info(ds, info)
                 self._write_ami_info(ds, info)
-            else: 
+            elif not ds.is_data: 
                 ds.bugs.add('ambiguous dataset')
             
 
