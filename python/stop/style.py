@@ -50,7 +50,8 @@ ax_labels = {
     'metDphi': VariableStyle(
         r'$\Delta \phi (j, E_{\mathrm{T}}^{\mathrm{miss}})$'), 
     'minDphi': VariableStyle(
-        r'$\min_{i = \{1,2,3\}}\left(\Delta \phi (j_{i}, E_{\mathrm{T}}^{\mathrm{miss}})\right)$')
+        r'$\min_{i = \{1,2,3\}}\left(\Delta \phi (j_{i}, '
+        r'E_{\mathrm{T}}^{\mathrm{miss}})\right)$')
     }
 
 def event_label(lumi): 
