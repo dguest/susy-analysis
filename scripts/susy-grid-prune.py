@@ -22,7 +22,7 @@ def _strip_front(ds_name):
         return _strip_front('.'.join(ds_name.split('.')[1:]))
     return ds_name
 
-def submit_ds(ds_name, debug=False, version=3, used_vars='used_vars.txt', 
+def submit_ds(ds_name, debug=False, version=0, used_vars='used_vars.txt', 
               out_talk=None, in_tar=None): 
 
     user = os.path.expandvars('$USER')
@@ -135,7 +135,7 @@ def get_config(config_name):
         config.set('version','version','0')
     if not config.has_section('variables'): 
         config.add_section('variables')
-        config.set('variables','varlist',args.varlist)
+        config.set('variables','varlist','all-branches.txt')
     if not config.has_section('cuts'): 
         config.add_section('cuts')
         config.set('cuts', 'met_low', '70000')
@@ -187,13 +187,11 @@ if __name__ == '__main__':
                         help="don't multiprocess")
     parser.add_argument('--out-name', default='output-datasets.txt', 
                         help='default: %(default)s')
-    parser.add_argument('--varlist', default='used_vars.txt', 
-                        help='list of variables to include '
-                        'default: %(default)s')
     parser.add_argument('--config', default='submit.cfg', 
                         help='default: %(default)s')
     parser.add_argument('--get-slimmer', action='store_true')
     parser.add_argument('--full-log', default='full-ds-submit.log')
+    parser.add_argument('-i', '--increment-version', action='store_true')
     args = parser.parse_args()
 
     config = get_config(args.config)
@@ -213,7 +211,9 @@ if __name__ == '__main__':
         raise OSError("prun isn't defined, you need to set it up")
 
     version = config.getint('version', 'version')
-    config.set('version','version',str(version + 1))
+    if args.increment_version: 
+        version += 1
+        config.set('version','version',str(version))
 
     used_vars = config.get('variables','varlist')
     datasets = []
