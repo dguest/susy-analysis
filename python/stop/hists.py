@@ -183,7 +183,7 @@ class HistNd(object):
             ds.attrs['{}_min'.format(ax.name)] = ax.min
             ds.attrs['{}_max'.format(ax.name)] = ax.max
             ds.attrs['{}_type'.format(ax.name)] = ax.type
-            ds.attrs['{}_units'.format(ax.units)] = ax.units
+            ds.attrs['{}_units'.format(ax.name)] = ax.units
 
     def __check_consistency(self, other): 
         for axis in self._axes: 
