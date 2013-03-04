@@ -29,7 +29,7 @@ void MaskedHist::write_to(H5::CommonFG& out_file, std::string stub,
   if (tag.size()) { 
     using namespace H5; 
     DataSet the_ds = out_file.openDataSet(name); 
-    StrType vls_type(0, H5T_VARIABLE);
+    StrType vls_type(PredType::C_S1, H5T_VARIABLE);
     DataSpace att_space(H5S_SCALAR);
     Attribute tag = the_ds.createAttribute("tag", vls_type, att_space); 
     tag.write(vls_type, &tag); 
@@ -51,18 +51,6 @@ void MaskedHistArray::add_mask(ull_t bitmask, std::string name,
   assert(m_names.count(name) == 0); 
   m_names.insert(name); 
 }
-
-// std::map<std::string, Histogram> MaskedHistArray::get_hists() const 
-// {
-//   std::map<std::string, Histogram> return_map; 
-//   for (Hists::const_iterator hist_itr = m_hists.begin(); 
-//        hist_itr != m_hists.end(); hist_itr++) { 
-//     assert(has_bit(hist_itr->first)); 
-//     std::string name = m_bit_to_name.find(hist_itr->first)->second; 
-//     return_map.insert(std::make_pair(name,hist_itr->second)); 
-//   }
-//   return return_map; 
-// }
 
 void MaskedHistArray::write_to(H5::CommonFG& out_file, std::string stub) 
   const { 

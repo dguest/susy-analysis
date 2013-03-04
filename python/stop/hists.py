@@ -114,6 +114,7 @@ class HistNd(object):
             self.max = None
             self.number = None
             self.type = 'bare'
+            self.units = ''
         def __eq__(self, other): 
             span = self.max - self.min
             span_diff = (self.max - other.max)**2 + (self.min - other.min)**2
@@ -123,6 +124,7 @@ class HistNd(object):
                 self.number == other.number, 
                 span_diff / span**2 < 1e-6, 
                 self.type == other.type, 
+                self.units == other.units, 
                 ]
             return all(conditions)
         def __ne__(self, other): 
@@ -181,6 +183,7 @@ class HistNd(object):
             ds.attrs['{}_min'.format(ax.name)] = ax.min
             ds.attrs['{}_max'.format(ax.name)] = ax.max
             ds.attrs['{}_type'.format(ax.name)] = ax.type
+            ds.attrs['{}_units'.format(ax.units)] = ax.units
 
     def __check_consistency(self, other): 
         for axis in self._axes: 

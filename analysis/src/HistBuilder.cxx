@@ -52,12 +52,12 @@ HistBuilder::HistBuilder(std::string input, const unsigned flags):
   m_jet2_hists = new Jet1DHists(max_pt, flags); 
   m_jet3_hists = new Jet1DHists(max_pt, flags); 
 
-  m_met = new MaskedHistArray(Histogram(100, 0.0, max_pt)); 
+  m_met = new MaskedHistArray(Histogram(100, 0.0, max_pt, "MeV")); 
   m_min_dphi = new MaskedHistArray(Histogram(100, 0.0, M_PI)); 
-  m_mttop = new MaskedHistArray(Histogram(100, 0.0, max_pt)); 
+  m_mttop = new MaskedHistArray(Histogram(100, 0.0, max_pt, "MeV")); 
   m_n_good_jets = new MaskedHistArray(Histogram(11, -0.5, 10.5)); 
 
-  m_htx = new MaskedHistArray(Histogram(100, 0.0, max_pt)); 
+  m_htx = new MaskedHistArray(Histogram(100, 0.0, max_pt, "MeV")); 
 
   if (flags & buildflag::fill_truth) { 
     m_leading_cjet_rank = new MaskedHistArray(Histogram(6, -0.5, 5.5)); 

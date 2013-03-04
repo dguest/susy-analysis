@@ -14,12 +14,12 @@ Jet1DHists::Jet1DHists(double max_pt, const unsigned flags, std::string tag):
   m_truth_label(0), 
   m_tag(tag)
 { 
-  m_pt = new MaskedHistArray(Histogram(100, 0, max_pt), tag); 
+  m_pt = new MaskedHistArray(Histogram(100, 0, max_pt, "MeV"), tag); 
   m_eta = new MaskedHistArray(Histogram(100, -2.7, 2.7), tag); 
   m_cnnLogCb = new MaskedHistArray(Histogram(100, -10, 10), tag); 
   m_cnnLogCu = new MaskedHistArray(Histogram(100, -10, 10), tag); 
   m_cnnLogBu = new MaskedHistArray(Histogram(100, -10, 10), tag); 
-  m_met_dphi = new MaskedHistArray(Histogram(100, -3.2, 3.2), tag); 
+  m_met_dphi = new MaskedHistArray(Histogram(100, 0, 3.2), tag); 
 
   if (flags & buildflag::fill_truth) { 
     m_truth_label = new MaskedHistArray(Histogram(21, -0.5, 20.5), tag); 
@@ -87,7 +87,7 @@ void Jet1DHists::fill(const Jet& jet, const ull_t mask, double w) {
   m_cnnLogCu->fill(log(jet.pc() / jet.pu()), mask, w); 
   m_cnnLogCb->fill(log(jet.pc() / jet.pb()), mask, w); 
   m_cnnLogBu->fill(log(jet.pb() / jet.pu()), mask, w); 
-  m_met_dphi->fill(jet.met_dphi(), mask, w); 
+  m_met_dphi->fill(fabs(jet.met_dphi()), mask, w); 
 
   if (m_truth_label) { 
     int label = jet.flavor_truth_label(); 
