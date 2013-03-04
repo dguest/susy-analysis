@@ -45,7 +45,7 @@ def get_config_file():
         raise IOError('multiple config files found, not sure what to use')
     elif len(config_files) < 1: 
         raise IOError('name a config file')
-    args.config_file = config_files[0]
+    return config_files[0]
 
 def get_config(): 
     parser = argparse.ArgumentParser(description=__doc__)
@@ -59,10 +59,12 @@ def get_config():
         args.config_file = get_config_file()
     config = ConfigParser.SafeConfigParser()
     if isfile(args.config_file) and args.config_file.endswith('.h5'): 
-        _plot_vars = _listify('',get_all_objects(args.config_file))
+        plot_vars = _listify('',get_all_objects(args.config_file))
         args.config_file = 'plot.cfg'
         if isfile(args.config_file): 
             os.remove(args.config_file)
+    else: 
+        plot_vars = _plot_vars
     if not isfile(args.config_file):
         print 'Creating config file {}'.format(
             args.config_file)
@@ -75,7 +77,7 @@ def get_config():
         for thing in paths: 
             config.set('paths',*thing)
         config.add_section('plot_opts')
-        config.set('plot_opts','vars','\n'.join(_plot_vars))
+        config.set('plot_opts','vars','\n'.join(plot_vars))
         config.set('plot_opts','lumi_fb',str(_lumi_fb))
         with open(args.config_file,'w') as cfg: 
             config.write(cfg)
@@ -116,20 +118,27 @@ def hist1_from_histn(physics, variable, cut, histn, lumi_fb):
     if physics not in style.type_dict:
         raise ValueError("what the fuck is {}?".format(pt))
 
+    assert len(histn.axes) == 1
     y_vals, extent = histn.project_1d('x')
     base_var = variable.split('/')[-1]
+    units = histn.axes[0].units
+    if units == 'MeV': 
+        extent = [e / 1000.0 for e in extent]
+        units = 'GeV'
     if base_var in style.ax_labels: 
         var_sty = style.ax_labels[base_var]
-        extent = [var_sty.rescale(x) for x in extent]
-        x_ax_lab = var_sty.axis_label
+        var_sty.units = units
     else: 
-        x_ax_lab = base_var
+        var_sty = sytle.VariableStyle(base_var, units)
+    x_ax_lab = var_sty.axis_label
+        
+    x_ax_full_label = r' '.join(variable.split('/')[:-1] + [x_ax_lab])
 
     hist = Hist1d(y_vals, extent)
     n_center_bins = len(y_vals) - 2 
     if n_center_bins > 50 and n_center_bins % 4 == 0: 
         hist.rebin(4)
-    hist.x_label = x_ax_lab
+    hist.x_label = x_ax_full_label
     hist.y_label = style.event_label(lumi_fb)
     hist.color = style.type_dict[physics].color
     hist.title = style.type_dict[physics].tex

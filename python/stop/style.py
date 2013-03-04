@@ -26,16 +26,15 @@ type_dict = {l: StackStyle(t,l,c) for t,l,c in physics_labels}
 
 
 class VariableStyle(object): 
-    def __init__(self, tex_name, units='GeV'): 
+    def __init__(self, tex_name, units=''): 
         self.tex_name = tex_name
         self.units = units
     @property
     def axis_label(self): 
-        base = self.tex_name
-        if self.units == 'GeV': 
-            return '{} [GeV]'.format(base)
+        if self.units:
+            return '{} [{}]'.format(self.tex_name, self.units)
         else: 
-            return base
+            return self.tex_name
 
     def rescale(self, cord): 
         if self.units == 'GeV': 
@@ -45,7 +44,13 @@ class VariableStyle(object):
 
 ax_labels = { 
     'met' : VariableStyle(r'$E_{\mathrm{T}}^{\mathrm{miss}}$', 'GeV'), 
-    'pt': VariableStyle(r'$p_{\mathrm{T}}$', 'GeV')
+    'pt': VariableStyle(r'$p_{\mathrm{T}}$', 'GeV'), 
+    'mttop': VariableStyle(r'$m_{\mathrm{T}}^t$', 'GeV'), 
+    'htx': VariableStyle(r'$H_{\mathrm{T}3}$'), 
+    'metDphi': VariableStyle(
+        r'$\Delta \phi (j, E_{\mathrm{T}}^{\mathrm{miss}})$'), 
+    'minDphi': VariableStyle(
+        r'$\min_{i = \{1,2,3\}}\left(\Delta \phi (j_{i}, E_{\mathrm{T}}^{\mathrm{miss}})\right)$')
     }
 
 def event_label(lumi): 
