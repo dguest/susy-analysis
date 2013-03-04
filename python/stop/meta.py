@@ -46,8 +46,9 @@ class Dataset(object):
     @property
     def effective_luminosity_fb(self): 
         if not self.kfactor: 
-            warn('no kfactor for {} {}, assuming 1'.format(
-                    self.id, self.name))
+            if not self.physics_type == 'signal': 
+                warn('no kfactor for {} {}, assuming 1'.format(
+                        self.id, self.name))
             kfactor = 1.0
         else: 
             kfactor = self.kfactor
