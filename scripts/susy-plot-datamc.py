@@ -10,7 +10,7 @@ from os.path import join, isdir, dirname, splitext, basename, isfile
 from stop import style, meta, hists
 import argparse
 import ConfigParser
-from stop.aggregator import SampleAggregator, get_all_objects
+from stop.aggregator import SampleAggregator, PlotsDict, get_all_objects
 import yaml
 
 _plot_vars = [ 
@@ -54,6 +54,7 @@ def get_config():
     parser.add_argument('-o', '--output-ext', default='.pdf', 
                         help='(default: %(default)s)')
     parser.add_argument('--dump-yaml', action='store_true')
+    parser.add_argument('-f','--force-aggregation', action='store_true')
     args = parser.parse_args(sys.argv[1:])
     if not args.config_file: 
         args.config_file = get_config_file()
@@ -73,6 +74,7 @@ def get_config():
             ('meta','meta.yml'), 
             ('hists','hists'), 
             ('outplot_dir', 'plots'),
+            ('aggregated_cache', 'aggregated.h5'), 
             ]
         for thing in paths: 
             config.set('paths',*thing)
@@ -87,6 +89,7 @@ def get_config():
     args.meta_data = config.get('paths','meta')
     args.hists_dir = config.get('paths','hists')
     args.outplot_dir = config.get('paths','outplot_dir')
+    args.agg_cache = config.get('paths','aggregated_cache')
     args.variables = config.get('plot_opts','vars').split()
     if len(args.variables) == 1 and args.variables[0].endswith('.yml'): 
         with open(args.variables) as yml_file: 
@@ -103,12 +106,22 @@ def run():
         yaml_text = yaml.dump(get_all_objects(args.files[0]))
         print yaml_text
         sys.exit('dumped yaml, quitting...')
-    aggregator = SampleAggregator(args.meta_data, args.files, args.variables)
-    aggregator.lumi_fb = args.lumi_fb
-    aggregator.aggregate()
+    if isfile(args.agg_cache) and not args.force_aggregation: 
+        plots_dict = PlotsDict(args.agg_cache)
+    else: 
+        aggregator = SampleAggregator(
+            args.meta_data, 
+            args.files, 
+            args.variables)
+        aggregator.lumi_fb = args.lumi_fb
+        aggregator.aggregate()
+        if isfile(args.agg_cache): 
+            os.remove(args.agg_cache)
+        aggregator.write(args.agg_cache)
+        plots_dict = aggregator.plots_dict
 
     hist1_dict = {}
-    for tup, hist in aggregator.plots_dict.iteritems():
+    for tup, hist in plots_dict.iteritems():
         hist1_dict[tup] = hist1_from_histn(*tup, histn=hist, 
                                             lumi_fb=args.lumi_fb)
 
