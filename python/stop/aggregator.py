@@ -31,7 +31,7 @@ class SampleAggregator(object):
         self.variables = variables
         self.filter_meta = meta.DatasetCache(meta_path)
         self.lumi_fb = 15.0
-        self.plots_dict = None
+        self._plots_dict = None
         self.tolerable_bugs = set([
                 'bad files', 
                 'ambiguous dataset', 
@@ -58,6 +58,13 @@ class SampleAggregator(object):
                 else: 
                     print 'ambiguous dataset in {}, skipping'.format(ds.key)
                     return True
+
+    @property
+    def plots_dict(self): 
+        """
+        keys are tuples: (physics_type, variable, cut_name)
+        """
+        return self._plots_dict
 
     def aggregate(self): 
         plots_dict = {}
@@ -89,4 +96,4 @@ class SampleAggregator(object):
                         else: 
                             plots_dict[idx_tuple] += hist
 
-        self.plots_dict = plots_dict
+        self._plots_dict = plots_dict

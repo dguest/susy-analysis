@@ -185,7 +185,7 @@ if __name__ == '__main__':
     parser.add_argument('--debug', action='store_true')
     parser.add_argument('--mono', action='store_true',
                         help="don't multiprocess")
-    parser.add_argument('--out-name', default='output-datasets.txt', 
+    parser.add_argument('--out-name', default='output-containers.txt', 
                         help='default: %(default)s')
     parser.add_argument('--config', default='submit.cfg', 
                         help='default: %(default)s')
@@ -232,7 +232,7 @@ if __name__ == '__main__':
         for ds_name in sys.stdin.readlines(): 
             datasets.append(ds_name.strip())
 
-    output_datasets_list = open(args.out_name,'w')
+    output_container_list = open(args.out_name,'w')
     out_log = open(args.full_log,'w')
     tarball = 'jobtar.tar'
     if not args.mono:
@@ -250,7 +250,7 @@ if __name__ == '__main__':
         reporter.close()
         output_datasets = [ds for ds, out, err in out_tuples]
         for ds in output_datasets: 
-            output_datasets_list.write(ds + '\n')
+            output_container_list.write(ds + '\n')
         for ds, out, err in out_tuples: 
             out_log.write('--- {} ---\n'.format(ds))
             out_log.write(err)
@@ -262,7 +262,7 @@ if __name__ == '__main__':
         for ds in datasets: 
             with LocalSkimmer(used_vars, cuts, tarball=tarball): 
                 out_ds = submit_ds(ds, args.debug, version)
-            output_datasets_list.write(out_ds + '\n')
+            output_container_list.write(out_ds + '\n')
 
     # record version if things worked
     with open(args.config,'w') as cfg: 

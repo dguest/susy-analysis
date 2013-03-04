@@ -34,6 +34,37 @@ def is_data(ds):
         return True
     return False
 
+def is_signal(ds): 
+    import re
+    is_old_signal = (157851 <= ds.id <= 157908)
+    is_met_filter = (176270 <= ds.id <= 176320)
+    if is_old_signal:
+        finder = re.compile('directCC_([0-9]+)_([0-9]+)')
+        matches = finder.search(ds.name)
+        stop_mass = int(matches.group(1))
+        lsp_mass = int(matches.group(2))
+        ds.physics_type = 'signal'
+        ds.generator_info = dict(
+            stop_mass_gev = stop_mass, 
+            lsp_mass_gev = lsp_mass
+            )
+        return True
+    elif is_met_filter: 
+        finder = re.compile(
+            'stopToCharmLSP_t([0-9]+)_n([0-9]+)_MET([0-9]+)')
+        matches = finder.search(ds.name)
+        stop_mass = int(matches.group(1))
+        lsp_mass = int(matches.group(2))
+        met_filter = float(matches.group(3))
+        ds.physics_type = 'signal'
+        ds.generator_info = dict(
+            stop_mass_gev = stop_mass, 
+            lsp_mass_gev = lsp_mass, 
+            met_filter_gev = met_filter
+            )
+        return True
+    return False
+
 _all_typers = [ 
     is_data, 
     is_wjet, 
@@ -41,6 +72,7 @@ _all_typers = [
     is_znujet, 
     is_ttbar, 
     is_diboson, 
+    is_signal, 
     ]
 
 def set_dataset_physics_type(ds): 

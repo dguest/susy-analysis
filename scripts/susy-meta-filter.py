@@ -68,6 +68,7 @@ def run():
             item.n_raw_entries = ''
             item.n_corrupted_files = 0
             item.need_rerun = None
+            item.btag_env = ''
             
         if args.strip_data and item.is_data: 
             continue
