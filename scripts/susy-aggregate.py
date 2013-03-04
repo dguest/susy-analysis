@@ -8,7 +8,7 @@ from os.path import join, isdir, dirname, splitext, basename, isfile
 from stop import meta 
 import argparse
 import ConfigParser
-from stop.aggregator import SampleAggregator, PlotsDict, get_all_objects
+from stop.aggregator import SampleAggregator, PlotsDict
 import yaml
 
 _plot_vars = [ 
@@ -79,7 +79,8 @@ def get_config():
             config.set('paths',*thing)
         config.add_section('plot_opts')
         config.set('plot_opts','vars','\n'.join(plot_vars))
-        config.set('plot_opts','lumi_fb',str(_lumi_fb))
+        config.add_section('meta_opts')
+        config.set('meta_opts','lumi_fb',str(_lumi_fb))
         with open(args.config_file,'w') as cfg: 
             config.write(cfg)
         sys.exit('made config, quitting')
@@ -93,7 +94,7 @@ def get_config():
     if len(args.variables) == 1 and args.variables[0].endswith('.yml'): 
         with open(args.variables) as yml_file: 
             args.variables = vars_from_yaml(yml_file)
-    args.lumi_fb = config.getfloat('plot_opts','lumi_fb')
+    args.lumi_fb = config.getfloat('meta_opts','lumi_fb')
     args.files = glob.glob('{}/*.h5'.format(args.hists_dir))
     return args
 
@@ -101,10 +102,6 @@ def get_config():
 
 def run(): 
     args = get_config()
-    if args.dump_yaml: 
-        yaml_text = yaml.dump(get_all_objects(args.files[0]))
-        print yaml_text
-        sys.exit('dumped yaml, quitting...')
     if isfile(args.agg_cache) and not args.force_aggregation: 
         plots_dict = PlotsDict(args.agg_cache)
     else: 
@@ -123,6 +120,8 @@ def run():
         from stop.stack import plot
         plot.make_plots(plots_dict, args)
 
+    if args.dump_yaml: 
+        sys.exit('dump_yaml not implemented')
         
 
 if __name__ == '__main__': 
