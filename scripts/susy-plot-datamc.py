@@ -51,8 +51,9 @@ def get_config():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('config_file', nargs='?', default=None, 
                         help='defaults to *.cfg, can also give an .h5 basis')
-    parser.add_argument('-o', '--output-ext', default='.pdf', 
-                        help='(default: %(default)s)')
+    parser.add_argument('-o', '--output-ext', nargs='?', 
+                        default=None, const='.pdf', 
+                        help='%(const)s if no value given')
     parser.add_argument('--dump-yaml', action='store_true')
     parser.add_argument('-f','--force-aggregation', action='store_true')
     args = parser.parse_args(sys.argv[1:])
@@ -120,6 +121,10 @@ def run():
         aggregator.write(args.agg_cache)
         plots_dict = aggregator.plots_dict
 
+    if args.output_ext: 
+        make_plots(plots_dict, args)
+
+def make_plots(plots_dict, args): 
     hist1_dict = {}
     for tup, hist in plots_dict.iteritems():
         hist1_dict[tup] = hist1_from_histn(*tup, histn=hist, 
