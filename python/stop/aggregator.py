@@ -73,7 +73,7 @@ class SampleAggregator(object):
         self.variables = variables
         self.filter_meta = meta.DatasetCache(meta_path)
         self.lumi_fb = 15.0
-        self.signals = [ 
+        self.signals = [        # todo, probably change this to 'all'
             dict(stop_mass_gev=200, lsp_mass_gev=180), 
             ]
         self.signal_prestring = 'stop'
@@ -91,12 +91,14 @@ class SampleAggregator(object):
     def _get_matched_signame(self,ds): 
         """
         this is slightly hackish, but does the right thing by renaming the 
-        physics type
+        physics type. 
+        
+        The 'all' option for self.signals is even more hackish...
         """
         basic_keys = ['stop_mass_gev','lsp_mass_gev']
         basic_generator_info = {k:ds.generator_info[k] for k in basic_keys}
         for sig in self.signals: 
-            if sig == basic_generator_info: 
+            if self.signals == 'all' or sig == basic_generator_info: 
                 if 'met_filter_gev' in ds.generator_info: 
                     namestring = self.signal_name_template_met_filter
                 else: 
