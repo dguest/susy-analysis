@@ -87,6 +87,15 @@ class SampleAggregator(object):
             '{}-{stop_mass_gev}-{lsp_mass_gev}-TMF{met_filter_gev:.0f}')
         self.signal_name_template = '{}-{stop_mass_gev}-{lsp_mass_gev}'
         self.outstream = sys.stdout
+        n_uniq_vars = len(set(variables))
+        n_vars = len(variables)
+        if n_vars != n_uniq_vars: 
+            repeats = []
+            for v in set(variables): 
+                if variables.count(v) != 1: 
+                    repeats.append(v)
+            raise ValueError('{} appears in inputs more than once'.format(
+                    repeats))
 
     def _get_matched_signame(self,ds): 
         """
