@@ -52,7 +52,7 @@ public:
   int subleading_cjet_pos() const; 
   hfor::JetType hfor_type() const; 
   double htx() const; 
-  double event_weight() const; 
+  double event_weight(syst::Systematic = syst::NONE) const; 
 private: 
   void set_btag(size_t jet_n, std::string tagger, 
 		unsigned required, unsigned veto = 0); 

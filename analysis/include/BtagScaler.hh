@@ -20,7 +20,7 @@ public:
   BtagScaler(TTree*, std::string prefix, 
 	     ull_t required, ull_t veto = 0); 
   double get_scalefactor(ull_t evt_mask, int flavor, 
-			 syst::Systematic = syst::NONE); 
+			 syst::Systematic = syst::NONE) const; 
 private: 
   void safeset(TTree*, std::string branch, void* address); 
   ull_t m_required; 

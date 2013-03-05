@@ -81,8 +81,24 @@ JetFactory::~JetFactory()
   delete m_file; 
 }
 void JetFactory::set_btagging(btag::EventConfig config) { 
-  set_btag(1, "cnn_loose", pass::jet2_anti_b); 
-  set_btag(2, "cnn_tight", pass::jet3_anti_b | pass::jet3_anti_u_tight); 
+  if (config == btag::NONE) { 
+    return; 
+  }
+  else if (config == btag::LOOSE_TIGHT){ 
+    set_btag(1, "cnn_loose", pass::jet2_anti_b); 
+    set_btag(2, "cnn_tight", pass::jet3_anti_b | pass::jet3_anti_u_tight); 
+  }
+  else if (config == btag::MEDIUM_MEDIUM){ 
+    set_btag(1, "cnn_medium", pass::jet2_anti_b | pass::jet3_anti_u_medium); 
+    set_btag(2, "cnn_medium", pass::jet3_anti_b | pass::jet3_anti_u_medium); 
+  }
+  else if (config == btag::MEDIUM_TIGHT){ 
+    set_btag(1, "cnn_medium", pass::jet2_anti_b | pass::jet3_anti_u_medium); 
+    set_btag(2, "cnn_tight", pass::jet3_anti_b | pass::jet3_anti_u_tight); 
+  }
+  else { 
+    throw std::logic_error("asked for undefined btag config in " __FILE__); 
+  }
 }
 
 int JetFactory::entries() const { 
@@ -128,13 +144,23 @@ int JetFactory::n_susy()   const  { return m_n_susy; }
 int JetFactory::leading_cjet_pos() const {return m_leading_cjet_pos;}
 int JetFactory::subleading_cjet_pos() const {return m_subleading_cjet_pos;}
 double JetFactory::htx() const {return m_htx;}
-double JetFactory::event_weight() const 
+double JetFactory::event_weight(syst::Systematic systematic) const 
 {
   if (m_flags & ioflag::no_truth) { 
     return 1.0; 
   }
   else { 
-    return m_mc_event_weight; 
+    double base = m_mc_event_weight; 
+    for (auto itr = m_jet_buffers.begin(); itr != m_jet_buffers.end(); 
+	 itr++) { 
+      const JetBuffer& buffer = **itr; 
+      if (buffer.btag_scaler) { 
+	const BtagScaler& scaler = *buffer.btag_scaler; 
+	base *= scaler.get_scalefactor(m_bits, buffer.flavor_truth_label, 
+				       systematic); 
+      }
+    }
+    return base; 
   }
 }
 

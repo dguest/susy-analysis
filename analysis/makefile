@@ -59,7 +59,7 @@ PY_LDFLAGS += -shared
 
 # ---- define objects
 TOBJ        := JetFactory.o
-GEN_OBJ     := HistBuilder.o MaskedHistArray.o ObjKinematics.o 
+GEN_OBJ     := HistBuilder.o MaskedHistArray.o ObjKinematics.o HistConfig.o
 GEN_OBJ     += TruthJetHists.o 
 GEN_OBJ     += HyperBuilder.o
 GEN_OBJ     += CutflowBuilder.o

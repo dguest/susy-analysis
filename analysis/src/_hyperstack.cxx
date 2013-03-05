@@ -12,6 +12,7 @@
 #include "HistBuilderFlags.hh"
 #include "_hyperstack.hh"
 #include "HistConfig.hh"
+#include "systematic_defs.hh"
 
 static unsigned parse_flags(const char* flags);
 
@@ -78,6 +79,9 @@ static bool fill_config(PyObject* dict, HistConfig* config) {
     if (ckey == "btag_config") { 
       if (!safe_copy(value, config->btag_config)) return false; 
     }
+    if (ckey == "systematic") { 
+      if (!safe_copy(value, config->systematic)) return false; 
+    }
     else { 
       if (!safe_copy(ckey, value, config->floats)) return false; 
     }
@@ -104,16 +108,68 @@ static bool safe_copy(PyObject* value, btag::EventConfig& dest) {
   if (PyErr_Occurred()) return false; 
   std::string name(charname); 
   using namespace btag; 
-  if (name == "TIGHT_LOOSE") { 
-    dest = TIGHT_LOOSE; 
+  if (name == "LOOSE_TIGHT") { 
+    dest = LOOSE_TIGHT; 
     return true; 
   }
   else if (name == "MEDIUM_MEDIUM") { 
     dest = MEDIUM_MEDIUM; 
     return true; 
   }
+  else if (name == "MEDIUM_TIGHT") { 
+    dest = MEDIUM_TIGHT; 
+    return true; 
+  }
   else if (name == "NONE") { 
     dest = NONE; 
+    return true; 
+  }
+  else { 
+    std::string problem = "got undefined btag configuration: " + name; 
+    PyErr_SetString(PyExc_IOError,problem.c_str()); 
+    return false; 
+  }
+}
+
+static bool safe_copy(PyObject* value, syst::Systematic& dest) { 
+  char* charname = PyString_AsString(value); 
+  if (PyErr_Occurred()) return false; 
+  std::string name(charname); 
+  using namespace syst; 
+  if (name == "NONE") { 
+    dest = NONE; 
+    return true; 
+  }
+  if (name == "BUP") { 
+    dest = BUP; 
+    return true; 
+  }
+  if (name == "BDOWN") { 
+    dest = BDOWN; 
+    return true; 
+  }
+  if (name == "CUP") { 
+    dest = CUP; 
+    return true; 
+  }
+  if (name == "CDOWN") { 
+    dest = CDOWN; 
+    return true; 
+  }
+  if (name == "UUP") { 
+    dest = UUP; 
+    return true; 
+  }
+  if (name == "UDOWN") { 
+    dest = UDOWN; 
+    return true; 
+  }
+  if (name == "TUP") { 
+    dest = TUP; 
+    return true; 
+  }
+  if (name == "TDOWN") { 
+    dest = TDOWN; 
     return true; 
   }
   else { 

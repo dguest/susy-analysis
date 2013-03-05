@@ -3,6 +3,7 @@
 
 #include <Python.h>
 #include "BtagConfig.hh"
+#include "systematic_defs.hh"
 
 struct HistConfig; 
 
@@ -14,6 +15,7 @@ static bool safe_copy(std::string key,
 		      PyObject* value, 
 		      std::map<std::string, float>& fmap); 
 static bool safe_copy(PyObject* value, btag::EventConfig& dest); 
+static bool safe_copy(PyObject* value, syst::Systematic& dest); 
 
 
 #endif 
