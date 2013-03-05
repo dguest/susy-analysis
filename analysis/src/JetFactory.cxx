@@ -1,5 +1,6 @@
 #include "JetFactory.hh"
 #include "BtagScaler.hh"
+#include "distiller/EventBits.hh"
 
 #include <string> 
 #include <vector> 
@@ -79,21 +80,9 @@ JetFactory::~JetFactory()
   }
   delete m_file; 
 }
-
-void JetFactory::set_btag(size_t jet_n, std::string tagger, 
-			  unsigned required, unsigned veto) { 
-  if (m_jet_buffers.size() < jet_n) { 
-    throw std::out_of_range("asked for out of range jet in " __FILE__); 
-  }
-  std::string full_branch_name = (boost::format("jet%i_") % jet_n).str(); 
-  full_branch_name.append(tagger + "_"); 
-  JetBuffer* buffer = m_jet_buffers.at(jet_n); 
-  if (buffer->btag_scaler) { 
-    delete buffer->btag_scaler; 
-    buffer->btag_scaler = 0; 
-  }
-  buffer->btag_scaler = new BtagScaler(m_tree, full_branch_name, 
-				       required, veto); 
+void JetFactory::set_btagging(btag::EventConfig config) { 
+  set_btag(1, "cnn_loose", pass::jet2_anti_b); 
+  set_btag(2, "cnn_tight", pass::jet3_anti_b | pass::jet3_anti_u_tight); 
 }
 
 int JetFactory::entries() const { 
@@ -164,6 +153,22 @@ hfor::JetType JetFactory::hfor_type() const {
   default: 
     throw std::runtime_error("given undefined hfor type"); 
   }
+}
+
+void JetFactory::set_btag(size_t jet_n, std::string tagger, 
+			  unsigned required, unsigned veto) { 
+  if (m_jet_buffers.size() < jet_n) { 
+    throw std::out_of_range("asked for out of range jet in " __FILE__); 
+  }
+  std::string full_branch_name = (boost::format("jet%i_") % jet_n).str(); 
+  full_branch_name.append(tagger + "_"); 
+  JetBuffer* buffer = m_jet_buffers.at(jet_n); 
+  if (buffer->btag_scaler) { 
+    delete buffer->btag_scaler; 
+    buffer->btag_scaler = 0; 
+  }
+  buffer->btag_scaler = new BtagScaler(m_tree, full_branch_name, 
+				       required, veto); 
 }
 
 

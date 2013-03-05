@@ -1,6 +1,7 @@
 #include "CutflowBuilder.hh"
 #include "HistBuilderFlags.hh"
 #include "CutAugmenter.hh"
+#include "HistConfig.hh"
 
 #include <string> 
 #include <stdexcept>
@@ -13,7 +14,9 @@
 #include "TFile.h"
 #include "TTree.h"
 
-CutflowBuilder::CutflowBuilder(std::string input, const unsigned flags) : 
+CutflowBuilder::CutflowBuilder(std::string input, 
+			       const HistConfig config, 
+			       const unsigned flags) : 
   m_flags(flags), 
   m_file(0), 
   m_tree(0), 
@@ -42,6 +45,9 @@ CutflowBuilder::CutflowBuilder(std::string input, const unsigned flags) :
   if (errors) { 
     throw std::runtime_error
       ((boost::format("%i branch setting errors") % errors).str()); 
+  }
+  for (auto itr = config.floats.begin(); itr != config.floats.end(); itr++) { 
+    set_float(itr->first, itr->second); 
   }
 
 }

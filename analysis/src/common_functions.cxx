@@ -31,9 +31,3 @@ double get_mttop(const Jet& jet, TVector2 met) {
 	       (jet_pt + met).Mod2() ); 
 }
 
-void setup_taggers(JetFactory* factory, unsigned histbuilder_flags) { 
-  unsigned j2_med_flags = pass::jet2_anti_u_medium | pass::jet2_anti_b; 
-  unsigned j3_med_flags = pass::jet3_anti_u_medium | pass::jet3_anti_b; 
-  factory->set_btag(1, "cnn_medium", j2_med_flags); 
-  factory->set_btag(2, "cnn_medium", j3_med_flags); 
-}

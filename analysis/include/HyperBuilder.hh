@@ -13,18 +13,20 @@ class MaskedHistArray;
 struct Axis; 
 class Jet; 
 class CutAugmenter; 
+struct HistConfig; 
 
 
 class HyperBuilder : public boost::noncopyable
 {
 public: 
-  HyperBuilder(std::string input, const unsigned flags = 0); 
+  HyperBuilder(std::string input, const HistConfig& config, 
+	       const unsigned flags = 0); 
   ~HyperBuilder(); 
   void add_cut_mask(std::string name, ull_t bits, ull_t antibits = 0); 
   int build(); 
   void save(std::string output = ""); 
-  void set_float(std::string, double); 
 private: 
+  void set_float(std::string, double); 
   void init(std::string input, const unsigned flags = 0); 
   std::map<std::string, double> get_jet_vars(const std::vector<Jet>&) const; 
   int int_from_double(double) const; 

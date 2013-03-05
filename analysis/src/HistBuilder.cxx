@@ -11,6 +11,7 @@
 #include "H5Cpp.h"
 #include "BtagScaler.hh"
 #include "typedefs.hh"
+#include "HistConfig.hh"
 
 #include <string> 
 #include <stdexcept>
@@ -24,7 +25,8 @@
 
 #include "TVector2.h"
 
-HistBuilder::HistBuilder(std::string input, const unsigned flags): 
+HistBuilder::HistBuilder(std::string input, const HistConfig& config, 
+			 const unsigned flags): 
   m_flags(flags), 
   m_leading_cjet_rank(0), 
   m_subleading_cjet_rank(0), 
@@ -34,13 +36,13 @@ HistBuilder::HistBuilder(std::string input, const unsigned flags):
   m_cut_augmenter(0)
 { 
   const double max_pt = 1e3*GeV; 
-  
+  for (auto itr = config.floats.begin(); itr != config.floats.end(); itr++) { 
+    set_float(itr->first, itr->second); 
+  }
   m_factory = new JetFactory(input); 
   if (! (flags & buildflag::is_data) ) { 
     try { 
-      m_factory->set_btag(1, "cnn_loose", pass::jet2_anti_b); 
-      m_factory->set_btag(2, "cnn_tight", 
-			  pass::jet3_anti_b | pass::jet3_anti_u_tight); 
+      m_factory->set_btagging(config.btag_config); 
     }
     catch (std::runtime_error& err) { 
       std::string app = " file: " + input; 

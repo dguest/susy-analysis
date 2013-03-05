@@ -10,6 +10,8 @@
 #include "HyperBuilder.hh"
 #include "CutflowBuilder.hh"
 #include "HistBuilderFlags.hh"
+#include "_hyperstack.hh"
+#include "HistConfig.hh"
 
 static unsigned parse_flags(const char* flags);
 
@@ -20,18 +22,18 @@ static PyObject* py_analysis_alg(PyObject *self, PyObject *args)
   PyObject* bits = 0; 
   const char* output_file = ""; 
   const char* flags = ""; 
-  PyObject* floats_dict = 0; 
+  HistConfig hist_config; 
 
   bool ok = PyArg_ParseTuple
-    (args,"sOs|sO:algo", 
-     &input_file, &bits, &output_file, &flags, &floats_dict); 
+    (args,"sOs|sO&:algo", 
+     &input_file, &bits, &output_file, &flags, fill_config, &hist_config); 
   if (!ok) return NULL;
 
   unsigned bitflags = parse_flags(flags); 
 
   int ret_val = 0; 
   try { 
-    T builder(input_file, bitflags); 
+    T builder(input_file, hist_config, bitflags); 
 
     const int n_bits = PyList_Size(bits); 
     if (PyErr_Occurred()) return NULL; 
@@ -40,21 +42,10 @@ static PyObject* py_analysis_alg(PyObject *self, PyObject *args)
       const char* name = ""; 
       unsigned mask = 0; 
       unsigned antimask = 0; 
-      ok = PyArg_ParseTuple(entry, "sk|k:parsemask", &name, &mask, &antimask); 
+      ok = PyArg_ParseTuple(entry, "sk|k:parsemask", &name, 
+			    &mask, &antimask); 
       if (!ok) return NULL; 
       builder.add_cut_mask(name, mask, antimask); 
-    }
-    PyObject* dic_key = 0; 
-    PyObject* dic_val = 0; 
-    int pos = 0; 
-    if (floats_dict) { 
-      while (PyDict_Next(floats_dict, &pos, &dic_key, &dic_val)) { 
-	char* key_val = PyString_AsString(dic_key); 
-	if (PyErr_Occurred()) return NULL; 
-	float val_val = PyFloat_AsDouble(dic_val); 
-	if (PyErr_Occurred()) return NULL; 
-	builder.set_float(key_val, val_val); 
-      }
     }
     
     ret_val = builder.build(); 
@@ -70,6 +61,69 @@ static PyObject* py_analysis_alg(PyObject *self, PyObject *args)
   return tuple; 
 
 }
+
+static bool fill_config(PyObject* dict, HistConfig* config) { 
+  if (!dict) return false; 
+  if (!PyDict_Check(dict)) return false; 
+  PyObject* key; 
+  PyObject* value; 
+  Py_ssize_t pos = 0; 
+  while(PyDict_Next(dict, &pos, &key, &value)) { 
+    if (!PyString_Check(key) || PyString_Size(key) == 0) { 
+      PyErr_SetString(PyExc_ValueError, 
+		      "config dict includes non-string key"); 
+      return false; 
+    }
+    std::string ckey = PyString_AsString(key); 
+    if (ckey == "btag_config") { 
+      if (!safe_copy(value, config->btag_config)) return false; 
+    }
+    else { 
+      if (!safe_copy(ckey, value, config->floats)) return false; 
+    }
+  }
+  return true; 
+}
+
+static bool safe_copy(std::string key, 
+		      PyObject* value, 
+		      std::map<std::string, float>& fmap) { 
+  if (fmap.count(key) != 0) { 
+    std::string problem = "tried to redefine key: " + key; 
+    PyErr_SetString(PyExc_IOError,problem.c_str()); 
+    return false; 
+  }
+  double the_double = PyFloat_AsDouble(value); 
+  if (PyErr_Occurred()) return false; 
+  fmap[key] = the_double; 
+  return true; 
+}
+
+static bool safe_copy(PyObject* value, btag::EventConfig& dest) { 
+  char* charname = PyString_AsString(value); 
+  if (PyErr_Occurred()) return false; 
+  std::string name(charname); 
+  using namespace btag; 
+  if (name == "TIGHT_LOOSE") { 
+    dest = TIGHT_LOOSE; 
+    return true; 
+  }
+  else if (name == "MEDIUM_MEDIUM") { 
+    dest = MEDIUM_MEDIUM; 
+    return true; 
+  }
+  else if (name == "NONE") { 
+    dest = NONE; 
+    return true; 
+  }
+  else { 
+    std::string problem = "got undefined btag configuration: " + name; 
+    PyErr_SetString(PyExc_IOError,problem.c_str()); 
+    return false; 
+  }
+}
+
+
 
 static PyMethodDef methods[] = {
   {"_stacksusy", py_analysis_alg<HistBuilder>, METH_VARARGS, 

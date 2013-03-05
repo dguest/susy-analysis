@@ -8,6 +8,7 @@
 #include "CutAugmenter.hh"
 #include "common_functions.hh"
 #include "H5Cpp.h"
+#include "HistConfig.hh"
 
 #include <string> 
 #include <stdexcept>
@@ -21,7 +22,8 @@
 #include "TVector2.h"
 
 
-HyperBuilder::HyperBuilder(std::string input, const unsigned flags) : 
+HyperBuilder::HyperBuilder(std::string input, const HistConfig& config, 
+			   const unsigned flags) : 
   m_flags(flags), 
   m_factory(0), 
   m_augmenter(0), 
@@ -40,6 +42,9 @@ HyperBuilder::HyperBuilder(std::string input, const unsigned flags) :
   m_max_cb(4), 
   m_n_cb_bins(10)
 { 
+  for (auto itr = config.floats.begin(); itr != config.floats.end(); itr++) { 
+    set_float(itr->first, itr->second); 
+  }
 }
 
 void HyperBuilder::init(std::string input, const unsigned flags) { 

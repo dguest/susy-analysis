@@ -16,17 +16,19 @@ class Jet1DHists;
 class Jet; 
 class TVector2; 
 class CutAugmenter; 
+struct HistConfig; 
 
 class HistBuilder : public boost::noncopyable
 {
 public: 
-  HistBuilder(std::string input, const unsigned flags = 0); 
+  HistBuilder(std::string input, const HistConfig& config, 
+	      const unsigned flags = 0); 
   ~HistBuilder(); 
   void add_cut_mask(std::string name, ull_t bits, ull_t antibits = 0); 
   int build(); 
   void save(std::string output = ""); 
-  void set_float(std::string, double);
 private: 
+  void set_float(std::string, double);
   void fill_truth_hists(const std::vector<Jet>& jets, 
 			const ull_t mask, double weight); 
   typedef std::map<std::string, ull_t> CutMasks; 

@@ -7,6 +7,7 @@
 #include "HforTypeDef.hh"
 #include "systematic_defs.hh"
 #include "typedefs.hh"
+#include "BtagConfig.hh"
 
 class Jet; 
 class TTree;
@@ -38,8 +39,7 @@ class JetFactory
 public: 
   JetFactory(std::string root_file, int n_jets = 3); 
   ~JetFactory(); 
-  void set_btag(size_t jet_n, std::string tagger, 
-		unsigned required, unsigned veto = 0); 
+  void set_btagging(btag::EventConfig); 
   int entries() const; 
   void entry(int); 
   std::vector<Jet> jets() const; 
@@ -54,6 +54,8 @@ public:
   double htx() const; 
   double event_weight() const; 
 private: 
+  void set_btag(size_t jet_n, std::string tagger, 
+		unsigned required, unsigned veto = 0); 
   Jet jet(int) const; 		// not fully supported
   void set_buffer(std::string base_name); 
   TTree* m_tree; 
