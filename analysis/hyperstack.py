@@ -32,4 +32,4 @@ added_cuts = dict(
     )
 
 hyperstack.stacksusy(sys.argv[1], all_cuts, 'stupid.h5', flags='v', 
-                     added_cuts=added_cuts)
+                     config_opts=added_cuts)
