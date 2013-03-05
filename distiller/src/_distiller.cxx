@@ -136,12 +136,6 @@ static bool safe_copy(PyObject* value, std::string& dest) {
   dest = str; 
   return true; 
 }
-static bool safe_copy(PyObject* value, int& dest) { 
-  int the_int = PyInt_AsLong(value); 
-  if (PyErr_Occurred()) return false; 
-  dest = the_int; 
-  return true; 
-}
 static bool safe_copy(PyObject* value, systematic::Systematic& dest) { 
   char* sysname = PyString_AsString(value); 
   if (PyErr_Occurred()) return false; 
@@ -161,7 +155,7 @@ static bool safe_copy(PyObject* value, systematic::Systematic& dest) {
   }
   else { 
     std::string problem = "got undefined systematic: " + name; 
-    PyErr_SetString(PyExc_IOError,problem.c_str()); 
+    PyErr_SetString(PyExc_ValueError,problem.c_str()); 
     return false; 
   }
 }
