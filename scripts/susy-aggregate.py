@@ -8,7 +8,7 @@ from os.path import join, isdir, dirname, splitext, basename, isfile
 from stop import meta 
 import argparse
 import ConfigParser
-from stop.aggregator import SampleAggregator, PlotsDict
+from stop.aggregator import SampleAggregator, HistDict
 import yaml
 
 _plot_vars = [ 
@@ -54,6 +54,7 @@ def get_config():
                         help='%(const)s if no value given')
     parser.add_argument('--dump-yaml', action='store_true')
     parser.add_argument('-f','--force-aggregation', action='store_true')
+    parser.add_argument('-t', '--dump-tex', action='store_true')
     args = parser.parse_args(sys.argv[1:])
     if not args.config_file: 
         args.config_file = get_config_file()
@@ -103,7 +104,7 @@ def get_config():
 def run(): 
     args = get_config()
     if isfile(args.agg_cache) and not args.force_aggregation: 
-        plots_dict = PlotsDict(args.agg_cache)
+        plots_dict = HistDict(args.agg_cache)
     else: 
         aggregator = SampleAggregator(
             args.meta_data, 
@@ -115,6 +116,13 @@ def run():
             os.remove(args.agg_cache)
         aggregator.write(args.agg_cache)
         plots_dict = aggregator.plots_dict
+
+    if args.dump_tex: 
+        from stop.stack.table import get_physics_cut_dict, make_latex_bg_table
+        out_file = make_latex_bg_table(get_physics_cut_dict(plots_dict))
+        out_file.seek(0)
+        for line in out_file: 
+            sys.stdout.write(line)
 
     if args.output_ext: 
         from stop.stack import plot

@@ -19,7 +19,7 @@ def get_all_objects(filepath):
         objects = _get_objects(hfile)
     return objects
 
-class PlotsDict(dict): 
+class HistDict(dict): 
     """
     Dictionary with some methods for HDF5 persistence. 
 
@@ -77,7 +77,7 @@ class SampleAggregator(object):
             dict(stop_mass_gev=200, lsp_mass_gev=180), 
             ]
         self.signal_prestring = 'stop'
-        self._plots_dict = PlotsDict()
+        self._plots_dict = HistDict()
         self.tolerable_bugs = set([
                 'bad files', 
                 'ambiguous dataset', 
@@ -137,7 +137,7 @@ class SampleAggregator(object):
         return self._plots_dict
 
     def aggregate(self): 
-        plots_dict = PlotsDict()
+        plots_dict = HistDict()
         numfiles = len(self.whiskey)
         for filenum, f in enumerate(self.whiskey): 
             if self.outstream and self.outstream.isatty():
@@ -182,7 +182,8 @@ class SampleAggregator(object):
     def write(self, file_name): 
         self._plots_dict.write(file_name)
     def read(self, file_name): 
-        self._plots_dict = PlotsDict(file_name)
+        self._plots_dict = HistDict(file_name)
+                
                         
 class MissingCacheError(IOError): 
     """

@@ -232,6 +232,9 @@ class HistNd(object):
 
     @property
     def axes(self): 
+        """
+        TODO: consider removing the copy here, not sure it's really needed
+        """
         return sorted(copy.deepcopy(self._axes).values(), 
                       key=lambda x: x.number)
 
