@@ -79,7 +79,7 @@ static bool fill_config(PyObject* dict, HistConfig* config) {
     if (ckey == "btag_config") { 
       if (!safe_copy(value, config->btag_config)) return false; 
     }
-    if (ckey == "systematic") { 
+    else if (ckey == "systematic") { 
       if (!safe_copy(value, config->systematic)) return false; 
     }
     else { 
@@ -94,11 +94,15 @@ static bool safe_copy(std::string key,
 		      std::map<std::string, float>& fmap) { 
   if (fmap.count(key) != 0) { 
     std::string problem = "tried to redefine key: " + key; 
-    PyErr_SetString(PyExc_IOError,problem.c_str()); 
+    PyErr_SetString(PyExc_ValueError,problem.c_str()); 
     return false; 
   }
   double the_double = PyFloat_AsDouble(value); 
-  if (PyErr_Occurred()) return false; 
+  if (PyErr_Occurred()) {
+    std::string problem = "wanted a float for " + key; 
+    PyErr_SetString(PyExc_TypeError, problem.c_str()); 
+    return false; 
+  }
   fmap[key] = the_double; 
   return true; 
 }
@@ -126,7 +130,7 @@ static bool safe_copy(PyObject* value, btag::EventConfig& dest) {
   }
   else { 
     std::string problem = "got undefined btag configuration: " + name; 
-    PyErr_SetString(PyExc_IOError,problem.c_str()); 
+    PyErr_SetString(PyExc_ValueError,problem.c_str()); 
     return false; 
   }
 }
@@ -173,8 +177,8 @@ static bool safe_copy(PyObject* value, syst::Systematic& dest) {
     return true; 
   }
   else { 
-    std::string problem = "got undefined btag configuration: " + name; 
-    PyErr_SetString(PyExc_IOError,problem.c_str()); 
+    std::string problem = "got undefined systematic: " + name; 
+    PyErr_SetString(PyExc_ValueError,problem.c_str()); 
     return false; 
   }
 }
