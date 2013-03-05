@@ -87,6 +87,7 @@ class SampleAggregator(object):
             '{}-{stop_mass_gev}-{lsp_mass_gev}-TMF{met_filter_gev:.0f}')
         self.signal_name_template = '{}-{stop_mass_gev}-{lsp_mass_gev}'
         self.outstream = sys.stdout
+        self.bugstream = sys.stderr
         n_uniq_vars = len(set(variables))
         n_vars = len(variables)
         if n_vars != n_uniq_vars: 
@@ -120,7 +121,7 @@ class SampleAggregator(object):
         if ds.bugs: 
             intolerable_bugs = ds.bugs - self.tolerable_bugs
             if intolerable_bugs:
-                self.outstream.write("\nuh oh, bugs: {} in {} {}\n".format(
+                self.bugstream.write("\nuh oh, bugs: {} in {} {}\n".format(
                     str(intolerable_bugs), ds.key, ds.name))
                 return True
             if 'bad files' in ds.bugs: 
