@@ -42,14 +42,12 @@ def _run_distill(ds):
         ds.need_rerun = False
         if isinstance(cut_counts, cutflow.CorruptedCutflow): 
             ds.n_corrupted_files = len(ds.d3pds) - len(cut_counts.files_used)
-            ds.bugs.add('bad files')
         else: 
-            ds.bugs -= set(['bad files'])
+            ds.n_corrupted_files = 0
         if hasattr(ds,'missing_branch'): 
             del ds.missing_branch
     except RuntimeError as er: 
         if 'bad file:' in str(er): 
-            ds.bugs.add('bad files')
             ds.n_corrupted_files = len(ds.d3pds)
             warn(str(er))
         elif 'missing branch:' in str(er): 

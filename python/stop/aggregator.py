@@ -79,7 +79,6 @@ class SampleAggregator(object):
         self.signal_prestring = 'stop'
         self._plots_dict = HistDict()
         self.tolerable_bugs = set([
-                'bad files', 
                 'ambiguous dataset', 
                 ])
         self.signal_name_template_met_filter = ( 
@@ -122,20 +121,16 @@ class SampleAggregator(object):
                 'no cross section for {} {}, skipping\n'.format(
                     ds.key, ds.name))
             return True
+        if ds.n_corrupted_files: 
+            self.bugstream.write(
+                '{} bad files in {}\n'.format(ds.n_corrupted_files, ds.key))
+            
         if ds.bugs: 
             intolerable_bugs = ds.bugs - self.tolerable_bugs
             if intolerable_bugs:
                 self.bugstream.write("\nuh oh, bugs: {} in {} {}\n".format(
                     str(intolerable_bugs), ds.key, ds.name))
                 return True
-
-            if 'bad files' in ds.bugs: 
-                try: 
-                    nbad = ds.n_corrupted_files
-                except AttributeError: 
-                    nbad = 'unknown number of'
-                self.bugstream.write(
-                    '{} bad files in {}\n'.format(nbad,ds.key))
 
             if 'ambiguous dataset' in ds.bugs: 
                 if ds.is_data: 

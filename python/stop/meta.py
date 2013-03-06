@@ -33,6 +33,7 @@ class Dataset(object):
         self.full_name = ''
 
         self.bugs = set()
+        self.n_corrupted_files = 0
 
     @property
     def skim_path(self): 
