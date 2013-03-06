@@ -38,7 +38,8 @@ def correct_general(ds):
             ds.total_xsec_fb = 0.0
         if 'no filter efficiency' in ds.bugs: 
             ds.filteff = 0.0
-        ds.bugs -= set(['no cross section', 'no filter efficiency'])
+        ds.bugs -= set(['no cross section', 'no filter efficiency',
+                        'bad files'])
 
 def strip_distiller_meta(item): 
     item.d3pds = []
@@ -46,7 +47,6 @@ def strip_distiller_meta(item):
     item.grl = ''
     item.distill_flags = ''
     item.calibration_dir = ''
-    item.n_corrupted_files = 0
     item.missing_branch = ''
     item.need_rerun = None
     item.btag_env = ''
