@@ -1,6 +1,6 @@
 import yaml
 from stop import bits
-from os.path import basename, isfile, isdir, join
+from os.path import basename, isfile, isdir, join, splitext
 import glob, os
 
 class Coordinator(object): 
@@ -12,7 +12,7 @@ class Coordinator(object):
 
     General Design Principals: 
         - missing directories are generated when needed. 
-        - missing 'files' entries are generated on initilization. 
+        - a template yaml file should be generated if none is given. 
         - this class (and only this class) is responsible for checking the 
           consistency of the yaml file. 
     """
@@ -23,6 +23,8 @@ class Coordinator(object):
     scale_factor_systematics += [
         part + shift for part in 'BCUT' for shift in ['UP','DOWN']
         ]
+    aggrigate_hist_name = 'aggregate.h5'
+
     def __init__(self, yaml_file=None): 
         if yaml_file: 
             self._config_dict = yaml.load(yaml_file)
@@ -34,9 +36,51 @@ class Coordinator(object):
         if not 'files' in self._config_dict: 
             self._config_dict['files'] = {
                 'ntuples': {s:s.lower() for s in self.distiller_systematics}, 
-                'hists': 'hists'}
+                'hists': 'hists', 
+                'meta':'meta-all.yml'}
+        if not 'misc' in self._config_dict: 
+            self._config_dict['misc'] = {'lumi_fb': 20.661}
+
     def __repr__(self): 
         return repr(self._config_dict)
+    
+    def _dirify(self, systematic): 
+        return 'baseline' if systematic == 'NONE' else systematic.lower()
+
+    def _get_syst_hist_path(self, systematic, create=False): 
+        hists_path = self._config_dict['files']['hists']
+        syst_hist_path = join(hists_path, self._dirify(systematic))
+        if create:
+            if not isdir(hists_path): 
+                os.mkdir(hists_path)
+            if not isdir(syst_hist_path): 
+                os.mkdir(syst_hist_path)
+        return syst_hist_path
+
+    def clean(self): 
+        hists_dir = self._config_dict['files']['hists']
+        if isdir(hists_dir): 
+            for syst in self.distiller_systematics: 
+                histsyst_dir = join(hists_dir, self._dirify(syst))
+                if isdir(histsyst_dir): 
+                    for f in glob.glob('{}/*.h5'.format(histsyst_dir)): 
+                        os.remove(f)
+                    os.rmdir(histsyst_dir)
+            os.rmdir(hists_dir)
+
+    def get_broken_regions(self): 
+        broken = []
+        for name, region_dict in self._config_dict['regions'].items(): 
+            try: 
+                region = Region(region_dict)
+                bits = region.bits
+                antibits = region.antibits
+            except KeyError: 
+                broken.append(name)
+                continue
+            except ValueError: 
+                broken.append(name)
+        return broken
 
     def stack(self, systematic='NONE', rerun=False): 
         ntup_dict = self._config_dict['files']['ntuples']
@@ -46,26 +90,38 @@ class Coordinator(object):
             ntuples = glob.glob('{}/*.root'.format(ntup_dict['NONE']))
         else: 
             raise ValueError('what the fuck is {}'.format(systematic))
-        stacker = Stacker(self._config_dict['regions'])
-        hists_path = self._config_dict['files']['hists']
-        if not isdir(hists_path): 
-            os.mkdir(hists_path)
-        systdir_name = 'baseline' if systematic == 'NONE' else systematic
-        syst_hist_path = join(hists_path, systdir_name.lower())
-        if not isdir(syst_hist_path): 
-            os.mkdir(syst_hist_path)
 
+        syst_hist_path = self._get_syst_hist_path(systematic, create=True)
+        stacker = Stacker(self._config_dict['regions'])
         for ntup in ntuples: 
             out_hist_name = '{}.h5'.format(splitext(basename(ntup))[0])
             out_hist_path = join(syst_hist_path, out_hist_name)
-            print out_hist_path
+            if isfile(out_hist_path):
+                if rerun: 
+                    os.remove(out_hist_path)
+                else: 
+                    continue
+            stacker.hist_from_ntuple(ntup, out_hist_path, systematic)
 
-    def check_regions(self): 
-        for name, region_dict in self._config_dict['regions'].items(): 
-            region = Region(region_dict)
-            bits = region.bits
-            antibits = region.antibits
-            print '{}: {} {}'.format(name, bits, antibits)
+    def aggregate(self, systematic='NONE', rerun=False): 
+        from stop import aggregator as agg
+        hist_path = self._get_syst_hist_path(systematic)
+        agg_name = join(hist_path, self.aggrigate_hist_name)
+        if isfile(agg_name) and not rerun: 
+            hist_dict = agg.HistDict(agg_name)
+        else: 
+            whiskey = glob.glob('{}/*.h5'.format(hist_path))
+            aggregator = agg.SampleAggregator(
+                meta_path=self._config_dict['files']['meta'], 
+                whiskey=whiskey, 
+                variables=['met']
+            )
+            aggregator.lumi_fb = self._config_dict['misc']['lumi_fb']
+            aggregator.signals = 'all'
+            aggregator.aggregate()
+            aggregator.write(agg_name)
+            hist_dict = aggregator.plots_dict
+        print hist_dict
             
     def write(self, yaml_file): 
         for line in yaml.dump(self._config_dict): 
@@ -74,7 +130,8 @@ class Coordinator(object):
 class Region(object): 
     """
     Stores info on signal / control region. Bits are stored as strings 
-    and used to look up real values. 
+    and used to look up real values. This class is also responsible for
+    checking the integrity of its stored data. 
     """
     default_dict = { 
         'type':'control', 
@@ -89,6 +146,7 @@ class Region(object):
     _bit_dict = dict(bits.bits)
     _composite_bit_dict = dict(bits.composite_bits)
     _final_dict = bits.final_dict
+    _allowed_types = set(['control','signal'])
 
     def __init__(self, yaml_dict={}): 
         if not yaml_dict: 
@@ -97,6 +155,9 @@ class Region(object):
         self.req_bits = yaml_dict['req_bits']
         self.veto_bits = yaml_dict['veto_bits']
         self.cut_config = yaml_dict['cut_config']
+        if self.type not in self._allowed_types: 
+            raise ValueError('region type {} is not known'.format(
+                    self.type))
     def __repr__(self): 
         return repr(self.get_yaml_dict())
 
@@ -144,8 +205,9 @@ class Stacker(object):
         # current plan, don't configure cuts, output a histogram and 
         # do the counting on that... we'll use stacksusy as a standin
         from stop.hyperstack import stacksusy
-        first_config = self._regions.values()[0].cut_config
-        if any(r.cut_config != first_config): 
+        regions = self._regions.values()
+        first_config = regions[0].cut_config
+        if any(r.cut_config != first_config for r in regions): 
             raise ValueError("mismatch in cut configurations")
         config_dict = dict(
             leading_jet = first_config['leading_jet_gev'] * 1e3, 
@@ -156,10 +218,10 @@ class Stacker(object):
         if basename(ntuple).startswith('d'): 
             flags += 'd'
         if not isfile(ntuple): 
-            raise IOError("{} doesn't exist".format(ntuple))
+            raise IOError(3,"doesn't exist",ntuple)
         if isfile(hist): 
-            raise IOError("{} exists, refuse to overwrite".format(hist))
+            raise IOError(5,"already exists",hist)
         bitslist = [
             (n, v.bits, v.antibits) for n, v in self._regions.items()]
         stacksusy(ntuple, bitslist, output_file=hist, flags=flags, 
-                  config_opts=hack_config_dict)
+                  config_opts=config_dict)
