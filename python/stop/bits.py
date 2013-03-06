@@ -42,7 +42,7 @@ composite_bits = [
     ('ctag_opt', 
      _bdict['j2_anti_b'] | _bdict['j2_anti_u'] | 
      _bdict['j3_anti_b'] | _bdict['j3_anti_u'] ), 
-    ('monojet', 
+    ('kinematic', 
      _bdict['leading_jet'] | _bdict['met']), 
     ('ctag_tight', 
      _bdict['jet2_anti_b'] | 
@@ -57,6 +57,15 @@ composite_bits = [
      _bdict['grl'] | _bdict['trigger'] | _bdict['lar_error'] | 
      _bdict['core'] | #this was set wrong in the distiller
      _bdict['jet_clean'] | _bdict['vxp_gt_4trk'] | 
-     _bdict['n_jet'] | _bdict['dphi_jetmet_min'] | _bdict['lepton_veto'])
+     _bdict['n_jet'] | _bdict['dphi_jetmet_min'] )
     ]
      
+_compdict = dict(composite_bits)
+
+pretag_bits = (
+    'pretag', _compdict['kinematic'] | _compdict['preselection'] | 
+    _bdict['lepton_veto'])
+    
+final_dict = {
+    'pretag':pretag_bits, 
+    }

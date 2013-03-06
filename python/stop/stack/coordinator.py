@@ -1,6 +1,7 @@
 import yaml
 from stop import bits
-from os.path import basename, isfile
+from os.path import basename, isfile, isdir, join
+import glob, os
 
 class Coordinator(object): 
     """
@@ -15,12 +16,57 @@ class Coordinator(object):
         - this class (and only this class) is responsible for checking the 
           consistency of the yaml file. 
     """
-    def __init__(self, yaml_file): 
-        self._config_dict = yaml.load(yaml_file)
+    distiller_systematics = [
+        'NONE','JESUP', 'JESDOWN'
+        ]
+    scale_factor_systematics = ['NONE'] 
+    scale_factor_systematics += [
+        part + shift for part in 'BCUT' for shift in ['UP','DOWN']
+        ]
+    def __init__(self, yaml_file=None): 
+        if yaml_file: 
+            self._config_dict = yaml.load(yaml_file)
+        else: 
+            self._config_dict = {}
         if not 'regions' in self._config_dict: 
             example = Region().get_yaml_dict()
-            self._config_dict['regions'] = {'example':example}
-        
+            self._config_dict['regions'] = {'EXAMPLE':example}
+        if not 'files' in self._config_dict: 
+            self._config_dict['files'] = {
+                'ntuples': {s:s.lower() for s in self.distiller_systematics}, 
+                'hists': 'hists'}
+    def __repr__(self): 
+        return repr(self._config_dict)
+
+    def stack(self, systematic='NONE', rerun=False): 
+        ntup_dict = self._config_dict['files']['ntuples']
+        if systematic in self.distiller_systematics: 
+            ntuples = glob.glob('{}/*.root'.format(ntup_dict[systematic]))
+        elif systematic in self.scale_factor_systematics: 
+            ntuples = glob.glob('{}/*.root'.format(ntup_dict['NONE']))
+        else: 
+            raise ValueError('what the fuck is {}'.format(systematic))
+        stacker = Stacker(self._config_dict['regions'])
+        hists_path = self._config_dict['files']['hists']
+        if not isdir(hists_path): 
+            os.mkdir(hists_path)
+        systdir_name = 'baseline' if systematic == 'NONE' else systematic
+        syst_hist_path = join(hists_path, systdir_name.lower())
+        if not isdir(syst_hist_path): 
+            os.mkdir(syst_hist_path)
+
+        for ntup in ntuples: 
+            out_hist_name = '{}.h5'.format(splitext(basename(ntup))[0])
+            out_hist_path = join(syst_hist_path, out_hist_name)
+            print out_hist_path
+
+    def check_regions(self): 
+        for name, region_dict in self._config_dict['regions'].items(): 
+            region = Region(region_dict)
+            bits = region.bits
+            antibits = region.antibits
+            print '{}: {} {}'.format(name, bits, antibits)
+            
     def write(self, yaml_file): 
         for line in yaml.dump(self._config_dict): 
             yaml_file.write(line)
@@ -34,47 +80,55 @@ class Region(object):
         'type':'control', 
         'req_bits':['preselection'], 
         'veto_bits':[], 
-        'configuration':{
-            'leading_jet':240e3, 
-            'met':180e3, 
+        'cut_config':{
+            'leading_jet_gev':240, 
+            'met_gev':180, 
             'btag_config':'LOOSE_TIGHT'
             }
         }
+    _bit_dict = dict(bits.bits)
+    _composite_bit_dict = dict(bits.composite_bits)
+    _final_dict = bits.final_dict
+
     def __init__(self, yaml_dict={}): 
         if not yaml_dict: 
             yaml_dict = self.default_dict
         self.type = yaml_dict['type']
         self.req_bits = yaml_dict['req_bits']
         self.veto_bits = yaml_dict['veto_bits']
-        self.cut_config = yaml_dict['configuration']
-        self._bit_dict = dict(bits.bits)
-        self._composite_bit_dict = dict(bits.composite_bits)
+        self.cut_config = yaml_dict['cut_config']
+    def __repr__(self): 
+        return repr(self.get_yaml_dict())
+
     def get_yaml_dict(self): 
-        base = self.__dict__
-        for k in base: 
-            if k.startswith('_')
-            del base[k]
+        """
+        dumps the object as a dict for yaml
+        """
+        # as long as the names don't change we can just dump the object data
+        baselist = self.__dict__.items()
+        base = {k:v for k, v in baselist if not k.startswith('_')}
         return base
-            
-    @property
-    def bits(self): 
+
+    def _get_bits(self, namelist): 
         bits = 0
-        for name in self.req_bits: 
-            if name in self._composite_bit_dict: 
+        for name in namelist:
+            if name in self._final_dict: 
+                bits |= self._final_dict[name]
+            elif name in self._composite_bit_dict: 
                 bits |= self._composite_bit_dict[name]
             elif name in self._bit_dict: 
                 bits |= self._bit_dict[name]
+            else: 
+                raise ValueError("{} isn't a defined bit".format(name))
         return bits
+            
+    @property
+    def bits(self): 
+        return self._get_bits(self.req_bits)
         
     @property
-    def antibits(self)
-        antibits = 0
-        for name in self.veto_bits: 
-            if name in self._composite_bit_dict: 
-                antibits |= self._composite_bit_dict[name]
-            elif name in self._bit_dict: 
-                antibits |= self._bit_dict[name]
-        return antibits
+    def antibits(self):
+        return self._get_bits(self.veto_bits)
 
 class Stacker(object): 
     """
@@ -82,7 +136,7 @@ class Stacker(object):
     hist_from_ntuple is called.
     """
     def __init__(self, regions_dict): 
-        self._regions = {k:Region(v) for k,v in regions_dict}
+        self._regions = {k:Region(v) for k,v in regions_dict.items()}
     
     def hist_from_ntuple(self, ntuple, hist, systematic='NONE'): 
         # got to figure out how I'm going to deal with possibly 
@@ -90,12 +144,15 @@ class Stacker(object):
         # current plan, don't configure cuts, output a histogram and 
         # do the counting on that... we'll use stacksusy as a standin
         from stop.hyperstack import stacksusy
-        hack_config_dict = dict(
-            leading_jet = 240*GeV, 
-            met         = 180*GeV, 
-            btag_config = 'LOOSE_TIGHT', 
+        first_config = self._regions.values()[0].cut_config
+        if any(r.cut_config != first_config): 
+            raise ValueError("mismatch in cut configurations")
+        config_dict = dict(
+            leading_jet = first_config['leading_jet_gev'] * 1e3, 
+            met         = first_config['met_gev'] * 1e3, 
+            btag_config = first_config['btag_config'], 
             systematic  = systematic)
-        flags = ''
+        flags = 'v'
         if basename(ntuple).startswith('d'): 
             flags += 'd'
         if not isfile(ntuple): 
