@@ -8,7 +8,7 @@ from os.path import join, isdir, dirname, splitext, basename, isfile
 from stop import meta 
 import argparse
 import ConfigParser
-from stop.aggregator import SampleAggregator, HistDict
+from stop.aggregator import SampleAggregator, HistDict, get_all_objects
 import yaml
 
 _plot_vars = [ 

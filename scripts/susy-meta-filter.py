@@ -46,7 +46,6 @@ def strip_distiller_meta(item):
     item.grl = ''
     item.distill_flags = ''
     item.calibration_dir = ''
-    item.n_raw_entries = ''
     item.n_corrupted_files = 0
     item.missing_branch = ''
     item.need_rerun = None
