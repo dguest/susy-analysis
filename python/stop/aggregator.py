@@ -68,11 +68,15 @@ class SampleAggregator(object):
     Takes some meta data and whiskey as an input, produces aggrigated 
     histograms. 
     """
+    signal_name_template_met_filter = ( 
+        '{}-{stop_mass_gev}-{lsp_mass_gev}-TMF{met_filter_gev:.0f}')
+    signal_name_template = '{}-{stop_mass_gev}-{lsp_mass_gev}'
+
     def __init__(self,meta_path, whiskey, variables): 
         self.whiskey = whiskey
         self.variables = variables
         self.filter_meta = meta.DatasetCache(meta_path)
-        self.lumi_fb = 15.0
+        self.lumi_fb = 20.661
         self.signals = [        # todo, probably change this to 'all'
             dict(stop_mass_gev=200, lsp_mass_gev=180), 
             ]
@@ -81,9 +85,6 @@ class SampleAggregator(object):
         self.tolerable_bugs = set([
                 'ambiguous dataset', 
                 ])
-        self.signal_name_template_met_filter = ( 
-            '{}-{stop_mass_gev}-{lsp_mass_gev}-TMF{met_filter_gev:.0f}')
-        self.signal_name_template = '{}-{stop_mass_gev}-{lsp_mass_gev}'
         self.outstream = sys.stdout
         self.bugstream = sys.stderr
         n_uniq_vars = len(set(variables))
