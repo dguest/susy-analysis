@@ -117,7 +117,7 @@ class SampleAggregator(object):
         return None
 
     def _check_for_bugs(self, ds): 
-        if not ds.total_xsec_fb: 
+        if not ds.total_xsec_fb and not ds.is_data: 
             self.bugstream.write(
                 'no cross section for {} {}, skipping\n'.format(
                     ds.key, ds.name))
