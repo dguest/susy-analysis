@@ -119,9 +119,12 @@ class Coordinator(object):
             aggregator.lumi_fb = self._config_dict['misc']['lumi_fb']
             aggregator.signals = 'all'
             aggregator.aggregate()
+            if isfile(agg_name): 
+                os.remove(agg_name)
             aggregator.write(agg_name)
             hist_dict = aggregator.plots_dict
-        print hist_dict
+        for tup, hist in hist_dict.iteritems(): 
+            print '{}, {}'.format(tup, hist.sum())
             
     def write(self, yaml_file): 
         for line in yaml.dump(self._config_dict): 
@@ -191,6 +194,7 @@ class Region(object):
     def antibits(self):
         return self._get_bits(self.veto_bits)
 
+# -- consider moving this ?
 class Stacker(object): 
     """
     Constructed  with a regions dict. Runs the stacking routine when 

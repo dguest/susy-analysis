@@ -238,6 +238,9 @@ class HistNd(object):
         return sorted(copy.deepcopy(self._axes).values(), 
                       key=lambda x: x.number)
 
+    def sum(self): 
+        return self._array.sum()
+
     def integrate(self, axis=None, reverse=False): 
         if axis is None: 
             for axis in self._axes: 
