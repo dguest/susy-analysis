@@ -81,7 +81,6 @@ class SampleAggregator(object):
         self.tolerable_bugs = set([
                 'bad files', 
                 'ambiguous dataset', 
-                'no filter efficiency'
                 ])
         self.signal_name_template_met_filter = ( 
             '{}-{stop_mass_gev}-{lsp_mass_gev}-TMF{met_filter_gev:.0f}')
@@ -118,26 +117,33 @@ class SampleAggregator(object):
         return None
 
     def _check_for_bugs(self, ds): 
+        if not ds.total_xsec_fb: 
+            self.bugstream.write(
+                'no cross section for {} {}, skipping\n'.format(
+                    ds.key, ds.name))
+            return True
         if ds.bugs: 
             intolerable_bugs = ds.bugs - self.tolerable_bugs
             if intolerable_bugs:
                 self.bugstream.write("\nuh oh, bugs: {} in {} {}\n".format(
                     str(intolerable_bugs), ds.key, ds.name))
                 return True
+
             if 'bad files' in ds.bugs: 
                 try: 
                     nbad = ds.n_corrupted_files
                 except AttributeError: 
                     nbad = 'unknown number of'
-                warnings.warn('{} bad files in {}'.format(nbad,ds.key))
-                return False
+                self.bugstream.write(
+                    '{} bad files in {}\n'.format(nbad,ds.key))
+
             if 'ambiguous dataset' in ds.bugs: 
                 if ds.is_data: 
                     warnings.warn('you should probably fix the ambi ds thing')
-                    return False
                 else: 
                     print 'ambiguous dataset in {}, skipping'.format(ds.key)
                     return True
+        return False
 
     @property
     def plots_dict(self): 

@@ -31,7 +31,10 @@ def correct_general(ds):
     fix any generally stale stuff around the ds
     """
     if ds.is_data: 
-        ds.bugs -= set(['ambiguous dataset'])
+        ds.bugs -= set([
+                'ambiguous dataset',
+                'no cross section', 
+                'no filter efficiency'])
 
 
 def run(): 

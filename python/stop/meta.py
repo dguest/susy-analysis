@@ -59,6 +59,10 @@ class Dataset(object):
         else: 
             filt_eff = self.filteff
 
+        if not self.total_xsec_fb: 
+            raise ArithmeticError(
+                "no cross section can't calculate effective luminosity")
+
         corrected_x = self.total_xsec_fb * kfactor * filt_eff
         return self.n_raw_entries / corrected_x
 
@@ -358,7 +362,6 @@ class MetaFactory(object):
                 ds.kfactor = float(spl[3])
                 ds.filteff = float(spl[4])
                 ds.meta_sources.add('susy lookup')
-                ds.bugs -= set(['no cross section','no filter efficiency'])
     
     def _print(self, print_string): 
         if self.verbose: 
@@ -379,7 +382,6 @@ class MetaFactory(object):
         return {ds.key: ds for ds in datasets}
 
     def lookup_ami_names(self, trust_names=False):
-
         if trust_names: 
             print 'assuming input names are right'
             for ds in self._datasets.values(): 
@@ -389,9 +391,7 @@ class MetaFactory(object):
                         del ds.full_unchecked_name
                 except AttributeError: 
                     pass
-                
             return 
-
         datasets = self._datasets.values()
         no_full_name_ds = [ds for ds in datasets if not ds.full_name]
         
@@ -423,27 +423,26 @@ class MetaFactory(object):
                 self._write_ami_info(ds, info)
             elif not ds.is_data: 
                 ds.bugs.add('ambiguous dataset')
-            
 
         if stream: 
             stream.write('\n')
 
     def _write_mc_ami_info(self, ds, info):
         if not ds.filteff:
-            try: 
-                ds.filteff = float(info.extra['GenFiltEff_mean'])
-            except KeyError: 
-                try: 
-                    ds.filteff = float(info.extra['approx_GenFiltEff'])
-                except KeyError: 
-                    ds.bugs.add('no filter efficiency')
-                    ds.filteff = 1.0
+            filteff_list = ['GenFiltEff_mean', 'approx_GenFiltEff']
+            for name in filteff_list: 
+                if name in info.extra: 
+                    ds.filteff = float(info.extra[name])
+                    break
 
-        try: 
-            new_xsec = self._get_ami_cross_section(info)
-        except KeyError: 
-            if not ds.total_xsec_fb:
-                ds.bugs.add('no cross section')
+        new_xsec = 0.0
+        xsec_list = ['crossSection_mean', 'approx_crossSection']
+        for name in xsec_list: 
+            if name in info.extra: 
+                new_xsec = float(info.extra[name])
+                break
+
+        if not new_xsec: 
             return 
 
         if not ds.total_xsec_fb:
@@ -458,22 +457,10 @@ class MetaFactory(object):
                         id=ds.id, name=ds.name, 
                         ami=new_xsec, st=ds.total_xsec_fb, 
                         diff=rel_dif))
-
-
-    def _get_ami_cross_section(self,info): 
-        xsec = 0
-        try: 
-            xsec = float(info.extra['crossSection_mean']) 
-        except KeyError:
-            xsec = float(info.extra['approx_crossSection']) 
-        
-        return xsec * 1e6
     
     def _write_ami_info(self, ds, info): 
         ds.n_expected_entries = int(info.info['totalEvents'])
-    
         ds.meta_sources.add('ami')
-            
 
     def write_meta(self, output_file_name): 
         """
@@ -481,12 +468,6 @@ class MetaFactory(object):
         """
         self._datasets.write(output_file_name)
 
-    def get_found_full_ds_names(self): 
-        full_names = []
-        for ds in self._datasets.values(): 
-            if ds.full_name:
-                full_names.append(ds.full_name)
-        return sorted(full_names)
     def get_unnamed_ds(self): 
         missing = []
         for ds in self._datasets.values(): 
