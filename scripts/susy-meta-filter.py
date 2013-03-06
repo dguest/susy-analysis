@@ -31,11 +31,27 @@ def correct_general(ds):
     fix any generally stale stuff around the ds
     """
     if ds.is_data: 
-        ds.bugs -= set([
-                'ambiguous dataset',
-                'no cross section', 
-                'no filter efficiency'])
+        ds.bugs -= set(['ambiguous dataset','bad files','no cross section', 
+                        'no filter efficiency'])
+    else: 
+        if 'no cross section' in ds.bugs: 
+            ds.total_xsec_fb = 0.0
+        if 'no filter efficiency' in ds.bugs: 
+            ds.filteff = 0.0
+        ds.bugs -= set(['no cross section', 'no filter efficiency'])
 
+def strip_distiller_meta(item): 
+    item.d3pds = []
+    item.skim_paths = {}
+    item.grl = ''
+    item.distill_flags = ''
+    item.calibration_dir = ''
+    item.n_raw_entries = ''
+    item.n_corrupted_files = 0
+    item.missing_branch = ''
+    item.need_rerun = None
+    item.btag_env = ''
+    item.bugs -= set(['no d3pds'])
 
 def run(): 
     args = _get_parser().parse_args(sys.argv[1:])
@@ -63,15 +79,7 @@ def run():
         if args.strip_cutflow and hasattr(item,'cutflow'): 
             del item.cutflow
         if args.strip_distiller_meta: 
-            item.d3pds = []
-            item.skim_paths = {}
-            item.grl = ''
-            item.distill_flags = ''
-            item.calibration_dir = ''
-            item.n_raw_entries = ''
-            item.n_corrupted_files = 0
-            item.need_rerun = None
-            item.btag_env = ''
+            strip_distiller_meta(item)
             
         if args.strip_data and item.is_data: 
             continue
