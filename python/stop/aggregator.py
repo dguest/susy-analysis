@@ -177,8 +177,9 @@ class SampleAggregator(object):
                     continue
     
             with h5py.File(f) as hfile: 
-                for variable in self.variables: 
-                    for cut_name, h5hist in hfile[variable].iteritems(): 
+                for cut_name, vargroup in hfile.iteritems(): 
+                    for variable in self.variables: 
+                        h5hist = vargroup[variable]
                         hist = HistNd(h5hist)
                         hist *= lumi_scale
                         idx_tuple = (physics_type, variable, cut_name)
