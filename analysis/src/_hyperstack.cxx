@@ -20,14 +20,14 @@ template<typename T>
 static PyObject* py_analysis_alg(PyObject *self, PyObject *args)
 {
   const char* input_file = ""; 
-  PyObject* bits = 0; 
+  std::vector<RegionConfig> regions; 
   const char* output_file = ""; 
   const char* flags = ""; 
   HistConfig hist_config; 
 
   bool ok = PyArg_ParseTuple
-    (args,"sOs|sO&:algo", 
-     &input_file, &bits, &output_file, &flags, fill_config, &hist_config); 
+    (args,"sO&s|sO&:algo", &input_file, fill_regions, &regions, 
+     &output_file, &flags, fill_config, &hist_config); 
   if (!ok) return NULL;
 
   unsigned bitflags = parse_flags(flags); 
@@ -36,17 +36,8 @@ static PyObject* py_analysis_alg(PyObject *self, PyObject *args)
   try { 
     T builder(input_file, hist_config, bitflags); 
 
-    const int n_bits = PyList_Size(bits); 
-    if (PyErr_Occurred()) return NULL; 
-    for (int bit_n = 0; bit_n < n_bits; bit_n++) { 
-      PyObject* entry = PyList_GetItem(bits, bit_n); 
-      const char* name = ""; 
-      unsigned mask = 0; 
-      unsigned antimask = 0; 
-      ok = PyArg_ParseTuple(entry, "sk|k:parsemask", &name, 
-			    &mask, &antimask); 
-      if (!ok) return NULL; 
-      builder.add_cut_mask(name, mask, antimask); 
+    for (auto itr = regions.begin(); itr != regions.end(); itr++) {
+      builder.add_region(*itr); 
     }
     
     ret_val = builder.build(); 
@@ -62,6 +53,81 @@ static PyObject* py_analysis_alg(PyObject *self, PyObject *args)
   return tuple; 
 
 }
+
+static bool fill_regions(PyObject* list, std::vector<RegionConfig>* regions)
+{
+  const int n_regions = PyList_Size(list); 
+  if (PyErr_Occurred()) return NULL; 
+  for (int reg_n = 0; reg_n < n_regions; reg_n++) { 
+    PyObject* entry = PyList_GetItem(list, reg_n); 
+    RegionConfig region; 
+    if (!fill_region(entry, &region)) return false; 
+    regions->push_back(region); 
+  }
+  return true; 
+}
+
+static bool fill_region(PyObject* dict, RegionConfig* region)
+{
+  if (!dict) return false; 
+  if (!PyDict_Check(dict)) return false; 
+  if (!PyDict_Check(dict)) return false; 
+  PyObject* key; 
+  PyObject* value; 
+  Py_ssize_t pos = 0; 
+  while(PyDict_Next(dict, &pos, &key, &value)) { 
+    if (!PyString_Check(key) || PyString_Size(key) == 0) { 
+      PyErr_SetString(PyExc_ValueError, 
+		      "config dict includes non-string key"); 
+      return false; 
+    }
+    std::string ckey = PyString_AsString(key); 
+    if (ckey == "name") { 
+      std::string name = PyString_AsString(value);
+      if (PyErr_Occurred() || (PyString_Size(value) == 0)) return false; 
+      region->name = name; 
+    }
+    else if (ckey == "jet_tag_requirements") { 
+      if (!fill_jettag(value, &region->jet_tag_requirements)) return false;
+    }
+    else if (ckey == "leading_jet_pt") { 
+      region->leading_jet_pt = PyFloat_AsDouble(value); 
+      if (PyErr_Occurred()) return false; 
+    }
+    else if (ckey == "met") { 
+      region->met = PyFloat_AsDouble(value); 
+      if (PyErr_Occurred()) return false; 
+    }
+    else if (ckey == "required_bits") { 
+      region->required_bits = PyLong_AsUnsignedLongLong(value); 
+      if (PyErr_Occurred()) return false; 
+    }
+    else if (ckey == "veto_bits") { 
+      region->veto_bits = PyLong_AsUnsignedLongLong(value); 
+      if (PyErr_Occurred()) return false; 
+    }
+    else { 
+      std::string problem = "got unknown signal region option: " + name; 
+      PyErr_SetString(PyExc_ValueError,problem.c_str()); 
+      return false; 
+    }
+  }
+  return true; 
+}  
+
+
+static bool fill_jettag(PyObject* list, std::vector<btag::JetTag>* req) { 
+  const int n_tags = PyList_Size(list); 
+  if (PyErr_Occurred()) return NULL; 
+  for (int tag_n = 0; tag_n < n_tags; tag_n++) { 
+    PyObject* entry = PyList_GetItem(list, tag_n); 
+    btag::JetTag tag = btag::NOTAG; 
+    if (!safe_copy(entry, tag)) return false; 
+    req->push_back(tag); 
+  }
+  return true; 
+}
+
 
 static bool fill_config(PyObject* dict, HistConfig* config) { 
   if (!dict) return false; 
@@ -107,6 +173,7 @@ static bool safe_copy(std::string key,
   return true; 
 }
 
+// kill me
 static bool safe_copy(PyObject* value, btag::EventConfig& dest) { 
   char* charname = PyString_AsString(value); 
   if (PyErr_Occurred()) return false; 
@@ -134,6 +201,35 @@ static bool safe_copy(PyObject* value, btag::EventConfig& dest) {
     return false; 
   }
 }
+
+static bool safe_copy(PyObject* value, btag::JetTag& dest) { 
+  char* charname = PyString_AsString(value); 
+  if (PyErr_Occurred()) return false; 
+  std::string name(charname); 
+  using namespace btag; 
+  if (name == "NOTAG") { 
+    dest = NOTAG; 
+    return true; 
+  }
+  else if (name == "LOOSE") { 
+    dest = LOOSE; 
+    return true; 
+  }
+  else if (name == "MEDIUM") { 
+    dest = MEDIUM; 
+    return true; 
+  }
+  else if (name == "TIGHT") { 
+    dest = TIGHT; 
+    return true; 
+  }
+  else { 
+    std::string problem = "got undefined btag: " + name; 
+    PyErr_SetString(PyExc_ValueError,problem.c_str()); 
+    return false; 
+  }
+}
+
 
 static bool safe_copy(PyObject* value, syst::Systematic& dest) { 
   char* charname = PyString_AsString(value); 
@@ -188,10 +284,10 @@ static bool safe_copy(PyObject* value, syst::Systematic& dest) {
 static PyMethodDef methods[] = {
   {"_stacksusy", py_analysis_alg<HistBuilder>, METH_VARARGS, 
    "don't ask, read the source"},
-  {"_hypersusy", py_analysis_alg<HyperBuilder>, METH_VARARGS, 
-   "eat a failure sandwich"}, 
-  {"_cutflow", py_analysis_alg<CutflowBuilder>, METH_VARARGS, 
-   "eat a failure sandwich"}, 
+  // {"_hypersusy", py_analysis_alg<HyperBuilder>, METH_VARARGS, 
+  //  "eat a failure sandwich"}, 
+  // {"_cutflow", py_analysis_alg<CutflowBuilder>, METH_VARARGS, 
+  //  "eat a failure sandwich"}, 
   {NULL, NULL, 0, NULL}   /* sentinel */
 };
 
