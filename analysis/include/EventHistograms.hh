@@ -4,6 +4,8 @@
 #include <boost/noncopyable.hpp>
 #include <vector> 
 
+#include "typedefs.hh"
+
 class JetFactory; 
 class Jet1DHists; 
 class TruthJetHists; 
@@ -17,11 +19,13 @@ namespace H5 {
 class EventHistograms: public boost::noncopyable
 {
 public: 
-  EventHistograms(const HistConfig& config, const unsigned flags = 0); 
+  EventHistograms(ull_t required, ull_t veto = 0, const unsigned flags = 0); 
   ~EventHistograms(); 
   void fill(const JetFactory* jet_factory, double weight);
   void write_to(H5::CommonFG&) const; 
 private: 
+  const ull_t m_required; 
+  const ull_t m_veto; 
   Jet1DHists* m_jet1_hists; 
   Jet1DHists* m_jet2_hists; 
   Jet1DHists* m_jet3_hists; 

@@ -12,8 +12,10 @@
 
 #include "TVector2.h"
 
-EventHistograms::EventHistograms(const HistConfig& config, 
+EventHistograms::EventHistograms(ull_t required, ull_t veto, 
 				 const unsigned flags) : 
+  m_required(required), 
+  m_veto(veto), 
   m_leading_cjet_rank(0), 
   m_subleading_cjet_rank(0), 
   m_jet1_truth(0), 
@@ -64,6 +66,10 @@ EventHistograms::~EventHistograms() {
 
 void EventHistograms::fill(const JetFactory* factory, double weight) { 
   typedef std::vector<Jet> Jets; 
+  ull_t bits = factory->bits(); 
+  if (bits & m_veto) return; 
+  if ( (bits & m_required) != m_required) return; 
+
   const Jets jets = factory->jets(); 
   const TVector2 met = factory->met(); 
   const TLorentzVector met4(met.Px(), met.Py(), 0, 0); 

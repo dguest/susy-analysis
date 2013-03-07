@@ -40,9 +40,6 @@ HistBuilder::HistBuilder(std::string input, const HistConfig& config,
     }
   }
 
-  // HACK
-  m_histograms = new EventHistograms(config, flags); 
-
 }
 
 HistBuilder::~HistBuilder() { 
@@ -51,20 +48,17 @@ HistBuilder::~HistBuilder() {
 
   delete m_cut_augmenter; 
 
-  // HACK
-  delete m_histograms; 
+  for (auto itr = m_histograms.begin(); itr != m_histograms.end(); itr++) { 
+    delete itr->second; 
+    itr->second = 0; 
+  }
 }
 
 void HistBuilder::add_cut_mask(std::string name, ull_t mask, 
 			       ull_t antimask){ 
-  if (m_cutmask_name.size() > 0) { 
-    throw std::logic_error("only one cutmask allowed for now"
-			   " in "__FILE__ " had " + m_cutmask_name + 
-			   " tried to add " + name); 
-  }
-  m_cutmask_name = name; 
-  m_cutmask = mask; 
-  m_antimask = antimask; 
+  using namespace std; 
+  m_histograms.push_back
+    (make_pair(name,new EventHistograms(mask, antimask, m_flags))); 
 }
 
 
@@ -104,7 +98,9 @@ int HistBuilder::build() {
     if (m_cut_augmenter) { 
       m_cut_augmenter->set_cutmask(mask, jets, met); 
     }
-    m_histograms->fill(m_factory, weight); 
+    for (auto itr = m_histograms.begin(); itr != m_histograms.end(); itr++){
+      itr->second->fill(m_factory, weight); 
+    }
 
   }
   outstream << "\n";
@@ -121,10 +117,10 @@ void HistBuilder::save(std::string output) {
   using namespace H5; 
   H5File file(output, H5F_ACC_TRUNC); 
 
-  Group hack(file.createGroup("/hack")); 
-  m_histograms->write_to(hack); 
-
-
+  for (auto itr = m_histograms.begin(); itr != m_histograms.end(); itr++) { 
+    Group newgroup(file.createGroup(itr->first)); 
+    itr->second->write_to(newgroup); 
+  }
 }
 
 

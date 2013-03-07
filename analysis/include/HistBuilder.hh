@@ -4,6 +4,7 @@
 #include <string> 
 #include <map>
 #include <vector> 
+#include <utility>		// pair? 
 #include <boost/noncopyable.hpp>
 #include "typedefs.hh"
 
@@ -23,17 +24,11 @@ public:
   void save(std::string output = ""); 
 private: 
   void set_float(std::string, double);
-  typedef std::map<std::string, ull_t> CutMasks; 
 
   const unsigned m_flags; 
-  ull_t m_cutmask; 
-  ull_t m_antimask; 
-  std::string m_cutmask_name; 
 
   JetFactory* m_factory; 
-  EventHistograms* m_histograms; 
-  
-  CutMasks m_cut_masks; 
+  std::vector<std::pair<std::string, EventHistograms*> > m_histograms; 
 
   CutAugmenter* m_cut_augmenter; 
 };

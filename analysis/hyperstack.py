@@ -32,5 +32,5 @@ added_cuts = dict(
     j3_anti_u   = -0.5, 
     )
 
-hyperstack.stacksusy(sys.argv[1], short_cuts, 'stupid.h5', flags='v', 
+hyperstack.stacksusy(sys.argv[1], all_cuts, 'stupid.h5', flags='v', 
                      config_opts=added_cuts)
