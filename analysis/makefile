@@ -72,7 +72,7 @@ PY_LIB       := ../python/stop/_hyperstack.so
 
 ALLOBJ       := $(GEN_OBJ) $(PY_OBJ) drink.o
 
-ALLOUTPUT    := drink $(PY_LIB)
+ALLOUTPUT    := $(PY_LIB)
 
 all: $(ALLOUTPUT) 
 

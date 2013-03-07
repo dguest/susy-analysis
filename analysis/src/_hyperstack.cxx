@@ -107,7 +107,7 @@ static bool fill_region(PyObject* dict, RegionConfig* region)
       if (PyErr_Occurred()) return false; 
     }
     else { 
-      std::string problem = "got unknown signal region option: " + name; 
+      std::string problem = "got unknown signal region option: " + ckey; 
       PyErr_SetString(PyExc_ValueError,problem.c_str()); 
       return false; 
     }

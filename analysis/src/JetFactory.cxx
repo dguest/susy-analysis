@@ -16,6 +16,10 @@ JetBuffer::JetBuffer() :
   btag_scaler(0)
 { 
 }
+JetBuffer::~JetBuffer() { 
+  delete btag_scaler; 
+  btag_scaler = 0; 
+}
 
 JetFactory::JetFactory(std::string root_file, int n_jets) : 
   m_hfor_type(-1), 
@@ -72,9 +76,6 @@ JetFactory::~JetFactory()
   for (std::vector<JetBuffer*>::iterator itr = m_jet_buffers.begin(); 
        itr != m_jet_buffers.end(); 
        itr++) { 
-    if ( (*itr)->btag_scaler) { 
-      delete (*itr)->btag_scaler; 
-    }
     delete *itr; 
     *itr = 0; 
   }

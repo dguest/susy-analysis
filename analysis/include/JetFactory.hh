@@ -32,6 +32,7 @@ struct JetBuffer
   int flavor_truth_label; 
   BtagScaler* btag_scaler; 
   JetBuffer(); 
+  ~JetBuffer(); 
 };
 
 class JetFactory

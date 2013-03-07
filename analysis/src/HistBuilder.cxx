@@ -55,12 +55,6 @@ HistBuilder::~HistBuilder() {
   }
 }
 
-void HistBuilder::add_cut_mask(std::string name, ull_t mask, 
-			       ull_t antimask){ 
-  using namespace std; 
-  m_histograms.push_back
-    (make_pair(name,new EventHistograms(mask, antimask, m_flags))); 
-}
 void HistBuilder::add_region(const RegionConfig& region){ 
   using namespace std; 
   m_histograms.push_back

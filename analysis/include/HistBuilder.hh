@@ -20,7 +20,6 @@ public:
   HistBuilder(std::string input, const HistConfig& config, 
 	      const unsigned flags = 0); 
   ~HistBuilder(); 
-  void add_cut_mask(std::string name, ull_t bits, ull_t antibits = 0); 
   void add_region(const RegionConfig& region); 
   int build(); 
   void save(std::string output = ""); 
