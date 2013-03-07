@@ -123,8 +123,7 @@ class Coordinator(object):
                 os.remove(agg_name)
             aggregator.write(agg_name)
             hist_dict = aggregator.plots_dict
-        for tup, hist in hist_dict.iteritems(): 
-            print '{}, {}'.format(tup, hist.sum())
+        return hist_dict
             
     def write(self, yaml_file): 
         for line in yaml.dump(self._config_dict): 
