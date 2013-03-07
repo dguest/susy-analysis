@@ -29,11 +29,13 @@ public:
   void save(std::string output = ""); 
 private: 
   void set_float(std::string, double);
-  void fill_truth_hists(const std::vector<Jet>& jets, 
-			const ull_t mask, double weight); 
+  void fill_truth_hists(const std::vector<Jet>& jets, double weight); 
   typedef std::map<std::string, ull_t> CutMasks; 
 
   const unsigned m_flags; 
+  ull_t m_cutmask; 
+  ull_t m_antimask; 
+  std::string m_cutmask_name; 
 
   JetFactory* m_factory; 
   
@@ -43,15 +45,15 @@ private:
   Jet1DHists* m_jet2_hists; 
   Jet1DHists* m_jet3_hists; 
 
-  MaskedHistArray* m_met; 
-  MaskedHistArray* m_min_dphi; 
-  MaskedHistArray* m_mttop; 
-  MaskedHistArray* m_n_good_jets; 
+  Histogram* m_met; 
+  Histogram* m_min_dphi; 
+  Histogram* m_mttop; 
+  Histogram* m_n_good_jets; 
 
-  MaskedHistArray* m_htx; 
+  Histogram* m_htx; 
 
-  MaskedHistArray* m_leading_cjet_rank; 
-  MaskedHistArray* m_subleading_cjet_rank; 
+  Histogram* m_leading_cjet_rank; 
+  Histogram* m_subleading_cjet_rank; 
 
   TruthJetHists* m_jet1_truth; 
   TruthJetHists* m_jet2_truth; 

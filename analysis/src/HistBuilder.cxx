@@ -3,7 +3,6 @@
 #include "JetFactory.hh"
 #include "Histogram.hh"
 #include "ObjKinematics.hh"
-#include "MaskedHistArray.hh"
 #include "PhysicalConstants.hh"
 #include "TruthJetHists.hh"
 #include "CutAugmenter.hh"
@@ -54,16 +53,16 @@ HistBuilder::HistBuilder(std::string input, const HistConfig& config,
   m_jet2_hists = new Jet1DHists(max_pt, flags); 
   m_jet3_hists = new Jet1DHists(max_pt, flags); 
 
-  m_met = new MaskedHistArray(Histogram(100, 0.0, max_pt, "MeV")); 
-  m_min_dphi = new MaskedHistArray(Histogram(100, 0.0, M_PI)); 
-  m_mttop = new MaskedHistArray(Histogram(100, 0.0, max_pt, "MeV")); 
-  m_n_good_jets = new MaskedHistArray(Histogram(11, -0.5, 10.5)); 
+  m_met = new Histogram(100, 0.0, max_pt, "MeV"); 
+  m_min_dphi = new Histogram(100, 0.0, M_PI); 
+  m_mttop = new Histogram(100, 0.0, max_pt, "MeV"); 
+  m_n_good_jets = new Histogram(11, -0.5, 10.5); 
 
-  m_htx = new MaskedHistArray(Histogram(100, 0.0, max_pt, "MeV")); 
+  m_htx = new Histogram(100, 0.0, max_pt, "MeV"); 
 
   if (flags & buildflag::fill_truth) { 
-    m_leading_cjet_rank = new MaskedHistArray(Histogram(6, -0.5, 5.5)); 
-    m_subleading_cjet_rank = new MaskedHistArray(Histogram(6, -0.5, 5.5)); 
+    m_leading_cjet_rank = new Histogram(6, -0.5, 5.5); 
+    m_subleading_cjet_rank = new Histogram(6, -0.5, 5.5); 
     m_jet1_truth = new TruthJetHists(max_pt, flags); 
     m_jet2_truth = new TruthJetHists(max_pt, flags); 
     m_jet3_truth = new TruthJetHists(max_pt, flags); 
@@ -95,33 +94,16 @@ HistBuilder::~HistBuilder() {
   delete m_cut_augmenter; 
 }
 
-void HistBuilder::add_cut_mask(std::string name, ull_t bits, 
-			       ull_t antibits)
-{
-  CutMasks::const_iterator pos = m_cut_masks.find(name); 
-  if (pos != m_cut_masks.end()) { 
-    throw std::runtime_error("tried to overwrite cut mask \"" + name + "\""); 
+void HistBuilder::add_cut_mask(std::string name, ull_t mask, 
+			       ull_t antimask){ 
+  if (m_cutmask_name.size() > 0) { 
+    throw std::logic_error("only one cutmask allowed for now in "__FILE__); 
   }
-  m_cut_masks[name] = bits; 
-  m_jet1_hists->add_mask(bits, name, antibits); 
-  m_jet2_hists->add_mask(bits, name, antibits); 
-  m_jet3_hists->add_mask(bits, name, antibits); 
-
-  m_met->add_mask(bits, name, antibits); 
-  m_min_dphi->add_mask(bits, name, antibits); 
-  m_mttop->add_mask(bits, name, antibits); 
-  m_n_good_jets->add_mask(bits, name, antibits); 
-
-  m_htx->add_mask(bits, name, antibits); 
-
-  if (m_leading_cjet_rank) { 
-    m_leading_cjet_rank->add_mask(bits, name, antibits); 
-    m_subleading_cjet_rank->add_mask(bits, name, antibits); 
-    m_jet1_truth->add_mask(bits, name, antibits); 
-    m_jet2_truth->add_mask(bits, name, antibits); 
-    m_jet3_truth->add_mask(bits, name, antibits); 
-  }  
+  m_cutmask_name = name; 
+  m_cutmask = mask; 
+  m_antimask = antimask; 
 }
+
 
 int HistBuilder::build() { 
 
@@ -160,22 +142,22 @@ int HistBuilder::build() {
       m_cut_augmenter->set_cutmask(mask, jets, met); 
     }
 
-    m_met->fill(met.Mod(), mask, weight); 
+    m_met->fill(met.Mod(),  weight); 
 
     if (jets.size() >= 1) { 
       const Jet& jet = jets.at(0); 
-      m_jet1_hists->fill(jet,mask, weight); 
+      m_jet1_hists->fill(jet, weight); 
     }
     if (jets.size() >= 2) { 
       const Jet& jet = jets.at(1); 
-      m_jet2_hists->fill(jet,mask, weight); 
+      m_jet2_hists->fill(jet, weight); 
     }
     if (jets.size() >= 3) { 
       const Jet& jet = jets.at(2); 
-      m_jet3_hists->fill(jet, mask, weight); 
+      m_jet3_hists->fill(jet,  weight); 
       double mttop = get_mttop(std::vector<Jet>(jets.begin(), 
 						jets.begin() + 3), met); 
-      m_mttop->fill(mttop, mask, weight); 
+      m_mttop->fill(mttop,  weight); 
     }
 
     double min_jetmet_dphi = 10; 
@@ -183,16 +165,16 @@ int HistBuilder::build() {
       min_jetmet_dphi = std::min(min_jetmet_dphi, 
 				 fabs(met4.DeltaPhi(*itr))); 
     }
-    m_min_dphi->fill(min_jetmet_dphi, mask, weight); 
+    m_min_dphi->fill(min_jetmet_dphi,  weight); 
 
-    m_htx->fill(m_factory->htx(), mask, weight); 
+    m_htx->fill(m_factory->htx(),  weight); 
     
-    m_n_good_jets->fill(m_factory->n_good(), mask, weight); 
+    m_n_good_jets->fill(m_factory->n_good(),  weight); 
     if (m_leading_cjet_rank) { 
-      m_leading_cjet_rank->fill(m_factory->leading_cjet_pos(), mask, weight); 
+      m_leading_cjet_rank->fill(m_factory->leading_cjet_pos(),  weight); 
       m_subleading_cjet_rank->fill(m_factory->subleading_cjet_pos(), 
-				   mask, weight); 
-      fill_truth_hists(jets, mask, weight); 
+				    weight); 
+      fill_truth_hists(jets,  weight); 
     }
 
   }
@@ -203,11 +185,11 @@ int HistBuilder::build() {
 }
 
 void HistBuilder::fill_truth_hists(const std::vector<Jet>& jets, 
-				   const ull_t mask, double weight) { 
+				   double weight) { 
   unsigned n_jets = jets.size(); 
-  if (n_jets >= 1) m_jet1_truth->fill(jets.at(0), mask, weight); 
-  if (n_jets >= 2) m_jet2_truth->fill(jets.at(1), mask, weight); 
-  if (n_jets >= 3) m_jet3_truth->fill(jets.at(2), mask, weight); 
+  if (n_jets >= 1) m_jet1_truth->fill(jets.at(0),  weight); 
+  if (n_jets >= 2) m_jet2_truth->fill(jets.at(1),  weight); 
+  if (n_jets >= 3) m_jet3_truth->fill(jets.at(2),  weight); 
 }
 
 void HistBuilder::save(std::string output) { 
@@ -224,26 +206,16 @@ void HistBuilder::save(std::string output) {
   Group jet3(file.createGroup("/jet3")); 
   m_jet3_hists->write_to(jet3); 
 
-  Group met(file.createGroup("/met")); 
-  m_met->write_to(met);
-  Group min_dphi(file.createGroup("/minDphi")); 
-  m_min_dphi->write_to(min_dphi); 
-
-  Group mttop(file.createGroup("/mttop")); 
-  m_mttop->write_to(mttop); 
-
-  Group nGoodJets(file.createGroup("/nGoodJets")); 
-  m_n_good_jets->write_to(nGoodJets); 
-
-  Group htx(file.createGroup("/htx"));
-  m_htx->write_to(htx); 
+  m_met->write_to(file, "met");
+  m_min_dphi->write_to(file, "minDphi"); 
+  m_mttop->write_to(file, "mttop"); 
+  m_n_good_jets->write_to(file, "nGoodJets"); 
+  m_htx->write_to(file, "htx"); 
 
   if (m_leading_cjet_rank) { 
     Group truth(file.createGroup("/truth")); 
-    Group leadingCJet(truth.createGroup("leadingCJet")); 
-    m_leading_cjet_rank->write_to(leadingCJet); 
-    Group subleadingCJet(truth.createGroup("subleadingCJet")); 
-    m_subleading_cjet_rank->write_to(subleadingCJet); 
+    m_leading_cjet_rank->write_to(truth, "leadingCJet"); 
+    m_subleading_cjet_rank->write_to(truth, "subleadingCJet"); 
 
     Group j1_truth(truth.createGroup("jet1")); 
     Group j2_truth(truth.createGroup("jet2")); 
