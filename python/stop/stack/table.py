@@ -1,7 +1,18 @@
 from tempfile import TemporaryFile
 import warnings, re
 
-def get_physics_cut_dict(plots_dict, safe=True): 
+def _not_blinded(physics_cut_tup): 
+    phys, cut = physics_cut_tup
+    if phys != 'data': 
+        return True
+    ok_ends = ['cr', 'btag','lep']
+    for end in ok_ends: 
+        if cut.endswith(end): 
+            return True
+    return False
+    
+
+def get_physics_cut_dict(plots_dict, safe=True, notblind=_not_blinded): 
     """
     builds dictionary keyed by (physics type, cut name) containing the 
     counts of each (type, cut) pair
@@ -11,7 +22,7 @@ def get_physics_cut_dict(plots_dict, safe=True):
     for (phys, var, cut), hist in plots_dict.iteritems(): 
         physcut_tup = (phys, cut)
         # apply blinding
-        if not cut.endswith('cr') and phys == 'data': 
+        if not notblind(physcut_tup):
             continue
         if physcut_tup not in physcut_dict: 
             physcut_dict[physcut_tup] = hist.array.sum()

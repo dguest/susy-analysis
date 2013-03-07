@@ -1,7 +1,7 @@
 import yaml
 from stop import bits
 from os.path import basename, isfile, isdir, join, splitext
-import glob, os
+import glob, os, tempfile, sys
 
 class Coordinator(object): 
     """
@@ -118,13 +118,16 @@ class Coordinator(object):
             )
             aggregator.lumi_fb = self._config_dict['misc']['lumi_fb']
             aggregator.signals = 'all'
+            aggregator.bugstream = tempfile.TemporaryFile()
             aggregator.aggregate()
+            aggregator.bugstream.seek(0)
+            for line in aggregator.bugstream: 
+                sys.stderr.write(line)
             if isfile(agg_name): 
                 os.remove(agg_name)
             aggregator.write(agg_name)
             hist_dict = aggregator.plots_dict
-        for tup, hist in hist_dict.iteritems(): 
-            print '{}, {}'.format(tup, hist.sum())
+        return hist_dict
             
     def write(self, yaml_file): 
         for line in yaml.dump(self._config_dict): 
