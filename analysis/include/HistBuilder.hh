@@ -7,6 +7,7 @@
 #include <utility>		// pair? 
 #include <boost/noncopyable.hpp>
 #include "typedefs.hh"
+#include "systematic_defs.hh"
 
 class JetFactory; 
 class CutAugmenter;
@@ -27,6 +28,7 @@ private:
   void set_float(std::string, double);
 
   const unsigned m_flags; 
+  const syst::Systematic m_systematic; 
 
   JetFactory* m_factory; 
   std::vector<std::pair<std::string, EventHistograms*> > m_histograms; 

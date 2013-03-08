@@ -25,6 +25,7 @@
 HistBuilder::HistBuilder(std::string input, const HistConfig& config, 
 			 const unsigned flags): 
   m_flags(flags), 
+  m_systematic(config.systematic), 
   m_cut_augmenter(0)
 { 
   for (auto itr = config.floats.begin(); itr != config.floats.end(); itr++) { 
@@ -95,7 +96,7 @@ int HistBuilder::build() {
     const Jets jets = m_factory->jets(); 
     const TVector2 met = m_factory->met(); 
     const TLorentzVector met4(met.Px(), met.Py(), 0, 0); 
-    double weight = m_factory->event_weight(); 
+    double weight = m_factory->event_weight(m_systematic); 
 
     if (m_cut_augmenter) { 
       m_cut_augmenter->set_cutmask(mask, jets, met); 
