@@ -101,7 +101,7 @@ int HistBuilder::build() {
       m_cut_augmenter->set_cutmask(mask, jets, met); 
     }
     for (auto itr = m_histograms.begin(); itr != m_histograms.end(); itr++){
-      itr->second->fill(m_factory, weight); 
+      itr->second->fill(m_factory, mask, weight); 
     }
 
   }

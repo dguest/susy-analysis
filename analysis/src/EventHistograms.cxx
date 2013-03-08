@@ -64,11 +64,11 @@ EventHistograms::~EventHistograms() {
   delete m_jet3_truth; 
 }
 
-void EventHistograms::fill(const JetFactory* factory, double weight) { 
+void EventHistograms::fill(const JetFactory* factory, ull_t evt_mask, 
+			   double weight) { 
   typedef std::vector<Jet> Jets; 
-  ull_t bits = factory->bits(); 
-  if (bits & m_veto) return; 
-  if ( (bits & m_required) != m_required) return; 
+  if (evt_mask & m_veto) return; 
+  if ( (evt_mask & m_required) != m_required) return; 
 
   const Jets jets = factory->jets(); 
   const TVector2 met = factory->met(); 

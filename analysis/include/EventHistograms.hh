@@ -21,7 +21,7 @@ class EventHistograms: public boost::noncopyable
 public: 
   EventHistograms(ull_t required, ull_t veto = 0, const unsigned flags = 0); 
   ~EventHistograms(); 
-  void fill(const JetFactory* jet_factory, double weight);
+  void fill(const JetFactory* jet_factory, ull_t evt_mask, double weight);
   void write_to(H5::CommonFG&) const; 
 private: 
   const ull_t m_required; 
