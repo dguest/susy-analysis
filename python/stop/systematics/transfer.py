@@ -6,6 +6,8 @@ class TransferCalculator(object):
       - region 
 
     The physics type can be changed after initialization, however. 
+
+    TODO: centralize the lists of systematics.
     """
     def __init__(self, counts, physics_type='ttbar'): 
         self.counts = counts

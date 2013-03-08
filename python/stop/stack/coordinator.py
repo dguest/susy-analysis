@@ -121,7 +121,7 @@ class Coordinator(object):
                 syst_dict[syst] = self.aggregate(systematic=syst)
             return syst_dict
             
-        from stop import aggregator as agg
+        from stop.stack import aggregator as agg
         hist_path = self._get_syst_hist_path(systematic)
         agg_name = join(hist_path, self.aggrigate_hist_name)
         if isfile(agg_name) and not rerun: 
