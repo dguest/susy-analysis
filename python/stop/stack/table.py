@@ -1,4 +1,4 @@
-from tempfile import TemporaryFile
+from tempfile import TemporaryFile as Temp
 import warnings, re
 
 def _not_blinded(physics_cut_tup): 
@@ -40,7 +40,7 @@ def get_physics_cut_dict(plots_dict, safe=True, notblind=_not_blinded):
                         thissum, var))
     return physcut_dict
 
-def make_latex_bg_table(physics_cut_dict, out_file=TemporaryFile()): 
+def make_latex_bg_table(physics_cut_dict, out_file=Temp(), title=''): 
     """
     returns a file-like object
     """
@@ -61,7 +61,7 @@ def make_latex_bg_table(physics_cut_dict, out_file=TemporaryFile()):
     colstring = '|'.join(['c']*(len(texphys) +1))
     prereq = r'\begin{{tabular}}{{ {} }}'.format(colstring)
     out_file.write(prereq + '\n')
-    headrow = r'& {} \\ \hline'.format(' & '.join(texphys))
+    headrow = r' {} & {} \\ \hline'.format(title,' & '.join(texphys))
     out_file.write(headrow + '\n')
     for cut in cut_list: 
         line = [cut.replace('_',' ')]
