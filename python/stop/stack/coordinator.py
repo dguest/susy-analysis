@@ -117,7 +117,6 @@ class Coordinator(object):
                            self.scale_factor_systematics)
             syst_dict = {}
             for syst in all_syst: 
-                print syst
                 syst_dict[syst] = self.aggregate(systematic=syst)
             return syst_dict
             
