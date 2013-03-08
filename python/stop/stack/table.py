@@ -40,6 +40,30 @@ def get_physics_cut_dict(plots_dict, safe=True, notblind=_not_blinded):
                         thissum, var))
     return physcut_dict
 
+def yamlize(physics_cut_dict): 
+    """
+    converts the physics_cut_dict into a nested dict structure. 
+    Schema is as follows: 
+        - systematic
+        - physics type
+        - region 
+        - cut count
+    """
+    if not isinstance(physics_cut_dict, dict): 
+        return float(physics_cut_dict)
+    ymlout = {}
+    for key, entry in physics_cut_dict.iteritems(): 
+        if isinstance(key, tuple): 
+            f, s = [str(i) for i in key]
+            if not f in ymlout: 
+                ymlout[f] = {s:yamlize(entry)}
+            else: 
+                ymlout[f][s] = yamlize(entry)
+        else: 
+            ymlout[str(key)] = yamlize(entry)
+
+    return ymlout
+
 def make_latex_bg_table(physics_cut_dict, out_file=Temp(), title=''): 
     """
     returns a file-like object
