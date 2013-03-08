@@ -83,11 +83,19 @@ class Coordinator(object):
         return broken
 
     def stack(self, systematic='NONE', rerun=False): 
+        if systematic == 'all': 
+            all_syst = set(self.distiller_systematics + 
+                           self.scale_factor_systematics)
+            for syst in all_syst: 
+                self.stack(systematic=syst)
+            return None
         ntup_dict = self._config_dict['files']['ntuples']
         if systematic in self.distiller_systematics: 
             ntuples = glob.glob('{}/*.root'.format(ntup_dict[systematic]))
+            stacker_syst = 'NONE'
         elif systematic in self.scale_factor_systematics: 
             ntuples = glob.glob('{}/*.root'.format(ntup_dict['NONE']))
+            stacker_syst = systematic
         else: 
             raise ValueError('what the fuck is {}'.format(systematic))
 
@@ -101,9 +109,18 @@ class Coordinator(object):
                     os.remove(out_hist_path)
                 else: 
                     continue
-            stacker.hist_from_ntuple(ntup, out_hist_path, systematic)
+            stacker.hist_from_ntuple(ntup, out_hist_path, stacker_syst)
 
     def aggregate(self, systematic='NONE', rerun=False): 
+        if systematic == 'all': 
+            all_syst = set(self.distiller_systematics + 
+                           self.scale_factor_systematics)
+            syst_dict = {}
+            for syst in all_syst: 
+                print syst
+                syst_dict[syst] = self.aggregate(systematic=syst)
+            return syst_dict
+            
         from stop import aggregator as agg
         hist_path = self._get_syst_hist_path(systematic)
         agg_name = join(hist_path, self.aggrigate_hist_name)
