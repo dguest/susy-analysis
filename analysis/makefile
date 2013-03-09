@@ -40,6 +40,9 @@ PY_LIB   +=   $(shell $(PY_CONFIG) --libs)
 
 # --- set compiler and flags (roll c options and include paths together)
 CXX          := g++44
+ifdef CXX_LOCAL
+CXX          := $(CXX_LOCAL)
+endif
 CXXFLAGS     := -O2 -Wall -fPIC -I$(INC) -I$(ND_HIST_INC) -g -std=c++0x
 LIBS         := -L$(ND_HIST_LIB) -Wl,-rpath,$(ND_HIST_LIB) -lndhist
 LDFLAGS      := -Wl,-no-undefined
