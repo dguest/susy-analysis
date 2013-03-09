@@ -29,6 +29,9 @@ RegionHistograms::RegionHistograms(const RegionConfig& config,
   if (config.output_name.size() == 0) { 
     throw std::runtime_error("output histograms not named, quitting"); 
   }
+  if (config.name.size() == 0) { 
+    throw std::runtime_error("no name for region, quitting"); 
+  }
 
   m_jet1_hists = new Jet1DHists(max_pt, flags); 
   m_jet2_hists = new Jet1DHists(max_pt, flags); 

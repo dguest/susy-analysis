@@ -244,10 +244,13 @@ class Stacker(object):
         # current plan, don't configure cuts, output a histogram and 
         # do the counting on that... we'll use stacksusy as a standin
         from stop.hyperstack import stacksusy
-        regions = [r.get_config_dict() for r in self._regions.values()]
-        for reg in regions: 
-            reg['output_name'] = hist # safe because we only use one systematic
-            reg['systematic'] = systematic
+        regions = []
+        for name, reg in self._regions.items(): 
+            regdic = reg.get_config_dict()
+            regdic['name'] = name
+            regdic['output_name'] = hist 
+            regdic['systematic'] = systematic
+            regions.append(regdic)
         flags = 'v'
         if basename(ntuple).startswith('d'): 
             flags += 'd'
