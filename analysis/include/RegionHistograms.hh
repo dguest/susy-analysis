@@ -6,11 +6,12 @@
 
 #include "typedefs.hh"
 #include "BtagConfig.hh"
+#include "systematic_defs.hh"
+#include "RegionConfig.hh"
 
 class JetFactory; 
 class Jet1DHists; 
 class TruthJetHists; 
-class RegionConfig; 
 class Histogram; 
 
 namespace H5 { 
@@ -22,12 +23,12 @@ class RegionHistograms: public boost::noncopyable
 public: 
   RegionHistograms(const RegionConfig& config, const unsigned flags = 0); 
   ~RegionHistograms(); 
-  void fill(const JetFactory* jet_factory, ull_t evt_mask, double weight);
+  void fill(const JetFactory* jet_factory);
   void write_to(H5::CommonFG&) const; 
+  void write_to(std::string file_name = "") const; 
 private: 
-  const ull_t m_required; 
-  const ull_t m_veto; 
-  std::vector<btag::JetTag> m_jet_tag_requirements; 
+  const RegionConfig m_region_config; 
+
   Jet1DHists* m_jet1_hists; 
   Jet1DHists* m_jet2_hists; 
   Jet1DHists* m_jet3_hists; 

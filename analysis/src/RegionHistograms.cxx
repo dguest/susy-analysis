@@ -9,13 +9,14 @@
 #include "JetFactory.hh"
 #include "common_functions.hh"
 #include "H5Cpp.h"
+#include <stdexcept>
 
 #include "TVector2.h"
 
 RegionHistograms::RegionHistograms(const RegionConfig& config, 
-				 const unsigned flags) : 
-  m_required(config.required_bits), 
-  m_veto(config.veto_bits), 
+				   const unsigned flags) : 
+  m_region_config(config), 
+
   m_leading_cjet_rank(0), 
   m_subleading_cjet_rank(0), 
   m_jet1_truth(0), 
@@ -23,8 +24,10 @@ RegionHistograms::RegionHistograms(const RegionConfig& config,
   m_jet3_truth(0)
 { 
   const double max_pt = 1e3*GeV; 
-  
-  m_jet_tag_requirements = config.jet_tag_requirements; 
+
+  if (config.output_name.size() == 0) { 
+    throw std::runtime_error("output histograms not named, quitting"); 
+  }
 
   m_jet1_hists = new Jet1DHists(max_pt, flags); 
   m_jet2_hists = new Jet1DHists(max_pt, flags); 
@@ -66,22 +69,36 @@ RegionHistograms::~RegionHistograms() {
   delete m_jet3_truth; 
 }
 
-void RegionHistograms::fill(const JetFactory* factory, ull_t evt_mask, 
-			   double weight) { 
+void RegionHistograms::fill(const JetFactory* factory) { 
   typedef std::vector<Jet> Jets; 
-  if (evt_mask & m_veto) return; 
-  if ( (evt_mask & m_required) != m_required) return; 
+
+  const ull_t evt_mask = factory->bits(); 
+  double weight = factory->event_weight(m_region_config.systematic); 
+  if (evt_mask & m_region_config.veto_bits) return; 
+  const ull_t req_bits = m_region_config.required_bits; 
+  if ( (evt_mask & req_bits) != req_bits){
+    return; 
+  }
 
   const Jets jets = factory->jets(); 
-  unsigned n_required_jets = m_jet_tag_requirements.size(); 
+  unsigned n_required_jets = m_region_config.jet_tag_requirements.size(); 
   if (jets.size() < n_required_jets) { 
     return; 
   }
-  for (unsigned jet_n = 0; jet_n < m_jet_tag_requirements.size(); jet_n++) {
-    bool pass = jets.at(jet_n).pass_tag(m_jet_tag_requirements.at(jet_n)); 
+  const auto& jet_req = m_region_config.jet_tag_requirements; 
+  for (unsigned jet_n = 0; jet_n < jet_req.size(); jet_n++) {
+    bool pass = jets.at(jet_n).pass_tag(jet_req.at(jet_n)); 
     if (!pass) return; 
   }
+  if (jets.at(0).Pt() < m_region_config.leading_jet_pt) { 
+    return; 
+  }
   const TVector2 met = factory->met(); 
+  if (met.Mod() < m_region_config.met) { 
+    return; 
+  }
+
+
   const TLorentzVector met4(met.Px(), met.Py(), 0, 0); 
 
   m_met->fill(met.Mod(),  weight); 
@@ -128,21 +145,22 @@ void RegionHistograms::fill(const JetFactory* factory, ull_t evt_mask,
 
 void RegionHistograms::write_to(H5::CommonFG& file) const { 
   using namespace H5; 
-  Group jet1(file.createGroup("jet1")); 
+  Group region(file.createGroup(m_region_config.name)); 
+  Group jet1(region.createGroup("jet1")); 
   m_jet1_hists->write_to(jet1); 
-  Group jet2(file.createGroup("jet2")); 
+  Group jet2(region.createGroup("jet2")); 
   m_jet2_hists->write_to(jet2); 
-  Group jet3(file.createGroup("jet3")); 
+  Group jet3(region.createGroup("jet3")); 
   m_jet3_hists->write_to(jet3); 
 
-  m_met->write_to(file, "met");
-  m_min_dphi->write_to(file, "minDphi"); 
-  m_mttop->write_to(file, "mttop"); 
-  m_n_good_jets->write_to(file, "nGoodJets"); 
-  m_htx->write_to(file, "htx"); 
+  m_met->write_to(region, "met");
+  m_min_dphi->write_to(region, "minDphi"); 
+  m_mttop->write_to(region, "mttop"); 
+  m_n_good_jets->write_to(region, "nGoodJets"); 
+  m_htx->write_to(region, "htx"); 
 
   if (m_leading_cjet_rank) { 
-    Group truth(file.createGroup("truth")); 
+    Group truth(region.createGroup("truth")); 
     m_leading_cjet_rank->write_to(truth, "leadingCJet"); 
     m_subleading_cjet_rank->write_to(truth, "subleadingCJet"); 
 
@@ -156,3 +174,12 @@ void RegionHistograms::write_to(H5::CommonFG& file) const {
 
 }
 
+void RegionHistograms::write_to(std::string file_name) const { 
+  if (file_name.size() == 0) { 
+    file_name = m_region_config.output_name; 
+  }
+  using namespace H5; 
+  H5File file(file_name, H5F_ACC_TRUNC); 
+  Group region(file.createGroup(m_region_config.name)); 
+  write_to(region); 
+}

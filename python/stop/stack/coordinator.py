@@ -162,7 +162,7 @@ class Region(object):
         'cut_config':{
             'leading_jet_gev':240, 
             'met_gev':180, 
-            'btag_config':'LOOSE_TIGHT'
+            'btag_config':['NOTAG','LOOSE','TIGHT']
             }
         }
     _bit_dict = dict(bits.bits)
@@ -212,6 +212,19 @@ class Region(object):
     @property
     def antibits(self):
         return self._get_bits(self.veto_bits)
+    
+    def get_config_dict(self): 
+        """
+        Produces the configuration info needed for _stacksusy
+        """
+        config_dict = {
+            'jet_tag_requirements': self.cut_config['btag_config'], 
+            'leading_jet_pt': self.cut_config['leading_jet_pt_gev']*1e3, 
+            'met': self.cut_config['met_gev']*1e3, 
+            'required_bits': self.bits, 
+            'veto_bits': self.antibits, 
+            }
+        return config_dict
 
 # -- consider moving this ?
 class Stacker(object): 
@@ -228,15 +241,7 @@ class Stacker(object):
         # current plan, don't configure cuts, output a histogram and 
         # do the counting on that... we'll use stacksusy as a standin
         from stop.hyperstack import stacksusy
-        regions = self._regions.values()
-        first_config = regions[0].cut_config
-        if any(r.cut_config != first_config for r in regions): 
-            raise ValueError("mismatch in cut configurations")
-        config_dict = dict(
-            leading_jet = first_config['leading_jet_gev'] * 1e3, 
-            met         = first_config['met_gev'] * 1e3, 
-            btag_config = first_config['btag_config'], 
-            systematic  = systematic)
+        regions = [r.get_config_dict() for r in self._regions.values()]
         flags = 'v'
         if basename(ntuple).startswith('d'): 
             flags += 'd'
@@ -244,7 +249,4 @@ class Stacker(object):
             raise IOError(3,"doesn't exist",ntuple)
         if isfile(hist): 
             raise IOError(5,"already exists",hist)
-        bitslist = [
-            (n, v.bits, v.antibits) for n, v in self._regions.items()]
-        stacksusy(ntuple, bitslist, output_file=hist, flags=flags, 
-                  config_opts=config_dict)
+        stacksusy(ntuple, regions, output_file=hist, flags=flags)

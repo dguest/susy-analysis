@@ -15,6 +15,8 @@ struct RegionConfig
   double met;  
   ull_t required_bits; 
   ull_t veto_bits; 
+  syst::Systematic systematic; 
+  std::string output_name; 
 };
 
 #endif 

@@ -30,6 +30,7 @@ class Region(dict):
         self.name = name
         self.required_bits = required
         self.veto_bits = veto
+        self.output_name = 'stupid.h5'
     def get_dict(self): 
         """
         Produces the configuration info needed for _stacksusy
@@ -42,8 +43,7 @@ class Region(dict):
                 out_dict[name] = value
         return out_dict
 
-def stacksusy(input_file, region_list, output_file='', flags='', 
-              config_opts=_config_opts): 
+def stacksusy(input_file, region_list, flags=''): 
     """
     Runs the analysis on a distilled ntuple. 
 
@@ -60,10 +60,7 @@ def stacksusy(input_file, region_list, output_file='', flags='',
             newlist.append(Region(tup, ['NOTAG']).get_dict())
         region_list = newlist
 
-    if not output_file: 
-        output_file = '{}_stack.h5'.format(splitext(input_file)[0])
-    _stacksusy(input_file, region_list, output_file, flags, config_opts)
-    return output_file
+    _stacksusy(input_file, region_list, flags)
 
 def hypersusy(input_file, mask_list, output_file='', flags='i', 
               limit_dict={}): 

@@ -21,27 +21,24 @@ static PyObject* py_analysis_alg(PyObject *self, PyObject *args)
 {
   const char* input_file = ""; 
   std::vector<RegionConfig> regions; 
-  const char* output_file = ""; 
   const char* flags = ""; 
-  HistConfig hist_config; 
 
   bool ok = PyArg_ParseTuple
-    (args,"sO&s|sO&:algo", &input_file, fill_regions, &regions, 
-     &output_file, &flags, fill_config, &hist_config); 
+    (args,"sO&|s:algo", &input_file, fill_regions, &regions, &flags); 
   if (!ok) return NULL;
 
   unsigned bitflags = parse_flags(flags); 
 
   int ret_val = 0; 
   try { 
-    T builder(input_file, hist_config, bitflags); 
+    T builder(input_file, bitflags); 
 
     for (auto itr = regions.begin(); itr != regions.end(); itr++) {
       builder.add_region(*itr); 
     }
     
     ret_val = builder.build(); 
-    builder.save(output_file); 
+    builder.save(); 
   }
   catch (std::runtime_error e) { 
     PyErr_SetString(PyExc_RuntimeError, e.what()); 
@@ -61,6 +58,7 @@ static bool fill_regions(PyObject* list, std::vector<RegionConfig>* regions)
   for (int reg_n = 0; reg_n < n_regions; reg_n++) { 
     PyObject* entry = PyList_GetItem(list, reg_n); 
     RegionConfig region; 
+    region.systematic = syst::NONE; 
     if (!fill_region(entry, &region)) return false; 
     regions->push_back(region); 
   }
@@ -83,9 +81,10 @@ static bool fill_region(PyObject* dict, RegionConfig* region)
     }
     std::string ckey = PyString_AsString(key); 
     if (ckey == "name") { 
-      std::string name = PyString_AsString(value);
-      if (PyErr_Occurred() || (PyString_Size(value) == 0)) return false; 
-      region->name = name; 
+      if (!safe_copy(value, region->name)) return false; 
+    }
+    else if (ckey == "output_name") { 
+      if (!safe_copy(value, region->output_name)) return false; 
     }
     else if (ckey == "jet_tag_requirements") { 
       if (!fill_jettag(value, &region->jet_tag_requirements)) return false;
@@ -105,6 +104,9 @@ static bool fill_region(PyObject* dict, RegionConfig* region)
     else if (ckey == "veto_bits") { 
       region->veto_bits = PyLong_AsUnsignedLongLong(value); 
       if (PyErr_Occurred()) return false; 
+    }
+    else if (ckey == "systematic") { 
+      if (!safe_copy(value, region->systematic)) return false; 
     }
     else { 
       std::string problem = "got unknown signal region option: " + ckey; 
@@ -126,80 +128,6 @@ static bool fill_jettag(PyObject* list, std::vector<btag::JetTag>* req) {
     req->push_back(tag); 
   }
   return true; 
-}
-
-
-static bool fill_config(PyObject* dict, HistConfig* config) { 
-  if (!dict) return false; 
-  if (!PyDict_Check(dict)) return false; 
-  PyObject* key; 
-  PyObject* value; 
-  Py_ssize_t pos = 0; 
-  while(PyDict_Next(dict, &pos, &key, &value)) { 
-    if (!PyString_Check(key) || PyString_Size(key) == 0) { 
-      PyErr_SetString(PyExc_ValueError, 
-		      "config dict includes non-string key"); 
-      return false; 
-    }
-    std::string ckey = PyString_AsString(key); 
-    if (ckey == "btag_config") { 
-      if (!safe_copy(value, config->btag_config)) return false; 
-    }
-    else if (ckey == "systematic") { 
-      if (!safe_copy(value, config->systematic)) return false; 
-    }
-    else { 
-      if (!safe_copy(ckey, value, config->floats)) return false; 
-    }
-  }
-  return true; 
-}
-
-static bool safe_copy(std::string key, 
-		      PyObject* value, 
-		      std::map<std::string, float>& fmap) { 
-  if (fmap.count(key) != 0) { 
-    std::string problem = "tried to redefine key: " + key; 
-    PyErr_SetString(PyExc_ValueError,problem.c_str()); 
-    return false; 
-  }
-  double the_double = PyFloat_AsDouble(value); 
-  if (PyErr_Occurred()) {
-    std::string problem = "wanted a float for " + key; 
-    PyErr_SetString(PyExc_TypeError, problem.c_str()); 
-    return false; 
-  }
-  fmap[key] = the_double; 
-  return true; 
-}
-
-// kill me
-static bool safe_copy(PyObject* value, btag::EventConfig& dest) { 
-  char* charname = PyString_AsString(value); 
-  if (PyErr_Occurred()) return false; 
-  std::string name(charname); 
-  using namespace btag; 
-  if (name == "LOOSE_TIGHT") { 
-    dest = LOOSE_TIGHT; 
-    return true; 
-  }
-  else if (name == "MEDIUM_MEDIUM") { 
-    dest = MEDIUM_MEDIUM; 
-    return true; 
-  }
-  else if (name == "MEDIUM_TIGHT") { 
-    dest = MEDIUM_TIGHT; 
-    return true; 
-  }
-  else if (name == "NONE") { 
-    dest = NONE; 
-    return true; 
-  }
-  else { 
-    std::string problem = "got undefined btag configuration: " + name; 
-    PyErr_SetString(PyExc_ValueError,problem.c_str()); 
-    return false; 
-  }
 }
 
 static bool safe_copy(PyObject* value, btag::JetTag& dest) { 
@@ -279,6 +207,12 @@ static bool safe_copy(PyObject* value, syst::Systematic& dest) {
   }
 }
 
+static bool safe_copy(PyObject* value, std::string& dest){ 
+  std::string cstr = PyString_AsString(value);
+  if (PyErr_Occurred() || (PyString_Size(value) == 0)) return false; 
+  dest = cstr; 
+  return true; 
+}
 
 
 static PyMethodDef methods[] = {

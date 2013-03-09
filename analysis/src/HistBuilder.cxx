@@ -8,7 +8,6 @@
 #include "H5Cpp.h"
 #include "BtagScaler.hh"
 #include "typedefs.hh"
-#include "HistConfig.hh"
 #include "RegionConfig.hh"
 
 #include <string> 
@@ -22,33 +21,16 @@
 #include "distiller/EventBits.hh"
 
 
-HistBuilder::HistBuilder(std::string input, const HistConfig& config, 
-			 const unsigned flags): 
-  m_flags(flags), 
-  m_systematic(config.systematic), 
-  m_cut_augmenter(0)
+HistBuilder::HistBuilder(std::string input, const unsigned flags): 
+  m_input_file(input), 
+  m_flags(flags)
 { 
-  for (auto itr = config.floats.begin(); itr != config.floats.end(); itr++) { 
-    set_float(itr->first, itr->second); 
-  }
   m_factory = new JetFactory(input); 
-  if (! (flags & buildflag::is_data) ) { 
-    try { 
-      m_factory->set_btagging(config.btag_config); 
-    }
-    catch (std::runtime_error& err) { 
-      std::string app = " file: " + input; 
-      throw std::runtime_error(err.what() + app); 
-    }
-  }
-
 }
 
 HistBuilder::~HistBuilder() { 
   delete m_factory; 
   m_factory = 0; 
-
-  delete m_cut_augmenter; 
 
   for (auto itr = m_histograms.begin(); itr != m_histograms.end(); itr++) { 
     delete itr->second; 
@@ -60,6 +42,18 @@ void HistBuilder::add_region(const RegionConfig& region){
   using namespace std; 
   m_histograms.push_back
     (make_pair(region.name,new RegionHistograms(region, m_flags)));
+  if (! (m_flags & buildflag::is_data) ) { 
+    try { 
+      m_factory->set_btagging(region.jet_tag_requirements); 
+    }
+    catch (std::runtime_error& err) { 
+      std::string app = " file: " + m_input_file; 
+      throw std::runtime_error(err.what() + app); 
+    }
+  }
+  RegionHistograms* hists = m_histograms.rbegin()->second; 
+  m_out_file_map[region.output_name].push_back(hists); 
+
 }
 
 
@@ -90,17 +84,8 @@ int HistBuilder::build() {
       if (m_factory->hfor_type() == hfor::KILL) continue; 
     }
 
-    ull_t mask = m_factory->bits(); 
-    const Jets jets = m_factory->jets(); 
-    const TVector2 met = m_factory->met(); 
-    const TLorentzVector met4(met.Px(), met.Py(), 0, 0); 
-    double weight = m_factory->event_weight(m_systematic); 
-
-    if (m_cut_augmenter) { 
-      m_cut_augmenter->set_cutmask(mask, jets, met); 
-    }
     for (auto itr = m_histograms.begin(); itr != m_histograms.end(); itr++){
-      itr->second->fill(m_factory, mask, weight); 
+      itr->second->fill(m_factory); 
     }
 
   }
@@ -111,25 +96,17 @@ int HistBuilder::build() {
 }
 
 
-void HistBuilder::save(std::string output) { 
-  if (output.size() == 0) { 
-    return; 
-  }
-  using namespace H5; 
-  H5File file(output, H5F_ACC_TRUNC); 
+void HistBuilder::save() { 
 
-  for (auto itr = m_histograms.begin(); itr != m_histograms.end(); itr++) { 
-    Group newgroup(file.createGroup(itr->first)); 
-    itr->second->write_to(newgroup); 
+  for (auto itr = m_out_file_map.begin(); 
+       itr != m_out_file_map.end(); itr++) { 
+    H5::H5File file(itr->first, H5F_ACC_TRUNC); 
+    for (auto hist_itr = itr->second.begin(); hist_itr != itr->second.end(); 
+	 hist_itr++) { 
+      (*hist_itr)->write_to(file); 
+    }
   }
 }
 
-
-void HistBuilder::set_float(std::string name, double value) { 
-  if (!m_cut_augmenter) { 
-    m_cut_augmenter = new CutAugmenter; 
-  }
-  m_cut_augmenter->set_float(name, value); 
-}
 
 

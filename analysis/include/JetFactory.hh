@@ -41,7 +41,7 @@ class JetFactory
 public: 
   JetFactory(std::string root_file, int n_jets = 3); 
   ~JetFactory(); 
-  void set_btagging(btag::EventConfig); 
+  void set_btagging(const std::vector<btag::JetTag>&); 
   int entries() const; 
   void entry(int); 
   std::vector<Jet> jets() const; 

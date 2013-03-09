@@ -81,24 +81,13 @@ JetFactory::~JetFactory()
   }
   delete m_file; 
 }
-void JetFactory::set_btagging(btag::EventConfig config) { 
-  if (config == btag::NONE) { 
-    return; 
-  }
-  else if (config == btag::LOOSE_TIGHT){ 
-    set_btag(1, btag::LOOSE); 
-    set_btag(2, btag::TIGHT); 
-  }
-  else if (config == btag::MEDIUM_MEDIUM){ 
-    set_btag(1, btag::MEDIUM); 
-    set_btag(2, btag::MEDIUM); 
-  }
-  else if (config == btag::MEDIUM_TIGHT){ 
-    set_btag(1, btag::MEDIUM); 
-    set_btag(2, btag::TIGHT); 
-  }
-  else { 
-    throw std::logic_error("asked for undefined btag config in " __FILE__); 
+void JetFactory::set_btagging(const std::vector<btag::JetTag>& tag_points) { 
+  for (size_t jet_n = 0; jet_n < tag_points.size(); jet_n++) { 
+    btag::JetTag tag = tag_points.at(jet_n); 
+    if (tag == btag::NOTAG) { 
+      continue; 
+    }
+    set_btag(jet_n, tag); 
   }
 }
 
