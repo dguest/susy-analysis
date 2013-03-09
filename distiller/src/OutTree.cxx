@@ -121,6 +121,8 @@ namespace outtree {
     tree->Branch((prefix + "cnn_c").c_str(), &cnn_c); 
     tree->Branch((prefix + "cnn_u").c_str(), &cnn_u); 
 
+    tree->Branch((prefix + "bits").c_str(), &jet_bits); 
+
     if (flags & cutflag::save_ratios) { 
       tree->Branch((prefix + "cnn_log_cb").c_str(), &cnn_log_cb); 
       tree->Branch((prefix + "cnn_log_cu").c_str(), &cnn_log_cu); 
@@ -138,6 +140,7 @@ namespace outtree {
     cnn_u = -1; 
     cnn_log_cu = -1000; 
     cnn_log_cb = -1000; 
+    jet_bits = 0; 
 
     cnn_medium.clear(); 
     cnn_loose.clear(); 

@@ -149,7 +149,9 @@ unsigned SelectedJet::get_tagger_bit(btag::Flavor flavor,
     }
   }
   else if (flavor == B) { 
-    return cnn_anti_b; 
+    if (tagger == CNN_LOOSE || tagger == CNN_MEDIUM || tagger == CNN_TIGHT){
+      return cnn_anti_b; 
+    }
   }
   throw std::logic_error("tried to set unknown tagger bit"); 
 

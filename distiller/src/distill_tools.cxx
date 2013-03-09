@@ -55,6 +55,7 @@ void copy_jet_info(const SelectedJet* in, outtree::Jet& jet)
   }
   jet.cnn_log_cu = log( in->pc() / in->pu() ) ; 
   jet.cnn_log_cb = log( in->pc() / in->pb() ) ; 
+  jet.jet_bits = in->bits(); 
 }
 
 void copy_scale_factor(const SelectedJet* in, outtree::ScaleFactor& factor, 
