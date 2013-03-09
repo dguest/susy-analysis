@@ -140,7 +140,8 @@ class Coordinator(object):
                            self.scale_factor_systematics)
             syst_dict = {}
             for syst in all_syst: 
-                syst_dict[syst] = self.aggregate(systematic=syst)
+                syst_dict[syst] = self.aggregate(systematic=syst, 
+                                                 rerun=rerun)
             return syst_dict
             
         from stop.stack import aggregator as agg
