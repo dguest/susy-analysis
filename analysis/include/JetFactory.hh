@@ -76,7 +76,7 @@ private:
   double m_htx; 
   float m_mc_event_weight; 
   
-  unsigned m_flags; 
+  unsigned m_ioflags; 
 }; 
 
 class Jet: public TLorentzVector
@@ -101,7 +101,7 @@ private:
   int m_truth_label; 
   double m_met_dphi; 
 
-  unsigned m_config; 
+  unsigned m_ioflags; 
   const JetBuffer* m_buffer; 
 }; 
 

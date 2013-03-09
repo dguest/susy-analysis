@@ -26,7 +26,7 @@ JetFactory::JetFactory(std::string root_file, int n_jets) :
   m_hfor_type(-1), 
   m_leading_cjet_pos(-1), 
   m_subleading_cjet_pos(-1), 
-  m_flags(0)
+  m_ioflags(0)
 
 {
   m_file = new TFile(root_file.c_str()); 
@@ -58,7 +58,7 @@ JetFactory::JetFactory(std::string root_file, int n_jets) :
 				       &m_mc_event_weight); 
   }
   else { 
-    m_flags |= ioflag::no_truth; 
+    m_ioflags |= ioflag::no_truth; 
   }
 
   errors += m_tree->SetBranchAddress("htx", &m_htx); 
@@ -106,7 +106,7 @@ Jet JetFactory::jet(int jet_number) const {
   if (the_buffer->pt <= 0) { 
     throw std::out_of_range("asked for undefined jet"); 
   }
-  return Jet(the_buffer, m_flags); 
+  return Jet(the_buffer, m_ioflags); 
 }
 std::vector<Jet> JetFactory::jets() const { 
   std::vector<Jet> jets_out; 
@@ -115,7 +115,7 @@ std::vector<Jet> JetFactory::jets() const {
     if ((*itr)->pt <= 0) { 
       return jets_out; 
     }
-    jets_out.push_back(Jet(*itr,m_flags)); 
+    jets_out.push_back(Jet(*itr,m_ioflags)); 
     Jet& jet = *jets_out.rbegin(); 
     jet.set_event_met(met()); 
   }
@@ -136,11 +136,14 @@ int JetFactory::subleading_cjet_pos() const {return m_subleading_cjet_pos;}
 double JetFactory::htx() const {return m_htx;}
 double JetFactory::event_weight() const 
 {
+  if (m_ioflags & ioflag::no_truth) { 
+    return 1.0; 
+  }
   return m_mc_event_weight; 
 }
 
 hfor::JetType JetFactory::hfor_type() const { 
-  if (m_flags & ioflag::no_truth) { 
+  if (m_ioflags & ioflag::no_truth) { 
     throw std::runtime_error("no truth info found, can't get hfor type"); 
   }
   using namespace hfor; 
@@ -160,7 +163,7 @@ void JetFactory::set_btag(size_t jet_n, btag::JetTag tag) {
   if (m_jet_buffers.size() < jet_n) { 
     throw std::out_of_range("asked for out of range jet in " __FILE__); 
   }
-  if (m_flags & ioflag::no_truth) { 
+  if (m_ioflags & ioflag::no_truth) { 
     throw std::logic_error("tried to set btag buffer with no truth info"); 
   }
   std::string full_branch_name = (boost::format("jet%i") % jet_n).str(); 
@@ -205,7 +208,7 @@ void JetFactory::set_buffer(std::string base_name)
     errors += abs(m_tree->SetBranchAddress(pu.c_str(), &b->cnn_u)); 
   }
   else {
-    m_flags |= ioflag::no_flavor; 
+    m_ioflags |= ioflag::no_flavor; 
   }
 
   if (m_tree->GetBranch(flavor_truth.c_str())) { 
@@ -213,7 +216,7 @@ void JetFactory::set_buffer(std::string base_name)
 					   &b->flavor_truth_label)); 
   }
   else { 
-    m_flags |= ioflag::no_truth; 
+    m_ioflags |= ioflag::no_truth; 
   }
 
   if (errors) { 
@@ -231,7 +234,7 @@ Jet::Jet(JetBuffer* basis, unsigned flags):
   m_pu(basis->cnn_u), 
   m_truth_label(basis->flavor_truth_label), 
   m_met_dphi(0), 
-  m_config(flags), 
+  m_ioflags(flags), 
   m_buffer(basis)
 {
   SetPtEtaPhiM(basis->pt, basis->eta, basis->phi, 0); 
@@ -245,14 +248,14 @@ double Jet::pb() const {req_flavor(); return m_pb; }
 double Jet::pc() const {req_flavor(); return m_pc; } 
 double Jet::pu() const {req_flavor(); return m_pu; } 
 int    Jet::flavor_truth_label() const { 
-  if (m_config & ioflag::no_truth) { 
+  if (m_ioflags & ioflag::no_truth) { 
     throw std::runtime_error("no truth info, can't get flavor truth label"); 
   }
   return m_truth_label; 
 }
 
 bool Jet::has_flavor() const { 
-  bool no_flavor = (m_config & ioflag::no_flavor); 
+  bool no_flavor = (m_ioflags & ioflag::no_flavor); 
   return !no_flavor; 
 }
 bool Jet::pass_tag(btag::JetTag tag) const { 
