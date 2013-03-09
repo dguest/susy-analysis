@@ -10,7 +10,8 @@ SmartChain::SmartChain(std::string tree_name):
 { 
 }
 
-int SmartChain::Add(std::string file_name, long long nentries) { 
+int SmartChain::add(std::string file_name, long long nentries) { 
+  printf("adding %s\n", file_name.c_str()); 
   m_files.push_back(file_name); 
   TFile file(file_name.c_str()); 
   if (!file.IsOpen() || file.IsZombie()) { 
@@ -37,6 +38,7 @@ std::vector<std::string> SmartChain::get_all_branch_names() const {
   return m_set_branches; 
 }
 std::string SmartChain::get_current_file() const { 
+  printf("last tree: %i, files size %i\n",m_last_tree, int(m_files.size())); 
   assert(m_last_tree < int(m_files.size())); 
   return m_files.at(m_last_tree); 
 }

@@ -311,7 +311,7 @@ void StopDistiller::setup_chain(const std::vector<std::string>& in) {
   for (std::vector<std::string>::const_iterator file_itr = in.begin(); 
        file_itr != in.end(); 
        file_itr++) { 
-    int ret_code = m_chain->Add(file_itr->c_str(),-1); 
+    int ret_code = m_chain->add(file_itr->c_str(),-1); 
     if (ret_code != 1) { 
       std::string err = (boost::format("bad file: %s") % 
 			 *file_itr).str(); 

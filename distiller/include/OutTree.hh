@@ -32,6 +32,7 @@ namespace outtree {
     double cnn_u; 
     double cnn_log_cu; 
     double cnn_log_cb; 
+    unsigned jet_bits; 
 
     ScaleFactor cnn_tight; 
     ScaleFactor cnn_medium; 

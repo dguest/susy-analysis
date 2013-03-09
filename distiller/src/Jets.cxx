@@ -85,8 +85,13 @@ unsigned SelectedJet::bits() const {
   return m_bits; 
 }
 
-void SelectedJet::set_bit(unsigned bit) { 
-  m_bits |= bit; 
+void SelectedJet::set_bit(unsigned bit, bool set_to) { 
+  if (set_to) { 
+    m_bits |= bit; 
+  }
+  else { 
+    unset_bit(bit); 
+  }
 }
 void SelectedJet::unset_bit(unsigned bit) { 
   m_bits &=~ bit; 
@@ -118,8 +123,6 @@ void SelectedJet::set_flavor_tag(btag::Flavor flavor,
     size_t n_missing = size_t(tagger) - m_scale_factor.size() + 1; 
     m_scale_factor.insert(m_scale_factor.end(), n_missing,
 			  std::make_pair(0,0) ); 
-    m_pass_anti_b_tag.insert(m_pass_anti_b_tag.end(), n_missing, false); 
-    m_pass_anti_u_tag.insert(m_pass_anti_u_tag.end(), n_missing, false); 
   }
   JetTagFactorInputs in; 
   in.pt = Pt(); 
@@ -130,9 +133,28 @@ void SelectedJet::set_flavor_tag(btag::Flavor flavor,
   if (flavor != btag::DATA) { 
     m_scale_factor.at(tagger) = cal->applied_factor(in, tagger); 
   }
-  m_pass_anti_u_tag.at(tagger) = cal->pass_anti_u(in, tagger); 
-  m_pass_anti_b_tag.at(tagger) = cal->pass_anti_b(in, tagger); 
+  set_bit(get_tagger_bit(btag::U,tagger),cal->pass_anti_u(in, tagger)); 
+  set_bit(get_tagger_bit(btag::B,tagger),cal->pass_anti_b(in, tagger)); 
 }
+unsigned SelectedJet::get_tagger_bit(btag::Flavor flavor, 
+				     btag::Tagger tagger) const{
+  using namespace btag; 
+  using namespace jetbit; 
+  if (flavor == U) { 
+    switch (tagger) { 
+    case CNN_LOOSE: return cnn_loose_anti_u; 
+    case CNN_MEDIUM: return cnn_medium_anti_u; 
+    case CNN_TIGHT: return cnn_tight_anti_u; 
+      // fall through to error otherwise
+    }
+  }
+  else if (flavor == B) { 
+    return cnn_anti_b; 
+  }
+  throw std::logic_error("tried to set unknown tagger bit"); 
+
+}
+
 std::pair<double, double> SelectedJet::scale_factor(btag::Tagger t) 
   const 
 {
@@ -142,16 +164,10 @@ std::pair<double, double> SelectedJet::scale_factor(btag::Tagger t)
   return m_scale_factor.at(t); 
 }
 bool SelectedJet::pass_anti_u(btag::Tagger t) const { 
-  if (m_pass_anti_u_tag.size() <= size_t(t)) { 
-    throw std::out_of_range("tried to access undefined scale factor"); 
-  }
-  return m_pass_anti_u_tag.at(t); 
+  return m_bits & get_tagger_bit(btag::U, t); 
 }
 bool SelectedJet::pass_anti_b(btag::Tagger t) const { 
-  if (m_pass_anti_b_tag.size() <= size_t(t)) { 
-    throw std::out_of_range("tried to access undefined scale factor"); 
-  }
-  return m_pass_anti_b_tag.at(t); 
+  return m_bits & get_tagger_bit(btag::B, t); 
 }
 
 EventJets::EventJets(const SusyBuffer& buffer, SUSYObjDef& def, 
