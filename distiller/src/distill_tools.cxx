@@ -152,24 +152,12 @@ ull_t get_ctag_bits(const std::vector<SelectedJet*>& signal_jets)
 { 
   using namespace btag; 
   ull_t pass_bits = 0; 
-  if (signal_jets.size() >= 1) { 
-    const SelectedJet* jet = signal_jets.at(0); 
-    if (jet->pass_anti_b(CNN_LOOSE)) pass_bits  |= pass::jet1_anti_b; 
-    if (jet->pass_anti_u(CNN_MEDIUM)) pass_bits |= pass::jet1_anti_u_medium; 
-    if (jet->pass_anti_u(CNN_TIGHT)) pass_bits  |= pass::jet1_anti_u_tight; 
-  }
   if (signal_jets.size() >= 2) { 
     const SelectedJet* jet = signal_jets.at(1); 
-    if (jet->pass_anti_b(CNN_LOOSE)) pass_bits  |= pass::jet2_anti_b; 
-    if (jet->pass_anti_u(CNN_MEDIUM)) pass_bits |= pass::jet2_anti_u_medium; 
-    if (jet->pass_anti_u(CNN_TIGHT)) pass_bits  |= pass::jet2_anti_u_tight; 
     if (pass_mainz_ctag(jet))       pass_bits |= pass::ctag_mainz; 
   }
   if (signal_jets.size() >= 3) { 
     const SelectedJet* jet = signal_jets.at(2); 
-    if (jet->pass_anti_b(CNN_LOOSE)) pass_bits  |= pass::jet3_anti_b; 
-    if (jet->pass_anti_u(CNN_MEDIUM)) pass_bits |= pass::jet3_anti_u_medium; 
-    if (jet->pass_anti_u(CNN_TIGHT)) pass_bits  |= pass::jet3_anti_u_tight; 
     if (pass_mainz_ctag(jet))       pass_bits |= pass::ctag_mainz; 
   }
   return pass_bits; 
