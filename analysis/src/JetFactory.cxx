@@ -66,7 +66,7 @@ JetFactory::JetFactory(std::string root_file, int n_jets) :
     throw std::runtime_error
       ((boost::format("%i branch setting errors") % errors).str()); 
   }
-  for (int i = 1; i <= n_jets; i++) { 
+  for (int i = 0; i < n_jets; i++) { 
     std::string base_name = (boost::format("jet%i_") % i).str(); 
     set_buffer(base_name); 
   }

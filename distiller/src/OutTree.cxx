@@ -5,25 +5,27 @@
 #include "TTree.h"
 
 #include <string> 
+#include <boost/format.hpp>
 
 //_______________________________________________________________
 // OutTree
 
 namespace outtree { 
 
-  OutTree::OutTree(std::string file, std::string tree, const unsigned flags): 
+  OutTree::OutTree(std::string file, std::string tree, const unsigned flags, 
+		   int n_jets): 
     m_file(0), 
     m_tree(0)
   { 
     if (file.size() > 0) { 
       m_file = new TFile(file.c_str(), "recreate"); 
       m_tree = new TTree(tree.c_str(), tree.c_str()); 
-      init(flags); 
+      init(flags, n_jets); 
     }
   }
 
 
-  void OutTree::init(const unsigned flags) 
+  void OutTree::init(const unsigned flags, int n_jets) 
   { 
     m_tree->Branch("pass_bits", &pass_bits ); 
     m_tree->Branch("met", &met); 
@@ -48,9 +50,12 @@ namespace outtree {
       }
     }
 
-    leading_jet.set_branches(m_tree, "jet2_", flags); 
-    subleading_jet.set_branches(m_tree, "jet3_", flags); 
-    isr_jet.set_branches(m_tree, "jet1_", flags); 
+    for (int i = 0; i < n_jets; i++) { 
+      jets.push_back(new Jet); 
+      std::string jetname = (boost::format("jet%i_") % i).str(); 
+      (*jets.rbegin())->set_branches(m_tree, jetname, flags); 
+    }
+
     if (flags & cutflag::raw_evt_info) {
       leading_jet_uncensored.set_branches(m_tree, "leading_jet_uncensored_", 
 					  flags); 
@@ -79,9 +84,9 @@ namespace outtree {
     spart1_pdgid = 0; 
     spart2_pdgid = 0; 
 
-    leading_jet.clear(); 
-    subleading_jet.clear(); 
-    isr_jet.clear(); 
+    for (auto itr = jets.begin(); itr != jets.end(); itr++) { 
+      (*itr)->clear(); 
+    }
     leading_jet_uncensored.clear(); 
   }
 
@@ -91,6 +96,10 @@ namespace outtree {
     if (m_file){ 
       m_file->WriteTObject(m_tree); 
       delete m_file; 
+    }
+    for (auto itr = jets.begin(); itr != jets.end(); itr++) { 
+      delete *itr; 
+      *itr = 0; 
     }
     m_file = 0; 
   }

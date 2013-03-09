@@ -72,17 +72,11 @@ void copy_scale_factor(const SelectedJet* in, outtree::ScaleFactor& factor,
 void copy_leading_jet_info(const std::vector<SelectedJet*>& signal_jets, 
 			   outtree::OutTree& out_tree)
 {
-  if (signal_jets.size() >= 1) { 
-    copy_jet_info(signal_jets.at(0), out_tree.isr_jet); 
-  }
-  if (signal_jets.size() >= 2) { 
-    copy_jet_info(signal_jets.at(1), out_tree.leading_jet);
-  }
-  if (signal_jets.size() >= 3) { 
-    copy_jet_info(signal_jets.at(2), out_tree.subleading_jet); 
+  size_t maxjets = std::min(signal_jets.size(), out_tree.jets.size()); 
+  for (size_t jet_n = 0; jet_n < maxjets; jet_n++) { 
+    copy_jet_info(signal_jets.at(jet_n), *out_tree.jets.at(jet_n)); 
   }
   out_tree.n_good_jets = signal_jets.size(); 
-
 }
 
 ull_t jet_cleaning_bit(const std::vector<SelectedJet*>& preselection_jets)
