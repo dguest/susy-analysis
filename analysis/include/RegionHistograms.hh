@@ -5,27 +5,29 @@
 #include <vector> 
 
 #include "typedefs.hh"
+#include "BtagConfig.hh"
 
 class JetFactory; 
 class Jet1DHists; 
 class TruthJetHists; 
-class HistConfig; 
+class RegionConfig; 
 class Histogram; 
 
 namespace H5 { 
   class CommonFG; 
 }
 
-class EventHistograms: public boost::noncopyable
+class RegionHistograms: public boost::noncopyable
 {
 public: 
-  EventHistograms(ull_t required, ull_t veto = 0, const unsigned flags = 0); 
-  ~EventHistograms(); 
+  RegionHistograms(const RegionConfig& config, const unsigned flags = 0); 
+  ~RegionHistograms(); 
   void fill(const JetFactory* jet_factory, ull_t evt_mask, double weight);
   void write_to(H5::CommonFG&) const; 
 private: 
   const ull_t m_required; 
   const ull_t m_veto; 
+  std::vector<btag::JetTag> m_jet_tag_requirements; 
   Jet1DHists* m_jet1_hists; 
   Jet1DHists* m_jet2_hists; 
   Jet1DHists* m_jet3_hists; 

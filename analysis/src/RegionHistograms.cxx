@@ -1,21 +1,21 @@
-#include "EventHistograms.hh"
+#include "RegionHistograms.hh"
 #include "HistBuilderFlags.hh"
 #include "ObjKinematics.hh"
 #include "TruthJetHists.hh"
 #include "PhysicalConstants.hh"
 #include "Histogram.hh"
 #include "typedefs.hh"
-#include "HistConfig.hh"
+#include "RegionConfig.hh"
 #include "JetFactory.hh"
 #include "common_functions.hh"
 #include "H5Cpp.h"
 
 #include "TVector2.h"
 
-EventHistograms::EventHistograms(ull_t required, ull_t veto, 
+RegionHistograms::RegionHistograms(const RegionConfig& config, 
 				 const unsigned flags) : 
-  m_required(required), 
-  m_veto(veto), 
+  m_required(config.required_bits), 
+  m_veto(config.veto_bits), 
   m_leading_cjet_rank(0), 
   m_subleading_cjet_rank(0), 
   m_jet1_truth(0), 
@@ -23,6 +23,8 @@ EventHistograms::EventHistograms(ull_t required, ull_t veto,
   m_jet3_truth(0)
 { 
   const double max_pt = 1e3*GeV; 
+  
+  m_jet_tag_requirements = config.jet_tag_requirements; 
 
   m_jet1_hists = new Jet1DHists(max_pt, flags); 
   m_jet2_hists = new Jet1DHists(max_pt, flags); 
@@ -45,7 +47,7 @@ EventHistograms::EventHistograms(ull_t required, ull_t veto,
 
 }
 
-EventHistograms::~EventHistograms() { 
+RegionHistograms::~RegionHistograms() { 
   delete m_jet1_hists; 
   delete m_jet2_hists; 
   delete m_jet3_hists; 
@@ -64,13 +66,21 @@ EventHistograms::~EventHistograms() {
   delete m_jet3_truth; 
 }
 
-void EventHistograms::fill(const JetFactory* factory, ull_t evt_mask, 
+void RegionHistograms::fill(const JetFactory* factory, ull_t evt_mask, 
 			   double weight) { 
   typedef std::vector<Jet> Jets; 
   if (evt_mask & m_veto) return; 
   if ( (evt_mask & m_required) != m_required) return; 
 
   const Jets jets = factory->jets(); 
+  unsigned n_required_jets = m_jet_tag_requirements.size(); 
+  if (jets.size() < n_required_jets) { 
+    return; 
+  }
+  for (unsigned jet_n = 0; jet_n < m_jet_tag_requirements.size(); jet_n++) {
+    bool pass = jets.at(jet_n).pass_tag(m_jet_tag_requirements.at(jet_n)); 
+    if (!pass) return; 
+  }
   const TVector2 met = factory->met(); 
   const TLorentzVector met4(met.Px(), met.Py(), 0, 0); 
 
@@ -116,7 +126,7 @@ void EventHistograms::fill(const JetFactory* factory, ull_t evt_mask,
 
 }
 
-void EventHistograms::write_to(H5::CommonFG& file) const { 
+void RegionHistograms::write_to(H5::CommonFG& file) const { 
   using namespace H5; 
   Group jet1(file.createGroup("jet1")); 
   m_jet1_hists->write_to(jet1); 

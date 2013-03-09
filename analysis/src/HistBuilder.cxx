@@ -1,7 +1,7 @@
 #include "HistBuilder.hh" 
 #include "HistBuilderFlags.hh"
 #include "JetFactory.hh"
-#include "EventHistograms.hh"
+#include "RegionHistograms.hh"
 #include "PhysicalConstants.hh"
 #include "CutAugmenter.hh"
 #include "common_functions.hh"
@@ -59,9 +59,7 @@ HistBuilder::~HistBuilder() {
 void HistBuilder::add_region(const RegionConfig& region){ 
   using namespace std; 
   m_histograms.push_back
-    (make_pair
-     (region.name,new EventHistograms
-      (region.required_bits, region.veto_bits, m_flags)));
+    (make_pair(region.name,new RegionHistograms(region, m_flags)));
 }
 
 

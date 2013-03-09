@@ -86,16 +86,16 @@ void JetFactory::set_btagging(btag::EventConfig config) {
     return; 
   }
   else if (config == btag::LOOSE_TIGHT){ 
-    set_btag(1, "cnn_loose", pass::jet2_anti_b); 
-    set_btag(2, "cnn_tight", pass::jet3_anti_b | pass::jet3_anti_u_tight); 
+    set_btag(1, btag::LOOSE); 
+    set_btag(2, btag::TIGHT); 
   }
   else if (config == btag::MEDIUM_MEDIUM){ 
-    set_btag(1, "cnn_medium", pass::jet2_anti_b | pass::jet3_anti_u_medium); 
-    set_btag(2, "cnn_medium", pass::jet3_anti_b | pass::jet3_anti_u_medium); 
+    set_btag(1, btag::MEDIUM); 
+    set_btag(2, btag::MEDIUM); 
   }
   else if (config == btag::MEDIUM_TIGHT){ 
-    set_btag(1, "cnn_medium", pass::jet2_anti_b | pass::jet3_anti_u_medium); 
-    set_btag(2, "cnn_tight", pass::jet3_anti_b | pass::jet3_anti_u_tight); 
+    set_btag(1, btag::MEDIUM); 
+    set_btag(2, btag::TIGHT); 
   }
   else { 
     throw std::logic_error("asked for undefined btag config in " __FILE__); 
@@ -157,7 +157,7 @@ double JetFactory::event_weight(syst::Systematic systematic) const
       const JetBuffer& buffer = **itr; 
       if (buffer.btag_scaler) { 
 	const BtagScaler& scaler = *buffer.btag_scaler; 
-	base *= scaler.get_scalefactor(m_bits, buffer.flavor_truth_label, 
+	base *= scaler.get_scalefactor(buffer.bits, buffer.flavor_truth_label, 
 				       systematic); 
       }
     }
@@ -182,20 +182,17 @@ hfor::JetType JetFactory::hfor_type() const {
   }
 }
 
-void JetFactory::set_btag(size_t jet_n, std::string tagger, 
-			  unsigned required, unsigned veto) { 
+void JetFactory::set_btag(size_t jet_n, btag::JetTag tag) { 
   if (m_jet_buffers.size() < jet_n) { 
     throw std::out_of_range("asked for out of range jet in " __FILE__); 
   }
   std::string full_branch_name = (boost::format("jet%i_") % jet_n).str(); 
-  full_branch_name.append(tagger + "_"); 
   JetBuffer* buffer = m_jet_buffers.at(jet_n); 
   if (buffer->btag_scaler) { 
     delete buffer->btag_scaler; 
     buffer->btag_scaler = 0; 
   }
-  buffer->btag_scaler = new BtagScaler(m_tree, full_branch_name, 
-				       required, veto); 
+  buffer->btag_scaler = new BtagScaler(m_tree, full_branch_name, tag);
 }
 
 
@@ -214,23 +211,25 @@ void JetFactory::set_buffer(std::string base_name)
   string pc = base_name + "cnn_c"; 
   string pu = base_name + "cnn_u"; 
   string flavor_truth = base_name + "flavor_truth_label"; 
-
-  errors += m_tree->SetBranchAddress(pt.c_str(), &b->pt); 
-  errors += m_tree->SetBranchAddress(eta.c_str(), &b->eta); 
-  errors += m_tree->SetBranchAddress(phi.c_str(), &b->phi); 
+  string bits = base_name + "bits"; 
+  
+  errors += abs(m_tree->SetBranchAddress(pt.c_str(), &b->pt)); 
+  errors += abs(m_tree->SetBranchAddress(eta.c_str(), &b->eta)); 
+  errors += abs(m_tree->SetBranchAddress(phi.c_str(), &b->phi)); 
+  errors += abs(m_tree->SetBranchAddress(bits.c_str(), &b->bits)); 
 
   if (m_tree->GetBranch(pb.c_str())) { 
-    errors += m_tree->SetBranchAddress(pb.c_str(), &b->cnn_b); 
-    errors += m_tree->SetBranchAddress(pc.c_str(), &b->cnn_c); 
-    errors += m_tree->SetBranchAddress(pu.c_str(), &b->cnn_u); 
+    errors += abs(m_tree->SetBranchAddress(pb.c_str(), &b->cnn_b)); 
+    errors += abs(m_tree->SetBranchAddress(pc.c_str(), &b->cnn_c)); 
+    errors += abs(m_tree->SetBranchAddress(pu.c_str(), &b->cnn_u)); 
   }
   else {
     m_flags |= ioflag::no_flavor; 
   }
 
   if (m_tree->GetBranch(flavor_truth.c_str())) { 
-    errors += m_tree->SetBranchAddress(flavor_truth.c_str(), 
-				       &b->flavor_truth_label); 
+    errors += abs(m_tree->SetBranchAddress(flavor_truth.c_str(), 
+					   &b->flavor_truth_label)); 
   }
   else { 
     m_flags |= ioflag::no_truth; 
@@ -251,8 +250,9 @@ Jet::Jet(JetBuffer* basis, unsigned flags):
   m_pu(basis->cnn_u), 
   m_truth_label(basis->flavor_truth_label), 
   m_met_dphi(0), 
-  m_flags(flags), 
+  m_config(flags), 
   m_event_flags(0), 
+  m_jet_flags(basis->bits), 
   m_btag_scaler(basis->btag_scaler)
 {
   SetPtEtaPhiM(basis->pt, basis->eta, basis->phi, 0); 
@@ -269,15 +269,19 @@ double Jet::pb() const {req_flavor(); return m_pb; }
 double Jet::pc() const {req_flavor(); return m_pc; } 
 double Jet::pu() const {req_flavor(); return m_pu; } 
 int    Jet::flavor_truth_label() const { 
-  if (m_flags & ioflag::no_truth) { 
+  if (m_config & ioflag::no_truth) { 
     throw std::runtime_error("no truth info, can't get flavor truth label"); 
   }
   return m_truth_label; 
 }
 
 bool Jet::has_flavor() const { 
-  bool no_flavor = (m_flags & ioflag::no_flavor); 
+  bool no_flavor = (m_config & ioflag::no_flavor); 
   return !no_flavor; 
+}
+bool Jet::pass_tag(btag::JetTag tag) const { 
+  const auto required = btag::required_from_tag(tag); 
+  return (m_jet_flags & required) == required; 
 }
 
 double Jet::get_scalefactor(syst::Systematic systematic) 

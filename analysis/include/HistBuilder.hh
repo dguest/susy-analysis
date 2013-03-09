@@ -11,7 +11,7 @@
 
 class JetFactory; 
 class CutAugmenter;
-class EventHistograms; 
+class RegionHistograms; 
 struct HistConfig; 
 struct RegionConfig; 
 
@@ -31,7 +31,7 @@ private:
   const syst::Systematic m_systematic; 
 
   JetFactory* m_factory; 
-  std::vector<std::pair<std::string, EventHistograms*> > m_histograms; 
+  std::vector<std::pair<std::string, RegionHistograms*> > m_histograms; 
 
   CutAugmenter* m_cut_augmenter; 
 };

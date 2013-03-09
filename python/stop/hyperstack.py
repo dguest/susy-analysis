@@ -13,6 +13,35 @@ _config_opts = dict(
     j3_anti_u   = -0.5, 
     btag_config = 'LOOSE_TIGHT', 
 )
+
+class Region(dict): 
+    """
+    Python wrapper for info to define a signal region. 
+    """
+    def __init__(self, init_tuple=None, tag_requirements=[]): 
+        self.jet_tag_requirements = tag_requirements
+        if not init_tuple: 
+            return None
+        try: 
+            name, required, veto = init_tuple
+        except ValueError: 
+            name, required = init_tuple
+            veto = 0
+        self.name = name
+        self.required_bits = required
+        self.veto_bits = veto
+    def get_dict(self): 
+        """
+        Produces the configuration info needed for _stacksusy
+        """
+        out_dict = {}
+        for name, value in self.__dict__.items(): 
+            if isinstance(value, int): 
+                out_dict[name] = long(value)
+            else: 
+                out_dict[name] = value
+        return out_dict
+
 def stacksusy(input_file, region_list, output_file='', flags='', 
               config_opts=_config_opts): 
     """
@@ -28,18 +57,7 @@ def stacksusy(input_file, region_list, output_file='', flags='',
     if isinstance(region_list[0], tuple): 
         newlist = []
         for tup in region_list: 
-            try: 
-                name, mask, antimask = tup
-            except ValueError: 
-                name, mask = tup
-                antimask = 0
-            newdict = {
-                'name':name, 
-                'required_bits':long(mask), 
-                'veto_bits':long(antimask), 
-                'jet_tag_requirements':['NOTAG','LOOSE','TIGHT'], 
-                }
-            newlist.append(newdict)
+            newlist.append(Region(tup, ['NOTAG']).get_dict())
         region_list = newlist
 
     if not output_file: 

@@ -26,10 +26,10 @@ GeV = 1e3
 added_cuts = dict(
     leading_jet = 260*GeV, 
     met         = 180*GeV, 
-    j2_anti_b   = -0.2, 
-    j2_anti_u   =  2.5, 
-    j3_anti_b   = -0.2, 
-    j3_anti_u   = -0.5, 
+    # j2_anti_b   = -0.2, 
+    # j2_anti_u   =  2.5, 
+    # j3_anti_b   = -0.2, 
+    # j3_anti_u   = -0.5, 
     )
 
 hyperstack.stacksusy(sys.argv[1], all_cuts, 'stupid.h5', flags='v', 
