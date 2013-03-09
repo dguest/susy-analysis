@@ -10,6 +10,7 @@ class TransferCalculator(object):
 
     TODO: centralize the lists of systematics.
     """
+
     def __init__(self, counts, physics_type='ttbar'): 
         self.counts = counts
         self.physics_type = physics_type
@@ -21,7 +22,8 @@ class TransferCalculator(object):
         signal_re = re.compile('stop-([0-9]+)-([0-9]+)')
         alltypes = self.counts[self.baseline].keys()
         self.signals = [s for s in alltypes if signal_re.search(s)]
-
+        self.stat_factor = 1.0
+    
     def _get_rel_error(self, variation, control): 
         control_count = self.counts[self.baseline][self.physics_type][control]
         control_var = self.counts[variation][self.physics_type][control]
@@ -31,6 +33,9 @@ class TransferCalculator(object):
         control_rel = self._get_rel_error(variation, control)
         signal_rel = self._get_rel_error(variation, signal)
         return signal_rel - control_rel
+
+    def _stat_err(self, number): 
+        return (number * self.stat_factor)**(0.5)
 
     def get_transfer_rel_errors(self, control, signal): 
         rel_errors = {}
@@ -99,8 +104,9 @@ class TransferCalculator(object):
         exp_data = transfered + signal_exc_mc
 
         # --- calculate errors ----
+        data_stat_err = self._stat_err(control_data)
         subtr_control_rel_err = (
-            control_data + control_exc_mc_err**2)**(0.5) / subtr_control
+            data_stat_err**2 + control_exc_mc_err**2)**(0.5) / subtr_control
 
         # transfered error (without final error for simulation in 
         # signal region)
