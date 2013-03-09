@@ -82,13 +82,33 @@ class Coordinator(object):
                 broken.append(name)
         return broken
 
+    def fast_stack(self, rerun=False): 
+        ntup_dict = self._config_dict['files']['ntuples']
+        ntuples = glob.glob('{}/*.root'.format(ntup_dict['NONE']))
+        if not ntuples: 
+            raise IOError("no ntuples found in {}".format(globdir))
+
+        for syst in self.scale_factor_systematics: 
+            hist_path = self._get_syst_hist_path(syst, create=True)
+
+        base_hist_path = '/'.join(hist_path.split('/')[:-1])
+        stacker = Stacker(self._config_dict['regions'])
+        for ntup in ntuples: 
+            stacker.run_multisys(
+                ntup, base_hist_path, 
+                self.scale_factor_systematics, rerun=rerun)
+
+        dist_syst = set(self.distiller_systematics) 
+        dist_syst -= set(['NONE'])
+        for syst in dist_syst: 
+            self.stack(systematic=syst, rerun=rerun)
+
+
     def stack(self, systematic='NONE', rerun=False): 
         if systematic == 'all': 
-            all_syst = set(self.distiller_systematics + 
-                           self.scale_factor_systematics)
-            for syst in all_syst: 
-                self.stack(systematic=syst)
-            return None
+            self.fast_stack(rerun)
+            return 
+                
         ntup_dict = self._config_dict['files']['ntuples']
         if systematic in self.distiller_systematics: 
             globdir = ntup_dict[systematic]
@@ -237,13 +257,15 @@ class Stacker(object):
     """
     def __init__(self, regions_dict): 
         self._regions = {k:Region(v) for k,v in regions_dict.items()}
+        self.dummy = False
     
     def hist_from_ntuple(self, ntuple, hist, systematic='NONE'): 
         # got to figure out how I'm going to deal with possibly 
         # differing configuration cuts... 
         # current plan, don't configure cuts, output a histogram and 
         # do the counting on that... we'll use stacksusy as a standin
-        from stop.hyperstack import stacksusy
+        if isfile(hist): 
+            raise IOError(5,"already exists",hist)
         regions = []
         for name, reg in self._regions.items(): 
             regdic = reg.get_config_dict()
@@ -251,11 +273,46 @@ class Stacker(object):
             regdic['output_name'] = hist 
             regdic['systematic'] = systematic
             regions.append(regdic)
+
+        self._run(ntuple, regions)
+
+    def run_multisys(self, ntuple, basedir, systematics, rerun=False): 
+        regions = []
+        for name, reg in self._regions.items(): 
+            for systematic in systematics: 
+                regdic = reg.get_config_dict()
+                regdic['name'] = name
+                if systematic == 'NONE': 
+                    outdir = 'baseline'
+                else: 
+                    outdir = systematic.lower()
+                full_out_dir = join(basedir, outdir)
+                if not isdir(full_out_dir): 
+                    raise IOError(99,"no dir",full_out_dir)
+                histname = '{}.h5'.format(basename(splitext(ntuple)[0]))
+                full_out_path = join(full_out_dir, histname)
+                if isfile(full_out_path): 
+                    if rerun: 
+                        os.remove(full_out_path)
+                    else: 
+                        continue
+                regdic['output_name'] = full_out_path
+                regdic['systematic'] = systematic
+                regions.append(regdic)
+
+        if regions: 
+            self._run(ntuple, regions)
+
+    def _run(self, ntuple, regions): 
+        if self.dummy: 
+            print ntuple
+            for reg in regions: 
+                print reg
+            return 
+        from stop.hyperstack import stacksusy
         flags = 'v'
         if basename(ntuple).startswith('d'): 
             flags += 'd'
         if not isfile(ntuple): 
             raise IOError(3,"doesn't exist",ntuple)
-        if isfile(hist): 
-            raise IOError(5,"already exists",hist)
         stacksusy(ntuple, regions, flags=flags)
