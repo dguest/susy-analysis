@@ -163,7 +163,7 @@ void JetFactory::set_btag(size_t jet_n, btag::JetTag tag) {
   if (m_flags & ioflag::no_truth) { 
     throw std::logic_error("tried to set btag buffer with no truth info"); 
   }
-  std::string full_branch_name = (boost::format("jet%i_") % jet_n).str(); 
+  std::string full_branch_name = (boost::format("jet%i") % jet_n).str(); 
   JetBuffer* buffer = m_jet_buffers.at(jet_n); 
   size_t needed_size = tag + 1; 
   size_t scalers_size = buffer->btag_scalers.size(); 
@@ -174,7 +174,7 @@ void JetFactory::set_btag(size_t jet_n, btag::JetTag tag) {
   if (!scaler) { 
     scaler = new BtagScaler(m_tree, full_branch_name, tag);
   }
-  
+  buffer->btag_scalers.at(tag) = scaler; 
 }
 
 
@@ -267,7 +267,10 @@ double Jet::get_scalefactor(btag::JetTag tag, syst::Systematic systematic)
     return 1.0; 
   }
   auto& scalers = m_buffer->btag_scalers; 
-  if (int(scalers.size()) <= tag || !scalers.at(tag)) { 
+  if (int(scalers.size()) <= tag ) { 
+    throw std::logic_error("asked for an out of range scalefactor"); 
+  }
+  if ( !scalers.at(tag)) { 
     throw std::logic_error("asked for an unset jet scalefactor"); 
   }
   return scalers.at(tag)->get_scalefactor

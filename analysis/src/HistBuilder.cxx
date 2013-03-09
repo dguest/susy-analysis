@@ -23,7 +23,7 @@
 
 HistBuilder::HistBuilder(std::string input, const unsigned flags): 
   m_input_file(input), 
-  m_flags(flags)
+  m_build_flags(flags)
 { 
   m_factory = new JetFactory(input); 
 }
@@ -41,8 +41,8 @@ HistBuilder::~HistBuilder() {
 void HistBuilder::add_region(const RegionConfig& region){ 
   using namespace std; 
   m_histograms.push_back
-    (make_pair(region.name,new RegionHistograms(region, m_flags)));
-  if (! (m_flags & buildflag::is_data) ) { 
+    (make_pair(region.name,new RegionHistograms(region, m_build_flags)));
+  if (! (m_build_flags & buildflag::is_data) ) { 
     try { 
       m_factory->set_btagging(region.jet_tag_requirements); 
     }
@@ -65,7 +65,7 @@ int HistBuilder::build() {
 
   std::ofstream nullstream("/dev/null"); 
   std::streambuf* out_buffer = nullstream.rdbuf(); 
-  if (m_flags & buildflag::verbose) { 
+  if (m_build_flags & buildflag::verbose) { 
     out_buffer = std::cout.rdbuf(); 
   }
   std::ostream outstream(out_buffer); 
@@ -80,11 +80,11 @@ int HistBuilder::build() {
 
     m_factory->entry(entry); 
     
-    if (m_flags & buildflag::fill_truth) { 
+    if (m_build_flags & buildflag::fill_truth) { 
       if (m_factory->hfor_type() == hfor::KILL) continue; 
     }
-
-    for (auto itr = m_histograms.begin(); itr != m_histograms.end(); itr++){
+    for (auto itr = m_histograms.begin(); 
+	 itr != m_histograms.end(); itr++){
       itr->second->fill(m_factory); 
     }
 

@@ -91,13 +91,16 @@ class Coordinator(object):
             return None
         ntup_dict = self._config_dict['files']['ntuples']
         if systematic in self.distiller_systematics: 
-            ntuples = glob.glob('{}/*.root'.format(ntup_dict[systematic]))
+            globdir = ntup_dict[systematic]
             stacker_syst = 'NONE'
         elif systematic in self.scale_factor_systematics: 
-            ntuples = glob.glob('{}/*.root'.format(ntup_dict['NONE']))
+            globdir = ntup_dict['NONE']
             stacker_syst = systematic
         else: 
             raise ValueError('what the fuck is {}'.format(systematic))
+        ntuples = glob.glob('{}/*.root'.format(globdir))
+        if not ntuples: 
+            raise IOError("no ntuples found in {}".format(globdir))
 
         syst_hist_path = self._get_syst_hist_path(systematic, create=True)
         stacker = Stacker(self._config_dict['regions'])
@@ -219,10 +222,10 @@ class Region(object):
         """
         config_dict = {
             'jet_tag_requirements': self.cut_config['btag_config'], 
-            'leading_jet_pt': self.cut_config['leading_jet_pt_gev']*1e3, 
+            'leading_jet_pt': self.cut_config['leading_jet_gev']*1e3, 
             'met': self.cut_config['met_gev']*1e3, 
-            'required_bits': self.bits, 
-            'veto_bits': self.antibits, 
+            'required_bits': long(self.bits), 
+            'veto_bits': long(self.antibits), 
             }
         return config_dict
 
@@ -242,6 +245,9 @@ class Stacker(object):
         # do the counting on that... we'll use stacksusy as a standin
         from stop.hyperstack import stacksusy
         regions = [r.get_config_dict() for r in self._regions.values()]
+        for reg in regions: 
+            reg['output_name'] = hist # safe because we only use one systematic
+            reg['systematic'] = systematic
         flags = 'v'
         if basename(ntuple).startswith('d'): 
             flags += 'd'
@@ -249,4 +255,4 @@ class Stacker(object):
             raise IOError(3,"doesn't exist",ntuple)
         if isfile(hist): 
             raise IOError(5,"already exists",hist)
-        stacksusy(ntuple, regions, output_file=hist, flags=flags)
+        stacksusy(ntuple, regions, flags=flags)

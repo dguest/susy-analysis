@@ -24,7 +24,7 @@ public:
   void save(); 
 private: 
   const std::string m_input_file; 
-  const unsigned m_flags; 
+  const unsigned m_build_flags; 
   
   std::map<std::string, std::vector<RegionHistograms*> > m_out_file_map; 
 

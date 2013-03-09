@@ -16,6 +16,7 @@
 RegionHistograms::RegionHistograms(const RegionConfig& config, 
 				   const unsigned flags) : 
   m_region_config(config), 
+  m_build_flags(flags), 
 
   m_leading_cjet_rank(0), 
   m_subleading_cjet_rank(0), 
@@ -91,7 +92,10 @@ void RegionHistograms::fill(const JetFactory* factory) {
     const auto requested_tag = jet_req.at(jet_n); 
     bool pass = jet.pass_tag(requested_tag); 
     if (!pass) return; 
-    weight *= jet.get_scalefactor(requested_tag, m_region_config.systematic);
+    if (! (m_build_flags & buildflag::is_data)) { 
+      weight *= jet.get_scalefactor(requested_tag, 
+				    m_region_config.systematic);
+    }
   }
   if (jets.at(0).Pt() < m_region_config.leading_jet_pt) { 
     return; 

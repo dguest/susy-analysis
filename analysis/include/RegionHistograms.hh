@@ -21,13 +21,14 @@ namespace H5 {
 class RegionHistograms: public boost::noncopyable
 {
 public: 
-  RegionHistograms(const RegionConfig& config, const unsigned flags = 0); 
+  RegionHistograms(const RegionConfig& config, const unsigned build = 0); 
   ~RegionHistograms(); 
   void fill(const JetFactory* jet_factory);
   void write_to(H5::CommonFG&) const; 
   void write_to(std::string file_name = "") const; 
 private: 
   const RegionConfig m_region_config; 
+  const unsigned m_build_flags; 
 
   Jet1DHists* m_jet1_hists; 
   Jet1DHists* m_jet2_hists; 
