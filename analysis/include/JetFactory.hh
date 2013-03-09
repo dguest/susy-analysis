@@ -31,7 +31,7 @@ struct JetBuffer
   double cnn_u; 
   int flavor_truth_label; 
   unsigned bits; 
-  BtagScaler* btag_scaler; 
+  std::vector<BtagScaler*> btag_scalers; 
   JetBuffer(); 
   ~JetBuffer(); 
 };
@@ -54,7 +54,7 @@ public:
   int subleading_cjet_pos() const; 
   hfor::JetType hfor_type() const; 
   double htx() const; 
-  double event_weight(syst::Systematic = syst::NONE) const; 
+  double event_weight() const; 
 private: 
   void set_btag(size_t jet_n, btag::JetTag); 
   Jet jet(int) const; 		// not fully supported
@@ -92,7 +92,7 @@ public:
   int flavor_truth_label() const; 
   bool has_flavor() const; 
   bool pass_tag(btag::JetTag) const; 
-  double get_scalefactor(syst::Systematic = syst::NONE) const; 
+  double get_scalefactor(btag::JetTag, syst::Systematic = syst::NONE) const; 
 private: 
   void req_flavor() const; 	// throws rumtime_error if no flavor
   double m_pb; 
@@ -102,9 +102,7 @@ private:
   double m_met_dphi; 
 
   unsigned m_config; 
-  ull_t m_event_flags; 
-  unsigned m_jet_flags; 
-  BtagScaler* m_btag_scaler; 
+  const JetBuffer* m_buffer; 
 }; 
 
 #endif // JET_FACTORY_H

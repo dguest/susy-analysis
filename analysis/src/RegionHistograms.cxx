@@ -73,7 +73,7 @@ void RegionHistograms::fill(const JetFactory* factory) {
   typedef std::vector<Jet> Jets; 
 
   const ull_t evt_mask = factory->bits(); 
-  double weight = factory->event_weight(m_region_config.systematic); 
+  double weight = factory->event_weight(); 
   if (evt_mask & m_region_config.veto_bits) return; 
   const ull_t req_bits = m_region_config.required_bits; 
   if ( (evt_mask & req_bits) != req_bits){
@@ -87,8 +87,11 @@ void RegionHistograms::fill(const JetFactory* factory) {
   }
   const auto& jet_req = m_region_config.jet_tag_requirements; 
   for (unsigned jet_n = 0; jet_n < jet_req.size(); jet_n++) {
-    bool pass = jets.at(jet_n).pass_tag(jet_req.at(jet_n)); 
+    const auto jet = jets.at(jet_n); 
+    const auto requested_tag = jet_req.at(jet_n); 
+    bool pass = jet.pass_tag(requested_tag); 
     if (!pass) return; 
+    weight *= jet.get_scalefactor(requested_tag, m_region_config.systematic);
   }
   if (jets.at(0).Pt() < m_region_config.leading_jet_pt) { 
     return; 
@@ -97,7 +100,6 @@ void RegionHistograms::fill(const JetFactory* factory) {
   if (met.Mod() < m_region_config.met) { 
     return; 
   }
-
 
   const TLorentzVector met4(met.Px(), met.Py(), 0, 0); 
 

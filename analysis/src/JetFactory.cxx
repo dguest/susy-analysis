@@ -12,13 +12,14 @@
 #include "TFile.h"
 #include "TTree.h"
 
-JetBuffer::JetBuffer() : 
-  btag_scaler(0)
+JetBuffer::JetBuffer() 
 { 
 }
 JetBuffer::~JetBuffer() { 
-  delete btag_scaler; 
-  btag_scaler = 0; 
+  for (auto itr = btag_scalers.begin(); itr != btag_scalers.end(); itr++) { 
+    delete *itr; 
+    *itr = 0; 
+  }
 }
 
 JetFactory::JetFactory(std::string root_file, int n_jets) : 
@@ -117,7 +118,6 @@ std::vector<Jet> JetFactory::jets() const {
     jets_out.push_back(Jet(*itr,m_flags)); 
     Jet& jet = *jets_out.rbegin(); 
     jet.set_event_met(met()); 
-    jet.set_event_flags(m_bits); 
   }
   return jets_out; 
 }
@@ -134,24 +134,9 @@ int JetFactory::n_susy()   const  { return m_n_susy; }
 int JetFactory::leading_cjet_pos() const {return m_leading_cjet_pos;}
 int JetFactory::subleading_cjet_pos() const {return m_subleading_cjet_pos;}
 double JetFactory::htx() const {return m_htx;}
-double JetFactory::event_weight(syst::Systematic systematic) const 
+double JetFactory::event_weight() const 
 {
-  if (m_flags & ioflag::no_truth) { 
-    return 1.0; 
-  }
-  else { 
-    double base = m_mc_event_weight; 
-    for (auto itr = m_jet_buffers.begin(); itr != m_jet_buffers.end(); 
-	 itr++) { 
-      const JetBuffer& buffer = **itr; 
-      if (buffer.btag_scaler) { 
-	const BtagScaler& scaler = *buffer.btag_scaler; 
-	base *= scaler.get_scalefactor(buffer.bits, buffer.flavor_truth_label, 
-				       systematic); 
-      }
-    }
-    return base; 
-  }
+  return m_mc_event_weight; 
 }
 
 hfor::JetType JetFactory::hfor_type() const { 
@@ -175,13 +160,21 @@ void JetFactory::set_btag(size_t jet_n, btag::JetTag tag) {
   if (m_jet_buffers.size() < jet_n) { 
     throw std::out_of_range("asked for out of range jet in " __FILE__); 
   }
+  if (m_flags & ioflag::no_truth) { 
+    throw std::logic_error("tried to set btag buffer with no truth info"); 
+  }
   std::string full_branch_name = (boost::format("jet%i_") % jet_n).str(); 
   JetBuffer* buffer = m_jet_buffers.at(jet_n); 
-  if (buffer->btag_scaler) { 
-    delete buffer->btag_scaler; 
-    buffer->btag_scaler = 0; 
+  size_t needed_size = tag + 1; 
+  size_t scalers_size = buffer->btag_scalers.size(); 
+  if (scalers_size < needed_size) { 
+    buffer->btag_scalers.resize(needed_size); 
   }
-  buffer->btag_scaler = new BtagScaler(m_tree, full_branch_name, tag);
+  BtagScaler* scaler = buffer->btag_scalers.at(tag); 
+  if (!scaler) { 
+    scaler = new BtagScaler(m_tree, full_branch_name, tag);
+  }
+  
 }
 
 
@@ -191,7 +184,6 @@ void JetFactory::set_buffer(std::string base_name)
   int errors = 0; 
   m_jet_buffers.push_back(new JetBuffer); 
   JetBuffer* b = *m_jet_buffers.rbegin(); 
-  b->btag_scaler = 0; 
   string pt = base_name + "pt"; 
   string eta = base_name + "eta"; 
   string phi = base_name + "phi"; 
@@ -240,9 +232,7 @@ Jet::Jet(JetBuffer* basis, unsigned flags):
   m_truth_label(basis->flavor_truth_label), 
   m_met_dphi(0), 
   m_config(flags), 
-  m_event_flags(0), 
-  m_jet_flags(basis->bits), 
-  m_btag_scaler(basis->btag_scaler)
+  m_buffer(basis)
 {
   SetPtEtaPhiM(basis->pt, basis->eta, basis->phi, 0); 
 }
@@ -250,9 +240,6 @@ void Jet::set_event_met(const TVector2& met) {
   TLorentzVector met_4vec(met.X(), met.Y(), 0, 1); 
   m_met_dphi = met_4vec.DeltaPhi(*this); 
 }
-void Jet::set_event_flags(ull_t evt_flags) { 
-  m_event_flags = evt_flags; 
-} 
 double Jet::met_dphi() const {return m_met_dphi; }
 double Jet::pb() const {req_flavor(); return m_pb; } 
 double Jet::pc() const {req_flavor(); return m_pc; } 
@@ -270,21 +257,21 @@ bool Jet::has_flavor() const {
 }
 bool Jet::pass_tag(btag::JetTag tag) const { 
   const auto required = btag::required_from_tag(tag); 
-  return (m_jet_flags & required) == required; 
+  return (m_buffer->bits & required) == required; 
 }
 
-double Jet::get_scalefactor(syst::Systematic systematic) 
+double Jet::get_scalefactor(btag::JetTag tag, syst::Systematic systematic) 
   const 
 { 
-  if (!m_btag_scaler) { 
-    throw std::logic_error("asked for scale factor in uncalibrated jet"); 
+  if (tag == btag::NOTAG) { 
+    return 1.0; 
   }
-  if (!m_event_flags) { 
-    throw std::logic_error("tried to get scalefactor with no event flags"
-			   " assuming this is an error"); 
+  auto& scalers = m_buffer->btag_scalers; 
+  if (int(scalers.size()) <= tag || !scalers.at(tag)) { 
+    throw std::logic_error("asked for an unset jet scalefactor"); 
   }
-  return m_btag_scaler->get_scalefactor(m_event_flags, m_truth_label, 
-					systematic); 
+  return scalers.at(tag)->get_scalefactor
+    (m_buffer->bits, flavor_truth_label(),systematic); 
 }
 
 void Jet::req_flavor() const 
