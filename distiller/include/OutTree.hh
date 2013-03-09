@@ -2,14 +2,16 @@
 #define OUT_TREE_H
 
 #include <string> 
+#include <vector> 
 #include "typedefs.hh"
+#include <boost/noncopyable.hpp>
 
 class TFile; 
 class TTree; 
 
 namespace outtree { 
 
-  class ScaleFactor 
+  class ScaleFactor : public boost::noncopyable
   {
   public:
     double scale_factor; 
@@ -20,7 +22,7 @@ namespace outtree {
     void clear(); 
   }; 
 
-  class Jet 
+  class Jet : public boost::noncopyable
   {
   public: 
     double pt; 
@@ -32,6 +34,7 @@ namespace outtree {
     double cnn_u; 
     double cnn_log_cu; 
     double cnn_log_cb; 
+    unsigned jet_bits; 
 
     ScaleFactor cnn_tight; 
     ScaleFactor cnn_medium; 
@@ -44,11 +47,11 @@ namespace outtree {
   }; 
 
 
-  class OutTree
+  class OutTree : public boost::noncopyable
   {
   public: 
     OutTree(std::string file, std::string tree = "evt_tree", 
-	    const unsigned flags = 0); 
+	    const unsigned flags = 0, int n_jets = 3); 
     ~OutTree(); 
     void fill(); 
     void clear_buffer(); 
@@ -75,12 +78,10 @@ namespace outtree {
 
     outtree::Jet leading_jet_uncensored; 
 
-    outtree::Jet leading_jet; 
-    outtree::Jet subleading_jet; 
-    outtree::Jet isr_jet; 
+    std::vector<outtree::Jet*> jets; 
 
   private:
-    void init(const unsigned flags = 0); 
+    void init(const unsigned flags = 0, int n_jets = 3); 
     TFile* m_file; 
     TTree* m_tree; 
   }; 

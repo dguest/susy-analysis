@@ -1,4 +1,5 @@
-from _hyperstack import _stacksusy, _hypersusy, _cutflow
+from _hyperstack import _stacksusy
+# from _hyperstack import _hypersusy, _cutflow
 from os.path import basename, splitext
 
 GeV = 1e3
@@ -12,8 +13,37 @@ _config_opts = dict(
     j3_anti_u   = -0.5, 
     btag_config = 'LOOSE_TIGHT', 
 )
-def stacksusy(input_file, mask_list, output_file='', flags='', 
-              config_opts=_config_opts): 
+
+class Region(dict): 
+    """
+    Python wrapper for info to define a signal region. 
+    """
+    def __init__(self, init_tuple=None, tag_requirements=[]): 
+        self.jet_tag_requirements = tag_requirements
+        if not init_tuple: 
+            return None
+        try: 
+            name, required, veto = init_tuple
+        except ValueError: 
+            name, required = init_tuple
+            veto = 0
+        self.name = name
+        self.required_bits = required
+        self.veto_bits = veto
+        self.output_name = 'stupid.h5'
+    def get_dict(self): 
+        """
+        Produces the configuration info needed for _stacksusy
+        """
+        out_dict = {}
+        for name, value in self.__dict__.items(): 
+            if isinstance(value, int): 
+                out_dict[name] = long(value)
+            else: 
+                out_dict[name] = value
+        return out_dict
+
+def stacksusy(input_file, region_list, flags=''): 
     """
     Runs the analysis on a distilled ntuple. 
 
@@ -22,11 +52,15 @@ def stacksusy(input_file, mask_list, output_file='', flags='',
         t: fill_truth
         d: is data
     """
-    mask_list = list(mask_list)
-    if not output_file: 
-        output_file = '{}_stack.h5'.format(splitext(input_file)[0])
-    _stacksusy(input_file, mask_list, output_file, flags, config_opts)
-    return output_file
+    if not region_list: 
+        raise ValueError("must give a regions list")
+    if isinstance(region_list[0], tuple): 
+        newlist = []
+        for tup in region_list: 
+            newlist.append(Region(tup, ['NOTAG']).get_dict())
+        region_list = newlist
+
+    _stacksusy(input_file, region_list, flags)
 
 def hypersusy(input_file, mask_list, output_file='', flags='i', 
               limit_dict={}): 

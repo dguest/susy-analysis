@@ -4,23 +4,13 @@
 #include "TLorentzVector.h"
 #include <vector> 
 #include "btag_defs.hh"
+#include "JetBits.hh"
 
 class EventJets; 
 class SusyBuffer; 
 class SUSYObjDef; 
 struct RunInfo; 
 class BtagCalibration; 
-
-namespace jetbit { 
-  const unsigned susy            = 1u << 0; 
-  const unsigned low_pt          = 1u << 1; 
-  // const unsigned el_overlap      = 1u << 2; 
-  const unsigned good            = 1u << 3; 
-  const unsigned leading         = 1u << 4; 
-  const unsigned high_eta        = 1u << 5; 
-  const unsigned taggable_eta    = 1u << 6; 
-  const unsigned signal_pt       = 1u << 7; 
-}
 
 
 class SelectedJet: public TLorentzVector { 
@@ -32,8 +22,7 @@ public:
   double jfitcomb_cu(const SusyBuffer& buffer, int jet_index) const;
   double jfitcomb_cb(const SusyBuffer& buffer, int jet_index) const;
   double jvf() const; 
-  void set_bit(unsigned); 
-  void unset_bit(unsigned); 
+  void set_bit(unsigned, bool set_to = true); 
   unsigned bits() const; 
   double pb() const; 
   double pu() const; 
@@ -45,7 +34,9 @@ public:
   bool pass_anti_u(btag::Tagger) const; 
   bool pass_anti_b(btag::Tagger) const; 
 private: 
+  void unset_bit(unsigned); 
   void set_flavor_tag(btag::Flavor, btag::Tagger, const BtagCalibration*); 
+  unsigned get_tagger_bit(btag::Flavor, btag::Tagger) const; 
   double m_cnn_b; 
   double m_cnn_c; 
   double m_cnn_u; 
@@ -54,9 +45,6 @@ private:
   unsigned m_bits; 
   int m_flavor_truth_label; 
   std::vector<CalResult> m_scale_factor; 
-  // std::vector<CalResult> m_fail_factor;  
-  std::vector<bool> m_pass_anti_b_tag; 
-  std::vector<bool> m_pass_anti_u_tag; 
 }; 
 
 class EventJets: public std::vector<SelectedJet*> 

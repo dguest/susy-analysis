@@ -40,6 +40,9 @@ PY_LIB   +=   $(shell $(PY_CONFIG) --libs)
 
 # --- set compiler and flags (roll c options and include paths together)
 CXX          := g++44
+ifdef CXX_LOCAL
+CXX          := $(CXX_LOCAL)
+endif
 CXXFLAGS     := -O2 -Wall -fPIC -I$(INC) -I$(ND_HIST_INC) -g -std=c++0x
 LIBS         := -L$(ND_HIST_LIB) -Wl,-rpath,$(ND_HIST_LIB) -lndhist
 LDFLAGS      := -Wl,-no-undefined
@@ -59,8 +62,9 @@ PY_LDFLAGS += -shared
 
 # ---- define objects
 TOBJ        := JetFactory.o
-GEN_OBJ     := HistBuilder.o MaskedHistArray.o ObjKinematics.o HistConfig.o
-GEN_OBJ     += TruthJetHists.o 
+GEN_OBJ     := HistBuilder.o MaskedHistArray.o ObjKinematics.o 
+GEN_OBJ     += HistConfig.o BtagConfig.o
+GEN_OBJ     += TruthJetHists.o RegionHistograms.o
 GEN_OBJ     += HyperBuilder.o
 GEN_OBJ     += CutflowBuilder.o
 GEN_OBJ     += CutAugmenter.o common_functions.o BtagScaler.o
@@ -70,9 +74,9 @@ PYLIB_OBJ   := $(GEN_OBJ) $(TOBJ)
 PY_OBJ       := _hyperstack.o
 PY_LIB       := ../python/stop/_hyperstack.so
 
-ALLOBJ       := $(GEN_OBJ) $(PY_OBJ) drink.o
+ALLOBJ       := $(GEN_OBJ) $(PY_OBJ) $(TOBJ) drink.o
 
-ALLOUTPUT    := drink $(PY_LIB)
+ALLOUTPUT    := $(PY_LIB)
 
 all: $(ALLOUTPUT) 
 

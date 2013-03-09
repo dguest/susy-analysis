@@ -4,60 +4,33 @@
 #include <string> 
 #include <map>
 #include <vector> 
+#include <utility>		// pair? 
 #include <boost/noncopyable.hpp>
 #include "typedefs.hh"
+#include "systematic_defs.hh"
 
 class JetFactory; 
-class Histogram; 
-class MaskedHistArray; 
-class TruthJetHists; 
-struct Axis; 
-class Jet1DHists; 
-class Jet; 
-class TVector2; 
-class CutAugmenter; 
-struct HistConfig; 
+class CutAugmenter;
+class RegionHistograms; 
+struct RegionConfig; 
 
 class HistBuilder : public boost::noncopyable
 {
 public: 
-  HistBuilder(std::string input, const HistConfig& config, 
-	      const unsigned flags = 0); 
+  HistBuilder(std::string input, const unsigned flags = 0); 
   ~HistBuilder(); 
-  void add_cut_mask(std::string name, ull_t bits, ull_t antibits = 0); 
+  void add_region(const RegionConfig& region); 
   int build(); 
-  void save(std::string output = ""); 
+  void save(); 
 private: 
-  void set_float(std::string, double);
-  void fill_truth_hists(const std::vector<Jet>& jets, 
-			const ull_t mask, double weight); 
-  typedef std::map<std::string, ull_t> CutMasks; 
-
-  const unsigned m_flags; 
+  const std::string m_input_file; 
+  const unsigned m_build_flags; 
+  
+  std::map<std::string, std::vector<RegionHistograms*> > m_out_file_map; 
 
   JetFactory* m_factory; 
-  
-  CutMasks m_cut_masks; 
+  std::vector<std::pair<std::string, RegionHistograms*> > m_histograms; 
 
-  Jet1DHists* m_jet1_hists; 
-  Jet1DHists* m_jet2_hists; 
-  Jet1DHists* m_jet3_hists; 
-
-  MaskedHistArray* m_met; 
-  MaskedHistArray* m_min_dphi; 
-  MaskedHistArray* m_mttop; 
-  MaskedHistArray* m_n_good_jets; 
-
-  MaskedHistArray* m_htx; 
-
-  MaskedHistArray* m_leading_cjet_rank; 
-  MaskedHistArray* m_subleading_cjet_rank; 
-
-  TruthJetHists* m_jet1_truth; 
-  TruthJetHists* m_jet2_truth; 
-  TruthJetHists* m_jet3_truth; 
-
-  CutAugmenter* m_cut_augmenter; 
 };
 
 #endif // HIST_BUILDER_HH

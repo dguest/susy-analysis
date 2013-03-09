@@ -11,7 +11,7 @@ class SmartChain: public TChain {
 public: 
   using TChain::Add; 
   SmartChain(std::string tree_name); 
-  virtual int Add(std::string file_name, long long nentries = -1); 
+  virtual int add(std::string file_name, long long nentries = -1); 
   virtual int GetEntry(long long int entry_n, int getall = 0); 
   template<typename T, typename Z>
   void SetBranch(T name, Z branch, 

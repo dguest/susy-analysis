@@ -3,21 +3,23 @@
 #include "TTree.h"
 #include <boost/format.hpp>
 #include "typedefs.hh"
+#include "BtagConfig.hh"
+#include "distiller/JetBits.hh"
 
-BtagScaler::BtagScaler(TTree* tree, std::string prefix, ull_t required, 
-		       ull_t veto): 
-  m_required(required), 
-  m_veto(veto)
+BtagScaler::BtagScaler(TTree* tree, std::string name, 
+		       btag::JetTag tag): 
+  m_veto(0)
 {
-  safeset(tree, prefix + "scale_factor", &m_scale_factor); 
-  safeset(tree, prefix + "scale_factor_err", &m_scale_factor_err); 
+  m_required = btag::required_from_tag(tag); 
+  safeset(tree, name + joiner(tag) + "scale_factor", &m_scale_factor); 
+  safeset(tree, name + joiner(tag) + "scale_factor_err", &m_scale_factor_err); 
 }
 
-double BtagScaler::get_scalefactor(ull_t evt_mask, int flavor, 
+double BtagScaler::get_scalefactor(unsigned jet_mask, int flavor, 
 				   syst::Systematic syst) const 
 {
   using namespace syst; 
-  bool pass = (evt_mask & m_required) && !(evt_mask | m_veto); 
+  bool pass = (jet_mask & m_required) && !(jet_mask | m_veto); 
   double base = m_scale_factor;
   double err_up = pass ? m_scale_factor_err: -m_scale_factor_err;
   double err_down = -err_up; 
@@ -54,4 +56,15 @@ void BtagScaler::safeset(TTree* tree, std::string branch, void* address) {
     throw std::runtime_error("branch: " + branch + ", where the fuck is it?"); 
   }
   tree->SetBranchAddress(branch.c_str(), address); 
+}
+
+std::string BtagScaler::joiner(btag::JetTag tag) { 
+  using namespace btag; 
+  switch (tag){ 
+  case LOOSE:  return "_cnn_loose_";
+  case MEDIUM: return "_cnn_medium_";
+  case TIGHT:  return "_cnn_tight_";
+  case NOTAG: throw std::logic_error("we don't set no tag (in "__FILE__")"); 
+  default: throw std::logic_error("just... fuck"); 
+  }
 }

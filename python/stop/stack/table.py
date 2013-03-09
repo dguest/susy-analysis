@@ -1,7 +1,18 @@
-from tempfile import TemporaryFile
+from tempfile import TemporaryFile as Temp
 import warnings, re
 
-def get_physics_cut_dict(plots_dict, safe=True): 
+def _not_blinded(physics_cut_tup): 
+    phys, cut = physics_cut_tup
+    if phys != 'data': 
+        return True
+    ok_ends = ['cr', 'btag','lep']
+    for end in ok_ends: 
+        if cut.endswith(end): 
+            return True
+    return False
+    
+
+def get_physics_cut_dict(plots_dict, safe=True, notblind=_not_blinded): 
     """
     builds dictionary keyed by (physics type, cut name) containing the 
     counts of each (type, cut) pair
@@ -11,7 +22,7 @@ def get_physics_cut_dict(plots_dict, safe=True):
     for (phys, var, cut), hist in plots_dict.iteritems(): 
         physcut_tup = (phys, cut)
         # apply blinding
-        if not cut.endswith('cr') and phys == 'data': 
+        if not notblind(physcut_tup):
             continue
         if physcut_tup not in physcut_dict: 
             physcut_dict[physcut_tup] = hist.array.sum()
@@ -29,7 +40,31 @@ def get_physics_cut_dict(plots_dict, safe=True):
                         thissum, var))
     return physcut_dict
 
-def make_latex_bg_table(physics_cut_dict, out_file=TemporaryFile()): 
+def yamlize(physics_cut_dict): 
+    """
+    converts the physics_cut_dict into a nested dict structure. 
+    Schema is as follows: 
+        - systematic
+        - physics type
+        - region 
+        - cut count
+    """
+    if not isinstance(physics_cut_dict, dict): 
+        return float(physics_cut_dict)
+    ymlout = {}
+    for key, entry in physics_cut_dict.iteritems(): 
+        if isinstance(key, tuple): 
+            f, s = [str(i) for i in key]
+            if not f in ymlout: 
+                ymlout[f] = {s:yamlize(entry)}
+            else: 
+                ymlout[f][s] = yamlize(entry)
+        else: 
+            ymlout[str(key)] = yamlize(entry)
+
+    return ymlout
+
+def make_latex_bg_table(physics_cut_dict, out_file=Temp(), title=''): 
     """
     returns a file-like object
     """
@@ -50,7 +85,7 @@ def make_latex_bg_table(physics_cut_dict, out_file=TemporaryFile()):
     colstring = '|'.join(['c']*(len(texphys) +1))
     prereq = r'\begin{{tabular}}{{ {} }}'.format(colstring)
     out_file.write(prereq + '\n')
-    headrow = r'& {} \\ \hline'.format(' & '.join(texphys))
+    headrow = r' {} & {} \\ \hline'.format(title,' & '.join(texphys))
     out_file.write(headrow + '\n')
     for cut in cut_list: 
         line = [cut.replace('_',' ')]

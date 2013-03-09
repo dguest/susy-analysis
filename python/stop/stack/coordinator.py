@@ -1,7 +1,7 @@
 import yaml
 from stop import bits
 from os.path import basename, isfile, isdir, join, splitext
-import glob, os
+import glob, os, tempfile, sys
 
 class Coordinator(object): 
     """
@@ -82,14 +82,45 @@ class Coordinator(object):
                 broken.append(name)
         return broken
 
+    def fast_stack(self, rerun=False): 
+        ntup_dict = self._config_dict['files']['ntuples']
+        ntuples = glob.glob('{}/*.root'.format(ntup_dict['NONE']))
+        if not ntuples: 
+            raise IOError("no ntuples found in {}".format(globdir))
+
+        for syst in self.scale_factor_systematics: 
+            hist_path = self._get_syst_hist_path(syst, create=True)
+
+        base_hist_path = '/'.join(hist_path.split('/')[:-1])
+        stacker = Stacker(self._config_dict['regions'])
+        for ntup in ntuples: 
+            stacker.run_multisys(
+                ntup, base_hist_path, 
+                self.scale_factor_systematics, rerun=rerun)
+
+        dist_syst = set(self.distiller_systematics) 
+        dist_syst -= set(['NONE'])
+        for syst in dist_syst: 
+            self.stack(systematic=syst, rerun=rerun)
+
+
     def stack(self, systematic='NONE', rerun=False): 
+        if systematic == 'all': 
+            self.fast_stack(rerun)
+            return 
+                
         ntup_dict = self._config_dict['files']['ntuples']
         if systematic in self.distiller_systematics: 
-            ntuples = glob.glob('{}/*.root'.format(ntup_dict[systematic]))
+            globdir = ntup_dict[systematic]
+            stacker_syst = 'NONE'
         elif systematic in self.scale_factor_systematics: 
-            ntuples = glob.glob('{}/*.root'.format(ntup_dict['NONE']))
+            globdir = ntup_dict['NONE']
+            stacker_syst = systematic
         else: 
             raise ValueError('what the fuck is {}'.format(systematic))
+        ntuples = glob.glob('{}/*.root'.format(globdir))
+        if not ntuples: 
+            raise IOError("no ntuples found in {}".format(globdir))
 
         syst_hist_path = self._get_syst_hist_path(systematic, create=True)
         stacker = Stacker(self._config_dict['regions'])
@@ -101,10 +132,19 @@ class Coordinator(object):
                     os.remove(out_hist_path)
                 else: 
                     continue
-            stacker.hist_from_ntuple(ntup, out_hist_path, systematic)
+            stacker.hist_from_ntuple(ntup, out_hist_path, stacker_syst)
 
     def aggregate(self, systematic='NONE', rerun=False): 
-        from stop import aggregator as agg
+        if systematic == 'all': 
+            all_syst = set(self.distiller_systematics + 
+                           self.scale_factor_systematics)
+            syst_dict = {}
+            for syst in all_syst: 
+                syst_dict[syst] = self.aggregate(systematic=syst, 
+                                                 rerun=rerun)
+            return syst_dict
+            
+        from stop.stack import aggregator as agg
         hist_path = self._get_syst_hist_path(systematic)
         agg_name = join(hist_path, self.aggrigate_hist_name)
         if isfile(agg_name) and not rerun: 
@@ -118,7 +158,11 @@ class Coordinator(object):
             )
             aggregator.lumi_fb = self._config_dict['misc']['lumi_fb']
             aggregator.signals = 'all'
+            aggregator.bugstream = tempfile.TemporaryFile()
             aggregator.aggregate()
+            aggregator.bugstream.seek(0)
+            for line in aggregator.bugstream: 
+                sys.stderr.write(line)
             if isfile(agg_name): 
                 os.remove(agg_name)
             aggregator.write(agg_name)
@@ -142,7 +186,7 @@ class Region(object):
         'cut_config':{
             'leading_jet_gev':240, 
             'met_gev':180, 
-            'btag_config':'LOOSE_TIGHT'
+            'btag_config':['NOTAG','LOOSE','TIGHT']
             }
         }
     _bit_dict = dict(bits.bits)
@@ -192,6 +236,19 @@ class Region(object):
     @property
     def antibits(self):
         return self._get_bits(self.veto_bits)
+    
+    def get_config_dict(self): 
+        """
+        Produces the configuration info needed for _stacksusy
+        """
+        config_dict = {
+            'jet_tag_requirements': self.cut_config['btag_config'], 
+            'leading_jet_pt': self.cut_config['leading_jet_gev']*1e3, 
+            'met': self.cut_config['met_gev']*1e3, 
+            'required_bits': long(self.bits), 
+            'veto_bits': long(self.antibits), 
+            }
+        return config_dict
 
 # -- consider moving this ?
 class Stacker(object): 
@@ -201,30 +258,62 @@ class Stacker(object):
     """
     def __init__(self, regions_dict): 
         self._regions = {k:Region(v) for k,v in regions_dict.items()}
+        self.dummy = False
     
     def hist_from_ntuple(self, ntuple, hist, systematic='NONE'): 
         # got to figure out how I'm going to deal with possibly 
         # differing configuration cuts... 
         # current plan, don't configure cuts, output a histogram and 
         # do the counting on that... we'll use stacksusy as a standin
+        if isfile(hist): 
+            raise IOError(5,"already exists",hist)
+        regions = []
+        for name, reg in self._regions.items(): 
+            regdic = reg.get_config_dict()
+            regdic['name'] = name
+            regdic['output_name'] = hist 
+            regdic['systematic'] = systematic
+            regions.append(regdic)
+
+        self._run(ntuple, regions)
+
+    def run_multisys(self, ntuple, basedir, systematics, rerun=False): 
+        regions = []
+        for name, reg in self._regions.items(): 
+            for systematic in systematics: 
+                regdic = reg.get_config_dict()
+                regdic['name'] = name
+                if systematic == 'NONE': 
+                    outdir = 'baseline'
+                else: 
+                    outdir = systematic.lower()
+                full_out_dir = join(basedir, outdir)
+                if not isdir(full_out_dir): 
+                    raise IOError(99,"no dir",full_out_dir)
+                histname = '{}.h5'.format(basename(splitext(ntuple)[0]))
+                full_out_path = join(full_out_dir, histname)
+                if isfile(full_out_path): 
+                    if rerun: 
+                        os.remove(full_out_path)
+                    else: 
+                        continue
+                regdic['output_name'] = full_out_path
+                regdic['systematic'] = systematic
+                regions.append(regdic)
+
+        if regions: 
+            self._run(ntuple, regions)
+
+    def _run(self, ntuple, regions): 
+        if self.dummy: 
+            print ntuple
+            for reg in regions: 
+                print reg
+            return 
         from stop.hyperstack import stacksusy
-        regions = self._regions.values()
-        first_config = regions[0].cut_config
-        if any(r.cut_config != first_config for r in regions): 
-            raise ValueError("mismatch in cut configurations")
-        config_dict = dict(
-            leading_jet = first_config['leading_jet_gev'] * 1e3, 
-            met         = first_config['met_gev'] * 1e3, 
-            btag_config = first_config['btag_config'], 
-            systematic  = systematic)
         flags = 'v'
         if basename(ntuple).startswith('d'): 
             flags += 'd'
         if not isfile(ntuple): 
             raise IOError(3,"doesn't exist",ntuple)
-        if isfile(hist): 
-            raise IOError(5,"already exists",hist)
-        bitslist = [
-            (n, v.bits, v.antibits) for n, v in self._regions.items()]
-        stacksusy(ntuple, bitslist, output_file=hist, flags=flags, 
-                  config_opts=config_dict)
+        stacksusy(ntuple, regions, flags=flags)

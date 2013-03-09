@@ -1,7 +1,6 @@
 #include "ObjKinematics.hh"
 #include "JetFactory.hh"
 #include "Histogram.hh"
-#include "MaskedHistArray.hh"
 #include "HistBuilderFlags.hh"
 #include "PhysicalConstants.hh"
 #include "H5Cpp.h"
@@ -10,19 +9,18 @@
 #include <cmath>
 
 
-Jet1DHists::Jet1DHists(double max_pt, const unsigned flags, std::string tag): 
-  m_truth_label(0), 
-  m_tag(tag)
+Jet1DHists::Jet1DHists(double max_pt, const unsigned flags): 
+  m_truth_label(0)
 { 
-  m_pt = new MaskedHistArray(Histogram(100, 0, max_pt, "MeV"), tag); 
-  m_eta = new MaskedHistArray(Histogram(100, -2.7, 2.7), tag); 
-  m_cnnLogCb = new MaskedHistArray(Histogram(100, -10, 10), tag); 
-  m_cnnLogCu = new MaskedHistArray(Histogram(100, -10, 10), tag); 
-  m_cnnLogBu = new MaskedHistArray(Histogram(100, -10, 10), tag); 
-  m_met_dphi = new MaskedHistArray(Histogram(100, 0, 3.2), tag); 
+  m_pt = new Histogram(100, 0, max_pt, "MeV"); 
+  m_eta = new Histogram(100, -2.7, 2.7); 
+  m_cnnLogCb = new Histogram(100, -10, 10);
+  m_cnnLogCu = new Histogram(100, -10, 10);
+  m_cnnLogBu = new Histogram(100, -10, 10);
+  m_met_dphi = new Histogram(100, 0, 3.2);
 
   if (flags & buildflag::fill_truth) { 
-    m_truth_label = new MaskedHistArray(Histogram(21, -0.5, 20.5), tag); 
+    m_truth_label = new Histogram(21, -0.5, 20.5); 
   }
 }
 Jet1DHists::~Jet1DHists() 
@@ -38,60 +36,35 @@ Jet1DHists::~Jet1DHists()
 
 }
 
-void Jet1DHists::add_mask(ull_t bitmask, std::string name, 
-			  ull_t antimask) { 
-  m_pt->add_mask(bitmask,  name, antimask);       
-  m_eta->add_mask(bitmask, name, antimask);      
-  m_cnnLogCb->add_mask(bitmask, name, antimask); 
-  m_cnnLogCu->add_mask(bitmask, name, antimask);
-  m_cnnLogBu->add_mask(bitmask, name, antimask); 
-  m_met_dphi->add_mask(bitmask, name, antimask); 
-
-  if (m_truth_label) { 
-    m_truth_label->add_mask(bitmask, name, antimask); 
-  }
-} 
-
-void Jet1DHists::write_to(H5::CommonFG& file, std::string stub, 
-			  std::string postfix) { 
+void Jet1DHists::write_to(H5::CommonFG& file) { 
   using namespace H5;
-  Group pt(file.createGroup("pt")); 
-  m_pt->write_to(pt);       
-  Group eta(file.createGroup("eta")); 
-  m_eta->write_to(eta); 
-  Group logCb(file.createGroup("logCb")); 
-  m_cnnLogCb->write_to(logCb); 
-  Group logCu(file.createGroup("logCu")); 
-  m_cnnLogCu->write_to(logCu); 
-  Group logBu(file.createGroup("logBu")); 
-  m_cnnLogBu->write_to(logBu); 
-  Group metDphi(file.createGroup("metDphi")); 
-  m_met_dphi->write_to(metDphi); 
-
+  m_pt->write_to(file,"pt");       
+  m_eta->write_to(file,"eta"); 
+  m_cnnLogCb->write_to(file,"logCb"); 
+  m_cnnLogCu->write_to(file,"logCu"); 
+  m_cnnLogBu->write_to(file,"logBu"); 
+  m_met_dphi->write_to(file,"metDphi"); 
   if (m_truth_label) { 
-    Group truth(file.createGroup("truth")); 
-    write_truth_info(truth); 
+    write_truth_info(file); 
   }
 
 }
-void Jet1DHists::write_truth_info(H5::CommonFG& truth){ 
-  
+void Jet1DHists::write_truth_info(H5::CommonFG& file){ 
   using namespace H5; 
-  Group label(truth.createGroup("label")); 
-  m_truth_label->write_to(label); 
+  m_truth_label->write_to(file,"truth_label"); 
 }
 
-void Jet1DHists::fill(const Jet& jet, const ull_t mask, double w) { 
-  m_pt->fill(jet.Pt(), mask, w); 
-  m_eta->fill(jet.Eta(), mask, w); 
-  m_cnnLogCu->fill(log(jet.pc() / jet.pu()), mask, w); 
-  m_cnnLogCb->fill(log(jet.pc() / jet.pb()), mask, w); 
-  m_cnnLogBu->fill(log(jet.pb() / jet.pu()), mask, w); 
-  m_met_dphi->fill(fabs(jet.met_dphi()), mask, w); 
+void Jet1DHists::fill(const Jet& jet, double w) { 
+  m_pt->fill(jet.Pt(),  w); 
+  m_eta->fill(jet.Eta(),  w); 
+  m_cnnLogCu->fill(log(jet.pc() / jet.pu()),  w); 
+  m_cnnLogCb->fill(log(jet.pc() / jet.pb()),  w); 
+  m_cnnLogBu->fill(log(jet.pb() / jet.pu()),  w); 
+  m_met_dphi->fill(fabs(jet.met_dphi()),  w); 
 
   if (m_truth_label) { 
     int label = jet.flavor_truth_label(); 
-    m_truth_label->fill(label, mask, w); 
+    m_truth_label->fill(label,  w); 
   }
 
 }

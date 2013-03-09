@@ -30,8 +30,10 @@ struct JetBuffer
   double cnn_c; 
   double cnn_u; 
   int flavor_truth_label; 
-  BtagScaler* btag_scaler; 
+  unsigned bits; 
+  std::vector<BtagScaler*> btag_scalers; 
   JetBuffer(); 
+  ~JetBuffer(); 
 };
 
 class JetFactory
@@ -39,7 +41,7 @@ class JetFactory
 public: 
   JetFactory(std::string root_file, int n_jets = 3); 
   ~JetFactory(); 
-  void set_btagging(btag::EventConfig); 
+  void set_btagging(const std::vector<btag::JetTag>&); 
   int entries() const; 
   void entry(int); 
   std::vector<Jet> jets() const; 
@@ -52,10 +54,9 @@ public:
   int subleading_cjet_pos() const; 
   hfor::JetType hfor_type() const; 
   double htx() const; 
-  double event_weight(syst::Systematic = syst::NONE) const; 
+  double event_weight() const; 
 private: 
-  void set_btag(size_t jet_n, std::string tagger, 
-		unsigned required, unsigned veto = 0); 
+  void set_btag(size_t jet_n, btag::JetTag); 
   Jet jet(int) const; 		// not fully supported
   void set_buffer(std::string base_name); 
   TTree* m_tree; 
@@ -75,7 +76,7 @@ private:
   double m_htx; 
   float m_mc_event_weight; 
   
-  unsigned m_flags; 
+  unsigned m_ioflags; 
 }; 
 
 class Jet: public TLorentzVector
@@ -90,7 +91,8 @@ public:
   double pu() const; 
   int flavor_truth_label() const; 
   bool has_flavor() const; 
-  double get_scalefactor(syst::Systematic = syst::NONE) const; 
+  bool pass_tag(btag::JetTag) const; 
+  double get_scalefactor(btag::JetTag, syst::Systematic = syst::NONE) const; 
 private: 
   void req_flavor() const; 	// throws rumtime_error if no flavor
   double m_pb; 
@@ -99,9 +101,8 @@ private:
   int m_truth_label; 
   double m_met_dphi; 
 
-  unsigned m_flags; 
-  ull_t m_event_flags; 
-  BtagScaler* m_btag_scaler; 
+  unsigned m_ioflags; 
+  const JetBuffer* m_buffer; 
 }; 
 
 #endif // JET_FACTORY_H

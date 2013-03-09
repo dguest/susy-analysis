@@ -10,7 +10,7 @@ SmartChain::SmartChain(std::string tree_name):
 { 
 }
 
-int SmartChain::Add(std::string file_name, long long nentries) { 
+int SmartChain::add(std::string file_name, long long nentries) { 
   m_files.push_back(file_name); 
   TFile file(file_name.c_str()); 
   if (!file.IsOpen() || file.IsZombie()) { 

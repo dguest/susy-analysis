@@ -19,16 +19,6 @@ bits = [
     ("lepton_veto",          1 << 10),
     ("ctag_mainz",           1 << 11),
 
-    ("jet1_anti_b"        ,  1 << 12),
-    ("jet1_anti_u_medium" ,  1 << 13),
-    ("jet1_anti_u_tight"  ,  1 << 14),
-    ("jet2_anti_b"        ,  1 << 15),
-    ("jet2_anti_u_medium" ,  1 << 16),
-    ("jet2_anti_u_tight"  ,  1 << 17),
-    ("jet3_anti_b"        ,  1 << 18),
-    ("jet3_anti_u_medium" ,  1 << 19),
-    ("jet3_anti_u_tight"  ,  1 << 20),
-
     ('mttop'     ,           1 << 21), 
     ('j2_anti_b' ,           1 << 22), 
     ('j2_anti_u' ,           1 << 23), 
@@ -44,15 +34,6 @@ composite_bits = [
      _bdict['j3_anti_b'] | _bdict['j3_anti_u'] ), 
     ('kinematic', 
      _bdict['leading_jet'] | _bdict['met']), 
-    ('ctag_tight', 
-     _bdict['jet2_anti_b'] | 
-     _bdict['jet3_anti_b'] | _bdict['jet3_anti_u_tight']), 
-    ('ctag_medium_asym', 
-     _bdict['jet2_anti_b'] | 
-     _bdict['jet3_anti_b'] | _bdict['jet3_anti_u_medium']), 
-    ('ctag_medium_sym', 
-     _bdict['jet2_anti_b'] | _bdict['jet2_anti_u_medium'] | 
-     _bdict['jet3_anti_b'] | _bdict['jet3_anti_u_medium']), 
     ('preselection', 
      _bdict['grl'] | _bdict['trigger'] | _bdict['lar_error'] | 
      _bdict['core'] | #this was set wrong in the distiller

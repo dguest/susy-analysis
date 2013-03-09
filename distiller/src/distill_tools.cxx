@@ -55,6 +55,7 @@ void copy_jet_info(const SelectedJet* in, outtree::Jet& jet)
   }
   jet.cnn_log_cu = log( in->pc() / in->pu() ) ; 
   jet.cnn_log_cb = log( in->pc() / in->pb() ) ; 
+  jet.jet_bits = in->bits(); 
 }
 
 void copy_scale_factor(const SelectedJet* in, outtree::ScaleFactor& factor, 
@@ -71,17 +72,11 @@ void copy_scale_factor(const SelectedJet* in, outtree::ScaleFactor& factor,
 void copy_leading_jet_info(const std::vector<SelectedJet*>& signal_jets, 
 			   outtree::OutTree& out_tree)
 {
-  if (signal_jets.size() >= 1) { 
-    copy_jet_info(signal_jets.at(0), out_tree.isr_jet); 
-  }
-  if (signal_jets.size() >= 2) { 
-    copy_jet_info(signal_jets.at(1), out_tree.leading_jet);
-  }
-  if (signal_jets.size() >= 3) { 
-    copy_jet_info(signal_jets.at(2), out_tree.subleading_jet); 
+  size_t maxjets = std::min(signal_jets.size(), out_tree.jets.size()); 
+  for (size_t jet_n = 0; jet_n < maxjets; jet_n++) { 
+    copy_jet_info(signal_jets.at(jet_n), *out_tree.jets.at(jet_n)); 
   }
   out_tree.n_good_jets = signal_jets.size(); 
-
 }
 
 ull_t jet_cleaning_bit(const std::vector<SelectedJet*>& preselection_jets)
@@ -151,24 +146,12 @@ ull_t get_ctag_bits(const std::vector<SelectedJet*>& signal_jets)
 { 
   using namespace btag; 
   ull_t pass_bits = 0; 
-  if (signal_jets.size() >= 1) { 
-    const SelectedJet* jet = signal_jets.at(0); 
-    if (jet->pass_anti_b(CNN_LOOSE)) pass_bits  |= pass::jet1_anti_b; 
-    if (jet->pass_anti_u(CNN_MEDIUM)) pass_bits |= pass::jet1_anti_u_medium; 
-    if (jet->pass_anti_u(CNN_TIGHT)) pass_bits  |= pass::jet1_anti_u_tight; 
-  }
   if (signal_jets.size() >= 2) { 
     const SelectedJet* jet = signal_jets.at(1); 
-    if (jet->pass_anti_b(CNN_LOOSE)) pass_bits  |= pass::jet2_anti_b; 
-    if (jet->pass_anti_u(CNN_MEDIUM)) pass_bits |= pass::jet2_anti_u_medium; 
-    if (jet->pass_anti_u(CNN_TIGHT)) pass_bits  |= pass::jet2_anti_u_tight; 
     if (pass_mainz_ctag(jet))       pass_bits |= pass::ctag_mainz; 
   }
   if (signal_jets.size() >= 3) { 
     const SelectedJet* jet = signal_jets.at(2); 
-    if (jet->pass_anti_b(CNN_LOOSE)) pass_bits  |= pass::jet3_anti_b; 
-    if (jet->pass_anti_u(CNN_MEDIUM)) pass_bits |= pass::jet3_anti_u_medium; 
-    if (jet->pass_anti_u(CNN_TIGHT)) pass_bits  |= pass::jet3_anti_u_tight; 
     if (pass_mainz_ctag(jet))       pass_bits |= pass::ctag_mainz; 
   }
   return pass_bits; 
