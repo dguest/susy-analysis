@@ -28,15 +28,12 @@ static PyObject* py_analysis_alg(PyObject *self, PyObject *args)
   if (!ok) return NULL;
 
   unsigned bitflags = parse_flags(flags); 
-
   int ret_val = 0; 
   try { 
     T builder(input_file, bitflags); 
-
     for (auto itr = regions.begin(); itr != regions.end(); itr++) {
       builder.add_region(*itr); 
     }
-    
     ret_val = builder.build(); 
     builder.save(); 
   }
@@ -44,11 +41,8 @@ static PyObject* py_analysis_alg(PyObject *self, PyObject *args)
     PyErr_SetString(PyExc_RuntimeError, e.what()); 
     return NULL; 
   }
-
   PyObject* tuple = Py_BuildValue("i", ret_val);
-  
   return tuple; 
-
 }
 
 static bool fill_regions(PyObject* list, std::vector<RegionConfig>* regions)
@@ -59,9 +53,19 @@ static bool fill_regions(PyObject* list, std::vector<RegionConfig>* regions)
     PyObject* entry = PyList_GetItem(list, reg_n); 
     RegionConfig region; 
     region.systematic = syst::NONE; 
+    if (!fill_region_essential(entry, &region)) return false; 
     if (!fill_region(entry, &region)) return false; 
     regions->push_back(region); 
   }
+  return true; 
+}
+
+static bool fill_region_essential(PyObject* dict, RegionConfig* region)
+{
+  if (!dict) return false; 
+  if (!PyDict_Check(dict)) return false; 
+  if (!require(dict, "name", region->name)) return false; 
+  if (!require(dict, "output_name", region->output_name)) return false;
   return true; 
 }
 
@@ -69,64 +73,35 @@ static bool fill_region(PyObject* dict, RegionConfig* region)
 {
   if (!dict) return false; 
   if (!PyDict_Check(dict)) return false; 
-  if (!PyDict_Check(dict)) return false; 
-  PyObject* key; 
-  PyObject* value; 
-  Py_ssize_t pos = 0; 
-  while(PyDict_Next(dict, &pos, &key, &value)) { 
-    if (!PyString_Check(key) || PyString_Size(key) == 0) { 
-      PyErr_SetString(PyExc_ValueError, 
-		      "config dict includes non-string key"); 
-      return false; 
-    }
-    std::string ckey = PyString_AsString(key); 
-    if (ckey == "name") { 
-      if (!safe_copy(value, region->name)) return false; 
-    }
-    else if (ckey == "output_name") { 
-      if (!safe_copy(value, region->output_name)) return false; 
-    }
-    else if (ckey == "jet_tag_requirements") { 
-      if (!fill_jettag(value, &region->jet_tag_requirements)) return false;
-    }
-    else if (ckey == "leading_jet_pt") { 
-      region->leading_jet_pt = PyFloat_AsDouble(value); 
-      if (PyErr_Occurred()) return false; 
-    }
-    else if (ckey == "met") { 
-      region->met = PyFloat_AsDouble(value); 
-      if (PyErr_Occurred()) return false; 
-    }
-    else if (ckey == "required_bits") { 
-      region->required_bits = PyLong_AsUnsignedLongLong(value); 
-      if (PyErr_Occurred()) return false; 
-    }
-    else if (ckey == "veto_bits") { 
-      region->veto_bits = PyLong_AsUnsignedLongLong(value); 
-      if (PyErr_Occurred()) return false; 
-    }
-    else if (ckey == "systematic") { 
-      if (!safe_copy(value, region->systematic)) return false; 
-    }
-    else { 
-      std::string problem = "got unknown signal region option: " + ckey; 
-      PyErr_SetString(PyExc_ValueError,problem.c_str()); 
-      return false; 
-    }
-  }
+  if (!copy(dict, "required_bits", region->required_bits)) return false;
+  if (!copy(dict, "veto_bits", region->veto_bits)) return false;
+  if (!copy(dict, "systematic", region->systematic)) return false; 
+  if (!copy(dict, "leading_jet_pt", region->leading_jet_pt)) return false;
+  if (!copy(dict, "met", region->met)) return false; 
+  if (!copy(dict, "jet_tag_requirements", region->jet_tag_requirements))
+    return false; 
+
   return true; 
-}  
+}
 
+static bool safe_copy(PyObject* value, std::string& dest){ 
+  std::string cstr = PyString_AsString(value);
+  if (PyErr_Occurred() || (PyString_Size(value) == 0)) return false; 
+  dest = cstr; 
+  return true; 
+}
 
-static bool fill_jettag(PyObject* list, std::vector<btag::JetTag>* req) { 
-  const int n_tags = PyList_Size(list); 
-  if (PyErr_Occurred()) return NULL; 
-  for (int tag_n = 0; tag_n < n_tags; tag_n++) { 
-    PyObject* entry = PyList_GetItem(list, tag_n); 
-    btag::JetTag tag = btag::NOTAG; 
-    if (!safe_copy(entry, tag)) return false; 
-    req->push_back(tag); 
-  }
+static bool safe_copy(PyObject* value, ull_t& dest) { 
+  ull_t the_long = PyLong_AsUnsignedLongLong(value); 
+  if (PyErr_Occurred()) return false; 
+  dest = the_long; 
+  return true; 
+}
+
+static bool safe_copy(PyObject* value, double& dest) { 
+  double the_double = PyFloat_AsDouble(value); 
+  if (PyErr_Occurred()) return false; 
+  dest = the_double; 
   return true; 
 }
 
@@ -205,13 +180,6 @@ static bool safe_copy(PyObject* value, syst::Systematic& dest) {
     PyErr_SetString(PyExc_ValueError,problem.c_str()); 
     return false; 
   }
-}
-
-static bool safe_copy(PyObject* value, std::string& dest){ 
-  std::string cstr = PyString_AsString(value);
-  if (PyErr_Occurred() || (PyString_Size(value) == 0)) return false; 
-  dest = cstr; 
-  return true; 
 }
 
 
