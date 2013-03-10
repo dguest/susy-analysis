@@ -40,6 +40,12 @@ HistBuilder::~HistBuilder() {
 
 void HistBuilder::add_region(const RegionConfig& region){ 
   using namespace std; 
+
+  // do blinding here
+  if (region.type == reg::SIGNAL && 
+      (m_build_flags & buildflag::is_data)) { 
+    return; 
+  }
   m_histograms.push_back
     (make_pair(region.name,new RegionHistograms(region, m_build_flags)));
   if (! (m_build_flags & buildflag::is_data) ) { 
