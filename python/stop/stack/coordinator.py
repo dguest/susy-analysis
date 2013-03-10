@@ -41,6 +41,10 @@ class Coordinator(object):
         if not 'misc' in self._config_dict: 
             self._config_dict['misc'] = {'lumi_fb': 20.661}
 
+        self.verbose = False
+        self.outstream = sys.stdout
+        self.bugstream = sys.stderr
+
     def __repr__(self): 
         return repr(self._config_dict)
     
@@ -56,6 +60,10 @@ class Coordinator(object):
             if not isdir(syst_hist_path): 
                 os.mkdir(syst_hist_path)
         return syst_hist_path
+
+    def _print_new_line(self): 
+        if not self.verbose and self.outstream.isatty(): 
+            self.outstream.write('\n')
 
     def clean(self): 
         hists_dir = self._config_dict['files']['hists']
@@ -82,9 +90,10 @@ class Coordinator(object):
                 broken.append(name)
         return broken
 
-    def fast_stack(self, rerun=False): 
+    def _fast_stack(self, rerun=False): 
         ntup_dict = self._config_dict['files']['ntuples']
-        ntuples = glob.glob('{}/*.root'.format(ntup_dict['NONE']))
+        globdir = '{}/*.root'.format(ntup_dict['NONE'])
+        ntuples = glob.glob(globdir)
         if not ntuples: 
             raise IOError("no ntuples found in {}".format(globdir))
 
@@ -93,20 +102,24 @@ class Coordinator(object):
 
         base_hist_path = '/'.join(hist_path.split('/')[:-1])
         stacker = Stacker(self._config_dict['regions'])
-        for ntup in ntuples: 
-            stacker.run_multisys(
+        stacker.total_ntuples = len(ntuples)
+        stacker.rerun = rerun
+        for tup_n, ntup in enumerate(ntuples): 
+            n_ran = stacker.run_multisys(
                 ntup, base_hist_path, 
-                self.scale_factor_systematics, rerun=rerun)
+                self.scale_factor_systematics, 
+                tuple_n=tup_n)
 
         dist_syst = set(self.distiller_systematics) 
         dist_syst -= set(['NONE'])
         for syst in dist_syst: 
             self.stack(systematic=syst, rerun=rerun)
-
+        if n_ran: 
+            self._print_new_line()
 
     def stack(self, systematic='NONE', rerun=False): 
         if systematic == 'all': 
-            self.fast_stack(rerun)
+            self._fast_stack(rerun)
             return 
                 
         ntup_dict = self._config_dict['files']['ntuples']
@@ -124,15 +137,16 @@ class Coordinator(object):
 
         syst_hist_path = self._get_syst_hist_path(systematic, create=True)
         stacker = Stacker(self._config_dict['regions'])
-        for ntup in ntuples: 
+        stacker.total_ntuples = len(ntuples)
+        stacker.rerun = rerun
+        for tup_n, ntup in enumerate(ntuples): 
             out_hist_name = '{}.h5'.format(splitext(basename(ntup))[0])
             out_hist_path = join(syst_hist_path, out_hist_name)
-            if isfile(out_hist_path):
-                if rerun: 
-                    os.remove(out_hist_path)
-                else: 
-                    continue
-            stacker.hist_from_ntuple(ntup, out_hist_path, stacker_syst)
+            n_ran = stacker.hist_from_ntuple(
+                ntup, out_hist_path, stacker_syst,
+                tuple_n=tup_n)
+        if n_ran: 
+            self._print_new_line()
 
     def aggregate(self, systematic='NONE', rerun=False): 
         if systematic == 'all': 
@@ -260,14 +274,36 @@ class Stacker(object):
     def __init__(self, regions_dict): 
         self._regions = {k:Region(v) for k,v in regions_dict.items()}
         self.dummy = False
+        self.flags = set()
+        self._verbose = False
+        self.total_ntuples = None
+        self.outstream = sys.stdout
+        self.bugstream = sys.stderr
+        self.rerun = False
+    @property
+    def verbose(self): 
+        return self._verbose
+    @verbose.setter
+    def verbose(self, value): 
+        self._verbose = value
+        if value:
+            self.flags += set('v')
+        else: 
+            self.flags -= set('v')
+            
     
-    def hist_from_ntuple(self, ntuple, hist, systematic='NONE'): 
+    def hist_from_ntuple(self, ntuple, hist, systematic='NONE', 
+                         tuple_n=None): 
         # got to figure out how I'm going to deal with possibly 
         # differing configuration cuts... 
         # current plan, don't configure cuts, output a histogram and 
         # do the counting on that... we'll use stacksusy as a standin
-        if isfile(hist): 
-            raise IOError(5,"already exists",hist)
+        if isfile(hist):
+            if self.rerun: 
+                os.remove(hist)
+            else: 
+                return None
+
         regions = []
         for name, reg in self._regions.items(): 
             regdic = reg.get_config_dict()
@@ -276,9 +312,24 @@ class Stacker(object):
             regdic['systematic'] = systematic
             regions.append(regdic)
 
-        self._run(ntuple, regions)
 
-    def run_multisys(self, ntuple, basedir, systematics, rerun=False): 
+        print_req = [
+            not self.verbose, 
+            self.outstream.isatty(), 
+            isinstance(tuple_n,int), 
+            self.total_ntuples, 
+            ]
+        if all(print_req):
+            prline = '\rstacking systematic {} ({:4} of {})'.format(
+                systematic, tuple_n, self.total_ntuples)
+            self.outstream.write(prline)
+            self.outstream.flush()
+
+        
+        self._run(ntuple, regions)
+        return 1
+
+    def run_multisys(self, ntuple, basedir, systematics, tuple_n=None): 
         regions = []
         for name, reg in self._regions.items(): 
             for systematic in systematics: 
@@ -294,7 +345,7 @@ class Stacker(object):
                 histname = '{}.h5'.format(basename(splitext(ntuple)[0]))
                 full_out_path = join(full_out_dir, histname)
                 if isfile(full_out_path): 
-                    if rerun: 
+                    if self.rerun: 
                         os.remove(full_out_path)
                     else: 
                         continue
@@ -303,7 +354,20 @@ class Stacker(object):
                 regions.append(regdic)
 
         if regions: 
+
+            print_req = [
+                not self.verbose, 
+                self.outstream.isatty(), 
+                isinstance(tuple_n,int), 
+                self.total_ntuples, 
+                ]
+            if all(print_req):
+                prline = '\rfast stacking ({:4} of {})'.format(
+                    tuple_n,self.total_ntuples)
+                self.outstream.write(prline)
+                self.outstream.flush()
             self._run(ntuple, regions)
+            return 1
 
     def _run(self, ntuple, regions): 
         if self.dummy: 
@@ -312,7 +376,7 @@ class Stacker(object):
                 print reg
             return 
         from stop.hyperstack import stacksusy
-        flags = 'v'
+        flags = ''.join(self.flags)
         if basename(ntuple).startswith('d'): 
             flags += 'd'
         if not isfile(ntuple): 
