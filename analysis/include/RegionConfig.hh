@@ -7,6 +7,10 @@
 #include "systematic_defs.hh"
 #include "typedefs.hh"
 
+namespace reg { 
+  enum Type { CONTROL, SIGNAL, VALIDATION }; 
+}
+
 struct RegionConfig 
 {
   std::string name; 
@@ -17,6 +21,7 @@ struct RegionConfig
   ull_t veto_bits; 
   syst::Systematic systematic; 
   std::string output_name; 
+  reg::Type type; 
 };
 
 #endif 

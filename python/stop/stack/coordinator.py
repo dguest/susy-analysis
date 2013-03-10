@@ -247,6 +247,7 @@ class Region(object):
             'met': self.cut_config['met_gev']*1e3, 
             'required_bits': long(self.bits), 
             'veto_bits': long(self.antibits), 
+            'type': self.type.upper(), 
             }
         return config_dict
 

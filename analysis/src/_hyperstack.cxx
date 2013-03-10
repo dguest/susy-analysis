@@ -66,6 +66,7 @@ static bool fill_region_essential(PyObject* dict, RegionConfig* region)
   if (!PyDict_Check(dict)) return false; 
   if (!require(dict, "name", region->name)) return false; 
   if (!require(dict, "output_name", region->output_name)) return false;
+  if (!require(dict, "type", region->type)) return false;
   return true; 
 }
 
@@ -128,6 +129,30 @@ static bool safe_copy(PyObject* value, btag::JetTag& dest) {
   }
   else { 
     std::string problem = "got undefined btag: " + name; 
+    PyErr_SetString(PyExc_ValueError,problem.c_str()); 
+    return false; 
+  }
+}
+
+static bool safe_copy(PyObject* value, reg::Type& dest) { 
+  char* charname = PyString_AsString(value); 
+  if (PyErr_Occurred()) return false; 
+  std::string name(charname); 
+  using namespace reg; 
+  if (name == "CONTROL") { 
+    dest = CONTROL; 
+    return true; 
+  }
+  else if (name == "SIGNAL") { 
+    dest = SIGNAL; 
+    return true; 
+  }
+  else if (name == "VALIDATION") { 
+    dest = VALIDATION; 
+    return true; 
+  }
+  else { 
+    std::string problem = "got undefined region type: " + name; 
     PyErr_SetString(PyExc_ValueError,problem.c_str()); 
     return false; 
   }
