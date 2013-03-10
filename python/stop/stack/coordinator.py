@@ -104,8 +104,9 @@ class Coordinator(object):
         stacker = Stacker(self._config_dict['regions'])
         stacker.total_ntuples = len(ntuples)
         stacker.rerun = rerun
+        n_ran = 0
         for tup_n, ntup in enumerate(ntuples): 
-            n_ran = stacker.run_multisys(
+            n_ran += stacker.run_multisys(
                 ntup, base_hist_path, 
                 self.scale_factor_systematics, 
                 tuple_n=tup_n)
@@ -139,10 +140,11 @@ class Coordinator(object):
         stacker = Stacker(self._config_dict['regions'])
         stacker.total_ntuples = len(ntuples)
         stacker.rerun = rerun
+        n_ran = 0
         for tup_n, ntup in enumerate(ntuples): 
             out_hist_name = '{}.h5'.format(splitext(basename(ntup))[0])
             out_hist_path = join(syst_hist_path, out_hist_name)
-            n_ran = stacker.hist_from_ntuple(
+            n_ran += stacker.hist_from_ntuple(
                 ntup, out_hist_path, stacker_syst,
                 tuple_n=tup_n)
         if n_ran: 
@@ -302,7 +304,7 @@ class Stacker(object):
             if self.rerun: 
                 os.remove(hist)
             else: 
-                return None
+                return 0
 
         regions = []
         for name, reg in self._regions.items(): 
@@ -320,8 +322,13 @@ class Stacker(object):
             self.total_ntuples, 
             ]
         if all(print_req):
+            sp_path = hist.split('/')
+            if len(sp_path) > 1: 
+                sysname = sp_path[-2].upper()
+            else: 
+                sysname = systematic
             prline = '\rstacking systematic {} ({:4} of {})'.format(
-                systematic, tuple_n, self.total_ntuples)
+                sysname, tuple_n, self.total_ntuples)
             self.outstream.write(prline)
             self.outstream.flush()
 
@@ -368,6 +375,8 @@ class Stacker(object):
                 self.outstream.flush()
             self._run(ntuple, regions)
             return 1
+        else: 
+            return 0
 
     def _run(self, ntuple, regions): 
         if self.dummy: 
