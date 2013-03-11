@@ -176,8 +176,16 @@ class SampleAggregator(object):
             if physics_type == 'data': 
                 lumi_scale = 1.0
             else: 
-                lumi_scale = (self.lumi_fb / 
-                              file_meta.effective_luminosity_fb )
+                try: 
+                    eff_lumi_fb = file_meta.effective_luminosity_fb
+                except meta.EffectiveLuminosityException as exc: 
+                    limu_scale = exc.best_guess_fb
+                    bugline = '{}: {}\n'.format(
+                        file_meta.name, str(exc))
+                    self.bugstream.write(bugline)
+                    
+                lumi_scale = self.lumi_fb / eff_lumi_fb
+
 
             if physics_type == 'signal': 
                 physics_type = self._get_matched_signame(file_meta)

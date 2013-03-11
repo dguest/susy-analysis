@@ -46,24 +46,35 @@ class Dataset(object):
 
     @property
     def effective_luminosity_fb(self): 
-        if not self.kfactor: 
-            if not self.physics_type == 'signal': 
-                warn('no kfactor for {} {}, assuming 1'.format(
-                        self.id, self.name))
-            kfactor = 1.0
-        else: 
-            kfactor = self.kfactor
-        if not self.filteff: 
-            warn('no filt eff for {} {}, assuming 1'.format(
-                    self.id, self.name)) 
-            filt_eff = 1.0
-        else: 
-            filt_eff = self.filteff
-
         if not self.total_xsec_fb: 
             raise ArithmeticError(
                 "no cross section can't calculate effective luminosity")
 
+        if not self.kfactor and not self.filteff: 
+            eff_lumi = self.n_raw_entries / self.total_xsec_fb
+            raise EffectiveLuminosityException(
+                eff_lumi, ['kfactor', 'filter efficiency'])
+
+        kfactor = self.kfactor
+        if not kfactor: 
+            if not self.physics_type == 'signal': 
+                corrected_x = self.total_xsec_fb * self.filteff
+                eff_lumi = self.n_raw_entries / corrected_x
+                raise MissingKfactorException(eff_lumi)
+            else: 
+                kfactor = 1.0
+
+
+        if not self.filteff: 
+            corrected_x = self.total_xsec_fb * self.kfactor
+            eff_lumi = self.n_raw_entries / corrected_x
+            raise MissingFilterEfficiencyException(eff_lumi)
+        else: 
+            filt_eff = self.filteff
+
+        assert self.total_xsec_fb
+        assert kfactor
+        assert filt_eff
         corrected_x = self.total_xsec_fb * kfactor * filt_eff
         return self.n_raw_entries / corrected_x
 
@@ -551,3 +562,24 @@ class DatasetMatchError(ValueError):
         if len(self.matches) == 0: 
             problem += ('none')
         return problem
+
+class EffectiveLuminosityException(ArithmeticError): 
+    def __init__(self, best_guess_fb, missing_values, 
+                 problem='missing lumi normalization info'): 
+        super(EffectiveLuminosityException, self).__init__(problem)
+        self.best_guess_fb = best_guess_fb
+        self.missing_values = missing_values
+    def __str__(self): 
+        problem = 'missing: {}, best guess: {} fb'.format(
+            ', '.join(self.missing_values), self.best_guess_fb)
+        return problem
+    
+class MissingKfactorException(EffectiveLuminosityException): 
+    def __init__(self, best_guess): 
+        super(MissingKfactorException, self).__init__(
+            best_guess, ['kfactor'])
+
+class MissingFilterEfficiencyException(EffectiveLuminosityException): 
+    def __init__(self, best_guess): 
+        super(MissingFilterEfficiencyException).__init__(
+            best_guess,['filter efficiency'])
