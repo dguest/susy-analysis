@@ -90,6 +90,7 @@ class SampleAggregator(object):
         self.outstream = sys.stdout
         self.bugstream = sys.stderr
         self._check_variables(variables)
+        self.out_prepend = ''
 
     def _check_variables(self, variables): 
         if variables == 'all': 
@@ -162,7 +163,8 @@ class SampleAggregator(object):
         for filenum, f in enumerate(self.whiskey): 
             if self.outstream and self.outstream.isatty():
                 self.outstream.write(
-                    '\radding file {} of {}'.format(filenum, numfiles))
+                    '\r{}adding file {} of {}'.format(
+                        self.out_prepend, filenum, numfiles))
                 self.outstream.flush()
             meta_name = basename(splitext(f)[0])
             if meta_name not in self.filter_meta: 

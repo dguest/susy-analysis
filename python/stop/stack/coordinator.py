@@ -24,7 +24,7 @@ class Coordinator(object):
     scale_factor_systematics += [
         part + shift for part in 'BCUT' for shift in ['UP','DOWN']
         ]
-    aggrigate_hist_name = 'aggregate.h5'
+    aggregate_hist_name = 'aggregate.h5'
 
     def __init__(self, yaml_file=None): 
         if yaml_file: 
@@ -166,6 +166,20 @@ class Coordinator(object):
         if n_ran: 
             self._print_new_line()
 
+    def get_needed_aggregates(self): 
+        """
+        returns a list of systematics
+        """
+        all_syst = set(self.distiller_systematics + 
+                       self.scale_factor_systematics)
+        needed = []
+        for syst in all_syst: 
+            agg_name = join(self._get_syst_hist_path(syst), 
+                            self.aggregate_hist_name)
+            if not isfile(agg_name): 
+                needed.append(syst)
+        return needed
+
     def aggregate(self, systematic='NONE', rerun=False, variables='all'): 
         if systematic == 'all': 
             all_syst = set(self.distiller_systematics + 
@@ -178,7 +192,7 @@ class Coordinator(object):
             
         from stop.stack import aggregator as agg
         hist_path = self._get_syst_hist_path(systematic)
-        agg_name = join(hist_path, self.aggrigate_hist_name)
+        agg_name = join(hist_path, self.aggregate_hist_name)
         if isfile(agg_name) and not rerun: 
             hist_dict = agg.HistDict(agg_name)
         else: 
@@ -191,10 +205,13 @@ class Coordinator(object):
             aggregator.lumi_fb = self._config_dict['misc']['lumi_fb']
             aggregator.signals = 'all'
             aggregator.bugstream = tempfile.TemporaryFile()
+            aggregator.out_prepend = 'systamatic: {} '.format(systematic)
             aggregator.aggregate()
             aggregator.bugstream.seek(0)
             for line in aggregator.bugstream: 
-                sys.stderr.write(line)
+                if not aggregator.bugstream.isatty(): 
+                    line = 'syst {}: {}'.format(systematic, line)
+                self.bugstream.write(line)
             if isfile(agg_name): 
                 os.remove(agg_name)
             aggregator.write(agg_name)
