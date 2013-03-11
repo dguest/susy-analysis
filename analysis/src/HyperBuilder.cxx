@@ -50,7 +50,7 @@ HyperBuilder::HyperBuilder(std::string input, const HistConfig& config,
 void HyperBuilder::init(std::string input, const unsigned flags) { 
   const double max_pt = m_max_pt; 
   const double min_pt = m_min_pt;  
-  m_factory = new JetFactory(input); 
+  m_factory = new JetFactory(input, 3); 
 
   std::vector<Axis> axes; 
   Axis leading_pt = {"leadingPt", m_n_pt_bins, min_pt, max_pt}; 

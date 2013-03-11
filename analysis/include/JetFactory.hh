@@ -39,7 +39,7 @@ struct JetBuffer
 class JetFactory
 {
 public: 
-  JetFactory(std::string root_file, int n_jets = 3); 
+  JetFactory(std::string root_file, int n_jets); 
   ~JetFactory(); 
   void set_btagging(const std::vector<btag::JetTag>&); 
   int entries() const; 
