@@ -55,8 +55,10 @@ static bool region_copy(PyObject* list, std::vector<RegionConfig>* regs) {
 
 static bool safe_copy(PyObject* dict, RegionConfig& region)
 {
-  if (!dict) return false; 
-  if (!PyDict_Check(dict)) return false; 
+  if (!PyDict_Check(dict)){
+    PyErr_SetString(PyExc_ValueError, "Expected RegionConfig formatted dict");
+    return false; 
+  }
   if (!require(dict, "name", region.name)) return false; 
   if (!require(dict, "output_name", region.output_name)) return false;
   if (!require(dict, "type", region.type)) return false;

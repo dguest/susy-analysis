@@ -22,6 +22,7 @@ struct RegionConfig
   syst::Systematic systematic; 
   std::string output_name; 
   reg::Type type; 
+  RegionConfig(); 
 };
 
 #endif 

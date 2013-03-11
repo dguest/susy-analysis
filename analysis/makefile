@@ -27,8 +27,6 @@ vpath %.h    $(INC)
 ROOTCFLAGS    := $(shell root-config --cflags)
 ROOTLIBS      := $(shell root-config --libs)
 ROOTLDFLAGS   := $(shell root-config --ldflags)
-#don't know why this isn't loaded by default
-# ROOTLIBS      += -lTreePlayer 	
 
 # and py config
 PY_CONFIG := python2.7-config
@@ -63,7 +61,7 @@ PY_LDFLAGS += -shared
 # ---- define objects
 TOBJ        := JetFactory.o
 GEN_OBJ     := HistBuilder.o MaskedHistArray.o ObjKinematics.o 
-GEN_OBJ     += HistConfig.o BtagConfig.o
+GEN_OBJ     += HistConfig.o BtagConfig.o RegionConfig.o
 GEN_OBJ     += TruthJetHists.o RegionHistograms.o
 GEN_OBJ     += HyperBuilder.o
 GEN_OBJ     += CutflowBuilder.o
