@@ -31,14 +31,20 @@ class Coordinator(object):
         else: 
             self._config_dict = {}
         if not 'regions' in self._config_dict: 
+            if yaml_file: 
+                self.bugstream.write('no regions given, making default')
             example = Region().get_yaml_dict()
             self._config_dict['regions'] = {'EXAMPLE':example}
         if not 'files' in self._config_dict: 
+            if yaml_file: 
+                self.bugstream.write('no files given, making default')
             self._config_dict['files'] = {
                 'ntuples': {s:s.lower() for s in self.distiller_systematics}, 
                 'hists': 'hists', 
                 'meta':'meta-all.yml'}
         if not 'misc' in self._config_dict: 
+            if yaml_file: 
+                self.bugstream.write('no misc info, making default')
             self._config_dict['misc'] = {'lumi_fb': 20.661}
 
         self.verbose = False

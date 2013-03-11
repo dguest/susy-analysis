@@ -14,7 +14,7 @@ import sys
 
 def get_config(): 
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('steering_file', nargs='?')
+    parser.add_argument('steering_file', help="created if it doesn't exist")
     parser.add_argument('--dump-yaml', action='store_true')
     parser.add_argument('-f','--force-aggregation', action='store_true')
     parser.add_argument('-r','--rerun-stack', action='store_true')
@@ -23,18 +23,22 @@ def get_config():
         '-s','--signal-point', nargs='?', 
         const='stop-150-90', help="assumes <particle>-<something> type name")
 
-    parser.add_argument('--plots', help='directory to store plots')
+    d = 'default: %(default)s'
+    c = "with no argument is '%(const)s'"
+    parser.add_argument('-p', 
+        '--plots', help='directory to store plots, ' + c, nargs='?', 
+        default=None, const='plots')
     parser.add_argument(
-        '--ext', help='plot extensions, default: %(default)s')
+        '--ext', help='plot extensions, ' + d, default='.pdf')
     args = parser.parse_args(sys.argv[1:])
     return args
 
 def run(): 
     args = get_config()
 
-    if not args.steering_file: 
+    if not isfile(args.steering_file): 
         coord = Coordinator()
-        with open(testfile,'w') as yml: 
+        with open(args.steering_file,'w') as yml: 
             coord.write(yml)
             sys.exit('wrote example steering file, quitting...')
 
