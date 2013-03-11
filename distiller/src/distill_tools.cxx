@@ -13,7 +13,6 @@
 
 #include "RunBits.hh"
 #include "EventBits.hh"
-#include "EventConstants.hh"
 
 #include <iostream>
 #include <fstream>

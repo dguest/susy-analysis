@@ -16,7 +16,7 @@
 
 #include "RunBits.hh"
 #include "EventBits.hh"
-#include "EventConstants.hh"
+#include "DistillerConstants.hh"
 
 #include <iostream>
 #include <fstream>
@@ -365,7 +365,8 @@ void StopDistiller::setup_susytools() {
 }
 
 void StopDistiller::setup_outputs() { 
-  m_out_tree = new outtree::OutTree(m_out_ntuple_name, "evt_tree", m_flags); 
+  m_out_tree = new outtree::OutTree(m_out_ntuple_name, 
+				    "evt_tree", m_flags, N_JETS_TO_SAVE); 
   m_cutflow = new BitmapCutflow;
   m_cutflow->add("GRL"                   , pass::grl            );  
   m_cutflow->add(m_info.trigger          , pass::trigger        );
