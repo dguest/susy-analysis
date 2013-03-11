@@ -116,6 +116,9 @@ class Coordinator(object):
                 ntup, base_hist_path, 
                 self.scale_factor_systematics, 
                 tuple_n=tup_n)
+        if n_ran: 
+            self._print_new_line()
+            n_ran = 0
 
         dist_syst = set(self.distiller_systematics) 
         dist_syst -= set(['NONE'])
