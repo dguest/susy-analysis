@@ -23,8 +23,8 @@ def get_config():
     parser.add_argument('-t', '--dump-tex', action='store_true')
     parser.add_argument('-c', '--counts-file', default='counts.yml',help=d)
     parser.add_argument(
-        '-s','--signal-point', nargs='?', 
-        const='stop-150-90', help="assumes <particle>-<something> type name")
+        '-s','--signal-point', default='stop-150-90', 
+        help="assumes <particle>-<something> type name, " + d)
     parser.add_argument(
         '-p', '--plots', help='directory to store plots, ' + c, nargs='?', 
         default=None, const='plots')
@@ -40,7 +40,7 @@ def get_signal_finder(signal_point):
             phys = tup[0]
             if not phys.startswith(signal_head): 
                 return True
-            return phys == args.signal_point
+            return phys == signal_point
     else: 
         def needed(tup): 
             return True
@@ -95,7 +95,7 @@ def run():
 
     if args.plots: 
         from stop.stack import plot
-        plots_dict = all_dict['NONE']
+        plots_dict = {k:v for k,v in all_dict['NONE'].items() if needed(k)}
         plotting_info = coord.get_plotting_meta()
         plotting_info['output_ext'] = args.ext
         plotting_info['base_dir'] = args.plots

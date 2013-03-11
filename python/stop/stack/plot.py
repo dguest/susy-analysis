@@ -67,7 +67,7 @@ def sort_data_mc(hist1_dict):
     all_cuts = set(c for p,v,c in hist1_dict.keys())
     variables = set(v for p,v,c in hist1_dict.keys())
     lists = {(v,c):[] for v in variables for c in all_cuts}
-    signals = {}
+    signals = {(v,c):[] for v in variables for c in all_cuts}
     for threetup, hist in hist1_dict.iteritems(): 
         physics_type, variable, cut = threetup
         tup = (variable, cut)
@@ -76,7 +76,7 @@ def sort_data_mc(hist1_dict):
                 raise ValueError('doubling the data')
             stack_data[(variable, cut)] = hist
         elif physics_type.startswith('stop'): 
-            signals[(variable,cut)] = hist
+            signals[(variable,cut)].append(hist)
         else: 
             lists[(variable, cut)].append(hist)
 
@@ -108,7 +108,7 @@ class PlotPrinter(object):
                 stack.ax.set_yscale('log')
             stack.add_backgrounds(stack_mc_lists[id_tup])
             if id_tup in signal_hists: 
-                stack.add_signals([signal_hists[id_tup]])
+                stack.add_signals(signal_hists[id_tup])
             save_base = join(plot_dir, stack_name)
             if id_tup in stack_data: 
                 stack.add_data(stack_data[id_tup])
