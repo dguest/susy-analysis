@@ -87,8 +87,8 @@ class Coordinator(object):
         for name, region_dict in self._config_dict['regions'].items(): 
             try: 
                 region = Region(region_dict)
-                bits = region.bits
-                antibits = region.antibits
+                bits = region.get_bits()
+                antibits = region.get_antibits()
             except KeyError: 
                 broken.append(name)
                 continue
@@ -206,8 +206,10 @@ class Region(object):
     """
     default_dict = { 
         'type':'control', 
-        'req_bits':['preselection'], 
-        'veto_bits':[], 
+        'bits': { 
+            'required':['preselection'], 
+            'veto':[], 
+            }, 
         'cut_config':{
             'leading_jet_gev':240, 
             'met_gev':180, 
@@ -217,20 +219,23 @@ class Region(object):
     _bit_dict = dict(bits.bits)
     _composite_bit_dict = dict(bits.composite_bits)
     _final_dict = bits.final_dict
-    _allowed_types = set(['control','signal'])
+    _allowed_types = set(['control','signal','validation'])
 
     def __init__(self, yaml_dict={}): 
         if not yaml_dict: 
             yaml_dict = self.default_dict
+        self._read_dict(yaml_dict)
+
+    def __repr__(self): 
+        return repr(self.get_yaml_dict())
+
+    def _read_dict(self,yaml_dict): 
         self.type = yaml_dict['type']
-        self.req_bits = yaml_dict['req_bits']
-        self.veto_bits = yaml_dict['veto_bits']
+        self.bits = yaml_dict['bits']
         self.cut_config = yaml_dict['cut_config']
         if self.type not in self._allowed_types: 
             raise ValueError('region type {} is not known'.format(
                     self.type))
-    def __repr__(self): 
-        return repr(self.get_yaml_dict())
 
     def get_yaml_dict(self): 
         """
@@ -252,15 +257,13 @@ class Region(object):
                 bits |= self._bit_dict[name]
             else: 
                 raise ValueError("{} isn't a defined bit".format(name))
-        return bits
+        return long(bits)
             
-    @property
-    def bits(self): 
-        return self._get_bits(self.req_bits)
+    def get_bits(self): 
+        return self._get_bits(self.bits['required'])
         
-    @property
-    def antibits(self):
-        return self._get_bits(self.veto_bits)
+    def get_antibits(self):
+        return self._get_bits(self.bits['veto'])
     
     def get_config_dict(self): 
         """
@@ -270,8 +273,8 @@ class Region(object):
             'jet_tag_requirements': self.cut_config['btag_config'], 
             'leading_jet_pt': self.cut_config['leading_jet_gev']*1e3, 
             'met': self.cut_config['met_gev']*1e3, 
-            'required_bits': long(self.bits), 
-            'veto_bits': long(self.antibits), 
+            'required_bits': self.get_bits(), 
+            'veto_bits': self.get_antibits(), 
             'type': self.type.upper(), 
             }
         return config_dict
