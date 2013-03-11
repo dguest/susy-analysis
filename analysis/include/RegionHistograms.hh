@@ -30,9 +30,7 @@ private:
   const RegionConfig m_region_config; 
   const unsigned m_build_flags; 
 
-  Jet1DHists* m_jet1_hists; 
-  Jet1DHists* m_jet2_hists; 
-  Jet1DHists* m_jet3_hists; 
+  std::vector<Jet1DHists*> m_jet_hists; 
 
   Histogram* m_met; 
   Histogram* m_min_dphi; 
@@ -44,9 +42,7 @@ private:
   Histogram* m_leading_cjet_rank; 
   Histogram* m_subleading_cjet_rank; 
 
-  TruthJetHists* m_jet1_truth; 
-  TruthJetHists* m_jet2_truth; 
-  TruthJetHists* m_jet3_truth; 
+  std::vector<TruthJetHists*> m_jet_truth_hists; 
 }; 
 
 #endif 

@@ -160,13 +160,14 @@ hfor::JetType JetFactory::hfor_type() const {
 }
 
 void JetFactory::set_btag(size_t jet_n, btag::JetTag tag) { 
-  if (m_jet_buffers.size() < jet_n) { 
-    throw std::out_of_range("asked for out of range jet in " __FILE__); 
+  std::string full_branch_name = (boost::format("jet%i") % jet_n).str(); 
+  if ( !(m_jet_buffers.size() > jet_n)) { 
+    throw std::range_error("asked for out of range jet " + 
+			   full_branch_name); 
   }
   if (m_ioflags & ioflag::no_truth) { 
     throw std::logic_error("tried to set btag buffer with no truth info"); 
   }
-  std::string full_branch_name = (boost::format("jet%i") % jet_n).str(); 
   JetBuffer* buffer = m_jet_buffers.at(jet_n); 
   size_t needed_size = tag + 1; 
   size_t scalers_size = buffer->btag_scalers.size(); 
@@ -283,7 +284,7 @@ double Jet::get_scalefactor(btag::JetTag tag, syst::Systematic systematic)
 void Jet::req_flavor() const 
 {
   if (!has_flavor()) { 
-    throw std::runtime_error("flavor branches don't exist, bad bad bad.."); 
+    throw std::logic_error("flavor branches don't exist, bad bad bad.."); 
   }
   
 }

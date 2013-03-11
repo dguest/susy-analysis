@@ -41,7 +41,7 @@ static PyObject* py_analysis_alg(PyObject *self, PyObject *args)
     builder.save(); 
   }
   catch (std::runtime_error e) { 
-    PyErr_SetString(PyExc_RuntimeError, e.what()); 
+    PyErr_SetString(PyExc_IOError, e.what()); 
     return NULL; 
   }
   PyObject* tuple = Py_BuildValue("i", ret_val);
