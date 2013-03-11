@@ -3,22 +3,27 @@ from stop.hists import Hist1d
 from stop import style, hists
 from os.path import isdir, join
 from stop.stack.stack import Stack
+import os
 
-def make_plots(plots_dict, args): 
+def make_plots(plots_dict, misc_info): 
     hist1_dict = {}
-    converter = HistConverter(args.lumi_fb)
+    converter = HistConverter(misc_info)
     converter.appended_evt_str = None
     for tup, hist in plots_dict.iteritems():
         hist1_dict[tup] = converter.hist1_from_histn(*tup, histn=hist)
 
-    print_plots(args, *sort_data_mc(hist1_dict))
+    printer = PlotPrinter(misc_info)
+    printer.print_plots(*sort_data_mc(hist1_dict))
+    printer.log = False
+    printer.print_plots(*sort_data_mc(hist1_dict))
+    
 
 class HistConverter(object): 
     """
     convert from NdHist to Hist1d. 
     """
-    def __init__(self, lumi_fb): 
-        self.lumi_fb = lumi_fb
+    def __init__(self, misc_info): 
+        self.lumi_fb = misc_info['lumi_fb']
         self.appended_evt_str = r': {:.1f} Evt'
 
     def hist1_from_histn(self, physics, variable, cut, histn): 
@@ -36,7 +41,7 @@ class HistConverter(object):
             var_sty = style.ax_labels[base_var]
             var_sty.units = units
         else: 
-            var_sty = sytle.VariableStyle(base_var, units)
+            var_sty = style.VariableStyle(base_var, units)
         x_ax_lab = var_sty.axis_label
             
         x_ax_full_label = r' '.join(variable.split('/')[:-1] + [x_ax_lab])
@@ -80,27 +85,36 @@ def sort_data_mc(hist1_dict):
 
     return stack_data, lists, signals
 
+class PlotPrinter(object): 
+    def __init__(self, options): 
+        self.plot_dir = options['base_dir']
+        self.ext = options['output_ext']
+        self.log = True
+        self.verbose = True
 
-def print_plots(args, stack_data, stack_mc_lists, signal_hists={}): 
-
-    plot_dir = args.outplot_dir
-    if not isdir(plot_dir): 
-        os.mkdir(plot_dir)
-    for id_tup in stack_mc_lists.keys(): 
-        variable, cut = id_tup
-        stack_name = '_'.join([variable.replace('/','-'), cut])
-        stack = Stack(stack_name)
-        stack.y_min = 0.1
-        stack.ax.set_yscale('log')
-        stack.add_backgrounds(stack_mc_lists[id_tup])
-        if id_tup in signal_hists: 
-            stack.add_signals([signal_hists[id_tup]])
-        save_base = join(plot_dir, stack_name)
-        if save_base.endswith('_cr'): 
-            stack.add_data(stack_data[id_tup])
-        else: 
-            print '{} is blinded, not showing data'.format(save_base)
-        stack.add_legend()
-        save_name = save_base + args.output_ext
-        stack.save(save_name)
-        stack.close()
+    def print_plots(self, stack_data, stack_mc_lists, signal_hists={}): 
+        plot_dir = self.plot_dir
+        if not isdir(plot_dir): 
+            os.mkdir(plot_dir)
+        for id_tup in stack_mc_lists.keys(): 
+            variable, cut = id_tup
+            stack_name = '_'.join(
+                [variable.replace('/','-'), cut.replace('_','-')])
+            if self.log: 
+                stack_name += '_log'
+            stack = Stack(stack_name)
+            if self.log: 
+                stack.y_min = 0.1
+                stack.ax.set_yscale('log')
+            stack.add_backgrounds(stack_mc_lists[id_tup])
+            if id_tup in signal_hists: 
+                stack.add_signals([signal_hists[id_tup]])
+            save_base = join(plot_dir, stack_name)
+            if id_tup in stack_data: 
+                stack.add_data(stack_data[id_tup])
+            stack.add_legend()
+            save_name = save_base + self.ext
+            if self.verbose: 
+                print 'making {}'.format(save_name)
+            stack.save(save_name)
+            stack.close()

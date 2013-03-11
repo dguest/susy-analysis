@@ -62,24 +62,29 @@ def run():
                                rerun=args.force_aggregation)
         
     out_file = TemporaryFile()
-    out_dict = {}
+    count_dict = {}
     for name, syst_dict in all_dict.iteritems(): 
-        sr_dict = table.get_physics_cut_dict(syst_dict)
-        newdict = {k:v for k,v in sr_dict.items() if needed(k)}
-        out_dict[name] = newdict
-        table.make_latex_bg_table(newdict, title=name, 
+        syst_count = table.get_physics_cut_dict(syst_dict)
+        slim_counts = {k:v for k,v in syst_count.items() if needed(k)}
+        count_dict[name] = slim_counts
+        table.make_latex_bg_table(slim_counts, title=name, 
                                   out_file=out_file)
     if args.dump_tex: 
         out_file.seek(0)
         for line in out_file: 
             print line.strip()
-    else: 
-        print yaml.dump(table.yamlize(out_dict))
+    elif not args.plots: 
+        print yaml.dump(table.yamlize(count_dict))
 
 
     if args.plots: 
+        # sys.exit('plotting not implemented, quitting...')
         from stop.stack import plot
-        plot.make_plots(plots_dict, args)
+        plots_dict = all_dict['NONE']
+        plotting_info = coord.get_plotting_meta()
+        plotting_info['output_ext'] = args.ext
+        plotting_info['base_dir'] = args.plots
+        plot.make_plots(plots_dict, plotting_info)
         
 
 if __name__ == '__main__': 

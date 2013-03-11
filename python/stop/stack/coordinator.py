@@ -15,6 +15,7 @@ class Coordinator(object):
         - a template yaml file should be generated if none is given. 
         - this class (and only this class) is responsible for checking the 
           consistency of the yaml file. 
+        - This class doesn't do plotting. 
     """
     distiller_systematics = [
         'NONE','JESUP', 'JESDOWN'
@@ -70,6 +71,12 @@ class Coordinator(object):
     def _print_new_line(self): 
         if not self.verbose and self.outstream.isatty(): 
             self.outstream.write('\n')
+
+    def get_plotting_meta(self): 
+        meta = {
+            'lumi_fb': self._config_dict['misc']['lumi_fb']
+            }
+        return meta
 
     def clean(self): 
         hists_dir = self._config_dict['files']['hists']
@@ -159,7 +166,7 @@ class Coordinator(object):
         if n_ran: 
             self._print_new_line()
 
-    def aggregate(self, systematic='NONE', rerun=False): 
+    def aggregate(self, systematic='NONE', rerun=False, variables='all'): 
         if systematic == 'all': 
             all_syst = set(self.distiller_systematics + 
                            self.scale_factor_systematics)
@@ -179,7 +186,7 @@ class Coordinator(object):
             aggregator = agg.SampleAggregator(
                 meta_path=self._config_dict['files']['meta'], 
                 whiskey=whiskey, 
-                variables=['met']
+                variables=variables,
             )
             aggregator.lumi_fb = self._config_dict['misc']['lumi_fb']
             aggregator.signals = 'all'

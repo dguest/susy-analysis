@@ -19,6 +19,8 @@ def get_all_objects(filepath):
         objects = _get_objects(hfile)
     return objects
 
+
+
 class HistDict(dict): 
     """
     Dictionary with some methods for HDF5 persistence. 
@@ -87,6 +89,11 @@ class SampleAggregator(object):
                 ])
         self.outstream = sys.stdout
         self.bugstream = sys.stderr
+        self._check_variables(variables)
+
+    def _check_variables(self, variables): 
+        if variables == 'all': 
+            return 
         n_uniq_vars = len(set(variables))
         n_vars = len(variables)
         if n_vars != n_uniq_vars: 
@@ -148,6 +155,7 @@ class SampleAggregator(object):
         """
         return self._plots_dict
 
+
     def aggregate(self): 
         plots_dict = HistDict()
         numfiles = len(self.whiskey)
@@ -178,7 +186,11 @@ class SampleAggregator(object):
     
             with h5py.File(f) as hfile: 
                 for cut_name, vargroup in hfile.iteritems(): 
-                    for variable in self.variables: 
+                    if self.variables == 'all': 
+                        variables = _get_all_variables(vargroup)
+                    else: 
+                        variables = self.variables
+                    for variable in variables:
                         h5hist = vargroup[variable]
                         hist = HistNd(h5hist)
                         hist *= lumi_scale
@@ -197,6 +209,16 @@ class SampleAggregator(object):
     def read(self, file_name): 
         self._plots_dict = HistDict(file_name)
                 
+def _get_all_variables(group, prepend=''): 
+    if not isinstance(group, h5py.Group): 
+        return [prepend.strip('/')]
+    variables = []
+    for subname, subgroup in group.iteritems(): 
+        name = prepend + '/' + subname
+        newvals = _get_all_variables(subgroup, name)
+        variables += newvals
+    return variables
+
                         
 class MissingCacheError(IOError): 
     """
