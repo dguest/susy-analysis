@@ -58,11 +58,14 @@ def run():
     with open(args.steering_file) as yml: 
         coord = Coordinator(yml)
     needed_systematics = coord.get_needed_aggregates()
+
     to_do = [
         args.plots, 
         not isfile(args.counts_file), 
         args.dump_tex, 
-        needed_systematics
+        needed_systematics, 
+        args.force_aggregation, 
+        args.rerun_stack, 
         ]
     if not any(to_do): 
         sys.exit('nothing to do...')

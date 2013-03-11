@@ -407,7 +407,7 @@ class Stacker(object):
             if all(print_req):
                 n_syst = len(systematics)
                 prline = '\rstacking {} systematics ({:4} of {})'.format(
-                    n_sys, tuple_n,self.total_ntuples)
+                    n_syst, tuple_n,self.total_ntuples)
                 self.outstream.write(prline)
                 self.outstream.flush()
             self._run(ntuple, regions)
