@@ -15,7 +15,6 @@ import sys
 def get_config(): 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('steering_file', help="created if it doesn't exist")
-    parser.add_argument('--dump-yaml', action='store_true')
     parser.add_argument('-f','--force-aggregation', action='store_true')
     parser.add_argument('-r','--rerun-stack', action='store_true')
     parser.add_argument('-t', '--dump-tex', action='store_true')
