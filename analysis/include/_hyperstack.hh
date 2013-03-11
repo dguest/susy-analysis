@@ -13,9 +13,6 @@ struct HistConfig;
 #include <map>
 #include <vector> 
 
-static bool fill_regions(PyObject* dict, std::vector<RegionConfig>* regions); 
-static bool fill_region_essential(PyObject* dict, RegionConfig* region); 
-static bool fill_region(PyObject* dict, RegionConfig* region); 
 
 template <typename T>
 static bool require(PyObject* dict, std::string key, T& dest); 
@@ -23,7 +20,11 @@ template <typename T>
 static bool copy(PyObject* dict, std::string key, T& dest); 
 
 template <typename T>
+static bool safe_copy(PyObject* list, std::vector<T>* dest); 
+template <typename T>
 static bool safe_copy(PyObject* list, std::vector<T>& dest); 
+
+static bool safe_copy(PyObject* dict, RegionConfig& region); 
 static bool safe_copy(PyObject* value, std::string& dest); 
 static bool safe_copy(PyObject* value, ull_t& dest); 
 static bool safe_copy(PyObject* value, double& dest); 
@@ -31,6 +32,15 @@ static bool safe_copy(PyObject* value, btag::JetTag& dest);
 static bool safe_copy(PyObject* value, syst::Systematic& dest); 
 
 // --- implementation ---
+
+template <typename T>
+static bool safe_copy(PyObject* list, std::vector<T>* dest) { 
+  if (!dest) { 
+    PyErr_SetString(PyExc_ValueError, "tried to copy to a null pointer"); 
+    return false; 
+  }
+  return safe_copy(list, *dest); 
+}
 
 template<typename T>
 static bool safe_copy(PyObject* list, std::vector<T>& dest) { 

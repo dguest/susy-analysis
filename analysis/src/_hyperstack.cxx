@@ -16,6 +16,9 @@
 
 static unsigned parse_flags(const char* flags);
 
+// not sure why this can't be templated...
+static bool region_copy(PyObject* list, std::vector<RegionConfig>* regs); 
+
 template<typename T>
 static PyObject* py_analysis_alg(PyObject *self, PyObject *args)
 {
@@ -24,7 +27,7 @@ static PyObject* py_analysis_alg(PyObject *self, PyObject *args)
   const char* flags = ""; 
 
   bool ok = PyArg_ParseTuple
-    (args,"sO&|s:algo", &input_file, fill_regions, &regions, &flags); 
+    (args,"sO&|s:algo", &input_file, region_copy, &regions, &flags); 
   if (!ok) return NULL;
 
   unsigned bitflags = parse_flags(flags); 
@@ -45,41 +48,26 @@ static PyObject* py_analysis_alg(PyObject *self, PyObject *args)
   return tuple; 
 }
 
-static bool fill_regions(PyObject* list, std::vector<RegionConfig>* regions)
-{
-  const int n_regions = PyList_Size(list); 
-  if (PyErr_Occurred()) return NULL; 
-  for (int reg_n = 0; reg_n < n_regions; reg_n++) { 
-    PyObject* entry = PyList_GetItem(list, reg_n); 
-    RegionConfig region; 
-    region.systematic = syst::NONE; 
-    if (!fill_region_essential(entry, &region)) return false; 
-    if (!fill_region(entry, &region)) return false; 
-    regions->push_back(region); 
-  }
-  return true; 
+static bool region_copy(PyObject* list, std::vector<RegionConfig>* regs) { 
+  return safe_copy<RegionConfig>(list, regs); 
 }
 
-static bool fill_region_essential(PyObject* dict, RegionConfig* region)
+
+static bool safe_copy(PyObject* dict, RegionConfig& region)
 {
   if (!dict) return false; 
   if (!PyDict_Check(dict)) return false; 
-  if (!require(dict, "name", region->name)) return false; 
-  if (!require(dict, "output_name", region->output_name)) return false;
-  if (!require(dict, "type", region->type)) return false;
-  return true; 
-}
-
-static bool fill_region(PyObject* dict, RegionConfig* region)
-{
-  if (!dict) return false; 
-  if (!PyDict_Check(dict)) return false; 
-  if (!copy(dict, "required_bits", region->required_bits)) return false;
-  if (!copy(dict, "veto_bits", region->veto_bits)) return false;
-  if (!copy(dict, "systematic", region->systematic)) return false; 
-  if (!copy(dict, "leading_jet_pt", region->leading_jet_pt)) return false;
-  if (!copy(dict, "met", region->met)) return false; 
-  if (!copy(dict, "jet_tag_requirements", region->jet_tag_requirements))
+  if (!require(dict, "name", region.name)) return false; 
+  if (!require(dict, "output_name", region.output_name)) return false;
+  if (!require(dict, "type", region.type)) return false;
+  
+  region.systematic = syst::NONE; 
+  if (!copy(dict, "required_bits", region.required_bits)) return false;
+  if (!copy(dict, "veto_bits", region.veto_bits)) return false;
+  if (!copy(dict, "systematic", region.systematic)) return false; 
+  if (!copy(dict, "leading_jet_pt", region.leading_jet_pt)) return false;
+  if (!copy(dict, "met", region.met)) return false; 
+  if (!copy(dict, "jet_tag_requirements", region.jet_tag_requirements))
     return false; 
 
   return true; 
