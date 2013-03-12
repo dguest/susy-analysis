@@ -14,9 +14,11 @@ class Electron: public TLorentzVector
 public: 
   Electron(const EventElectrons* container, int index); 
   bool pass_susy() const; 
+  bool is_signal() const; 
   int index() const; 
 private: 
   bool m_pass_susy; 
+  bool m_is_signal; 
   int m_index; 
 }; 
 

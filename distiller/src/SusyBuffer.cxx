@@ -84,6 +84,10 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br,
   fChain->SetBranch("el_author", &el_author); 
   fChain->SetBranch("el_OQ", &el_OQ); 
   fChain->SetBranch("el_mediumPP", &el_mediumPP); 
+  fChain->SetBranch("el_tightPP", &el_tightPP); // for IsSignal
+  fChain->SetBranch("el_ptcone20", &el_ptcone20); // for IsSignal
+  fChain->SetBranch("el_trackd0pv", &el_trackd0pv); // for IsSignal
+  fChain->SetBranch("el_trackz0pv", &el_trackz0pv); // for IsSignal
   fChain->SetBranch("el_cl_E", &el_cl_E); 
   fChain->SetBranch("el_cl_eta", &el_cl_eta); 
   fChain->SetBranch("el_cl_phi", &el_cl_phi); 
@@ -97,6 +101,7 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br,
   fChain->SetBranch("mu_staco_pt", &mu_staco_pt); 
   fChain->SetBranch("mu_staco_eta", &mu_staco_eta); 
   fChain->SetBranch("mu_staco_phi", &mu_staco_phi); 
+  fChain->SetBranch("mu_staco_ptcone20", &mu_staco_ptcone20); 
   fChain->SetBranch("mu_staco_charge", &mu_staco_charge); 
   fChain->SetBranch("mu_staco_isCombinedMuon", &mu_staco_isCombinedMuon); 
   fChain->SetBranch("mu_staco_isSegmentTaggedMuon", &mu_staco_isSegmentTaggedMuon); 

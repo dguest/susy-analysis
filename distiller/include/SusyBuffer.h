@@ -70,6 +70,10 @@ public :
   vector<unsigned int> *el_OQ;
   // vector<unsigned int> *el_OQRecalc;
   vector<int>     *el_mediumPP;
+  vector<int>     *el_tightPP;
+  vector<float>     *el_ptcone20;
+  vector<float>     *el_trackd0pv;
+  vector<float>     *el_trackz0pv;
   vector<float>   *el_cl_E;
   vector<float>   *el_cl_eta;
   vector<float>   *el_cl_phi;
@@ -83,6 +87,7 @@ public :
   vector<float>   *mu_staco_pt;
   vector<float>   *mu_staco_eta;
   vector<float>   *mu_staco_phi;
+  vector<float>   *mu_staco_ptcone20; 
   vector<float>   *mu_staco_charge;
   vector<int>     *mu_staco_isCombinedMuon;
   vector<int>     *mu_staco_isSegmentTaggedMuon;

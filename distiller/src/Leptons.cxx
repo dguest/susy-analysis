@@ -34,9 +34,23 @@ Electron::Electron(const EventElectrons* container, int index) {
   const TLorentzVector& tlv = def->GetElecTLV(index); 
   SetPxPyPzE(tlv.Px(), tlv.Py(), tlv.Pz(), tlv.E()); 
   
+  m_is_signal = def->IsSignalElectron
+    (index, 
+     buffer->el_tightPP  ->at(index), 
+     buffer->el_ptcone20 ->at(index),
+     buffer->el_trackd0pv->at(index), 
+     buffer->el_trackz0pv->at(index), 
+     SIGNAL_ELECTRON_ET_CUT, 
+     SIGNAL_ELECTRON_ISO_CUT, 
+     SIGNAL_ELECTRON_D0_CUT, 
+     SIGNAL_ELECTRON_Z0_CUT); 
+
 }
 bool Electron::pass_susy() const { 
   return m_pass_susy; 
+}
+bool Electron::is_signal() const { 
+  return m_is_signal; 
 }
 
 EventElectrons::EventElectrons(const SusyBuffer& buffer, SUSYObjDef& def, 
@@ -160,6 +174,10 @@ bool el_size_check(const SusyBuffer& buffer) {
   CHECK_SIZE(buffer.el_nPixHits  , buffer.el_n);
   CHECK_SIZE(buffer.el_nSCTHits  , buffer.el_n);
   CHECK_SIZE(buffer.el_MET_Egamma10NoTau_wet, buffer.el_n); 
+  CHECK_SIZE(buffer.el_tightPP   , buffer.el_n);
+  CHECK_SIZE(buffer.el_ptcone20  , buffer.el_n);
+  CHECK_SIZE(buffer.el_trackd0pv , buffer.el_n); 
+  CHECK_SIZE(buffer.el_trackz0pv , buffer.el_n); 
   return true; 
 }
 
