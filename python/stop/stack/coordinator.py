@@ -42,7 +42,8 @@ class Coordinator(object):
             self._config_dict['files'] = {
                 'ntuples': {s:s.lower() for s in self.distiller_systematics}, 
                 'hists': 'hists', 
-                'meta':'meta-all.yml'}
+                'meta':'meta-all.yml', 
+                'plots':'plots'}
         if not 'misc' in self._config_dict: 
             if yaml_file: 
                 self.bugstream.write('no misc info, making default')
@@ -74,7 +75,8 @@ class Coordinator(object):
 
     def get_plotting_meta(self): 
         meta = {
-            'lumi_fb': self._config_dict['misc']['lumi_fb']
+            'lumi_fb': self._config_dict['misc']['lumi_fb'], 
+            'base_dir': self._config_dict['files']['plots'], 
             }
         return meta
 

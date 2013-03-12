@@ -25,9 +25,7 @@ def get_config():
     parser.add_argument(
         '-s','--signal-point', default='stop-150-90', 
         help="assumes <particle>-<something> type name, " + d)
-    parser.add_argument(
-        '-p', '--plots', help='directory to store plots, ' + c, nargs='?', 
-        default=None, const='plots')
+    parser.add_argument('-p', '--make-plots', action='store_true')
     parser.add_argument(
         '--ext', help='plot extensions, ' + d, default='.pdf')
     args = parser.parse_args(sys.argv[1:])
@@ -60,7 +58,7 @@ def run():
     needed_systematics = coord.get_needed_aggregates()
 
     to_do = [
-        args.plots, 
+        args.make_plots, 
         not isfile(args.counts_file), 
         args.dump_tex, 
         needed_systematics, 
@@ -96,12 +94,11 @@ def run():
             for line in yaml.dump(table.yamlize(count_dict)): 
                 countfile.write(line)
 
-    if args.plots: 
+    if args.make_plots: 
         from stop.stack import plot
         plots_dict = {k:v for k,v in all_dict['NONE'].items() if needed(k)}
         plotting_info = coord.get_plotting_meta()
         plotting_info['output_ext'] = args.ext
-        plotting_info['base_dir'] = args.plots
         plot.make_plots(plots_dict, plotting_info)
         
     if coord.bugstream.tell(): 
