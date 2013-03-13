@@ -179,14 +179,15 @@ class DatasetCache(dict):
     def write(self, cache=''): 
         if not cache: 
             cache = self._cache
-            if not cache: 
-                raise ValueError('no file to write to')
-            if isinstance(cache, str): 
-                self._write_to_file(cache)
-            else: 
-                out_list = [(ds.key, ds.yml_dict()) for ds in self.values()]
-                out_dict = dict(out_list)
-                cache.write(yaml.dump(out_dict))
+        if not cache: 
+            raise ValueError('no file to write to')
+
+        if isinstance(cache, str): 
+            self._write_to_file(cache)
+        else: 
+            out_list = [(ds.key, ds.yml_dict()) for ds in self.values()]
+            out_dict = dict(out_list)
+            cache.write(yaml.dump(out_dict))
                 
 
     def _write_to_file(self, cache_name): 
@@ -358,6 +359,10 @@ class MetaFactory(object):
                 name = spl[1]
                 ds_id = int(spl[0])
             except IndexError: 
+                if 'http' in clean_line: 
+                    warn('some fucktard stuck http in the file without'
+                         ' commenting it out... skipping line')
+                    continue
                 raise ValueError("can't parse {}".format(clean_line))
             split_dict[ds_id] = spl
             

@@ -62,7 +62,7 @@ class AmiAugmenter(object):
                     tagged_matches.append(m)
             match_sets = tagged_matches
                 
-        if not tagged_matches:
+        if not match_sets:
             raise DatasetMatchError('problem matching {} with {}'.format(
                     args.items(), self.p_tag), tagged_matches)
         
@@ -72,6 +72,7 @@ class AmiAugmenter(object):
         ds.origin = self.origin
         ds.id = int(ds_id)
         ds.name = ldn.split('.')[2]
+        ds.full_name = ldn
         self._write_ami_info(ds, info)
         if not ds.is_data: 
             self._write_mc_ami_info(ds, info)

@@ -118,7 +118,7 @@ def build_mark_file(name):
     ami = AmiAugmenter('p1328', 'mc12_8TeV')
     ds_cache = DatasetCache(name)
     for phys_type, ids in marks_types.iteritems(): 
-        new_meta = aug.get_dataset_range(ids)
+        new_meta = ami.get_dataset_range(ids, phys_type)
         ds_cache.update(new_meta)
     ds_cache.write()
 
