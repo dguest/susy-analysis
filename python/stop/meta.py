@@ -1,9 +1,6 @@
 from os.path import isfile
 import os
 import cPickle
-from pyAMI import query
-from pyAMI.client import AMIClient
-from pyAMI.auth import AMI_CONFIG, create_auth_config
 import re
 import multiprocessing
 import yaml
@@ -204,12 +201,6 @@ class DatasetCache(dict):
                 cache.write(yaml.dump(out_dict))
                     
 
-def _get_ami_client(): 
-    client = AMIClient()
-    if not os.path.exists(AMI_CONFIG):
-       create_auth_config()
-    client.read_config(AMI_CONFIG)
-    return client
 
 class MetaFactory(object): 
     """
@@ -219,6 +210,9 @@ class MetaFactory(object):
 
     and generates the meta file, which is used to steer everything up to 
     histogram generation. 
+
+    Should work on stripping this down and making it into a susy 
+    lookup class. 
     """
     def __init__(self, steering=None): 
         """
@@ -317,7 +311,10 @@ class MetaFactory(object):
             if regex.search(field): 
                 return True
         return False
-        
+
+    @property
+    def datasets(self): 
+        return self._datasets
 
     def add_ugly_ds_list(self, ds_list): 
         """
@@ -379,113 +376,11 @@ class MetaFactory(object):
         if self.verbose: 
             print print_string
 
-    def _lookup_ami_names(self, datasets): 
-
-        client = _get_ami_client()
-        pool_tuples = [(client, ds) for ds in datasets]
-        pool = multiprocessing.Pool(self.processes)
-        full_ds_names = pool.map(match_dataset, pool_tuples)
-
-        for full_name, ds in zip(full_ds_names, datasets): 
-            ds.full_name = full_name
-            if hasattr(ds, 'full_unchecked_name'): 
-                del ds.full_unchecked_name
-        
-        return {ds.key: ds for ds in datasets}
-
-    def lookup_ami_names(self, trust_names=False):
-        if trust_names: 
-            print 'assuming input names are right'
-            for ds in self._datasets.values(): 
-                try: 
-                    if ds.full_unchecked_name: 
-                        ds.full_name = ds.full_unchecked_name
-                        del ds.full_unchecked_name
-                except AttributeError: 
-                    pass
-            return 
-        datasets = self._datasets.values()
-        no_full_name_ds = [ds for ds in datasets if not ds.full_name]
-        
-        full_named_datasets = self._lookup_ami_names(no_full_name_ds)
-        self._datasets.update( full_named_datasets )
-
-    def lookup_ami(self, client=_get_ami_client(), stream=None): 
-        """
-        Matches ami
-        """
-        if self.clear_ami: 
-            for ds in self._datasets: 
-                self._datasets[ds].meta_sources -= set(['ami'])
-        tot = len(self._datasets)
-        for n, (ds_key, ds) in enumerate(self._datasets.iteritems()): 
-            if stream: 
-                stream.write('\rlooking up data in ami'
-                             ' ({} of {})'.format(n, tot))
-                stream.flush()
-            if 'ami' in ds.meta_sources:
-                continue
-            if 'susy lookup' in ds.meta_sources and self.no_ami_overwrite: 
-                continue
-
-            if ds.full_name: 
-                info = query.get_dataset_info(client, ds.full_name)
-                if ds.origin.startswith('mc'): 
-                    self._write_mc_ami_info(ds, info)
-                self._write_ami_info(ds, info)
-            elif not ds.is_data: 
-                ds.bugs.add('ambiguous dataset')
-
-        if stream: 
-            stream.write('\n')
-
-    def _write_mc_ami_info(self, ds, info):
-        if not ds.filteff:
-            filteff_list = ['GenFiltEff_mean', 'approx_GenFiltEff']
-            for name in filteff_list: 
-                if name in info.extra: 
-                    ds.filteff = float(info.extra[name])
-                    break
-
-        new_xsec = 0.0
-        xsec_list = ['crossSection_mean', 'approx_crossSection']
-        for name in xsec_list: 
-            if name in info.extra: 
-                new_xsec = float(info.extra[name])
-                break
-
-        if not new_xsec: 
-            return 
-
-        if not ds.total_xsec_fb:
-            ds.total_xsec_fb = new_xsec
-        else:
-            diff = ds.total_xsec_fb - new_xsec
-            rel_dif = abs(diff / ds.total_xsec_fb)
-            if rel_dif > 0.1: 
-                warn('for sample {id} {name}: '
-                     'ami gives xsec of {ami} fb, '
-                     'susytools gives {st} (diff {diff:.1%})'.format(
-                        id=ds.id, name=ds.name, 
-                        ami=new_xsec, st=ds.total_xsec_fb, 
-                        diff=rel_dif))
-    
-    def _write_ami_info(self, ds, info): 
-        ds.n_expected_entries = int(info.info['totalEvents'])
-        ds.meta_sources.add('ami')
-
     def write_meta(self, output_file_name): 
         """
         write out the meta info
         """
         self._datasets.write(output_file_name)
-
-    def get_unnamed_ds(self): 
-        missing = []
-        for ds in self._datasets.values(): 
-            if not ds.full_name: 
-                missing.append(ds)
-        return missing
 
     def dump(self): 
         for ds_key, ds in self._datasets.iteritems(): 
@@ -497,71 +392,6 @@ class MetaFactory(object):
         for ds_key, ds in self._datasets.iteritems(): 
             print '{} -- sources: {}'.format(ds.id,' '.join(ds.meta_sources))
 
-
-_wild_template = r'{o}.{ds_id}.{name}%NTUP%{tags}/'
-_susy_wild_template = r'{o}.{ds_id}%NTUP_SUSY%{tags}/'
-def _wildcard_match_ami(client, ds, match_template=_wild_template): 
-    if ds.is_data: 
-        if isinstance(ds.id, str): 
-            raise DatasetMatchError('not even trying to match dataperiod','')
-        ds_id = '{:08}'.format(ds.id)
-    else: 
-        ds_id = '{:06}'.format(ds.id)
-    wildcarded = match_template.format(
-        o=ds.origin, ds_id=ds_id, name=ds.name, tags=ds.tags)
-
-    print 'trying to match {}'.format(wildcarded)
-    match_sets = query.get_datasets(client,wildcarded)
-    if len(match_sets) != 1: 
-        raise DatasetMatchError(
-            'could not match dataset with {}'.format(wildcarded), 
-            match_sets)
-    return match_sets[0]['logicalDatasetName']
-
-
-def match_dataset(blob): 
-    client, ds = blob
-    if ds.full_name: 
-        return ds.full_name
-
-    try: 
-        if ds.full_unchecked_name: 
-            query.get_dataset_info(client, ds.full_unchecked_name)
-            return ds.full_unchecked_name
-    except: 
-        pass
-        
-    try: 
-        full_name = _wildcard_match_ami(
-            client, ds, _wild_template)
-        print 'matched {}'.format(full_name)
-    except DatasetMatchError as e: 
-        try: 
-            full_name = _wildcard_match_ami(
-                client, ds, _susy_wild_template)
-            print 'matched {}'.format(full_name)
-        except DatasetMatchError as e: 
-            full_name = None 
-            print e
-    return full_name
-
-class DatasetMatchError(ValueError): 
-    def __init__(self, info, matches): 
-        super(DatasetMatchError, self).__init__(info)
-        self.matches = matches
-
-    def __str__(self): 
-        problem = super(DatasetMatchError,self).__str__()
-        problem += ' matches: '
-        for match in self.matches: 
-            try: 
-                st = match['logicalDatasetName']
-            except TypeError: 
-                st = str(match)
-            problem += ('\n\t' + st)
-        if len(self.matches) == 0: 
-            problem += ('none')
-        return problem
 
 class EffectiveLuminosityException(ArithmeticError): 
     def __init__(self, best_guess_fb, missing_values, 
