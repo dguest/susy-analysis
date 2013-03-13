@@ -23,7 +23,7 @@ def _strip_front(ds_name):
     return ds_name
 
 def submit_ds(ds_name, debug=False, version=0, used_vars='used_vars.txt', 
-              out_talk=None, in_tar=None): 
+              out_talk=None, in_tar=None, maxgb=False): 
 
     user = os.path.expandvars('$USER')
     preskim_name = _strip_front(ds_name)
@@ -44,6 +44,8 @@ def submit_ds(ds_name, debug=False, version=0, used_vars='used_vars.txt',
         ]
     if in_tar: 
         input_args.append('--inTarBal={}'.format(in_tar))
+    if maxgb: 
+        input_args.append('--nGBPerJob=MAX')
 
     exec_string = run_string
 
@@ -181,17 +183,20 @@ class Reporter(Process):
 if __name__ == '__main__': 
     parser = argparse.ArgumentParser(description=__doc__)
 
+    d = 'default: %(default)s'
     parser.add_argument('ds_list', nargs='?')
-    parser.add_argument('--debug', action='store_true')
     parser.add_argument('--mono', action='store_true',
                         help="don't multiprocess")
     parser.add_argument('--out-name', default='output-containers.txt', 
-                        help='default: %(default)s')
+                        help=d)
     parser.add_argument('--config', default='submit.cfg', 
-                        help='default: %(default)s')
-    parser.add_argument('--get-slimmer', action='store_true')
-    parser.add_argument('--full-log', default='full-ds-submit.log')
+                        help=d)
+    parser.add_argument('--full-log', default='full-ds-submit.log',
+                        help=d)
     parser.add_argument('-i', '--increment-version', action='store_true')
+    parser.add_argument('-g', '--ngb-max', action='store_true')
+    parser.add_argument('--get-slimmer', action='store_true')
+    parser.add_argument('--debug', action='store_true')
     args = parser.parse_args()
 
     config = get_config(args.config)
@@ -242,7 +247,8 @@ if __name__ == '__main__':
             return submit_ds(ds, args.debug, version, 
                              used_vars=used_vars, 
                              out_talk=reporter.queue, 
-                             in_tar=tarball)
+                             in_tar=tarball, 
+                             maxgb=args.ngb_max)
 
         pool = Pool(10)
         with LocalSkimmer(used_vars, cuts, tarball=tarball): 
