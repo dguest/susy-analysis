@@ -157,7 +157,11 @@ class Reporter(Process):
         self.queue = Queue()
         self.n_datasets = n_datasets
         self.n_answer = 0
+        self.n_error = 0 
         self.output = sys.stdout
+        def basic_error_search(x): 
+            return 'ERROR' in x
+        self.has_error = basic_error_search
         
     def run(self): 
         not_dead = True
@@ -168,8 +172,17 @@ class Reporter(Process):
                 continue
             else: 
                 self.n_answer += 1
+                if self.has_error(message): 
+                    self.n_error += 1
+                out_template = '\rdone with {d} of {t}'
+                if self.n_error > 0: 
+                    out_template = (
+                        '\rdone with {d} of {t} (\033[31m{e} ERRORS\033[m)')
                 self.output.write(
-                    '\r{} of {} done'.format(self.n_answer, self.n_datasets))
+                    out_template.format(
+                                d=self.n_answer, 
+                                t=self.n_datasets, 
+                                e=self.n_error))
                 self.output.flush()
         self.output.write('\n')
     def close(self): 

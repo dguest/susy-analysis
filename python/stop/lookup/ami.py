@@ -14,6 +14,7 @@ class AmiAugmenter(object):
         self.ntup_filter = 'NTUP_SUSY'
         self._setup_ami_client()
         self.outstream = sys.stdout
+        self.bugstream = sys.stderr
 
     def _setup_ami_client(self): 
         self.client = AMIClient()
@@ -151,6 +152,11 @@ class AmiAugmenter(object):
                     ds.filteff = float(info.extra[name])
                     break
 
+        if not ds.filteff: 
+            self.bugstream.write(
+                "can't find filteff for {} {}. In info: {}\n".format(
+                    ds.key, ds.name, ', '.join(info.extra.keys())))
+
         new_xsec = 0.0
         xsec_list = ['crossSection_mean', 'approx_crossSection']
         for name in xsec_list: 
@@ -159,6 +165,9 @@ class AmiAugmenter(object):
                 break
 
         if not new_xsec: 
+            self.bugstream.write(
+                "can't find xsection for {} {}. In info: {}\n".format(
+                    ds.key, ds.name, ', '.join(info.extra.keys())))
             return 
 
         if not ds.total_xsec_fb:

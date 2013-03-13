@@ -13,7 +13,7 @@ Should be usable in a few ways:
 import os, sys
 from stop.meta import MetaFactory, DatasetCache
 import argparse, ConfigParser
-
+from tempfile import TemporaryFile
 
 def _get_parser(): 
     parser = argparse.ArgumentParser(
@@ -95,9 +95,17 @@ def run():
         print 'looking up names in ami'
         from stop.meta.ami import AmiAugmenter
         ami = AmiAugmenter()
+        ami.bugstream = TemporaryFile()
         ami.lookup_ami_names(mf.datasets, args.trust_ds_names)
         mf.write_meta(args.output_meta)
         ami.lookup_ami(mf.datasets, stream=sys.stdout)
+        if ami.bugstream.tell(): 
+            ami.bugstream.seek(0)
+            bugslog = 'ami-bugs.log'
+            with open(bugslog,'w') as bugs: 
+                for line in ami.bugstream: 
+                    bugs.write(line)
+            sys.stderr.write('wrote bugs to {}'.format(bugslog))
     if args.write_steering: 
         found, missing = get_ds_lists(mf.datasets)
         if missing: 
@@ -116,11 +124,19 @@ def build_mark_file(name):
     from stop.lookup.ami import AmiAugmenter
     from stop.runtypes import marks_types
     ami = AmiAugmenter('p1328', 'mc12_8TeV')
+    ami.bugstream = TemporaryFile()
     ds_cache = DatasetCache(name)
     for phys_type, ids in marks_types.iteritems(): 
         new_meta = ami.get_dataset_range(ids, phys_type)
         ds_cache.update(new_meta)
     ds_cache.write()
+    if ami.bugstream.tell(): 
+        ami.bugstream.seek(0)
+        bugslog = 'ami-bugs.log'
+        with open(bugslog,'w') as bugs: 
+            for line in ami.bugstream: 
+                bugs.write(line)
+        sys.stderr.write('wrote bugs to {}\n'.format(bugslog))
 
 if __name__ == '__main__': 
    run()
