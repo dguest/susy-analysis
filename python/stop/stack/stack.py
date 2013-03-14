@@ -92,7 +92,8 @@ class Stack(object):
                 low = self.y_min
             y_err_down.append(val - low)
             y_err_up.append(high - val)
-
+        if not y_err_up: 
+            return 
         line,cap,notsure = self.ax.errorbar(x_vals, y_vals, 
                                             ms=10, fmt='k.', 
                                             yerr=[y_err_down, y_err_up])

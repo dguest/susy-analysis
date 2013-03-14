@@ -102,6 +102,10 @@ class PlotPrinter(object):
                 [variable.replace('/','-'), cut.replace('_','-')])
             if self.log: 
                 stack_name += '_log'
+            save_base = join(plot_dir, stack_name)
+            save_name = save_base + self.ext
+            if self.verbose: 
+                print 'making {}'.format(save_name)
             stack = Stack(stack_name)
             if self.log: 
                 stack.y_min = 0.1
@@ -109,12 +113,8 @@ class PlotPrinter(object):
             stack.add_backgrounds(stack_mc_lists[id_tup])
             if id_tup in signal_hists: 
                 stack.add_signals(signal_hists[id_tup])
-            save_base = join(plot_dir, stack_name)
             if id_tup in stack_data: 
                 stack.add_data(stack_data[id_tup])
             stack.add_legend()
-            save_name = save_base + self.ext
-            if self.verbose: 
-                print 'making {}'.format(save_name)
             stack.save(save_name)
             stack.close()
