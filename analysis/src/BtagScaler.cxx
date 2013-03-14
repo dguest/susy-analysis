@@ -1,18 +1,16 @@
 #include "BtagScaler.hh"
 #include <stdexcept> 
-#include "TTree.h"
+#include "BtagBuffer.hh"
 #include <boost/format.hpp>
 #include "typedefs.hh"
 #include "BtagConfig.hh"
 #include "distiller/JetBits.hh"
 
-BtagScaler::BtagScaler(TTree* tree, std::string name, 
-		       btag::JetTag tag)
+BtagScaler::BtagScaler(const BtagBuffer* buffer, btag::JetTag tag): 
+  m_buffer(buffer)
 {
   m_required = btag::required_from_tag(tag); 
   m_veto = btag::veto_from_tag(tag); 
-  safeset(tree, name + joiner(tag) + "scale_factor", &m_scale_factor); 
-  safeset(tree, name + joiner(tag) + "scale_factor_err", &m_scale_factor_err); 
 }
 
 double BtagScaler::get_scalefactor(unsigned jet_mask, int flavor, 
@@ -20,8 +18,9 @@ double BtagScaler::get_scalefactor(unsigned jet_mask, int flavor,
 {
   using namespace syst; 
   bool pass = (jet_mask & m_required) && !(jet_mask | m_veto); 
-  double base = m_scale_factor;
-  double err_up = pass ? m_scale_factor_err: -m_scale_factor_err;
+  double base = m_buffer->scale_factor;
+  double err = m_buffer->scale_factor_err; 
+  double err_up = pass ? err : -err;
   double err_down = -err_up; 
   switch (syst) { 
   case NONE: 
@@ -49,25 +48,3 @@ double BtagScaler::get_scalefactor(unsigned jet_mask, int flavor,
   }
 }
 
-void BtagScaler::safeset(TTree* tree, std::string branch, void* address) { 
-  if (m_set_branches.count(branch)) return; 
-  unsigned ret_code; 
-  tree->SetBranchStatus(branch.c_str(), 1, &ret_code); 
-  if (ret_code != 1) { 
-    throw std::runtime_error("branch: " + branch + ", where the fuck is it?"); 
-  }
-  tree->SetBranchAddress(branch.c_str(), address); 
-  m_set_branches.insert(branch); 
-}
-
-std::string BtagScaler::joiner(btag::JetTag tag) { 
-  using namespace btag; 
-  switch (tag){ 
-  case LOOSE:  return "_cnn_loose_";
-  case MEDIUM: return "_cnn_medium_";
-  case TIGHT:  return "_cnn_tight_";
-  case ANTILOOSE: return joiner(LOOSE); 
-  case NOTAG: throw std::logic_error("we don't set no tag (in "__FILE__")"); 
-  default: throw std::logic_error("asked for string for undefined tagger"); 
-  }
-}

@@ -65,7 +65,7 @@ GEN_OBJ     += HistConfig.o BtagConfig.o RegionConfig.o
 GEN_OBJ     += TruthJetHists.o RegionHistograms.o
 GEN_OBJ     += HyperBuilder.o
 GEN_OBJ     += CutflowBuilder.o
-GEN_OBJ     += CutAugmenter.o common_functions.o BtagScaler.o
+GEN_OBJ     += CutAugmenter.o common_functions.o BtagScaler.o BtagBuffer.o
 EXE_OBJ     := $(GEN_OBJ) $(TOBJ) drink.o
 PYLIB_OBJ   := $(GEN_OBJ) $(TOBJ)
 

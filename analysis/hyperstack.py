@@ -28,12 +28,12 @@ all_cuts = [
         'type': 'CONTROL', 
         'jet_tag_requirements': ['NOTAG','ANTILOOSE']
         }, 
-    # { 
-    #     'name': 'penis', 
-    #     'output_name': 'stupider.h5', 
-    #     'type': 'CONTROL', 
-    #     'jet_tag_requirements': ['NOTAG','LOOSE']
-    #     }, 
+    { 
+        'name': 'penis', 
+        'output_name': 'stupider.h5', 
+        'type': 'CONTROL', 
+        'jet_tag_requirements': ['NOTAG','LOOSE']
+        }, 
     ]
 
 GeV = 1e3

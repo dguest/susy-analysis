@@ -2,14 +2,13 @@
 #define BTAG_SCALER_HH
 
 #include <string> 
-#include <set> 
+#include <map>
 #include <boost/noncopyable.hpp>
 #include "systematic_defs.hh"
 #include "typedefs.hh"
 #include "BtagConfig.hh"
 
-class TTree; 
-
+class BtagBuffer; 
 
 // Class is set on a tree with a mask and antimask to determine whether 
 // a given btagger was passed. 
@@ -19,19 +18,13 @@ class TTree;
 class BtagScaler: boost::noncopyable
 {
 public: 
-  BtagScaler(TTree*, std::string branch_name, btag::JetTag); 
+  BtagScaler(const BtagBuffer* buffer, btag::JetTag); 
   double get_scalefactor(unsigned jet_mask, int flavor, 
 			 syst::Systematic = syst::NONE) const; 
 private: 
-  void safeset(TTree*, std::string branch, void* address); 
-  std::string joiner(btag::JetTag); 
+  const BtagBuffer* m_buffer; 
   unsigned m_veto; 
   unsigned m_required; 
-  std::set<std::string> m_set_branches; 
-
-  // these guys are pointed to by the tree, don't try to reset them
-  double m_scale_factor; 
-  double m_scale_factor_err; 
 }; 
 
 #endif 

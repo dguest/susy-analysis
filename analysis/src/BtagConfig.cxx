@@ -27,4 +27,16 @@ namespace btag {
     default: throw std::logic_error("just... fuck"); 
     }
   }
+
+  std::string joiner(btag::JetTag tag) { 
+    switch (tag){ 
+    case LOOSE:  return "_cnn_loose_";
+    case MEDIUM: return "_cnn_medium_";
+    case TIGHT:  return "_cnn_tight_";
+    case ANTILOOSE: return joiner(LOOSE); 
+    case NOTAG: throw std::logic_error("we don't set no tag (in "__FILE__")"); 
+    default: throw std::logic_error("asked for string for undefined tagger"); 
+    }
+  }
+
 }

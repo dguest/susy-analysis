@@ -1,5 +1,6 @@
 #include "JetFactory.hh"
 #include "BtagScaler.hh"
+#include "BtagBuffer.hh"
 #include "distiller/EventBits.hh"
 
 #include <string> 
@@ -19,6 +20,10 @@ JetBuffer::~JetBuffer() {
   for (auto itr = btag_scalers.begin(); itr != btag_scalers.end(); itr++) { 
     delete *itr; 
     *itr = 0; 
+  }
+  for (auto itr = btag_buffers.begin(); itr != btag_buffers.end(); itr++) { 
+    delete itr->second; 
+    itr->second = 0; 
   }
 }
 
@@ -168,7 +173,16 @@ void JetFactory::set_btag(size_t jet_n, btag::JetTag tag) {
   if (m_ioflags & ioflag::no_truth) { 
     throw std::logic_error("tried to set btag buffer with no truth info"); 
   }
+
   JetBuffer* buffer = m_jet_buffers.at(jet_n); 
+
+  std::string branch_name = full_branch_name + 
+    btag::joiner(tag) + "scale_factor"; 
+  if (!buffer->btag_buffers.count(branch_name)) { 
+    buffer->btag_buffers[branch_name] = new BtagBuffer(m_tree, branch_name); 
+  }
+  const BtagBuffer* btag_buffer = buffer->btag_buffers[branch_name]; 
+
   size_t needed_size = tag + 1; 
   size_t scalers_size = buffer->btag_scalers.size(); 
   if (scalers_size < needed_size) { 
@@ -176,7 +190,7 @@ void JetFactory::set_btag(size_t jet_n, btag::JetTag tag) {
   }
   BtagScaler* scaler = buffer->btag_scalers.at(tag); 
   if (!scaler) { 
-    scaler = new BtagScaler(m_tree, full_branch_name, tag);
+    scaler = new BtagScaler(btag_buffer, tag);
   }
   buffer->btag_scalers.at(tag) = scaler; 
 }

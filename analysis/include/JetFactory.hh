@@ -3,6 +3,7 @@
 
 #include <string> 
 #include <vector> 
+#include <map>
 #include "TLorentzVector.h"
 #include "HforTypeDef.hh"
 #include "systematic_defs.hh"
@@ -14,11 +15,13 @@ class TTree;
 class TFile; 
 class TVector2;
 class BtagScaler; 
+class BtagBuffer; 
 
 namespace ioflag {
   const unsigned no_flavor = 1u << 0; 
   const unsigned no_truth  = 1u << 1; 
 }
+
 
 struct JetBuffer
 { 
@@ -31,6 +34,7 @@ struct JetBuffer
   double cnn_u; 
   int flavor_truth_label; 
   unsigned bits; 
+  std::map<std::string, BtagBuffer*> btag_buffers; 
   std::vector<BtagScaler*> btag_scalers; 
   JetBuffer(); 
   ~JetBuffer(); 
