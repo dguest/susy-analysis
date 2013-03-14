@@ -261,7 +261,11 @@ bool Jet::has_flavor() const {
 }
 bool Jet::pass_tag(btag::JetTag tag) const { 
   const auto required = btag::required_from_tag(tag); 
-  return (m_buffer->bits & required) == required; 
+  const auto veto = btag::veto_from_tag(tag); 
+  const auto jet_bits = m_buffer->bits; 
+  bool has_required = ((jet_bits & required) == required); 
+  bool has_veto = (jet_bits & veto); 
+  return has_required & (!has_veto); 
 }
 
 double Jet::get_scalefactor(btag::JetTag tag, syst::Systematic systematic) 

@@ -117,6 +117,10 @@ static bool safe_copy(PyObject* value, btag::JetTag& dest) {
     dest = TIGHT; 
     return true; 
   }
+  else if (name == "ANTILOOSE") { 
+    dest = ANTILOOSE; 
+    return true; 
+  }
   else { 
     std::string problem = "got undefined btag: " + name; 
     PyErr_SetString(PyExc_ValueError,problem.c_str()); 

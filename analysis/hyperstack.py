@@ -21,6 +21,21 @@ for cut, bit in all_cuts:
 all_cuts.append( ('every',every_cut) )
 short_cuts = [('every',every_cut)]
 
+all_cuts = [
+    { 
+        'name': 'zorker', 
+        'output_name': 'stupid.h5', 
+        'type': 'CONTROL', 
+        'jet_tag_requirements': ['NOTAG','ANTILOOSE']
+        }, 
+    # { 
+    #     'name': 'penis', 
+    #     'output_name': 'stupider.h5', 
+    #     'type': 'CONTROL', 
+    #     'jet_tag_requirements': ['NOTAG','LOOSE']
+    #     }, 
+    ]
+
 GeV = 1e3
 
 added_cuts = dict(

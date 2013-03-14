@@ -1,6 +1,8 @@
 #ifndef HIST_CONFIG_HH
 #define HIST_CONFIG_HH
 
+// FIXME: this whole thing is deprecated and should be removed
+
 #include "BtagConfig.hh"
 #include "systematic_defs.hh"
 #include <map>

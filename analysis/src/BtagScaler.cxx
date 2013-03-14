@@ -7,10 +7,10 @@
 #include "distiller/JetBits.hh"
 
 BtagScaler::BtagScaler(TTree* tree, std::string name, 
-		       btag::JetTag tag): 
-  m_veto(0)
+		       btag::JetTag tag)
 {
   m_required = btag::required_from_tag(tag); 
+  m_veto = btag::veto_from_tag(tag); 
   safeset(tree, name + joiner(tag) + "scale_factor", &m_scale_factor); 
   safeset(tree, name + joiner(tag) + "scale_factor_err", &m_scale_factor_err); 
 }
@@ -50,12 +50,14 @@ double BtagScaler::get_scalefactor(unsigned jet_mask, int flavor,
 }
 
 void BtagScaler::safeset(TTree* tree, std::string branch, void* address) { 
+  if (m_set_branches.count(branch)) return; 
   unsigned ret_code; 
   tree->SetBranchStatus(branch.c_str(), 1, &ret_code); 
   if (ret_code != 1) { 
     throw std::runtime_error("branch: " + branch + ", where the fuck is it?"); 
   }
   tree->SetBranchAddress(branch.c_str(), address); 
+  m_set_branches.insert(branch); 
 }
 
 std::string BtagScaler::joiner(btag::JetTag tag) { 
@@ -64,7 +66,8 @@ std::string BtagScaler::joiner(btag::JetTag tag) {
   case LOOSE:  return "_cnn_loose_";
   case MEDIUM: return "_cnn_medium_";
   case TIGHT:  return "_cnn_tight_";
+  case ANTILOOSE: return joiner(LOOSE); 
   case NOTAG: throw std::logic_error("we don't set no tag (in "__FILE__")"); 
-  default: throw std::logic_error("just... fuck"); 
+  default: throw std::logic_error("asked for string for undefined tagger"); 
   }
 }

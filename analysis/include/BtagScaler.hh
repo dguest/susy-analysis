@@ -2,6 +2,7 @@
 #define BTAG_SCALER_HH
 
 #include <string> 
+#include <set> 
 #include <boost/noncopyable.hpp>
 #include "systematic_defs.hh"
 #include "typedefs.hh"
@@ -26,6 +27,7 @@ private:
   std::string joiner(btag::JetTag); 
   unsigned m_veto; 
   unsigned m_required; 
+  std::set<std::string> m_set_branches; 
 
   // these guys are pointed to by the tree, don't try to reset them
   double m_scale_factor; 
