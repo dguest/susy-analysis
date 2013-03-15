@@ -64,6 +64,18 @@ def yamlize(physics_cut_dict):
 
     return ymlout
 
+def unyamlize(yaml_physics_dict): 
+    """
+    starts with one systematic entry, builds a (physics, cut): count dict
+    """
+    out = {}
+    for phys, cutdict in yaml_physics_dict.iteritems(): 
+        for cut, number in cutdict.iteritems(): 
+            tup = (phys, cut)
+            out[tup] = number
+
+    return out
+
 def make_latex_bg_table(physics_cut_dict, out_file=Temp(), title=''): 
     """
     returns a file-like object
