@@ -19,7 +19,7 @@ Jet1DHists::Jet1DHists(double max_pt, const unsigned flags):
   m_cnnLogBu = new Histogram(100, -10, 10);
   m_met_dphi = new Histogram(100, 0, 3.2);
 
-  if (flags & buildflag::fill_truth) { 
+  if ( !(flags & buildflag::is_data)) { 
     m_truth_label = new Histogram(21, -0.5, 20.5); 
   }
 }
