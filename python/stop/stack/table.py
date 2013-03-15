@@ -84,7 +84,12 @@ def make_latex_bg_table(physics_cut_dict, out_file=Temp(), title=''):
 
     phys_list, cut_list = zip(*physics_cut_dict.keys())
     phys_list = sorted(x for x in set(phys_list))
-    cut_list = sorted(set(cut_list))
+    def cr_sort(key): 
+        splkey = key.split('_')
+        if len(splkey) == 1: 
+            return '1' + key
+        return ''.join(splkey[::-1])
+    cut_list = sorted(set(cut_list), key=cr_sort)
     texphys = []
     sigregex = re.compile('stop-[0-9]+-[0-9]+')
     for rawphys in phys_list: 
@@ -100,7 +105,7 @@ def make_latex_bg_table(physics_cut_dict, out_file=Temp(), title=''):
     headrow = r' {} & {} \\ \hline'.format(title,' & '.join(texphys))
     out_file.write(headrow + '\n')
     for cut in cut_list: 
-        line = [cut.replace('_',' ')]
+        line = [texify_sr(cut)]
         for phys in phys_list: 
             tup = (phys,cut)
             if tup in physics_cut_dict: 
@@ -123,6 +128,15 @@ def _get_fields(region):
         region_dict['Jet {} Tag'.format(num + 1)] = tag
     return region_dict
 
+def texify_sr(sr_name): 
+    if '_' in sr_name: 
+        prenanme, throw_away, name = sr_name.partition('_')
+        tex_name = r'$\text{{{}}}_{{\text{{{}}} }}$'.format(
+            prenanme, name.replace('_',' '))
+    else: 
+        tex_name = sr_name
+    return tex_name
+
 
 class LatexCutsConfig(object): 
 
@@ -132,6 +146,9 @@ class LatexCutsConfig(object):
     field_aliases = { 
         'met':r'$E_{\mathrm{T}}^{\mathrm{miss}}\,[\text{GeV}]$',
         'jet1pt':r'Leading Jet $p_{\mathrm{T}}\,[\text{GeV}]$', 
+        }
+    replace_values = { 
+        'NOTAG':'', 
         }
 
     def __init__(self): 
@@ -185,7 +202,11 @@ class LatexCutsConfig(object):
             n_fields) )
         full_file.write(cr_line + '\n')
         full_file.write(self._fields())
-        sort_cr = sorted(control_regions.iteritems())
+        def cr_key(cr_tup): 
+            name, reg = cr_tup
+            splname = name.split('_')
+            return ''.join(splname[::-1])
+        sort_cr = sorted(control_regions.iteritems(), key=cr_key)
         for line in self.latex_cuts_config(sort_cr): 
             full_file.write(line)
             
@@ -199,18 +220,16 @@ class LatexCutsConfig(object):
         int_file = Temp()
         for sr_name, sr in signal_regions: 
             field_values = _get_fields(sr)
-            if '_' in sr_name: 
-                prenanme, throw_away, name = sr_name.partition('_')
-                tex_name = r'$\text{{{}}}_{{\text{{{}}} }}$'.format(
-                    prenanme, name.replace('_',' '))
-            else: 
-                tex_name = sr_name
+            tex_name = texify_sr(sr_name)
             sr_fields = [tex_name]
             for x in fields[1:]: 
                 try: 
-                    sr_fields.append(str(field_values[x]))
+                    field_value = str(field_values[x])
+                    if field_value in self.replace_values: 
+                        field_value = self.replace_values[field_value]
                 except KeyError: 
-                    sr_fields.append('')
+                    field_value = ''
+                sr_fields.append(field_value)
     
             line = r' & '.join(sr_fields) + r'\\'
             int_file.write(line + '\n')
