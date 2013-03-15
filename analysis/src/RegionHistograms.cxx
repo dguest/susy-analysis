@@ -17,6 +17,7 @@
 RegionHistograms::RegionHistograms(const RegionConfig& config, 
 				   const unsigned flags) : 
   m_region_config(config), 
+  m_event_filter(config), 
   m_build_flags(flags), 
 
   m_leading_cjet_rank(0), 
@@ -79,40 +80,17 @@ void RegionHistograms::fill(const EventObjects& obj) {
   typedef std::vector<Jet> Jets; 
 
   double weight = obj.weight; 
-  if (obj.event_mask & m_region_config.veto_bits) return; 
-  const ull_t req_bits = m_region_config.required_bits; 
-  if ( (obj.event_mask & req_bits) != req_bits){
-    return; 
-  }
-
   const Jets jets = obj.jets; 
-  unsigned n_required_jets = m_region_config.jet_tag_requirements.size(); 
-  if (jets.size() < n_required_jets) { 
-    return; 
-  }
-  const auto& jet_req = m_region_config.jet_tag_requirements; 
-  for (unsigned jet_n = 0; jet_n < jet_req.size(); jet_n++) {
-    const auto jet = jets.at(jet_n); 
-    const auto requested_tag = jet_req.at(jet_n); 
-    bool pass = jet.pass_tag(requested_tag); 
-    if (!pass) return; 
-    if (! (m_build_flags & buildflag::is_data)) { 
-      weight *= jet.get_scalefactor(requested_tag, 
-				    m_region_config.systematic);
-    }
-  }
 
-  if (jets.at(0).Pt() < m_region_config.leading_jet_pt) { 
-    return; 
-  }
-  const TVector2& met = obj.met; 
-  if (met.Mod() < m_region_config.met) { 
-    return; 
-  }
+  if (!m_event_filter.pass(obj)) return; 
 
+  if (! (m_build_flags & buildflag::is_data)) { 
+    weight *= m_event_filter.jet_scalefactor(obj); 
+  }
+  const TVector2 met = obj.met; 
   const TLorentzVector met4(met.Px(), met.Py(), 0, 0); 
 
-  m_met->fill(met.Mod(),  weight); 
+  m_met->fill(obj.met.Mod(),  weight); 
 
   unsigned n_jets = std::min(jets.size(), m_jet_hists.size()); 
   for (size_t jet_n = 0; jet_n < n_jets; jet_n++) { 

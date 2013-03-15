@@ -8,6 +8,7 @@
 #include "BtagConfig.hh"
 #include "systematic_defs.hh"
 #include "RegionConfig.hh"
+#include "RegionEventFilter.hh"
 
 class EventObjects; 
 class Jet1DHists; 
@@ -28,6 +29,7 @@ public:
   void write_to(std::string file_name = "") const; 
 private: 
   const RegionConfig m_region_config; 
+  const RegionEventFilter m_event_filter; 
   const unsigned m_build_flags; 
 
   std::vector<Jet1DHists*> m_jet_hists; 

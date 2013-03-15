@@ -39,3 +39,15 @@ bool RegionEventFilter::pass(const EventObjects& obj) const {
   return true; 
 
 }
+
+double RegionEventFilter::jet_scalefactor(const EventObjects& obj) const { 
+  double weight = 1; 
+  const auto& jet_req = m_region_config.jet_tag_requirements; 
+  for (unsigned jet_n = 0; jet_n < jet_req.size(); jet_n++) {
+    const auto jet = obj.jets.at(jet_n); 
+    const auto requested_tag = jet_req.at(jet_n); 
+    weight *= jet.get_scalefactor(requested_tag, 
+				  m_region_config.systematic);
+  }
+  return weight; 
+}
