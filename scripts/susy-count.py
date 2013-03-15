@@ -14,8 +14,26 @@ def get_config():
     parser.add_argument('counts_file', help="yaml file")
     parser.add_argument('-t', '--dump-tex', action='store_true')
     parser.add_argument('--systematics', action='store_true')
+    parser.add_argument(
+        '-s','--signal-point', default='stop-150-90', 
+        help="assumes <particle>-<something> type name, " + d)
     args = parser.parse_args(sys.argv[1:])
     return args
+
+def get_signal_finder(signal_point): 
+    if signal_point: 
+        signal_head = signal_point.split('-')[0]
+        def needed(phys): 
+            if not phys.startswith(signal_head): 
+                return True
+            if phys == signal_point:
+                return True
+            return False
+    else: 
+        def needed(tup): 
+            return True
+    return needed
+
 
 def run(): 
     args = get_config()
@@ -23,8 +41,13 @@ def run():
     with open(args.counts_file) as counts: 
         counts_dict = yaml.load(counts)
 
-    base_systematic = counts_dict['NONE']
-    all_systematics = set(counts_dict.keys()) - set(['NONE'])
+    needed = get_signal_finder(args.signal_point)
+    filtered = {}
+    for syst, cutdict in counts_dict.iteritems(): 
+        filtered[syst] = {n:c for n, c in cutdict.iteritems() if needed(n)}
+
+    base_systematic = filtered['NONE']
+    all_systematics = set(filtered.keys()) - set(['NONE'])
 
     out_file = TemporaryFile()
     make_latex_bg_table(unyamlize(base_systematic), title='baseline', 
@@ -32,7 +55,7 @@ def run():
 
     if args.systematics: 
         for systematic in all_systematics: 
-            syst_dict = counts_dict[systematic]
+            syst_dict = filtered[systematic]
             phys_cut_dict = unyamlize(syst_dict)
             make_latex_bg_table(phys_cut_dict, title=systematic, 
                                 out_file=out_file)

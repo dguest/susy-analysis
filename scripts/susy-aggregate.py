@@ -20,7 +20,6 @@ def get_config():
     parser.add_argument('steering_file', help="created if it doesn't exist")
     parser.add_argument('-f','--force-aggregation', action='store_true')
     parser.add_argument('-r','--rerun-stack', action='store_true')
-    parser.add_argument('-t', '--dump-tex', action='store_true')
     parser.add_argument('-c', '--counts-file', default='counts.yml',help=d)
     parser.add_argument(
         '-s','--signal-point', default='stop-150-90', 
@@ -60,7 +59,6 @@ def run():
     to_do = [
         args.make_plots, 
         not isfile(args.counts_file), 
-        args.dump_tex, 
         needed_systematics, 
         args.force_aggregation, 
         args.rerun_stack, 
@@ -75,25 +73,17 @@ def run():
     all_dict = coord.aggregate(systematic='all',
                                rerun=args.force_aggregation)
         
-    out_file = TemporaryFile()
     count_dict = {}
-    needed = get_signal_finder(args.signal_point)
     for name, syst_dict in all_dict.iteritems(): 
         syst_count = table.get_physics_cut_dict(syst_dict)
-        slim_counts = {k:v for k,v in syst_count.items() if needed(k)}
-        count_dict[name] = slim_counts
-        table.make_latex_bg_table(slim_counts, title=name, 
-                                  out_file=out_file)
+        count_dict[name] = syst_count
     
-    if args.dump_tex: 
-        out_file.seek(0)
-        for line in out_file: 
-            print line.strip()
     if args.counts_file: 
         with open(args.counts_file,'w') as countfile: 
             for line in yaml.dump(table.yamlize(count_dict)): 
                 countfile.write(line)
 
+    needed = get_signal_finder(args.signal_point)
     if args.make_plots: 
         from stop.stack import plot
         plots_dict = {k:v for k,v in all_dict['NONE'].items() if needed(k)}

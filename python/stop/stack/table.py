@@ -1,6 +1,7 @@
 from tempfile import TemporaryFile as Temp
 import warnings, re
 
+# not used any more
 def _not_blinded(physics_cut_tup): 
     phys, cut = physics_cut_tup
     if phys != 'data': 
@@ -21,9 +22,7 @@ def get_physics_cut_dict(plots_dict, safe=True, notblind=_not_blinded):
     used_var = {}
     for (phys, var, cut), hist in plots_dict.iteritems(): 
         physcut_tup = (phys, cut)
-        # apply blinding
-        if not notblind(physcut_tup):
-            continue
+
         if physcut_tup not in physcut_dict: 
             physcut_dict[physcut_tup] = hist.array.sum()
             used_var[physcut_tup] = var
