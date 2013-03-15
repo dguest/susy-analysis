@@ -79,19 +79,23 @@ class Stack(object):
         if self.x_vals is None: 
             self.x_vals = x_vals
         
-        y_err_up = []
-        y_err_down = []
+        lows = np.zeros(y_vals.shape)
+        highs = np.zeros(y_vals.shape)
         tail_prob = 1.0 - erf(1/sqrt(2)) # one sigma
-        for val in y_vals: 
+        for n, val in enumerate(y_vals): 
             low, high = stattest.poisson_interval(int(round(val)), tail_prob)
-            if low < self.y_min: 
-                low = self.y_min
-            y_err_down.append(val - low)
-            y_err_up.append(high - val)
+            lows[n] = low
+            highs[n] = high
         if self.y_min is not None: 
             bad_yvals = y_vals <= self.y_min
             y_vals[bad_yvals] = self.y_min
-        if not y_err_up: 
+            bad_lows = lows <= self.y_min
+            lows[bad_lows] = self.y_min
+
+        y_err_up = highs - y_vals
+        y_err_down = y_vals - lows
+
+        if not np.any(y_err_up): 
             return 
         line,cap,notsure = self.ax.errorbar(x_vals, y_vals, 
                                             ms=10, fmt='k.', 

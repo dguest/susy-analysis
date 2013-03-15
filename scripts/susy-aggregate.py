@@ -27,6 +27,8 @@ def get_config():
     parser.add_argument('-p', '--make-plots', action='store_true')
     parser.add_argument(
         '--ext', help='plot extensions, ' + d, default='.pdf')
+    parser.add_argument(
+        '--fast', action='store_true')
     args = parser.parse_args(sys.argv[1:])
     return args
 
