@@ -6,7 +6,7 @@
 #include "Histogram.hh"
 #include "typedefs.hh"
 #include "RegionConfig.hh"
-#include "JetFactory.hh"
+#include "EventObjects.hh"
 #include "common_functions.hh"
 #include "H5Cpp.h"
 #include <stdexcept>
@@ -75,18 +75,17 @@ RegionHistograms::~RegionHistograms() {
   }
 }
 
-void RegionHistograms::fill(const JetFactory* factory) { 
+void RegionHistograms::fill(const EventObjects& obj) { 
   typedef std::vector<Jet> Jets; 
 
-  const ull_t evt_mask = factory->bits(); 
-  double weight = factory->event_weight(); 
-  if (evt_mask & m_region_config.veto_bits) return; 
+  double weight = obj.weight; 
+  if (obj.event_mask & m_region_config.veto_bits) return; 
   const ull_t req_bits = m_region_config.required_bits; 
-  if ( (evt_mask & req_bits) != req_bits){
+  if ( (obj.event_mask & req_bits) != req_bits){
     return; 
   }
 
-  const Jets jets = factory->jets(); 
+  const Jets jets = obj.jets; 
   unsigned n_required_jets = m_region_config.jet_tag_requirements.size(); 
   if (jets.size() < n_required_jets) { 
     return; 
@@ -106,7 +105,7 @@ void RegionHistograms::fill(const JetFactory* factory) {
   if (jets.at(0).Pt() < m_region_config.leading_jet_pt) { 
     return; 
   }
-  const TVector2 met = factory->met(); 
+  const TVector2& met = obj.met; 
   if (met.Mod() < m_region_config.met) { 
     return; 
   }
@@ -133,13 +132,12 @@ void RegionHistograms::fill(const JetFactory* factory) {
   }
   m_min_dphi->fill(min_jetmet_dphi,  weight); 
 
-  m_htx->fill(factory->htx(),  weight); 
+  m_htx->fill(obj.htx,  weight); 
     
-  m_n_good_jets->fill(factory->n_good(),  weight); 
+  m_n_good_jets->fill(obj.n_signal_jets,  weight); 
   if (m_leading_cjet_rank) { 
-    m_leading_cjet_rank->fill(factory->leading_cjet_pos(),  weight); 
-    m_subleading_cjet_rank->fill(factory->subleading_cjet_pos(), 
-				 weight); 
+    m_leading_cjet_rank->fill(obj.leading_cjet_pos,  weight); 
+    m_subleading_cjet_rank->fill(obj.subleading_cjet_pos, weight); 
 
     unsigned n_jets_truth = std::min(jets.size(), m_jet_truth_hists.size()); 
     for (size_t jet_n = 0; jet_n < n_jets_truth; jet_n++) { 

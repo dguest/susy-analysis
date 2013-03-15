@@ -9,7 +9,7 @@
 #include "systematic_defs.hh"
 #include "RegionConfig.hh"
 
-class JetFactory; 
+class EventObjects; 
 class Jet1DHists; 
 class TruthJetHists; 
 class Histogram; 
@@ -23,7 +23,7 @@ class RegionHistograms: public boost::noncopyable
 public: 
   RegionHistograms(const RegionConfig& config, const unsigned build = 0); 
   ~RegionHistograms(); 
-  void fill(const JetFactory* jet_factory);
+  void fill(const EventObjects& objects);
   void write_to(H5::CommonFG&) const; 
   void write_to(std::string file_name = "") const; 
 private: 

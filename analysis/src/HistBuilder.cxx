@@ -2,6 +2,7 @@
 #include "HistBuilderFlags.hh"
 #include "HistBuilderConstants.hh"
 #include "JetFactory.hh"
+#include "EventObjects.hh"
 #include "RegionHistograms.hh"
 #include "PhysicalConstants.hh"
 #include "CutAugmenter.hh"
@@ -89,9 +90,10 @@ int HistBuilder::build() {
     if (m_build_flags & buildflag::fill_truth) { 
       if (m_factory->hfor_type() == hfor::KILL) continue; 
     }
+    EventObjects objects(m_factory, m_build_flags); 
     for (auto itr = m_histograms.begin(); 
 	 itr != m_histograms.end(); itr++){
-      itr->second->fill(m_factory); 
+      itr->second->fill(objects); 
     }
 
   }
