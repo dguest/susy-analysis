@@ -236,11 +236,11 @@ class Region(object):
             'required':['preselection'], 
             'veto':[], 
             }, 
-        'cut_config':{
+        'kinematics':{
             'leading_jet_gev':240, 
             'met_gev':180, 
-            'btag_config':['NOTAG','LOOSE','TIGHT']
-            }
+            }, 
+        'btag_config':['NOTAG','LOOSE','TIGHT'], 
         }
     _bit_dict = dict(bits.bits)
     _composite_bit_dict = dict(bits.composite_bits)
@@ -258,7 +258,8 @@ class Region(object):
     def _read_dict(self,yaml_dict): 
         self.type = yaml_dict['type']
         self.bits = yaml_dict['bits']
-        self.cut_config = yaml_dict['cut_config']
+        self.kinematics = yaml_dict['kinematics']
+        self.btag_config = yaml_dict['btag_config']
         if self.type not in self._allowed_types: 
             raise ValueError('region type {} is not known'.format(
                     self.type))
@@ -296,9 +297,9 @@ class Region(object):
         Produces the configuration info needed for _stacksusy
         """
         config_dict = {
-            'jet_tag_requirements': self.cut_config['btag_config'], 
-            'leading_jet_pt': self.cut_config['leading_jet_gev']*1e3, 
-            'met': self.cut_config['met_gev']*1e3, 
+            'jet_tag_requirements': self.btag_config, 
+            'leading_jet_pt': self.kinematics['leading_jet_gev']*1e3, 
+            'met': self.kinematics['met_gev']*1e3, 
             'required_bits': self.get_bits(), 
             'veto_bits': self.get_antibits(), 
             'type': self.type.upper(), 

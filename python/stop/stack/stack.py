@@ -78,10 +78,6 @@ class Stack(object):
         x_vals, y_vals = hist.get_data_xy()
         if self.x_vals is None: 
             self.x_vals = x_vals
-        if self.y_min is not None: 
-            good_yvals = y_vals >= self.y_min
-            x_vals = x_vals[good_yvals]
-            y_vals = y_vals[good_yvals] 
         
         y_err_up = []
         y_err_down = []
@@ -92,6 +88,9 @@ class Stack(object):
                 low = self.y_min
             y_err_down.append(val - low)
             y_err_up.append(high - val)
+        if self.y_min is not None: 
+            bad_yvals = y_vals <= self.y_min
+            y_vals[bad_yvals] = self.y_min
         if not y_err_up: 
             return 
         line,cap,notsure = self.ax.errorbar(x_vals, y_vals, 
