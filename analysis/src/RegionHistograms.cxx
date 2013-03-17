@@ -20,8 +20,7 @@ RegionHistograms::RegionHistograms(const RegionConfig& config,
   m_event_filter(config), 
   m_build_flags(flags), 
 
-  m_leading_cjet_rank(0), 
-  m_subleading_cjet_rank(0)
+  m_cjet_rank(0)
 { 
   const double max_pt = 1e3*GeV; 
   const size_t n_jets = 3; 
@@ -36,17 +35,18 @@ RegionHistograms::RegionHistograms(const RegionConfig& config,
   for (size_t jet_n = 0; jet_n < n_jets; jet_n++) { 
     m_jet_hists.push_back(new Jet1DHists(max_pt, flags)); 
   }
-  m_met = new Histogram(100, 0.0, max_pt, "MeV"); 
-  m_min_dphi = new Histogram(100, 0.0, 3.2); 
-  m_mttop = new Histogram(100, 0.0, max_pt, "MeV"); 
+  m_met = new Histogram(N_BINS, 0.0, max_pt, "MeV"); 
+  m_min_dphi = new Histogram(N_BINS, 0.0, 3.2); 
+  m_mttop = new Histogram(N_BINS, 0.0, max_pt, "MeV"); 
   m_n_good_jets = new Histogram(11, -0.5, 10.5); 
 
-  m_htx = new Histogram(100, 0.0, max_pt, "MeV"); 
+  m_htx = new Histogram(N_BINS, 0.0, max_pt, "MeV"); 
+
+  if (!(flags & buildflag::is_data)) { 
+    add_cjet_rank(); 
+  }
 
   if (flags & buildflag::fill_truth) { 
-    m_leading_cjet_rank = new Histogram(6, -0.5, 5.5); 
-    m_subleading_cjet_rank = new Histogram(6, -0.5, 5.5); 
-
     for (size_t jet_n = 0; jet_n < n_jets; jet_n++) { 
       m_jet_truth_hists.push_back(new TruthJetHists(max_pt, flags)); 
     }
@@ -68,8 +68,7 @@ RegionHistograms::~RegionHistograms() {
 
   delete m_htx; 
 
-  delete m_leading_cjet_rank; 
-  delete m_subleading_cjet_rank; 
+  delete m_cjet_rank; 
   for (size_t iii = 0; iii < m_jet_truth_hists.size(); iii++) { 
     delete m_jet_truth_hists.at(iii); 
     m_jet_truth_hists.at(iii) = 0; 
@@ -113,15 +112,15 @@ void RegionHistograms::fill(const EventObjects& obj) {
   m_htx->fill(obj.htx,  weight); 
     
   m_n_good_jets->fill(obj.n_signal_jets,  weight); 
-  if (m_leading_cjet_rank) { 
-    m_leading_cjet_rank->fill(obj.leading_cjet_pos,  weight); 
-    m_subleading_cjet_rank->fill(obj.subleading_cjet_pos, weight); 
-
-    unsigned n_jets_truth = std::min(jets.size(), m_jet_truth_hists.size()); 
-    for (size_t jet_n = 0; jet_n < n_jets_truth; jet_n++) { 
-      m_jet_truth_hists.at(jet_n)->fill(jets.at(jet_n),  weight); 
-    }
-
+  if (m_cjet_rank) { 
+    std::vector<int> ranks = {
+      obj.leading_cjet_pos, obj.subleading_cjet_pos}; 
+    std::vector<double> franks(ranks.begin(), ranks.end()); 
+    m_cjet_rank->fill(franks,  weight); 
+  }
+  unsigned n_jets_truth = std::min(jets.size(), m_jet_truth_hists.size()); 
+  for (size_t jet_n = 0; jet_n < n_jets_truth; jet_n++) { 
+    m_jet_truth_hists.at(jet_n)->fill(jets.at(jet_n),  weight); 
   }
 
 }
@@ -141,19 +140,18 @@ void RegionHistograms::write_to(H5::CommonFG& file) const {
   m_n_good_jets->write_to(region, "nGoodJets"); 
   m_htx->write_to(region, "htx"); 
 
-  if (m_leading_cjet_rank) { 
-    Group truth(region.createGroup("truth")); 
-    m_leading_cjet_rank->write_to(truth, "leadingCJet"); 
-    m_subleading_cjet_rank->write_to(truth, "subleadingCJet"); 
-    
-    for (size_t iii = 0; iii < m_jet_truth_hists.size(); iii++) { 
-      std::string jet_name = (boost::format("jet%i") % iii).str(); 
-      Group jet(region.createGroup(jet_name)); 
-      m_jet_truth_hists.at(iii)->write_to(jet); 
-    }
-
+  if (m_cjet_rank) { 
+    m_cjet_rank->write_to(region, "cjetRank"); 
   }
 
+  if (m_jet_truth_hists.size()) { 
+    Group truth(region.createGroup("truth")); 
+    for (size_t iii = 0; iii < m_jet_truth_hists.size(); iii++) { 
+      std::string jet_name = (boost::format("jet%i") % iii).str(); 
+      Group jet(truth.createGroup(jet_name)); 
+      m_jet_truth_hists.at(iii)->write_to(jet); 
+    }
+  }
 }
 
 void RegionHistograms::write_to(std::string file_name) const { 
@@ -164,4 +162,19 @@ void RegionHistograms::write_to(std::string file_name) const {
   H5File file(file_name, H5F_ACC_TRUNC); 
   Group region(file.createGroup(m_region_config.name)); 
   write_to(region); 
+}
+
+void RegionHistograms::add_cjet_rank() { 
+  Axis leading; 
+  leading.name = "leading"; 
+  leading.n_bins = 6; 
+  leading.low = -0.5; 
+  leading.high = 5.5; 
+  Axis subleading; 
+  subleading.name = "subleading"; 
+  subleading.n_bins = 6; 
+  subleading.low = -0.5; 
+  subleading.high = 5.5; 
+  std::vector<Axis> axes = {leading, subleading}; 
+  m_cjet_rank = new Histogram(6, -0.5, 5.5); 
 }

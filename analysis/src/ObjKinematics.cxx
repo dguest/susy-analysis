@@ -51,7 +51,7 @@ void Jet1DHists::write_to(H5::CommonFG& file) {
 }
 void Jet1DHists::write_truth_info(H5::CommonFG& file){ 
   using namespace H5; 
-  m_truth_label->write_to(file,"truth_label"); 
+  m_truth_label->write_to(file,"truthLabel"); 
 }
 
 void Jet1DHists::fill(const Jet& jet, double w) { 

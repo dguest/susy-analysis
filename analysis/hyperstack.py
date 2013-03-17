@@ -23,13 +23,13 @@ short_cuts = [('every',every_cut)]
 
 all_cuts = [
     { 
-        'name': 'zorker', 
+        'name': 'joe', 
         'output_name': 'stupid.h5', 
         'type': 'CONTROL', 
         'jet_tag_requirements': ['NOTAG','ANTILOOSE']
         }, 
     { 
-        'name': 'penis', 
+        'name': 'bob', 
         'output_name': 'stupider.h5', 
         'type': 'CONTROL', 
         'jet_tag_requirements': ['NOTAG','LOOSE']

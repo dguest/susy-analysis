@@ -19,6 +19,10 @@ namespace H5 {
   class CommonFG; 
 }
 
+namespace { 
+  const int N_BINS = 100; 
+}; 
+
 class RegionHistograms: public boost::noncopyable
 {
 public: 
@@ -28,6 +32,7 @@ public:
   void write_to(H5::CommonFG&) const; 
   void write_to(std::string file_name = "") const; 
 private: 
+  void add_cjet_rank(); 
   const RegionConfig m_region_config; 
   const RegionEventFilter m_event_filter; 
   const unsigned m_build_flags; 
@@ -41,8 +46,7 @@ private:
 
   Histogram* m_htx; 
 
-  Histogram* m_leading_cjet_rank; 
-  Histogram* m_subleading_cjet_rank; 
+  Histogram* m_cjet_rank; 
 
   std::vector<TruthJetHists*> m_jet_truth_hists; 
 }; 
