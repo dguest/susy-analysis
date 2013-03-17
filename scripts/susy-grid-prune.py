@@ -152,17 +152,39 @@ def get_cuts_and_vars(cuts_dict):
     return ' && '.join(cuts), variables
 
 class Reporter(Process): 
+
+    completed_str = (
+        'No jobs to be submitted since all input files were'
+        ' (or are being) processed for the outDS.')
+
     def __init__(self, n_datasets): 
         super(Reporter,self).__init__()
         self.queue = Queue()
         self.n_datasets = n_datasets
         self.n_answer = 0
         self.n_error = 0 
+        self.n_already_done = 0
         self.output = sys.stdout
         def basic_error_search(x): 
             return 'ERROR' in x
         self.has_error = basic_error_search
-        
+        def already_complete(x): 
+            return self.completed_str in x
+        self.already_done = already_complete
+
+    def _get_supp(self): 
+        supp = []
+        if self.n_already_done > 0: 
+            donestr = '\033[32;1m{} already finished\033[m'.format(
+                self.n_already_done)
+            supp.append(donestr)
+        if self.n_error > 0: 
+            errstr = '\033[31m{e} ERRORS\033[m'.format(e=self.n_error)
+            supp.append(errstr)
+        if not supp: 
+            return ''
+        return ' ({})'.format(', '.join(supp))
+
     def run(self): 
         not_dead = True
         while not_dead: 
@@ -174,15 +196,13 @@ class Reporter(Process):
                 self.n_answer += 1
                 if self.has_error(message): 
                     self.n_error += 1
-                out_template = '\rdone with {d} of {t}'
-                if self.n_error > 0: 
-                    out_template = (
-                        '\rdone with {d} of {t} (\033[31m{e} ERRORS\033[m)')
-                self.output.write(
-                    out_template.format(
-                                d=self.n_answer, 
-                                t=self.n_datasets, 
-                                e=self.n_error))
+                if self.already_done(message): 
+                    self.n_already_done += 1
+                out_template = '\rdone with {} of {}'
+                outline = out_template.format(self.n_answer, self.n_datasets)
+                outline += self._get_supp()
+
+                self.output.write(outline)
                 self.output.flush()
         self.output.write('\n')
     def close(self): 
