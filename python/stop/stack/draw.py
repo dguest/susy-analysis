@@ -114,3 +114,33 @@ class Stack(object):
         self.fig.savefig(name, bbox_inches='tight')
     def close(self): 
         plt.close(self.fig)
+
+class Hist2d(object): 
+    def __init__(self, imdict, xlabel, ylabel): 
+        self.imdict = imdict
+        self.x_label = xlabel
+        self.y_label = ylabel
+
+    def __add__(self, other): 
+        assert self.x_label == other.x_label
+        assert self.y_label == other.y_label
+        xext = self.imdict['extent']
+        yext = other.imdict['extent']
+        rel_diff = ((xext - yext)**2).sum() / ((xext + yext)**2).sum()
+        if rel_diff > 0.001: 
+            raise ValueError('hist extent mismatch')
+        out_im = { 
+            'X': self.imdict['X'] + other.imdict['X'], 
+            'extent': xext}
+        out_im.update(
+            {k:v for k,v in self.imdict.items() if k not in out_im})
+        return Hist2d(out_im, self.x_label, self.y_label)
+
+    def save(self, name): 
+        fig = plt.figure(figsize=(8,6))
+        ax = fig.add_subplot(1,1,1)
+        ax.imshow(**self.imdict)
+        ax.set_xlabel(self.x_label, x=0.98, ha='right')        
+        ax.set_ylabel(self.y_label, y=0.98, va='top')
+        fig.savefig(name, bbox_inches='tight')
+        plt.close(fig)

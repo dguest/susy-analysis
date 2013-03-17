@@ -1,9 +1,11 @@
 import matplotlib.pyplot as plt
+import numpy as np
 from stop.hists import Hist1d
 from stop import style, hists
 from os.path import isdir, join
-from stop.stack.stack import Stack
+from stop.stack.draw import Stack, Hist2d
 import os
+from itertools import chain
 
 def make_plots(plots_dict, misc_info): 
     hist1_dict = {}
@@ -18,11 +20,13 @@ def make_plots(plots_dict, misc_info):
     printer.print_plots(*sort_data_mc(hist1_dict))
     printer.log = True
     printer.print_plots(*sort_data_mc(hist1_dict))
+    h2print = H2Printer(misc_info)
+    h2print.print_plots(*sort_data_mc(hist2_dict))
     
 
 class HistConverter(object): 
     """
-    convert from NdHist to Hist1d. 
+    convert from NdHist to several Hist1d or Hist2d. 
     """
     def __init__(self, misc_info): 
         self.lumi_fb = misc_info['lumi_fb']
@@ -63,11 +67,19 @@ class HistConverter(object):
                 yname = axes[y].name
                 varname = '-'.join([var,xname,yname])
                 imdict = histn.project_imshow(xname, yname)
-                h2dict[(physics, varname, cut)] = imdict
+                xvar = ' '.join([var, xname])
+                xlab, xext = self._get_axislabel_extent(
+                    xvar, axes[x].extent, axes[x].units)
+                yvar = ' '.join([var, yname])
+                ylab, yext = self._get_axislabel_extent(
+                    yvar, axes[y].extent, axes[y].units)
+                imdict['extent'] = np.fromiter(chain(xext, yext),np.float)
+                subvar = '-'.join([var,yname,'vs',xname])
+                h2dict[(physics,subvar,cut)] = Hist2d(imdict, xlab, ylab)
+                
         return h2dict
 
-    def _get_hist1(self, y_vals, extent, units, pvc): 
-        physics, variable, cut = pvc
+    def _get_axislabel_extent(self, variable, extent, units): 
         base_var = variable.split('/')[-1]
         if units == 'MeV': 
             extent = [e / 1000.0 for e in extent]
@@ -78,8 +90,13 @@ class HistConverter(object):
         else: 
             var_sty = style.VariableStyle(base_var, units)
         x_ax_lab = var_sty.axis_label
-            
         x_ax_full_label = r' '.join(variable.split('/')[:-1] + [x_ax_lab])
+        return x_ax_full_label, extent
+
+    def _get_hist1(self, y_vals, extent, units, pvc): 
+        physics, variable, cut = pvc
+        x_ax_full_label, extent = self._get_axislabel_extent(
+            variable, extent, units)
     
         hist = Hist1d(y_vals, extent)
         n_center_bins = len(y_vals) - 2 
@@ -153,3 +170,30 @@ class StackPlotPrinter(object):
             stack.add_legend()
             stack.save(save_name)
             stack.close()
+
+class H2Printer(object): 
+    def __init__(self, options): 
+        self.plot_dir = options['base_dir']
+        self.ext = options['output_ext']
+        self.verbose = True
+        
+    def print_plots(self, data, mc, signal={}): 
+        if not isdir(self.plot_dir): 
+            os.mkdir(self.plot_dir)
+        for id_tup in mc.keys(): 
+            variable, cut = id_tup
+            stack_name = '_'.join([
+                    variable.replace('/','-'), cut.replace('_','-'), 
+                    '{}'])
+            save_base = join(self.plot_dir, stack_name) + self.ext
+            if self.verbose: 
+                print 'making {}'.format(save_base)
+            data_name = save_base.format('data')
+            if id_tup in data: 
+                data[id_tup].save(data_name)
+            sig_name = save_base.format('signal')
+            mc_name = save_base.format('bg')
+            if id_tup in mc: 
+                mclist = mc[id_tup]
+                bg_total = sum(mclist[1:], mclist[0])
+                bg_total.save(mc_name)

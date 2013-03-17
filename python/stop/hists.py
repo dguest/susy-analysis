@@ -143,6 +143,10 @@ class HistNd(object):
         def axis(self, num): 
             self.number = num
 
+        @property
+        def extent(self): 
+            return self.min, self.max
+
         def get_bin_extent(self, num): 
             bin_bounds = np.linspace(self.min,self.max,self.bins + 1)
             if num == 0: 
