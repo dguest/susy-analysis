@@ -12,7 +12,6 @@ from subprocess import Popen, PIPE
 from multiprocessing import Pool, Process, Queue
 from distutils.spawn import find_executable
 from ConfigParser import SafeConfigParser
-import yaml
 
 def _get_ptag(ds_name): 
     return re.compile('_p([0-9]{3,5})').search(ds_name).group(1)
@@ -183,6 +182,8 @@ class Reporter(Process):
             supp.append(errstr)
         if not supp: 
             return ''
+        submits = self.n_answer - self.n_error - self.n_already_done
+        supp.append('{} submitted'.format(submits))
         return ' ({})'.format(', '.join(supp))
 
     def run(self): 
