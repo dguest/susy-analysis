@@ -16,10 +16,10 @@ def make_plots(plots_dict, misc_info):
         hist1_dict.update(converter.h1dict_from_histn(tup, histn=hist))
         hist2_dict.update(converter.h2dict_from_histn(tup, histn=hist))
 
-    printer = StackPlotPrinter(misc_info)
-    printer.print_plots(*sort_data_mc(hist1_dict))
-    printer.log = True
-    printer.print_plots(*sort_data_mc(hist1_dict))
+    # printer = StackPlotPrinter(misc_info)
+    # printer.print_plots(*sort_data_mc(hist1_dict))
+    # printer.log = True
+    # printer.print_plots(*sort_data_mc(hist1_dict))
     h2print = H2Printer(misc_info)
     h2print.print_plots(*sort_data_mc(hist2_dict))
     

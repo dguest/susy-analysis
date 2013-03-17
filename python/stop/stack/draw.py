@@ -139,7 +139,8 @@ class Hist2d(object):
     def save(self, name): 
         fig = plt.figure(figsize=(8,6))
         ax = fig.add_subplot(1,1,1)
-        ax.imshow(**self.imdict)
+        im = ax.imshow(**self.imdict)
+        cb = plt.colorbar(im)
         ax.set_xlabel(self.x_label, x=0.98, ha='right')        
         ax.set_ylabel(self.y_label, y=0.98, va='top')
         fig.savefig(name, bbox_inches='tight')
