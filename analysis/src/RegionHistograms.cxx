@@ -167,13 +167,13 @@ void RegionHistograms::write_to(std::string file_name) const {
 void RegionHistograms::add_cjet_rank() { 
   Axis leading; 
   leading.name = "leading"; 
-  leading.n_bins = 6; 
-  leading.low = -0.5; 
+  leading.n_bins = 7; 
+  leading.low = -1.5; 
   leading.high = 5.5; 
   Axis subleading; 
   subleading.name = "subleading"; 
-  subleading.n_bins = 6; 
-  subleading.low = -0.5; 
+  subleading.n_bins = 7; 
+  subleading.low = -1.5; 
   subleading.high = 5.5; 
   std::vector<Axis> axes = {leading, subleading}; 
   m_cjet_rank = new Histogram(axes); 
