@@ -82,11 +82,8 @@ class Stack(object):
         lows = np.zeros(y_vals.shape)
         highs = np.zeros(y_vals.shape)
         tail_prob = 1.0 - erf(1/sqrt(2)) # one sigma
-        for n, val in enumerate(y_vals): 
-            low, high = stattest.poisson_interval(int(round(val)), tail_prob)
-            lows[n] = low
-            highs[n] = high
-        if self.y_min is not None: 
+        lows, highs = stattest.poisson_interval(y_vals, tail_prob)
+        if self.y_min is not None:
             bad_yvals = y_vals <= self.y_min
             y_vals[bad_yvals] = self.y_min
             bad_lows = lows <= self.y_min

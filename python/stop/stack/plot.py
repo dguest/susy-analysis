@@ -14,7 +14,7 @@ def make_plots(plots_dict, misc_info):
 
     printer = PlotPrinter(misc_info)
     printer.print_plots(*sort_data_mc(hist1_dict))
-    printer.log = False
+    printer.log = True
     printer.print_plots(*sort_data_mc(hist1_dict))
     
 
@@ -89,7 +89,7 @@ class PlotPrinter(object):
     def __init__(self, options): 
         self.plot_dir = options['base_dir']
         self.ext = options['output_ext']
-        self.log = True
+        self.log = False
         self.verbose = True
 
     def print_plots(self, stack_data, stack_mc_lists, signal_hists={}): 
