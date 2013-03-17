@@ -233,10 +233,9 @@ class HistNd(object):
     @property
     def axes(self): 
         """
-        TODO: consider removing the copy here, not sure it's really needed
+        Return a sorted list of the axis objects. 
         """
-        return sorted(copy.deepcopy(self._axes).values(), 
-                      key=lambda x: x.number)
+        return sorted(self._axes.values(), key=lambda x: x.number)
 
     def sum(self): 
         return self._array.sum()
@@ -269,7 +268,9 @@ class HistNd(object):
     def cut(self, axis, value, reverse=False): 
         """
         cut axis at (approximately) value, return value where cut is 
-        actually made
+        actually made. 
+
+        The hist must be integrated and looses a dimension.
         """
         assert not reverse
         ax = self._axes.pop(axis)

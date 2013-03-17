@@ -7,12 +7,14 @@ import os
 
 def make_plots(plots_dict, misc_info): 
     hist1_dict = {}
+    hist2_dict = {}
     converter = HistConverter(misc_info)
     converter.appended_evt_str = None
     for tup, hist in plots_dict.iteritems():
-        hist1_dict[tup] = converter.hist1_from_histn(*tup, histn=hist)
+        hist1_dict.update(converter.h1dict_from_histn(tup, histn=hist))
+        hist2_dict.update(converter.h2dict_from_histn(tup, histn=hist))
 
-    printer = PlotPrinter(misc_info)
+    printer = StackPlotPrinter(misc_info)
     printer.print_plots(*sort_data_mc(hist1_dict))
     printer.log = True
     printer.print_plots(*sort_data_mc(hist1_dict))
@@ -26,14 +28,47 @@ class HistConverter(object):
         self.lumi_fb = misc_info['lumi_fb']
         self.appended_evt_str = r': {:.1f} Evt'
 
-    def hist1_from_histn(self, physics, variable, cut, histn): 
+    def h1dict_from_histn(self, pvc, histn): 
+        physics, variable, cut = pvc
+        hdict = {}
+        if len(histn.axes) == 1: 
+            hdict[pvc] = self.hist1_from_histn(pvc, histn=histn)
+            return hdict
+        for axis in histn.axes: 
+            y_vals, extent = histn.project_1d(axis.name)
+            subvar = '-'.join([variable,axis.name])
+            hdict[(physics, subvar, cut)] = self._get_hist1(
+                y_vals, extent, axis.units , pvc)
+        return hdict
+
+    def hist1_from_histn(self, pvc, histn): 
+        physics, variable, cut = pvc
         if physics not in style.type_dict and not physics.startswith('stop'):
             raise ValueError("what the fuck is {}?".format(pt))
     
         assert len(histn.axes) == 1
         y_vals, extent = histn.project_1d('x')
-        base_var = variable.split('/')[-1]
         units = histn.axes[0].units
+        return self._get_hist1(y_vals, extent, units, 
+                               (physics, variable, cut))
+
+    def h2dict_from_histn(self, pvc, histn): 
+        axes = histn.axes
+        nax = len(axes)
+        h2dict = {}
+        physics, var, cut = pvc
+        for x in xrange(nax): 
+            xname = axes[x].name
+            for y in xrange(x): 
+                yname = axes[y].name
+                varname = '-'.join([var,xname,yname])
+                imdict = histn.project_imshow(xname, yname)
+                h2dict[(physics, varname, cut)] = imdict
+        return h2dict
+
+    def _get_hist1(self, y_vals, extent, units, pvc): 
+        physics, variable, cut = pvc
+        base_var = variable.split('/')[-1]
         if units == 'MeV': 
             extent = [e / 1000.0 for e in extent]
             units = 'GeV'
@@ -85,7 +120,7 @@ def sort_data_mc(hist1_dict):
 
     return stack_data, lists, signals
 
-class PlotPrinter(object): 
+class StackPlotPrinter(object): 
     def __init__(self, options): 
         self.plot_dir = options['base_dir']
         self.ext = options['output_ext']

@@ -176,5 +176,5 @@ void RegionHistograms::add_cjet_rank() {
   subleading.low = -0.5; 
   subleading.high = 5.5; 
   std::vector<Axis> axes = {leading, subleading}; 
-  m_cjet_rank = new Histogram(6, -0.5, 5.5); 
+  m_cjet_rank = new Histogram(axes); 
 }

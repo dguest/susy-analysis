@@ -11,7 +11,7 @@ EventObjects::EventObjects(const JetFactory* factory, unsigned build_flags):
   n_signal_jets(factory->n_good()), 
   jets(factory->jets())
 { 
-  if (build_flags & buildflag::fill_truth) { 
+  if ( !(build_flags & buildflag::is_data)) { 
     leading_cjet_pos = factory->leading_cjet_pos(); 
     subleading_cjet_pos = factory->subleading_cjet_pos(); 
   }
