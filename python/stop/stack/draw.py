@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from matplotlib.colors import LogNorm, Normalize
 import numpy as np
 from itertools import chain
 from stop import stattest
@@ -136,11 +137,17 @@ class Hist2d(object):
             {k:v for k,v in self.imdict.items() if k not in out_im})
         return Hist2d(out_im, self.x_label, self.y_label)
 
-    def save(self, name): 
+    def save(self, name, log=False): 
         fig = plt.figure(figsize=(8,6))
         ax = fig.add_subplot(1,1,1)
-        im = ax.imshow(**self.imdict)
-        cb = plt.colorbar(im)
+        if log: 
+            norm=LogNorm()
+        else: 
+            norm=Normalize()
+        im = ax.imshow(norm=norm,**self.imdict)
+        cb_dict = {}
+            
+        cb = plt.colorbar(im, **cb_dict)
         ax.set_xlabel(self.x_label, x=0.98, ha='right')        
         ax.set_ylabel(self.y_label, y=0.98, va='top')
         fig.savefig(name, bbox_inches='tight')
