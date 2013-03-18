@@ -1,4 +1,49 @@
 import re
+
+class TransferFactor(object): 
+    """
+    Basic transfer factor info: value, relative error, type fraction
+    in signal region. 
+    """
+    pass
+
+class TransferTable(object): 
+    """
+    Uses the Transfer Calculator and the stacker steering file to generate
+    transfer factors from each of the control / signal combinations. 
+    """
+    def __init__(self, stack_steering, counts): 
+        """
+        Inputs are expected to be dicts. 
+        """
+        regions = stack_steering['regions']
+        self.control_regions = {}
+        self.signal_regions = {}
+        for region_name, region in regions.iteritems(): 
+            name = region_name
+            if region['type'] == 'control': 
+                self.control_regions[name] = region
+            elif region['type'] == 'signal': 
+                self.signal_regions[name] = region 
+        self.counts = counts
+    def get_tf_table(self, physics_type): 
+        """
+        Returns nested dicts. 
+        Hierarchy: 
+            - Signal Region
+            - Control Region
+            - TF / error tuple
+        """
+        transfer_calc = TransferCalculator(self.counts, physics_type)
+        signal_regions = {}
+        for sr in self.control_regions: 
+            signal_regions[sr] = {}
+            for cr in self.signal_regions: 
+                factor, err = transfer_calc.get_transfer_factor(cr, sr)
+                signal_regions[sr][cr] = (factor,err)
+
+        return signal_regions
+
 class TransferCalculator(object): 
     """
     Assumes the following structure for the counts passed in: 
