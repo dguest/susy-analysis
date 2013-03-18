@@ -7,6 +7,10 @@
 #include <set> 
 #include "typedefs.hh"
 
+namespace chain { 
+  enum MissingBranchAction {THROW, NULL_POINTER}; 
+}
+
 class SmartChain: public TChain { 
 public: 
   using TChain::Add; 
@@ -15,14 +19,14 @@ public:
   virtual int GetEntry(long long int entry_n, int getall = 0); 
   template<typename T, typename Z>
   void SetBranch(T name, Z branch, 
-		 bool turnon = true); 
+		 chain::MissingBranchAction = chain::THROW); 
 
   std::vector<std::string> get_all_branch_names() const; 
   std::string get_current_file() const; 
 private: 
   typedef std::vector<std::string> Strings; 
   void SetBranchAddressPrivate(std::string name, void* branch, 
-			       bool turnon = false); 
+			       chain::MissingBranchAction action); 
   void throw_bad_branch(std::string name) const; 
   std::string get_files_string() const; 
   Strings m_set_branches; 
@@ -35,9 +39,10 @@ private:
 
 
 template<typename T, typename Z>
-void SmartChain::SetBranch(T name, Z branch, bool turnon) { 
+void SmartChain::SetBranch(T name, Z branch, 
+			   chain::MissingBranchAction action) { 
   *branch = 0; 
-  SetBranchAddressPrivate(name, branch, turnon); 
+  SetBranchAddressPrivate(name, branch, action); 
 }
 
 

@@ -99,7 +99,12 @@ Muon::Muon(const EventMuons* container, int index):
   const TLorentzVector& tlv = def->GetMuonTLV(index); 
   assert(tlv.Pt() > 0); 
   SetPxPyPzE(tlv.Px(), tlv.Py(), tlv.Pz(), tlv.E()); 
-  m_isolation = buffer->mu_staco_ptcone20->at(index); 
+  if (buffer->mu_staco_ptcone20) { 
+    m_isolation = buffer->mu_staco_ptcone20->at(index); 
+  }
+  else { 
+    m_isolation = 1e19; 	// GUT scale should be safe...
+  }
 }
 bool Muon::pass_susy() const { 
   return m_pass_susy; 

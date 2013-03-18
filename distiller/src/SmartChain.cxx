@@ -42,14 +42,18 @@ std::string SmartChain::get_current_file() const {
 }
 
 void SmartChain::SetBranchAddressPrivate(std::string name, void* branch, 
-					 bool turnon) { 
+					 chain::MissingBranchAction action) { 
 
-  if (turnon) { 
-    unsigned branches_found = 0; 
-    SetBranchStatus(name.c_str(), 1, &branches_found); 
-    if (branches_found != 1) { 
+  unsigned branches_found = 0; 
+  SetBranchStatus(name.c_str(), 1, &branches_found); 
+  if (branches_found != 1) { 
+    switch (action) { 
+    case chain::NULL_POINTER: return; 
+    case chain::THROW: {
       std::string prob = (boost::format("missing branch: %s") % name).str();
       throw std::runtime_error(prob);
+    }
+    default: throw std::logic_error("unknown action in "__FILE__); 
     }
   }
   int return_code = TChain::SetBranchAddress(name.c_str(), branch); 

@@ -41,8 +41,7 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br,
   fChain->SetBranch(jc + "_MET_Egamma10NoTau_wpy", 
 		    &jet_MET_Egamma10NoTau_wpy); 
   fChain->SetBranch(jc + "_MET_Egamma10NoTau_statusWord", 
-		    &jet_MET_Egamma10NoTau_statusWord, 
-		    true); 
+		    &jet_MET_Egamma10NoTau_statusWord); 
 
   fChain->SetBranch("el_MET_Egamma10NoTau_wet", 
 		    &el_MET_Egamma10NoTau_wet); 
@@ -51,8 +50,7 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br,
   fChain->SetBranch("el_MET_Egamma10NoTau_wpy", 
 		    &el_MET_Egamma10NoTau_wpy); 
   fChain->SetBranch("el_MET_Egamma10NoTau_statusWord", 
-		    &el_MET_Egamma10NoTau_statusWord, 
-		    true); 
+		    &el_MET_Egamma10NoTau_statusWord); 
 
 
   fChain->SetBranch("MET_Egamma10NoTau_CellOut_etx"   ,
@@ -101,7 +99,8 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br,
   fChain->SetBranch("mu_staco_pt", &mu_staco_pt); 
   fChain->SetBranch("mu_staco_eta", &mu_staco_eta); 
   fChain->SetBranch("mu_staco_phi", &mu_staco_phi); 
-  fChain->SetBranch("mu_staco_ptcone20", &mu_staco_ptcone20); 
+  fChain->SetBranch("mu_staco_ptcone20", &mu_staco_ptcone20, 
+		    chain::NULL_POINTER); 
   fChain->SetBranch("mu_staco_charge", &mu_staco_charge); 
   fChain->SetBranch("mu_staco_isCombinedMuon", &mu_staco_isCombinedMuon); 
   fChain->SetBranch("mu_staco_isSegmentTaggedMuon", &mu_staco_isSegmentTaggedMuon); 
@@ -163,23 +162,21 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br,
   fChain->SetBranch("vx_nTracks", &vx_nTracks); 
 
   if (br & mv3) { 
-    bool do_mv3 = true;
     fChain->SetBranch(jc + "_flavor_weight_MV3_bVSu", 
-		      &jet_flavor_weight_MV3_bVSu, do_mv3); 
+		      &jet_flavor_weight_MV3_bVSu); 
     fChain->SetBranch(jc + "_flavor_weight_MV3_bVSc", 
-		      &jet_flavor_weight_MV3_bVSc, do_mv3); 
+		      &jet_flavor_weight_MV3_bVSc); 
     fChain->SetBranch(jc + "_flavor_weight_MV3_cVSu", 
-		      &jet_flavor_weight_MV3_cVSu, do_mv3); 
+		      &jet_flavor_weight_MV3_cVSu); 
   }
 
   if (br & jetfitter_charm) { 
-    bool do_jfc = true; 
     fChain->SetBranch(jc + "_flavor_component_jfitc_pu", 
-		      &jet_flavor_component_jfitc_pu, do_jfc);
+		      &jet_flavor_component_jfitc_pu);
     fChain->SetBranch(jc + "_flavor_component_jfitc_pb", 
-		      &jet_flavor_component_jfitc_pb, do_jfc);
+		      &jet_flavor_component_jfitc_pb);
     fChain->SetBranch(jc + "_flavor_component_jfitc_pc", 
-		      &jet_flavor_component_jfitc_pc, do_jfc);
+		      &jet_flavor_component_jfitc_pc);
   }
 
   if (br & unleash_sharktopus){  
