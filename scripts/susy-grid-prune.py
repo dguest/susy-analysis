@@ -55,7 +55,8 @@ def submit_ds(ds_name, debug=False, version=0, used_vars='used_vars.txt',
     ps = Popen(submit_string, stdout=PIPE, stderr=PIPE)
     out, err = ps.communicate()
     if out_talk: 
-        out_talk.put(out + err)
+        head_line = ' --- {} ---\n'.format(out_ds)
+        out_talk.put(head_line + err + out + '\n')
     return out_ds, out, err
 
 _skimmer = r"""
@@ -156,10 +157,11 @@ class Reporter(Process):
         'No jobs to be submitted since all input files were'
         ' (or are being) processed for the outDS.')
 
-    def __init__(self, n_datasets): 
+    def __init__(self, n_datasets, logfile=None): 
         super(Reporter,self).__init__()
         self.queue = Queue()
         self.n_datasets = n_datasets
+        self.logfile = logfile
         self.n_answer = 0
         self.n_error = 0 
         self.n_already_done = 0
@@ -205,6 +207,8 @@ class Reporter(Process):
 
                 self.output.write(outline)
                 self.output.flush()
+            if self.logfile: 
+                self.logfile.write(message)
         self.output.write('\n')
     def close(self): 
         """
@@ -275,7 +279,7 @@ if __name__ == '__main__':
     out_log = open(args.full_log,'w')
     tarball = 'jobtar.tar'
     if not args.mono:
-        reporter = Reporter(len(datasets))
+        reporter = Reporter(len(datasets), out_log)
         reporter.start()
         def submit(ds): 
             return submit_ds(ds, args.debug, version, 
@@ -291,11 +295,6 @@ if __name__ == '__main__':
         output_datasets = [ds for ds, out, err in out_tuples]
         for ds in output_datasets: 
             output_container_list.write(ds + '\n')
-        for ds, out, err in out_tuples: 
-            out_log.write('--- {} ---\n'.format(ds))
-            out_log.write(err)
-            out_log.write(out)
-            out_log.write('\n')
                           
     else: 
             
