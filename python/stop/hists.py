@@ -108,7 +108,7 @@ class HistNd(object):
             self._bins = None
             self._min = None
             self._max = None
-            self._number = None
+            self._axis = None
             self._type = 'bare'
             self._units = ''
         def __eq__(self, other): 
@@ -140,7 +140,7 @@ class HistNd(object):
             return self._max
         @property
         def number(self): 
-            return self._number
+            return self._axis
         @property
         def type(self): 
             return self._type
@@ -188,12 +188,14 @@ class HistNd(object):
         for name, atr in hdf_array.attrs.items(): 
             ax_name, part, ax_prop = name.rpartition('_')
             the_axis = self._axes[ax_name]
-            setattr(the_axis, ax_prop, atr)
-            the_axis.name = ax_name
+            setattr(the_axis, '_' + ax_prop, atr)
+            the_axis._name = ax_name
 
         for name, axis in self._axes.items(): 
             if not axis.valid: 
-                raise IOError("{} isn't well defined".format(name))
+                atrs = ', '.join(
+                    ['{}:{}'.format(k,v) for k,v in axis.__dict__.items()])
+                raise IOError("{} isn't well defined: {}".format(name, atrs))
 
     def __to_hdf(self, target, name): 
         ds = target.create_dataset(name, data=self._array, 
