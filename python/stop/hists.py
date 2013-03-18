@@ -104,13 +104,13 @@ class HistNd(object):
     """
     class Axis(object): 
         def __init__(self): 
-            self.name = None
-            self.bins = None
-            self.min = None
-            self.max = None
-            self.number = None
-            self.type = 'bare'
-            self.units = ''
+            self._name = None
+            self._bins = None
+            self._min = None
+            self._max = None
+            self._number = None
+            self._type = 'bare'
+            self._units = ''
         def __eq__(self, other): 
             span = self.max - self.min
             span_diff = (self.max - other.max)**2 + (self.min - other.min)**2
@@ -125,6 +125,28 @@ class HistNd(object):
             return all(conditions)
         def __ne__(self, other): 
             not self == other
+
+        @property
+        def name(self): 
+            return self._name
+        @property
+        def bins(self): 
+            return self._bins
+        @property
+        def min(self): 
+            return self._min
+        @property
+        def max(self): 
+            return self._max
+        @property
+        def number(self): 
+            return self._number
+        @property
+        def type(self): 
+            return self._type
+        @property
+        def units(self): 
+            return self._units
 
         @property
         def valid(self): 
@@ -245,6 +267,7 @@ class HistNd(object):
         return self._array.sum()
 
     def integrate(self, axis=None, reverse=False): 
+        # this should be made an axis method
         if axis is None: 
             for axis in self._axes: 
                 self.integrate(axis, reverse)
@@ -304,8 +327,7 @@ class HistNd(object):
         TODO: consider making this return reduced HistNd (rather than 
         modifying in place)
 
-        TODO: consider removing this (and most other public) method(s) ---
-        it's probably cleaner to use the array / axis objects directly. 
+        TODO: replace with a del method in the axes
         
         """
         ax = self._axes.pop(axis)
@@ -318,7 +340,7 @@ class HistNd(object):
                 'an axis somehow got undefined type: {}'.format(ax.type))
         for ax_name in self._axes: 
             if self._axes[ax_name].number > ax.number: 
-                self._axes[ax_name].number -= 1
+                self._axes[ax_name]._number -= 1
 
     def project_1d(self, axis): 
         """
