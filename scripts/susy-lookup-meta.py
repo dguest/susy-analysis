@@ -43,6 +43,8 @@ def _get_parser():
                         help='ami lookup')
     parser.add_argument('-m','--marks-mc', action='store_true', 
                         help='generate fresh mc file from mark\'s ds')
+    parser.add_argument('--data', action='store_true', 
+                        help='generate fresh data list')
     parser.add_argument('--clear-ami', action='store_true', 
                         help='clear ami lookup flag (to force rerun)')
     parser.add_argument('-t', '--trust-ds-names', action='store_true')
@@ -80,6 +82,9 @@ def run():
 
     if args.marks_mc: 
         build_mark_file(args.steering_file)
+    if args.data: 
+        build_data_file(args.steering_file)
+        sys.exit('made data meta, quitting...')
 
     mf = MetaFactory(args.steering_file)
     mf.clear_ami = args.clear_ami
@@ -129,6 +134,22 @@ def build_mark_file(name):
     for phys_type, ids in marks_types.iteritems(): 
         new_meta = ami.get_dataset_range(ids, phys_type)
         ds_cache.update(new_meta)
+    ds_cache.write()
+    if ami.bugstream.tell(): 
+        ami.bugstream.seek(0)
+        bugslog = 'ami-bugs.log'
+        with open(bugslog,'w') as bugs: 
+            for line in ami.bugstream: 
+                bugs.write(line)
+        sys.stderr.write('wrote bugs to {}\n'.format(bugslog))
+
+def build_data_file(name): 
+    from stop.lookup.ami import AmiAugmenter
+    ami = AmiAugmenter('p1329', origin='data12_8TeV')
+    ami.bugstream = TemporaryFile()
+    ds_cache = DatasetCache(name)
+    new_meta = ami.get_datasets_year(stream='physics_JetTauEtmiss')
+    ds_cache.update(new_meta)
     ds_cache.write()
     if ami.bugstream.tell(): 
         ami.bugstream.seek(0)

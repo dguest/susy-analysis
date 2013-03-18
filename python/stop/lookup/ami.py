@@ -34,7 +34,7 @@ class AmiAugmenter(object):
         ds_dict = {ds.key: ds for ds in datasets}
         return ds_dict
 
-    def ds_from_id(self, ds_id): 
+    def ds_from_id(self, ds_id, stream=None): 
         if 'data' in self.origin: 
             args = {'run':ds_id}
         else: 
@@ -50,11 +50,12 @@ class AmiAugmenter(object):
             type_filtered = []
             for m in match_sets: 
                 if self.ntup_filter in m['logicalDatasetName']: 
-                    type_filtered.append(m)
+                    if not stream or stream in m['logicalDatasetName']:
+                        type_filtered.append(m)
             match_sets = type_filtered
         if not match_sets: 
             raise DatasetMatchError('found nothing with {} and {}'.format(
-                    args.items()), self.ntup_filter)
+                    args.items(), self.ntup_filter),[])
 
         if len(match_sets) > 1: 
             tagged_matches = []
@@ -63,9 +64,9 @@ class AmiAugmenter(object):
                     tagged_matches.append(m)
             match_sets = tagged_matches
                 
-        if not match_sets:
+        if not len(match_sets) == 1:
             raise DatasetMatchError('problem matching {} with {}'.format(
-                    args.items(), self.p_tag), tagged_matches)
+                    args.items(), self.p_tag), match_sets)
         
         ldn = match_sets[0]['logicalDatasetName']
         info = query.get_dataset_info(self.client, ldn)
@@ -78,6 +79,28 @@ class AmiAugmenter(object):
         if not ds.is_data: 
             self._write_mc_ami_info(ds, info)
         return ds
+
+    def get_datasets_year(self, year=12, stream=None): 
+        datasets = {}
+        periods = query.get_periods(self.client, year=year)
+        hep_periods = []
+        for period in periods: 
+            if period.project.endswith('TeV'): 
+                hep_periods.append(period.name)
+        runs = query.get_runs(self.client, hep_periods, year=year)
+        for run in runs: 
+            self.outstream.write('looking for {}...'.format(run))
+            try: 
+                ds = self.ds_from_id(run, stream)
+            except DatasetMatchError as err: 
+                if err.matches: 
+                    raise
+                else: 
+                    self.outstream.write('nothing\n')
+                    continue
+            self.outstream.write('found: {}\n'.format(ds.full_name))
+            datasets[ds.key] = ds
+        return datasets
 
     def lookup_ami_names(self, datasets, trust_names=False):
         """
