@@ -1,5 +1,6 @@
 #include "StopDistiller.hh"
 #include "distill_tools.hh"
+#include "object_selection.hh"
 
 #include "SusyBuffer.h"
 #include "OutTree.hh"
@@ -192,6 +193,12 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
 	       << *dr_itr << std::endl; 
   }
 
+  const auto veto_electrons = object::veto_electrons(preselected_electrons); 
+  const auto veto_muons = object::veto_muons(preselected_muons); 
+
+  const auto control_electrons = object::control_electrons(veto_electrons); 
+  const auto control_muons = object::control_muons(veto_muons); 
+
   Jets signal_jets; 
   for (Jets::const_iterator jet_itr = preselection_jets.begin(); 
        jet_itr != preselection_jets.end(); jet_itr++) { 
@@ -247,9 +254,12 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   if(m_def->IsGoodVertex(m_susy_buffer->vx_nTracks)) {
     pass_bits |= pass::vxp_gt_4trk; 
   }
-  if (preselected_electrons.size() == 0 && preselected_muons.size() == 0) { 
-    pass_bits |= pass::lepton_veto; 
-  }
+
+  if (veto_electrons.size() == 0) pass_bits |= pass::electron_veto; 
+  if (veto_muons.size() == 0) pass_bits |= pass::muon_veto; 
+  if (control_electrons.size()) pass_bits |= pass::control_electron; 
+  if (control_muons.size()) pass_bits |= pass::control_muon; 
+
   if (met.Mod() > 120*GeV) { 
     pass_bits |= pass::met; 
   }
@@ -378,7 +388,8 @@ void StopDistiller::setup_outputs() {
   m_cutflow->add("met_120"               , pass::met            );
   m_cutflow->add("n_jet_geq_3"           , pass::n_jet          );
   m_cutflow->add("dphi_jetmet_min"       , pass::dphi_jetmet_min);
-  m_cutflow->add("lepton_veto"           , pass::lepton_veto    );
+  m_cutflow->add("electron_veto"         , pass::electron_veto  );
+  m_cutflow->add("muon_veto"             , pass::muon_veto      );
   m_cutflow->add("ctag_mainz"            , pass::ctag_mainz     ); 
   ull_t preselection = pass::grl | pass::trigger | pass::core | 
     pass::lar_error; 

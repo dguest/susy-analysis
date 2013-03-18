@@ -15,10 +15,12 @@ public:
   Electron(const EventElectrons* container, int index); 
   bool pass_susy() const; 
   bool is_signal() const; 
+  double rel_isolation() const; 
   int index() const; 
 private: 
   bool m_pass_susy; 
   bool m_is_signal; 
+  bool m_rel_isolation; 
   int m_index; 
 }; 
 
@@ -43,9 +45,11 @@ class Muon: public TLorentzVector
 public: 
   Muon(const EventMuons* container, int index); 
   bool pass_susy() const; 
+  double isolation() const; 
   int index() const; 
 private: 
   bool m_pass_susy; 
+  double m_isolation; 
   int m_index; 
 }; 
 

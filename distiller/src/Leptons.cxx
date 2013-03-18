@@ -44,6 +44,8 @@ Electron::Electron(const EventElectrons* container, int index) {
      SIGNAL_ELECTRON_ISO_CUT, 
      SIGNAL_ELECTRON_D0_CUT, 
      SIGNAL_ELECTRON_Z0_CUT); 
+  
+  m_rel_isolation = buffer->el_ptcone20->at(index) / Pt(); 
 
 }
 bool Electron::pass_susy() const { 
@@ -51,6 +53,9 @@ bool Electron::pass_susy() const {
 }
 bool Electron::is_signal() const { 
   return m_is_signal; 
+}
+double Electron::rel_isolation() const {
+  return m_rel_isolation; 
 }
 
 EventElectrons::EventElectrons(const SusyBuffer& buffer, SUSYObjDef& def, 
@@ -94,9 +99,13 @@ Muon::Muon(const EventMuons* container, int index):
   const TLorentzVector& tlv = def->GetMuonTLV(index); 
   assert(tlv.Pt() > 0); 
   SetPxPyPzE(tlv.Px(), tlv.Py(), tlv.Pz(), tlv.E()); 
+  m_isolation = buffer->mu_staco_ptcone20->at(index); 
 }
 bool Muon::pass_susy() const { 
   return m_pass_susy; 
+}
+double Muon::isolation() const { 
+  return m_isolation; 
 }
 int Muon::index() const { 
   return m_index; 

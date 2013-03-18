@@ -12,4 +12,10 @@ const static float COMBNN_TIGHT_LOG_CU_CUT = 1.0;
 
 const static int N_JETS_TO_SAVE = 4; 
 
+const static float VETO_ELECTRON_REL_ISOLATION = 0.1; 
+const static float CONTROL_ELECTRON_PT = 20e3; 
+
+const static float VETO_MUON_ISOLATION = 1.8e3; 
+const static float CONTROL_MUON_PT = 20e3; 
+
 #endif 

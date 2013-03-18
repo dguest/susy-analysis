@@ -70,6 +70,7 @@ DEPFLAGS    = -M -MP -MT $(BIN)/$*.o -MT $(DEP)/$*.d $(DEPINCLUDE) $(PY_FLAGS)
 TOBJ        := SusyBuffer.o
 T_DICTS     := $(TOBJ:.o=Dict.o)
 GEN_OBJ     := distill_tools.o OutTree.o Jets.o Leptons.o BitmapCutflow.o 
+GEN_OBJ     += object_selection.o
 GEN_OBJ     += SmartChain.o CollectionTreeReport.o 
 GEN_OBJ     += EventPreselector.o StopDistiller.o CheckSize.o
 GEN_OBJ     += BtagCalibration.o Grl.o RunInfo.o

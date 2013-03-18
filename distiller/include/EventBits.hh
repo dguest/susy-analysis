@@ -17,8 +17,13 @@ namespace pass {
   const ull_t met                = 1ULL <<  7; 
   const ull_t n_jet              = 1ULL <<  8; 
   const ull_t dphi_jetmet_min    = 1ULL <<  9; 
-  const ull_t lepton_veto        = 1ULL << 10; 
-  const ull_t ctag_mainz         = 1ULL << 11; 
+  const ull_t electron_veto      = 1ULL << 10; 
+  const ull_t muon_veto          = 1ULL << 11; 
+  const ull_t ctag_mainz         = 1ULL << 12; 
+
+  // requirements for control regions
+  const ull_t control_muon       = 1ULL << 15; 
+  const ull_t control_electron   = 1ULL << 16;    
 
   // must be set in the Analysis routines
   const ull_t mttop              = 1ULL << 21; 
