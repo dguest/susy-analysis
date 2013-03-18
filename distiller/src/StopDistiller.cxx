@@ -147,8 +147,8 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   EventElectrons all_electrons(*m_susy_buffer, *m_def, m_flags, m_info); 
   EventMuons all_muons(*m_susy_buffer, *m_def, m_flags, m_info); 
 
-  std::vector<Electron*> susy_electrons = filter_susy(all_electrons); 
-  std::vector<Muon*> susy_muons = filter_susy(all_muons); 
+  std::vector<Electron*> preselected_electrons = filter_susy(all_electrons); 
+  std::vector<Muon*> preselected_muons = filter_susy(all_muons); 
 
   ull_t pass_bits = 0; 
 
@@ -177,13 +177,13 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   }
 
   // need to get susy muon indices before overlap
-  std::vector<int> susy_muon_idx = get_indices(susy_muons); 
+  std::vector<int> susy_muon_idx = get_indices(preselected_muons); 
     
-  std::vector<double> jet_dr = remove_overlaping(susy_electrons, 
+  std::vector<double> jet_dr = remove_overlaping(preselected_electrons, 
 						 preselection_jets, 
 						 REMOVE_JET_CONE); 
-  remove_overlaping(preselection_jets, susy_electrons, REMOVE_EL_CONE); 
-  remove_overlaping(preselection_jets, susy_muons, REMOVE_MU_CONE); 
+  remove_overlaping(preselection_jets, preselected_electrons, REMOVE_EL_CONE); 
+  remove_overlaping(preselection_jets, preselected_muons, REMOVE_MU_CONE); 
 
   for (auto dr_itr = jet_dr.begin(); 
        dr_itr != jet_dr.end(); dr_itr++) { 
@@ -247,7 +247,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   if(m_def->IsGoodVertex(m_susy_buffer->vx_nTracks)) {
     pass_bits |= pass::vxp_gt_4trk; 
   }
-  if (susy_electrons.size() == 0 && susy_muons.size() == 0) { 
+  if (preselected_electrons.size() == 0 && preselected_muons.size() == 0) { 
     pass_bits |= pass::lepton_veto; 
   }
   if (met.Mod() > 120*GeV) { 
