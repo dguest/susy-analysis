@@ -35,7 +35,7 @@ class TransferFactorPlot(object):
         self.sr_pos = {k:p for p,k in enumerate(self.signal_regions)}
         self.cr_pos = {k:p for p,k in enumerate(self.control_regions)}
 
-    def save_plot(self, name): 
+    def save_tf_plot(self, name): 
         x = []                  # control regions
         y = []                  # signal regions
         z = []                  # something? 
@@ -59,5 +59,34 @@ class TransferFactorPlot(object):
             raise IOError('too many physicises')
         physics_type = next(iter(physicises))
         lab = '{} relative transfer factor error'.format(physics_type)
+        cb.set_label(lab, y=0.98, va='top')
+        fig.savefig(name, bbox_inches='tight')
+
+    def save_tf_rel_improvement_plot(self, name): 
+        x = []                  # control regions
+        y = []                  # signal regions
+        z = []                  # something? 
+        physicises = set()
+        for crname, srdict in self.transfer_factors.iteritems(): 
+            for srname, tf in srdict.iteritems(): 
+                y.append(self.cr_pos[crname])
+                x.append(self.sr_pos[srname])
+                tf_rel_error = tf.transfered_err / tf.transfered
+                mc_rel_error = tf.mc_only_err / tf.mc_only
+                z.append(tf_rel_error - mc_rel_error)
+                physicises.add(tf.physics)
+
+        fig = plt.figure(figsize=(6,4.5))
+        ax = fig.add_subplot(1,1,1)
+        sc = ax.scatter(x, y, c=z, s=self.dotsize, vmin=-0.015, vmax=0.015)
+        ax.set_xticks([self.sr_pos[x] for x in self.signal_regions])
+        ax.set_xticklabels([texify_sr(x) for x in self.signal_regions])
+        ax.set_yticks([self.cr_pos[x] for x in self.control_regions])
+        ax.set_yticklabels([texify_sr(x) for x in self.control_regions])
+        cb = plt.colorbar(sc)
+        if not len(physicises) == 1: 
+            raise IOError('too many physicises')
+        physics_type = next(iter(physicises))
+        lab = '{} tf method rel error - mc rel error'.format(physics_type)
         cb.set_label(lab, y=0.98, va='top')
         fig.savefig(name, bbox_inches='tight')

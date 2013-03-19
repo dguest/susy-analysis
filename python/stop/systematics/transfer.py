@@ -11,6 +11,10 @@ class TransferFactor(object):
         self.physics = None
         self.sr_frac = None
         self.sr_frac_err = None
+        self.mc_only = None
+        self.mc_only_err = None
+        self.transfered = None
+        self.transfered_err = None
 
 class TransferTable(object): 
     """
@@ -49,6 +53,9 @@ class TransferTable(object):
                 tf.physics = physics_type
                 tf.sr_frac, tf.sr_frac_err = (
                     transfer_calc.get_controlled_fraction(sr))
+                tf.transfered, tf.transfered_err = (
+                    transfer_calc.predict_count_coor_errors(cr,sr))
+                tf.mc_only, tf.mc_only_err = transfer_calc.get_total_mc(sr)
                 signal_regions[cr][sr] = tf
 
         return signal_regions
@@ -124,9 +131,6 @@ class TransferCalculator(object):
         oc_sim = sum(self.counts[variation][m][control] for m in other_mc)
         os_sim = sum(self.counts[variation][m][signal] for m in other_mc)
         prediction = tf * (dc - oc_sim) + os_sim
-        # print variation
-        # print oc_sim - self.get_total_mc(control, excluded_mc)[0]
-        # print os_sim - self.get_total_mc(signal, excluded_mc)[0]
         return prediction
 
     def get_transfer_rel_errors(self, control, signal): 
