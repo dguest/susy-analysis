@@ -15,6 +15,15 @@ physics_labels = [
     
     ]
 
+def texify_sr(sr_name): 
+    if '_' in sr_name: 
+        prenanme, throw_away, name = sr_name.partition('_')
+        tex_name = r'$\mathrm{{{}}}_{{\mathrm{{{}}} }}$'.format(
+            prenanme, name.replace('_',' '))
+    else: 
+        tex_name = r'$\mathrm{{ {} }}$'.format(sr_name)
+    return tex_name
+
 
 class StackStyle(object): 
     def __init__(self, tex_name, label, color): 

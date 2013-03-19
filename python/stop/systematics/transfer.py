@@ -41,15 +41,15 @@ class TransferTable(object):
         """
         transfer_calc = TransferCalculator(self.counts, physics_type)
         signal_regions = {}
-        for sr in self.control_regions: 
-            signal_regions[sr] = {}
-            for cr in self.signal_regions: 
+        for cr in self.control_regions: 
+            signal_regions[cr] = {}
+            for sr in self.signal_regions: 
                 factor, err = transfer_calc.get_transfer_factor(cr, sr)
                 tf = TransferFactor(factor,err)
                 tf.physics = physics_type
                 tf.sr_frac, tf.sr_frac_err = (
                     transfer_calc.get_controlled_fraction(sr))
-                signal_regions[sr][cr] = tf
+                signal_regions[cr][sr] = tf
                 
 
         return signal_regions

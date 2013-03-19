@@ -1,6 +1,7 @@
 from tempfile import TemporaryFile as Temp
 import warnings, re
 from stop.stack.coordinator import Region 
+from stop.style import texify_sr
 
 # not used any more
 def _not_blinded(physics_cut_tup): 
@@ -127,15 +128,6 @@ def _get_fields(region):
     for num, tag in enumerate(region.btag_config): 
         region_dict['Jet {} Tag'.format(num + 1)] = tag
     return region_dict
-
-def texify_sr(sr_name): 
-    if '_' in sr_name: 
-        prenanme, throw_away, name = sr_name.partition('_')
-        tex_name = r'$\text{{{}}}_{{\text{{{}}} }}$'.format(
-            prenanme, name.replace('_',' '))
-    else: 
-        tex_name = sr_name
-    return tex_name
 
 
 class LatexCutsConfig(object): 
