@@ -50,7 +50,6 @@ class TransferTable(object):
                 tf.sr_frac, tf.sr_frac_err = (
                     transfer_calc.get_controlled_fraction(sr))
                 signal_regions[cr][sr] = tf
-                
 
         return signal_regions
 
@@ -92,6 +91,44 @@ class TransferCalculator(object):
     def _stat_err(self, number): 
         return (number * self.stat_factor)**(0.5)
 
+    def _bare_tf(self, control, signal, variation=None): 
+        if not variation: 
+            variation = self.baseline
+        control_count = self.counts[variation][self.physics_type][control]
+        signal_count = self.counts[variation][self.physics_type][signal]
+        return signal_count / control_count
+    
+    def _get_statvar(self, region, physics, variation): 
+        basestat = self.counts[self.baseline][physics][region]
+        # variation is halved because there are two... correct? 
+        var = (basestat / 2)**0.5 
+        if variation == 'STATUP': 
+            return basestat + var
+        elif variation == 'STATDOWN': 
+            return basestat - var
+        else: 
+            return basestat
+
+    def _predicted_count(self, control, signal, variation=None): 
+        if not variation: 
+            variation = self.baseline
+        dc = self._get_statvar(control, self.data, variation)
+        if variation.startswith('STAT'): 
+            variation = self.baseline
+        tf = self._bare_tf(control, signal, variation)
+        excluded_mc = [self.data, self.physics_type] + self.signals
+        other_mc = []
+        for m in self.counts[self.baseline]: 
+            if m not in excluded_mc: 
+                other_mc.append(m)
+        oc_sim = sum(self.counts[variation][m][control] for m in other_mc)
+        os_sim = sum(self.counts[variation][m][signal] for m in other_mc)
+        prediction = tf * (dc - oc_sim) + os_sim
+        # print variation
+        # print oc_sim - self.get_total_mc(control, excluded_mc)[0]
+        # print os_sim - self.get_total_mc(signal, excluded_mc)[0]
+        return prediction
+
     def get_transfer_rel_errors(self, control, signal): 
         rel_errors = {}
         for variation in self.variations: 
@@ -100,9 +137,7 @@ class TransferCalculator(object):
         return rel_errors
 
     def get_transfer_factor(self, control, signal): 
-        control_count = self.counts[self.baseline][self.physics_type][control]
-        signal_count = self.counts[self.baseline][self.physics_type][signal]
-        base_factor = signal_count / control_count
+        base_factor = self._bare_tf(control, signal)
 
         rel_errors = self.get_transfer_rel_errors(control, signal)
         total_rel_error = sum( (v**2 for v in rel_errors.values()))**(0.5)
@@ -150,11 +185,13 @@ class TransferCalculator(object):
             control, [self.physics_type])
         signal_exc_mc, signal_exc_mc_err = self.get_total_mc(
             signal, [self.physics_type])
-        
+
+
         # the mc-subtracted control region 
         subtr_control = control_data - control_exc_mc
 
         transfered = transfer_factor * subtr_control
+
         # expected is tf * mc-subtracted control + signal region mc
         exp_data = transfered + signal_exc_mc
 
@@ -173,6 +210,22 @@ class TransferCalculator(object):
         total_error = (transfered_err**2 + signal_exc_mc_err**2)**(0.5)
 
         return exp_data, total_error
+
+    def predict_count_variations(self, control, signal): 
+        all_counts = {}
+        add_variations = ['STATUP','STATDOWN', self.baseline]
+        for variation in self.variations + add_variations:
+            all_counts[variation] = self._predicted_count(
+                control, signal, variation)
+        return all_counts
+
+    def predict_count_coor_errors(self, control, signal): 
+        all_counts = self.predict_count_variations(control, signal)
+        base = all_counts[self.baseline]
+        variations = [v for k,v in all_counts.items() if k != self.baseline]
+        errors = [base - c for c in variations]
+        sum_square_errors = sum(e**2 for e in errors)
+        return base, sum_square_errors**(0.5)
 
     def get_controlled_fraction(self, signal): 
         baseline = self.counts[self.baseline]
