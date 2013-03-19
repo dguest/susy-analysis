@@ -5,7 +5,12 @@ class TransferFactor(object):
     Basic transfer factor info: value, relative error, type fraction
     in signal region. 
     """
-    pass
+    def __init__(self, value, error): 
+        self.value = value
+        self.error = error
+        self.physics = None
+        self.sr_frac = None
+        self.sr_frac_err = None
 
 class TransferTable(object): 
     """
@@ -40,7 +45,12 @@ class TransferTable(object):
             signal_regions[sr] = {}
             for cr in self.signal_regions: 
                 factor, err = transfer_calc.get_transfer_factor(cr, sr)
-                signal_regions[sr][cr] = (factor,err)
+                tf = TransferFactor(factor,err)
+                tf.physics = physics_type
+                tf.sr_frac, tf.sr_frac_err = (
+                    transfer_calc.get_controlled_fraction(sr))
+                signal_regions[sr][cr] = tf
+                
 
         return signal_regions
 

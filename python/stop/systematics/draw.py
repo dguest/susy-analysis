@@ -33,10 +33,10 @@ class TransferFactorPlot(object):
         y = []                  # signal regions
         z = []                  # something? 
         for srname, crdict in self.transfer_factors.iteritems(): 
-            for crname, (tf, tf_error) in crdict.iteritems(): 
+            for crname, tf in crdict.iteritems(): 
                 x.append(self.cr_pos[crname])
                 y.append(self.sr_pos[srname])
-                z.append(tf_error / tf)
+                z.append(tf.error / tf.value)
 
         fig = plt.figure(figsize=(6,4.5))
         ax = fig.add_subplot(1,1,1)
