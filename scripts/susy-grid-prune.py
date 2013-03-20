@@ -121,8 +121,11 @@ class LocalSkimmer(object):
             '--noSubmit', 
             ]
         submit_string = ['prun'] + input_args
-        ps = Popen(submit_string)
-        ps.communicate()
+        ps = Popen(submit_string, stderr=PIPE, stdout=PIPE)
+        out, err = ps.communicate()
+        if 'ERROR' in err: 
+            raise IOError(
+                'failure creating tarball for grid submit: {}'.format(err))
         
     def __exit__(self, ex_type, ex_val, trace): 
         os.remove(self.script_name)
@@ -188,6 +191,22 @@ class Reporter(Process):
         supp.append('{} submitted'.format(submits))
         return ' ({})'.format(', '.join(supp))
 
+    def _tty_out(self): 
+        out_template = '\rdone with {} of {}'
+        outline = out_template.format(self.n_answer, self.n_datasets)
+        outline += self._get_supp()
+        self.output.write(outline)
+        self.output.flush()
+    def _file_out(self, message): 
+        if self.has_error(message): 
+            result = 'ERROR'
+        else: 
+            result = 'SUCCESS'
+        out = '{} of {}, result: {}\n'.format(
+            self.n_answer, self.n_datasets, result)
+        self.output.write(out)
+        self.output.flush()
+
     def run(self): 
         not_dead = True
         while not_dead: 
@@ -201,15 +220,14 @@ class Reporter(Process):
                     self.n_error += 1
                 if self.already_done(message): 
                     self.n_already_done += 1
-                out_template = '\rdone with {} of {}'
-                outline = out_template.format(self.n_answer, self.n_datasets)
-                outline += self._get_supp()
-
-                self.output.write(outline)
-                self.output.flush()
+                if self.output.isatty(): 
+                    self._tty_out()
+                else: 
+                    self._file_out(message)
             if self.logfile: 
                 self.logfile.write(message)
-        self.output.write('\n')
+        if self.output.isatty(): 
+            self.output.write('\n')
     def close(self): 
         """
         to be called externally
