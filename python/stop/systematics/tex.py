@@ -1,4 +1,5 @@
 from stop.style import texify_sr, cr_sort
+from math import log, floor
 
 class TransferTexPrinter(object): 
     """
@@ -28,14 +29,20 @@ class TransferTexPrinter(object):
         line = r'{}\\{}'.format(' & '.join(entries), r'\hline'*nhline) 
         return line + '\n'
 
-    def _row_with_err(self, row_entries, prec=1, first=None): 
+    def _row_with_err(self, row_entries, prec='auto', first=None): 
         if first: 
             texified_row = [first]
         else: 
             texified_row = []
-        def texify(value, error): 
-            return '${v:.{p}f} \pm {e:.{p}f}$'.format(
-                v=value, p=prec, e=error)
+        def texify(value, error, prec=prec): 
+            if prec == 'auto': 
+                prec = int( 1 - floor(log(error,10)) )
+            if prec >= 0: 
+                return '${v:.{p}f} \pm {e:.{p}f}$'.format(
+                    v=value, p=prec, e=error)
+            else: 
+                return '${v:.{p}f} \pm {e:.{p}f}$'.format(
+                    v=value, p=0, e=error)
         texified_row += [texify(v,e) for v,e in row_entries]
         return r'{} \\'.format(' & '.join( texified_row)) + '\n'
                 

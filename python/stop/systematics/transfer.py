@@ -138,12 +138,28 @@ class TransferCalculator(object):
         for variation in self.variations: 
             rel_var = self._get_rel_error_diff(variation, control, signal)
             rel_errors[variation] = rel_var
+
+        control_data = self.counts[self.baseline][self.data][control]
+        data_stat_err = self._stat_err(control_data)
+        control_mc, control_exc_mc_err = self.get_total_mc(
+            control, [self.physics_type])
+        subtr_control = control_data - control_mc
+        
+        subtr_control_rel_err = (
+            data_stat_err**2 + control_exc_mc_err**2)**(0.5) / subtr_control
+        
+        rel_errors['STAT'] = subtr_control_rel_err
+
         return rel_errors
 
-    def get_transfer_factor(self, control, signal): 
+    def get_transfer_factor(self, control, signal, errors='all'): 
         base_factor = self._bare_tf(control, signal)
 
         rel_errors = self.get_transfer_rel_errors(control, signal)
+        if errors == 'all': 
+            errors = [v for k,v in rel_errors.items() if k in errors]
+        else: 
+            errors = rel_errors.values()
         total_rel_error = sum( (v**2 for v in rel_errors.values()))**(0.5)
         total_error = base_factor * total_rel_error
         return base_factor, total_error
@@ -184,7 +200,6 @@ class TransferCalculator(object):
         baseline = self.counts[self.baseline]
         control_data = baseline[self.data][control]
         transfer_factor, tf_error = self.get_transfer_factor(control, signal)
-        tf_rel_error = tf_error / transfer_factor
         control_exc_mc, control_exc_mc_err = self.get_total_mc(
             control, [self.physics_type])
         signal_exc_mc, signal_exc_mc_err = self.get_total_mc(
@@ -200,15 +215,9 @@ class TransferCalculator(object):
         exp_data = transfered + signal_exc_mc
 
         # --- calculate errors ----
-        data_stat_err = self._stat_err(control_data)
-        subtr_control_rel_err = (
-            data_stat_err**2 + control_exc_mc_err**2)**(0.5) / subtr_control
-
         # transfered error (without final error for simulation in 
         # signal region)
-        transfered_rel_err = (
-            tf_rel_error**2 + subtr_control_rel_err**2)**(0.5) 
-        transfered_err = transfered_rel_err * transfered
+        transfered_err = tf_error * transfered
 
         # total error
         total_error = (transfered_err**2 + signal_exc_mc_err**2)**(0.5)
