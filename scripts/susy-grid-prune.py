@@ -79,6 +79,9 @@ for f in sys.argv[2].split(','):
     if ret != 1: 
         raise RuntimeError(f + ' CollectionTree is fucked')
 
+if not susy_chain.GetEntries(): 
+    sys.exit('chain is empty, quitting...')
+
 susy_chain.SetBranchStatus('*',0)
 set_branches = open('set-branches.txt','w')
 for branch in branches: 
