@@ -4,7 +4,7 @@ from matplotlib.colors import LogNorm, Normalize
 import matplotlib as mpl
 import numpy as np
 import yaml
-from stop.style import texify_sr
+from stop.style import texify_sr, cr_sort
 
 class TransferFactorPlot(object): 
     """
@@ -21,11 +21,6 @@ class TransferFactorPlot(object):
     def _setup_positions(self): 
         control_regions = set(self.transfer_factors.keys())
         signal_regions = set()
-        def cr_sort(key): 
-            splkey = key.split('_')
-            if len(splkey) == 1: 
-                return '1' + key
-            return ''.join(splkey[::-1])
 
         for cr in control_regions: 
             signal_regions |= set(self.transfer_factors[cr].keys())

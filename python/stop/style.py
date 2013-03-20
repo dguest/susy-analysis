@@ -24,6 +24,11 @@ def texify_sr(sr_name):
         tex_name = r'$\mathrm{{ {} }}$'.format(sr_name)
     return tex_name
 
+def cr_sort(key): 
+    splkey = key.split('_')
+    if len(splkey) == 1: 
+        return '1' + key
+    return ''.join(splkey[::-1])
 
 class StackStyle(object): 
     def __init__(self, tex_name, label, color): 
