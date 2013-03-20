@@ -82,6 +82,7 @@ for f in sys.argv[2].split(','):
 set_branches = open('set-branches.txt','w')
 
 if not susy_chain.GetEntries(): 
+    set_branches.write('none\n')
     print 'chain is empty, quitting...'
     sys.exit(0)
 
