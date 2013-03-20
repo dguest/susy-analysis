@@ -82,7 +82,8 @@ for f in sys.argv[2].split(','):
 set_branches = open('set-branches.txt','w')
 
 if not susy_chain.GetEntries(): 
-    sys.exit('chain is empty, quitting...')
+    print 'chain is empty, quitting...'
+    sys.exit(0)
 
 susy_chain.SetBranchStatus('*',0)
 for branch in branches: 

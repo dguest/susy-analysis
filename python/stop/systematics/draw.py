@@ -10,8 +10,8 @@ class TransferFactorPlot(object):
     """
     Expects to be initialized with transfer factor dictionary. 
     Hierarchy: 
-        - Signal Region
         - Control Region
+        - Signal Region
         - TF / error tuple
     """
     def __init__(self, transfer_factors): 
