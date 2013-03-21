@@ -99,8 +99,7 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br,
   fChain->SetBranch("mu_staco_pt", &mu_staco_pt); 
   fChain->SetBranch("mu_staco_eta", &mu_staco_eta); 
   fChain->SetBranch("mu_staco_phi", &mu_staco_phi); 
-  fChain->SetBranch("mu_staco_ptcone20", &mu_staco_ptcone20, 
-		    chain::NULL_POINTER); 
+  fChain->SetBranch("mu_staco_ptcone20", &mu_staco_ptcone20); 
   fChain->SetBranch("mu_staco_charge", &mu_staco_charge); 
   fChain->SetBranch("mu_staco_isCombinedMuon", &mu_staco_isCombinedMuon); 
   fChain->SetBranch("mu_staco_isSegmentTaggedMuon", &mu_staco_isSegmentTaggedMuon); 
@@ -170,14 +169,12 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br,
 		      &jet_flavor_weight_MV3_cVSu); 
   }
 
-  if (br & jetfitter_charm) { 
-    fChain->SetBranch(jc + "_flavor_component_jfitc_pu", 
-		      &jet_flavor_component_jfitc_pu);
-    fChain->SetBranch(jc + "_flavor_component_jfitc_pb", 
-		      &jet_flavor_component_jfitc_pb);
-    fChain->SetBranch(jc + "_flavor_component_jfitc_pc", 
-		      &jet_flavor_component_jfitc_pc);
-  }
+  fChain->SetBranch(jc + "_flavor_component_jfitc_pu", 
+		    &jet_flavor_component_jfitc_pu, chain::NULL_POINTER);
+  fChain->SetBranch(jc + "_flavor_component_jfitc_pb", 
+		      &jet_flavor_component_jfitc_pb, chain::NULL_POINTER);
+  fChain->SetBranch(jc + "_flavor_component_jfitc_pc", 
+		    &jet_flavor_component_jfitc_pc, chain::NULL_POINTER);
 
   if (br & unleash_sharktopus){  
     fChain->SetBranch("sharktopus",&sharktopus); 
