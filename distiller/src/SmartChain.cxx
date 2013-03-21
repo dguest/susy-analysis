@@ -1,6 +1,7 @@
 #include "SmartChain.hh"
 #include "TChain.h"
 #include "TFile.h"
+#include "TError.h"
 #include <boost/format.hpp>
 
 
@@ -19,7 +20,12 @@ int SmartChain::add(std::string file_name, long long nentries) {
   return TChain::Add(file_name.c_str(), nentries); 
 }
 int SmartChain::GetEntry(long long int entry_n, int getall) { 
+  // have to turn off errors even though I explicetly told root I don't 
+  // want them. These fucking designers are retarded. 
+  int old_error_level = gErrorIgnoreLevel; 
+  gErrorIgnoreLevel = kFatal; 
   int return_val = TChain::GetEntry(entry_n, getall); 
+  gErrorIgnoreLevel = old_error_level; 
   int this_tree_n = GetTreeNumber(); 
   if (this_tree_n != m_last_tree) { 
     for (Strings::const_iterator br_itr = m_set_branches.begin(); 
