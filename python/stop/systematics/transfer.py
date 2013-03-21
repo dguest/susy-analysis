@@ -15,6 +15,7 @@ class TransferFactor(object):
         self.mc_only_err = None
         self.transfered = None
         self.transfered_err = None
+        self.transfer_rel_errors = {}
 
 class TransferTable(object): 
     """
@@ -43,19 +44,21 @@ class TransferTable(object):
             - Control Region
             - TF / error tuple
         """
-        transfer_calc = TransferCalculator(self.counts, physics_type)
+        calc = TransferCalculator(self.counts, physics_type)
         signal_regions = {}
         for cr in self.control_regions: 
             signal_regions[cr] = {}
             for sr in self.signal_regions: 
-                factor, err = transfer_calc.get_transfer_factor(cr, sr)
+                factor, err = calc.get_transfer_factor(cr, sr)
                 tf = TransferFactor(factor,err)
                 tf.physics = physics_type
                 tf.sr_frac, tf.sr_frac_err = (
-                    transfer_calc.get_controlled_fraction(sr))
+                    calc.get_controlled_fraction(sr))
                 tf.transfered, tf.transfered_err = (
-                    transfer_calc.predict_count_coor_errors(cr,sr))
-                tf.mc_only, tf.mc_only_err = transfer_calc.get_total_mc(sr)
+                    calc.predict_count_coor_errors(cr,sr))
+                tf.mc_only, tf.mc_only_err = calc.get_total_mc(sr)
+                tf.transfer_rel_errors = calc.get_transfer_rel_errors(
+                    cr, sr)
                 signal_regions[cr][sr] = tf
 
         return signal_regions
