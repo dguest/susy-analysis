@@ -14,7 +14,7 @@ from distutils.spawn import find_executable
 from ConfigParser import SafeConfigParser
 
 def _get_ptag(ds_name): 
-    return re.compile('_p([0-9]{3,5})').search(ds_name).group(1)
+    return re.compile('_p([0-9]{3,5})').findall(ds_name)[-1]
 
 def _strip_front(ds_name): 
     if not any(ds_name.startswith(x) for x in ['data','mc']): 
