@@ -48,7 +48,10 @@ void SmartChain::SetBranchAddressPrivate(std::string name, void* branch,
   SetBranchStatus(name.c_str(), 1, &branches_found); 
   if (branches_found != 1) { 
     switch (action) { 
-    case chain::NULL_POINTER: return; 
+    case chain::NULL_POINTER: {
+      SetBranchStatus(name.c_str(), 0, &branches_found); 
+      return; 
+    }
     case chain::THROW: {
       std::string prob = (boost::format("missing branch: %s") % name).str();
       throw std::runtime_error(prob);
