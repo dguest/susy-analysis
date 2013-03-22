@@ -136,6 +136,7 @@ StopDistiller::Cutflow StopDistiller::run_cutflow() {
 }
 
 void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) { 
+  assert(m_susy_buffer); 
   if (m_flags & cutflag::verbose) { 
     print_progress(evt_n, std::cout); 
   }
@@ -318,20 +319,16 @@ void StopDistiller::setup_chain(const std::vector<std::string>& in) {
     throw std::runtime_error("I need files to run!"); 
   }
 
-  for (std::vector<std::string>::const_iterator file_itr = in.begin(); 
-       file_itr != in.end(); 
-       file_itr++) { 
-    int ret_code = m_chain->add(file_itr->c_str(),-1); 
-    if (ret_code != 1) { 
-      std::string err = (boost::format("bad file: %s") % 
-			 *file_itr).str(); 
-      throw std::runtime_error(err); 
-    }
+  for (auto file_itr = in.begin(); file_itr != in.end(); file_itr++) { 
+     m_chain->add(file_itr->c_str(),-1); 
   }
   m_ct_report->add_files(in); 
 
   BranchNames branch_names; 
   branch_names.trigger = m_info.trigger;
+
+  // don't try to setup the buffer if the chain is empty. 
+  if (m_chain->GetEntries() == 0) return; 
 
   m_susy_buffer = new SusyBuffer(m_chain, m_flags, branch_names); 
 

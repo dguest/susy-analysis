@@ -29,6 +29,7 @@ private:
 			       chain::MissingBranchAction action); 
   void throw_bad_branch(std::string name) const; 
   std::string get_files_string() const; 
+  std::string m_tree_name; 
   Strings m_set_branches; 
   std::set<std::string> m_set_branch_set; 
   Strings m_files; 

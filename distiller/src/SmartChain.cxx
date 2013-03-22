@@ -7,6 +7,7 @@
 
 SmartChain::SmartChain(std::string tree_name): 
   TChain(tree_name.c_str()), 
+  m_tree_name(tree_name), 
   m_last_tree(-1)
 { 
 }
@@ -16,6 +17,10 @@ int SmartChain::add(std::string file_name, long long nentries) {
   TFile file(file_name.c_str()); 
   if (!file.IsOpen() || file.IsZombie()) { 
     throw std::runtime_error("bad file: " + file_name); 
+  }
+  TTree* tree = dynamic_cast<TTree*>(file.Get(m_tree_name.c_str())); 
+  if (!tree || (tree->GetEntries() == 0)) { 
+    return 0; 
   }
   return TChain::Add(file_name.c_str(), nentries); 
 }
