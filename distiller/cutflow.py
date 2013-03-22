@@ -3,7 +3,13 @@
 from susy import cutflow
 import sys
 
-values = cutflow.cutflow(sys.argv[1:], flags='vbg', 
+files = sys.argv[1:]
+
+flags = 'vbg'
+if 'data' in files[0]: 
+    flags += 'd'
+
+values = cutflow.cutflow(files, flags=flags, 
                          grl='~/btag-calibration/grl.xml', 
                          output_ntuple='py-output.root', 
                          btag_cal_file='~/btag-calibration/BTagCalibration.env', 
