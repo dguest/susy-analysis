@@ -3,7 +3,7 @@
 import os, sys
 import argparse
 from stop.meta import DatasetCache
-from os.path import isfile
+from os.path import isfile, splitext
 from tempfile import TemporaryFile
 """
 Script to filter meta info. 
@@ -20,10 +20,12 @@ def _get_parser():
     parser.add_argument('-d', '--strip-data', action='store_true')
     parser.add_argument('-s', '--strip-simulation', action='store_true')
     parser.add_argument('-m', '--strip-distiller-meta', action='store_true')
-    parser.add_argument('-i', '--write-to-input', action='store_true')
     parser.add_argument('-t', '--filter-and-set-physicstype', 
                         action='store_true')
-    parser.add_argument('-o', '--output')
+    output = parser.add_mutually_exclusive_group()
+    output.add_argument('-i', '--write-to-input', action='store_true')
+    output.add_argument('-o', '--output')
+    output.add_argument('-n', '--n-outputs', type=int)
     return parser
 
 def correct_general(ds): 
@@ -64,17 +66,25 @@ def run():
             raise IOError("found repeat keys {}".format(overlap))
         original.update(new_cache)
 
-    if not args.output: 
-        out = TemporaryFile()
+    outputs = []
+    out_stream = None
+    if args.n_outputs: 
+        for n in xrange(args.n_outputs): 
+            base, ext = splitext(args.input_meta[0])
+            out_name = '{}-{}.yml'.format(base, n)
+            outputs.append(DatasetCache(out_name))
+    elif args.write_to_input: 
+        outputs = [DatasetCache(args.input_meta[0])]
+    elif args.output: 
+        if isinstance(args.output, str) and isfile(args.output): 
+            raise IOError(
+                "won't overwrite output file {}".format(args.output))
+        outputs = [DatasetCache(args.outputs)]
     else: 
-        out = args.output
-
-    output = DatasetCache(out)
+        out_stream = TemporaryFile()
+        outputs = [DatasetCache(out_stream)]
         
-    if isinstance(out, str) and isfile(out): 
-        raise IOError("won't overwrite output file {}".format(out))
-    
-    for key, item in original.iteritems(): 
+    for out_n, (key, item) in enumerate(original.iteritems()): 
         if args.strip_cutflow and hasattr(item,'cutflow'): 
             del item.cutflow
         if args.strip_distiller_meta: 
@@ -91,18 +101,16 @@ def run():
                 continue
 
         correct_general(item)
-        output[key] = item 
+        subout = out_n % len(outputs)
+        outputs[subout][key] = item 
 
-    output.write()
-    if not args.output and not args.write_to_input: 
-        out.seek(0)
-        for line in out: 
+        
+    if out_stream: 
+        out_stream.seek(0)
+        for line in out_stream: 
             print line.rstrip()
-    if args.write_to_input: 
-        with open(args.input_meta[0],'w') as outfile: 
-            out.seek(0)
-            for line in out: 
-                outfile.write(line)
+    for output in outputs: 
+        output.write()
 
 if __name__ == '__main__': 
     run()
