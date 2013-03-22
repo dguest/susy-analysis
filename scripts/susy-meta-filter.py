@@ -104,13 +104,12 @@ def run():
         subout = out_n % len(outputs)
         outputs[subout][key] = item 
 
-        
+    for output in outputs: 
+        output.write()
     if out_stream: 
         out_stream.seek(0)
         for line in out_stream: 
             print line.rstrip()
-    for output in outputs: 
-        output.write()
 
 if __name__ == '__main__': 
     run()
