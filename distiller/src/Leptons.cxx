@@ -46,6 +46,12 @@ Electron::Electron(const EventElectrons* container, int index) {
      SIGNAL_ELECTRON_Z0_CUT); 
   
   m_rel_isolation = buffer->el_ptcone20->at(index) / Pt(); 
+  if (buffer->el_charge) { 
+    m_charge = buffer->el_charge->at(index); 
+  }
+  else { 
+    m_charge = 0; 
+  }
 
 }
 bool Electron::pass_susy() const { 
@@ -56,6 +62,9 @@ bool Electron::is_signal() const {
 }
 double Electron::rel_isolation() const {
   return m_rel_isolation; 
+}
+float Electron::charge() const { 
+  return m_charge; 
 }
 
 EventElectrons::EventElectrons(const SusyBuffer& buffer, SUSYObjDef& def, 
@@ -105,6 +114,7 @@ Muon::Muon(const EventMuons* container, int index):
   else { 
     m_isolation = 1e19; 	// GUT scale should be safe...
   }
+  m_charge = buffer->mu_staco_charge->at(index); 
 }
 bool Muon::pass_susy() const { 
   return m_pass_susy; 
@@ -114,6 +124,9 @@ double Muon::isolation() const {
 }
 int Muon::index() const { 
   return m_index; 
+}
+float Muon::charge() const { 
+  return m_charge; 
 }
 
 EventMuons::EventMuons(const SusyBuffer& buffer, SUSYObjDef& def, 

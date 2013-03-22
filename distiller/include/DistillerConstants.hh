@@ -18,4 +18,7 @@ const static float CONTROL_ELECTRON_PT = 20e3;
 const static float VETO_MUON_ISOLATION = 1.8e3; 
 const static float CONTROL_MUON_PT = 20e3; 
 
+const static float Z_MASS = 91.188e3; 
+const static float Z_MASS_WINDOW = 10.0e3; 
+
 #endif 

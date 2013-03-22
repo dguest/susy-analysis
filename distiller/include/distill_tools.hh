@@ -15,6 +15,8 @@ namespace outtree {
 }; 
 class BtagCalibration; 
 class TLorentzVector; 
+class Muon; 
+class Electron; 
 
 // #include "TChain.h"
 #include <vector> 
@@ -22,10 +24,10 @@ class TLorentzVector;
 #include <map>
 #include <set>
 #include <cassert>
+#include <cmath>
 #include "btag_defs.hh"
 #include "typedefs.hh"
-// fix this somehow
-// #include "OutTree.hh"
+#include "DistillerConstants.hh"
 
 
 
@@ -37,6 +39,12 @@ void copy_leading_jet_info(const std::vector<SelectedJet*>& signal_jets,
 			   outtree::OutTree& out_tree); 
 
 ull_t jet_cleaning_bit(const std::vector<SelectedJet*>& preselection_jets);
+
+ull_t control_lepton_bits(const std::vector<Electron*>&, 
+			  const std::vector<Muon*>&);
+
+template<typename T> 
+bool has_os_zmass_pair(const std::vector<T*>&); 
 
 void fill_cjet_truth(outtree::OutTree& out_tree, 
 		     const std::vector<SelectedJet*>& jets); 
@@ -129,5 +137,19 @@ std::vector<T*> filter_susy(const std::vector<T*>& in)
   return out; 
 }
 
+template<typename T> 
+bool has_os_zmass_pair(const std::vector<T*>& lep) { 
+  size_t n_lep = lep.size(); 
+  for (size_t iii = 0; iii < n_lep; iii++) { 
+    for (size_t jjj = iii + 1; jjj < n_lep; jjj++) { 
+      float ch_prod = lep.at(jjj)->charge() * lep.at(iii)->charge(); 
+      float mass = (*lep.at(jjj) + *lep.at(iii)).Mag(); 
+      bool os = (ch_prod > -1.5 && ch_prod < -0.5); 
+      bool zmass = (std::fabs(mass - Z_MASS) < Z_MASS_WINDOW); 
+      if (os && zmass) return true; 
+    }
+  }
+  return false; 
+}
 
 #endif 

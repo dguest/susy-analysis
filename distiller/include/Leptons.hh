@@ -17,11 +17,13 @@ public:
   bool is_signal() const; 
   double rel_isolation() const; 
   int index() const; 
+  float charge() const; 
 private: 
   bool m_pass_susy; 
   bool m_is_signal; 
   bool m_rel_isolation; 
   int m_index; 
+  float m_charge; 
 }; 
 
 class EventElectrons: public std::vector<Electron*> 
@@ -47,10 +49,12 @@ public:
   bool pass_susy() const; 
   double isolation() const; 
   int index() const; 
+  float charge() const; 
 private: 
   bool m_pass_susy; 
   double m_isolation; 
   int m_index; 
+  float m_charge; 
 }; 
 
 class EventMuons: public std::vector<Muon*>

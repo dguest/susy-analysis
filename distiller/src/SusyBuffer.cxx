@@ -86,6 +86,7 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br,
   fChain->SetBranch("el_ptcone20", &el_ptcone20); // for IsSignal
   fChain->SetBranch("el_trackd0pv", &el_trackd0pv); // for IsSignal
   fChain->SetBranch("el_trackz0pv", &el_trackz0pv); // for IsSignal
+  fChain->SetBranch("el_charge", &el_charge, chain::NULL_POINTER); 
   fChain->SetBranch("el_cl_E", &el_cl_E); 
   fChain->SetBranch("el_cl_eta", &el_cl_eta); 
   fChain->SetBranch("el_cl_phi", &el_cl_phi); 

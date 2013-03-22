@@ -256,10 +256,10 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
     pass_bits |= pass::vxp_gt_4trk; 
   }
 
+  pass_bits |= control_lepton_bits(control_electrons, control_muons); 
+
   if (veto_electrons.size() == 0) pass_bits |= pass::electron_veto; 
   if (veto_muons.size() == 0) pass_bits |= pass::muon_veto; 
-  if (control_electrons.size()) pass_bits |= pass::control_electron; 
-  if (control_muons.size()) pass_bits |= pass::control_muon; 
 
   if (met.Mod() > 120*GeV) { 
     pass_bits |= pass::met; 

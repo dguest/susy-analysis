@@ -74,6 +74,7 @@ public :
   vector<float>     *el_ptcone20;
   vector<float>     *el_trackd0pv;
   vector<float>     *el_trackz0pv;
+  vector<float>     *el_charge;
   vector<float>   *el_cl_E;
   vector<float>   *el_cl_eta;
   vector<float>   *el_cl_phi;

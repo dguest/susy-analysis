@@ -93,6 +93,19 @@ ull_t jet_cleaning_bit(const std::vector<SelectedJet*>& preselection_jets)
   return pass_bits; 
 }
 
+ull_t control_lepton_bits(const std::vector<Electron*>& el, 
+			  const std::vector<Muon*>& mu) { 
+  ull_t pass_bits = 0; 
+  size_t n_el = el.size(); 
+  size_t n_mu = mu.size(); 
+  if (n_el) pass_bits |= pass::control_electron; 
+  if (n_mu) pass_bits |= pass::control_muon; 
+  if (n_el + n_mu > 1) pass_bits |= pass::multi_lepton; 
+  if (has_os_zmass_pair(el)) pass_bits |= pass::os_zmass_el_pair; 
+  if (has_os_zmass_pair(mu)) pass_bits |= pass::os_zmass_mu_pair; 
+  return pass_bits; 
+}
+
 void fill_event_truth(outtree::OutTree& out_tree, const SusyBuffer& buffer, 
 		      unsigned flags) { 
   out_tree.hfor_type = buffer.hfor_type; 
