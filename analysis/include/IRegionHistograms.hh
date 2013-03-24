@@ -12,6 +12,7 @@ class IRegionHistograms
 public: 
   virtual void fill(const EventObjects& objects) = 0; 
   virtual void write_to(H5::CommonFG&) const = 0; 
+  virtual ~IRegionHistograms(){}; 
 }; 
 
 #endif 
