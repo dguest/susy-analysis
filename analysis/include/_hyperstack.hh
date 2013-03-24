@@ -30,6 +30,9 @@ static bool safe_copy(PyObject* value, ull_t& dest);
 static bool safe_copy(PyObject* value, double& dest); 
 static bool safe_copy(PyObject* value, btag::JetTag& dest); 
 static bool safe_copy(PyObject* value, syst::Systematic& dest); 
+static bool safe_copy(PyObject* value, reg::Type& dest); 
+static bool safe_copy(PyObject* value, reg::Hists& dest); 
+
 
 // --- implementation ---
 

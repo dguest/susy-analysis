@@ -5,6 +5,7 @@
 #include "EventObjects.hh"
 #include "RegionHistograms.hh"
 #include "IRegionHistograms.hh"
+#include "Region2dKinematicHistograms.hh"
 #include "PhysicalConstants.hh"
 #include "CutAugmenter.hh"
 #include "common_functions.hh"
@@ -48,8 +49,20 @@ void HistBuilder::add_region(const RegionConfig& region){
       (m_build_flags & buildflag::is_data)) { 
     return; 
   }
-  m_histograms.push_back
-    (make_pair(region.name,new RegionHistograms(region, m_build_flags)));
+
+  if (region.hists == reg::HISTMILL) { 
+    m_histograms.push_back
+      (make_pair(region.name,new RegionHistograms(region, m_build_flags)));
+  }
+  else if (region.hists == reg::KINEMATIC_STAT) { 
+    m_histograms.push_back
+      (make_pair(region.name, 
+		 new Region2dKinematicHistograms(region, m_build_flags))); 
+  }
+  else { 
+    throw std::logic_error("unknown hist type for region " + region.name); 
+  }
+  
   if (! (m_build_flags & buildflag::is_data) ) { 
     try { 
       m_factory->set_btagging(region.jet_tag_requirements); 

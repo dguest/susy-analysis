@@ -18,7 +18,7 @@ namespace H5 {
 namespace { 
   const float MAX_LEADING_JET_PT = 500e3; 
   const float MAX_MET = 500e3; 
-  const float MEV_PER_BIN = 5.0; 
+  const float MEV_PER_BIN = 5.0e3; 
 }; 
 
 class Region2dKinematicHistograms: 

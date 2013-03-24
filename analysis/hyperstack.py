@@ -32,7 +32,15 @@ all_cuts = [
         'name': 'bob', 
         'output_name': 'stupider.h5', 
         'type': 'CONTROL', 
-        'jet_tag_requirements': ['NOTAG','LOOSE']
+        'jet_tag_requirements': ['NOTAG','LOOSE'], 
+        'hists': 'KINEMATIC_STAT', 
+        }, 
+    { 
+        'name': 'boball', 
+        'output_name': 'stupider.h5', 
+        'type': 'CONTROL', 
+        'jet_tag_requirements': ['NOTAG','LOOSE'], 
+        'hists': 'HISTMILL', 
         }, 
     ]
 

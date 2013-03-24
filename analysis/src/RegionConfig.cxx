@@ -8,6 +8,7 @@ RegionConfig::RegionConfig() :
   veto_bits(0), 
   systematic(syst::NONE), 
   output_name(""), 
-  type(reg::SIGNAL)		// will be blinded by default
+  type(reg::SIGNAL), 		// will be blinded by default
+  hists(reg::HISTMILL)
 {
 }

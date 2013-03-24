@@ -70,8 +70,7 @@ void Region2dKinematicHistograms::fill(const EventObjects& obj) {
   const TVector2 met = obj.met; 
 
   assert(jets.size() > 0); 
-  std::vector<double> ptmet = {jets.at(0).Pt(), met.Mod()}; 
-
+  const std::vector<double> ptmet = {jets.at(0).Pt(), met.Mod()}; 
   m_leading_pt_vs_met->fill(ptmet,  weight); 
   if (m_leading_pt_vs_met_stats) { 
     m_leading_pt_vs_met_stats->fill(ptmet, 1.0); 

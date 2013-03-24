@@ -63,14 +63,14 @@ static bool safe_copy(PyObject* dict, RegionConfig& region)
   if (!require(dict, "output_name", region.output_name)) return false;
   if (!require(dict, "type", region.type)) return false;
   
-  region.systematic = syst::NONE; 
   if (!copy(dict, "required_bits", region.required_bits)) return false;
   if (!copy(dict, "veto_bits", region.veto_bits)) return false;
   if (!copy(dict, "systematic", region.systematic)) return false; 
   if (!copy(dict, "leading_jet_pt", region.leading_jet_pt)) return false;
   if (!copy(dict, "met", region.met)) return false; 
-  if (!copy(dict, "jet_tag_requirements", region.jet_tag_requirements))
-    return false; 
+  if (!copy(dict, "jet_tag_requirements", 
+	    region.jet_tag_requirements)) return false; 
+  if (!copy(dict, "hists", region.hists)) return false; 
 
   return true; 
 }
@@ -152,6 +152,26 @@ static bool safe_copy(PyObject* value, reg::Type& dest) {
   }
 }
 
+static bool safe_copy(PyObject* value, reg::Hists& dest) { 
+  char* charname = PyString_AsString(value); 
+  if (PyErr_Occurred()) return false; 
+  std::string name(charname); 
+  using namespace reg; 
+  if (name == "HISTMILL") { 
+    dest = HISTMILL; 
+    return true; 
+  }
+  else if (name == "KINEMATIC_STAT") { 
+    dest = KINEMATIC_STAT; 
+    return true; 
+  }
+  else { 
+    std::string problem = "got undefined hists type: " + name; 
+    PyErr_SetString(PyExc_ValueError,problem.c_str()); 
+    return false; 
+  }
+
+}
 
 static bool safe_copy(PyObject* value, syst::Systematic& dest) { 
   char* charname = PyString_AsString(value); 

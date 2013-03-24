@@ -9,6 +9,7 @@
 
 namespace reg { 
   enum Type { CONTROL, SIGNAL, VALIDATION }; 
+  enum Hists { HISTMILL, KINEMATIC_STAT }; 
 }
 
 struct RegionConfig 
@@ -22,6 +23,7 @@ struct RegionConfig
   syst::Systematic systematic; 
   std::string output_name; 
   reg::Type type; 
+  reg::Hists hists; 
   RegionConfig(); 
 };
 
