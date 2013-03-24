@@ -78,6 +78,7 @@ def run():
         
     count_dict = {}
     for name, syst_dict in all_dict.iteritems(): 
+        safe = not args.fast
         syst_count = table.get_physics_cut_dict(syst_dict)
         count_dict[name] = syst_count
     

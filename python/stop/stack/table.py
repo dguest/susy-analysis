@@ -15,7 +15,7 @@ def _not_blinded(physics_cut_tup):
     return False
     
 
-def get_physics_cut_dict(plots_dict, safe=True, notblind=_not_blinded): 
+def get_physics_cut_dict(plots_dict, safe=True): 
     """
     builds dictionary keyed by (physics type, cut name) containing the 
     counts of each (type, cut) pair

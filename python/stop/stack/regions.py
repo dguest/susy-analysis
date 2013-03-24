@@ -42,7 +42,7 @@ class Region(object):
 
     def get_yaml_dict(self): 
         """
-        dumps the object as a dict for yaml
+        returns the object as a dict for yaml
         """
         # as long as the names don't change we can just dump the object data
         baselist = self.__dict__.items()
@@ -101,7 +101,7 @@ class SuperRegion(object):
                     " (adding {} to {})".format(reg_tuple, self.tuple))
         else: 
             self.tuple = reg_tuple
-            self.kinematic_lower_bounds = region.kinematics
+            self.kinematic_lower_bounds = region.kinematics.copy()
         for kin in self.kinematics: 
             if region.kinematics[kin] < self.kinematic_lower_bounds[kin]: 
                 self.kinematic_lower_bounds[kin] = region.kinematics[kin]
@@ -118,6 +118,15 @@ class SuperRegion(object):
             if any(name[cn] != subnames[0][cn] for name in subnames): 
                 return subnames[0][:cn]
         return subnames[0][:min_len]
+    
+    def get_yaml_dict(self): 
+        subregions = {
+            n:v.get_yaml_dict() for n,v in self.subregions.iteritems()}
+        output = {
+            'subregions':subregions, 
+            'lower_bounds': self.kinematic_lower_bounds.copy(), 
+            }
+        return output
         
     def get_config_dict(self): 
         req, veto, jtags, reg_type = self.tuple

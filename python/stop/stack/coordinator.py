@@ -26,6 +26,7 @@ class Coordinator(object):
         part + shift for part in 'BCUT' for shift in ['UP','DOWN']
         ]
     aggregate_hist_name = 'aggregate.h5'
+    super_region_meta_name = 'superregions.yml'
 
     def __init__(self, yaml_file=None): 
         if yaml_file: 
@@ -69,6 +70,20 @@ class Coordinator(object):
             if not isdir(syst_hist_path): 
                 os.mkdir(syst_hist_path)
         return syst_hist_path
+
+    def _write_plot_region_meta(self, systematic, regions, overwrite=False): 
+        hist_path = self._config_dict['files']['hists']
+        yml_path = join(hist_path, self.super_region_meta_name)
+        if isfile(yml_path): 
+            if overwrite: 
+                os.remove(yml_path)
+            else: 
+                raise IOError("{} already exists, won't overwrite".format(
+                        yml_path))
+        yml_dict = {
+            n:v.get_yaml_dict() for n,v in regions.iteritems()}
+        with open(yml_path, 'w') as yml: 
+            yml.write(yaml.dump(yml_dict))
 
     def _print_new_line(self): 
         if not self.verbose and self.outstream.isatty(): 
@@ -121,6 +136,7 @@ class Coordinator(object):
             k:Region(v) for k,v in self._config_dict['regions'].items()}
         if do_stat_regions: 
             stacker_regions = condense_regions(stacker_regions)
+            self._write_plot_region_meta(syst, stacker_regions)
         stacker = Stacker(stacker_regions)
         stacker.total_ntuples = len(ntuples)
         stacker.rerun = rerun
@@ -362,3 +378,4 @@ class Stacker(object):
         if not isfile(ntuple): 
             raise IOError(3,"doesn't exist",ntuple)
         stacksusy(ntuple, regions, flags=flags)
+        

@@ -1,6 +1,7 @@
 import numpy as np
 from collections import defaultdict
 import copy
+import weakref
 
 class Hist1d(object): 
     """
