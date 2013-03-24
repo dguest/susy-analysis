@@ -11,7 +11,7 @@
 
 class JetFactory; 
 class CutAugmenter;
-class RegionHistograms; 
+class IRegionHistograms; 
 struct RegionConfig; 
 
 class HistBuilder : public boost::noncopyable
@@ -21,15 +21,16 @@ public:
   ~HistBuilder(); 
   void add_region(const RegionConfig& region); 
   int build(); 
-  void save(); 
+  void save() const; 
 private: 
   const std::string m_input_file; 
   const unsigned m_build_flags; 
   
-  std::map<std::string, std::vector<RegionHistograms*> > m_out_file_map; 
+  std::map<std::string, 
+	   std::vector<const IRegionHistograms*> > m_out_file_map; 
 
   JetFactory* m_factory; 
-  std::vector<std::pair<std::string, RegionHistograms*> > m_histograms; 
+  std::vector<std::pair<std::string, IRegionHistograms*> > m_histograms; 
 
 };
 

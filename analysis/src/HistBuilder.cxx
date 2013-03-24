@@ -4,6 +4,7 @@
 #include "JetFactory.hh"
 #include "EventObjects.hh"
 #include "RegionHistograms.hh"
+#include "IRegionHistograms.hh"
 #include "PhysicalConstants.hh"
 #include "CutAugmenter.hh"
 #include "common_functions.hh"
@@ -58,7 +59,7 @@ void HistBuilder::add_region(const RegionConfig& region){
       throw std::runtime_error(err.what() + app); 
     }
   }
-  RegionHistograms* hists = m_histograms.rbegin()->second; 
+  const IRegionHistograms* hists = m_histograms.rbegin()->second; 
   m_out_file_map[region.output_name].push_back(hists); 
 
 }
@@ -104,7 +105,7 @@ int HistBuilder::build() {
 }
 
 
-void HistBuilder::save() { 
+void HistBuilder::save() const { 
 
   for (auto itr = m_out_file_map.begin(); 
        itr != m_out_file_map.end(); itr++) { 

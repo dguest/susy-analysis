@@ -9,8 +9,9 @@
 #include "systematic_defs.hh"
 #include "RegionConfig.hh"
 #include "RegionEventFilter.hh"
+#include "IRegionHistograms.hh"
 
-class EventObjects; 
+struct EventObjects; 
 class Jet1DHists; 
 class TruthJetHists; 
 class Histogram; 
@@ -23,13 +24,13 @@ namespace {
   const int N_BINS = 100; 
 }; 
 
-class RegionHistograms: public boost::noncopyable
+class RegionHistograms: public boost::noncopyable, public IRegionHistograms
 {
 public: 
   RegionHistograms(const RegionConfig& config, const unsigned build = 0); 
   ~RegionHistograms(); 
-  void fill(const EventObjects& objects);
-  void write_to(H5::CommonFG&) const; 
+  virtual void fill(const EventObjects& objects);
+  virtual void write_to(H5::CommonFG&) const; 
   void write_to(std::string file_name = "") const; 
 private: 
   void add_cjet_rank(); 
