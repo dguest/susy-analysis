@@ -82,7 +82,7 @@ void Region2dKinematicHistograms::write_to(H5::CommonFG& file) const {
   Group region(file.createGroup(m_region_config.name)); 
 
   m_leading_pt_vs_met->write_to(region, "kinematics");
-  if (m_leading_pt_vs_met) { 
+  if (m_leading_pt_vs_met_stats) { 
     m_leading_pt_vs_met_stats->write_to(region, "kinematicStats"); 
   }
 }

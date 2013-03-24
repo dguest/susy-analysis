@@ -1,3 +1,5 @@
+from stop import bits
+
 class Region(object): 
     """
     Stores info on signal / control region. Bits are stored as strings 
@@ -113,19 +115,21 @@ class SuperRegion(object):
         if not min_len: 
             return ''
         for cn in xrange(min_len): 
-            if any(name[cn] != subnames[0][cn]): 
+            if any(name[cn] != subnames[0][cn] for name in subnames): 
                 return subnames[0][:cn]
         return subnames[0][:min_len]
         
     def get_config_dict(self): 
         req, veto, jtags, reg_type = self.tuple
+        lower_bounds = self.kinematic_lower_bounds
         config_dict = {
             'jet_tag_requirements': list(jtags), 
-            'leading_jet_pt': self.kinematics['leading_jet_gev']*1e3, 
-            'met':self.kinematics['met_gev']*1e3, 
+            'leading_jet_pt': lower_bounds['leading_jet_gev']*1e3, 
+            'met': lower_bounds['met_gev']*1e3, 
             'required_bits': req, 
             'veto_bits': veto, 
-            'type': reg_type, 
+            'type': reg_type.upper(), 
+            'hists': 'KINEMATIC_STAT', 
             }
         return config_dict
         
