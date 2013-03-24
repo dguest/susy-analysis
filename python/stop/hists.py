@@ -1,7 +1,7 @@
 import numpy as np
 from collections import defaultdict
 import copy
-import weakref
+import weakref, warnings
 
 class Hist1d(object): 
     """
@@ -112,6 +112,7 @@ class HistNd(object):
             self._axis = None
             self._type = 'bare'
             self._units = ''
+            self._hist = None
         def __eq__(self, other): 
             span = self.max - self.min
             span_diff = (self.max - other.max)**2 + (self.min - other.min)**2
@@ -178,6 +179,9 @@ class HistNd(object):
                 return bin_bounds[self.bins], np.inf
             else: 
                 return bin_bounds[num - 1], bin_bounds[num]
+        
+        def integrate(self, reverse=False): 
+            self._hist._integrate(self.number, reverse)
 
     def __init__(self,array=None): 
         self._axes = defaultdict(HistNd.Axis)
@@ -191,6 +195,7 @@ class HistNd(object):
             the_axis = self._axes[ax_name]
             setattr(the_axis, '_' + ax_prop, atr)
             the_axis._name = ax_name
+            the_axis._hist = weakref.proxy(self)
 
         for name, axis in self._axes.items(): 
             if not axis.valid: 
@@ -270,6 +275,7 @@ class HistNd(object):
         return self._array.sum()
 
     def integrate(self, axis=None, reverse=False): 
+        warnings.warn(FutureWarning, "integrate will be made an axis method")
         # this should be made an axis method
         if axis is None: 
             for axis in self._axes: 
@@ -284,15 +290,20 @@ class HistNd(object):
 
             if self._axes[axis].type == 'integral': 
                 return None
-                
-            a = self._array
-            if reverse: 
-                a = a.swapaxes(0,ax_number)[::-1,...].swapaxes(0,ax_number)
-            a = np.cumsum(a, axis=ax_number)
-            if reverse: 
-                a = a.swapaxes(0,ax_number)[::-1,...].swapaxes(0,ax_number)
-            self._array = a
-            self._axes[axis].type = 'integral'
+            self._integrate(ax_number, reverse)
+
+    def _integrate(self, ax_number, reverse=False): 
+        if self.axes[ax_number].type == 'integral': 
+            raise ArithmeticError("tried to integrate axis {} twice".format(
+                    ax_number))
+        a = self._array
+        if reverse: 
+            a = a.swapaxes(0,ax_number)[::-1,...].swapaxes(0,ax_number)
+        a = np.cumsum(a, axis=ax_number)
+        if reverse: 
+            a = a.swapaxes(0,ax_number)[::-1,...].swapaxes(0,ax_number)
+        self._array = a
+        self.axes[ax_number].type = 'integral'
 
 
     def cut(self, axis, value, reverse=False): 
