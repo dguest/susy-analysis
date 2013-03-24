@@ -1,12 +1,10 @@
-#ifndef EVENT_HISTOGRAMS_HH
-#define EVENT_HISTOGRAMS_HH
+#ifndef REGION_HISTOGRAMS_HH
+#define REGION_HISTOGRAMS_HH
 
 #include <boost/noncopyable.hpp>
 #include <vector> 
 
 #include "typedefs.hh"
-#include "BtagConfig.hh"
-#include "systematic_defs.hh"
 #include "RegionConfig.hh"
 #include "RegionEventFilter.hh"
 #include "IRegionHistograms.hh"
