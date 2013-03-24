@@ -1,5 +1,6 @@
 import yaml
 from stop import bits
+from stop.stack.regions import Region, condense_regions
 from os.path import basename, isfile, isdir, join, splitext
 import glob, os, tempfile, sys
 
@@ -105,7 +106,7 @@ class Coordinator(object):
                 broken.append(name)
         return broken
 
-    def _fast_stack(self, rerun=False): 
+    def _fast_stack(self, rerun=False, do_stat_regions=False): 
         ntup_dict = self._config_dict['files']['ntuples']
         globdir = '{}/*.root'.format(ntup_dict['NONE'])
         ntuples = glob.glob(globdir)
@@ -116,7 +117,11 @@ class Coordinator(object):
             hist_path = self._get_syst_hist_path(syst, create=True)
 
         base_hist_path = '/'.join(hist_path.split('/')[:-1])
-        stacker = Stacker(self._config_dict['regions'])
+        stacker_regions = {
+            k:Region(v) for k,v in self._config_dict['regions'].items()}
+        if do_stat_regions: 
+            stacker_regions = condense_regions(stacker_regions)
+        stacker = Stacker(stacker_regions)
         stacker.total_ntuples = len(ntuples)
         stacker.rerun = rerun
         n_ran = 0
@@ -136,9 +141,9 @@ class Coordinator(object):
         if n_ran: 
             self._print_new_line()
 
-    def stack(self, systematic='NONE', rerun=False): 
+    def stack(self, systematic='NONE', rerun=False, do_stat_regions=False): 
         if systematic == 'all': 
-            self._fast_stack(rerun)
+            self._fast_stack(rerun, do_stat_regions)
             return 
                 
         ntup_dict = self._config_dict['files']['ntuples']
@@ -155,7 +160,11 @@ class Coordinator(object):
             raise IOError("no ntuples found in {}".format(globdir))
 
         syst_hist_path = self._get_syst_hist_path(systematic, create=True)
-        stacker = Stacker(self._config_dict['regions'])
+        stacker_regions = {
+            k:Region(v) for k,v in self._config_dict['regions'].items()}
+        if do_stat_regions: 
+            stacker_regions = condense_regions(stacker_regions)
+        stacker = Stacker(stacker_regions)
         stacker.total_ntuples = len(ntuples)
         stacker.rerun = rerun
         n_ran = 0
@@ -226,87 +235,6 @@ class Coordinator(object):
         for line in yaml.dump(self._config_dict): 
             yaml_file.write(line)
 
-class Region(object): 
-    """
-    Stores info on signal / control region. Bits are stored as strings 
-    and used to look up real values. This class is also responsible for
-    checking the integrity of its stored data. 
-    """
-    default_dict = { 
-        'type':'control', 
-        'bits': { 
-            'required':['preselection'], 
-            'veto':[], 
-            }, 
-        'kinematics':{
-            'leading_jet_gev':240, 
-            'met_gev':180, 
-            }, 
-        'btag_config':['NOTAG','LOOSE','TIGHT'], 
-        }
-    _bit_dict = dict(bits.bits)
-    _composite_bit_dict = dict(bits.composite_bits)
-    _final_dict = bits.final_dict
-    _allowed_types = set(['control','signal','validation'])
-
-    def __init__(self, yaml_dict={}): 
-        if not yaml_dict: 
-            yaml_dict = self.default_dict
-        self._read_dict(yaml_dict)
-
-    def __repr__(self): 
-        return repr(self.get_yaml_dict())
-
-    def _read_dict(self,yaml_dict): 
-        self.type = yaml_dict['type']
-        self.bits = yaml_dict['bits']
-        self.kinematics = yaml_dict['kinematics']
-        self.btag_config = yaml_dict['btag_config']
-        if self.type not in self._allowed_types: 
-            raise ValueError('region type {} is not known'.format(
-                    self.type))
-
-    def get_yaml_dict(self): 
-        """
-        dumps the object as a dict for yaml
-        """
-        # as long as the names don't change we can just dump the object data
-        baselist = self.__dict__.items()
-        base = {k:v for k, v in baselist if not k.startswith('_')}
-        return base
-
-    def _get_bits(self, namelist): 
-        bits = 0
-        for name in namelist:
-            if name in self._final_dict: 
-                bits |= self._final_dict[name]
-            elif name in self._composite_bit_dict: 
-                bits |= self._composite_bit_dict[name]
-            elif name in self._bit_dict: 
-                bits |= self._bit_dict[name]
-            else: 
-                raise ValueError("{} isn't a defined bit".format(name))
-        return long(bits)
-            
-    def get_bits(self): 
-        return self._get_bits(self.bits['required'])
-        
-    def get_antibits(self):
-        return self._get_bits(self.bits['veto'])
-    
-    def get_config_dict(self): 
-        """
-        Produces the configuration info needed for _stacksusy
-        """
-        config_dict = {
-            'jet_tag_requirements': self.btag_config, 
-            'leading_jet_pt': self.kinematics['leading_jet_gev']*1e3, 
-            'met': self.kinematics['met_gev']*1e3, 
-            'required_bits': self.get_bits(), 
-            'veto_bits': self.get_antibits(), 
-            'type': self.type.upper(), 
-            }
-        return config_dict
 
 # -- consider moving this ?
 class Stacker(object): 
@@ -315,7 +243,7 @@ class Stacker(object):
     hist_from_ntuple is called.
     """
     def __init__(self, regions_dict): 
-        self._regions = {k:Region(v) for k,v in regions_dict.items()}
+        self._regions = regions_dict
         self.dummy = False
         self.flags = set()
         self._verbose = False

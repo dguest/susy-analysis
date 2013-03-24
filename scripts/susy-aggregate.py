@@ -68,16 +68,13 @@ def run():
     if not any(to_do): 
         sys.exit('nothing to do...')
 
-    systematic = 'NONE' if args.fast else 'all'
+    systematic = 'all'
     coord.bugstream = TemporaryFile()
     coord.stack(systematic=systematic, 
-                rerun=args.rerun_stack)
+                rerun=args.rerun_stack, do_stat_regions=args.fast)
 
     all_dict = coord.aggregate(systematic=systematic,
                                rerun=args.force_aggregation)
-    # TODO: some refactoring is needed here to get rid of this next ugly fix
-    if args.fast: 
-        all_dict = {'NONE':all_dict}
         
     count_dict = {}
     for name, syst_dict in all_dict.iteritems(): 

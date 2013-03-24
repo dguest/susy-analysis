@@ -1,6 +1,6 @@
 from tempfile import TemporaryFile as Temp
 import warnings, re
-from stop.stack.coordinator import Region 
+from stop.stack.regions import Region 
 from stop.style import texify_sr
 
 # not used any more
