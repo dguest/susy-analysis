@@ -137,7 +137,8 @@ class Coordinator(object):
         dist_syst = set(self.distiller_systematics) 
         dist_syst -= set(['NONE'])
         for syst in dist_syst: 
-            self.stack(systematic=syst, rerun=rerun)
+            self.stack(systematic=syst, rerun=rerun, 
+                       do_stat_regions=do_stat_regions)
         if n_ran: 
             self._print_new_line()
 
