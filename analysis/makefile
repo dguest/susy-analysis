@@ -63,6 +63,7 @@ TOBJ        := JetFactory.o
 GEN_OBJ     := HistBuilder.o MaskedHistArray.o ObjKinematics.o 
 GEN_OBJ     += HistConfig.o BtagConfig.o RegionConfig.o
 GEN_OBJ     += TruthJetHists.o RegionHistograms.o EventObjects.o
+GEN_OBJ     += Region2dKinematicHistograms.o
 GEN_OBJ     += RegionEventFilter.o
 GEN_OBJ     += HyperBuilder.o
 GEN_OBJ     += CutflowBuilder.o
