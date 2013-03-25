@@ -20,8 +20,6 @@ def _get_parser():
     parser.add_argument('-d', '--strip-data', action='store_true')
     parser.add_argument('-s', '--strip-simulation', action='store_true')
     parser.add_argument('-m', '--strip-distiller-meta', action='store_true')
-    parser.add_argument('-t', '--filter-and-set-physicstype', 
-                        action='store_true')
     output = parser.add_mutually_exclusive_group()
     output.add_argument('-i', '--write-to-input', action='store_true')
     output.add_argument('-o', '--output')
@@ -35,6 +33,8 @@ def correct_general(ds):
     if ds.is_data: 
         ds.bugs -= set(['ambiguous dataset','bad files','no cross section', 
                         'no filter efficiency'])
+        if not ds.physics_type: 
+            ds.physics_type = 'data'
     else: 
         if 'no cross section' in ds.bugs: 
             ds.total_xsec_fb = 0.0
@@ -79,7 +79,7 @@ def run():
         if isinstance(args.output, str) and isfile(args.output): 
             raise IOError(
                 "won't overwrite output file {}".format(args.output))
-        outputs = [DatasetCache(args.outputs)]
+        outputs = [DatasetCache(args.output)]
     else: 
         out_stream = TemporaryFile()
         outputs = [DatasetCache(out_stream)]
@@ -94,11 +94,6 @@ def run():
             continue
         if args.strip_simulation and not item.is_data: 
             continue
-        if args.filter_and_set_physicstype: 
-            from stop.runtypes import set_dataset_physics_type
-            is_set = set_dataset_physics_type(item)
-            if not is_set: 
-                continue
 
         correct_general(item)
         subout = out_n % len(outputs)
