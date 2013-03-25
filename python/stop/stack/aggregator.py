@@ -4,6 +4,7 @@ from os.path import basename, splitext, isfile
 import h5py
 import warnings
 import sys
+import re
 
 def _get_objects(h5_cont): 
     objects = {}
@@ -112,16 +113,32 @@ class SampleAggregator(object):
         
         The 'all' option for self.signals is even more hackish...
         """
-        basic_keys = ['stop_mass_gev','lsp_mass_gev']
-        basic_generator_info = {k:ds.generator_info[k] for k in basic_keys}
+        old_finder = re.compile('directCC_([0-9]+)_([0-9]+)')
+        met_finder = finder = re.compile(
+            'stopToCharmLSP_t([0-9]+)_n([0-9]+)_MET([0-9]+)')
+
+        found = old_finder.findall(ds.full_name)
+        if not found: 
+            found = met_finder.findall(ds.full_name)
+        if not found: 
+            return None
+        generator_info = { 
+                'stop_mass_gev': int(found[0][0]), 
+                'lsp_mass_gev': int(found[0][1]), 
+                }
+        if len(found) == 3: 
+            generator_info['met_filter_gev'] = found[0][2]
+
+        basic_keys = ['stop_mass_gev', 'lsp_mass_gev']
+        basic_generator_info = {k:generator_info[k] for k in basic_keys}
         for sig in self.signals: 
             if self.signals == 'all' or sig == basic_generator_info: 
-                if 'met_filter_gev' in ds.generator_info: 
+                if 'met_filter_gev' in generator_info: 
                     namestring = self.signal_name_template_met_filter
                 else: 
                     namestring = self.signal_name_template
                 return namestring.format(self.signal_prestring,
-                                         **ds.generator_info)
+                                         **generator_info)
         return None
 
     def _check_for_bugs(self, ds): 
