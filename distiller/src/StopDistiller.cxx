@@ -258,12 +258,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   if (veto_electrons.size() == 0) pass_bits |= pass::electron_veto; 
   if (veto_muons.size() == 0) pass_bits |= pass::muon_veto; 
 
-  if (met.Mod() > 120*GeV) { 
-    pass_bits |= pass::met; 
-  }
-  if (met.Mod() > 280*GeV) { 
-    pass_bits |= pass::cutflow_met; 
-  }
+  pass_bits |= met_bits(met); 
 
   if ( m_flags & cutflag::truth ) { 
     fill_cjet_truth(*m_out_tree, signal_jets); 

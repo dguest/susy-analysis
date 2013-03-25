@@ -43,6 +43,7 @@ ull_t jet_cleaning_bit(const std::vector<SelectedJet*>& preselection_jets);
 ull_t control_lepton_bits(const std::vector<Electron*>&, 
 			  const std::vector<Muon*>&);
 ull_t signal_jet_bits(const std::vector<SelectedJet*>& signal_jets); 
+ull_t met_bits(const TVector2& met); 
 
 template<typename T> 
 bool has_os_zmass_pair(const std::vector<T*>&); 

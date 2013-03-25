@@ -1,15 +1,11 @@
 #include "distill_tools.hh"
+#include "CutflowConstants.hh"
 #include "SusyBuffer.h"
 #include "OutTree.hh"
 #include "Jets.hh"
 #include "Leptons.hh"
 #include "constants.hh"
 #include "RunInfo.hh"
-#include "BitmapCutflow.hh"
-#include "SmartChain.hh"
-#include "CollectionTreeReport.hh"
-#include "EventPreselector.hh"
-#include "BtagCalibration.hh"
 
 #include "RunBits.hh"
 #include "EventBits.hh"
@@ -23,13 +19,10 @@
 #include <cstdlib> // getenv, others
 #include <cstdio>
 #include <map>
-#include "TChain.h"
 #include "TVector2.h"
-#include "TError.h"
 #include <math.h>
 #include <stdexcept> 
 #include "SUSYTools/SUSYObjDef.h"
-#include "SUSYTools/FakeMetEstimator.h"
 
 #include <boost/format.hpp>
 #include <boost/scoped_ptr.hpp>
@@ -106,6 +99,18 @@ ull_t control_lepton_bits(const std::vector<Electron*>& el,
   return pass_bits; 
 }
 
+ull_t met_bits(const TVector2& met){ 
+  ull_t pass_bits = 0; 
+  if (met.Mod() > FILTER_MET) { 
+    pass_bits |= pass::met; 
+  }
+  if (met.Mod() > CUTFLOW_MET) { 
+    pass_bits |= pass::cutflow_met; 
+  }
+  return pass_bits; 
+}
+
+
 void fill_event_truth(outtree::OutTree& out_tree, const SusyBuffer& buffer, 
 		      unsigned flags) { 
   out_tree.hfor_type = buffer.hfor_type; 
@@ -152,8 +157,12 @@ ull_t signal_jet_bits(const std::vector<SelectedJet*>& jets) {
   ull_t pass_bits = 0; 
   if (jets.size() > 0) { 
     float leading_jet_pt = jets.at(0)->Pt(); 
-    if (leading_jet_pt > 120*GeV) pass_bits |= pass::leading_jet; 
-    if (leading_jet_pt > 280*GeV) pass_bits |= pass::cutflow_leading; 
+    if (leading_jet_pt > FILTER_LEADING_JET_PT) { 
+      pass_bits |= pass::leading_jet; 
+    }
+    if (leading_jet_pt > CUTFLOW_LEADING_JET_PT) { 
+      pass_bits |= pass::cutflow_leading; 
+    }
   }
 
   if (jets.size() >= 2) { 
