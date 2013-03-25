@@ -50,7 +50,10 @@ class TransferTexPrinter(object):
             texified_row = []
         def texify(value, error, prec=prec): 
             if prec == 'auto': 
-                prec = int( 1 - floor(log(error,10)) )
+                try: 
+                    prec = int( 1 - floor(log(error,10)) )
+                except ValueError: 
+                    return 'Nan'
             if prec >= 0: 
                 return '${v:.{p}f} \pm {e:.{p}f}$'.format(
                     v=value, p=prec, e=error)

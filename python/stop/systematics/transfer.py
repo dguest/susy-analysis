@@ -91,6 +91,8 @@ class TransferCalculator(object):
     def _get_rel_error(self, variation, control): 
         control_count = self.counts[self.baseline][self.physics_type][control]
         control_var = self.counts[variation][self.physics_type][control]
+        if control_count == 0.0: 
+            return float('nan')
         return control_var / control_count
         
     def _get_rel_error_diff(self, variation, control, signal): 
@@ -106,6 +108,8 @@ class TransferCalculator(object):
             variation = self.baseline
         control_count = self.counts[variation][self.physics_type][control]
         signal_count = self.counts[variation][self.physics_type][signal]
+        if control_count == 0.0: 
+            return float('nan')
         return signal_count / control_count
     
     def _get_statvar(self, region, physics, variation): 
@@ -147,7 +151,9 @@ class TransferCalculator(object):
         control_mc, control_exc_mc_err = self.get_total_mc(
             control, [self.physics_type])
         subtr_control = control_data - control_mc
-        
+
+        if subtr_control == 0.0: 
+            subtr_control = float('nan')
         subtr_control_rel_err = (
             data_stat_err**2 + control_exc_mc_err**2)**(0.5) / subtr_control
         
