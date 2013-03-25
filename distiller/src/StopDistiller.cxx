@@ -188,8 +188,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   remove_overlaping(preselection_jets, preselected_electrons, REMOVE_EL_CONE); 
   remove_overlaping(preselection_jets, preselected_muons, REMOVE_MU_CONE); 
 
-  for (auto dr_itr = jet_dr.begin(); 
-       dr_itr != jet_dr.end(); dr_itr++) { 
+  for (auto dr_itr = jet_dr.begin(); dr_itr != jet_dr.end(); dr_itr++) { 
     dbg_stream << "evt " << m_susy_buffer->EventNumber 
 	       << ", removed jet -- dR = " 
 	       << *dr_itr << std::endl; 
