@@ -10,7 +10,6 @@ namespace pass {
   const ull_t grl                = 1ULL <<  0; 
   const ull_t trigger            = 1ULL <<  1; 
   const ull_t lar_error          = 1ULL <<  2; 
-  const ull_t tile_trip          = 1ULL <<  35; 
   const ull_t core               = 1ULL <<  3; 
   const ull_t jet_clean          = 1ULL <<  4; 
   const ull_t vxp_gt_4trk        = 1ULL <<  5; 
@@ -36,6 +35,15 @@ namespace pass {
   const ull_t j3_anti_b_opt      = 1ULL << 24; 
   const ull_t j3_anti_u_opt      = 1ULL << 25; 
 
+  // late additons to event cleaning 
+  const ull_t tile_error         = 1ULL <<  35; 
+  const ull_t tile_trip          = 1ULL <<  36; 
+
+  // only for the cutflow
+  const ull_t cutflow_leading    = 1ULL <<  37; 
+  const ull_t cutflow_met        = 1ULL <<  38; 
+  const ull_t cutflow_tag_1      = 1ULL <<  39; 
+  const ull_t cutflow_tag_2      = 1ULL <<  40; 
   
 }
 

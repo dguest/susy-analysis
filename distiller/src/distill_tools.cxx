@@ -85,7 +85,7 @@ ull_t jet_cleaning_bit(const std::vector<SelectedJet*>& preselection_jets)
   for (Jets::const_iterator jet_itr = preselection_jets.begin(); 
        jet_itr != preselection_jets.end(); 
        jet_itr++) { 
-    bool clean_jet = ((*jet_itr)->bits() & jetbit::susy); 
+    bool clean_jet = ((*jet_itr)->bits() & jetbit::preselection); 
     assert( !( (*jet_itr)->bits() & jetbit::low_pt)); 
     assert( !( (*jet_itr)->bits() & jetbit::high_eta)); 
     if (!clean_jet) pass_bits &=~ pass::jet_clean; 
@@ -146,27 +146,42 @@ void fill_cjet_truth(outtree::OutTree& out_tree,
 }
 
 //___________________________________________________________
-// ctag bits 
+// signal jet bits
+
+ull_t signal_jet_bits(const std::vector<SelectedJet*>& jets) { 
+  ull_t pass_bits = 0; 
+  if (jets.size() > 0) { 
+    float leading_jet_pt = jets.at(0)->Pt(); 
+    if (leading_jet_pt > 120*GeV) pass_bits |= pass::leading_jet; 
+    if (leading_jet_pt > 280*GeV) pass_bits |= pass::cutflow_leading; 
+  }
+
+  if (jets.size() >= 2) { 
+    const SelectedJet* jet = jets.at(1); 
+    if (pass_mainz_ctag(jet))       pass_bits |= pass::ctag_mainz; 
+  }
+  
+  const unsigned medium = jetbit::cnn_medium_anti_u | jetbit::cnn_anti_b; 
+  if (jets.size() >= 3) { 
+    const SelectedJet* jet = jets.at(2); 
+    if (pass_mainz_ctag(jet))       pass_bits |= pass::ctag_mainz; 
+    if (jets.at(1)->bits() & jets.at(2)->bits() & medium) { 
+      pass_bits |= pass::cutflow_tag_2; 
+    }
+  }
+  const unsigned loose = jetbit::cnn_loose_anti_u | jetbit::cnn_anti_b; 
+  if (jets.size() >= 4) { 
+    if (jets.at(1)->bits() & jets.at(2)->bits() & loose) { 
+      if (jets.at(3)->bits() & medium) pass_bits |= pass::cutflow_tag_1; 
+    }
+  }
+  return pass_bits; 
+} 
 
 bool pass_mainz_ctag(const SelectedJet* jet){ 
   bool pass = (jet->combNN_btag() > -2.55 && 
 	       jet->combNN_btag() < 1.0); 
   return pass; 
-}
-
-ull_t get_ctag_bits(const std::vector<SelectedJet*>& signal_jets) 
-{ 
-  using namespace btag; 
-  ull_t pass_bits = 0; 
-  if (signal_jets.size() >= 2) { 
-    const SelectedJet* jet = signal_jets.at(1); 
-    if (pass_mainz_ctag(jet))       pass_bits |= pass::ctag_mainz; 
-  }
-  if (signal_jets.size() >= 3) { 
-    const SelectedJet* jet = signal_jets.at(2); 
-    if (pass_mainz_ctag(jet))       pass_bits |= pass::ctag_mainz; 
-  }
-  return pass_bits; 
 }
 
 
@@ -192,7 +207,7 @@ float get_min_jetmet_dphi(const std::vector<SelectedJet*>& jets,
 
 double get_htx(const std::vector<SelectedJet*>& jets){ 
   double htx = 0; 
-  const unsigned required_bits = jetbit::susy; 
+  const unsigned required_bits = jetbit::preselection; 
   const unsigned veto_bits = jetbit::leading; 
   for (std::vector<SelectedJet*>::const_iterator itr = jets.begin(); 
        itr != jets.end(); itr++) { 

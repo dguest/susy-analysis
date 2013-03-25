@@ -25,6 +25,7 @@ ull_t EventPreselector::get_preselection_flags(const SusyBuffer& buffer,
   ull_t pass_bits = 0; 
   if(buffer.trigger)    pass_bits |= pass::trigger; 
   if(!buffer.larError)  pass_bits |= pass::lar_error; 
+  if(!buffer.tileError) pass_bits |= pass::tile_error; 
 
   if ( m_flags & cutflag::is_data ) { 
     if ( (buffer.coreFlags & 0x40000) == 0) pass_bits |= pass::core; 
@@ -43,5 +44,6 @@ ull_t EventPreselector::get_preselection_flags(const SusyBuffer& buffer,
     pass_bits |= pass::grl; 
     pass_bits |= pass::tile_trip; 
   }
+
   return pass_bits; 
 }

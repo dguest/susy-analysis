@@ -208,7 +208,7 @@ void EventJets::fill(const SusyBuffer& buffer, SUSYObjDef& def,
     the_jet->SetPxPyPzE(tlv.Px(), tlv.Py(), tlv.Pz(), tlv.E()); 
 
     if (is_jet) { 
-      the_jet->set_bit(jetbit::susy); 
+      the_jet->set_bit(jetbit::preselection); 
     }
     
     if (the_jet->Pt() < JET_PT_CUT) { 

@@ -30,6 +30,7 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br,
 		    &jet_jvtxf); 
   fChain->SetBranch("averageIntPerXing", &averageIntPerXing); 
   fChain->SetBranch("larError", &larError); 
+  fChain->SetBranch("tileError", &tileError, chain::NULL_POINTER); 
 
   fChain->SetBranch("Eventshape_rhoKt4LC", &Eventshape_rhoKt4LC); 
 

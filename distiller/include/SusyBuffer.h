@@ -30,6 +30,7 @@ public :
   bool          trigger; 
   float         averageIntPerXing;
   unsigned        larError;
+  unsigned        tileError;
   unsigned        coreFlags; 
 
   int hfor_type; 

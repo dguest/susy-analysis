@@ -211,13 +211,9 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
     bool leading_jet = (*jet_itr == *preselection_jets.begin()); 
     if (signal_pt && (tag_eta || leading_jet)) { 
       signal_jets.push_back(*jet_itr); 
-      bool good_isr_pt = jet.Pt() > 120*GeV;
-      if (good_isr_pt) { 
-	pass_bits |= pass::leading_jet; 
-      }
     }
   }
-  set_bit(signal_jets, jetbit::good); 
+  set_bit(signal_jets, jetbit::signal); 
 
   TVector2 met = get_met(*m_susy_buffer, *m_def, m_info, susy_muon_idx); 
   if (m_flags & cutflag::use_met_reffinal) { 
@@ -225,10 +221,11 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
 	    m_susy_buffer->MET_RefFinal_ety); 
   }
 
+  // ---- must calibrate signal jets for b-tagging ----
+  calibrate_jets(signal_jets, m_btag_calibration); 
   // ----- object selection is done now, from here is filling outputs ---
 
-  calibrate_jets(signal_jets, m_btag_calibration); 
-
+  pass_bits |= signal_jet_bits(signal_jets); 
   m_out_tree->n_susy_jets = preselection_jets.size(); 
   pass_bits |= jet_cleaning_bit(preselection_jets); 
 
@@ -251,7 +248,6 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   }
 
   copy_leading_jet_info(signal_jets, *m_out_tree); 
-  pass_bits |= get_ctag_bits(signal_jets); 
 
   if(m_def->IsGoodVertex(m_susy_buffer->vx_nTracks)) {
     pass_bits |= pass::vxp_gt_4trk; 
@@ -264,6 +260,9 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
 
   if (met.Mod() > 120*GeV) { 
     pass_bits |= pass::met; 
+  }
+  if (met.Mod() > 280*GeV) { 
+    pass_bits |= pass::cutflow_met; 
   }
 
   if ( m_flags & cutflag::truth ) { 
@@ -375,22 +374,24 @@ void StopDistiller::setup_susytools() {
 void StopDistiller::setup_outputs() { 
   m_out_tree = new outtree::OutTree(m_out_ntuple_name, 
 				    "evt_tree", m_flags, N_JETS_TO_SAVE); 
+  const ull_t event_clean = pass::lar_error | pass::tile_error | 
+    pass::core | pass::tile_trip; 
+  const ull_t lepton_veto = pass::electron_veto | pass::muon_veto; 
   m_cutflow = new BitmapCutflow;
   m_cutflow->add("GRL"                   , pass::grl            );  
   m_cutflow->add(m_info.trigger          , pass::trigger        );
-  m_cutflow->add("lar_error"             , pass::lar_error      );
-  m_cutflow->add("core"                  , pass::core           );
-  m_cutflow->add("jet_clean"             , pass::jet_clean      );
-  m_cutflow->add("vxp_good"              , pass::vxp_gt_4trk    );
-  m_cutflow->add("leading_jet_120"       , pass::leading_jet    );
-  m_cutflow->add("met_120"               , pass::met            );
+  m_cutflow->add("primary_vertex"        , pass::vxp_gt_4trk    );
+  m_cutflow->add("event_cleaning"        , event_clean          );
+  m_cutflow->add("bad_jet_veto"          , pass::jet_clean      );
+  m_cutflow->add("lepton_veto"           ,       lepton_veto    );
   m_cutflow->add("n_jet_geq_3"           , pass::n_jet          );
   m_cutflow->add("dphi_jetmet_min"       , pass::dphi_jetmet_min);
-  m_cutflow->add("electron_veto"         , pass::electron_veto  );
-  m_cutflow->add("muon_veto"             , pass::muon_veto      );
-  m_cutflow->add("ctag_mainz"            , pass::ctag_mainz     ); 
-  ull_t preselection = pass::grl | pass::trigger | pass::core | 
-    pass::lar_error; 
+  m_cutflow->add("met_280"               , pass::cutflow_met    );
+  m_cutflow->add("leading_jet_280"       , pass::cutflow_leading);
+  m_cutflow->add("jtag_1"                , pass::cutflow_tag_1  ); 
+  m_cutflow->add("jtag_2"                , pass::cutflow_tag_2  ); 
+
+  ull_t preselection = pass::grl | event_clean; 
   m_required_for_save = preselection; 
   m_required_for_save |= pass::jet_clean; 
   m_required_for_save |= pass::vxp_gt_4trk; 

@@ -42,6 +42,7 @@ ull_t jet_cleaning_bit(const std::vector<SelectedJet*>& preselection_jets);
 
 ull_t control_lepton_bits(const std::vector<Electron*>&, 
 			  const std::vector<Muon*>&);
+ull_t signal_jet_bits(const std::vector<SelectedJet*>& signal_jets); 
 
 template<typename T> 
 bool has_os_zmass_pair(const std::vector<T*>&); 
@@ -69,7 +70,6 @@ template<typename T>
 std::vector<T*> filter_susy(const std::vector<T*>&); 
 
 bool pass_mainz_ctag(const SelectedJet* jet); 
-ull_t get_ctag_bits(const std::vector<SelectedJet*>& jets); 
 
 TVector2 get_met(const SusyBuffer& buffer, 
 		 SUSYObjDef& def, 
