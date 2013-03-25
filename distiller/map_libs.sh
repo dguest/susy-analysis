@@ -8,7 +8,7 @@ USE_LIBS="
  MissingETUtility MuonEfficiencyCorrections MuonMomentumCorrections\
  ObjectSelectorCore PileupReweighting ReweightUtils\
  TrigRootAnalysis TauCorrections\
- TrigMuonEfficiency ElectronEfficiencyCorrection PATCore"
+ TrigMuonEfficiency ElectronEfficiencyCorrection PATCore TileTripReader"
 
 USE_HEADER="SUSYTools MissingETUtility egammaAnalysisUtils GoodRunsLists\
  CalibrationDataInterface"

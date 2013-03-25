@@ -10,6 +10,7 @@ namespace pass {
   const ull_t grl                = 1ULL <<  0; 
   const ull_t trigger            = 1ULL <<  1; 
   const ull_t lar_error          = 1ULL <<  2; 
+  const ull_t tile_trip          = 1ULL <<  35; 
   const ull_t core               = 1ULL <<  3; 
   const ull_t jet_clean          = 1ULL <<  4; 
   const ull_t vxp_gt_4trk        = 1ULL <<  5; 

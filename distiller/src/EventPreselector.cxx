@@ -4,6 +4,7 @@
 #include "Grl.hh"
 #include "EventBits.hh"
 #include "RunBits.hh"
+#include "SUSYTools/SUSYObjDef.h"
 
 EventPreselector::EventPreselector(unsigned flags, std::string grl) : 
   m_flags(flags), 
@@ -19,7 +20,8 @@ EventPreselector::~EventPreselector() {
   m_grl = 0; 
 }
 
-ull_t EventPreselector::get_preselection_flags(const SusyBuffer& buffer) { 
+ull_t EventPreselector::get_preselection_flags(const SusyBuffer& buffer, 
+					       SUSYObjDef& def) { 
   ull_t pass_bits = 0; 
   if(buffer.trigger)    pass_bits |= pass::trigger; 
   if(!buffer.larError)  pass_bits |= pass::lar_error; 
@@ -30,10 +32,16 @@ ull_t EventPreselector::get_preselection_flags(const SusyBuffer& buffer) {
       if (m_grl->has_lb(buffer.RunNumber, buffer.lbn)) 
 	pass_bits |= pass::grl; 
     }
+    bool has_tile_trip = def.IsTileTrip(buffer.RunNumber, buffer.lbn, 
+					buffer.EventNumber); 
+    if (!has_tile_trip) { 
+      pass_bits |= pass::tile_trip; 
+    }
   }
   else { 
     pass_bits |= pass::core; 
     pass_bits |= pass::grl; 
+    pass_bits |= pass::tile_trip; 
   }
   return pass_bits; 
 }
