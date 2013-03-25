@@ -36,7 +36,7 @@ def submit_ds(ds_name, debug=False, version=0, used_vars='used_vars.txt',
     input_args = [
         '--inDS=' + ds_name,
         '--outDS=' + out_ds,
-        '--outputs=skim-output.root,set-branches.txt', 
+        '--outputs=skim-output.root,set-branches.txt,n-entries.txt', 
         '--excludeFile=*.tar,*.log,*.sh,*.out,*.root',
         '--extFile={}'.format(used_vars), 
         '--athenaTag=17.2.1', 
@@ -80,8 +80,12 @@ for f in sys.argv[2].split(','):
         raise RuntimeError(f + ' CollectionTree is fucked')
 
 set_branches = open('set-branches.txt','w')
+entries = susy_chain.GetEntries()
 
-if not susy_chain.GetEntries(): 
+entries_file = open('n-entries.txt','w')
+entries_file.write(str(entries) + '\n')
+
+if not entries: 
     set_branches.write('none\n')
     print 'chain is empty, quitting...'
     sys.exit(0)
