@@ -117,9 +117,9 @@ class SampleAggregator(object):
         met_finder = finder = re.compile(
             'stopToCharmLSP_t([0-9]+)_n([0-9]+)_MET([0-9]+)')
 
-        found = old_finder.findall(ds.full_name)
+        found = met_finder.findall(ds.full_name)
         if not found: 
-            found = met_finder.findall(ds.full_name)
+            found = old_finder.findall(ds.full_name)
         if not found: 
             return None
         generator_info = { 
