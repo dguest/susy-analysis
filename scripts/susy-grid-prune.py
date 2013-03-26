@@ -162,10 +162,25 @@ def get_cuts_and_vars(cuts_dict):
     if 'met_low' in cuts_dict: 
         cuts.append('MET_RefFinal_et > {}'.format(cuts_dict['met_low']))
         variables.append('MET_RefFinal_et')
+    if 'triggers' in cuts_dict: 
+        triggers = cuts_dict['triggers'].split()
+        for trig in triggers: 
+            variables.append(trig)
+        cuts.append('( {} )'.format(' || '.join(triggers)))
+    if 'trigger' in cuts_dict: 
+        trigger = cuts_dict['trigger']
+        variables.append(trigger)
+        cuts.append(trigger)
+    if 'n_staco' in cuts_dict: 
+        cuts.append('mu_staco_n >= {}'.format(cuts_dict['n_staco']))
     return ' && '.join(cuts), variables
 
-class Reporter(Process): 
 
+class Reporter(Process): 
+    """
+    Prints output from a queue which it owns. The queue should be given to 
+    each subprocess which is submitting jobs. 
+    """
     completed_str = (
         'No jobs to be submitted since all input files were'
         ' (or are being) processed for the outDS.')
@@ -275,7 +290,7 @@ if __name__ == '__main__':
     cuts, add_vars = get_cuts_and_vars(dict(config.items('cuts')))
 
     if args.get_slimmer: 
-        LocalSkimmer(cuts).write()
+        LocalSkimmer(args.ds_list, all_the_cuts=cuts).write()
         sys.exit('got skimmer, exiting...')
 
     if not find_executable('prun'): 

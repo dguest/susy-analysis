@@ -147,12 +147,12 @@ def build_data_file(name):
     from stop.lookup.ami import AmiAugmenter
     ami = AmiAugmenter('p1329', origin='data12_8TeV')
     ami.bugstream = TemporaryFile()
-    ds_cache = DatasetCache(name)
-    mu_meta = ami.get_datasets_year(stream='physics_Muons')
-    ds_cache.update(mu_meta)
-    new_meta = ami.get_datasets_year(stream='physics_JetTauEtmiss')
-    ds_cache.update(new_meta)
-    ds_cache.write()
+    with DatasetCache(name) as ds_cache: 
+        mu_meta = ami.get_datasets_year(stream='physics_Muons')
+        ds_cache.update(mu_meta)
+        new_meta = ami.get_datasets_year(stream='physics_JetTauEtmiss')
+        ds_cache.update(new_meta)
+
     if ami.bugstream.tell(): 
         ami.bugstream.seek(0)
         bugslog = 'ami-bugs.log'
