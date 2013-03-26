@@ -148,6 +148,8 @@ def build_data_file(name):
     ami = AmiAugmenter('p1329', origin='data12_8TeV')
     ami.bugstream = TemporaryFile()
     ds_cache = DatasetCache(name)
+    mu_meta = ami.get_datasets_year(stream='physics_Muons')
+    ds_cache.update(mu_meta)
     new_meta = ami.get_datasets_year(stream='physics_JetTauEtmiss')
     ds_cache.update(new_meta)
     ds_cache.write()

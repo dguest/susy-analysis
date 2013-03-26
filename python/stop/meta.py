@@ -124,7 +124,14 @@ class Dataset(object):
         if self.origin.startswith('mc'): 
             char = 's'
         elif self.origin.startswith('data'): 
-            char = 'd'
+            if 'Muon' in self.name: 
+                char = 'm'
+            elif 'JetTauEtmiss' in self.name: 
+                char = 'd'
+            else: 
+                warn('not sure which stream {} comes from'
+                     ' assume jet'.format(self.id))
+                char = 'd'
         else: 
             warn("not sure if ds with id {} is mc or data".format(self.id))
             char = 'q'
