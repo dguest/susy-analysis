@@ -78,7 +78,7 @@ def run():
     all_dict = coord.aggregate(systematic=systematic,
                                rerun=args.force_aggregation)
     if args.fast: 
-        all_dict['NONE'] = all_dict
+        all_dict = {'NONE':all_dict}
         
     count_dict = {}
     for name, syst_dict in all_dict.iteritems(): 
