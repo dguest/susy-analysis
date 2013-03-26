@@ -136,7 +136,7 @@ class Axis(object):
         new._hist = None
         return new
 
-    def __del__(self): 
+    def remove(self): 
         hist = self._hist()
         if hist: 
             hist._reduce(self.name)
@@ -399,6 +399,8 @@ class HistNd(object):
         be careful: doesn't do anything to the array, should be called 
         from _reduce or _slice
         """
+        if not name in self._axes: 
+            raise ValueError('axis {} not in hist'.format(name))
         ax = self._axes.pop(name)
         for ax_name in self._axes: 
             if self._axes[ax_name].number > ax.number: 

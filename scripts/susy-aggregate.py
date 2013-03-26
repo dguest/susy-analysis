@@ -28,7 +28,9 @@ def get_config():
     parser.add_argument(
         '--ext', help='plot extensions, ' + d, default='.pdf')
     parser.add_argument(
-        '--fast', action='store_true', help='only do statistics, not hists')
+        '--stats', action='store_true', help='only do statistics, not hists')
+    parser.add_argument('--fast', action='store_true', 
+                        help="don't do systematics")
     args = parser.parse_args(sys.argv[1:])
     return args
 
@@ -68,17 +70,19 @@ def run():
     if not any(to_do): 
         sys.exit('nothing to do...')
 
-    systematic = 'all'
+    systematic = 'NONE' if args.fast else 'all'
     coord.bugstream = TemporaryFile()
     coord.stack(systematic=systematic, 
-                rerun=args.rerun_stack, do_stat_regions=args.fast)
+                rerun=args.rerun_stack, do_stat_regions=args.stats)
 
     all_dict = coord.aggregate(systematic=systematic,
                                rerun=args.force_aggregation)
+    if args.fast: 
+        all_dict['NONE'] = all_dict
         
     count_dict = {}
     for name, syst_dict in all_dict.iteritems(): 
-        safe = not args.fast
+        safe = not args.stats
         syst_count = table.get_physics_cut_dict(syst_dict)
         count_dict[name] = syst_count
     
