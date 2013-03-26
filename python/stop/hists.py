@@ -104,6 +104,12 @@ class HistNd(object):
     conversion from HDF5 array to a 1d or 2d hist which can be plotted. 
     """
     class Axis(object): 
+        """
+        Intended as an interface to any given axis. 
+
+        Has a reference to the Histogram that owns it, so operations 
+        like 'del axis' will alter the parent histogram. 
+        """
         def __init__(self): 
             self._name = None
             self._bins = None
@@ -127,6 +133,9 @@ class HistNd(object):
             return all(conditions)
         def __ne__(self, other): 
             not self == other
+
+        def __del__(self): 
+            self._hist._reduce(self.name)
 
         @property
         def name(self): 
@@ -333,16 +342,13 @@ class HistNd(object):
         else: 
             return bin_bounds[bin_n - 1]
         
-    def reduce(self, axis): 
+    def _reduce(self, axis): 
         """
         Remove an axis. If the axis has been integrated replace with the 
         maximum bin, otherwise replace with the sum. 
 
         TODO: consider making this return reduced HistNd (rather than 
         modifying in place)
-
-        TODO: replace with a del method in the axes
-        
         """
         ax = self._axes.pop(axis)
         if ax.type == 'bare': 
@@ -364,7 +370,7 @@ class HistNd(object):
         victim = copy.deepcopy(self)
         for red_ax in todo: 
             if red_ax == axis: continue
-            victim.reduce(red_ax)
+            victim._reduce(red_ax)
         
         assert len(victim.axes) == 1
         the_ax = victim.axes[0]
@@ -379,7 +385,7 @@ class HistNd(object):
         victim = copy.deepcopy(self)
         for red_ax in todo: 
             if red_ax in [xaxis, yaxis]: continue
-            victim.reduce(red_ax) 
+            victim._reduce(red_ax) 
         
         array = victim._array[1:-1,1:-1]
 
