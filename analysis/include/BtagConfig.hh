@@ -9,5 +9,6 @@ namespace btag {
   unsigned required_from_tag(JetTag); 
   unsigned veto_from_tag(JetTag); 
   std::string joiner(JetTag tag); 
+  bool is_inverted(JetTag); 
 } 
 #endif 

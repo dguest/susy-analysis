@@ -11,6 +11,7 @@ BtagScaler::BtagScaler(const BtagBuffer* buffer, btag::JetTag tag):
 {
   m_required = btag::required_from_tag(tag); 
   m_veto = btag::veto_from_tag(tag); 
+  m_inverted = btag::is_inverted(tag); 
 }
 
 double BtagScaler::get_scalefactor(unsigned jet_mask, int flavor, 
@@ -20,6 +21,12 @@ double BtagScaler::get_scalefactor(unsigned jet_mask, int flavor,
   bool pass = (jet_mask & m_required) && !(jet_mask | m_veto); 
   double base = m_buffer->scale_factor;
   double err = m_buffer->scale_factor_err; 
+
+  // we could handle the tag inversion somewhere else, but for now 
+  // it seems easier to invert here, at risk of (worst case) doubling 
+  // the number of taggers we have to define. 
+  if (m_inverted) err *= -1.0; 	
+
   double err_up = pass ? err : -err;
   double err_down = -err_up; 
   switch (syst) { 

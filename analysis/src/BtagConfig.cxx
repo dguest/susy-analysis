@@ -38,5 +38,10 @@ namespace btag {
     default: throw std::logic_error("asked for string for undefined tagger"); 
     }
   }
+  
+  bool is_inverted(btag::JetTag tag) { 
+    if (tag == ANTILOOSE) return true; 
+    else return false; 
+  }
 
 }

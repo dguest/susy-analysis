@@ -25,6 +25,7 @@ private:
   const BtagBuffer* m_buffer; 
   unsigned m_veto; 
   unsigned m_required; 
+  bool m_inverted; 
 }; 
 
 #endif 
