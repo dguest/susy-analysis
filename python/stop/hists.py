@@ -134,8 +134,9 @@ class Axis(object):
         for name, val in self.__dict__.iteritems(): 
             new.__dict__[name] = copy.deepcopy(val, memo)
         new._hist = None
+        return new
 
-    def remove(self): 
+    def __del__(self): 
         hist = self._hist()
         if hist: 
             hist._reduce(self.name)
