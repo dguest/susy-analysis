@@ -157,6 +157,7 @@ class DatasetCache(dict):
     """
     def __init__(self, cache_name=''): 
         self._cache = cache_name
+        self.exception_dump = 'meta-dump.yml'
             
         if isinstance(cache_name, str) and isfile(cache_name): 
             if cache_name.endswith('.pkl'): 
@@ -182,6 +183,11 @@ class DatasetCache(dict):
     def __exit__(self, exe_type, exe_val, exe_tb): 
         if exe_type is None: 
             self.write()
+        else: 
+            self.write(self.exception_dump)
+            warn('wrote {} due to caught exception in exit'.format(
+                    self.exception_dump))
+            
 
     def write(self, cache=''): 
         if not cache: 
