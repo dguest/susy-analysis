@@ -48,7 +48,7 @@ class HistConverter(object):
     def hist1_from_histn(self, pvc, histn): 
         physics, variable, cut = pvc
         if physics not in style.type_dict and not physics.startswith('stop'):
-            raise ValueError("what the fuck is {}?".format(pt))
+            raise ValueError("what the fuck is {}?".format(pvc))
     
         assert len(histn.axes) == 1
         y_vals, extent = histn.project_1d('x')

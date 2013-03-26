@@ -130,7 +130,9 @@ class Axis(object):
         not self == other
 
     def __del__(self): 
-        self._hist._reduce(self.name)
+        hist = self._hist()
+        if hist: 
+            hist._reduce(self.name)
 
     @property
     def name(self): 
@@ -156,13 +158,18 @@ class Axis(object):
 
     @property
     def valid(self): 
+        if not self._hist: 
+            return False
+        hist = self._hist()
+        if not hist: 
+            return False
         conditions = [ 
             self.name, 
             self.bins, 
             self.min is not None, 
             self.max is not None, 
             self.number is not None, 
-            self._hist._array.shape[self.number] == self.bins, 
+            hist._array.shape[self.number] == self.bins + 2, 
             ]
         return all(conditions)
     @property
@@ -186,7 +193,7 @@ class Axis(object):
         bin_bounds = np.linspace(self.min,self.max,self.bins + 1)
         bin_n = bisect.bisect(bin_bounds, val)
         extent = self._get_bounds(bin_bounds, bin_n)
-        subhist = self._hist._get_slice(self.name, bin_n)
+        subhist = self._hist()._get_slice(self.name, bin_n)
         return subhist, extent
         
     def _get_bounds(self, bin_bounds, num): 
@@ -202,7 +209,7 @@ class Axis(object):
         return self._get_bounds(bin_bounds, num)
     
     def integrate(self, reverse=False): 
-        self._hist._integrate(self.number, reverse)
+        self._hist()._integrate(self.number, reverse)
 
 
 class HistNd(object): 
@@ -223,7 +230,7 @@ class HistNd(object):
             the_axis = self._axes[ax_name]
             setattr(the_axis, '_' + ax_prop, atr)
             the_axis._name = ax_name
-            the_axis._hist = weakref.proxy(self)
+            the_axis._hist = weakref.ref(self)
 
         for name, axis in self._axes.items(): 
             if not axis.valid: 

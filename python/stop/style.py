@@ -4,6 +4,7 @@ physics_labels = [
     (r'$W \to l \nu$ + jets',   'Wlnu','red'), 
     (r'$W$ + jets',             'Wjets','green'), 
     (r'$t\bar{t}$',             'ttbar','b'),
+    (r'single $t$',             't','teal'),
     (r'diboson',                'diboson','pink'), 
     (r'Data',                   'data'   , 'black'), 
 
