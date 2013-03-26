@@ -180,14 +180,30 @@ class HistNd(object):
         def extent(self): 
             return self.min, self.max
 
-        def get_bin_extent(self, num): 
+        def get_slice(self, val): 
+            """
+            Get sub-histogram by slicing the axis at this value. 
+
+            returns a tuple (histogram, (low, high)) where low and high 
+            are the bounds of the slice taken. 
+            """
             bin_bounds = np.linspace(self.min,self.max,self.bins + 1)
+            bin_n = bisect.bisect(bin_bounds, val)
+            extent = self._get_bounds(bin_bounds, bin_n)
+            subhist = self._hist._get_slice(self.name, bin_n)
+            return subhist, extent
+            
+        def _get_bounds(self, bin_bounds, num): 
             if num == 0: 
                 return -np.inf, bin_bounds[0]
             elif num == self.bins + 1: 
                 return bin_bounds[self.bins], np.inf
             else: 
                 return bin_bounds[num - 1], bin_bounds[num]
+
+        def get_bin_extent(self, num): 
+            bin_bounds = np.linspace(self.min,self.max,self.bins + 1)
+            return self._get_bounds(bin_bounds, num)
         
         def integrate(self, reverse=False): 
             self._hist._integrate(self.number, reverse)
@@ -342,15 +358,23 @@ class HistNd(object):
         else: 
             return bin_bounds[bin_n - 1]
         
+    def _pop_axis(self, name): 
+        """
+        be careful: doesn't do anything to the array, should be called 
+        from _reduce or _slice
+        """
+        ax = self._axes.pop(name)
+        for ax_name in self._axes: 
+            if self._axes[ax_name].number > ax.number: 
+                self._axes[ax_name]._number -= 1
+        return ax
+
     def _reduce(self, axis): 
         """
         Remove an axis. If the axis has been integrated replace with the 
         maximum bin, otherwise replace with the sum. 
-
-        TODO: consider making this return reduced HistNd (rather than 
-        modifying in place)
         """
-        ax = self._axes.pop(axis)
+        ax = self._pop_axis(axis)
         if ax.type == 'bare': 
             self._array = np.sum(self._array, axis=ax.number)
         elif ax.type == 'integral': 
@@ -358,9 +382,16 @@ class HistNd(object):
         else: 
             raise ValueError(
                 'an axis somehow got undefined type: {}'.format(ax.type))
-        for ax_name in self._axes: 
-            if self._axes[ax_name].number > ax.number: 
-                self._axes[ax_name]._number -= 1
+
+    def _get_slice(self, axis, bin_n): 
+        new_axes = copy.deepcopy(self._axes)
+        ax = new_axes._pop_axis(axis)
+        sl_tuple = [slice(none)]*len(new_axes)
+        sl_tuple[ax.number] = bin_n
+        new_array = np.array(self._array[sl_tuple])
+        new_hist = HistNd()
+        new_hist._array = new_array
+        new_hist._axes = new_axes
 
     def project_1d(self, axis): 
         """
