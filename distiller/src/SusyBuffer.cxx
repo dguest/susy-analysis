@@ -22,6 +22,7 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br,
   fChain->SetBranch("lbn", &lbn); 
 
   fChain->SetBranch(names.trigger, &trigger); 
+  fChain->SetBranch("EF_mu24i_tight", &mu_trigger, chain::NULL_POINTER); 
   fChain->SetBranch("coreFlags", &coreFlags); 
   
   fChain->SetBranch("top_hfor_type", &hfor_type); 

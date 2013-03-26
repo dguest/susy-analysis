@@ -28,6 +28,7 @@ public :
   unsigned int EventNumber; 
   unsigned lbn; 
   bool          trigger; 
+  bool          mu_trigger; 
   float         averageIntPerXing;
   unsigned        larError;
   unsigned        tileError;
