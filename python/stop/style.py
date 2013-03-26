@@ -1,4 +1,5 @@
 physics_labels = [
+    (r'$Z$ + jets', 'Zjets','orange'), 
     (r'$Z \to \nu \nu$ + jets', 'Znunujets','orange'), 
     (r'$Z \to ll$ + jets',      'Zll','c'), 
     (r'$W \to l \nu$ + jets',   'Wlnu','red'), 

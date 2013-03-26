@@ -103,7 +103,7 @@ class Axis(object):
     Intended as an interface to any given axis. 
 
     Has a reference to the Histogram that owns it, so operations 
-    like 'del axis' will alter the parent histogram. 
+    like 'axis.remove()' will alter the parent histogram. 
     """
     def __init__(self): 
         self._name = None
@@ -129,7 +129,13 @@ class Axis(object):
     def __ne__(self, other): 
         not self == other
 
-    def __del__(self): 
+    def __deepcopy__(self, memo): 
+        new = type(self)()
+        for name, val in self.__dict__.iteritems(): 
+            new.__dict__[name] = copy.deepcopy(val, memo)
+        new._hist = None
+
+    def remove(self): 
         hist = self._hist()
         if hist: 
             hist._reduce(self.name)
@@ -223,6 +229,22 @@ class HistNd(object):
         if array: 
             self.__from_hdf(array)
 
+    def __copy__(self): 
+        new = type(self)()
+        new.__dict__.update(self.__dict__)
+        new._update_axes()
+        return new
+    def __deepcopy__(self, memo): 
+        new = type(self)()
+        for name, val in self.__dict__.iteritems(): 
+            new.__dict__[name] = copy.deepcopy(val, memo)
+        new._update_axes()
+        return new
+ 
+    def _update_axes(self): 
+        for ax in self._axes.itervalues(): 
+            ax._hist = weakref.ref(self)
+
     def __from_hdf(self, hdf_array): 
         self._array = np.array(hdf_array)
         for name, atr in hdf_array.attrs.items(): 
@@ -259,12 +281,14 @@ class HistNd(object):
         self.__check_consistency(other)
         new = HistNd()
         new._axes = copy.deepcopy(self._axes)
+        new._update_axes()
         new._array = self._array + other._array
         return new
 
     def __mul__(self, value): 
         new = HistNd()
         new._axes = copy.deepcopy(self._axes)
+        new._update_axes()
         if isinstance(value,HistNd): 
             self.__check_consistency(value)
             used = np.isfinite(self._array) * np.isfinite(value._array)
@@ -289,6 +313,7 @@ class HistNd(object):
     def __pow__(self, value): 
         new = HistNd()
         new._axes = copy.deepcopy(self._axes)
+        new._update_axes()
         new._array = self._array**value
         return new
 
@@ -376,7 +401,7 @@ class HistNd(object):
         ax = self._axes.pop(name)
         for ax_name in self._axes: 
             if self._axes[ax_name].number > ax.number: 
-                self._axes[ax_name]._number -= 1
+                self._axes[ax_name]._axis -= 1
         return ax
 
     def _reduce(self, axis): 
@@ -402,6 +427,7 @@ class HistNd(object):
         new_hist = HistNd()
         new_hist._array = new_array
         new_hist._axes = new_axes
+        new_hist._update_axes()
 
     def project_1d(self, axis): 
         """
