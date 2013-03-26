@@ -98,118 +98,121 @@ class Hist1d(object):
         x_vals = np.linspace(*self.extent, num=n_pts)[1:-1:2]
         return x_vals, y_vals
 
+class Axis(object): 
+    """
+    Intended as an interface to any given axis. 
+
+    Has a reference to the Histogram that owns it, so operations 
+    like 'del axis' will alter the parent histogram. 
+    """
+    def __init__(self): 
+        self._name = None
+        self._bins = None
+        self._min = None
+        self._max = None
+        self._axis = None
+        self._type = 'bare'
+        self._units = ''
+        self._hist = None
+    def __eq__(self, other): 
+        span = self.max - self.min
+        span_diff = (self.max - other.max)**2 + (self.min - other.min)**2
+        conditions = [ 
+            self.name == other.name, 
+            self.bins == other.bins, 
+            self.number == other.number, 
+            span_diff / span**2 < 1e-6, 
+            self.type == other.type, 
+            self.units == other.units, 
+            ]
+        return all(conditions)
+    def __ne__(self, other): 
+        not self == other
+
+    def __del__(self): 
+        self._hist._reduce(self.name)
+
+    @property
+    def name(self): 
+        return self._name
+    @property
+    def bins(self): 
+        return self._bins
+    @property
+    def min(self): 
+        return self._min
+    @property
+    def max(self): 
+        return self._max
+    @property
+    def number(self): 
+        return self._axis
+    @property
+    def type(self): 
+        return self._type
+    @property
+    def units(self): 
+        return self._units
+
+    @property
+    def valid(self): 
+        conditions = [ 
+            self.name, 
+            self.bins, 
+            self.min is not None, 
+            self.max is not None, 
+            self.number is not None, 
+            self._hist._array.shape[self.number] == self.bins, 
+            ]
+        return all(conditions)
+    @property
+    def axis(self): 
+        return self.number
+    @axis.setter
+    def axis(self, num): 
+        self.number = num
+
+    @property
+    def extent(self): 
+        return self.min, self.max
+
+    def get_slice(self, val): 
+        """
+        Get sub-histogram by slicing the axis at this value. 
+
+        returns a tuple (histogram, (low, high)) where low and high 
+        are the bounds of the slice taken. 
+        """
+        bin_bounds = np.linspace(self.min,self.max,self.bins + 1)
+        bin_n = bisect.bisect(bin_bounds, val)
+        extent = self._get_bounds(bin_bounds, bin_n)
+        subhist = self._hist._get_slice(self.name, bin_n)
+        return subhist, extent
+        
+    def _get_bounds(self, bin_bounds, num): 
+        if num == 0: 
+            return -np.inf, bin_bounds[0]
+        elif num == self.bins + 1: 
+            return bin_bounds[self.bins], np.inf
+        else: 
+            return bin_bounds[num - 1], bin_bounds[num]
+
+    def get_bin_extent(self, num): 
+        bin_bounds = np.linspace(self.min,self.max,self.bins + 1)
+        return self._get_bounds(bin_bounds, num)
+    
+    def integrate(self, reverse=False): 
+        self._hist._integrate(self.number, reverse)
+
+
 class HistNd(object): 
     """
     Wrapper for multidimensional array. This class exists to simplify 
     conversion from HDF5 array to a 1d or 2d hist which can be plotted. 
     """
-    class Axis(object): 
-        """
-        Intended as an interface to any given axis. 
-
-        Has a reference to the Histogram that owns it, so operations 
-        like 'del axis' will alter the parent histogram. 
-        """
-        def __init__(self): 
-            self._name = None
-            self._bins = None
-            self._min = None
-            self._max = None
-            self._axis = None
-            self._type = 'bare'
-            self._units = ''
-            self._hist = None
-        def __eq__(self, other): 
-            span = self.max - self.min
-            span_diff = (self.max - other.max)**2 + (self.min - other.min)**2
-            conditions = [ 
-                self.name == other.name, 
-                self.bins == other.bins, 
-                self.number == other.number, 
-                span_diff / span**2 < 1e-6, 
-                self.type == other.type, 
-                self.units == other.units, 
-                ]
-            return all(conditions)
-        def __ne__(self, other): 
-            not self == other
-
-        def __del__(self): 
-            self._hist._reduce(self.name)
-
-        @property
-        def name(self): 
-            return self._name
-        @property
-        def bins(self): 
-            return self._bins
-        @property
-        def min(self): 
-            return self._min
-        @property
-        def max(self): 
-            return self._max
-        @property
-        def number(self): 
-            return self._axis
-        @property
-        def type(self): 
-            return self._type
-        @property
-        def units(self): 
-            return self._units
-
-        @property
-        def valid(self): 
-            conditions = [ 
-                self.name, 
-                self.bins, 
-                self.min is not None, 
-                self.max is not None, 
-                self.number is not None, 
-                ]
-            return all(conditions)
-        @property
-        def axis(self): 
-            return self.number
-        @axis.setter
-        def axis(self, num): 
-            self.number = num
-
-        @property
-        def extent(self): 
-            return self.min, self.max
-
-        def get_slice(self, val): 
-            """
-            Get sub-histogram by slicing the axis at this value. 
-
-            returns a tuple (histogram, (low, high)) where low and high 
-            are the bounds of the slice taken. 
-            """
-            bin_bounds = np.linspace(self.min,self.max,self.bins + 1)
-            bin_n = bisect.bisect(bin_bounds, val)
-            extent = self._get_bounds(bin_bounds, bin_n)
-            subhist = self._hist._get_slice(self.name, bin_n)
-            return subhist, extent
-            
-        def _get_bounds(self, bin_bounds, num): 
-            if num == 0: 
-                return -np.inf, bin_bounds[0]
-            elif num == self.bins + 1: 
-                return bin_bounds[self.bins], np.inf
-            else: 
-                return bin_bounds[num - 1], bin_bounds[num]
-
-        def get_bin_extent(self, num): 
-            bin_bounds = np.linspace(self.min,self.max,self.bins + 1)
-            return self._get_bounds(bin_bounds, num)
-        
-        def integrate(self, reverse=False): 
-            self._hist._integrate(self.number, reverse)
 
     def __init__(self,array=None): 
-        self._axes = defaultdict(HistNd.Axis)
+        self._axes = defaultdict(Axis)
         if array: 
             self.__from_hdf(array)
 
