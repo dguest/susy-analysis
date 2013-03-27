@@ -13,8 +13,6 @@ class TransferFactor(object):
         self.sr_frac_err = None
         self.mc_only = None
         self.mc_only_err = None
-        self.transfered = None
-        self.transfered_err = None
         self.transfer_rel_errors = {}
 
 class TransferTable(object): 
@@ -49,15 +47,13 @@ class TransferTable(object):
         for cr in self.control_regions: 
             signal_regions[cr] = {}
             for sr in self.signal_regions: 
-                factor, err = calc.get_transfer_factor(cr, sr)
+                factor, err = calc.get_tf_and_err(cr, sr)
                 tf = TransferFactor(factor,err)
                 tf.physics = physics_type
                 tf.sr_frac, tf.sr_frac_err = (
                     calc.get_controlled_fraction(sr))
-                tf.transfered, tf.transfered_err = (
-                    calc.predict_count_coor_errors(cr,sr))
                 tf.mc_only, tf.mc_only_err = calc.get_total_mc(sr)
-                tf.transfer_rel_errors = calc.get_transfer_rel_errors(
+                tf.transfer_rel_errors = calc.get_coor_tf_rel_variations(
                     cr, sr)
                 signal_regions[cr][sr] = tf
 
@@ -87,21 +83,6 @@ class TransferCalculator(object):
         alltypes = self.counts[self.baseline].keys()
         self.signals = [s for s in alltypes if signal_re.search(s)]
         self.stat_factor = 1.0
-    
-    def _get_rel_error(self, variation, control): 
-        control_count = self.counts[self.baseline][self.physics_type][control]
-        control_var = self.counts[variation][self.physics_type][control]
-        if control_count == 0.0: 
-            return float('nan')
-        return control_var / control_count
-        
-    def _get_rel_error_diff(self, variation, control, signal): 
-        control_rel = self._get_rel_error(variation, control)
-        signal_rel = self._get_rel_error(variation, signal)
-        return signal_rel - control_rel
-
-    def _stat_err(self, number): 
-        return (number * self.stat_factor)**(0.5)
 
     def _bare_tf(self, control, signal, variation=None): 
         if not variation: 
@@ -114,16 +95,23 @@ class TransferCalculator(object):
     
     def _get_statvar(self, region, physics, variation): 
         basestat = self.counts[self.baseline][physics][region]
-        # variation is halved because there are two... correct? 
-        var = (basestat / 2)**0.5 
-        if variation == 'STATUP': 
+        var = basestat**0.5 
+        if variation == 'STAT': 
             return basestat + var
-        elif variation == 'STATDOWN': 
-            return basestat - var
         else: 
             return basestat
 
-    def _predicted_count(self, control, signal, variation=None): 
+    def _get_other_mc_in_region(self, control, variation=None): 
+        if not variation: 
+            variation = self.baseline
+        excluded_mc = [self.data, self.physics_type] + self.signals
+        other_mc = []
+        for m in self.counts[self.baseline]: 
+            if m not in excluded_mc: 
+                other_mc.append(m)
+        return sum(self.counts[variation][m][control] for m in other_mc)
+
+    def _predicted_count_phystype(self, control, signal, variation=None): 
         if not variation: 
             variation = self.baseline
         dc = self._get_statvar(control, self.data, variation)
@@ -135,43 +123,9 @@ class TransferCalculator(object):
         for m in self.counts[self.baseline]: 
             if m not in excluded_mc: 
                 other_mc.append(m)
-        oc_sim = sum(self.counts[variation][m][control] for m in other_mc)
-        os_sim = sum(self.counts[variation][m][signal] for m in other_mc)
-        prediction = tf * (dc - oc_sim) + os_sim
+        oc_sim = self._get_other_mc_in_region(control)
+        prediction = tf * (dc - oc_sim)
         return prediction
-
-    def get_transfer_rel_errors(self, control, signal): 
-        rel_errors = {}
-        for variation in self.variations: 
-            rel_var = self._get_rel_error_diff(variation, control, signal)
-            rel_errors[variation] = rel_var
-
-        control_data = self.counts[self.baseline][self.data][control]
-        data_stat_err = self._stat_err(control_data)
-        control_mc, control_exc_mc_err = self.get_total_mc(
-            control, [self.physics_type])
-        subtr_control = control_data - control_mc
-
-        if subtr_control == 0.0: 
-            subtr_control = float('nan')
-        subtr_control_rel_err = (
-            data_stat_err**2 + control_exc_mc_err**2)**(0.5) / subtr_control
-        
-        rel_errors['STAT'] = subtr_control_rel_err
-
-        return rel_errors
-
-    def get_transfer_factor(self, control, signal, errors='all'): 
-        base_factor = self._bare_tf(control, signal)
-
-        rel_errors = self.get_transfer_rel_errors(control, signal)
-        if errors == 'all': 
-            errors = [v for k,v in rel_errors.items() if k in errors]
-        else: 
-            errors = rel_errors.values()
-        total_rel_error = sum( (v**2 for v in rel_errors.values()))**(0.5)
-        total_error = base_factor * total_rel_error
-        return base_factor, total_error
 
     def get_mc_uncertainties(self, signal, physics_type): 
         signal_count = self.counts[self.baseline][physics_type][signal]
@@ -180,15 +134,6 @@ class TransferCalculator(object):
             var_count = self.counts[variation][physics_type][signal]
             variations[variation] = var_count - signal_count
         return variations
-    
-    def get_mc_rel_errors(self, signal, physics_type): 
-        variations = self.get_mc_uncertainties(signal, physics_type)
-        nominal = self.counts[self.baseline][physics_type][signal]
-        rel_errors = {}
-        for key, var in variations.items(): 
-            rel_error = var / nominal
-            rel_errors[key] = rel_error
-        return rel_errors
 
     def get_mc_uncertainty(self, signal, physics_type): 
         variations = self.get_mc_uncertainties(signal, physics_type).values()
@@ -205,41 +150,50 @@ class TransferCalculator(object):
             uncertainties.append(self.get_mc_uncertainty(signal, phys_type))
         return total_mc, sum( (v**2 for v in uncertainties))**(0.5)
 
-    def predict_counts(self, control, signal, add_non_tf_error=True): 
-        baseline = self.counts[self.baseline]
-        control_data = baseline[self.data][control]
-        transfer_factor, tf_error = self.get_transfer_factor(control, signal)
-        control_exc_mc, control_exc_mc_err = self.get_total_mc(
-            control, [self.physics_type])
-        signal_exc_mc, signal_exc_mc_err = self.get_total_mc(
-            signal, [self.physics_type])
-
-
-        # the mc-subtracted control region 
-        subtr_control = control_data - control_exc_mc
-
-        transfered = transfer_factor * subtr_control
-
-        # expected is tf * mc-subtracted control + signal region mc
-        exp_data = transfered + signal_exc_mc
-
-        # --- calculate errors ----
-        # transfered error (without final error for simulation in 
-        # signal region)
-        transfered_err = tf_error * transfered
-
-        # total error
-        total_error = (transfered_err**2 + signal_exc_mc_err**2)**(0.5)
-
-        return exp_data, total_error
-
-    def predict_count_variations(self, control, signal): 
+    def predict_count_phystype_variations(self, control, signal): 
         all_counts = {}
-        add_variations = ['STATUP','STATDOWN', self.baseline]
+        add_variations = ['STAT', self.baseline]
         for variation in self.variations + add_variations:
-            all_counts[variation] = self._predicted_count(
+            predicted = self._predicted_count_phystype(
                 control, signal, variation)
+            all_counts[variation] = predicted
         return all_counts
+
+    def get_coor_tf_rel_variations(self, control, signal): 
+        predicted = self.predict_count_phystype_variations(control, signal)
+        baseline_pred = predicted[self.baseline]
+        stat_keys = [k for k in predicted if k.startswith('STAT')]
+        nonsyst_keys = [self.baseline] + stat_keys
+        syst_pred = { 
+            k:p for k,p in predicted.iteritems() if k not in nonsyst_keys}
+
+        base_count = (
+            self.counts[self.baseline][self.data][control] - 
+            self._get_other_mc_in_region(control) )
+        if base_count == 0.0: 
+            base_count = float('nan')
+        base_tf = baseline_pred / base_count
+        syst_tf = {
+            k:syst_pred[k] / base_count for k in syst_pred}
+        def get_rel(var): 
+            return (var - base_tf) / base_tf
+        rel_var = {k:get_rel(sys) for k, sys in syst_tf.iteritems()}
+
+        if baseline_pred <= 0.0: 
+            stat_rel_error = float('nan')
+        else: 
+            stat_rel_error = (
+                predicted['STAT'] - baseline_pred) / baseline_pred
+
+        rel_var['STAT'] = stat_rel_error
+        return rel_var
+
+    def get_tf_and_err(self, control, signal): 
+        base_tf = self._bare_tf(control, signal)
+        rel_variations = self.get_coor_tf_rel_variations(control, signal)
+        sum_rel_var = sum(v**2 for v in rel_variations.values())**0.5
+        sum_variations = sum_rel_var * base_tf
+        return base_tf, sum_variations
 
     def predict_count_coor_errors(self, control, signal): 
         all_counts = self.predict_count_variations(control, signal)
