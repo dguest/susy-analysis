@@ -122,6 +122,9 @@ class Coordinator(object):
         return broken
 
     def _fast_stack(self, rerun=False, do_stat_regions=False): 
+        """
+        TODO: unify this with stack() 
+        """
         ntup_dict = self._config_dict['files']['ntuples']
         globdir = '{}/*.root'.format(ntup_dict['NONE'])
         ntuples = glob.glob(globdir)
@@ -190,7 +193,7 @@ class Coordinator(object):
         for tup_n, ntup in enumerate(ntuples): 
             n_ran += stacker.run_multisys(
                 ntup, base_hist_path, [stacker_syst],
-                tuple_n=tup_n, outsubdir=systematic)
+                tuple_n=tup_n, outsubdir=systematic.lower())
         if n_ran: 
             self._print_new_line()
 
@@ -299,7 +302,7 @@ class Stacker(object):
                 regdic = reg.get_config_dict()
                 regdic['name'] = name
                 if outsubdir: 
-                    outdir = outsubdir.lower()
+                    outdir = outsubdir
                 else: 
                     if systematic == 'NONE': 
                         outdir = 'baseline'
