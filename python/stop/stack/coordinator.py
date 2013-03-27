@@ -71,7 +71,7 @@ class Coordinator(object):
                 os.mkdir(syst_hist_path)
         return syst_hist_path
 
-    def _write_plot_region_meta(self, systematic, regions, overwrite=False): 
+    def _write_plot_region_meta(self, systematic, regions, overwrite=True): 
         hist_path = self._config_dict['files']['hists']
         yml_path = join(hist_path, self.super_region_meta_name)
         if isfile(yml_path): 
@@ -130,6 +130,7 @@ class Coordinator(object):
 
         for syst in self.scale_factor_systematics: 
             hist_path = self._get_syst_hist_path(syst, create=True)
+            # intentional fallthough 
 
         base_hist_path = '/'.join(hist_path.split('/')[:-1])
         stacker_regions = {
@@ -177,6 +178,7 @@ class Coordinator(object):
             raise IOError("no ntuples found in {}".format(globdir))
 
         syst_hist_path = self._get_syst_hist_path(systematic, create=True)
+        base_hist_path = '/'.join(syst_hist_path.split('/')[:-1])
         stacker_regions = {
             k:Region(v) for k,v in self._config_dict['regions'].items()}
         if do_stat_regions: 
@@ -186,11 +188,9 @@ class Coordinator(object):
         stacker.rerun = rerun
         n_ran = 0
         for tup_n, ntup in enumerate(ntuples): 
-            out_hist_name = '{}.h5'.format(splitext(basename(ntup))[0])
-            out_hist_path = join(syst_hist_path, out_hist_name)
-            n_ran += stacker.hist_from_ntuple(
-                ntup, out_hist_path, stacker_syst,
-                tuple_n=tup_n)
+            n_ran += stacker.run_multisys(
+                ntup, base_hist_path, [stacker_syst],
+                tuple_n=tup_n, outsubdir=systematic)
         if n_ran: 
             self._print_new_line()
 
@@ -259,6 +259,8 @@ class Stacker(object):
     Constructed  with a regions dict. Runs the stacking routine when 
     hist_from_ntuple is called.
     """
+    data_prepend = 'dme'
+    mc_prepend = 's'
     def __init__(self, regions_dict): 
         self._regions = regions_dict
         self.dummy = False
@@ -278,60 +280,31 @@ class Stacker(object):
             self.flags += set('v')
         else: 
             self.flags -= set('v')
-            
-    
-    def hist_from_ntuple(self, ntuple, hist, systematic='NONE', 
-                         tuple_n=None): 
-        # got to figure out how I'm going to deal with possibly 
-        # differing configuration cuts... 
-        # current plan, don't configure cuts, output a histogram and 
-        # do the counting on that... we'll use stacksusy as a standin
-        if isfile(hist):
-            if self.rerun: 
-                os.remove(hist)
-            else: 
-                return 0
+    def _ismc(self, ntuple_name): 
+        first = ntuple_name.split('/')[-1][0]
+        if first in self.data_prepend: 
+            return False
+        elif first in self.mc_prepend: 
+            return True
+        else: 
+            raise ValueError(
+                "not sure what '{}' does as ntuple prepend in '{}'".format(
+                    first, ntuple_name))
 
-        regions = []
-        for name, reg in self._regions.items(): 
-            regdic = reg.get_config_dict()
-            regdic['name'] = name
-            regdic['output_name'] = hist 
-            regdic['systematic'] = systematic
-            regions.append(regdic)
-
-
-        print_req = [
-            not self.verbose, 
-            self.outstream.isatty(), 
-            isinstance(tuple_n,int), 
-            self.total_ntuples, 
-            ]
-        if all(print_req):
-            sp_path = hist.split('/')
-            if len(sp_path) > 1: 
-                sysname = sp_path[-2].upper()
-            else: 
-                sysname = systematic
-            prline = '\rstacking systematic {} ({:4} of {})'.format(
-                sysname, tuple_n, self.total_ntuples)
-            self.outstream.write(prline)
-            self.outstream.flush()
-
-        
-        self._run(ntuple, regions)
-        return 1
-
-    def run_multisys(self, ntuple, basedir, systematics, tuple_n=None): 
+    def run_multisys(self, ntuple, basedir, systematics, tuple_n=None, 
+                     outsubdir=None): 
         regions = []
         for name, reg in self._regions.items(): 
             for systematic in systematics: 
                 regdic = reg.get_config_dict()
                 regdic['name'] = name
-                if systematic == 'NONE': 
-                    outdir = 'baseline'
+                if outsubdir: 
+                    outdir = outsubdir.lower()
                 else: 
-                    outdir = systematic.lower()
+                    if systematic == 'NONE': 
+                        outdir = 'baseline'
+                    else: 
+                        outdir = systematic.lower()
                 full_out_dir = join(basedir, outdir)
                 if not isdir(full_out_dir): 
                     raise IOError(99,"no dir",full_out_dir)
@@ -344,7 +317,8 @@ class Stacker(object):
                         continue
                 regdic['output_name'] = full_out_path
                 regdic['systematic'] = systematic
-                regions.append(regdic)
+                if self._ismc(ntuple) or systematic == 'NONE':
+                    regions.append(regdic)
 
         if regions: 
 
@@ -356,8 +330,12 @@ class Stacker(object):
                 ]
             if all(print_req):
                 n_syst = len(systematics)
-                prline = '\rstacking {} systematics ({:4} of {})'.format(
-                    n_syst, tuple_n,self.total_ntuples)
+                if n_syst == 1: 
+                    prline = '\rstacking {} ({:4} of {})'.format(
+                        systematics[0], tuple_n, self.total_ntuples)
+                else: 
+                    prline = '\rstacking {} systematics ({:4} of {})'.format(
+                        n_syst, tuple_n,self.total_ntuples)
                 self.outstream.write(prline)
                 self.outstream.flush()
             self._run(ntuple, regions)
