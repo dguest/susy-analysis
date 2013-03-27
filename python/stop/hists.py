@@ -1,6 +1,7 @@
 import numpy as np
 from collections import defaultdict
 import copy
+import bisect
 import weakref, warnings
 
 class Hist1d(object): 
@@ -402,6 +403,7 @@ class HistNd(object):
         if not name in self._axes: 
             raise ValueError('axis {} not in hist'.format(name))
         ax = self._axes.pop(name)
+        # FIXME: replace this with some other cleaner shifting function
         for ax_name in self._axes: 
             if self._axes[ax_name].number > ax.number: 
                 self._axes[ax_name]._axis -= 1
@@ -423,8 +425,12 @@ class HistNd(object):
 
     def _get_slice(self, axis, bin_n): 
         new_axes = copy.deepcopy(self._axes)
-        ax = new_axes._pop_axis(axis)
-        sl_tuple = [slice(none)]*len(new_axes)
+        ax = new_axes.pop(axis)
+        # FIXME: replace with something cleaner as above
+        for ax_name in new_axes: 
+            if new_axes[ax_name].number > ax.number: 
+                new_axes[ax_name]._axis -= 1
+        sl_tuple = [slice(None)]*len(new_axes)
         sl_tuple[ax.number] = bin_n
         new_array = np.array(self._array[sl_tuple])
         new_hist = HistNd()
