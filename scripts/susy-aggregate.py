@@ -83,7 +83,6 @@ def run():
     if args.fast: 
         count_dict = {'NONE':count_dict}
     
-    print count_dict
     if args.counts_file: 
         with open(args.counts_file,'w') as countfile: 
             for line in yaml.dump(table.yamlize(count_dict)): 
