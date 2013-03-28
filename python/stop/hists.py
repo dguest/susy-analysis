@@ -217,7 +217,7 @@ class Axis(object):
         return self._get_bounds(bin_bounds, num)
     
     def integrate(self, reverse=False): 
-        self._hist()._integrate(self.number, reverse)
+        self._hist()._integrate(self.name, reverse)
 
 
 class HistNd(object): 
@@ -227,7 +227,7 @@ class HistNd(object):
     """
 
     def __init__(self,array=None): 
-        self._axes = defaultdict(Axis)
+        self._axes = {}
         if array: 
             self.__from_hdf(array)
 
@@ -251,10 +251,11 @@ class HistNd(object):
         self._array = np.array(hdf_array)
         for name, atr in hdf_array.attrs.items(): 
             ax_name, part, ax_prop = name.rpartition('_')
-            the_axis = self._axes[ax_name]
+            the_axis = self._axes.get(ax_name, Axis())
             setattr(the_axis, '_' + ax_prop, atr)
             the_axis._name = ax_name
             the_axis._hist = weakref.ref(self)
+            self._axes[ax_name] = the_axis
 
         for name, axis in self._axes.items(): 
             if not axis.valid: 
@@ -326,12 +327,12 @@ class HistNd(object):
         """
         return self._array
 
-    @property
-    def axes(self): 
-        """
-        Return a sorted list of the axis objects. 
-        """
+    def axlist(self): 
         return sorted(self._axes.values(), key=lambda x: x.number)
+    
+    @property 
+    def axes(self): 
+        return self._axes
 
     def sum(self): 
         return self._array.sum()
@@ -354,10 +355,11 @@ class HistNd(object):
                 return None
             self._integrate(ax_number, reverse)
 
-    def _integrate(self, ax_number, reverse=False): 
-        if self.axes[ax_number].type == 'integral': 
+    def _integrate(self, ax_name, reverse=False): 
+        if self.axes[ax_name].type == 'integral': 
             raise ArithmeticError("tried to integrate axis {} twice".format(
-                    ax_number))
+                    ax_name))
+        ax_number = self._axes[ax_name].number
         a = self._array
         if reverse: 
             a = a.swapaxes(0,ax_number)[::-1,...].swapaxes(0,ax_number)
@@ -365,7 +367,7 @@ class HistNd(object):
         if reverse: 
             a = a.swapaxes(0,ax_number)[::-1,...].swapaxes(0,ax_number)
         self._array = a
-        self.axes[ax_number].type = 'integral'
+        self.axes[ax_name]._type = 'integral'
 
 
     def cut(self, axis, value, reverse=False): 
@@ -425,18 +427,19 @@ class HistNd(object):
 
     def _get_slice(self, axis, bin_n): 
         new_axes = copy.deepcopy(self._axes)
+        sl_tuple = [slice(None)]*len(new_axes)
         ax = new_axes.pop(axis)
+        sl_tuple[ax.number] = bin_n
         # FIXME: replace with something cleaner as above
         for ax_name in new_axes: 
             if new_axes[ax_name].number > ax.number: 
                 new_axes[ax_name]._axis -= 1
-        sl_tuple = [slice(None)]*len(new_axes)
-        sl_tuple[ax.number] = bin_n
         new_array = np.array(self._array[sl_tuple])
         new_hist = HistNd()
         new_hist._array = new_array
         new_hist._axes = new_axes
         new_hist._update_axes()
+        return new_hist
 
     def project_1d(self, axis): 
         """
