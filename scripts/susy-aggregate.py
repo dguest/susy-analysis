@@ -20,7 +20,8 @@ def get_config():
     parser.add_argument('steering_file', help="created if it doesn't exist")
     parser.add_argument('-f','--force-aggregation', action='store_true')
     parser.add_argument('-r','--rerun-stack', action='store_true')
-    parser.add_argument('-c', '--counts-file', default='counts.yml',help=d)
+    parser.add_argument('-c', '--counts-file', const='counts.yml',
+                        nargs='?', help=c)
     parser.add_argument(
         '-s','--signal-point', default='stop-150-90', 
         help="assumes <particle>-<something> type name, " + d)
@@ -63,7 +64,7 @@ def run():
 
     to_do = [
         args.make_plots, 
-        not isfile(args.counts_file), 
+        args.counts_file, 
         needed_systematics, 
         args.force_aggregation, 
         args.rerun_stack, 
@@ -76,17 +77,13 @@ def run():
     coord.stack(systematic=systematic, 
                 rerun=args.rerun_stack, mode=args.mode)
 
-    all_dict = coord.aggregate(systematic=systematic,
-                               rerun=args.force_aggregation, 
-                               mode=args.mode)
+    count_dict = coord.aggregate(systematic=systematic,
+                                 rerun=args.force_aggregation, 
+                                 mode=args.mode)
     if args.fast: 
-        all_dict = {'NONE':all_dict}
-        
-    count_dict = {}
-    for name, syst_dict in all_dict.iteritems(): 
-        syst_count = table.get_physics_cut_dict(syst_dict)
-        count_dict[name] = syst_count
+        count_dict = {'NONE':count_dict}
     
+    print count_dict
     if args.counts_file: 
         with open(args.counts_file,'w') as countfile: 
             for line in yaml.dump(table.yamlize(count_dict)): 

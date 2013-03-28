@@ -32,9 +32,9 @@ class RegionExtractor(object):
         self._checkcut(met_cut, mext[1])
         return mslice
 
-    def extract_counts(self, h5_file_name): 
+    def extract_counts_file(self, h5_file_name): 
         """
-        Extract subregions. 
+        Extract subregions from a file. 
 
         Expects the (maybe questionable) standard input: 
         <physics-type>/{kinematics,kinematicStats}/<region>
@@ -51,9 +51,26 @@ class RegionExtractor(object):
                         normed = HistNd(superregion)
                         subregions = self.superregions[sname]['subregions']
                         for name, region in subregions.iteritems(): 
-                            counts = self._get_subregion_counts(region, normed)
+                            counts = self._get_subregion_counts(
+                                region, normed)
                             extracted[phname,meth,name] = counts
         return extracted
+    
+    def extract_counts_dict(self, superdict, variable='kinematics'): 
+        """
+        Extract subregions from a (physics, variable, superegion) keyed dict. 
+        Returns a (physics, region) tuple. 
+        """
+        regions = {}
+        for (phys, var, supname), hist in superdict.iteritems(): 
+            if var != variable: 
+                continue
+            subregions = self.superregions[supname]['subregions']
+            for regname, region in subregions.iteritems(): 
+                count = self._get_subregion_counts(region, hist)
+                regions[phys,regname] = count
+        return regions
+            
 
 class ExtractionError(StandardError): 
     def __init__(self, problem): 

@@ -13,7 +13,7 @@ def _not_blinded(physics_cut_tup):
         if cut.endswith(end): 
             return True
     return False
-    
+
 
 def get_physics_cut_dict(plots_dict, safe=True): 
     """

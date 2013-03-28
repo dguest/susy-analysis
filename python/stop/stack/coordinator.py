@@ -1,5 +1,6 @@
 import yaml
 from stop import bits
+from stop.stack import table, extractor
 from stop.stack.regions import Region, condense_regions
 from os.path import basename, isfile, isdir, join, splitext
 import glob, os, tempfile, sys
@@ -248,7 +249,16 @@ class Coordinator(object):
                 os.remove(agg_name)
             aggregator.write(agg_name)
             hist_dict = aggregator.plots_dict
-        return hist_dict
+
+        if mode == 'kinematic_stat': 
+            hist_path = self._make_hist_path()
+            extractor_yml = join(hist_path, self.super_region_meta_name)
+            with open(extractor_yml) as yml: 
+                ext = extractor.RegionExtractor(yaml.load(yml))
+            counts = ext.extract_counts_dict(hist_dict)
+            return counts
+        else: 
+            return table.get_physics_cut_dict(hist_dict)
             
     def write(self, yaml_file): 
         for line in yaml.dump(self._config_dict): 
