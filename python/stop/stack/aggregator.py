@@ -26,11 +26,11 @@ class HistDict(dict):
     """
     Dictionary with some methods for HDF5 persistence. 
 
-    Keyed by (physics, variable, cut) tuples. 
+    Keyed by (physics, variable, region) tuples. 
 
     The persistent format is actually rather ugly: 
         - top dir is physics type
-        - bottom dir is cut
+        - bottom dir is cut / region
         - all middle dirs are the variable name
     """
     def __init__(self, file_name=''): 

@@ -7,6 +7,7 @@ class RegionExtractor(object):
     Class is built from superregion defs, extracts region counts. 
     """
     cut_tolerance = 0.0001
+    count_variables = ['kinematics','kinematicStats']
     def __init__(self, superregions): 
         self.superregions = superregions
 
@@ -32,17 +33,27 @@ class RegionExtractor(object):
         return mslice
 
     def extract_counts(self, h5_file_name): 
+        """
+        Extract subregions. 
+
+        Expects the (maybe questionable) standard input: 
+        <physics-type>/{kinematics,kinematicStats}/<region>
+        
+        The returned dict is keyed by (physics, variable, region)
+        """
         if not isfile(h5_file_name): 
             raise IOError("{} doesn't exist".format(h5_file_name))
         extracted = {}
         with File(h5_file_name) as h5: 
-            for k in h5: print k
-            for supername, superregion in self.superregions.iteritems(): 
-                normed = HistNd(h5[supername]['kinematics'])
-                for name, region in superregion['subregions'].iteritems(): 
-                    counts = self._get_subregion_counts(region, normed)
-                    print name, counts
-                    
+            for phname, methgroup in h5.iteritems(): 
+                for meth, reggroup in methgroup.iteritems(): 
+                    for sname, superregion in reggroup.iteritems(): 
+                        normed = HistNd(superregion)
+                        subregions = self.superregions[sname]['subregions']
+                        for name, region in subregions.iteritems(): 
+                            counts = self._get_subregion_counts(region, normed)
+                            extracted[phname,meth,name] = counts
+        return extracted
 
 class ExtractionError(StandardError): 
     def __init__(self, problem): 
