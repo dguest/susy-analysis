@@ -202,6 +202,9 @@ class Axis(object):
         bin_n = bisect.bisect(bin_bounds, val)
         extent = self._get_bounds(bin_bounds, bin_n)
         subhist = self._hist()._get_slice(self.name, bin_n)
+        if not subhist.axes: 
+            assert subhist.array.size == 1
+            subhist = subhist.array[0]
         return subhist, extent
         
     def _get_bounds(self, bin_bounds, num): 
