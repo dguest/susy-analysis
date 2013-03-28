@@ -159,11 +159,10 @@ def condense_regions(regions):
     for region in super_regions.values(): 
         name = region.get_common_name()
         if name in used_names: 
-            final_name = name + str(used_names[name])
             used_names[name] += 1
         else: 
             used_names[name] = 0
-            final_name = name
+        final_name = name + str(used_names[name])
         named_regions[final_name] = region
     return named_regions
 
