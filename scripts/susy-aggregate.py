@@ -28,7 +28,8 @@ def get_config():
     parser.add_argument(
         '--ext', help='plot extensions, ' + d, default='.pdf')
     parser.add_argument(
-        '--stats', action='store_true', help='only do statistics, not hists')
+        '--mode', choices={'histmill','kinematic_stat'}, 
+        default='kinematic_stat', help='default: %(default)s')
     parser.add_argument('--fast', action='store_true', 
                         help="don't do systematics")
     args = parser.parse_args(sys.argv[1:])
@@ -58,7 +59,7 @@ def run():
 
     with open(args.steering_file) as yml: 
         coord = Coordinator(yml)
-    needed_systematics = coord.get_needed_aggregates()
+    needed_systematics = coord.get_needed_aggregates(args.mode)
 
     to_do = [
         args.make_plots, 
@@ -73,16 +74,16 @@ def run():
     systematic = 'NONE' if args.fast else 'all'
     coord.bugstream = TemporaryFile()
     coord.stack(systematic=systematic, 
-                rerun=args.rerun_stack, do_stat_regions=args.stats)
+                rerun=args.rerun_stack, mode=args.mode)
 
     all_dict = coord.aggregate(systematic=systematic,
-                               rerun=args.force_aggregation)
+                               rerun=args.force_aggregation, 
+                               mode=args.mode)
     if args.fast: 
         all_dict = {'NONE':all_dict}
         
     count_dict = {}
     for name, syst_dict in all_dict.iteritems(): 
-        safe = not args.stats
         syst_count = table.get_physics_cut_dict(syst_dict)
         count_dict[name] = syst_count
     

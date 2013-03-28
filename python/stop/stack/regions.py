@@ -79,6 +79,7 @@ class Region(object):
             'required_bits': self.get_bits(), 
             'veto_bits': self.get_antibits(), 
             'type': self.type.upper(), 
+            'hists': 'HISTMILL', 
             }
         return config_dict
 

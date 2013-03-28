@@ -61,18 +61,20 @@ class Coordinator(object):
     def _dirify(self, systematic): 
         return 'baseline' if systematic == 'NONE' else systematic.lower()
 
-    def _get_syst_hist_path(self, systematic, create=False): 
+    def _make_hist_path(self, systematic='', mode='' , create=False): 
         hists_path = self._config_dict['files']['hists']
-        syst_hist_path = join(hists_path, self._dirify(systematic))
+        if not systematic and mode: 
+            systematic = 'baseline'
+        elif systematic: 
+            systematic = self._dirify(systematic)
+        syst_hist_path = join(hists_path, mode, systematic)
         if create:
             if not isdir(hists_path): 
-                os.mkdir(hists_path)
-            if not isdir(syst_hist_path): 
-                os.mkdir(syst_hist_path)
+                os.makedirs(syst_hist_path)
         return syst_hist_path
 
-    def _write_plot_region_meta(self, systematic, regions, overwrite=True): 
-        hist_path = self._config_dict['files']['hists']
+    def _write_plot_region_meta(self, regions, overwrite=True): 
+        hist_path = self._make_hist_path(create=True)
         yml_path = join(hist_path, self.super_region_meta_name)
         if isfile(yml_path): 
             if overwrite: 
@@ -121,7 +123,7 @@ class Coordinator(object):
                 broken.append(name)
         return broken
 
-    def _fast_stack(self, rerun=False, do_stat_regions=False): 
+    def _fast_stack(self, rerun=False, mode='histmill'): 
         """
         TODO: unify this with stack() 
         """
@@ -131,19 +133,16 @@ class Coordinator(object):
         if not ntuples: 
             raise IOError("no ntuples found in {}".format(globdir))
 
-        for syst in self.scale_factor_systematics: 
-            hist_path = self._get_syst_hist_path(syst, create=True)
-            # intentional fallthough 
-
-        base_hist_path = '/'.join(hist_path.split('/')[:-1])
+        base_hist_path = self._make_hist_path()
         stacker_regions = {
             k:Region(v) for k,v in self._config_dict['regions'].items()}
-        if do_stat_regions: 
+        if mode == 'kinematic_stat': 
             stacker_regions = condense_regions(stacker_regions)
-            self._write_plot_region_meta(syst, stacker_regions)
+            self._write_plot_region_meta(stacker_regions)
         stacker = Stacker(stacker_regions)
         stacker.total_ntuples = len(ntuples)
         stacker.rerun = rerun
+        stacker.make_dirs = True
         n_ran = 0
         for tup_n, ntup in enumerate(ntuples): 
             n_ran += stacker.run_multisys(
@@ -157,14 +156,13 @@ class Coordinator(object):
         dist_syst = set(self.distiller_systematics) 
         dist_syst -= set(['NONE'])
         for syst in dist_syst: 
-            self.stack(systematic=syst, rerun=rerun, 
-                       do_stat_regions=do_stat_regions)
+            self.stack(systematic=syst, rerun=rerun, mode=mode)
         if n_ran: 
             self._print_new_line()
 
-    def stack(self, systematic='NONE', rerun=False, do_stat_regions=False): 
+    def stack(self, systematic='NONE', rerun=False, mode='histmill'): 
         if systematic == 'all': 
-            self._fast_stack(rerun, do_stat_regions)
+            self._fast_stack(rerun, mode)
             return 
                 
         ntup_dict = self._config_dict['files']['ntuples']
@@ -180,15 +178,15 @@ class Coordinator(object):
         if not ntuples: 
             raise IOError("no ntuples found in {}".format(globdir))
 
-        syst_hist_path = self._get_syst_hist_path(systematic, create=True)
-        base_hist_path = '/'.join(syst_hist_path.split('/')[:-1])
+        base_hist_path = self._make_hist_path(create=True)
         stacker_regions = {
             k:Region(v) for k,v in self._config_dict['regions'].items()}
-        if do_stat_regions: 
+        if mode == 'kinematic_stat': 
             stacker_regions = condense_regions(stacker_regions)
         stacker = Stacker(stacker_regions)
         stacker.total_ntuples = len(ntuples)
         stacker.rerun = rerun
+        stacker.make_dirs = True
         n_ran = 0
         for tup_n, ntup in enumerate(ntuples): 
             n_ran += stacker.run_multisys(
@@ -197,7 +195,7 @@ class Coordinator(object):
         if n_ran: 
             self._print_new_line()
 
-    def get_needed_aggregates(self): 
+    def get_needed_aggregates(self, mode): 
         """
         returns a list of systematics
         """
@@ -205,28 +203,29 @@ class Coordinator(object):
                        self.scale_factor_systematics)
         needed = []
         for syst in all_syst: 
-            agg_name = join(self._get_syst_hist_path(syst), 
+            agg_name = join(self._make_hist_path(syst, mode), 
                             self.aggregate_hist_name)
             if not isfile(agg_name): 
                 needed.append(syst)
         return needed
 
-    def aggregate(self, systematic='NONE', rerun=False, variables='all'): 
+    def aggregate(self, systematic='NONE', rerun=False, variables='all', 
+                  mode='histmill'): 
         if systematic == 'all': 
             all_syst = set(self.distiller_systematics + 
                            self.scale_factor_systematics)
             syst_dict = {}
             for syst in all_syst: 
-                self.outstream.write(
-                    'aggregating systematic {}\n'.format(syst))
                 syst_dict[syst] = self.aggregate(systematic=syst, 
-                                                 rerun=rerun)
+                                                 rerun=rerun, mode=mode)
             return syst_dict
             
         from stop.stack import aggregator as agg
-        hist_path = self._get_syst_hist_path(systematic)
+        hist_path = self._make_hist_path(systematic, mode)
         agg_name = join(hist_path, self.aggregate_hist_name)
         if isfile(agg_name) and not rerun: 
+            self.outstream.write('loading cached aggregate: {}\n'.format(
+                    agg_name))
             hist_dict = agg.HistDict(agg_name)
         else: 
             whiskey = glob.glob('{}/*.h5'.format(hist_path))
@@ -273,6 +272,7 @@ class Stacker(object):
         self.outstream = sys.stdout
         self.bugstream = sys.stderr
         self.rerun = False
+        self.make_dirs = False
     @property
     def verbose(self): 
         return self._verbose
@@ -300,17 +300,21 @@ class Stacker(object):
         for name, reg in self._regions.items(): 
             for systematic in systematics: 
                 regdic = reg.get_config_dict()
+                modedir = regdic['hists'].lower()
                 regdic['name'] = name
                 if outsubdir: 
-                    outdir = outsubdir
+                    systdir = outsubdir
                 else: 
                     if systematic == 'NONE': 
-                        outdir = 'baseline'
+                        systdir = 'baseline'
                     else: 
-                        outdir = systematic.lower()
-                full_out_dir = join(basedir, outdir)
+                        systdir = systematic.lower()
+                full_out_dir = join(basedir, modedir, systdir)
                 if not isdir(full_out_dir): 
-                    raise IOError(99,"no dir",full_out_dir)
+                    if self.make_dirs: 
+                        os.makedirs(full_out_dir)
+                    else: 
+                        raise IOError(99,"no dir",full_out_dir)
                 histname = '{}.h5'.format(basename(splitext(ntuple)[0]))
                 full_out_path = join(full_out_dir, histname)
                 if isfile(full_out_path): 
@@ -334,8 +338,12 @@ class Stacker(object):
             if all(print_req):
                 n_syst = len(systematics)
                 if n_syst == 1: 
+                    if outsubdir: 
+                        tag = outsubdir
+                    else: 
+                        tag = systematics[0]
                     prline = '\rstacking {} ({:4} of {})'.format(
-                        systematics[0], tuple_n, self.total_ntuples)
+                        tag, tuple_n, self.total_ntuples)
                 else: 
                     prline = '\rstacking {} systematics ({:4} of {})'.format(
                         n_syst, tuple_n,self.total_ntuples)
