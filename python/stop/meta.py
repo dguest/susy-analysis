@@ -46,6 +46,7 @@ class Dataset(object):
             subset.d3pds = []
             subset.subset_index = n
             subset.total_subsets = n_subsets
+            subsets.append(subset)
         for n, d3pd in enumerate(self.d3pds): 
             subsets[n % n_subsets].d3pds.append(d3pd)
         return {s.key: s for s in subsets}

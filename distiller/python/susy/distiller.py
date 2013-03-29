@@ -117,6 +117,8 @@ class Distiller(object):
         """
         with DatasetCache(self.meta_info_path) as cache: 
             for ds_key, ds in cache.iteritems(): 
+                if ds.d3pds: 
+                    continue
                 globstr = '{path}/*{origin}*{ds_id}*/*.root*'.format(
                     path=path, origin=ds.origin, ds_id=ds.id)
                 files = glob.glob(globstr)
