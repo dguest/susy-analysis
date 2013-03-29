@@ -173,12 +173,15 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   // need to get susy muon indices before overlap
   std::vector<int> susy_muon_idx = get_indices(preselected_muons); 
     
-  remove_overlaping(preselected_electrons, preselection_jets, 
-		    REMOVE_JET_CONE); 
-  remove_overlaping(preselection_jets, preselected_electrons, 
-		    REMOVE_EL_CONE); 
-  remove_overlaping(preselection_jets, preselected_muons, 
-		    REMOVE_MU_CONE); 
+  preselection_jets = remove_overlaping(preselected_electrons, 
+					preselection_jets, 
+					REMOVE_JET_CONE); 
+  preselected_electrons = remove_overlaping(preselection_jets, 
+					    preselected_electrons, 
+					    REMOVE_EL_CONE); 
+  preselected_muons = remove_overlaping(preselection_jets, 
+					preselected_muons, 
+					REMOVE_MU_CONE); 
 
   const auto veto_electrons = object::veto_electrons(preselected_electrons); 
   const auto veto_muons = object::veto_muons(preselected_muons); 
