@@ -199,9 +199,9 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   calibrate_jets(signal_jets, m_btag_calibration); 
   // ----- object selection is done now, from here is filling outputs ---
 
+  pass_bits |= jet_cleaning_bit(preselection_jets); 
   pass_bits |= signal_jet_bits(signal_jets); 
   m_out_tree->n_susy_jets = preselection_jets.size(); 
-  pass_bits |= jet_cleaning_bit(preselection_jets); 
 
   const unsigned n_req_jets = 3; 
   if (signal_jets.size() >= n_req_jets) { 
