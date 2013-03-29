@@ -5,28 +5,20 @@ Here be bitdefs.
        probably best to write the bits to a tree when running the 
        cutflow. 
 """
-bits = [
-    ("grl",  1 <<  0), 
-    ("trigger",  1 <<  1), 
-    ("lar_error",  1 <<  2), 
-    ("core",  1 <<  3), 
-    ("jet_clean",  1 <<  4), 
-    ("vxp_gt_4trk",  1 <<  5), 
-    ("leading_jet",  1 <<  6), 
-    ("met",  1 <<  7), 
-    ("n_jet",  1 <<  8), 
-    ("dphi_jetmet_min",  1 <<  9), 
-    ("electron_veto",  1 << 10), 
-    ("muon_veto",  1 << 11), 
-    ("ctag_mainz",  1 << 12), 
-    ("control_muon",  1 << 15), 
-    ("control_electron",  1 << 16),    
-    ("mttop",  1 << 21), 
-    ("j2_anti_b_opt",  1 << 22), 
-    ("j2_anti_u_opt",  1 << 23), 
-    ("j3_anti_b_opt",  1 << 24), 
-    ("j3_anti_u_opt",  1 << 25), 
-    ]
+import yaml, sys, stop
+from os.path import dirname, join
+
+def get_bits(bits_file=None): 
+    if not bits_file: 
+        bits_yaml = join(dirname(stop.__file__),'bits.yml')
+    with open(bits_yaml) as bt: 
+        bt_dict = yaml.load(bt)
+    bt_list = [(n, 1 << s) for n,s in bt_dict.iteritems()]
+    def lkey(tup): 
+        return tup[1]
+    return sorted(bt_list, key=lkey)
+
+bits = get_bits()
 
 _bdict = dict(bits)
 
