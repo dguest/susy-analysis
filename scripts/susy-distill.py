@@ -37,7 +37,7 @@ def run():
                         help=dp)
     parser.add_argument(
         '--systematic', default='baseline', 
-        choices={'baseline', 'JESUP', 'JESDOWN'})
+        choices={'baseline', 'JESUP', 'JESDOWN', 'JER'})
     parser.add_argument(
         '-o','--out-dir', 
         help='output directory (defaults to lowercase systematic)')

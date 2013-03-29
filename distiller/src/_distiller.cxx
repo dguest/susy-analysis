@@ -149,6 +149,10 @@ static bool safe_copy(PyObject* value, systematic::Systematic& dest) {
     dest = JESDOWN; 
     return true; 
   }
+  else if (name == "JER") { 
+    dest = JER; 
+    return true; 
+  }
   else if (name == "NONE") { 
     dest = NONE; 
     return true; 

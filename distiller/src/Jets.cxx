@@ -354,6 +354,7 @@ namespace {
     case NONE: return SystErr::NONE; 
     case JESUP: return SystErr::JESUP; 
     case JESDOWN: return SystErr::JESDOWN; 
+    case JER: return SystErr::JER; 
     default: 
       throw std::logic_error("got undedined systematic in " __FILE__); 
     }
