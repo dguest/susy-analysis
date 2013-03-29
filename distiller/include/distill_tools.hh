@@ -89,15 +89,13 @@ void calibrate_jets(std::vector<SelectedJet*> jets, const BtagCalibration*);
 template<typename M, typename A>
 A remove_overlaping(const M& mask, const A& altered, const float delta_r) { 
   A final = altered; 
-  for (typename M::const_iterator itr = mask.begin(); itr != mask.end(); 
-       itr++) { 
-    const unsigned n_jets = altered.size(); 
+  for (auto mitr = mask.begin(); mitr != mask.end(); mitr++) { 
     A new_container; 
-    for (unsigned idx = 0; idx < n_jets; idx++) { 
-      assert((*itr)->Pt() > 0); 
-      double delr = (*itr)->DeltaR(*altered.at(idx)); 
+    for (auto vic = final.begin(); vic != final.end(); vic++) { 
+      assert((*mitr)->Pt() > 0); 
+      double delr = (*mitr)->DeltaR(**vic); 
       if (delr > delta_r) { 
-	new_container.push_back(altered.at(idx)); 
+	new_container.push_back(*vic); 
       }
     }
     final = new_container; 
