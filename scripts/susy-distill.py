@@ -60,6 +60,7 @@ def run():
         print 'mapping inputs'
     distiller.find_input_files(args.d3pd_dir)
     distiller.prepare_dataset_meta(args.systematic)
+    distiller.split_datasets(5)
     if args.update_meta: 
         print 'updated meta, quitting'
         return None

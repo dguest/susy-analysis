@@ -4,6 +4,7 @@ import cPickle
 import re
 import multiprocessing
 import yaml
+import copy
 from warnings import warn
 
 class Dataset(object): 
@@ -32,14 +33,22 @@ class Dataset(object):
         self.bugs = set()
         self.n_corrupted_files = 0
 
-    @property
-    def skim_path(self): 
-        warn('skim_path is deprecated, use dict skim_paths', FutureWarning)
-        return self.skim_paths['nominal']
-    @skim_path.setter
-    def skim_path(self, value): 
-        warn('skim_path is deprecated, use dict skim_paths', FutureWarning)
-        self.skim_paths['nominal'] = value
+        self.subset_index = 0
+        self.total_subsets = 0
+
+    def split(self, n_subsets): 
+        if self.skim_paths or self.n_corrupted_files: 
+            raise NotImplementedError(
+                "don't know how to split post-distiller ds")
+        subsets = []
+        for n in xrange(n_subsets): 
+            subset = copy.deepcopy(self)
+            subset.d3pds = []
+            subset.subset_index = n
+            subset.total_subsets = n_subsets
+        for n, d3pd in enumerate(self.d3pds): 
+            subsets[n % n_subsets].d3pds.append(d3pd)
+        return {s.key: s for s in subsets}
 
     @property
     def effective_luminosity_fb(self): 
@@ -89,11 +98,16 @@ class Dataset(object):
     def _yml_iter(self): 
         build_from_full_name = set(['id', 'origin', 'tags', 'name'])
 
+        if self.total_subsets: 
+            yield 'total_subsets', self.total_subsets
+            yield 'subset_index', self.subset_index
+
         for key, value in self.__dict__.iteritems(): 
             skip_conditions = [ 
                 not value and value is not False, 
                 key == 'full_unchecked_name', 
                 self.full_name and key in build_from_full_name, 
+                key in ['subset_index','total_subsets'], 
                 ]
             if any(skip_conditions): 
                 continue
@@ -138,7 +152,10 @@ class Dataset(object):
         ds_id = self.id
         if isinstance(ds_id, str): 
             ds_id = ds_id[0].upper() + ds_id[1:]
-        return '{}{}'.format(char, ds_id)
+        if not self.total_subsets: 
+            return '{}{}'.format(char, ds_id)
+        else: 
+            return '{}{}-{}'.format(char, ds_id, self.subset_index)
     @property
     def is_data(self): 
         if self.origin.startswith('data'): 

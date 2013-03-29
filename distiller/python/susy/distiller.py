@@ -197,12 +197,27 @@ class Distiller(object):
                 ds.distill_flags = self._get_flags(ds)
                 ds.need_rerun = self._needs_rerun(ds, systematic)
                 ds.calibration_dir = self.calibration_dir
-                if ds.origin.startswith('data'): 
+                if ds.is_data: 
                     ds.grl = grl
                     ds.btag_env = ''
                 else: 
                     ds.grl = ''
                     ds.btag_env = btag_env
+
+    def split_datasets(self, max_d3pd_per_job): 
+        with DatasetCache(self.meta_info_path) as cache: 
+            new_datasets = {}
+            rm_keys = []
+            for ds in cache.itervalues(): 
+                n_d3pd = len(ds.d3pds)
+                if n_d3pd > max_d3pd_per_job: 
+                    spl_num = (n_d3pd // max_d3pd_per_job) + 1
+                    new_datasets.update(ds.split(spl_num))
+                    rm_keys.append(ds.key)
+
+            cache.update(new_datasets)
+            for key in rm_keys: 
+                del cache[key]
 
     def distill(self): 
         with DatasetCache(self.meta_info_path) as cache: 
