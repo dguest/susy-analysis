@@ -65,6 +65,7 @@ class Distiller(object):
 
     Designed to run over one meta file and produce 
     """
+    base_systematic = 'baseline'
     def __init__(self, config): 
         self.out_dir = config.out_dir
         self.meta_info_path = config.meta_info_path
@@ -159,6 +160,8 @@ class Distiller(object):
         for d3pd in ds.d3pds: 
             if not isfile(d3pd): 
                 raise IOError('d3pd {} not found'.format(d3pd))
+        if ds.is_data and systematic != self.base_systematic: 
+            return False
         
         if ds.origin.startswith('data'): 
             has_grl = hasattr(ds,'grl') and ds.grl
@@ -179,7 +182,9 @@ class Distiller(object):
         return False
 
 
-    def prepare_dataset_meta(self, systematic='baseline'):
+    def prepare_dataset_meta(self, systematic=None):
+        if systematic == None: 
+            systematic = self.base_systematic
         btag_env = join(self.calibration_dir, self.btag_env)
         grl = join(self.calibration_dir, self.grl)
         if not isfile(btag_env): 
