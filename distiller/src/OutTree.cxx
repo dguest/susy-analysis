@@ -30,6 +30,8 @@ namespace outtree {
     m_tree->Branch("pass_bits", &pass_bits ); 
     m_tree->Branch("met", &met); 
     m_tree->Branch("met_phi", &met_phi); 
+    m_tree->Branch("mu_met", &mu_met); 
+    m_tree->Branch("mu_met_phi", &mu_met_phi); 
     m_tree->Branch("min_jetmet_dphi" , &min_jetmet_dphi); 
     m_tree->Branch("n_susy_jets", &n_susy_jets); 
     m_tree->Branch("n_good_jets", &n_good_jets); 
@@ -67,6 +69,8 @@ namespace outtree {
     pass_bits = 0; 
     met = -1; 
     met_phi = -10; 
+    mu_met = -1; 
+    mu_met_phi = -10; 
     min_jetmet_dphi = -1; 
     sum_jetmet_dphi = -1; 
     n_susy_jets = -1; 

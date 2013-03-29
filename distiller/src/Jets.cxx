@@ -13,7 +13,28 @@
 #include <stdexcept>
 #include <boost/format.hpp>
 
+PreselectionJets::PreselectionJets(const JetContainer& jets) { 
+  for (auto jet_itr = jets.begin(); jet_itr != jets.end(); jet_itr++) {
+    auto& jet = **jet_itr; 
+    bool is_low_pt = (jet.bits() & jetbit::low_pt); 
+    bool is_high_eta = (jet.bits() & jetbit::high_eta); 
+    if (!is_low_pt && !is_high_eta) { 
+      push_back(*jet_itr); 
+    }
+  }
+}
 
+SignalJets::SignalJets(const JetContainer& jets) { 
+  for (auto jet_itr = jets.begin(); jet_itr != jets.end(); jet_itr++) { 
+    const SelectedJet& jet = **jet_itr; 
+    bool signal_pt = (jet.bits() & jetbit::signal_pt); 
+    bool tag_eta = (jet.bits() & jetbit::taggable_eta);
+    bool leading_jet = (*jet_itr == *jets.begin()); 
+    if (signal_pt && (tag_eta || leading_jet)) { 
+      push_back(*jet_itr); 
+    }
+  }
+}
 
 SelectedJet::SelectedJet(const EventJets* parent, int jet_index): 
   m_bits(0)

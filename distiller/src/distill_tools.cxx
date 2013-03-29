@@ -302,6 +302,15 @@ TVector2 get_met(const SusyBuffer& buffer,
   return met; 
 }
 
+TVector2 get_mumet(const TVector2& met, const std::vector<Muon*> muons) { 
+  TLorentzVector met4(met.Px(), met.Py(), 0, 0); 
+  for (auto muon = muons.begin(); muon != muons.end(); muon++) { 
+    met4 += **muon; 
+  }
+  return met4.Vect().XYvector(); 
+}
+
+
 //___________________________________________________________________
 // selected jet  
   

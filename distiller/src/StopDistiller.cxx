@@ -144,15 +144,14 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
 
   m_def->Reset(); 
   m_out_tree->clear_buffer(); 
+  ull_t pass_bits = 0; 
     
   EventJets all_jets(*m_susy_buffer, *m_def, m_flags, m_info); 
   EventElectrons all_electrons(*m_susy_buffer, *m_def, m_flags, m_info); 
   EventMuons all_muons(*m_susy_buffer, *m_def, m_flags, m_info); 
 
-  std::vector<Electron*> preselected_electrons = filter_susy(all_electrons); 
-  std::vector<Muon*> preselected_muons = filter_susy(all_muons); 
-
-  ull_t pass_bits = 0; 
+  auto preselected_electrons = filter_susy(all_electrons); 
+  auto preselected_muons = filter_susy(all_muons); 
 
   // --- preselection 
 
@@ -169,30 +168,17 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
     copy_jet_info(all_jets.at(0), m_out_tree->leading_jet_uncensored); 
   }
     
-  Jets preselection_jets; 
-  for (auto jet_itr = all_jets.begin(); jet_itr != all_jets.end(); jet_itr++) {
-    const SelectedJet& jet = **jet_itr; 
-    bool is_low_pt = (jet.bits() & jetbit::low_pt); 
-    bool is_high_eta = (jet.bits() & jetbit::high_eta); 
-    if (!is_low_pt && !is_high_eta) { 
-      preselection_jets.push_back(*jet_itr); 
-    }
-  }
+  PreselectionJets preselection_jets(all_jets); 
 
   // need to get susy muon indices before overlap
   std::vector<int> susy_muon_idx = get_indices(preselected_muons); 
     
-  std::vector<double> jet_dr = remove_overlaping(preselected_electrons, 
-						 preselection_jets, 
-						 REMOVE_JET_CONE); 
-  remove_overlaping(preselection_jets, preselected_electrons, REMOVE_EL_CONE); 
-  remove_overlaping(preselection_jets, preselected_muons, REMOVE_MU_CONE); 
-
-  for (auto dr_itr = jet_dr.begin(); dr_itr != jet_dr.end(); dr_itr++) { 
-    dbg_stream << "evt " << m_susy_buffer->EventNumber 
-	       << ", removed jet -- dR = " 
-	       << *dr_itr << std::endl; 
-  }
+  remove_overlaping(preselected_electrons, preselection_jets, 
+		    REMOVE_JET_CONE); 
+  remove_overlaping(preselection_jets, preselected_electrons, 
+		    REMOVE_EL_CONE); 
+  remove_overlaping(preselection_jets, preselected_muons, 
+		    REMOVE_MU_CONE); 
 
   const auto veto_electrons = object::veto_electrons(preselected_electrons); 
   const auto veto_muons = object::veto_muons(preselected_muons); 
@@ -200,25 +186,11 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   const auto control_electrons = object::control_electrons(veto_electrons); 
   const auto control_muons = object::control_muons(veto_muons); 
 
-  Jets signal_jets; 
-  for (Jets::const_iterator jet_itr = preselection_jets.begin(); 
-       jet_itr != preselection_jets.end(); jet_itr++) { 
-
-    const SelectedJet& jet = **jet_itr; 
-    bool signal_pt = (jet.bits() & jetbit::signal_pt); 
-    bool tag_eta = (jet.bits() & jetbit::taggable_eta);
-    bool leading_jet = (*jet_itr == *preselection_jets.begin()); 
-    if (signal_pt && (tag_eta || leading_jet)) { 
-      signal_jets.push_back(*jet_itr); 
-    }
-  }
+  SignalJets signal_jets(preselection_jets); 
   set_bit(signal_jets, jetbit::signal); 
 
-  TVector2 met = get_met(*m_susy_buffer, *m_def, m_info, susy_muon_idx); 
-  if (m_flags & cutflag::use_met_reffinal) { 
-    met.Set(m_susy_buffer->MET_RefFinal_etx, 
-	    m_susy_buffer->MET_RefFinal_ety); 
-  }
+  const TVector2 met = get_met(*m_susy_buffer, *m_def, m_info, susy_muon_idx); 
+  const TVector2 mu_met = get_mumet(met, control_muons); 
 
   // ---- must calibrate signal jets for b-tagging ----
   calibrate_jets(signal_jets, m_btag_calibration); 
@@ -268,6 +240,8 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   m_out_tree->pass_bits = pass_bits; 
   m_out_tree->met = met.Mod(); 
   m_out_tree->met_phi = met.Phi(); 
+  m_out_tree->mu_met = mu_met.Mod(); 
+  m_out_tree->mu_met_phi = mu_met.Phi(); 
 
   m_out_tree->event_number = m_susy_buffer->EventNumber; 
 

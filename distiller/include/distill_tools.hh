@@ -75,7 +75,7 @@ bool pass_mainz_ctag(const SelectedJet* jet);
 TVector2 get_met(const SusyBuffer& buffer, 
 		 SUSYObjDef& def, 
 		 const RunInfo&, const std::vector<int>& muon_idx );
-
+TVector2 get_mumet(const TVector2& met, const std::vector<Muon*> muons); 
 
 bool has_lower_pt(const TLorentzVector*, const TLorentzVector*); 
 

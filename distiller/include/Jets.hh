@@ -47,7 +47,9 @@ private:
   std::vector<CalResult> m_scale_factor; 
 }; 
 
-class EventJets: public std::vector<SelectedJet*> 
+typedef std::vector<SelectedJet*> JetContainer; 
+
+class EventJets: public JetContainer
 { 
 public: 
   EventJets(const SusyBuffer& buffer, SUSYObjDef& def, 
@@ -63,6 +65,19 @@ private:
   friend class SelectedJet; 
   unsigned m_flags; 
   int m_jets_under_uncalibrated_min; 
+}; 
+
+class PreselectionJets: public JetContainer
+{
+public: 
+  PreselectionJets() {}; 
+  PreselectionJets(const JetContainer&); 
+}; 
+
+class SignalJets: public JetContainer
+{
+public: 
+  SignalJets(const JetContainer&); 
 }; 
 
 namespace {
