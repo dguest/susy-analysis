@@ -5,6 +5,7 @@ import h5py
 import warnings
 import sys
 import re
+from collections import Counter
 
 def _get_objects(h5_cont): 
     objects = {}
@@ -174,7 +175,22 @@ class SampleAggregator(object):
         return self._plots_dict
 
 
+    def _get_lumi_scale(self, file_meta): 
+        if file_meta.physics_type == 'data': 
+            return 1.0
+        else: 
+            try: 
+                eff_lumi_fb = file_meta.effective_luminosity_fb
+            except meta.EffectiveLuminosityException as exc: 
+                eff_lumi_fb = exc.best_guess_fb
+                bugline = '{}: {}\n'.format(
+                    file_meta.name, str(exc))
+                self.bugstream.write(bugline)
+                    
+            return self.lumi_fb / eff_lumi_fb
+
     def aggregate(self): 
+        merged_files = Counter()
         plots_dict = HistDict()
         numfiles = len(self.whiskey)
         for filenum, f in enumerate(self.whiskey): 
@@ -185,26 +201,21 @@ class SampleAggregator(object):
                 self.outstream.flush()
             meta_name = basename(splitext(f)[0])
             if meta_name not in self.filter_meta: 
-                continue
+                short_name = meta_name.split('-')[0]
+                if short_name != meta_name: 
+                    merged_files[short_name] += 1
+                    meta_name = short_name
+                else: 
+                    self.bugstream.write('could not identify {}\n'.format(
+                            meta_name))
+                    continue
     
             file_meta = self.filter_meta[meta_name]
             if self._check_for_bugs(file_meta): 
                 continue
             
             physics_type = file_meta.physics_type
-            if physics_type == 'data': 
-                lumi_scale = 1.0
-            else: 
-                try: 
-                    eff_lumi_fb = file_meta.effective_luminosity_fb
-                except meta.EffectiveLuminosityException as exc: 
-                    limu_scale = exc.best_guess_fb
-                    bugline = '{}: {}\n'.format(
-                        file_meta.name, str(exc))
-                    self.bugstream.write(bugline)
-                    
-                lumi_scale = self.lumi_fb / eff_lumi_fb
-
+            lumi_scale = self._get_lumi_scale(file_meta)
 
             if physics_type == 'signal': 
                 physics_type = self._get_matched_signame(file_meta)
@@ -231,6 +242,12 @@ class SampleAggregator(object):
         if self.outstream and self.outstream.isatty(): 
             self.outstream.write('\n')
         self._plots_dict = plots_dict
+        for mkey, mcount in merged_files.iteritems(): 
+            expected_count = self.filter_meta[mkey].total_subsets
+            if mcount != expected_count: 
+                self.bugstream.write(
+                    '{}: expected {} files, only found {}\n'.format(
+                        mkey, expected_count, mcount))
 
     def write(self, file_name): 
         self._plots_dict.write(file_name)
