@@ -36,6 +36,31 @@ class Dataset(object):
         self.subset_index = 0
         self.total_subsets = 0
 
+    def __add__(self, other): 
+        new = copy.deepcopy(self)
+        req_match = [
+            'origin','id','name','tags','kfactor','filteff', 
+            'n_expected_entries', 'physics_type', 'total_subsets']
+        for key in req_match: 
+            if not getattr(self, key) == getattr(other, key): 
+                raise ValueError(
+                    "mismatch in {}: tried to add {} to {}".format(
+                        key, getattr(self,key), getattr(other,key)))
+        new.n_raw_entries = self.n_raw_entries + other.n_raw_entries
+        new.d3pds = self.d3pds + other.d3pds
+        subsets = set()
+        def add_subsets(sub, subsets): 
+            if isinstance(sub, int): 
+                subsets.add(sub)
+            else: 
+                subsets |= sub
+        add_subsets(self.subset_index, subsets)
+        add_subsets(other.subset_index, subsets)
+        if len(subsets) == new.total_subsets: 
+            subsets = 'merged'
+        new.subset_index = subsets
+        return new
+
     def split(self, n_subsets): 
         if self.skim_paths or self.n_corrupted_files: 
             raise NotImplementedError(
@@ -133,6 +158,12 @@ class Dataset(object):
 
     @property
     def key(self): 
+        return self._key()
+    @property 
+    def mergekey(self): 
+        return self._key(merge=True)
+
+    def _key(self, merge=False): 
         """
         should be used to identify datasets in the dict
         """
@@ -153,10 +184,14 @@ class Dataset(object):
         ds_id = self.id
         if isinstance(ds_id, str): 
             ds_id = ds_id[0].upper() + ds_id[1:]
-        if not self.total_subsets: 
+        if not self.total_subsets or self.subset_index == 'merged' or merge: 
             return '{}{}'.format(char, ds_id)
         else: 
-            return '{}{}-{}'.format(char, ds_id, self.subset_index)
+            if isinstance(self.subset_index,set): 
+                substr = ','.join(sorted(self.subset_index))
+            else: 
+                substr = self.subset_index
+            return '{}{}-{}'.format(char, ds_id, substr)
     @property
     def is_data(self): 
         if self.origin.startswith('data'): 
