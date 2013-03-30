@@ -11,6 +11,14 @@ class Dataset(object):
     """
     container for dataset info
     """
+    merge_required_match = [
+        'origin','id','name','tags','kfactor','filteff', 
+        'n_expected_entries', 'physics_type', 'total_subsets', 
+        'meta_sources']
+    merge_safe_to_copy = merge_required_match + [ 
+        'total_xsec_fb', 'full_name', 
+        ]
+    
     def __init__(self): 
         self.origin = ''
         self.id = 0
@@ -37,17 +45,20 @@ class Dataset(object):
         self.total_subsets = 0
 
     def __add__(self, other): 
-        new = copy.deepcopy(self)
-        req_match = [
-            'origin','id','name','tags','kfactor','filteff', 
-            'n_expected_entries', 'physics_type', 'total_subsets']
-        for key in req_match: 
+        for key in self.merge_required_match: 
             if not getattr(self, key) == getattr(other, key): 
                 raise ValueError(
                     "mismatch in {}: tried to add {} to {}".format(
                         key, getattr(self,key), getattr(other,key)))
+        
+        new = Dataset()
+        for key in self.merge_safe_to_copy: 
+            new.__dict__[key] = copy.deepcopy(self.__dict__[key])
         new.n_raw_entries = self.n_raw_entries + other.n_raw_entries
         new.d3pds = self.d3pds + other.d3pds
+        new.n_corrupted_files = (
+            self.n_corrupted_files + other.n_corrupted_files)
+        
         subsets = set()
         def add_subsets(sub, subsets): 
             if isinstance(sub, int): 
