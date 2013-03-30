@@ -78,8 +78,6 @@ class Distiller(object):
             print 'running {} in verbose mode'.format(__name__)
             self.base_flags += 'v'
             self.verbose = True
-
-        self.setup_work_area()
         
         self.calibration_dir = expanduser(config.calibration_dir)
         if not isdir(self.calibration_dir): 
@@ -102,9 +100,9 @@ class Distiller(object):
         if hasattr(config,'i') and config.i: 
             self.base_flags += 'i'
 
-    def setup_work_area(self): 
+    def _setup_work_area(self): 
         """
-        This builds directories for output files. Called by init too. 
+        This builds directories for output files. Called by distill. 
         """
         def supply_dir(dname): 
             if not isdir(dname): 
@@ -222,6 +220,7 @@ class Distiller(object):
                 del cache[key]
 
     def distill(self): 
+        self._setup_work_area()
         with DatasetCache(self.meta_info_path) as cache: 
             if self.ncore == 1: 
                 for ds_id, ds in cache.iteritems(): 

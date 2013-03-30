@@ -7,7 +7,7 @@ from susy.distiller import Distiller
 import argparse
 # from ConfigParser import SafeConfigParser as Config
 import sys
-from os.path import isfile, isdir
+from os.path import isfile, isdir, join
 from multiprocessing import cpu_count
 
 def run(): 
@@ -40,11 +40,11 @@ def run():
         choices={'baseline', 'JESUP', 'JESDOWN', 'JER'})
     parser.add_argument(
         '-o','--out-dir', 
-        help='output directory (defaults to lowercase systematic)')
+        help='output directory (defaults to ntuples/<lowercase systematic>)')
     args = parser.parse_args(sys.argv[1:])
 
     if not args.out_dir: 
-        args.out_dir = args.systematic.lower()
+        args.out_dir = join('ntuples',args.systematic.lower())
 
     fail_conditions = [ 
         not isdir(args.d3pd_dir), 
