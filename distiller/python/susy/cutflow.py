@@ -76,10 +76,14 @@ class BullshitFilter(object):
         self.veto_words = set(veto_words)
         self.temp = tempfile.NamedTemporaryFile()
     def __enter__(self): 
+        sys.stdout.flush()
+        sys.stderr.flush()
         self.old_out, self.old_err = os.dup(1), os.dup(2)
         os.dup2(self.temp.fileno(), 1)
         os.dup2(self.temp.fileno(), 2)
     def __exit__(self, exe_type, exe_val, tb): 
+        sys.stdout.flush()
+        sys.stderr.flush()
         os.dup2(self.old_out, 1)
         os.dup2(self.old_err, 2)
         self.temp.seek(0)
@@ -89,7 +93,8 @@ class BullshitFilter(object):
                 sys.stderr.write(line)
 
 def _aggressive_distill(input_files, input_dict, flags, output_ntuple): 
-    import _distiller 
+    with BullshitFilter(): 
+        import _distiller 
     try: 
         cut_out = _distiller._distiller(
             input_files, input_dict, flags, output_ntuple)
