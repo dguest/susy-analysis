@@ -1,4 +1,4 @@
-import warnings
+import warnings, tempfile, os, sys
 from os.path import isfile, isdir, expanduser, expandvars, join
 
 class CorruptedCutflow(list): 
@@ -61,10 +61,32 @@ def cutflow(input_files, flags, grl='', output_ntuple='',
         return _aggressive_distill(
             input_files, input_dict, flags, output_ntuple)
     else: 
-        import _distiller 
+        with BullshitFilter(): 
+            import _distiller 
+
         return _distiller._distiller(
             input_files, input_dict, flags, output_ntuple)
 
+
+class BullshitFilter(object): 
+    """
+    Workaround filter for annoying and worthless ROOT errors. 
+    """
+    def __init__(self, veto_words={'TClassTable'}): 
+        self.veto_words = set(veto_words)
+        self.temp = tempfile.NamedTemporaryFile()
+    def __enter__(self): 
+        self.old_out, self.old_err = os.dup(1), os.dup(2)
+        os.dup2(self.temp.fileno(), 1)
+        os.dup2(self.temp.fileno(), 2)
+    def __exit__(self, exe_type, exe_val, tb): 
+        os.dup2(self.old_out, 1)
+        os.dup2(self.old_err, 2)
+        self.temp.seek(0)
+        for line in self.temp: 
+            veto = set(line.split()) & self.veto_words
+            if not veto: 
+                sys.stderr.write(line)
 
 def _aggressive_distill(input_files, input_dict, flags, output_ntuple): 
     import _distiller 
