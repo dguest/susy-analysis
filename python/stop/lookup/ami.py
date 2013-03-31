@@ -185,7 +185,8 @@ class AmiAugmenter(object):
         xsec_list = ['crossSection_mean', 'approx_crossSection']
         for name in xsec_list: 
             if name in info.extra: 
-                new_xsec = float(info.extra[name])
+                # ami stores in nb
+                new_xsec = float(info.extra[name])*1e6
                 break
 
         if not new_xsec: 
