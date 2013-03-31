@@ -8,8 +8,9 @@ class AmiAugmenter(object):
     """
     Class to wrap ami augmentation. 
     """
-    def __init__(self, p_tag, origin='mc12_8TeV'): 
+    def __init__(self, p_tag, origin='mc12_8TeV', backup_ptag=None): 
         self.p_tag = p_tag
+        self.backup_ptag = backup_ptag
         self.origin = origin
         self.ntup_filter = 'NTUP_SUSY'
         self._setup_ami_client()
@@ -33,6 +34,9 @@ class AmiAugmenter(object):
             datasets.append(ds)
         ds_dict = {ds.key: ds for ds in datasets}
         return ds_dict
+
+    def _ldn(self, ddict): 
+        return ddict['logicalDatasetName']
 
     def ds_from_id(self, ds_id, stream=None): 
         if 'data' in self.origin: 
@@ -67,7 +71,8 @@ class AmiAugmenter(object):
         if not len(match_sets) == 1:
             raise DatasetMatchError('problem matching {} with {}'.format(
                     args.items(), self.p_tag), match_sets)
-        
+
+        # TODO: look into how to call update_ds here to remove duplicate code
         ldn = match_sets[0]['logicalDatasetName']
         info = query.get_dataset_info(self.client, ldn)
         ds = meta.Dataset()
@@ -80,6 +85,53 @@ class AmiAugmenter(object):
             self._write_mc_ami_info(ds, info)
             ds.physics_type = 'data'
         return ds
+
+    def update_ds(self, ds, overwrite=True): 
+        if ds.is_data: 
+            args = {'run':str(ds.id)}
+        else: 
+            args = {'dataset_number':str(ds.id)}
+
+        match_sets = query.get_datasets(self.client,'%', **args)
+        primary_matches = []
+        secondary_matches = []
+        for match in match_sets: 
+            ldn = self._ldn(match)
+            if ldn.endswith(self.p_tag) and self.ntup_filter in ldn: 
+                primary_matches.append(self._ldn(match))
+            if ldn.endswith(self.backup_ptag) and self.ntup_filter in ldn: 
+                secondary_matches.append(self._ldn(match))
+
+        if len(primary_matches) > 1: 
+            raise DatasetMatchError('problem matching {} with {}'.format(
+                    ds.key, self.p_tag), primary_matches)
+        info = query.get_dataset_info(self.client, primary_matches[0])
+        
+        def add_info(ds): 
+            checks = [ 
+                not ds.n_expected_entries and 'totalEvents' in info.info, 
+                not ds.filteff and 'approx_GenFiltEff' in info.extra, 
+                not ds.total_xsec_fb and 'approx_crossSection' in info.extra, 
+                ]
+            if any(checks): 
+                self._write_ami_info(ds, info)
+                if not ds.is_data: 
+                    self._write_mc_ami_info(ds, info)
+                return True
+            else: 
+                return False
+                
+        added = add_info(ds)
+        if added: 
+            return True
+        if not secondary_matches: 
+            return False
+        if len(secondary_matches) > 1: 
+            raise DatasetMatchError('problem matching {} with {}'.format(
+                    ds.key, self.p_tag), secondary_matches)
+        info = query.get_dataset_info(self.client, secondary_matches[0])
+        added = add_info(ds)
+        return added
 
     def get_datasets_year(self, year=12, stream=None): 
         datasets = {}
@@ -168,8 +220,8 @@ class AmiAugmenter(object):
         if stream: 
             stream.write('\n')
 
-    def _write_mc_ami_info(self, ds, info):
-        if not ds.filteff:
+    def _write_mc_ami_info(self, ds, info, overwrite=False):
+        if not ds.filteff or overwrite:
             filteff_list = ['GenFiltEff_mean', 'approx_GenFiltEff']
             for name in filteff_list: 
                 if name in info.extra: 
@@ -194,7 +246,7 @@ class AmiAugmenter(object):
                     ds.key, ds.name, ', '.join(info.extra.keys())))
             return 
 
-        if not ds.total_xsec_fb:
+        if not ds.total_xsec_fb or overwrite:
             ds.total_xsec_fb = new_xsec
         else:
             diff = ds.total_xsec_fb - new_xsec

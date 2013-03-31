@@ -7,6 +7,11 @@ Should be usable in a few ways:
    routine is responsible for mapping out the datasets and running over 
    them. 
  - to update the meta info before feeding the meta info to stacking routines.
+
+Badly needs a cleanup, should only have functions to: 
+ - get data meta from ami
+ - get mc meta from ami
+ - get mc meta from susytools
 """
 
 
@@ -41,6 +46,7 @@ def _get_parser():
                         help='force overwrite of meta (if it exists)')
     parser.add_argument('-a', action='store_true',
                         help='ami lookup')
+    parser.add_argument('--update-ami', action='store_true')
     parser.add_argument('-m','--marks-mc', action='store_true', 
                         help='generate fresh mc file from mark\'s ds')
     parser.add_argument('--data', action='store_true', 
@@ -79,6 +85,10 @@ def run():
             sys.exit(
                 'output {} exists already, refusing to overwrite'.format(
                     args.output_meta))
+
+    if args.update_ami: 
+        update(args.steering_file)
+        sys.exit('updated ami, quitting')
 
     if args.marks_mc: 
         build_mark_file(args.steering_file)
@@ -125,6 +135,34 @@ def run():
         mf.dump()
     mf.write_meta(args.output_meta)
 
+def update(name): 
+    from stop.lookup.ami import AmiAugmenter
+    ami = AmiAugmenter('p1328', 'mc12_8TeV', backup_ptag='p1181')
+    ami.bugstream = TemporaryFile()
+    with DatasetCache(name) as ds_cache: 
+        for key, ds in ds_cache.iteritems(): 
+            if not ds.is_data: 
+                required = [
+                    ds.filteff, 
+                    ds.total_xsec_fb, 
+                    ]
+                if not all(required):
+                    sys.stdout.write('updating {}...'.format(ds.full_name))
+                    success = ami.update_ds(ds)
+                    if success: 
+                        sys.stdout.write('success\n')
+                    else: 
+                        sys.stdout.write('failed\n')
+    dumpbugs(ami)
+
+def dumpbugs(ami, bugslog='ami-bugs.log'): 
+    if ami.bugstream.tell(): 
+        ami.bugstream.seek(0)
+        with open(bugslog,'w') as bugs: 
+            for line in ami.bugstream: 
+                bugs.write(line)
+        sys.stderr.write('wrote bugs to {}\n'.format(bugslog))
+
 def build_mark_file(name): 
     from stop.lookup.ami import AmiAugmenter
     from stop.runtypes import marks_types
@@ -135,13 +173,7 @@ def build_mark_file(name):
         new_meta = ami.get_dataset_range(ids, phys_type)
         ds_cache.update(new_meta)
     ds_cache.write()
-    if ami.bugstream.tell(): 
-        ami.bugstream.seek(0)
-        bugslog = 'ami-bugs.log'
-        with open(bugslog,'w') as bugs: 
-            for line in ami.bugstream: 
-                bugs.write(line)
-        sys.stderr.write('wrote bugs to {}\n'.format(bugslog))
+    dumpbugs(ami)
 
 def build_data_file(name): 
     from stop.lookup.ami import AmiAugmenter
