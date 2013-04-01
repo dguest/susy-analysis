@@ -89,10 +89,12 @@ class SuperRegion(object):
     normal regions. 
     """
     kinematics = ['leading_jet_gev', 'met_gev']
-    def __init__(self): 
+    def __init__(self, met_lower_bound=0, leading_jet_lower_bound=120): 
         self.subregions = {}
         self.tuple = None
-        self.kinematic_lower_bounds = {}
+        self.kinematic_lower_bounds = {
+            'leading_jet_gev': leading_jet_lower_bound, 
+            'met_gev': met_lower_bound}
     def add_subregion(self, name, region):
         reg_tuple = _superregion_tuple(region)
         if self.tuple:
@@ -102,7 +104,6 @@ class SuperRegion(object):
                     " (adding {} to {})".format(reg_tuple, self.tuple))
         else: 
             self.tuple = reg_tuple
-            self.kinematic_lower_bounds = region.kinematics.copy()
         for kin in self.kinematics: 
             if region.kinematics[kin] < self.kinematic_lower_bounds[kin]: 
                 self.kinematic_lower_bounds[kin] = region.kinematics[kin]

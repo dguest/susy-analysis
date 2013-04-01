@@ -1,9 +1,7 @@
 """
 Here be bitdefs. 
 
- TODO: this should be replaced with something more automated
-       probably best to write the bits to a tree when running the 
-       cutflow. 
+ TODO: is it a good idea to generate the bits with each import? Not sure.
 """
 import yaml, sys, stop
 from os.path import dirname, join

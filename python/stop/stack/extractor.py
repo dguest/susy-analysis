@@ -26,10 +26,10 @@ class RegionExtractor(object):
         met_cut = kin['met_gev']*1e3
         lead_cut = kin['leading_jet_gev']*1e3
 
-        lslice, lext = normed.axes['leadingJetPt'].get_slice(lead_cut*0.999)
-        self._checkcut(lead_cut, lext[1])
-        mslice, mext = lslice.axes['met'].get_slice(met_cut*0.999)
-        self._checkcut(met_cut, mext[1])
+        lslice, lext = normed.axes['leadingJetPt'].get_slice(lead_cut*1.0001)
+        self._checkcut(lead_cut, lext[0])
+        mslice, mext = lslice.axes['met'].get_slice(met_cut*1.0001)
+        self._checkcut(met_cut, mext[0])
         return mslice
 
     def extract_counts_file(self, h5_file_name): 
