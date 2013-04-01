@@ -16,7 +16,8 @@ Badly needs a cleanup, should only have functions to:
 
 
 import os, sys
-from stop.meta import MetaFactory, DatasetCache
+from stop.meta import DatasetCache
+from stop.lookup.susylookup import MetaFactory
 import argparse, ConfigParser
 from tempfile import TemporaryFile
 
@@ -44,15 +45,15 @@ def _get_parser():
     parser.add_argument('--output-meta', help=d)
     parser.add_argument('-f', action='store_true',
                         help='force overwrite of meta (if it exists)')
-    parser.add_argument('-a', action='store_true',
-                        help='ami lookup')
-    parser.add_argument('--update-ami', action='store_true')
+
+    ami_mode = parser.add_mutually_exclusive_group()
+    ami_mode.add_argument('--update-ami', action='store_true')
+    ami_mode.add_argument('--rewrite-ami', action='store_true')
+
     parser.add_argument('-m','--marks-mc', action='store_true', 
                         help='generate fresh mc file from mark\'s ds')
     parser.add_argument('--data', action='store_true', 
                         help='generate fresh data list')
-    parser.add_argument('--clear-ami', action='store_true', 
-                        help='clear ami lookup flag (to force rerun)')
     parser.add_argument('-t', '--trust-ds-names', action='store_true')
     parser.add_argument('-d','--dump', action='store_true')
     parser.add_argument(
@@ -86,43 +87,24 @@ def run():
                 'output {} exists already, refusing to overwrite'.format(
                     args.output_meta))
 
-    if args.update_ami: 
-        update(args.steering_file)
-        sys.exit('updated ami, quitting')
 
     if args.marks_mc: 
         build_mark_file(args.steering_file)
     if args.data: 
         build_data_file(args.steering_file)
-        sys.exit('made data meta, quitting...')
 
-    mf = MetaFactory(args.steering_file)
-    mf.clear_ami = args.clear_ami
-
-    mf.verbose = True
+    if args.update_ami or args.rewrite_ami: 
+        update(args.steering_file, overwrite=args.rewrite_ami)
 
     if args.susy_lookup: 
-       with open(args.susy_lookup) as susy:
-          mf.lookup_susy(susy)
-
-    mf.processes = 10
-    if args.a: 
-        print 'looking up names in ami'
-        from stop.meta.ami import AmiAugmenter
-        ami = AmiAugmenter()
-        ami.bugstream = TemporaryFile()
-        ami.lookup_ami_names(mf.datasets, args.trust_ds_names)
+        mf = MetaFactory(args.steering_file)
+        mf.verbose = True
+        with open(args.susy_lookup) as susy:
+            mf.lookup_susy(susy)
         mf.write_meta(args.output_meta)
-        ami.lookup_ami(mf.datasets, stream=sys.stdout)
-        if ami.bugstream.tell(): 
-            ami.bugstream.seek(0)
-            bugslog = 'ami-bugs.log'
-            with open(bugslog,'w') as bugs: 
-                for line in ami.bugstream: 
-                    bugs.write(line)
-            sys.stderr.write('wrote bugs to {}'.format(bugslog))
+
     if args.write_steering: 
-        found, missing = get_ds_lists(mf.datasets)
+        found, missing = get_ds_lists(args.steering_file)
         if missing: 
             print 'missing dataset names:'
             for m in missing: 
@@ -131,11 +113,8 @@ def run():
             for ds in found: 
                 st.write(ds.strip('/') + '/\n')
         return 
-    if args.dump: 
-        mf.dump()
-    mf.write_meta(args.output_meta)
 
-def update(name): 
+def update(name, overwrite=False): 
     from stop.lookup.ami import AmiAugmenter
     ami = AmiAugmenter('p1328', 'mc12_8TeV', backup_ptag='p1181')
     ami.bugstream = TemporaryFile()
@@ -146,9 +125,9 @@ def update(name):
                     ds.filteff, 
                     ds.total_xsec_fb, 
                     ]
-                if not all(required):
+                if not all(required) or overwrite:
                     sys.stdout.write('updating {}...'.format(ds.full_name))
-                    success = ami.update_ds(ds)
+                    success = ami.update_ds(ds, overwrite)
                     if success: 
                         sys.stdout.write('success\n')
                     else: 

@@ -85,6 +85,7 @@ class AmiAugmenter(object):
             self._write_mc_ami_info(ds, info)
             ds.physics_type = 'data'
         return ds
+    
 
     def update_ds(self, ds, overwrite=True): 
         if ds.is_data: 
@@ -103,8 +104,13 @@ class AmiAugmenter(object):
                 secondary_matches.append(self._ldn(match))
 
         if len(primary_matches) > 1: 
-            raise DatasetMatchError('problem matching {} with {}'.format(
-                    ds.key, self.p_tag), primary_matches)
+            exact = [m for m in primary_matches if m == ds.full_name]
+            if len(exact) == 1: 
+                primary_matches = exact
+            else: 
+                raise DatasetMatchError(
+                    'problem matching {} with {}'.format(
+                        ds.key, self.p_tag), primary_matches)
         info = query.get_dataset_info(self.client, primary_matches[0])
         
         def add_info(ds): 
@@ -113,10 +119,10 @@ class AmiAugmenter(object):
                 not ds.filteff and 'approx_GenFiltEff' in info.extra, 
                 not ds.total_xsec_fb and 'approx_crossSection' in info.extra, 
                 ]
-            if any(checks): 
+            if any(checks) or overwrite: 
                 self._write_ami_info(ds, info)
                 if not ds.is_data: 
-                    self._write_mc_ami_info(ds, info)
+                    self._write_mc_ami_info(ds, info, overwrite)
                 return True
             else: 
                 return False
@@ -154,71 +160,6 @@ class AmiAugmenter(object):
             self.outstream.write('found: {}\n'.format(ds.full_name))
             datasets[ds.key] = ds
         return datasets
-
-    def lookup_ami_names(self, datasets, trust_names=False):
-        """
-        quick but pretty dirty 
-        """
-        if trust_names: 
-            print 'assuming input names are right'
-            for ds in datasets.values(): 
-                try: 
-                    if ds.full_unchecked_name: 
-                        ds.full_name = ds.full_unchecked_name
-                        del ds.full_unchecked_name
-                except AttributeError: 
-                    pass
-            return 
-        datasets = datasets.values()
-        no_full_name_ds = [ds for ds in datasets if not ds.full_name]
-        
-        full_named_datasets = self._lookup_ami_names(no_full_name_ds)
-        datasets.update( full_named_datasets )
-
-
-    def _lookup_ami_names(self, datasets): 
-        """
-        Ugly (but maybe fast) lookup
-        """
-        pool_tuples = [(self.client, ds) for ds in datasets]
-        pool = multiprocessing.Pool(self.processes)
-        full_ds_names = pool.map(match_dataset, pool_tuples)
-
-        for full_name, ds in zip(full_ds_names, datasets): 
-            ds.full_name = full_name
-            if hasattr(ds, 'full_unchecked_name'): 
-                del ds.full_unchecked_name
-        
-        return {ds.key: ds for ds in datasets}
-
-    def lookup_ami(self, datasets, stream=None): 
-        """
-        Matches ami
-        """
-        if self.clear_ami: 
-            for ds in datasets: 
-                datasets[ds].meta_sources -= set(['ami'])
-        tot = len(datasets)
-        for n, (ds_key, ds) in enumerate(datasets.iteritems()): 
-            if stream: 
-                stream.write('\rlooking up data in ami'
-                             ' ({} of {})'.format(n, tot))
-                stream.flush()
-            if 'ami' in ds.meta_sources:
-                continue
-            if 'susy lookup' in ds.meta_sources and self.no_ami_overwrite: 
-                continue
-
-            if ds.full_name: 
-                info = query.get_dataset_info(client, ds.full_name)
-                if ds.origin.startswith('mc'): 
-                    self._write_mc_ami_info(ds, info)
-                self._write_ami_info(ds, info)
-            elif not ds.is_data: 
-                ds.bugs.add('ambiguous dataset')
-
-        if stream: 
-            stream.write('\n')
 
     def _write_mc_ami_info(self, ds, info, overwrite=False):
         if not ds.filteff or overwrite:
@@ -264,55 +205,6 @@ class AmiAugmenter(object):
         ds.n_expected_entries = int(info.info['totalEvents'])
         ds.meta_sources.add('ami')
 
-
-
-_wild_template = r'{o}.{ds_id}.{name}%NTUP%{tags}/'
-_susy_wild_template = r'{o}.{ds_id}%NTUP_SUSY%{tags}/'
-def _wildcard_match_ami(client, ds, match_template=_wild_template): 
-    if ds.is_data: 
-        if isinstance(ds.id, str): 
-            raise DatasetMatchError('not even trying to match dataperiod','')
-        ds_id = '{:08}'.format(ds.id)
-    else: 
-        ds_id = '{:06}'.format(ds.id)
-    wildcarded = match_template.format(
-        o=ds.origin, ds_id=ds_id, name=ds.name, tags=ds.tags)
-
-    print 'trying to match {}'.format(wildcarded)
-    match_sets = query.get_datasets(client,wildcarded)
-    if len(match_sets) != 1: 
-        raise DatasetMatchError(
-            'could not match dataset with {}'.format(wildcarded), 
-            match_sets)
-    return match_sets[0]['logicalDatasetName']
-
-
-def match_dataset(blob): 
-    client, ds = blob
-    if ds.full_name: 
-        return ds.full_name
-
-    try: 
-        if ds.full_unchecked_name: 
-            query.get_dataset_info(client, ds.full_unchecked_name)
-            return ds.full_unchecked_name
-    except: 
-        pass
-        
-    try: 
-        full_name = _wildcard_match_ami(
-            client, ds, _wild_template)
-        print 'matched {}'.format(full_name)
-    except DatasetMatchError as e: 
-        try: 
-            full_name = _wildcard_match_ami(
-                client, ds, _susy_wild_template)
-            print 'matched {}'.format(full_name)
-        except DatasetMatchError as e: 
-            full_name = None 
-            print e
-    return full_name
-
 class DatasetMatchError(ValueError): 
     def __init__(self, info, matches): 
         super(DatasetMatchError, self).__init__(info)
@@ -321,8 +213,8 @@ class DatasetMatchError(ValueError):
     def __str__(self): 
         problem = super(DatasetMatchError,self).__str__()
         if not self.matches: 
-            return problem + ' no matches'
-        problem += ' matches: '
+            return problem + ', no matches'
+        problem += ', matches: '
         for match in self.matches: 
             try: 
                 st = match['logicalDatasetName']

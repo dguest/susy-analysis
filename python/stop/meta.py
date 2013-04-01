@@ -1,8 +1,6 @@
 from os.path import isfile
 import os
 import cPickle
-import re
-import multiprocessing
 import yaml
 import copy
 from warnings import warn
@@ -95,7 +93,7 @@ class Dataset(object):
 
         if not self.kfactor and not self.filteff: 
             eff_lumi = self.n_raw_entries / self.total_xsec_fb
-            raise EffectiveLuminosityException(
+            raise EffectiveLuminosityError(
                 eff_lumi, ['kfactor', 'filter efficiency'])
 
         kfactor = self.kfactor
@@ -103,7 +101,7 @@ class Dataset(object):
             if not self.physics_type == 'signal': 
                 corrected_x = self.total_xsec_fb * self.filteff
                 eff_lumi = self.n_raw_entries / corrected_x
-                raise MissingKfactorException(eff_lumi)
+                raise MissingKfactorError(eff_lumi)
             else: 
                 kfactor = 1.0
 
@@ -111,7 +109,7 @@ class Dataset(object):
         if not self.filteff: 
             corrected_x = self.total_xsec_fb * self.kfactor
             eff_lumi = self.n_raw_entries / corrected_x
-            raise MissingFilterEfficiencyException(eff_lumi)
+            raise MissingFilterEfficiencyError(eff_lumi)
         else: 
             filt_eff = self.filteff
 
@@ -280,205 +278,11 @@ class DatasetCache(dict):
                     
 
 
-class MetaFactory(object): 
-    """
-    This pulls together: 
-     - steering list
-     - susy xsection / n events info
 
-    and generates the meta file, which is used to steer everything up to 
-    histogram generation. 
-
-    Should work on stripping this down and making it into a susy 
-    lookup class. 
-    """
-    def __init__(self, steering=None): 
-        """
-        Initalize from either: 
-         - a text file list of datasets
-         - an existing meta file
-        """
-        self._datasets = None
-        if steering is None: 
-            self._datasets = DatasetCache()
-        elif steering.endswith('.pkl') or steering.endswith('.yml'): 
-            self._datasets = self._build_from_meta(steering)
-        elif steering.endswith('.txt'): 
-            with open(steering) as ds_list:
-                self.add_ugly_ds_list(ds_list)
-        else: 
-            raise ValueError('{} is an unsupported file for MetaFactory'
-                             'constructor')
-        self.clear_ami = False
-        self.no_ami_overwrite = False
-        self.verbose = False
-
-    def _build_from_meta(self, meta_file_name): 
-        return DatasetCache(meta_file_name)
-
-    def _dataset_from_name(self, entry): 
-        """
-        tries to build a dataset from a logical name. 
-        returns partial info if that's all we can find. 
-        """
-        entry = entry.split('_tid')[0]
-
-        fields = entry.split('#')[0].strip().split('.')
-        
-        if not any(fields[0].startswith(x) for x in ['data','mc']): 
-            stripped_name = '.'.join(fields[1:])
-            if stripped_name: 
-                try: 
-                    return self._dataset_from_name(stripped_name)
-                except ValueError as er: 
-                    if "can't find origin" in str(er): 
-                        raise ValueError("can't find origin for {}".format(
-                                entry.strip()))
-                    else: 
-                        raise
-            else: 
-                raise ValueError("can't find origin")
-        ds = Dataset()
-        try: 
-            ds.origin, ds_id, ds.name, prod, group, tags = fields
-            required = [ 
-                'SUSY' in group, 
-                prod == 'merge', 
-                self._find_tag(tags)
-                ]
-
-            if not all(required): 
-                raise ValueError('{} is not a ds name'.format(
-                        '.'.join(fields)))
-
-            ds.id = self._get_id(ds_id)
-            ds.tags = tags.rstrip('/')
-            ds.full_unchecked_name = entry.strip().rstrip('/')
-        except ValueError as e: 
-            try: 
-                ds.origin, ds_id, ds.name = fields[0:3]
-                ds.id = self._get_id(ds_id)
-                others = fields[3:]
-                for field in others: 
-                    if self._find_tag(field): 
-                        ds.tags = field.rstrip('/')
-
-            except ValueError as e: 
-                if 'to unpack' in str(e):
-                    raise ValueError(
-                        "{} isn't parseable as ds name".format(entry))
-                else: 
-                    raise 
-        return ds
-            
-    def _get_id(self, ds_id): 
-        try: 
-            return int(ds_id)
-        except ValueError: 
-            if not isinstance(ds_id, str): 
-                raise ValueError(
-                    "ds id {} should be an int or string".format(ds_id))
-            return ds_id
-
-    def _find_tag(self, field): 
-        mc_re = re.compile('e[0-9]+(_[asr][0-9]+)+_p[0-9]+')
-        data_re = re.compile('f[0-9]+(_[a-z][0-9]+)+_p[0-9]+')
-        mainz_data_re = re.compile('(re|t0)pro[0-9]+_v[0-9]+_p[0-9]+')
-        regexes = [mc_re, data_re, mainz_data_re]
-        for regex in regexes: 
-            if regex.search(field): 
-                return True
-        return False
-
-    @property
-    def datasets(self): 
-        return self._datasets
-
-    def add_ugly_ds_list(self, ds_list): 
-        """
-        this has been hacked to work with vincent's weird ds names
-        """
-        if self._datasets:
-            datasets = self._datasets
-        else:
-            datasets = DatasetCache()
-
-        for entry in ds_list: 
-            real_entry = entry.split('#')[0].strip()
-            if not real_entry: 
-                continue
-            ds = self._dataset_from_name(real_entry)
-
-            if not ds.key in datasets: 
-                datasets[ds.key] = ds
-        self._datasets = datasets
-
-    def lookup_susy(self, susy_file): 
-        """
-        Matches whatever datasets have a cross section listed in the susy file.
-        """
-        id_line = ''
-        split_dict = {}
-        for line in susy_file: 
-
-            # first line of the susy textfile is some kind of 
-            # field description         
-            if not id_line: 
-                id_line = line
-                continue
-
-            clean_line = line.split('#')[0].strip()
-            if not clean_line: 
-                continue
-
-            spl = clean_line.split()
-            try: 
-                name = spl[1]
-                ds_id = int(spl[0])
-            except IndexError: 
-                if 'http' in clean_line: 
-                    warn('some fucktard stuck http in the file without'
-                         ' commenting it out... skipping line')
-                    continue
-                raise ValueError("can't parse {}".format(clean_line))
-            split_dict[ds_id] = spl
-            
-
-        for ds in self._datasets.values(): 
-            if ds.id in split_dict: 
-                spl = split_dict[ds.id]
-                ds.id = int(spl[0])
-                ds.name = spl[1]
-                ds.total_xsec_fb = float(spl[2]) * 1e3
-                ds.kfactor = float(spl[3])
-                ds.filteff = float(spl[4])
-                ds.meta_sources.add('susy lookup')
-    
-    def _print(self, print_string): 
-        if self.verbose: 
-            print print_string
-
-    def write_meta(self, output_file_name): 
-        """
-        write out the meta info
-        """
-        self._datasets.write(output_file_name)
-
-    def dump(self): 
-        for ds_key, ds in self._datasets.iteritems(): 
-            print ds.name
-            print ds
-            print
-
-    def dump_sources(self): 
-        for ds_key, ds in self._datasets.iteritems(): 
-            print '{} -- sources: {}'.format(ds.id,' '.join(ds.meta_sources))
-
-
-class EffectiveLuminosityException(ArithmeticError): 
+class EffectiveLuminosityError(ArithmeticError): 
     def __init__(self, best_guess_fb, missing_values, 
                  problem='missing lumi normalization info'): 
-        super(EffectiveLuminosityException, self).__init__(problem)
+        super(EffectiveLuminosityError, self).__init__(problem)
         self.best_guess_fb = best_guess_fb
         self.missing_values = missing_values
     def __str__(self): 
@@ -486,12 +290,12 @@ class EffectiveLuminosityException(ArithmeticError):
             ', '.join(self.missing_values), self.best_guess_fb)
         return problem
     
-class MissingKfactorException(EffectiveLuminosityException): 
+class MissingKfactorError(EffectiveLuminosityError): 
     def __init__(self, best_guess): 
-        super(MissingKfactorException, self).__init__(
+        super(MissingKfactorError, self).__init__(
             best_guess, ['kfactor'])
 
-class MissingFilterEfficiencyException(EffectiveLuminosityException): 
+class MissingFilterEfficiencyError(EffectiveLuminosityError): 
     def __init__(self, best_guess): 
-        super(MissingFilterEfficiencyException).__init__(
+        super(MissingFilterEfficiencyError).__init__(
             best_guess,['filter efficiency'])
