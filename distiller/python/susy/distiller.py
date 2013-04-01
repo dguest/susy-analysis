@@ -117,8 +117,8 @@ class Distiller(object):
             for ds_key, ds in cache.iteritems(): 
                 if ds.d3pds: 
                     continue
-                globstr = '{path}/*{origin}*{ds_id}*/*.root*'.format(
-                    path=path, origin=ds.origin, ds_id=ds.id)
+                globstr = '{path}/*{origin}*{ds_id}*{name}*/*.root*'.format(
+                    path=path, origin=ds.origin, ds_id=ds.id, name=ds.name)
                 files = glob.glob(globstr)
                 ds.d3pds = files
                 if files and 'no d3pds' in ds.bugs: 
