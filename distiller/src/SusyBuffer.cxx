@@ -22,7 +22,7 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br,
   fChain->SetBranch("lbn", &lbn); 
 
   fChain->SetBranch(names.trigger, &trigger); 
-  fChain->SetBranch("EF_mu24i_tight", &mu_trigger, chain::NULL_POINTER); 
+  fChain->SetBranch("EF_mu24i_tight", &mu_trigger); 
   fChain->SetBranch("coreFlags", &coreFlags); 
   
   fChain->SetBranch("top_hfor_type", &hfor_type); 
@@ -31,7 +31,7 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br,
 		    &jet_jvtxf); 
   fChain->SetBranch("averageIntPerXing", &averageIntPerXing); 
   fChain->SetBranch("larError", &larError); 
-  fChain->SetBranch("tileError", &tileError, chain::NULL_POINTER); 
+  fChain->SetBranch("tileError", &tileError); 
 
   fChain->SetBranch("Eventshape_rhoKt4LC", &Eventshape_rhoKt4LC); 
 
@@ -88,7 +88,7 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br,
   fChain->SetBranch("el_ptcone20", &el_ptcone20); // for IsSignal
   fChain->SetBranch("el_trackd0pv", &el_trackd0pv); // for IsSignal
   fChain->SetBranch("el_trackz0pv", &el_trackz0pv); // for IsSignal
-  fChain->SetBranch("el_charge", &el_charge, chain::NULL_POINTER); 
+  fChain->SetBranch("el_charge", &el_charge); 
   fChain->SetBranch("el_cl_E", &el_cl_E); 
   fChain->SetBranch("el_cl_eta", &el_cl_eta); 
   fChain->SetBranch("el_cl_phi", &el_cl_phi); 
@@ -173,11 +173,11 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br,
   }
 
   fChain->SetBranch(jc + "_flavor_component_jfitc_pu", 
-		    &jet_flavor_component_jfitc_pu, chain::NULL_POINTER);
+		    &jet_flavor_component_jfitc_pu);
   fChain->SetBranch(jc + "_flavor_component_jfitc_pb", 
-		      &jet_flavor_component_jfitc_pb, chain::NULL_POINTER);
+		      &jet_flavor_component_jfitc_pb);
   fChain->SetBranch(jc + "_flavor_component_jfitc_pc", 
-		    &jet_flavor_component_jfitc_pc, chain::NULL_POINTER);
+		    &jet_flavor_component_jfitc_pc);
 
   if (br & unleash_sharktopus){  
     fChain->SetBranch("sharktopus",&sharktopus); 

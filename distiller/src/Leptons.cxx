@@ -46,12 +46,7 @@ Electron::Electron(const EventElectrons* container, int index) {
      SIGNAL_ELECTRON_Z0_CUT); 
   
   m_rel_isolation = buffer->el_ptcone20->at(index) / Pt(); 
-  if (buffer->el_charge) { 
-    m_charge = buffer->el_charge->at(index); 
-  }
-  else { 
-    m_charge = 0; 
-  }
+  m_charge = buffer->el_charge->at(index); 
 
 }
 bool Electron::pass_susy() const { 
@@ -108,12 +103,7 @@ Muon::Muon(const EventMuons* container, int index):
   const TLorentzVector& tlv = def->GetMuonTLV(index); 
   assert(tlv.Pt() > 0); 
   SetPxPyPzE(tlv.Px(), tlv.Py(), tlv.Pz(), tlv.E()); 
-  if (buffer->mu_staco_ptcone20) { 
-    m_isolation = buffer->mu_staco_ptcone20->at(index); 
-  }
-  else { 
-    m_isolation = 1e19; 	// GUT scale should be safe...
-  }
+  m_isolation = buffer->mu_staco_ptcone20->at(index); 
   m_charge = buffer->mu_staco_charge->at(index); 
 }
 bool Muon::pass_susy() const { 
