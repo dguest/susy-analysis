@@ -7,7 +7,7 @@ from warnings import warn
 
 class Dataset(object): 
     """
-    container for dataset info
+    Container for dataset info. 
     """
     merge_required_match = [
         'origin','id','name','tags','kfactor','filteff', 
@@ -71,6 +71,9 @@ class Dataset(object):
         return new
 
     def split(self, n_subsets): 
+        """
+        Splits the dataset meta, dividing d3pds among the subsets. 
+        """
         if self.skim_paths or self.n_corrupted_files: 
             raise NotImplementedError(
                 "don't know how to split post-distiller ds")
@@ -212,10 +215,7 @@ class DatasetCache(dict):
     """
     A dict where dataset meta is stored. 
 
-    Has a constructor / write method to take care of pickling. 
-    In the future the constructor may deal with schema changes. 
-
-    (hopefully that means yaml at some point)
+    Has a constructor / write method to take care of pickling / yaml.
     """
     def __init__(self, cache_name=''): 
         self._cache = cache_name
