@@ -30,7 +30,6 @@ def _get_parser():
 
     def_meta = 'meta.yml'
     defaults = { 
-        'output_pickle': None, 
         'steering_file': def_meta
         }
     
@@ -42,9 +41,6 @@ def _get_parser():
         help=('either a textfile of datasets'
               ' or an existing meta file ({})'.format(d)))
     parser.add_argument('--susy-lookup', help=d)
-    parser.add_argument('--output-meta', help=d)
-    parser.add_argument('-f', action='store_true',
-                        help='force overwrite of meta (if it exists)')
 
     ami_mode = parser.add_mutually_exclusive_group()
     ami_mode.add_argument('--update-ami', action='store_true')
@@ -76,18 +72,6 @@ def get_ds_lists(cache):
 def run(): 
     args = _get_parser().parse_args(sys.argv[1:])
 
-    if not args.output_meta: 
-        if args.steering_file.endswith('.yml'): 
-            args.output_meta = args.steering_file
-        else: 
-            args.output_meta = 'meta.yml'
-    if os.path.isfile(args.output_meta) and not args.f: 
-        if not args.write_steering or args.a: 
-            sys.exit(
-                'output {} exists already, refusing to overwrite'.format(
-                    args.output_meta))
-
-
     if args.marks_mc: 
         build_mark_file(args.steering_file)
     if args.data: 
@@ -101,7 +85,7 @@ def run():
         mf.verbose = True
         with open(args.susy_lookup) as susy:
             mf.lookup_susy(susy)
-        mf.write_meta(args.output_meta)
+        mf.write_meta(args.steering_file)
 
     if args.write_steering: 
         found, missing = get_ds_lists(args.steering_file)
