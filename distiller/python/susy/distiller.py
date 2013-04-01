@@ -1,4 +1,4 @@
-from stop.meta import DatasetCache
+from stop.meta import DatasetCache, MetaTextCollector
 from susy import cutflow
 import re, os, glob, sys
 from os.path import isdir, join, isfile, expanduser
@@ -27,7 +27,14 @@ def _run_distill(ds):
             output_ntuple=ds.skim_paths[systematic], 
             btag_cal_file=btag_env, 
             cal_dir=ds.calibration_dir)
-        ds.n_raw_entries = dict(cut_counts)['total_events']
+
+        # collection trees have more events than the susy tree in skims, 
+        # but ami reports the number in the susy tree, thus we don't 
+        # care about the number in the collection tree (total_events)
+        # for data 
+        if not ds.is_data:      
+            ds.n_raw_entries = dict(cut_counts)['total_events']
+
         if not hasattr(ds,'cutflow') or isinstance(ds.cutflow, list): 
             ds.cutflow = {}
         cut_list = [list(c) for c in cut_counts]
@@ -189,6 +196,8 @@ class Distiller(object):
         grl = join(self.calibration_dir, self.grl)
         if not isfile(btag_env): 
             raise IOError("{} not found".format(btag_env))
+
+        textmeta = MetaTextCollector() 
         
         with DatasetCache(self.meta_info_path) as cache: 
             for ds_id, ds in cache.iteritems(): 
@@ -200,6 +209,10 @@ class Distiller(object):
                 if ds.is_data: 
                     ds.grl = grl
                     ds.btag_env = ''
+                    # with data we need to look at textfiles which 
+                    # give the original count of events in the susy tree
+                    ds.n_raw_entries = textmeta.get_recorded_events(
+                        ds.d3pds)
                 else: 
                     ds.grl = ''
                     ds.btag_env = btag_env

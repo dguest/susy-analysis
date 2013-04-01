@@ -277,7 +277,38 @@ class DatasetCache(dict):
                 cache.write(yaml.dump(out_dict))
                     
 
+class MetaTextCollector(object): 
+    """
+    Class to gather meta stored in textfiles produced alongside d3pd skims.
+    """
+    def __init__(self, root_extension='skim-output.root', 
+                 text_extension='n-entries.txt'): 
+        self.root_extension = root_extension
+        self.text_extension = text_extension
+        
+    def _get_recorded_events(self, root_file): 
+        txt_name = root_file.replace(self.root_extension,
+                                     self.text_extension)
+        if not isfile(txt_name): 
+            raise MissingMetaError("can't find meta", txt_name)
+        with open(txt_name) as textfile: 
+            n_events = int(next(textfile))
+        return n_events
+    def get_recorded_events(self, d3pd_list): 
+        n_events = 0
+        for d3pd in d3pd_list: 
+            n_events += self._get_recorded_events(d3pd)
+        return n_events
 
+class MissingMetaError(IOError): 
+    def __init__(self, message, metafile=None): 
+        super(MissingMetaError,self).__init__(message)
+        self.metafile = metafile
+    def __str__(self): 
+        if self.metafile: 
+            return self.message + ', metafile: ' + self.metafile
+        else: 
+            return message
 
 class EffectiveLuminosityError(ArithmeticError): 
     def __init__(self, best_guess_fb, missing_values, 
