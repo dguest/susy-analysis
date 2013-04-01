@@ -157,23 +157,34 @@ def get_config(config_name):
     return config
 
 def get_cuts_and_vars(cuts_dict): 
-    cuts = []
+    cuts = {}
     variables = []
     if 'met_low' in cuts_dict: 
-        cuts.append('MET_RefFinal_et > {}'.format(cuts_dict['met_low']))
+        cuts['met_low'] = 'MET_RefFinal_et > {}'.format(
+            cuts_dict['met_low'])
         variables.append('MET_RefFinal_et')
     if 'triggers' in cuts_dict: 
         triggers = cuts_dict['triggers'].split()
         for trig in triggers: 
             variables.append(trig)
-        cuts.append('( {} )'.format(' || '.join(triggers)))
+        cuts['triggers'] = '( {} )'.format(' || '.join(triggers))
     if 'trigger' in cuts_dict: 
         trigger = cuts_dict['trigger']
         variables.append(trigger)
-        cuts.append(trigger)
+        cuts['trigger'] = trigger
     if 'n_staco' in cuts_dict: 
-        cuts.append('mu_staco_n >= {}'.format(cuts_dict['n_staco']))
-    return ' && '.join(cuts), variables
+        cuts['n_staco'] = 'mu_staco_n >= {}'.format(cuts_dict['n_staco'])
+
+    ored_cuts = set(cuts_dict.get('or','').split())
+    all_cuts = set(cuts_dict.keys())
+    anded_cuts = all_cuts - ored_cuts - set(['or'])
+
+    or_cuts = [cuts[x] for x in ored_cuts]
+    and_cuts = [cuts[x] for x in anded_cuts]
+    if or_cuts: 
+        or_str = ' || '.join(or_cuts)
+        and_cuts.append('( {} )'.format(or_str))
+    return ' && '.join(and_cuts), variables
 
 
 class Reporter(Process): 
