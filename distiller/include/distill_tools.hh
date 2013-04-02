@@ -60,7 +60,7 @@ float get_min_jetmet_dphi(const std::vector<SelectedJet*>&,
 double get_htx(const std::vector<SelectedJet*>&);
 
 template<typename M, typename A>
-A remove_overlaping(const M& mask, const A& altered, const float delta_r); 
+A remove_overlaping(const M& mask, A altered, const float delta_r); 
 
 template<typename T>
 std::vector<int> get_indices(const T&); 
@@ -87,20 +87,19 @@ void calibrate_jets(std::vector<SelectedJet*> jets, const BtagCalibration*);
 // ---- templates -----
 
 template<typename M, typename A>
-A remove_overlaping(const M& mask, const A& altered, const float delta_r) { 
-  A final = altered; 
+A remove_overlaping(const M& mask, A altered, const float delta_r) { 
   for (auto mitr = mask.begin(); mitr != mask.end(); mitr++) { 
     A new_container; 
-    for (auto vic = final.begin(); vic != final.end(); vic++) { 
+    for (auto vic = altered.begin(); vic != altered.end(); vic++) { 
       assert((*mitr)->Pt() > 0); 
       double delr = (*mitr)->DeltaR(**vic); 
       if (delr > delta_r) { 
 	new_container.push_back(*vic); 
       }
     }
-    final = new_container; 
+    altered = new_container; 
   }
-  return final; 
+  return altered; 
 } 
 
 template<typename T>
