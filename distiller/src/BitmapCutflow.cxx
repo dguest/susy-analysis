@@ -34,7 +34,7 @@ int BitmapCutflow::fill(const ull_t mask) {
   m_counter[m_first_name]++; 
   for (MaskName::const_iterator itr = m_mask_name.begin(); 
        itr != m_mask_name.end(); itr++) { 
-    if (mask & itr->first) { 
+    if ( (mask & itr->first) == itr->first) { 
       m_counter[itr->second]++; 
       n_passed++; 
     }
