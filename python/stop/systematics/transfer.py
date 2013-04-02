@@ -24,15 +24,19 @@ class TransferTable(object):
         """
         Inputs are expected to be dicts. 
         """
+        counted_regions = set(next(counts['NONE'].iteritems())[1].keys())
         regions = stack_steering['regions']
-        self.control_regions = {}
-        self.signal_regions = {}
+        self.control_regions = set()
+        self.signal_regions = set()
         for region_name, region in regions.iteritems(): 
             name = region_name
+            father_region = region.get('element_of')
+            if father_region and father_region in counted_regions: 
+                name = father_region
             if region['type'] == 'control': 
-                self.control_regions[name] = region
+                self.control_regions.add(name)
             elif region['type'] == 'signal': 
-                self.signal_regions[name] = region 
+                self.signal_regions.add(name)
         self.counts = counts
     def get_tf_table(self, physics_type): 
         """
@@ -215,3 +219,27 @@ class TransferCalculator(object):
         final_err = this_err_factor * this_err + exc_err_factor * exc_err
         
         return this_mc/total, final_err
+
+class RegionMerger(object): 
+    """
+    Generates merged regions from a region counts dict. 
+    """
+    def __init__(self, counts): 
+        self.counts = counts
+
+    def merge(self, merged_regions, new_region): 
+        for sys_name, phys_dict in self.counts.iteritems(): 
+            for phys_name, region_dict in phys_dict.iteritems(): 
+                self.counts[sys_name][phys_name][new_region] = sum(
+                    region_dict[x] for x in merged_regions)
+
+    def merge_via_steering(self, steering_file):
+        merged_regions = {}
+        for region_name, region in steering_file['regions'].iteritems(): 
+            merged_region = region.get('element_of')
+            if merged_region: 
+                l = merged_regions.setdefault(merged_region,[])
+                l.append(region_name)
+
+        for new_region, constituents in merged_regions.iteritems(): 
+            self.merge(constituents, new_region)

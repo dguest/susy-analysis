@@ -102,20 +102,41 @@ class TransferFactorRelitiveErrorTable(TransferTexPrinter):
         ex_cr = self.control_regions[0]
         systematics = self.tf_table[ex_cr][ex_sr].transfer_rel_errors
         self.systematics = sorted(systematics.keys())
+        self.min_to_mark = 0.5
+        self.colorer = r'\textcolor{{red}}{{{}}}'
+
+    def _mark_leading_in_tf(self,tf): 
+        tf.marked_rel_errors = set()
+        max_rel_error = max(abs(x) for x in tf.transfer_rel_errors.values())
+        for tf_name, tf_value in tf.transfer_rel_errors.iteritems(): 
+            if abs(tf_value) > self.min_to_mark * max_rel_error: 
+                tf.marked_rel_errors.add(tf_name)
+
+    def _mark_leading(self): 
+        for sr in self.signal_regions: 
+            for cr in self.control_regions: 
+                self._mark_leading_in_tf(self.tf_table[cr][sr])
         
     def _add_cr(self, cr, file_object): 
         n_cols = len(self.signal_regions) + 1
         file_object.write(self._title_row(texify_sr(cr), n_cols))
-        file_object.write(self._head_row([''] + self.signal_regions))
+        hint = self.colorer.format(str(self.min_to_mark) + ' / max')
+        file_object.write(self._head_row(
+                [hint] + self.signal_regions))
         for rel_error in self.systematics: 
             row = []
             for sr in self.signal_regions: 
                 systs = self.tf_table[cr][sr].transfer_rel_errors
-                row.append('{:.2}'.format(systs[rel_error]))
+                string = '{:.2}'.format(systs[rel_error])
+                if rel_error in self.tf_table[cr][sr].marked_rel_errors: 
+                    row.append(self.colorer.format(string))
+                else: 
+                    row.append(string)
             line = self._row(row, first=rel_error)
             file_object.write(line)
 
     def write(self, file_object, control_regions='all'): 
+        self._mark_leading()
         n_cols = len(self.signal_regions) + 1
         file_object.write(self._begin_matrix(n_cols))
         if control_regions == 'all': 
