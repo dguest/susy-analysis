@@ -262,6 +262,7 @@ class Reporter(Process):
                     self._file_out(message)
             if self.logfile: 
                 self.logfile.write(message)
+                self.logfile.flush()
         if self.output.isatty(): 
             self.output.write('\n')
     def close(self): 
