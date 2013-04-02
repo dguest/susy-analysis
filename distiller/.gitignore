@@ -9,3 +9,4 @@ local.mk
 cleanup/
 *.xml
 btag-calibration/
+/stop-files

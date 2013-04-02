@@ -91,8 +91,14 @@ def make_latex_bg_table(physics_cut_dict, out_file=Temp(), title=''):
             return '1' + key
         return ''.join(splkey[::-1])
     cut_list = sorted(set(cut_list), key=cr_sort)
-    texphys = []
     sigregex = re.compile('stop-[0-9]+-[0-9]+')
+    signals = [s for s in phys_list if sigregex.search(s)]
+    for signal in signals: 
+        phys_list.append(phys_list.pop(phys_list.index(signal)))
+    datname = [x for x in phys_list if x.lower() == 'data']
+    if datname: 
+        phys_list.append(phys_list.pop(phys_list.index(datname[0])))
+    texphys = []
     for rawphys in phys_list: 
         if rawphys.startswith('stop'): 
             texphys.append(sigregex.search(rawphys).group(0))
@@ -100,6 +106,7 @@ def make_latex_bg_table(physics_cut_dict, out_file=Temp(), title=''):
             texphys.append(type_dict[rawphys].tex)
         else: 
             texphys.append(rawphys)
+    texphys.append('total BG')
     colstring = '|'.join(['c']*(len(texphys) +1))
     prereq = r'\begin{{tabular}}{{ {} }}'.format(colstring)
     out_file.write(prereq + '\n')
@@ -107,13 +114,17 @@ def make_latex_bg_table(physics_cut_dict, out_file=Temp(), title=''):
     out_file.write(headrow + '\n')
     for cut in cut_list: 
         line = [texify_sr(cut)]
+        total_bg = 0.0
         for phys in phys_list: 
             tup = (phys,cut)
             if tup in physics_cut_dict: 
-                value = physics_cut_dict[(phys,cut)]
+                value = physics_cut_dict[phys,cut]
                 line.append('{:.1f}'.format(value))
+                if phys.lower() != 'data' and not sigregex.search(phys): 
+                    total_bg += value
             else: 
                 line.append('XXX')
+        line.append('{:.1f}'.format(total_bg))
         textline = r'{} \\'.format(' & '.join(line))
         out_file.write(textline + '\n')
 

@@ -17,6 +17,8 @@ class TransferTexPrinter(object):
         
         self.control_regions = sorted(control_regions, key=cr_sort)
         self.signal_regions = sorted(signal_regions, key=cr_sort)
+        self.red_threshold = 0.5
+        self.green_threshold = 0.2
 
     def _begin(self, n_cols): 
         return r'\begin{{tabular}}{{{}}}'.format(
@@ -55,11 +57,17 @@ class TransferTexPrinter(object):
                 except ValueError: 
                     return 'Nan'
             if prec >= 0: 
-                return '${v:.{p}f} \pm {e:.{p}f}$'.format(
+                num =  '${v:.{p}f} \pm {e:.{p}f}$'.format(
                     v=value, p=prec, e=error)
             else: 
-                return '${v:.{p}f} \pm {e:.{p}f}$'.format(
+                num = '${v:.{p}f} \pm {e:.{p}f}$'.format(
                     v=value, p=0, e=error)
+            if error / value > self.red_threshold: 
+                return r'\textcolor{{red}}{{{}}}'.format(num)
+            elif error / value < self.green_threshold: 
+                return r'\textcolor{{blue}}{{{}}}'.format(num)
+            else: 
+                return num
         texified_row += [texify(v,e) for v,e in row_entries]
         return r'{} \\'.format(' & '.join( texified_row)) + '\n'
                 
@@ -73,7 +81,12 @@ class TransferFactorTable(TransferTexPrinter):
     def write(self, file_object): 
         n_cols = len(self.signal_regions) + 1
         file_object.write(self._begin_matrix(n_cols))
-        file_object.write(self._head_row([''] + self.signal_regions))
+        corner_info = (
+            r'\textcolor{{red}}{{{:.1f}}}'
+            r' \textcolor{{blue}}{{{:.1f}}}'.format(
+                self.red_threshold, self.green_threshold))
+        file_object.write(
+            self._head_row([corner_info] + self.signal_regions))
         for cr in self.control_regions: 
             row = []
             for sr in self.signal_regions: 

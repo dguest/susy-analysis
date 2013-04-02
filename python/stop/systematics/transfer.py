@@ -75,7 +75,7 @@ class TransferCalculator(object):
         self.counts = counts
         self.physics_type = physics_type
         sysvars = ['JES'] + list('BCUT')
-        self.variations = [
+        self.variations = ['JER'] + [
             sys + var for sys in sysvars for var in ['UP','DOWN']]
         self.baseline = 'NONE'
         self.data = 'data'
