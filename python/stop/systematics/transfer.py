@@ -220,6 +220,91 @@ class TransferCalculator(object):
         
         return this_mc/total, final_err
 
+class TransferTester(object): 
+    def __init__(self, transfer, data_count, syst_variation, other_frac=0.0): 
+        self.transfer_factor = transfer
+        self.stats = data_count
+        self.syst = syst_variation
+        other_count = data_count * other_frac
+        counts = { 
+            'NONE': {
+                'data': { 
+                    'control': data_count 
+                    }, 
+                'ttbar': { 
+                    'control': (data_count ) / transfer, 
+                    'signal': (data_count ), 
+                    }, 
+                'other': { 
+                    'control': (other_count ) / transfer, 
+                    'signal': (other_count ), 
+                    }
+                }, 
+            'VAR': {
+                'data': { 
+                    'control': data_count 
+                    }, 
+                'ttbar': { 
+                    'control': (data_count ) / transfer , 
+                    'signal': (data_count ) * syst_variation, 
+                    }, 
+                'other': { 
+                    'control': (other_count ) / transfer, 
+                    'signal': (other_count ) * syst_variation, 
+                    }
+                }
+            }
+        self.calc = TransferCalculator(counts)
+    def get_stat_var_total(self): 
+        self.calc.variations = ['VAR']
+        tf, err = self.calc.get_tf_and_err('control','signal')
+        if abs(tf - self.transfer_factor) / tf > 1e-9: 
+            raise ArithmeticError('askef for tf: {}, got {}'.format(
+                    self.transfer_factor, tf))
+
+        rel_errors = self.calc.get_coor_tf_rel_variations('control','signal')
+        control_frac, cferr = self.calc.get_controlled_fraction('control')
+                                                          
+        total_stat_error = rel_errors['STAT'] * tf 
+        expected_stat_error = 1/(self.stats**0.5)*self.transfer_factor
+        if abs(expected_stat_error - total_stat_error) / (
+            expected_stat_error + total_stat_error) > 1e-9: 
+            raise ArithmeticError('expected stat error: {}, got {}'.format(
+                    expected_stat_error, total_stat_error))
+            
+        total_var_error = rel_errors['VAR'] * tf
+        expected_var_error = (self.syst - 1)*self.transfer_factor
+        if expected_var_error: 
+            if abs(expected_var_error - total_var_error) / (
+                expected_var_error + total_var_error) > 1e-9: 
+                raise ArithmeticError('expected var error: {}, got {}'.format(
+                        expected_var_error, total_var_error))
+
+        return total_stat_error, total_var_error, err 
+
+def unit_test(): 
+    for fact in xrange(2,15): 
+        factor = fact / 10.0
+        for stat in xrange(1,5): 
+            stats = 10.0**stat
+            for s in xrange(1,20): 
+                syst = s / 10.0
+                for other in xrange(2,10): 
+                    other_frac = other / 10.0
+                    other_frac = 0.0
+                    tester = TransferTester(
+                        transfer=factor, 
+                        data_count=stats, 
+                        syst_variation=syst, 
+                        other_frac=other_frac)
+                    try: 
+                        stat_err, var_err, total_err = (
+                            tester.get_stat_var_total())
+                    except ArithmeticError as err: 
+                        print factor, stats, syst, other_frac
+                        print str(err)
+
+
 class RegionMerger(object): 
     """
     Generates merged regions from a region counts dict. 
