@@ -352,6 +352,10 @@ void StopDistiller::setup_outputs() {
   m_cutflow->add("GRL"                   , pass::grl            );  
   m_cutflow->add(m_info.trigger          , pass::trigger        );
   m_cutflow->add("primary_vertex"        , pass::vxp_gt_4trk    );
+  m_cutflow->add("lar_error"        , pass::lar_error          );
+  m_cutflow->add("tile_error"        , pass::tile_error          );
+  m_cutflow->add("core"        , pass::core          );
+  m_cutflow->add("tile_trip"        , pass::tile_trip          );
   m_cutflow->add("event_cleaning"        , event_clean          );
   m_cutflow->add("bad_jet_veto"          , pass::jet_clean      );
   m_cutflow->add("lepton_veto"           ,       lepton_veto    );
