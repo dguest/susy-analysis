@@ -17,6 +17,7 @@ def get_config():
     parser.add_argument(
         '-s','--signal-point', default='stop-150-90', 
         help="assumes <particle>-<something> type name, " + d)
+    parser.add_argument('-f', '--filters', nargs='*')
     args = parser.parse_args(sys.argv[1:])
     return args
 
@@ -50,7 +51,16 @@ def run():
     all_systematics = set(filtered.keys()) - set(['NONE'])
 
     out_file = TemporaryFile()
-    make_latex_bg_table(unyamlize(base_systematic), title='baseline', 
+    phys_cut_dict = unyamlize(base_systematic)
+    if args.filters: 
+        for filt in args.filters: 
+            killkeys = []
+            for phys, region in phys_cut_dict: 
+                if filt in region: 
+                    killkeys.append( (phys,region))
+            for key in killkeys: 
+                del phys_cut_dict[key]
+    make_latex_bg_table(phys_cut_dict, title='baseline', 
                         out_file=out_file)
 
     if args.systematics: 
