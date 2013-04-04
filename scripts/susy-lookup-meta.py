@@ -149,7 +149,7 @@ def build_variations_file(name):
     ami.bugstream = TemporaryFile()
     ds_cache = DatasetCache(name)
     for phys_type, ids in variations.iteritems(): 
-        new_meta = ami.get_dataset_range(ids, phys_type)
+        new_meta = ami.get_dataset_range(ids, phys_type, atlfast=True)
         ds_cache.update(new_meta)
     ds_cache.write()
     dumpbugs(ami)

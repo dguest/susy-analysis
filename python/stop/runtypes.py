@@ -1,15 +1,17 @@
 class DsRange(object): 
     def __init__(self, *range_tuples): 
         self.range_tuples = range_tuples
+        self.ds_list = []
     def __add__(self, other): 
         all_tuples = list(self.range_tuples)  
         if isinstance(other,list): 
-            for v in other: 
-                all_tuples.append( (v,v))
+            self.ds_list += other
         else: 
             all_tuples += list(other.range_tuples)
 
-        return DsRange(*all_tuples)
+        new = DsRange(*all_tuples)
+        new.ds_list = self.ds_list
+        return new
     def __radd__(self, other): 
         return self.__add__(other)
     def __iter__(self): 
@@ -17,6 +19,8 @@ class DsRange(object):
             low, high = rt
             for v in xrange(low, high+1): 
                 yield v
+        for v in self.ds_list: 
+            yield v
 
 marks_types = { 
     'ttbar': [105861], 
@@ -32,5 +36,8 @@ variations = {
     # 'ttbar_scale': DsRange( (174763, 174766)), 
     'ttbar_parton_shower': [105861, 105860], 
     'ttbar_isr_fsr': [117209, 117210], 
+    'ttbar_mcnlo': [105200], 
+    'ttbar_alpgen': DsRange((164440,164443), (164450, 164453)) + [
+        116108, 116109], 
     }
     

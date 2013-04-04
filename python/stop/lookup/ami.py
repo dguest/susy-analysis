@@ -1,7 +1,7 @@
 from pyAMI import query
 from pyAMI.client import AMIClient
 from pyAMI.auth import AMI_CONFIG, create_auth_config
-import os, sys
+import os, sys, re
 from stop import meta 
 
 class AmiAugmenter(object): 
@@ -16,6 +16,7 @@ class AmiAugmenter(object):
         self._setup_ami_client()
         self.outstream = sys.stdout
         self.bugstream = sys.stderr
+        self.atlfinder = re.compile('(_a([0-9])+)+')
 
     def _setup_ami_client(self): 
         self.client = AMIClient()
@@ -23,12 +24,25 @@ class AmiAugmenter(object):
             create_auth_config()
         self.client.read_config(AMI_CONFIG)
 
-    def get_dataset_range(self, ds_range, physics_type=None): 
+    def _filter_datasets(self, in_list, filt_func): 
+        if not in_list: 
+            raise DatasetMatchError('found nothing to filter')
+        filtered = []
+        for m in in_list: 
+            if filt_func(m): 
+                filtered.append(m)
+        if not filtered: 
+            raise DatasetMatchError(
+                'filter removed all {} with {}'.format(
+                    args.items(), self.ntup_filter),in_list)
+        return filtered
+
+    def get_dataset_range(self, ds_range, physics_type=None, atlfast=False): 
         datasets = []
         for num in ds_range: 
             self.outstream.write('looking up {}, category {}\n'.format(
                     num, physics_type))
-            ds = self.ds_from_id(num)
+            ds = self.ds_from_id(num, atlfast=atlfast)
             if physics_type: 
                 ds.physics_type = physics_type
             datasets.append(ds)
@@ -38,7 +52,7 @@ class AmiAugmenter(object):
     def _ldn(self, ddict): 
         return ddict['logicalDatasetName']
 
-    def ds_from_id(self, ds_id, stream=None): 
+    def ds_from_id(self, ds_id, stream=None, atlfast=False): 
         if 'data' in self.origin: 
             args = {'run':ds_id}
         else: 
@@ -50,17 +64,29 @@ class AmiAugmenter(object):
             raise DatasetMatchError('found nothing with {}'.format(
                     args.items()), match_sets)
         
+        # TODO: replace all these calls with the _filter_datasets function
         if len(match_sets) > 1: 
             type_filtered = []
             for m in match_sets: 
-                if self.ntup_filter in m['logicalDatasetName']: 
-                    if not stream or stream in m['logicalDatasetName']:
-                        type_filtered.append(m)
-        if not type_filtered: 
-            raise DatasetMatchError(
-                'stream filter removed all {} with {}'.format(
-                    args.items(), self.ntup_filter),match_sets)
-        else: 
+                if not stream or stream in m['logicalDatasetName']:
+                    type_filtered.append(m)
+            if not type_filtered: 
+                raise DatasetMatchError(
+                    'stream filter removed all {} with {}'.format(
+                        args.items(), self.ntup_filter),match_sets)
+            match_sets = type_filtered
+
+        if len(match_sets) > 1: 
+            type_filtered = []
+            for m in match_sets: 
+                ldn = self._ldn(m)
+                if self.ntup_filter in ldn: 
+                    type_filtered.append(m)
+            if not type_filtered: 
+                raise DatasetMatchError(
+                    'type filter removed all {} with {}'.format(
+                        args.items(), self.ntup_filter),match_sets)
+            
             match_sets = type_filtered
 
         if len(match_sets) > 1: 
@@ -68,9 +94,23 @@ class AmiAugmenter(object):
             for m in match_sets: 
                 if self.p_tag in m['logicalDatasetName']: 
                     tagged_matches.append(m)
+            if not tagged_matches: 
+                raise DatasetMatchError(
+                    'p filter removed all {} with {}'.format(
+                        args.items(), self.ntup_filter),match_sets)
             match_sets = tagged_matches
+    
+        if len(match_sets) > 1: 
+            atlmatch = []
+            for m in match_sets: 
+                if bool(self.atlfinder.search(self._ldn(m))) == atlfast: 
+                    atlmatch.append(m)
+            if not atlmatch: 
+                raise DatasetMatchError(
+                    'atlfilter filter removed all {} with {}'.format(
+                        args.items(), self.ntup_filter),match_sets)
                 
-        if not len(match_sets) == 1:
+        if len(match_sets) == 0:
             raise DatasetMatchError('problem matching {} with {}'.format(
                     args.items(), self.p_tag), match_sets)
 
