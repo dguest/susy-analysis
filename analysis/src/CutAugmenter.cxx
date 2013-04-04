@@ -73,24 +73,24 @@ void CutAugmenter::set_cutmask(ull_t& added,
   if (jets.size() <= 1) { 
     return; 
   }
-  const Jet& j2 = jets.at(1); 
-  if (log(j2.pc() / j2.pb()) > m_j2_anti_b_cut) { 
-    added |= pass::j2_anti_b_opt; 
-  }
-  if (log(j2.pc() / j2.pu()) > m_j2_anti_u_cut) { 
-    added |= pass::j2_anti_u_opt; 
-  }
+  // const Jet& j2 = jets.at(1); 
+  // if (log(j2.pc() / j2.pb()) > m_j2_anti_b_cut) { 
+  //   added |= pass::j2_anti_b_opt; 
+  // }
+  // if (log(j2.pc() / j2.pu()) > m_j2_anti_u_cut) { 
+  //   added |= pass::j2_anti_u_opt; 
+  // }
 
-  if (jets.size() <= 2) { 
-    return; 
-  }
-  const Jet& j3 = jets.at(2); 
-  if (log(j3.pc() / j3.pb()) > m_j3_anti_b_cut) { 
-    added |= pass::j3_anti_b_opt; 
-  }
-  if (log(j3.pc() / j3.pu()) > m_j3_anti_u_cut) { 
-    added |= pass::j3_anti_u_opt; 
-  }
+  // if (jets.size() <= 2) { 
+  //   return; 
+  // }
+  // const Jet& j3 = jets.at(2); 
+  // if (log(j3.pc() / j3.pb()) > m_j3_anti_b_cut) { 
+  //   added |= pass::j3_anti_b_opt; 
+  // }
+  // if (log(j3.pc() / j3.pu()) > m_j3_anti_u_cut) { 
+  //   added |= pass::j3_anti_u_opt; 
+  // }
   if (get_mttop(jets, evt_met) > m_mttop_cut) { 
     added |= pass::mttop; 
   }

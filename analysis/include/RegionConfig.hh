@@ -10,6 +10,9 @@
 namespace reg { 
   enum Type { CONTROL, SIGNAL, VALIDATION }; 
   enum Hists { HISTMILL, KINEMATIC_STAT }; 
+  // region event filter flags
+  const unsigned no_extra_jets = 1u << 0; 
+  const unsigned throw_for_fun = 1u << 1; 
 }
 
 struct RegionConfig 
@@ -20,6 +23,7 @@ struct RegionConfig
   double met;  
   ull_t required_bits; 
   ull_t veto_bits; 
+  unsigned region_bits; 
   syst::Systematic systematic; 
   std::string output_name; 
   reg::Type type; 

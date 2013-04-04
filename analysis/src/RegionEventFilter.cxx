@@ -1,6 +1,7 @@
 #include "RegionEventFilter.hh"
 #include "EventObjects.hh"
 #include "JetFactory.hh"
+#include <stdexcept> 
 
 RegionEventFilter::RegionEventFilter(const RegionConfig& config, unsigned): 
   m_region_config(config)
@@ -8,6 +9,9 @@ RegionEventFilter::RegionEventFilter(const RegionConfig& config, unsigned):
 }
 
 bool RegionEventFilter::pass(const EventObjects& obj) const { 
+  if (reg::throw_for_fun & m_region_config.region_bits) { 
+    throw std::runtime_error("fucking fun"); 
+  }
   typedef std::vector<Jet> Jets; 
   if (obj.event_mask & m_region_config.veto_bits) return false; 
   const ull_t req_bits = m_region_config.required_bits; 
@@ -19,6 +23,9 @@ bool RegionEventFilter::pass(const EventObjects& obj) const {
   unsigned n_required_jets = m_region_config.jet_tag_requirements.size(); 
   if (jets.size() < n_required_jets) { 
     return false; 
+  }
+  else if (reg::no_extra_jets & m_region_config.region_bits) { 
+    if (jets.size() > n_required_jets) return false; 
   }
 
   const auto& jet_req = m_region_config.jet_tag_requirements; 

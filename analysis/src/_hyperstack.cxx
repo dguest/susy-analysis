@@ -65,6 +65,7 @@ static bool safe_copy(PyObject* dict, RegionConfig& region)
   
   if (!copy(dict, "required_bits", region.required_bits)) return false;
   if (!copy(dict, "veto_bits", region.veto_bits)) return false;
+  if (!copy(dict, "region_flags", region.region_bits)) return false;
   if (!copy(dict, "systematic", region.systematic)) return false; 
   if (!copy(dict, "leading_jet_pt", region.leading_jet_pt)) return false;
   if (!copy(dict, "met", region.met)) return false; 
@@ -84,6 +85,12 @@ static bool safe_copy(PyObject* value, std::string& dest){
 
 static bool safe_copy(PyObject* value, ull_t& dest) { 
   ull_t the_long = PyLong_AsUnsignedLongLong(value); 
+  if (PyErr_Occurred()) return false; 
+  dest = the_long; 
+  return true; 
+}
+static bool safe_copy(PyObject* value, unsigned& dest) { 
+  unsigned the_long = PyLong_AsUnsignedLong(value); 
   if (PyErr_Occurred()) return false; 
   dest = the_long; 
   return true; 
