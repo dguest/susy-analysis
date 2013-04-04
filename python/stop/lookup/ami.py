@@ -56,10 +56,12 @@ class AmiAugmenter(object):
                 if self.ntup_filter in m['logicalDatasetName']: 
                     if not stream or stream in m['logicalDatasetName']:
                         type_filtered.append(m)
+        if not type_filtered: 
+            raise DatasetMatchError(
+                'stream filter removed all {} with {}'.format(
+                    args.items(), self.ntup_filter),match_sets)
+        else: 
             match_sets = type_filtered
-        if not match_sets: 
-            raise DatasetMatchError('found nothing with {} and {}'.format(
-                    args.items(), self.ntup_filter),[])
 
         if len(match_sets) > 1: 
             tagged_matches = []

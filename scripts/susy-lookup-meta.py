@@ -46,10 +46,12 @@ def _get_parser():
     ami_mode.add_argument('--update-ami', action='store_true')
     ami_mode.add_argument('--rewrite-ami', action='store_true')
 
-    parser.add_argument('-m','--marks-mc', action='store_true', 
-                        help='generate fresh mc file from mark\'s ds')
-    parser.add_argument('--data', action='store_true', 
-                        help='generate fresh data list')
+    build_mode = parser.add_mutually_exclusive_group()
+    build_mode.add_argument('-m','--marks-mc', action='store_true', 
+                            help='generate fresh mc file from mark\'s ds')
+    build_mode.add_argument('--data', action='store_true', 
+                            help='generate fresh data list')
+    build_mode.add_argument('--variations', action='store_true')
     parser.add_argument('-t', '--trust-ds-names', action='store_true')
     parser.add_argument('-d','--dump', action='store_true')
     parser.add_argument(
@@ -76,6 +78,8 @@ def run():
         build_mark_file(args.steering_file)
     if args.data: 
         build_data_file(args.steering_file)
+    if args.variations: 
+        build_variations_file(args.steering_file)
 
     if args.update_ami or args.rewrite_ami: 
         update(args.steering_file, overwrite=args.rewrite_ami)
@@ -133,6 +137,18 @@ def build_mark_file(name):
     ami.bugstream = TemporaryFile()
     ds_cache = DatasetCache(name)
     for phys_type, ids in marks_types.iteritems(): 
+        new_meta = ami.get_dataset_range(ids, phys_type)
+        ds_cache.update(new_meta)
+    ds_cache.write()
+    dumpbugs(ami)
+
+def build_variations_file(name): 
+    from stop.lookup.ami import AmiAugmenter
+    from stop.runtypes import variations
+    ami = AmiAugmenter('p1328', 'mc12_8TeV')
+    ami.bugstream = TemporaryFile()
+    ds_cache = DatasetCache(name)
+    for phys_type, ids in variations.iteritems(): 
         new_meta = ami.get_dataset_range(ids, phys_type)
         ds_cache.update(new_meta)
     ds_cache.write()
