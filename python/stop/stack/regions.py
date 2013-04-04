@@ -11,6 +11,7 @@ class Region(object):
         'bits': { 
             'required':['preselection'], 
             'veto':[], 
+            'region_flags':[], 
             }, 
         'kinematics':{
             'leading_jet_gev':240, 
@@ -22,6 +23,7 @@ class Region(object):
     _composite_bit_dict = dict(bits.composite_bits)
     _final_dict = bits.final_dict
     _allowed_types = set(['control','signal','validation'])
+    _region_flags = bits.region_event_filter_bits
 
     def __init__(self, yaml_dict={}): 
         if not yaml_dict: 
@@ -68,6 +70,12 @@ class Region(object):
     def get_antibits(self):
         return self._get_bits(self.bits['veto'])
     
+    def get_region_bits(self): 
+        allbits = 0
+        for name in self.bits.get('region_flags',[]):
+            allbits |= self._region_flags[name]
+        return long(allbits)
+    
     def get_config_dict(self): 
         """
         Produces the configuration info needed for _stacksusy
@@ -78,6 +86,7 @@ class Region(object):
             'met': self.kinematics['met_gev']*1e3, 
             'required_bits': self.get_bits(), 
             'veto_bits': self.get_antibits(), 
+            'region_bits': self.get_region_bits(), 
             'type': self.type.upper(), 
             'hists': 'HISTMILL', 
             }
@@ -131,7 +140,7 @@ class SuperRegion(object):
         return output
         
     def get_config_dict(self): 
-        req, veto, jtags, reg_type = self.tuple
+        req, veto, jtags, reg_type, reg_bits = self.tuple
         lower_bounds = self.kinematic_lower_bounds
         config_dict = {
             'jet_tag_requirements': list(jtags), 
@@ -139,6 +148,7 @@ class SuperRegion(object):
             'met': lower_bounds['met_gev']*1e3, 
             'required_bits': req, 
             'veto_bits': veto, 
+            'region_bits': reg_bits, 
             'type': reg_type.upper(), 
             'hists': 'KINEMATIC_STAT', 
             }
@@ -170,7 +180,8 @@ def condense_regions(regions):
 def _superregion_tuple(region): 
     req_bits = region.get_bits()
     veto_bits = region.get_antibits()
+    region_bits = region.get_region_bits()
     jet_tags = tuple(region.btag_config)
-    return (req_bits, veto_bits, jet_tags, region.type)
+    return (req_bits, veto_bits, jet_tags, region.type, region_bits)
         
     

@@ -65,7 +65,7 @@ static bool safe_copy(PyObject* dict, RegionConfig& region)
   
   if (!copy(dict, "required_bits", region.required_bits)) return false;
   if (!copy(dict, "veto_bits", region.veto_bits)) return false;
-  if (!copy(dict, "region_flags", region.region_bits)) return false;
+  if (!copy(dict, "region_bits", region.region_bits)) return false;
   if (!copy(dict, "systematic", region.systematic)) return false; 
   if (!copy(dict, "leading_jet_pt", region.leading_jet_pt)) return false;
   if (!copy(dict, "met", region.met)) return false; 
