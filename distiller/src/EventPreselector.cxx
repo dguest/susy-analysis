@@ -24,10 +24,10 @@ ull_t EventPreselector::get_preselection_flags(const SusyBuffer& buffer,
 					       SUSYObjDef& def) { 
   ull_t pass_bits = 0; 
   if(buffer.trigger)    pass_bits |= pass::trigger; 
-  if(buffer.larError != 2)  pass_bits |= pass::lar_error; 
-  if(!buffer.tileError) pass_bits |= pass::tile_error; 
 
   if ( m_flags & cutflag::is_data ) { 
+    if(buffer.larError != 2)  pass_bits |= pass::lar_error; 
+    if(!buffer.tileError) pass_bits |= pass::tile_error; 
     if ( (buffer.coreFlags & 0x40000) == 0) pass_bits |= pass::core; 
     if (m_grl) { 
       if (m_grl->has_lb(buffer.RunNumber, buffer.lbn)) 
@@ -40,6 +40,8 @@ ull_t EventPreselector::get_preselection_flags(const SusyBuffer& buffer,
     }
   }
   else { 
+    pass_bits |= pass::lar_error; 
+    pass_bits |= pass::tile_error; 
     pass_bits |= pass::core; 
     pass_bits |= pass::grl; 
     pass_bits |= pass::tile_trip; 
