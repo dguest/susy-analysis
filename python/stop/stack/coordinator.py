@@ -167,7 +167,7 @@ class Coordinator(object):
             return 
                 
         ntup_dict = self._config_dict['files']['ntuples']
-        if systematic in self.distiller_systematics: 
+        if systematic in self.distiller_systematics or systematic == 'NONE': 
             globdir = ntup_dict[systematic]
             stacker_syst = 'NONE'
         elif systematic in self.scale_factor_systematics: 
@@ -192,7 +192,7 @@ class Coordinator(object):
         for tup_n, ntup in enumerate(ntuples): 
             n_ran += stacker.run_multisys(
                 ntup, base_hist_path, [stacker_syst],
-                tuple_n=tup_n, outsubdir=systematic.lower())
+                tuple_n=tup_n, outsubdir=self._dirify(systematic))
         if n_ran: 
             self._print_new_line()
 
