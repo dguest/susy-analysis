@@ -4,6 +4,7 @@
 
 #include "SusyBuffer.h"
 #include "OutTree.hh"
+#include "OutputFilter.hh"
 #include "Jets.hh"
 #include "Leptons.hh"
 #include "constants.hh"
@@ -45,7 +46,7 @@ StopDistiller::StopDistiller(const std::vector<std::string>& in,
   m_flags(flags), 
   m_out_ntuple_name(out), 
   m_susy_dbg_file("susy-debug.txt"), 
-  m_required_for_save(0), 
+  m_output_filter(new OutputFilter(info, flags)), 
   m_norm_dbg_file(0), 
   m_null_file(new std::ofstream("/dev/null")), 
   m_chain(0), 
@@ -203,6 +204,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   pass_bits |= signal_jet_bits(signal_jets); 
   m_out_tree->n_susy_jets = preselection_jets.size(); 
 
+  if (signal_jets.size() == 2) pass_bits |= pass::dopplejet; 
   const unsigned n_req_jets = 3; 
   if (signal_jets.size() >= n_req_jets) { 
     pass_bits |= pass::n_jet; 
@@ -248,10 +250,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
 
   m_out_tree->event_number = m_susy_buffer->EventNumber; 
 
-  if (m_flags & cutflag::save_all_events) { 
-    m_out_tree->fill(); 
-  }
-  else if ( (pass_bits & m_required_for_save) == m_required_for_save) { 
+  if (m_output_filter->should_save_event(pass_bits)) { 
     m_out_tree->fill(); 
   }
 
@@ -368,12 +367,6 @@ void StopDistiller::setup_outputs() {
   m_cutflow->add("jtag_1"                , pass::cutflow_tag_1  ); 
   m_cutflow->add("jtag_2"                , pass::cutflow_tag_2  ); 
 
-  ull_t preselection = pass::grl | event_clean; 
-  m_required_for_save = preselection; 
-  m_required_for_save |= pass::jet_clean; 
-  m_required_for_save |= pass::vxp_gt_4trk; 
-  m_required_for_save |= pass::leading_jet | pass::met; 
-  m_required_for_save |= pass::n_jet; 
 }
 
 

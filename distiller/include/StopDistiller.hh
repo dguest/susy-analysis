@@ -17,6 +17,7 @@ namespace outtree {
 class BitmapCutflow; 
 class SelectedJet; 
 class BtagCalibration; 
+class OutputFilter; 
 
 class StopDistiller : public boost::noncopyable
 { 
@@ -43,7 +44,7 @@ private:
   std::string m_susy_dbg_file; 
   int m_n_entries; 
   int m_one_percent; 
-  ull_t m_required_for_save; 
+  OutputFilter* m_output_filter; 
   std::ofstream* m_norm_dbg_file; 
   std::ofstream* m_null_file; 
   std::streambuf* m_debug_buffer; 
