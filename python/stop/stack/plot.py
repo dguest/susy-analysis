@@ -16,12 +16,12 @@ def make_plots(plots_dict, misc_info):
         hist1_dict.update(converter.h1dict_from_histn(tup, histn=hist))
         hist2_dict.update(converter.h2dict_from_histn(tup, histn=hist))
 
-    # printer = StackPlotPrinter(misc_info)
-    # printer.print_plots(*sort_data_mc(hist1_dict))
-    # printer.log = True
-    # printer.print_plots(*sort_data_mc(hist1_dict))
-    h2print = H2Printer(misc_info)
-    h2print.print_plots(*sort_data_mc(hist2_dict))
+    printer = StackPlotPrinter(misc_info)
+    printer.print_plots(*sort_data_mc(hist1_dict))
+    printer.log = True
+    printer.print_plots(*sort_data_mc(hist1_dict))
+    # h2print = H2Printer(misc_info)
+    # h2print.print_plots(*sort_data_mc(hist2_dict))
     
 
 class HistConverter(object): 
@@ -38,7 +38,7 @@ class HistConverter(object):
         if len(histn.axes) == 1: 
             hdict[pvc] = self.hist1_from_histn(pvc, histn=histn)
             return hdict
-        for axis in histn.axes: 
+        for ax_name, axis in histn.axes.iteritems(): 
             y_vals, extent = histn.project_1d(axis.name)
             subvar = '-'.join([variable,axis.name])
             hdict[(physics, subvar, cut)] = self._get_hist1(
@@ -52,27 +52,29 @@ class HistConverter(object):
     
         assert len(histn.axes) == 1
         y_vals, extent = histn.project_1d('x')
-        units = histn.axes[0].units
+        units = histn.axes['x'].units
         return self._get_hist1(y_vals, extent, units, 
                                (physics, variable, cut))
 
     def h2dict_from_histn(self, pvc, histn): 
-        axes = histn.axes
+        axes = histn.axes.values()
         nax = len(axes)
         h2dict = {}
         physics, var, cut = pvc
-        for x in xrange(nax): 
-            xname = axes[x].name
-            for y in xrange(x): 
-                yname = axes[y].name
+        for x_n in xrange(nax): 
+            x_axis = axes[x_n]
+            xname = x_axis.name
+            for y_n in xrange(x_n): 
+                y_axis = axes[y_n]
+                yname = y_axis.name
                 varname = '-'.join([var,xname,yname])
                 imdict = histn.project_imshow(xname, yname)
                 xvar = ' '.join([var, xname])
                 xlab, xext = self._get_axislabel_extent(
-                    xvar, axes[x].extent, axes[x].units)
+                    xvar, x_axis.extent, x_axis.units)
                 yvar = ' '.join([var, yname])
                 ylab, yext = self._get_axislabel_extent(
-                    yvar, axes[y].extent, axes[y].units)
+                    yvar, y_axis.extent, y_axis.units)
                 imdict['extent'] = np.fromiter(chain(xext, yext),np.float)
                 subvar = '-'.join([var,yname,'vs',xname])
                 h2dict[(physics,subvar,cut)] = Hist2d(imdict, xlab, ylab)

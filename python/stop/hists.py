@@ -448,14 +448,13 @@ class HistNd(object):
         """
         get (array, extent) tuple for axis
         """
-        todo = [a.name for a in self.axes]
         victim = copy.deepcopy(self)
-        for red_ax in todo: 
+        for red_ax in self.axes: 
             if red_ax == axis: continue
             victim._reduce(red_ax)
         
         assert len(victim.axes) == 1
-        the_ax = victim.axes[0]
+        the_ax = victim.axes[axis]
         return victim._array, (the_ax.min, the_ax.max)
 
     def project_imshow(self, xaxis, yaxis): 
@@ -463,17 +462,15 @@ class HistNd(object):
         returns a dict that works with imshow
         """
 
-        todo = [a.name for a in self.axes]
         victim = copy.deepcopy(self)
-        for red_ax in todo: 
+        for red_ax in self.axes: 
             if red_ax in [xaxis, yaxis]: continue
             victim._reduce(red_ax) 
         
         array = victim._array[1:-1,1:-1]
 
-        ax_dic = dict((a.name, a) for a in self.axes)
-        x_ax = ax_dic[xaxis]
-        y_ax = ax_dic[yaxis]
+        x_ax = self.axes[xaxis]
+        y_ax = self.axes[yaxis]
 
         if x_ax.number > y_ax.number: 
             array = array.T
