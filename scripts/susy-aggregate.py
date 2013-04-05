@@ -91,7 +91,7 @@ def run():
     needed = get_signal_finder(args.signal_point)
     if args.make_plots: 
         from stop.stack import plot
-        plots_dict = {k:v for k,v in all_dict['NONE'].items() if needed(k)}
+        plots_dict = {k:v for k,v in count_dict['NONE'].items() if needed(k)}
         plotting_info = coord.get_plotting_meta()
         plotting_info['output_ext'] = args.ext
         plot.make_plots(plots_dict, plotting_info)
