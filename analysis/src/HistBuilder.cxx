@@ -7,7 +7,6 @@
 #include "IRegionHistograms.hh"
 #include "Region2dKinematicHistograms.hh"
 #include "PhysicalConstants.hh"
-#include "CutAugmenter.hh"
 #include "common_functions.hh"
 #include "H5Cpp.h"
 #include "typedefs.hh"
@@ -104,7 +103,7 @@ int HistBuilder::build() {
     if (m_build_flags & buildflag::fill_truth) { 
       if (m_factory->hfor_type() == hfor::KILL) continue; 
     }
-    EventObjects objects(m_factory, m_build_flags); 
+    const EventObjects objects(m_factory, m_build_flags); 
     for (auto itr = m_histograms.begin(); 
 	 itr != m_histograms.end(); itr++){
       itr->second->fill(objects); 

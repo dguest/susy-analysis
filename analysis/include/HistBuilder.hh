@@ -10,7 +10,6 @@
 #include "systematic_defs.hh"
 
 class JetFactory; 
-class CutAugmenter;
 class IRegionHistograms; 
 struct RegionConfig; 
 

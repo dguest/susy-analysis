@@ -1,14 +1,9 @@
 // python wrapper for the histo builder
 // Author: Daniel Guest (dguest@cern.ch)
 #include <Python.h>
-// #include <string> 
-// #include <vector>
-// #include <map>
 #include <stdexcept>
 
 #include "HistBuilder.hh"
-#include "HyperBuilder.hh"
-#include "CutflowBuilder.hh"
 #include "HistBuilderFlags.hh"
 #include "_hyperstack.hh"
 #include "HistConfig.hh"
@@ -232,10 +227,6 @@ static bool safe_copy(PyObject* value, syst::Systematic& dest) {
 static PyMethodDef methods[] = {
   {"_stacksusy", py_analysis_alg<HistBuilder>, METH_VARARGS, 
    "don't ask, read the source"},
-  // {"_hypersusy", py_analysis_alg<HyperBuilder>, METH_VARARGS, 
-  //  "eat a failure sandwich"}, 
-  // {"_cutflow", py_analysis_alg<CutflowBuilder>, METH_VARARGS, 
-  //  "eat a failure sandwich"}, 
   {NULL, NULL, 0, NULL}   /* sentinel */
 };
 

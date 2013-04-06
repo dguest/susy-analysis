@@ -60,14 +60,12 @@ PY_LDFLAGS += -shared
 
 # ---- define objects
 TOBJ        := JetFactory.o
-GEN_OBJ     := HistBuilder.o MaskedHistArray.o ObjKinematics.o 
+GEN_OBJ     := HistBuilder.o ObjKinematics.o 
 GEN_OBJ     += HistConfig.o BtagConfig.o RegionConfig.o
 GEN_OBJ     += TruthJetHists.o RegionHistograms.o EventObjects.o
 GEN_OBJ     += Region2dKinematicHistograms.o
 GEN_OBJ     += RegionEventFilter.o
-GEN_OBJ     += HyperBuilder.o
-GEN_OBJ     += CutflowBuilder.o
-GEN_OBJ     += CutAugmenter.o common_functions.o BtagScaler.o BtagBuffer.o
+GEN_OBJ     += common_functions.o BtagScaler.o BtagBuffer.o
 EXE_OBJ     := $(GEN_OBJ) $(TOBJ) drink.o
 PYLIB_OBJ   := $(GEN_OBJ) $(TOBJ)
 
