@@ -30,6 +30,7 @@ class Stack(object):
         self.y_min = None
         self._proxy_legs = []
         self._bg_proxy_legs = []
+        self.ratio_max = 2.0
         
     def _set_xlab(self, name): 
         if self.ratio: 
@@ -110,22 +111,40 @@ class Stack(object):
         plot_vals = np.array(y_vals)
         if self.y_min is not None: 
             bad_y_vals = y_vals <= self.y_min
-            plot_vals[bad_y_vals] = self.y_min
+            plot_vals[bad_y_vals] = self.y_min*1.001
         return plot_vals
 
     def _add_ratio(self, x_vals, y_vals, lows, highs): 
-        ratable = (self.y_sum > 0.0) & (y_vals > 0.0)
+        ratable = (self.y_sum > 0.0) 
         rat_x = x_vals[ratable]
         rat_y = y_vals[ratable]
         rat_y_sum = self.y_sum[ratable]
-        y_ratios = rat_y / self.y_sum[ratable]
-        y_ratios_high = highs[ratable] / rat_y_sum
+        y_ratios = rat_y / rat_y_sum
+        y_ratios_high = np.minimum(
+            self.ratio_max,highs[ratable] / rat_y_sum)
         y_ratios_low = lows[ratable] / rat_y_sum
         y_ratio_err_up = y_ratios_high - y_ratios
         y_ratio_err_down = y_ratios - y_ratios_low
-        self.ratio.errorbar(
-            rat_x, y_ratios, ms=10, fmt='k.', 
-            yerr=[y_ratio_err_up, y_ratio_err_down])
+
+        out_of_bounds = y_ratios > self.ratio_max
+        in_bounds = ~out_of_bounds
+
+        if np.any(in_bounds): 
+            self.ratio.errorbar(
+                rat_x[in_bounds], y_ratios[in_bounds], ms=10, fmt='k.', 
+                yerr=[y_ratio_err_down[in_bounds], y_ratio_err_up[in_bounds]])
+
+        bound_y = np.minimum(self.ratio_max, y_ratios[out_of_bounds])
+        bound_y_low = np.minimum(self.ratio_max, y_ratios_low[out_of_bounds])
+        bound_up = y_ratios_high[out_of_bounds] - bound_y
+        bound_down = bound_y - bound_y_low
+        if np.any(out_of_bounds): 
+            self.ratio.errorbar(
+                rat_x[out_of_bounds], 
+                bound_y, ms=10, fmt='r.', 
+                yerr=[bound_down, bound_up])
+            
+            
         self.ratio.axhline(y=1, linestyle='--', color='k')
 
     def add_data(self, hist): 
@@ -143,7 +162,7 @@ class Stack(object):
         if not np.any(plt_err_up): 
             return 
         line,cap,notsure = self.ax.errorbar(
-            x_vals, y_vals, ms=10, fmt='k.', 
+            x_vals, plt_y, ms=10, fmt='k.', 
             yerr=[plt_err_down,plt_err_up])
 
         if self.ratio and np.any(self.y_sum): 
