@@ -9,7 +9,7 @@
 #include "typedefs.hh"
 #include "systematic_defs.hh"
 
-class JetFactory; 
+class ObjectFactory; 
 class IRegionHistograms; 
 struct RegionConfig; 
 
@@ -28,7 +28,7 @@ private:
   std::map<std::string, 
 	   std::vector<const IRegionHistograms*> > m_out_file_map; 
 
-  JetFactory* m_factory; 
+  ObjectFactory* m_factory; 
   std::vector<std::pair<std::string, IRegionHistograms*> > m_histograms; 
 
 };

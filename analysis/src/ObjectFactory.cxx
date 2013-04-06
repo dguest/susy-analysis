@@ -1,4 +1,4 @@
-#include "JetFactory.hh"
+#include "ObjectFactory.hh"
 #include "Jet.hh"
 #include "BtagScaler.hh"
 #include "BtagBuffer.hh"
@@ -27,7 +27,7 @@ JetBuffer::~JetBuffer() {
   }
 }
 
-JetFactory::JetFactory(std::string root_file, int n_jets) : 
+ObjectFactory::ObjectFactory(std::string root_file, int n_jets) : 
   m_hfor_type(-1), 
   m_leading_cjet_pos(-1), 
   m_subleading_cjet_pos(-1), 
@@ -77,7 +77,7 @@ JetFactory::JetFactory(std::string root_file, int n_jets) :
   }
 } 
 
-JetFactory::~JetFactory() 
+ObjectFactory::~ObjectFactory() 
 {
   for (std::vector<JetBuffer*>::iterator itr = m_jet_buffers.begin(); 
        itr != m_jet_buffers.end(); 
@@ -87,7 +87,7 @@ JetFactory::~JetFactory()
   }
   delete m_file; 
 }
-void JetFactory::set_btagging(const std::vector<btag::JetTag>& tag_points) { 
+void ObjectFactory::set_btagging(const std::vector<btag::JetTag>& tag_points) { 
   for (size_t jet_n = 0; jet_n < tag_points.size(); jet_n++) { 
     btag::JetTag tag = tag_points.at(jet_n); 
     if (tag == btag::NOTAG) { 
@@ -97,14 +97,14 @@ void JetFactory::set_btagging(const std::vector<btag::JetTag>& tag_points) {
   }
 }
 
-int JetFactory::entries() const { 
+int ObjectFactory::entries() const { 
   return m_tree->GetEntries(); 
 }
-void JetFactory::entry(int n) { 
+void ObjectFactory::entry(int n) { 
   m_tree->GetEntry(n); 
 }
 
-Jet JetFactory::jet(int jet_number) const { 
+Jet ObjectFactory::jet(int jet_number) const { 
   // offset in the jet numbersing right now
   JetBuffer* the_buffer = m_jet_buffers.at(jet_number); 
   assert(the_buffer); 
@@ -113,7 +113,7 @@ Jet JetFactory::jet(int jet_number) const {
   }
   return Jet(the_buffer, m_ioflags); 
 }
-std::vector<Jet> JetFactory::jets() const { 
+std::vector<Jet> ObjectFactory::jets() const { 
   std::vector<Jet> jets_out; 
   for (std::vector<JetBuffer*>::const_iterator 
 	 itr = m_jet_buffers.begin(); itr != m_jet_buffers.end(); itr++) { 
@@ -127,19 +127,19 @@ std::vector<Jet> JetFactory::jets() const {
   return jets_out; 
 }
 
-TVector2 JetFactory::met()   const  { 
+TVector2 ObjectFactory::met()   const  { 
   TVector2 met; 
   met.SetMagPhi(m_met, m_met_phi); 
   return met; 
 }
-ull_t JetFactory::bits() const  { return m_bits; }
-double JetFactory::dphi()  const  { return m_dphi; }
-int JetFactory::n_good()   const  { return m_n_good; }
-int JetFactory::n_susy()   const  { return m_n_susy; }
-int JetFactory::leading_cjet_pos() const {return m_leading_cjet_pos;}
-int JetFactory::subleading_cjet_pos() const {return m_subleading_cjet_pos;}
-double JetFactory::htx() const {return m_htx;}
-double JetFactory::event_weight() const 
+ull_t ObjectFactory::bits() const  { return m_bits; }
+double ObjectFactory::dphi()  const  { return m_dphi; }
+int ObjectFactory::n_good()   const  { return m_n_good; }
+int ObjectFactory::n_susy()   const  { return m_n_susy; }
+int ObjectFactory::leading_cjet_pos() const {return m_leading_cjet_pos;}
+int ObjectFactory::subleading_cjet_pos() const {return m_subleading_cjet_pos;}
+double ObjectFactory::htx() const {return m_htx;}
+double ObjectFactory::event_weight() const 
 {
   if (m_ioflags & ioflag::no_truth) { 
     return 1.0; 
@@ -147,7 +147,7 @@ double JetFactory::event_weight() const
   return m_mc_event_weight; 
 }
 
-hfor::JetType JetFactory::hfor_type() const { 
+hfor::JetType ObjectFactory::hfor_type() const { 
   if (m_ioflags & ioflag::no_truth) { 
     throw std::runtime_error("no truth info found, can't get hfor type"); 
   }
@@ -164,7 +164,7 @@ hfor::JetType JetFactory::hfor_type() const {
   }
 }
 
-void JetFactory::set_btag(size_t jet_n, btag::JetTag tag) { 
+void ObjectFactory::set_btag(size_t jet_n, btag::JetTag tag) { 
   std::string full_branch_name = (boost::format("jet%i") % jet_n).str(); 
   if ( !(m_jet_buffers.size() > jet_n)) { 
     throw std::range_error("asked for out of range jet " + 
@@ -196,7 +196,7 @@ void JetFactory::set_btag(size_t jet_n, btag::JetTag tag) {
 }
 
 
-void JetFactory::set_buffer(std::string base_name) 
+void ObjectFactory::set_buffer(std::string base_name) 
 {
   using namespace std; 
   int errors = 0; 

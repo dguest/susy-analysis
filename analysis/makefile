@@ -59,7 +59,7 @@ PY_LDFLAGS += $(PY_LIB)
 PY_LDFLAGS += -shared
 
 # ---- define objects
-TOBJ        := JetFactory.o
+TOBJ        := ObjectFactory.o
 GEN_OBJ     := HistBuilder.o Jet1DHists.o Jet.o
 GEN_OBJ     += HistConfig.o BtagConfig.o RegionConfig.o
 GEN_OBJ     += TruthJetHists.o RegionHistograms.o EventObjects.o

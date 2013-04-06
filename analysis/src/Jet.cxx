@@ -1,5 +1,5 @@
 #include "Jet.hh"
-#include "JetFactory.hh"	// JetBuffer
+#include "ObjectFactory.hh"	// JetBuffer
 #include "BtagScaler.hh"
 
 #include <stdexcept> 

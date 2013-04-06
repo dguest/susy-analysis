@@ -6,7 +6,7 @@
 #include <vector> 
 #include "typedefs.hh"
 
-class JetFactory; 
+class ObjectFactory; 
 
 struct EventObjects
 {
@@ -18,7 +18,7 @@ struct EventObjects
   int subleading_cjet_pos; 
   int n_signal_jets; 
   std::vector<Jet> jets; 
-  EventObjects(const JetFactory*, unsigned build_flags); 
+  EventObjects(const ObjectFactory*, unsigned build_flags); 
 }; 
 
 #endif 

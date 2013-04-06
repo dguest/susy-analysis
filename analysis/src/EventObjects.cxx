@@ -1,8 +1,8 @@
 #include "EventObjects.hh"
 #include "HistBuilderFlags.hh"
-#include "JetFactory.hh"
+#include "ObjectFactory.hh"
 
-EventObjects::EventObjects(const JetFactory* factory, unsigned build_flags): 
+EventObjects::EventObjects(const ObjectFactory* factory, unsigned build_flags): 
   met(factory->met()), 
   weight(factory->event_weight()), 
   event_mask(factory->bits()), 

@@ -1,7 +1,7 @@
 #include "HistBuilder.hh" 
 #include "HistBuilderFlags.hh"
 #include "HistBuilderConstants.hh"
-#include "JetFactory.hh"
+#include "ObjectFactory.hh"
 #include "EventObjects.hh"
 #include "RegionHistograms.hh"
 #include "IRegionHistograms.hh"
@@ -27,7 +27,7 @@ HistBuilder::HistBuilder(std::string input, const unsigned flags):
   m_input_file(input), 
   m_build_flags(flags)
 { 
-  m_factory = new JetFactory(input, N_JETS_TO_READ); 
+  m_factory = new ObjectFactory(input, N_JETS_TO_READ); 
 }
 
 HistBuilder::~HistBuilder() { 
