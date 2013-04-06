@@ -1,5 +1,6 @@
 #include "EventObjects.hh"
 #include "HistBuilderFlags.hh"
+#include "JetFactory.hh"
 
 EventObjects::EventObjects(const JetFactory* factory, unsigned build_flags): 
   met(factory->met()), 

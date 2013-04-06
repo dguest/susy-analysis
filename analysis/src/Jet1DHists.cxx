@@ -1,5 +1,5 @@
 #include "Jet1DHists.hh"
-#include "JetFactory.hh"
+#include "Jet.hh"
 #include "Histogram.hh"
 #include "HistBuilderFlags.hh"
 #include "PhysicalConstants.hh"

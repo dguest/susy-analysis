@@ -1,6 +1,6 @@
 #include "RegionEventFilter.hh"
 #include "EventObjects.hh"
-#include "JetFactory.hh"
+#include "Jet.hh"
 #include <stdexcept> 
 
 RegionEventFilter::RegionEventFilter(const RegionConfig& config, unsigned): 

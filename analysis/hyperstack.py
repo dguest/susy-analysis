@@ -27,7 +27,7 @@ all_cuts = [
         'output_name': 'stupid.h5', 
         'type': 'CONTROL', 
         'jet_tag_requirements': ['NOTAG','ANTILOOSE'], 
-        'region_bits': 0x2
+        'region_bits': 0x1
         }, 
     { 
         'name': 'bob', 

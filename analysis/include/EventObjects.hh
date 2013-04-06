@@ -2,9 +2,11 @@
 #define EVENT_OBJECTS_HH
 
 #include "TVector2.h"
-#include "JetFactory.hh"
+#include "Jet.hh"
 #include <vector> 
 #include "typedefs.hh"
+
+class JetFactory; 
 
 struct EventObjects
 {

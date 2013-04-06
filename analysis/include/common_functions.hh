@@ -5,7 +5,6 @@
 
 class Jet; 
 class TVector2; 
-class JetFactory; 
 
 double get_mttop(const std::vector<Jet>& jets, TVector2 met); 
 double get_mttop(const Jet& jet, TVector2 met); 

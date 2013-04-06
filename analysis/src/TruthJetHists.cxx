@@ -1,7 +1,7 @@
 #include "TruthJetHists.hh"
 #include "Jet1DHists.hh"
 #include "H5Cpp.h"
-#include "JetFactory.hh"
+#include "Jet.hh"
 #include "PhysicalConstants.hh"
 
 TruthJetHists::TruthJetHists(double max_pt, const unsigned flags) { 

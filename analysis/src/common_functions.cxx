@@ -1,7 +1,7 @@
 #include "common_functions.hh"
 #include "PhysicalConstants.hh"
 #include <vector>
-#include "JetFactory.hh"
+#include "Jet.hh"
 #include "TVector2.h"
 #include <cassert>
 #include <map>
