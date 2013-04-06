@@ -1,5 +1,5 @@
 #include "TruthJetHists.hh"
-#include "ObjKinematics.hh"
+#include "Jet1DHists.hh"
 #include "H5Cpp.h"
 #include "JetFactory.hh"
 #include "PhysicalConstants.hh"
