@@ -120,6 +120,8 @@ class Stack(object):
         rat_y = y_vals[ratable]
         rat_y_sum = self.y_sum[ratable]
         y_ratios = rat_y / rat_y_sum
+
+        # all ratio points must fall within the upper limit, if not move them
         y_ratios_high = np.minimum(
             self.ratio_max,highs[ratable] / rat_y_sum)
         y_ratios_low = lows[ratable] / rat_y_sum
@@ -129,11 +131,13 @@ class Stack(object):
         out_of_bounds = y_ratios > self.ratio_max
         in_bounds = ~out_of_bounds
 
+        # plot the well behaved data first
         if np.any(in_bounds): 
             self.ratio.errorbar(
                 rat_x[in_bounds], y_ratios[in_bounds], ms=10, fmt='k.', 
                 yerr=[y_ratio_err_down[in_bounds], y_ratio_err_up[in_bounds]])
 
+        # the points outside the ratio max are red 
         bound_y = np.minimum(self.ratio_max, y_ratios[out_of_bounds])
         bound_y_low = np.minimum(self.ratio_max, y_ratios_low[out_of_bounds])
         bound_up = y_ratios_high[out_of_bounds] - bound_y
