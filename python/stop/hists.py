@@ -78,7 +78,7 @@ class Hist1d(object):
                 self.average_bins(ave_bins)
         ave = np.average(self._array[bins])
         self._array[bins] = ave
-    def get_xy_pts(self): 
+    def get_xy_step_pts(self): 
         """
         returns xy pairs which can be fed to plt.plot() to generate a 
         step plot
@@ -90,7 +90,7 @@ class Hist1d(object):
 
         return double_x_vals, double_y_vals
 
-    def get_data_xy(self): 
+    def get_xy_center_pts(self): 
         """
         returns points at the bin centers
         """

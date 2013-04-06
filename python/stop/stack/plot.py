@@ -7,7 +7,7 @@ from stop.stack.draw import Stack, Hist2d
 import os
 from itertools import chain
 
-def make_plots(plots_dict, misc_info): 
+def make_plots(plots_dict, misc_info, log=False): 
     hist1_dict = {}
     hist2_dict = {}
     converter = HistConverter(misc_info)
@@ -17,8 +17,7 @@ def make_plots(plots_dict, misc_info):
         hist2_dict.update(converter.h2dict_from_histn(tup, histn=hist))
 
     printer = StackPlotPrinter(misc_info)
-    printer.print_plots(*sort_data_mc(hist1_dict))
-    printer.log = True
+    printer.log = log
     printer.print_plots(*sort_data_mc(hist1_dict))
     # h2print = H2Printer(misc_info)
     # h2print.print_plots(*sort_data_mc(hist2_dict))
@@ -158,9 +157,13 @@ class StackPlotPrinter(object):
                 stack_name += '_log'
             save_base = join(plot_dir, stack_name)
             save_name = save_base + self.ext
+            has_ratio = id_tup in stack_data
             if self.verbose: 
-                print 'making {}'.format(save_name)
-            stack = Stack(stack_name)
+                if has_ratio: 
+                    print 'making ratio {}'.format(save_name)
+                else: 
+                    print 'making {}'.format(save_name)
+            stack = Stack(stack_name, ratio=has_ratio)
             if self.log: 
                 stack.y_min = 0.1
                 stack.ax.set_yscale('log')

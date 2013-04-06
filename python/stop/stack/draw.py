@@ -1,31 +1,59 @@
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm, Normalize
+from matplotlib.gridspec import GridSpec
+from matplotlib.ticker import MaxNLocator
 import numpy as np
 from itertools import chain
 from stop import stattest
-from math import sqrt, erf
 
 class Stack(object): 
     """
     This is for drawing. 
     """
-    def __init__(self, title): 
+    def __init__(self, title, ratio=False): 
         self.title = title
         self.fig = plt.figure(figsize=(8,6))
-        self.ax = self.fig.add_subplot(1,1,1)
+        if not ratio:
+            self.ax = self.fig.add_subplot(1,1,1)
+            self.ratio = None
+        else: 
+            grid = GridSpec(2,1, height_ratios=[3,1])
+            self.ax = self.fig.add_subplot(grid[0])
+            self.ratio = self.fig.add_subplot(grid[1],sharex=self.ax)
+            self.ratio.set_ylabel('Data / Sim', y=0.98, va='top')
+            locator = MaxNLocator(5, prune='upper') 
+            self.ratio.get_yaxis().set_major_locator(locator)
         self.x_vals = None
-        self._y_sum = None
+        self._y_sum_step = None
+        self.y_sum = None
         self.colors = 'mky'
         self.y_min = None
         self._proxy_legs = []
         self._bg_proxy_legs = []
+        
+    def _set_xlab(self, name): 
+        if self.ratio: 
+            axes = self.ratio
+            plt.setp(self.ax.get_xticklabels(), visible=False)
+        else: 
+            axes = self.ax
+        axes = self.ax if not self.ratio else self.ratio
+        xlabel = axes.get_xlabel()
+        if xlabel and xlabel != name: 
+            raise PlottingError(
+                "tried to plot xaxis {} on {}, "
+                "probably don't want that".format(name, xlabel))
+
+        if not xlabel: 
+            axes.set_xlabel(name, x=0.98, ha='right')
+        
     def add_backgrounds(self, hist_list): 
         last_plot = 0
         color_itr = iter(self.colors)
         if self.y_min is not None: 
             last_plot = self.y_min
         for hist in hist_list:
-            x_vals, y_vals = hist.get_xy_pts()
+            x_vals, y_vals = hist.get_xy_step_pts()
 
             if self.x_vals is None: 
                 self.x_vals = x_vals
@@ -34,20 +62,23 @@ class Stack(object):
             ylabel = self.ax.get_ylabel()
             if not ylabel: 
                 self.ax.set_ylabel(hist.y_label, y=0.98, va='top')
-            xlabel = self.ax.get_xlabel()
-            if not xlabel: 
-                self.ax.set_xlabel(hist.x_label, x=0.98, ha='right')
+            self._set_xlab(hist.x_label)
 
             fill_color = hist.color
             if not fill_color: 
                 fill_color = next(color_itr)
 
-            if self._y_sum is None:
-                self._y_sum = y_vals
+            if self._y_sum_step is None:
+                self._y_sum_step = y_vals
             else: 
-                self._y_sum = self._y_sum + y_vals
+                self._y_sum_step = self._y_sum_step + y_vals
+                
+            if self.y_sum is None: 
+                self.y_sum = hist.get_xy_center_pts()[1]
+            else: 
+                self.y_sum += hist.get_xy_center_pts()[1]
 
-            tmp_sum = np.array(self._y_sum[:])
+            tmp_sum = np.array(self._y_sum_step[:])
             if self.y_min is not None: 
                 tmp_sum[tmp_sum < self.y_min] = self.y_min
 
@@ -63,7 +94,7 @@ class Stack(object):
     def add_signals(self, hist_list): 
         color_itr = iter(self.colors)
         for hist in hist_list: 
-            x_vals, y_vals = hist.get_xy_pts()
+            x_vals, y_vals = hist.get_xy_step_pts()
             if self.y_min is not None: 
                 y_vals[y_vals < self.y_min] = self.y_min
 
@@ -75,29 +106,49 @@ class Stack(object):
             plt_handle, = self.ax.plot(x_vals,y_vals,style, linewidth=2.0)
             self._proxy_legs.append( (plt_handle, hist.title))
 
+    def _get_min_plotable(self, y_vals): 
+        plot_vals = np.array(y_vals)
+        if self.y_min is not None: 
+            bad_y_vals = y_vals <= self.y_min
+            plot_vals[bad_y_vals] = self.y_min
+        return plot_vals
+
+    def _add_ratio(self, x_vals, y_vals, lows, highs): 
+        ratable = (self.y_sum > 0.0) & (y_vals > 0.0)
+        rat_x = x_vals[ratable]
+        rat_y = y_vals[ratable]
+        rat_y_sum = self.y_sum[ratable]
+        y_ratios = rat_y / self.y_sum[ratable]
+        y_ratios_high = highs[ratable] / rat_y_sum
+        y_ratios_low = lows[ratable] / rat_y_sum
+        y_ratio_err_up = y_ratios_high - y_ratios
+        y_ratio_err_down = y_ratios - y_ratios_low
+        self.ratio.errorbar(
+            rat_x, y_ratios, ms=10, fmt='k.', 
+            yerr=[y_ratio_err_up, y_ratio_err_down])
+        self.ratio.axhline(y=1, linestyle='--', color='k')
+
     def add_data(self, hist): 
-        x_vals, y_vals = hist.get_data_xy()
+        x_vals, y_vals = hist.get_xy_center_pts()
         if self.x_vals is None: 
             self.x_vals = x_vals
         
-        lows = np.zeros(y_vals.shape)
-        highs = np.zeros(y_vals.shape)
-        tail_prob = 1.0 - erf(1/sqrt(2)) # one sigma
-        lows, highs = stattest.poisson_interval(y_vals, tail_prob)
-        if self.y_min is not None:
-            bad_yvals = y_vals <= self.y_min
-            y_vals[bad_yvals] = self.y_min
-            bad_lows = lows <= self.y_min
-            lows[bad_lows] = self.y_min
+        lows, highs = stattest.poisson_interval(y_vals)
 
-        y_err_up = highs - y_vals
-        y_err_down = y_vals - lows
+        plt_y = self._get_min_plotable(y_vals)
+        plt_low = self._get_min_plotable(lows)
+        plt_err_up = highs - plt_y
+        plt_err_down = plt_y - plt_low
 
-        if not np.any(y_err_up): 
+        if not np.any(plt_err_up): 
             return 
-        line,cap,notsure = self.ax.errorbar(x_vals, y_vals, 
-                                            ms=10, fmt='k.', 
-                                            yerr=[y_err_down, y_err_up])
+        line,cap,notsure = self.ax.errorbar(
+            x_vals, y_vals, ms=10, fmt='k.', 
+            yerr=[plt_err_down,plt_err_up])
+
+        if self.ratio and np.any(self.y_sum): 
+            self._add_ratio(x_vals, y_vals, lows, highs)
+            
         self._proxy_legs.append( (line, hist.title))
     
     def add_legend(self): 
@@ -112,6 +163,7 @@ class Stack(object):
             ymax = self.ax.get_ylim()[1]
             self.ax.set_ylim(0,ymax)
             self.ax.set_xlim(min(self.x_vals), max(self.x_vals))
+        self.fig.tight_layout()# pad=0.0, h_pad=0.0
         self.fig.savefig(name, bbox_inches='tight')
     def close(self): 
         plt.close(self.fig)
@@ -152,3 +204,7 @@ class Hist2d(object):
         ax.set_ylabel(self.y_label, y=0.98, va='top')
         fig.savefig(name, bbox_inches='tight')
         plt.close(fig)
+
+class PlottingError(StandardError): 
+    def __init__(self, problem): 
+        super(PlottingError,self).__init__(problem)

@@ -34,11 +34,14 @@ class HistDict(dict):
         - bottom dir is cut / region
         - all middle dirs are the variable name
     """
-    def __init__(self, file_name=''): 
+    def __init__(self, file_name='', filt=None): 
         if not file_name: 
             return None
         with h5py.File(file_name) as infile: 
             for path in self._list_paths(infile): 
+                if filt: 
+                    if not filt in path: 
+                        continue
                 spl = path.split('/')
                 physics = spl[1]
                 variable = '/'.join(spl[2:-1])

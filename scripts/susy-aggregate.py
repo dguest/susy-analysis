@@ -23,12 +23,6 @@ def get_config():
     parser.add_argument('-c', '--counts-file', const='counts.yml',
                         nargs='?', help=c)
     parser.add_argument(
-        '-s','--signal-point', default='stop-150-90', 
-        help="assumes <particle>-<something> type name, " + d)
-    parser.add_argument('-p', '--make-plots', action='store_true')
-    parser.add_argument(
-        '--ext', help='plot extensions, ' + d, default='.pdf')
-    parser.add_argument(
         '--mode', choices={'histmill','kinematic_stat'}, 
         default='kinematic_stat', help='default: %(default)s')
     parser.add_argument('--fast', action='store_true', 
@@ -87,14 +81,6 @@ def run():
         with open(args.counts_file,'w') as countfile: 
             for line in yaml.dump(table.yamlize(count_dict)): 
                 countfile.write(line)
-
-    needed = get_signal_finder(args.signal_point)
-    if args.make_plots: 
-        from stop.stack import plot
-        plots_dict = {k:v for k,v in count_dict['NONE'].items() if needed(k)}
-        plotting_info = coord.get_plotting_meta()
-        plotting_info['output_ext'] = args.ext
-        plot.make_plots(plots_dict, plotting_info)
         
     if coord.bugstream.tell(): 
         coord.bugstream.seek(0)

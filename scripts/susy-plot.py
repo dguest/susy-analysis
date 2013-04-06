@@ -26,6 +26,9 @@ def get_config():
     parser.add_argument(
         '--mode', choices={'histmill','kinematic_stat'}, 
         default='histmill', help='default: %(default)s')
+    parser.add_argument('--filt')
+    parser.add_argument('--scale', choices={'log','linear', 'both'}, 
+                        default='linear', help=d)
     args = parser.parse_args(sys.argv[1:])
     return args
 
@@ -55,7 +58,7 @@ def run():
     plots_dict = {}
     for agg_file in aggregates: 
         print 'loading {}'.format(agg_file)
-        hists = HistDict(agg_file)
+        hists = HistDict(agg_file,args.filt)
         plots_dict.update(hists)
             
     needed = get_signal_finder(args.signal_point)
@@ -65,7 +68,12 @@ def run():
         'base_dir': config['files']['plots'], 
         'output_ext': args.ext, 
         }
-    plot.make_plots(plots_dict, plotting_info)
+
+    do_log = args.scale == 'log'
+    plot.make_plots(plots_dict, plotting_info, log=do_log)
+    if args.scale == 'both': 
+        plot.make_plots(plots_dict, plotting_info, log=True)
+        
 
 if __name__ == '__main__': 
     run()
