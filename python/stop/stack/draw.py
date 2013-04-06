@@ -20,7 +20,7 @@ class Stack(object):
             grid = GridSpec(2,1, height_ratios=[3,1])
             self.ax = self.fig.add_subplot(grid[0])
             self.ratio = self.fig.add_subplot(grid[1],sharex=self.ax)
-            self.ratio.set_ylabel('Data / Sim', y=0.98, va='top')
+            self.ratio.set_ylabel('Data / Sim')# y=0.98, va='top')
             locator = MaxNLocator(5, prune='upper') 
             self.ratio.get_yaxis().set_major_locator(locator)
         self.x_vals = None
@@ -30,7 +30,7 @@ class Stack(object):
         self.y_min = None
         self._proxy_legs = []
         self._bg_proxy_legs = []
-        self.ratio_max = 2.0
+        self.ratio_max = 4.0
         
     def _set_xlab(self, name): 
         if self.ratio: 
@@ -187,6 +187,8 @@ class Stack(object):
             self.ax.set_ylim(0,ymax)
             self.ax.set_xlim(min(self.x_vals), max(self.x_vals))
         self.fig.tight_layout()# pad=0.0, h_pad=0.0
+        if self.ratio and self.ratio.get_ylim()[1] > self.ratio_max: 
+            self.ratio.set_ylim(0,self.ratio_max)
         self.fig.savefig(name, bbox_inches='tight')
     def close(self): 
         plt.close(self.fig)

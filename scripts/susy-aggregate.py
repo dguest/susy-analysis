@@ -57,7 +57,6 @@ def run():
     needed_systematics = coord.get_needed_aggregates(args.mode)
 
     to_do = [
-        args.make_plots, 
         args.counts_file, 
         needed_systematics, 
         args.force_aggregation, 
