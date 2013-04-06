@@ -12,7 +12,7 @@ class TVector2;
 class Jet: public TLorentzVector
 {
 public: 
-  Jet(JetBuffer* basis, unsigned flags = 0); 
+  Jet(const JetBuffer* basis, unsigned flags = 0); 
   void set_event_met(const TVector2& met); 
   void set_event_flags(ull_t); 
   double met_dphi() const; 

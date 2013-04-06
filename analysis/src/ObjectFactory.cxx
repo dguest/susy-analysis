@@ -79,9 +79,7 @@ ObjectFactory::ObjectFactory(std::string root_file, int n_jets) :
 
 ObjectFactory::~ObjectFactory() 
 {
-  for (std::vector<JetBuffer*>::iterator itr = m_jet_buffers.begin(); 
-       itr != m_jet_buffers.end(); 
-       itr++) { 
+  for (auto itr = m_jet_buffers.begin(); itr != m_jet_buffers.end(); itr++) { 
     delete *itr; 
     *itr = 0; 
   }
@@ -115,8 +113,7 @@ Jet ObjectFactory::jet(int jet_number) const {
 }
 std::vector<Jet> ObjectFactory::jets() const { 
   std::vector<Jet> jets_out; 
-  for (std::vector<JetBuffer*>::const_iterator 
-	 itr = m_jet_buffers.begin(); itr != m_jet_buffers.end(); itr++) { 
+  for (auto itr = m_jet_buffers.begin(); itr != m_jet_buffers.end(); itr++) { 
     if ((*itr)->pt <= 0) { 
       return jets_out; 
     }

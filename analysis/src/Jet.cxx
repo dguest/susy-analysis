@@ -7,7 +7,7 @@
 #include "TLorentzVector.h"
 #include "TVector2.h"
 
-Jet::Jet(JetBuffer* basis, unsigned flags): 
+Jet::Jet(const JetBuffer* basis, unsigned flags): 
   m_pb(basis->cnn_b), 
   m_pc(basis->cnn_c), 
   m_pu(basis->cnn_u), 
