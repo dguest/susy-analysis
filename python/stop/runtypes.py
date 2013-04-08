@@ -34,7 +34,7 @@ marks_types = {
 variations = { 
     # truth level... maybe not for now
     # 'ttbar_scale': DsRange( (174763, 174766)), 
-    'ttbar_parton_shower': [105861, 105860], 
+    'ttbar_parton_shower': [105860], 
     'ttbar_isr_fsr': [117209, 117210], 
     'ttbar_mcnlo': [105200], 
     'ttbar_alpgen': DsRange((164440,164443), (164450, 164453)) + [

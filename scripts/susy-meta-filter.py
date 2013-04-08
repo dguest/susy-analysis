@@ -19,7 +19,11 @@ def _get_parser():
     parser.add_argument('-c', '--strip-cutflow', action='store_true')
     parser.add_argument('-d', '--strip-data', action='store_true')
     parser.add_argument('-s', '--strip-simulation', action='store_true')
-    parser.add_argument('-m', '--merge', action='store_true')
+    parser.add_argument(
+        '-m', '--merge', action='store_true', 
+        help='merge meta info from jobs which may be split by distiller')
+    parser.add_argument('-k','--kleen', action='store_true', 
+                        help='clean out distiller metainfo')
     output = parser.add_mutually_exclusive_group()
     output.add_argument('-i', '--write-to-input', action='store_true')
     output.add_argument('-o', '--output')
@@ -43,7 +47,7 @@ def correct_general(ds):
         ds.bugs -= set(['no cross section', 'no filter efficiency',
                         'bad files'])
 
-def strip_distiller_meta(item): 
+def strip_distiller_meta(item, merging=True): 
     item.d3pds = []
     item.skim_paths = {}
     item.grl = ''
@@ -53,6 +57,11 @@ def strip_distiller_meta(item):
     item.need_rerun = None
     item.btag_env = ''
     item.bugs -= set(['no d3pds'])
+    if not merging: 
+        item.subset_index = 0
+        item.total_subsets = 0
+        item.n_raw_entries = 0
+        item.meta_sources -= set(['distiller'])
 
 def run(): 
     args = _get_parser().parse_args(sys.argv[1:])
@@ -97,18 +106,25 @@ def run():
         subout = out_n % len(outputs)
 
         if args.merge: 
-            strip_distiller_meta(item)
+            strip_distiller_meta(item, merging=True)
             if item.mergekey != item.key: 
                 if not item.mergekey in mergers: 
                     mergers[item.mergekey] = item 
                 else: 
                     mergers[item.mergekey] += item 
                 if mergers[item.mergekey].subset_index == 'merged': 
-                    outputs[subout][item.mergekey] = mergers[item.mergekey]
+                    merged = mergers[item.mergekey]
+                    if args.kleen: 
+                        strip_distiller_meta(merged, merging=False)
+                    outputs[subout][item.mergekey] = merged
                     del mergers[item.mergekey]
             else: 
+                if args.kleen: 
+                    strip_distiller_meta(item, merging=False)
                 outputs[subout][key] = item 
         else: 
+            if args.kleen: 
+                strip_distiller_meta(item, merging=False)
             outputs[subout][key] = item 
 
     for output in outputs: 
