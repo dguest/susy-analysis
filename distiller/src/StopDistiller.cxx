@@ -26,6 +26,7 @@
 #include <streambuf>
 #include <cassert>
 #include <cstdlib> // getenv, others
+#include <algorithm> // min
 #include <cstdio>
 #include <map>
 
@@ -90,7 +91,6 @@ StopDistiller::Cutflow StopDistiller::run_cutflow() {
   m_n_entries = m_chain->GetEntries(); 
   m_one_percent = m_n_entries / 100; 
 
-  // first setup my debug stream
   std::ostream debug_stream(m_debug_buffer); 
 
   // redirect the stdout stuff 
@@ -193,8 +193,12 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   SignalJets signal_jets(preselection_jets); 
   set_bit(signal_jets, jetbit::signal); 
 
-  const TVector2 met = get_met(*m_susy_buffer, *m_def, m_info, susy_muon_idx); 
-  const TVector2 mu_met = get_mumet(met, control_muons); 
+  const int n_leading = std::min(signal_jets.size(), N_SR_JETS); 
+  Jets leading_jets(signal_jets.begin(), signal_jets.begin() + n_leading); 
+  set_bit(leading_jets, jetbit::leading); 
+
+  const auto met = get_met(*m_susy_buffer, *m_def, m_info, susy_muon_idx); 
+  const auto mu_met = get_mumet(met, control_muons); 
 
   // ---- must calibrate signal jets for b-tagging ----
   calibrate_jets(signal_jets, m_btag_calibration); 
@@ -204,23 +208,14 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   pass_bits |= signal_jet_bits(signal_jets); 
   m_out_tree->n_susy_jets = preselection_jets.size(); 
 
+
   if (signal_jets.size() == 2) pass_bits |= pass::dopplejet; 
-  const unsigned n_req_jets = 3; 
-  if (signal_jets.size() >= n_req_jets) { 
-    pass_bits |= pass::n_jet; 
+  if (signal_jets.size() >= N_SR_JETS) pass_bits |= pass::n_jet; 
 
-    Jets leading_jets(signal_jets.begin(), 
-		      signal_jets.begin() + n_req_jets); 
-    set_bit(leading_jets, jetbit::leading); 
-    assert(leading_jets.size() == n_req_jets);
-
-    m_out_tree->htx = get_htx(preselection_jets); 
-
-    m_out_tree->min_jetmet_dphi = get_min_jetmet_dphi(leading_jets, met); 
-    if (m_out_tree->min_jetmet_dphi > MIN_DPHI_JET_MET) { 
-      pass_bits |= pass::dphi_jetmet_min; 
-    }
-
+  m_out_tree->htx = get_htx(preselection_jets); 
+  m_out_tree->min_jetmet_dphi = get_min_jetmet_dphi(leading_jets, met); 
+  if (m_out_tree->min_jetmet_dphi > MIN_DPHI_JET_MET) { 
+    pass_bits |= pass::dphi_jetmet_min; 
   }
 
   copy_leading_jet_info(signal_jets, *m_out_tree); 

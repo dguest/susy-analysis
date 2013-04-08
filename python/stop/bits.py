@@ -30,7 +30,7 @@ composite_bits = [
      _bdict['grl'] | _bdict['trigger'] | _bdict['lar_error'] | 
      _bdict['core'] | #this was set wrong in the distiller
      _bdict['jet_clean'] | _bdict['vxp_gt_4trk'] | 
-     _bdict['n_jet'] | _bdict['dphi_jetmet_min'] ), 
+     _bdict['dphi_jetmet_min'] ), 
     ('lepton_veto', _bdict['electron_veto'] | _bdict['muon_veto'])
     ]
      
