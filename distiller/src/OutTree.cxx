@@ -170,4 +170,9 @@ namespace outtree {
     scale_factor_err = -1; 
   }
 
+  void JetVector::set_branches(TTree* tree, std::string prefix, 
+			       unsigned flags) { 
+    // WORK DO HERE
+  }
+
 }; 
