@@ -60,7 +60,7 @@ def _run_distill(ds):
         else: 
             raise
 
-    ds.meta_sources += set(['distiller'])
+    ds.meta_sources |= set(['distiller'])
     print '{} done'.format(ds.id)
     return ds
     
