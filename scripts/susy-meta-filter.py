@@ -58,6 +58,9 @@ def strip_distiller_meta(item, merging=True):
     item.btag_env = ''
     item.bugs -= set(['no d3pds'])
     if not merging: 
+        if item.subset_index and not item.subset_index == 'merged': 
+            raise MergingError(
+                'tried to delete subset info from non-merged dataset')
         item.subset_index = 0
         item.total_subsets = 0
         item.n_raw_entries = 0
@@ -136,3 +139,7 @@ def run():
 
 if __name__ == '__main__': 
     run()
+
+class MergingError(IOError): 
+    def __init__(self, problem): 
+        super(MergingError, self).__init__(problem)
