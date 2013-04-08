@@ -51,6 +51,7 @@ def run():
     with open(args.steering_file) as steering_yml: 
         config = yaml.load(steering_yml)
     hists_base = config['files']['hists']
+    used_physics = config['backgrounds']['used'] + ['data']
 
     aggregates = glob.glob(
         join(hists_base,args.mode,'baseline','aggregate.h5'))
@@ -58,7 +59,7 @@ def run():
     plots_dict = {}
     for agg_file in aggregates: 
         print 'loading {}'.format(agg_file)
-        hists = HistDict(agg_file,args.filt)
+        hists = HistDict(agg_file,args.filt, physics_set=used_physics)
         plots_dict.update(hists)
             
     needed = get_signal_finder(args.signal_point)
@@ -67,6 +68,7 @@ def run():
         'lumi_fb': config['misc']['lumi_fb'], 
         'base_dir': config['files']['plots'], 
         'output_ext': args.ext, 
+        'used_backgrounds': config['backgrounds']['used'], 
         }
 
     do_log = args.scale == 'log'

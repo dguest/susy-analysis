@@ -46,11 +46,14 @@ class Coordinator(object):
                 'ntuples': {s:s.lower() for s in self.distiller_systematics}, 
                 'hists': 'hists', 
                 'meta':'meta-all.yml', 
+                'counts':'counts.yml', 
                 'plots':'plots'}
         if not 'misc' in self._config_dict: 
             if yaml_file: 
                 self.bugstream.write('no misc info, making default')
             self._config_dict['misc'] = {'lumi_fb': 20.661}
+        if not 'backgrounds' in self._config_dict: 
+            self._config_dict['backgrounds'] = { 'used': []}
 
         self.verbose = False
         self.outstream = sys.stdout
