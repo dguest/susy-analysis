@@ -290,20 +290,37 @@ class MetaTextCollector(object):
         txt_name = root_file.replace(self.root_extension,
                                      self.text_extension)
         if not isfile(txt_name): 
-            raise MissingMetaError("can't find meta", txt_name)
+            raise MissingMetaError("can't find meta", txt_name, root_file)
         with open(txt_name) as textfile: 
             n_events = int(next(textfile))
         return n_events
-    def get_recorded_events(self, d3pd_list): 
+    def get_recorded_events(self, d3pd_list, aggressive=False): 
+        """
+        returns a tuple: recorded events. If aggressive will mutate list
+        by removing corrupted files
+        """
         n_events = 0
+        bad_d3pds = []
         for d3pd in d3pd_list: 
-            n_events += self._get_recorded_events(d3pd)
-        return n_events
+            try: 
+                n_events += self._get_recorded_events(d3pd)
+            except MissingMetaError as err: 
+                if not aggressive: 
+                    raise
+                bad_d3pds.append(err.root_file)
+        for bad in bad_d3pds: 
+            d3pd_list.remove(bad)
+        n_corrupted = len(bad_d3pds)
+        return n_events, n_corrupted
 
 class MissingMetaError(IOError): 
-    def __init__(self, message, metafile=None): 
+    """
+    Raised by meta collector if some info can't be found. 
+    """
+    def __init__(self, message, meta_file=None, root_file=None): 
         super(MissingMetaError,self).__init__(message)
-        self.metafile = metafile
+        self.meta_file = meta_file
+        self.root_file = root_file
     def __str__(self): 
         if self.metafile: 
             return self.message + ', metafile: ' + self.metafile

@@ -48,9 +48,7 @@ def _run_distill(ds):
 
         ds.need_rerun = False
         if isinstance(cut_counts, cutflow.CorruptedCutflow): 
-            ds.n_corrupted_files = len(ds.d3pds) - len(cut_counts.files_used)
-        else: 
-            ds.n_corrupted_files = 0
+            ds.n_corrupted_files += len(ds.d3pds) - len(cut_counts.files_used)
         if hasattr(ds,'missing_branch'): 
             del ds.missing_branch
     except RuntimeError as er: 
@@ -206,13 +204,15 @@ class Distiller(object):
                 ds.distill_flags = self._get_flags(ds)
                 ds.need_rerun = self._needs_rerun(ds, systematic)
                 ds.calibration_dir = self.calibration_dir
+                ds.n_corrupted_files = 0
                 if ds.is_data: 
                     ds.grl = grl
                     ds.btag_env = ''
                     # with data we need to look at textfiles which 
                     # give the original count of events in the susy tree
-                    ds.n_raw_entries = textmeta.get_recorded_events(
-                        ds.d3pds)
+                    ds.n_raw_entries, n_corr = textmeta.get_recorded_events(
+                        ds.d3pds, aggressive=('a' in self.base_flags))
+                    ds.n_corrupted_files += n_corr
                 else: 
                     ds.grl = ''
                     ds.btag_env = btag_env
