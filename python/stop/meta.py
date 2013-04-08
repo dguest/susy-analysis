@@ -306,7 +306,7 @@ class MetaTextCollector(object):
                 n_events += self._get_recorded_events(d3pd)
             except MissingMetaError as err: 
                 if not aggressive: 
-                    raise
+                    raise 
                 bad_d3pds.append(err.root_file)
         for bad in bad_d3pds: 
             d3pd_list.remove(bad)
@@ -322,8 +322,8 @@ class MissingMetaError(IOError):
         self.meta_file = meta_file
         self.root_file = root_file
     def __str__(self): 
-        if self.metafile: 
-            return self.message + ', metafile: ' + self.metafile
+        if self.meta_file: 
+            return self.message + ', metafile: ' + self.meta_file
         else: 
             return message
 
