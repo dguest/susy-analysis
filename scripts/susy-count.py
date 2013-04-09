@@ -57,14 +57,14 @@ def run():
     out_file = TemporaryFile()
     phys_cut_dict = unyamlize(base_systematic)
 
-    killkeys = []
+    killkeys = set()
     used_physics = set(config_dict['backgrounds']['used'] + ['data'])
     for phys, region in phys_cut_dict: 
         if not phys in used_physics: 
-            killkeys.append( (phys, region) )
+            killkeys.add( (phys, region) )
         for filt in args.filters: 
             if filt in region: 
-                killkeys.append( (phys,region))
+                killkeys.add( (phys,region))
         
     for key in killkeys: 
         del phys_cut_dict[key]
