@@ -137,9 +137,11 @@ def run():
         for line in out_stream: 
             print line.rstrip()
 
-if __name__ == '__main__': 
-    run()
 
 class MergingError(IOError): 
     def __init__(self, problem): 
         super(MergingError, self).__init__(problem)
+
+if __name__ == '__main__': 
+    run()
+
