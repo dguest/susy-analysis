@@ -19,6 +19,9 @@ namespace outtree {
   { 
     if (file.size() > 0) { 
       m_file = new TFile(file.c_str(), "recreate"); 
+      if (flags & cutflag::maximum_compression) { 
+	m_file->SetCompressionLevel(9); 
+      }
       m_tree = new TTree(tree.c_str(), tree.c_str()); 
       init(flags, n_jets); 
     }
@@ -55,7 +58,12 @@ namespace outtree {
     for (int i = 0; i < n_jets; i++) { 
       jets.push_back(new Jet); 
       std::string jetname = (boost::format("jet%i_") % i).str(); 
-      (*jets.rbegin())->set_branches(m_tree, jetname, flags); 
+      if (! (flags & cutflag::vector_output)) { 
+	(*jets.rbegin())->set_branches(m_tree, jetname, flags); 
+      }
+    }
+    if (flags & cutflag::vector_output) { 
+      m_jet_vector.set_branches(m_tree, "jet_", flags); 
     }
 
     if (flags & cutflag::raw_evt_info) {
@@ -110,6 +118,7 @@ namespace outtree {
 
   void OutTree::fill() 
   {
+    m_jet_vector.fill(jets); 
     if (m_tree) { 
       m_tree->Fill(); 
     }
@@ -170,9 +179,65 @@ namespace outtree {
     scale_factor_err = -1; 
   }
 
+  void SFVector::set_branches(TTree* tree, std::string prefix, 
+			      unsigned flags) { 
+    tree->Branch((prefix + "scale_factor").c_str(), &m_scale_factor);
+    tree->Branch((prefix + "scale_factor_err").c_str(), &m_scale_factor_err);
+  }
+  void SFVector::fill(const ScaleFactor& sf) { 
+    m_scale_factor.push_back(sf.scale_factor); 
+    m_scale_factor_err.push_back(sf.scale_factor_err); 
+  }
+  void SFVector::clear() { 
+    m_scale_factor.clear(); 
+    m_scale_factor_err.clear(); 
+  }
+
   void JetVector::set_branches(TTree* tree, std::string prefix, 
 			       unsigned flags) { 
-    // WORK DO HERE
+    tree->Branch((prefix + "pt").c_str(), &m_pt); 
+    tree->Branch((prefix + "eta").c_str(), &m_eta); 
+    tree->Branch((prefix + "phi").c_str(), &m_phi); 
+    if ( flags & cutflag::truth) { 
+      tree->Branch((prefix + "flavor_truth_label").c_str(), 
+		   &m_flavor_truth_label); 
+      m_cnn_tight.set_branches(tree, prefix + "cnn_tight_", flags); 
+      m_cnn_medium.set_branches(tree, prefix + "cnn_medium_", flags); 
+      m_cnn_loose.set_branches(tree, prefix + "cnn_loose_", flags); 
+    }
+
+    tree->Branch((prefix + "cnn_b").c_str(), &m_cnn_b); 
+    tree->Branch((prefix + "cnn_c").c_str(), &m_cnn_c); 
+    tree->Branch((prefix + "cnn_u").c_str(), &m_cnn_u); 
+    tree->Branch((prefix + "bits").c_str(), &m_jet_bits); 
+  }
+  void JetVector::fill(const std::vector<outtree::Jet*>& jets) { 
+    m_pt.clear(); 
+    m_eta.clear(); 
+    m_phi.clear(); 
+    m_flavor_truth_label.clear(); 
+    m_cnn_b.clear(); 
+    m_cnn_c.clear(); 
+    m_cnn_u.clear(); 
+    m_jet_bits.clear(); 
+    m_cnn_tight.clear(); 
+    m_cnn_medium.clear(); 
+    m_cnn_loose.clear(); 
+    for (auto itr = jets.cbegin(); itr != jets.cend(); itr++) { 
+      const auto jet = *itr; 
+      if (jet->pt < 0.0) break; // pt is -1 for non-existent jets
+      m_pt.push_back(jet->pt); 
+      m_eta.push_back(jet->eta); 
+      m_phi.push_back(jet->phi); 
+      m_flavor_truth_label.push_back(jet->flavor_truth_label); 
+      m_cnn_u.push_back(jet->cnn_u); 
+      m_cnn_c.push_back(jet->cnn_c); 
+      m_cnn_b.push_back(jet->cnn_b); 
+      m_jet_bits.push_back(jet->jet_bits); 
+      m_cnn_tight.fill(jet->cnn_tight); 
+      m_cnn_medium.fill(jet->cnn_medium); 
+      m_cnn_loose.fill(jet->cnn_loose); 
+    }
   }
 
 }; 

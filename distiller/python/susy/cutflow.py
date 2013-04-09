@@ -26,10 +26,12 @@ def cutflow(input_files, flags, grl='', output_ntuple='',
         f: is atlfast
         g: get branches as textfile
         i: get sparticle id (requires truth)
+        j: vector output
         m: save mv3 weights
         p: use low pt jets
         r: save c-tag ratios
         v: verbose
+        z: maximum compression
 
 
     This is a python-level interface for the compiled cutflow routine. 

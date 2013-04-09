@@ -26,10 +26,11 @@ namespace outtree {
   {
   public: 
     void set_branches(TTree*, std::string prefix, unsigned flags); 
-    void fill(const std::vector<ScaleFactor>); 
+    void fill(const ScaleFactor& ); 
+    void clear(); 
   private: 
-    std::vector<double>* scale_factor; 
-    std::vector<double>* scale_factor_err; 
+    std::vector<double> m_scale_factor; 
+    std::vector<double> m_scale_factor_err; 
   }; 
 
   class Jet : public boost::noncopyable
@@ -60,19 +61,19 @@ namespace outtree {
   {
   public: 
     void set_branches(TTree*, std::string prefix, unsigned flags); 
-    void fill(const std::vector<outtree::Jet>); 
+    void fill(const std::vector<outtree::Jet*>&); 
   private: 
-    std::vector<double>* pt; 
-    std::vector<double>* eta; 
-    std::vector<double>* phi; 
-    std::vector<int>* flavor_truth_label; 
-    std::vector<double>* cnn_b; 
-    std::vector<double>* cnn_c; 
-    std::vector<double>* cnn_u; 
-    std::vector<unsigned>* jet_bits; 
-    SFVector cnn_tight; 
-    SFVector cnn_medium; 
-    SFVector cnn_loose; 
+    std::vector<double> m_pt; 
+    std::vector<double> m_eta; 
+    std::vector<double> m_phi; 
+    std::vector<int> m_flavor_truth_label; 
+    std::vector<double> m_cnn_b; 
+    std::vector<double> m_cnn_c; 
+    std::vector<double> m_cnn_u; 
+    std::vector<unsigned> m_jet_bits; 
+    SFVector m_cnn_tight; 
+    SFVector m_cnn_medium; 
+    SFVector m_cnn_loose; 
   }; 
 
   class OutTree : public boost::noncopyable
@@ -109,11 +110,11 @@ namespace outtree {
     outtree::Jet leading_jet_uncensored; 
 
     std::vector<outtree::Jet*> jets; 
-
   private:
     void init(const unsigned flags = 0, int n_jets = 3); 
     TFile* m_file; 
     TTree* m_tree; 
+    outtree::JetVector m_jet_vector; 
   }; 
 
 }; 

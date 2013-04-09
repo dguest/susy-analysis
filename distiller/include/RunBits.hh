@@ -10,8 +10,8 @@ namespace cutflag {
   const unsigned raw_evt_info     = 1u << 5; 
   const unsigned get_branches     = 1u << 6; 
   const unsigned save_ratios      = 1u << 7; 
-  // const unsigned save_flavor_wt   = 1u << 8; 
-  // const unsigned use_met_reffinal = 1u << 9; 
+  const unsigned vector_output    = 1u << 8; 
+  const unsigned maximum_compression = 1u << 9; 
   const unsigned no_jet_recal     = 1u << 10; 
   const unsigned is_atlfast       = 1u << 11; 
   const unsigned debug_cutflow    = 1u << 12; 
