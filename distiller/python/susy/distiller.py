@@ -75,7 +75,7 @@ class Distiller(object):
     def __init__(self, config): 
         self.out_dir = config.out_dir
         self.meta_info_path = config.meta_info_path
-        self.base_flags = ''
+        self.base_flags = 'z'
         self.verbose = False
         self.force_rebuild = False
         self.warn_stream = sys.stdout
