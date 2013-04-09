@@ -45,6 +45,11 @@ CXXFLAGS     := -O2 -Wall -fPIC -I$(INC) -I$(ND_HIST_INC) -g -std=c++0x
 LIBS         := -L$(ND_HIST_LIB) -Wl,-rpath,$(ND_HIST_LIB) -lndhist
 LDFLAGS      := -Wl,-no-undefined
 
+ifdef HDF_PATH
+CXXFLAGS     += -I$(HDF_PATH)/include
+LIBS         += -L$(HDF_PATH)/lib -Wl,-rpath,$(HDF_PATH)/lib
+endif
+
 # --- HDF5 needed for hist saving
 LIBS         += -lhdf5_cpp -lhdf5 
 
