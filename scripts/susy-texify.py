@@ -3,6 +3,7 @@
 import argparse
 import yaml 
 from stop.stack.table import make_latex_bg_table, unyamlize
+from stop.stack.table import LatexCutsConfig
 import sys
 from tempfile import TemporaryFile
 
@@ -11,13 +12,18 @@ def get_config():
     c = "with no argument is '%(const)s'"
 
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('config_file', help="yaml file")
-    parser.add_argument('-t', '--dump-tex', action='store_true')
-    parser.add_argument('--systematics', action='store_true')
-    parser.add_argument(
+    subs = parser.add_subparsers(dest='which')
+    counts = subs.add_parser('counts')
+    counts.add_argument('config_file', help="yaml file")
+    counts.add_argument('--systematics', action='store_true')
+    counts.add_argument(
         '-s','--signal-point', default='stop-150-90', 
         help="assumes <particle>-<something> type name, " + d)
-    parser.add_argument('-f', '--filters', nargs='*', default=[])
+    counts.add_argument('-f', '--filters', nargs='*', default=[])
+
+    regions = subs.add_parser('regions')
+    regions.add_argument('config_file')
+
     args = parser.parse_args(sys.argv[1:])
     return args
 
@@ -38,7 +44,22 @@ def get_signal_finder(signal_point):
 
 def run(): 
     args = get_config()
+    action = {
+        'counts': get_counts, 
+        'regions': get_regions, 
+        }[args.which]
+    action(args)
 
+def get_regions(args): 
+    cuts_config = LatexCutsConfig()
+    with open(args.config_file) as config: 
+        config_dict = yaml.load(config)
+    latex_config = cuts_config.latex_config_file(config_dict)
+    latex_config.seek(0)
+    for line in latex_config: 
+        print line.strip()
+
+def get_counts(args): 
     with open(args.config_file) as config: 
         config_dict = yaml.load(config)
         counts_file = config_dict['files']['counts']
