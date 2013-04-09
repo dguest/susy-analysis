@@ -5,6 +5,7 @@ uses run / mc meta data and ntuples files to produce stacks
 
 import argparse
 from stop.stack.coordinator import Coordinator
+from stop.systematics.merger import RegionMerger
 from os.path import isfile
 from stop.stack import table
 from tempfile import TemporaryFile
@@ -20,8 +21,8 @@ def get_config():
     parser.add_argument('steering_file', help="created if it doesn't exist")
     parser.add_argument('-f','--force-aggregation', action='store_true')
     parser.add_argument('-r','--rerun-stack', action='store_true')
-    parser.add_argument('-c', '--counts-file', const='counts.yml',
-                        nargs='?', help=c)
+    parser.add_argument('-c', '--counts-file', action='store_true')
+
     parser.add_argument(
         '--mode', choices={'histmill','kinematic_stat'}, 
         default='kinematic_stat', help='default: %(default)s')
@@ -77,8 +78,13 @@ def run():
         count_dict = {'NONE':count_dict}
     
     if args.counts_file: 
-        with open(args.counts_file,'w') as countfile: 
-            for line in yaml.dump(table.yamlize(count_dict)): 
+        hierarchical_counts = table.yamlize(count_dict)
+        with open(args.steering_file) as steer_yaml: 
+            steering = yaml.load(steer_yaml)
+        RegionMerger(hierarchical_counts).merge_via_steering(steering)
+        counts_file = steering['files']['counts']
+        with open(counts_file,'w') as countfile: 
+            for line in yaml.dump(hierarchical_counts): 
                 countfile.write(line)
         
     if coord.bugstream.tell(): 
