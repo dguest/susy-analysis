@@ -18,6 +18,7 @@ physics_labels = [
     ]
 
 def texify_sr(sr_name): 
+    sr_name = sr_name.replace('-',r'\,')
     if '_' in sr_name: 
         prenanme, throw_away, name = sr_name.partition('_')
         tex_name = r'$\mathrm{{{}}}_{{\mathrm{{{}}} }}$'.format(
