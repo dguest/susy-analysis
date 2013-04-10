@@ -140,7 +140,7 @@ class TransferFactorRelitiveErrorTable(TransferTexPrinter):
         n_cols = len(self.signal_regions) + 1
         file_object.write(self._begin_matrix(n_cols))
         if control_regions == 'all': 
-            control_regions == self.control_regions
+            control_regions = self.control_regions
         for cr in control_regions: 
             self._add_cr(cr, file_object)
         file_object.write(self._end())
