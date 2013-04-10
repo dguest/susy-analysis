@@ -351,10 +351,10 @@ void StopDistiller::setup_outputs() {
   m_cutflow->add("core"        , pass::core          );
   m_cutflow->add("tile_trip"        , pass::tile_trip          );
   m_cutflow->add("event_cleaning"        , event_clean          );
-  m_cutflow->add("electron_veto"           , pass::electron_veto    );
-  m_cutflow->add("muon_veto"           , pass::muon_veto    );
-  m_cutflow->add("lepton_veto"           ,       lepton_veto    );
+  // m_cutflow->add("electron_veto"           , pass::electron_veto    );
+  // m_cutflow->add("muon_veto"           , pass::muon_veto    );
   m_cutflow->add("bad_jet_veto"          , pass::jet_clean      );
+  m_cutflow->add("lepton_veto"           ,       lepton_veto    );
   m_cutflow->add("n_jet_geq_3"           , pass::n_jet          );
   m_cutflow->add("dphi_jetmet_min"       , pass::dphi_jetmet_min);
   m_cutflow->add("met_280"               , pass::cutflow_met    );

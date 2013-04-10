@@ -16,8 +16,8 @@
 PreselectionJets::PreselectionJets(const JetContainer& jets) { 
   for (auto jet_itr = jets.begin(); jet_itr != jets.end(); jet_itr++) {
     auto& jet = **jet_itr; 
-    bool is_low_pt = (jet.bits() & jetbit::low_pt); 
-    bool is_high_eta = (jet.bits() & jetbit::high_eta); 
+    bool is_low_pt = jet.Pt() < JET_PT_CUT; 
+    bool is_high_eta = fabs(jet.Eta()) > JET_ETA_CUT; 
     bool pass_jvf = (jet.jvf() > JET_JVF_CUT || 
 		     jet.Pt() > JET_PT_IGNORE_JVF); 
     if (!is_low_pt && !is_high_eta && pass_jvf) { 
@@ -29,9 +29,9 @@ PreselectionJets::PreselectionJets(const JetContainer& jets) {
 SignalJets::SignalJets(const JetContainer& jets) { 
   for (auto jet_itr = jets.begin(); jet_itr != jets.end(); jet_itr++) { 
     const SelectedJet& jet = **jet_itr; 
-    bool signal_pt = (jet.bits() & jetbit::signal_pt); 
-    bool tag_eta = (jet.bits() & jetbit::taggable_eta);
-    bool leading_jet = (*jet_itr == *jets.begin()); 
+    bool signal_pt = jet.Pt() > SIGNAL_JET_PT_CUT; 
+    bool tag_eta = fabs(jet.Eta()) < JET_TAGGING_ETA_LIM; 
+    // bool leading_jet = (*jet_itr == *jets.begin()); 
     if (signal_pt && (tag_eta )) { 
       push_back(*jet_itr); 
     }
@@ -168,7 +168,6 @@ unsigned SelectedJet::get_tagger_bit(btag::Flavor flavor,
     case CNN_LOOSE: return cnn_loose_anti_u; 
     case CNN_MEDIUM: return cnn_medium_anti_u; 
     case CNN_TIGHT: return cnn_tight_anti_u; 
-      // fall through to error otherwise
     }
   }
   else if (flavor == B) { 
@@ -232,20 +231,6 @@ void EventJets::fill(const SusyBuffer& buffer, SUSYObjDef& def,
 
     if (is_jet) { 
       the_jet->set_bit(jetbit::preselection); 
-    }
-    
-    if (the_jet->Pt() < JET_PT_CUT) { 
-      the_jet->set_bit(jetbit::low_pt); 
-    }
-    if (the_jet->Pt() > SIGNAL_JET_PT_CUT) { 
-      the_jet->set_bit(jetbit::signal_pt); 
-    }
-    
-    if (fabs(the_jet->Eta()) > JET_ETA_CUT) { 
-      the_jet->set_bit(jetbit::high_eta); 
-    }
-    if (fabs(the_jet->Eta()) < JET_TAGGING_ETA_LIM) { 
-      the_jet->set_bit(jetbit::taggable_eta); 
     }
 
   }

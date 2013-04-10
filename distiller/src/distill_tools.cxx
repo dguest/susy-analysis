@@ -79,8 +79,6 @@ ull_t jet_cleaning_bit(const std::vector<SelectedJet*>& preselection_jets)
        jet_itr != preselection_jets.end(); 
        jet_itr++) { 
     bool clean_jet = ((*jet_itr)->bits() & jetbit::preselection); 
-    assert( !( (*jet_itr)->bits() & jetbit::low_pt)); 
-    assert( !( (*jet_itr)->bits() & jetbit::high_eta)); 
     if (!clean_jet) pass_bits &=~ pass::jet_clean; 
   }
   return pass_bits; 
