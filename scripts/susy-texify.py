@@ -4,6 +4,8 @@ import argparse
 import yaml 
 from stop.stack.table import make_latex_bg_table, unyamlize
 from stop.stack.table import LatexCutsConfig
+from stop.systematics import transfer, tex
+
 import sys
 from tempfile import TemporaryFile
 
@@ -12,17 +14,24 @@ def get_config():
     c = "with no argument is '%(const)s'"
 
     parser = argparse.ArgumentParser(description=__doc__)
+
+    shared_parser = argparse.ArgumentParser(add_help=False)
+    shared_parser.add_argument('config_file', help='input yaml file')
+
     subs = parser.add_subparsers(dest='which')
-    counts = subs.add_parser('counts')
-    counts.add_argument('config_file', help="yaml file")
+    counts = subs.add_parser('counts', parents=[shared_parser])
     counts.add_argument('--systematics', action='store_true')
     counts.add_argument(
         '-s','--signal-point', default='stop-150-90', 
         help="assumes <particle>-<something> type name, " + d)
-    counts.add_argument('-f', '--filters', nargs='*', default=[])
+    counts.add_argument('-f', '--filters', nargs='+', default=[])
 
-    regions = subs.add_parser('regions')
-    regions.add_argument('config_file')
+    regions = subs.add_parser('regions', parents=[shared_parser])
+
+    transfer = subs.add_parser('transfer', parents=[shared_parser])
+    transfer.add_argument('-p','--phys-type', default='ttbar', help=d)
+    transfer.add_argument('-r','--rel-errors', action='store_true')
+    transfer.add_argument('-f','--filters', nargs='+')
 
     args = parser.parse_args(sys.argv[1:])
     return args
@@ -47,8 +56,33 @@ def run():
     action = {
         'counts': get_counts, 
         'regions': get_regions, 
+        'transfer': get_transfer, 
         }[args.which]
     action(args)
+
+def get_transfer(args): 
+    with open(args.config_file) as config_yml: 
+        config = yaml.load(config_yml)
+    counts_file = config['files']['counts']
+    with open(counts_file) as counts_yml: 
+        counts = yaml.load(counts_yml)
+    table = transfer.TransferTable(config, counts)
+    trans_factors = table.get_tf_table(args.phys_type)
+    if not args.rel_errors: 
+        printer = tex.TransferFactorTable(trans_factors)
+        printer.green_threshold = 0.3
+        out = TemporaryFile()
+        printer.write(out)
+        out.seek(0)
+        for line in out: 
+            print line.strip()
+    else: 
+        rel_print = tex.TransferFactorRelitiveErrorTable(trans_factors)
+        out = TemporaryFile()
+        rel_print.write(out)
+        out.seek(0)
+        for line in out: 
+            print line.strip()
 
 def get_regions(args): 
     cuts_config = LatexCutsConfig()
