@@ -31,7 +31,9 @@ def get_config():
     transfer = subs.add_parser('transfer', parents=[shared_parser])
     transfer.add_argument('-p','--phys-type', default='ttbar', help=d)
     transfer.add_argument('-r','--rel-errors', action='store_true')
-    transfer.add_argument('-f','--filters', nargs='+')
+    transfer.add_argument('-x','--exclude', nargs='+')
+    transfer.add_argument('-o','--only', nargs='+')
+    transfer.add_argument('--green', type=float, default=0.2, help=d)
 
     args = parser.parse_args(sys.argv[1:])
     return args
@@ -68,10 +70,18 @@ def get_transfer(args):
         counts = yaml.load(counts_yml)
     table = transfer.TransferTable(config, counts)
     trans_factors = table.get_tf_table(args.phys_type)
+    if args.only: 
+        def filt(k): 
+            for pat in args.only: 
+                if pat in k: 
+                    return True
+            return False
+        trans_factors = {
+            k:v for k,v in trans_factors.iteritems() if filt(k)}
 
     if not args.rel_errors: 
         printer = tex.TransferFactorTable(trans_factors)
-        printer.green_threshold = 0.3
+        printer.green_threshold = args.green
         out = TemporaryFile()
         printer.write(out)
         out.seek(0)

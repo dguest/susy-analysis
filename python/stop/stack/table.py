@@ -115,15 +115,22 @@ def make_latex_bg_table(physics_cut_dict, out_file=Temp(), title=''):
     for cut in cut_list: 
         line = [texify_sr(cut)]
         total_bg = 0.0
-        for phys in phys_list: 
+        max_counts = 0.0
+        max_idx = None
+        for phys_n, phys in enumerate(phys_list,1): 
             tup = (phys,cut)
             if tup in physics_cut_dict: 
                 value = physics_cut_dict[phys,cut]
                 line.append('{:.1f}'.format(value))
                 if phys.lower() != 'data' and not sigregex.search(phys): 
                     total_bg += value
+                    if value > max_counts: 
+                        max_counts = value
+                        max_idx = phys_n
             else: 
                 line.append('XXX')
+        if max_idx is not None: 
+            line[max_idx] = r'\textcolor{{red}}{{{}}}'.format(line[max_idx])
         line.append('{:.1f}'.format(total_bg))
         textline = r'{} \\'.format(' & '.join(line))
         out_file.write(textline + '\n')
