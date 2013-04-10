@@ -75,18 +75,22 @@ GEN_OBJ     += object_selection.o
 GEN_OBJ     += SmartChain.o CollectionTreeReport.o 
 GEN_OBJ     += EventPreselector.o StopDistiller.o CheckSize.o
 GEN_OBJ     += BtagCalibration.o Grl.o RunInfo.o
-EXE_OBJ     := $(GEN_OBJ) $(T_DICTS) $(TOBJ) cutflow.o
+GEN_OBJ     += unit_tests.o
+EXE_OBJ     := $(GEN_OBJ) $(T_DICTS) $(TOBJ) 
 PYLIB_OBJ   := $(GEN_OBJ) $(T_DICTS) $(TOBJ)
 
 PY_OBJ       := _distiller.o
 
 ALLOBJ       := $(GEN_OBJ) $(PY_OBJ)
 
-ALLOUTPUT    := cutflow python/susy/_distiller.so
+ALLOUTPUT    := python/susy/_distiller.so unit-test
 
 all: $(ALLOUTPUT) 
 
 cutflow: $(EXE_OBJ:%=$(BIN)/%)
+	@echo "linking $^ --> $@"
+	@$(CXX) -o $@ $^ $(LIBS) $(LDFLAGS)
+unit-test: $(EXE_OBJ:%=$(BIN)/%)
 	@echo "linking $^ --> $@"
 	@$(CXX) -o $@ $^ $(LIBS) $(LDFLAGS)
 
