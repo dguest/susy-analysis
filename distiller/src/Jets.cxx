@@ -18,7 +18,9 @@ PreselectionJets::PreselectionJets(const JetContainer& jets) {
     auto& jet = **jet_itr; 
     bool is_low_pt = (jet.bits() & jetbit::low_pt); 
     bool is_high_eta = (jet.bits() & jetbit::high_eta); 
-    if (!is_low_pt && !is_high_eta) { 
+    bool pass_jvf = (jet.jvf() > JET_JVF_CUT || 
+		     jet.Pt() > JET_PT_IGNORE_JVF); 
+    if (!is_low_pt && !is_high_eta && pass_jvf) { 
       push_back(*jet_itr); 
     }
   }
@@ -30,7 +32,7 @@ SignalJets::SignalJets(const JetContainer& jets) {
     bool signal_pt = (jet.bits() & jetbit::signal_pt); 
     bool tag_eta = (jet.bits() & jetbit::taggable_eta);
     bool leading_jet = (*jet_itr == *jets.begin()); 
-    if (signal_pt && (tag_eta || leading_jet)) { 
+    if (signal_pt && (tag_eta )) { 
       push_back(*jet_itr); 
     }
   }
