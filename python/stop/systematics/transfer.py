@@ -28,11 +28,13 @@ class TransferTable(object):
         regions = stack_steering['regions']
         self.control_regions = set()
         self.signal_regions = set()
+        self.composite_regions = set()
         for region_name, region in regions.iteritems(): 
             name = region_name
             father_region = region.get('element_of')
             if father_region and father_region in counted_regions: 
                 name = father_region
+                self.composite_regions.add(father_region)
             if region['type'] == 'control': 
                 self.control_regions.add(name)
             elif region['type'] == 'signal': 
@@ -46,7 +48,8 @@ class TransferTable(object):
             - Control Region
             - TF / error tuple
         """
-        calc = TransferCalculator(self.counts, physics_type)
+        calc = TransferCalculator(self.counts, physics_type, 
+                                  self.composite_regions)
         signal_regions = {}
         for cr in self.control_regions: 
             signal_regions[cr] = {}
@@ -75,7 +78,7 @@ class TransferCalculator(object):
     TODO: centralize the lists of systematics.
     """
 
-    def __init__(self, counts, physics_type='ttbar'): 
+    def __init__(self, counts, physics_type='ttbar', composite_regions=set()): 
         self.counts = counts
         self.physics_type = physics_type
         sysvars = ['JES'] + list('BCUT')
@@ -86,6 +89,7 @@ class TransferCalculator(object):
         signal_re = re.compile('stop-([0-9]+)-([0-9]+)')
         alltypes = self.counts[self.baseline].keys()
         self.signals = [s for s in alltypes if signal_re.search(s)]
+        self.composite_regions = composite_regions
         self.stat_factor = 1.0
 
     def _bare_tf(self, control, signal, variation=None): 
@@ -108,7 +112,8 @@ class TransferCalculator(object):
     def _get_other_mc_in_region(self, control, variation=None): 
         if not variation: 
             variation = self.baseline
-        excluded_mc = [self.data, self.physics_type] + self.signals
+        excluded_mc = set([self.data, self.physics_type] + self.signals)
+        excluded_mc |= self.composite_regions
         other_mc = []
         for m in self.counts[self.baseline]: 
             if m not in excluded_mc: 
@@ -129,6 +134,7 @@ class TransferCalculator(object):
                 other_mc.append(m)
         oc_sim = self._get_other_mc_in_region(control)
         prediction = tf * (dc - oc_sim)
+        # print dc, oc_sim, control, signal
         return prediction
 
     def get_mc_uncertainties(self, signal, physics_type): 
@@ -304,3 +310,10 @@ def unit_test():
                         print factor, stats, syst, other_frac
                         print str(err)
 
+def get_composite_regions(regions_dict): 
+    composites = set()
+    for name, region in regions_dict.iteritems(): 
+        composite = region.get('element_of')
+        if composite: 
+            composites.add(composite)
+    return composites

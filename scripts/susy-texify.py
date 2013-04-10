@@ -68,6 +68,7 @@ def get_transfer(args):
         counts = yaml.load(counts_yml)
     table = transfer.TransferTable(config, counts)
     trans_factors = table.get_tf_table(args.phys_type)
+
     if not args.rel_errors: 
         printer = tex.TransferFactorTable(trans_factors)
         printer.green_threshold = 0.3
