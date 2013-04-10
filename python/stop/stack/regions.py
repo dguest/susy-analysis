@@ -68,7 +68,7 @@ class Region(object):
         return self._get_bits(self.bits['required'])
         
     def get_antibits(self):
-        return self._get_bits(self.bits['veto'])
+        return self._get_bits(self.bits.get('veto',[]))
     
     def get_region_bits(self): 
         allbits = 0
@@ -91,6 +91,22 @@ class Region(object):
             'hists': 'HISTMILL', 
             }
         return config_dict
+
+class SuperRegionKey(object): 
+    """
+    Constructed from a Region, compares identical if the regions fall in the 
+    same SuperRegion. 
+    
+    Not clear that this is any cleaner than a simple tuple... maybe 
+    better to stick a superregion hash function in the region... 
+    """
+    def __init__(self, region): 
+        self.req_bits = region.get_bits()
+        self.veto_bits = region.get_antibits()
+        self.region_bits = region.get_region_bits()  
+        self.jet_tags = tuple(region.btag_config)
+        self.region_type = region.type
+    
 
 class SuperRegion(object): 
     """
