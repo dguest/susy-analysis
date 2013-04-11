@@ -7,7 +7,7 @@ files = sys.argv[1:]
 if not files: 
     files = glob.glob('stop-files/*.root*')
 
-flags = 'vbgz'
+flags = 'vbgzf'
 if 'data' in files[0]: 
     flags += 'd'
 

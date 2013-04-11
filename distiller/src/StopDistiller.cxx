@@ -173,7 +173,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
 
   // need to get susy muon indices before overlap
   std::vector<int> susy_muon_idx = get_indices(preselected_muons); 
-    
+
   preselection_jets = remove_overlaping(preselected_electrons, 
 					preselection_jets, 
 					REMOVE_JET_CONE); 
@@ -183,6 +183,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   preselected_muons = remove_overlaping(preselection_jets, 
 					preselected_muons, 
 					REMOVE_MU_CONE); 
+
 
   const auto veto_electrons = object::veto_electrons(preselected_electrons); 
   const auto veto_muons = object::veto_muons(preselected_muons); 
@@ -351,10 +352,10 @@ void StopDistiller::setup_outputs() {
   m_cutflow->add("core"        , pass::core          );
   m_cutflow->add("tile_trip"        , pass::tile_trip          );
   m_cutflow->add("event_cleaning"        , event_clean          );
-  // m_cutflow->add("electron_veto"           , pass::electron_veto    );
-  // m_cutflow->add("muon_veto"           , pass::muon_veto    );
-  m_cutflow->add("bad_jet_veto"          , pass::jet_clean      );
+  m_cutflow->add("electron_veto"           , pass::electron_veto    );
+  m_cutflow->add("muon_veto"           , pass::muon_veto    );
   m_cutflow->add("lepton_veto"           ,       lepton_veto    );
+  m_cutflow->add("bad_jet_veto"          , pass::jet_clean      );
   m_cutflow->add("n_jet_geq_3"           , pass::n_jet          );
   m_cutflow->add("dphi_jetmet_min"       , pass::dphi_jetmet_min);
   m_cutflow->add("met_280"               , pass::cutflow_met    );

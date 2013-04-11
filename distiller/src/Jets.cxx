@@ -17,10 +17,10 @@ PreselectionJets::PreselectionJets(const JetContainer& jets) {
   for (auto jet_itr = jets.begin(); jet_itr != jets.end(); jet_itr++) {
     auto& jet = **jet_itr; 
     bool is_low_pt = jet.Pt() < JET_PT_CUT; 
-    bool is_high_eta = fabs(jet.Eta()) > JET_ETA_CUT; 
+    // bool is_high_eta = fabs(jet.Eta()) > JET_ETA_CUT; 
     bool pass_jvf = (jet.jvf() > JET_JVF_CUT || 
 		     jet.Pt() > JET_PT_IGNORE_JVF); 
-    if (!is_low_pt && !is_high_eta && pass_jvf) { 
+    if (!is_low_pt && pass_jvf) { 
       push_back(*jet_itr); 
     }
   }
