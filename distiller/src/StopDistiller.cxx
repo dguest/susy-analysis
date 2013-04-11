@@ -179,18 +179,19 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
     copy_jet_info(all_jets.at(0), m_out_tree->leading_jet_uncensored); 
   }
     
-  PreselectionJets preselection_jets(all_jets); 
+  const PreselectionJets preselection_jets(all_jets); 
   ob_counts["preselected_jets"] += preselection_jets.size(); 
 
   SignalJets signal_jets(preselection_jets); 
   set_bit(signal_jets, jetbit::signal); 
+  ob_counts["signal_jets"] += signal_jets.size(); 
 
   // need to get susy muon indices before overlap
   std::vector<int> susy_muon_idx = get_indices(preselected_muons); 
 
   signal_jets = remove_overlaping(preselected_electrons, 
-					signal_jets, 
-					REMOVE_JET_CONE); 
+				  signal_jets, 
+				  REMOVE_JET_CONE); 
   preselected_electrons = remove_overlaping(signal_jets, 
 					    preselected_electrons, 
 					    REMOVE_EL_CONE); 
