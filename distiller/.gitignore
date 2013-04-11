@@ -10,3 +10,4 @@ cleanup/
 *.xml
 btag-calibration/
 /stop-files
+unit-test
