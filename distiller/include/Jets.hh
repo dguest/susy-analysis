@@ -77,6 +77,7 @@ public:
 class SignalJets: public JetContainer
 {
 public: 
+  SignalJets() {}; 
   SignalJets(const JetContainer&); 
 }; 
 

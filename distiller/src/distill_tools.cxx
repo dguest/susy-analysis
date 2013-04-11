@@ -3,6 +3,7 @@
 #include "SusyBuffer.h"
 #include "OutTree.hh"
 #include "Jets.hh"
+#include "JetConstants.hh"
 #include "Leptons.hh"
 #include "constants.hh"
 #include "RunInfo.hh"
@@ -78,6 +79,7 @@ ull_t jet_cleaning_bit(const std::vector<SelectedJet*>& preselection_jets)
   for (Jets::const_iterator jet_itr = preselection_jets.begin(); 
        jet_itr != preselection_jets.end(); 
        jet_itr++) { 
+    if ( (*jet_itr)->Pt() < JET_PT_CUT) continue; 
     bool clean_jet = ((*jet_itr)->bits() & jetbit::preselection); 
     if (!clean_jet) pass_bits &=~ pass::jet_clean; 
   }

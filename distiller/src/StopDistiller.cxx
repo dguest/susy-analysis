@@ -84,6 +84,7 @@ StopDistiller::~StopDistiller() {
   delete m_event_preselector; 
   delete m_out_tree; 
   delete m_cutflow; 
+  delete m_object_counter; 
   delete m_btag_calibration; 
 }
 
@@ -132,6 +133,10 @@ StopDistiller::Cutflow StopDistiller::run_cutflow() {
   if (n_error) { 
     cutflow_vec.push_back(std::make_pair("read_errors",n_error)); 
   }
+  auto obj_counts = m_object_counter->get_ordered_cuts(); 
+  for (auto cut = obj_counts.begin(); cut != obj_counts.end(); cut++) { 
+    cutflow_vec.push_back(*cut); 
+  }
   return cutflow_vec;
 
 }
@@ -153,6 +158,11 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
 
   auto preselected_electrons = filter_susy(all_electrons); 
   auto preselected_muons = filter_susy(all_muons); 
+  
+  auto& ob_counts = *m_object_counter; 
+
+  ob_counts["preselected_el"] += preselected_electrons.size(); 
+  ob_counts["preselected_mu"] += preselected_muons.size(); 
 
   // --- preselection 
 
@@ -170,29 +180,38 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   }
     
   PreselectionJets preselection_jets(all_jets); 
+  ob_counts["preselected_jets"] += preselection_jets.size(); 
+
+  SignalJets signal_jets(preselection_jets); 
+  set_bit(signal_jets, jetbit::signal); 
 
   // need to get susy muon indices before overlap
   std::vector<int> susy_muon_idx = get_indices(preselected_muons); 
 
-  preselection_jets = remove_overlaping(preselected_electrons, 
-					preselection_jets, 
+  signal_jets = remove_overlaping(preselected_electrons, 
+					signal_jets, 
 					REMOVE_JET_CONE); 
-  preselected_electrons = remove_overlaping(preselection_jets, 
+  preselected_electrons = remove_overlaping(signal_jets, 
 					    preselected_electrons, 
 					    REMOVE_EL_CONE); 
-  preselected_muons = remove_overlaping(preselection_jets, 
+  preselected_muons = remove_overlaping(signal_jets, 
 					preselected_muons, 
 					REMOVE_MU_CONE); 
 
+  ob_counts["after_overlap_jets"] += signal_jets.size(); 
+  ob_counts["after_overlap_el"] += preselected_electrons.size(); 
+  ob_counts["after_overlap_mu"] += preselected_muons.size(); 
 
   const auto veto_electrons = object::veto_electrons(preselected_electrons); 
   const auto veto_muons = object::veto_muons(preselected_muons); 
 
+  ob_counts["veto_el"] += veto_electrons.size(); 
+
   const auto control_electrons = object::control_electrons(veto_electrons); 
   const auto control_muons = object::control_muons(veto_muons); 
 
-  SignalJets signal_jets(preselection_jets); 
-  set_bit(signal_jets, jetbit::signal); 
+  ob_counts["veto_mu"] += veto_muons.size(); 
+
 
   const int n_leading = std::min(signal_jets.size(), N_SR_JETS); 
   Jets leading_jets(signal_jets.begin(), signal_jets.begin() + n_leading); 
@@ -205,7 +224,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   calibrate_jets(signal_jets, m_btag_calibration); 
   // ----- object selection is done now, from here is filling outputs ---
 
-  pass_bits |= jet_cleaning_bit(preselection_jets); 
+  pass_bits |= jet_cleaning_bit(all_jets); 
   pass_bits |= signal_jet_bits(signal_jets); 
   m_out_tree->n_susy_jets = preselection_jets.size(); 
 
@@ -213,7 +232,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   if (signal_jets.size() == 2) pass_bits |= pass::dopplejet; 
   if (signal_jets.size() >= N_SR_JETS) pass_bits |= pass::n_jet; 
 
-  m_out_tree->htx = get_htx(preselection_jets); 
+  m_out_tree->htx = get_htx(signal_jets); 
   m_out_tree->min_jetmet_dphi = get_min_jetmet_dphi(leading_jets, met); 
   if (m_out_tree->min_jetmet_dphi > MIN_DPHI_JET_MET) { 
     pass_bits |= pass::dphi_jetmet_min; 
@@ -362,6 +381,8 @@ void StopDistiller::setup_outputs() {
   m_cutflow->add("leading_jet_280"       , pass::cutflow_leading);
   m_cutflow->add("jtag_1"                , pass::cutflow_tag_1  ); 
   m_cutflow->add("jtag_2"                , pass::cutflow_tag_2  ); 
+
+  m_object_counter = new CutCounter; 
 
 }
 

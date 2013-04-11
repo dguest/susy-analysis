@@ -15,6 +15,7 @@ namespace outtree {
   class OutTree; 
 }
 class BitmapCutflow; 
+class CutCounter; 
 class SelectedJet; 
 class BtagCalibration; 
 class OutputFilter; 
@@ -55,6 +56,7 @@ private:
   EventPreselector* m_event_preselector; 
   outtree::OutTree* m_out_tree; 
   BitmapCutflow* m_cutflow; 
+  CutCounter* m_object_counter; 
   BtagCalibration* m_btag_calibration; 
 }; 
 
