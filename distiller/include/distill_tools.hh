@@ -57,7 +57,7 @@ void fill_event_truth(outtree::OutTree& out_tree, const SusyBuffer& buffer,
 float get_min_jetmet_dphi(const std::vector<SelectedJet*>&, 
 			  const TVector2& ); 
 
-double get_htx(const std::vector<SelectedJet*>&);
+double get_htx(const std::vector<SelectedJet*>&, const size_t x);
 
 template<typename M, typename A>
 A remove_overlaping(const M& mask, A altered, const float delta_r); 

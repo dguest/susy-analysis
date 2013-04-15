@@ -201,7 +201,6 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   ob_counts["after_overlap_mu"] += preselected_muons.size(); 
 
   SignalJets signal_jets(preselected_jets); 
-  set_bit(signal_jets, jetbit::signal); 
   ob_counts["signal_jets"] += signal_jets.size(); 
 
   const auto veto_electrons = object::veto_electrons(preselected_electrons); 
@@ -217,7 +216,6 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
 
   const int n_leading = std::min(signal_jets.size(), N_SR_JETS); 
   Jets leading_jets(signal_jets.begin(), signal_jets.begin() + n_leading); 
-  set_bit(leading_jets, jetbit::leading); 
 
   const auto met = get_met(*m_susy_buffer, *m_def, m_info, susy_muon_idx); 
   const auto mu_met = get_mumet(met, control_muons); 
@@ -234,7 +232,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   if (signal_jets.size() == 2) pass_bits |= pass::dopplejet; 
   if (signal_jets.size() >= N_SR_JETS) pass_bits |= pass::n_jet; 
 
-  m_out_tree->htx = get_htx(signal_jets); 
+  m_out_tree->htx = get_htx(signal_jets, N_SR_JETS); 
   m_out_tree->min_jetmet_dphi = get_min_jetmet_dphi(leading_jets, met); 
   if (m_out_tree->min_jetmet_dphi > MIN_DPHI_JET_MET) { 
     pass_bits |= pass::dphi_jetmet_min; 

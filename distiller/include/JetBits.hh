@@ -5,8 +5,8 @@ namespace jetbit {
   const unsigned pass_susy_def        = 1u << 0; 
   // const unsigned low_pt               = 1u << 1; 
   // const unsigned el_overlap           = 1u << 2; 
-  const unsigned signal               = 1u << 3; 
-  const unsigned leading              = 1u << 4; 
+  // const unsigned signal               = 1u << 3; 
+  // const unsigned leading              = 1u << 4; 
   // const unsigned high_eta             = 1u << 5; 
   // const unsigned taggable_eta         = 1u << 6; 
   // const unsigned signal_pt            = 1u << 7; 

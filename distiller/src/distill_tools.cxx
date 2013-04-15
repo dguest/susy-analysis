@@ -214,16 +214,15 @@ float get_min_jetmet_dphi(const std::vector<SelectedJet*>& jets,
 }
 
 
-double get_htx(const std::vector<SelectedJet*>& jets){ 
+double get_htx(const std::vector<SelectedJet*>& jets, const size_t x){ 
   double htx = 0; 
   const unsigned required_bits = jetbit::pass_susy_def; 
-  const unsigned veto_bits = jetbit::leading; 
-  for (std::vector<SelectedJet*>::const_iterator itr = jets.begin(); 
-       itr != jets.end(); itr++) { 
+  size_t n_jets = jets.size(); 
+  if (n_jets <= x) return 0.0; 
+  for (auto itr = jets.cbegin() + x; itr != jets.cend(); itr++) { 
     unsigned jet_bits = (*itr)->bits(); 
     bool has_required = ( (jet_bits & required_bits) == required_bits); 
-    bool has_veto = ( (jet_bits & veto_bits) != 0); 
-    if (!has_veto && has_required) { 
+    if (has_required) { 
       htx += (*itr)->Pt(); 
     }
   }
