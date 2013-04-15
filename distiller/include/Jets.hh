@@ -67,20 +67,6 @@ private:
   int m_jets_under_uncalibrated_min; 
 }; 
 
-class PreselectionJets: public JetContainer
-{
-public: 
-  PreselectionJets() {}; 
-  PreselectionJets(const JetContainer&); 
-}; 
-
-class SignalJets: public JetContainer
-{
-public: 
-  SignalJets() {}; 
-  SignalJets(const JetContainer&); 
-}; 
-
 namespace {
   bool has_min_pt(int iJet, const SusyBuffer& buffer, float pt); 
   bool fill_jet(int iJet, 

@@ -38,8 +38,6 @@ void copy_scale_factor(const SelectedJet*, outtree::ScaleFactor&,
 void copy_leading_jet_info(const std::vector<SelectedJet*>& signal_jets, 
 			   outtree::OutTree& out_tree); 
 
-ull_t jet_cleaning_bit(const std::vector<SelectedJet*>& preselection_jets);
-
 ull_t control_lepton_bits(const std::vector<Electron*>&, 
 			  const std::vector<Muon*>&);
 ull_t signal_jet_bits(const std::vector<SelectedJet*>& signal_jets); 

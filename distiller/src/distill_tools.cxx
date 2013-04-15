@@ -72,20 +72,6 @@ void copy_leading_jet_info(const std::vector<SelectedJet*>& signal_jets,
   out_tree.n_good_jets = signal_jets.size(); 
 }
 
-ull_t jet_cleaning_bit(const std::vector<SelectedJet*>& preselection_jets)
-{
-  typedef std::vector<SelectedJet*> Jets; 
-  ull_t pass_bits = pass::jet_clean; 
-  for (Jets::const_iterator jet_itr = preselection_jets.begin(); 
-       jet_itr != preselection_jets.end(); 
-       jet_itr++) { 
-    if ( (*jet_itr)->Pt() < JET_PT_CUT) continue; 
-    bool clean_jet = ((*jet_itr)->bits() & jetbit::pass_susy_def); 
-    if (!clean_jet) pass_bits &=~ pass::jet_clean; 
-  }
-  return pass_bits; 
-}
-
 ull_t control_lepton_bits(const std::vector<Electron*>& el, 
 			  const std::vector<Muon*>& mu) { 
   ull_t pass_bits = 0; 
