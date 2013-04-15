@@ -182,6 +182,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   auto preselected_jets = object::preselection_jets(all_jets); 
   ob_counts["preselected_jets"] += preselected_jets.size(); 
   auto veto_jets = object::veto_jets(all_jets); 
+  ob_counts["veto_jets"] += veto_jets.size(); 
 
   // need to get susy muon indices before overlap
   std::vector<int> susy_muon_idx = get_indices(preselected_muons); 
