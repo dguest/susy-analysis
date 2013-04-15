@@ -179,10 +179,10 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
     copy_jet_info(all_jets.at(0), m_out_tree->leading_jet_uncensored); 
   }
     
-  const PreselectionJets preselection_jets(all_jets); 
-  ob_counts["preselected_jets"] += preselection_jets.size(); 
+  const PreselectionJets preselected_jets(all_jets); 
+  ob_counts["preselected_jets"] += preselected_jets.size(); 
 
-  SignalJets signal_jets(preselection_jets); 
+  SignalJets signal_jets(preselected_jets); 
   set_bit(signal_jets, jetbit::signal); 
   ob_counts["signal_jets"] += signal_jets.size(); 
 
@@ -227,7 +227,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
 
   pass_bits |= jet_cleaning_bit(all_jets); 
   pass_bits |= signal_jet_bits(signal_jets); 
-  m_out_tree->n_susy_jets = preselection_jets.size(); 
+  m_out_tree->n_susy_jets = preselected_jets.size(); 
 
 
   if (signal_jets.size() == 2) pass_bits |= pass::dopplejet; 
