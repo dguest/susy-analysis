@@ -17,8 +17,8 @@ PreselectionJets::PreselectionJets(const JetContainer& jets) {
   for (auto jet_itr = jets.begin(); jet_itr != jets.end(); jet_itr++) {
     auto& jet = **jet_itr; 
     bool is_low_pt = jet.Pt() < JET_PT_CUT; 
-    bool is_preselection = ((jet.bits() & jetbit::preselection) == 
-			    jetbit::preselection); 
+    bool is_preselection = ((jet.bits() & jetbit::pass_susy_def) == 
+			    jetbit::pass_susy_def); 
     if (!is_low_pt && is_preselection) { 
       push_back(*jet_itr); 
     }
@@ -229,7 +229,7 @@ void EventJets::fill(const SusyBuffer& buffer, SUSYObjDef& def,
     the_jet->SetPxPyPzE(tlv.Px(), tlv.Py(), tlv.Pz(), tlv.E()); 
 
     if (is_jet) { 
-      the_jet->set_bit(jetbit::preselection); 
+      the_jet->set_bit(jetbit::pass_susy_def); 
     }
 
   }

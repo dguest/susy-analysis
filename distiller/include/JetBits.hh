@@ -2,7 +2,7 @@
 #define JET_BITS_HH
 
 namespace jetbit { 
-  const unsigned preselection         = 1u << 0; 
+  const unsigned pass_susy_def        = 1u << 0; 
   // const unsigned low_pt               = 1u << 1; 
   // const unsigned el_overlap           = 1u << 2; 
   const unsigned signal               = 1u << 3; 

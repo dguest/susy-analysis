@@ -80,7 +80,7 @@ ull_t jet_cleaning_bit(const std::vector<SelectedJet*>& preselection_jets)
        jet_itr != preselection_jets.end(); 
        jet_itr++) { 
     if ( (*jet_itr)->Pt() < JET_PT_CUT) continue; 
-    bool clean_jet = ((*jet_itr)->bits() & jetbit::preselection); 
+    bool clean_jet = ((*jet_itr)->bits() & jetbit::pass_susy_def); 
     if (!clean_jet) pass_bits &=~ pass::jet_clean; 
   }
   return pass_bits; 
@@ -216,7 +216,7 @@ float get_min_jetmet_dphi(const std::vector<SelectedJet*>& jets,
 
 double get_htx(const std::vector<SelectedJet*>& jets){ 
   double htx = 0; 
-  const unsigned required_bits = jetbit::preselection; 
+  const unsigned required_bits = jetbit::pass_susy_def; 
   const unsigned veto_bits = jetbit::leading; 
   for (std::vector<SelectedJet*>::const_iterator itr = jets.begin(); 
        itr != jets.end(); itr++) { 
