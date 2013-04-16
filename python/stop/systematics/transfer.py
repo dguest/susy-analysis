@@ -39,6 +39,7 @@ class TransferTable(object):
             elif region['type'] == 'signal': 
                 self.signal_regions.add(name)
         self.counts = counts
+        self.gen_variations = stack_steering['backgrounds']['variations']
     def get_tf_table(self, physics_type): 
         """
         Returns nested dicts. 
@@ -47,7 +48,9 @@ class TransferTable(object):
             - Control Region
             - TF / error tuple
         """
-        calc = TransferCalculator(self.counts, physics_type, self.used_bg)
+        generator_variations = self.gen_variations.get(physics_type)
+        calc = TransferCalculator(
+            self.counts, physics_type, self.used_bg, generator_variations)
         signal_regions = {}
         for cr in self.control_regions: 
             signal_regions[cr] = {}
@@ -76,7 +79,8 @@ class TransferCalculator(object):
     TODO: centralize the lists of systematics.
     """
 
-    def __init__(self, counts, physics_type='ttbar', used_bg='all'): 
+    def __init__(self, counts, physics_type='ttbar', used_bg='all', 
+                 generator_variations=None): 
         self.counts = counts
         self.physics_type = physics_type
         sysvars = ['JES'] + list('BCUT')
@@ -92,6 +96,7 @@ class TransferCalculator(object):
             self.used_backgrounds = 'all' 
         else: 
             self.used_backgrounds = set(used_bg)
+        self.generator_variations = generator_variations
 
     def _bare_tf(self, control, signal, variation=None): 
         if not variation: 
@@ -164,7 +169,30 @@ class TransferCalculator(object):
             all_counts[variation] = predicted
         return all_counts
 
+    def get_generator_relative_variations(self, control, signal): 
+        oc_sim = self._get_other_mc_in_region(control)
+        dc = self.counts[self.baseline][self.data][control]
+        rel_variations = {}
+        for name, vardict in self.generator_variations.iteritems(): 
+            base_name = vardict['base']
+            var_name = vardict['variation']
+            def get_prediction(var): 
+                base_count_cr = self.counts[self.baseline][var][control]
+                base_count_sr = self.counts[self.baseline][var][signal]
+                tf = base_count_sr / base_count_cr
+                prediction = tf * (dc - oc_sim)
+                return prediction
+            base_count = get_prediction(base_name)
+            var_count = get_prediction(var_name)
+            raw_rel_variation = (var_count - base_count) / base_count
+            rel_variation = raw_rel_variation * vardict.get('factor',1.0)
+            rel_variations[name] = rel_variation
+        return rel_variations
+
     def get_coor_tf_rel_variations(self, control, signal): 
+        """
+        Intended as the top level method to get relative variations. 
+        """
         predicted = self.predict_count_phystype_variations(control, signal)
         baseline_pred = predicted[self.baseline]
         stat_keys = [k for k in predicted if k.startswith('STAT')]
@@ -191,22 +219,22 @@ class TransferCalculator(object):
                 predicted['STAT'] - baseline_pred) / baseline_pred
 
         rel_var['STAT'] = stat_rel_error
+
+        if self.generator_variations: 
+            rel_var.update(
+                self.get_generator_relative_variations(control, signal))
+
         return rel_var
 
     def get_tf_and_err(self, control, signal): 
+        """
+        Top level function to get total transfer factor and error. 
+        """
         base_tf = self._bare_tf(control, signal)
         rel_variations = self.get_coor_tf_rel_variations(control, signal)
         sum_rel_var = sum(v**2 for v in rel_variations.values())**0.5
         sum_variations = sum_rel_var * base_tf
         return base_tf, sum_variations
-
-    def predict_count_coor_errors(self, control, signal): 
-        all_counts = self.predict_count_variations(control, signal)
-        base = all_counts[self.baseline]
-        variations = [v for k,v in all_counts.items() if k != self.baseline]
-        errors = [base - c for c in variations]
-        sum_square_errors = sum(e**2 for e in errors)
-        return base, sum_square_errors**(0.5)
 
     def get_controlled_fraction(self, signal): 
         baseline = self.counts[self.baseline]
