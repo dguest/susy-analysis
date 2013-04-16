@@ -53,7 +53,17 @@ class Coordinator(object):
                 self.bugstream.write('no misc info, making default')
             self._config_dict['misc'] = {'lumi_fb': 20.661}
         if not 'backgrounds' in self._config_dict: 
-            self._config_dict['backgrounds'] = { 'used': []}
+            self._config_dict['backgrounds'] = {
+                'used': ['EXAMPLE_BG'], 
+                'variations': {
+                    'EXAMPLE_BG': {
+                        'EXAMPLE_SYSTEMATIC': {
+                            'base':'EXAMPLE_BG', 
+                            'variation':'EXAMPLE_BG', 
+                            'factor': 1.0}
+                        } 
+                    }
+                }
 
         self.verbose = False
         self.outstream = sys.stdout
