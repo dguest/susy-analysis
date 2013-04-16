@@ -77,6 +77,19 @@ def unyamlize(yaml_physics_dict):
 
     return out
 
+def sort_physics(phys_list): 
+    bgs = []
+    stops = []
+    other = []
+    for phys in phys_list: 
+        if 'stop' in phys: 
+            stops.append(phys)
+        elif phys == 'data': 
+            other.append(phys)
+        else: 
+            bgs.append(phys)
+    return bgs + sorted(stops) + other
+
 def make_latex_bg_table(physics_cut_dict, out_file=Temp(), title=''): 
     """
     returns a file-like object
@@ -84,11 +97,11 @@ def make_latex_bg_table(physics_cut_dict, out_file=Temp(), title=''):
     from stop.style import type_dict
 
     phys_list, cut_list = zip(*physics_cut_dict.keys())
-    phys_list = sorted(x for x in set(phys_list))
+    phys_list = sort_physics(set(phys_list))
     def cr_sort(key): 
         splkey = key.split('_')
         if len(splkey) == 1: 
-            return '1' + key
+            return '-' + key
         return ''.join(splkey[::-1])
     cut_list = sorted(set(cut_list), key=cr_sort)
     sigregex = re.compile('stop-[0-9]+-[0-9]+')
@@ -101,7 +114,7 @@ def make_latex_bg_table(physics_cut_dict, out_file=Temp(), title=''):
     texphys = []
     for rawphys in phys_list: 
         if rawphys.startswith('stop'): 
-            texphys.append(sigregex.search(rawphys).group(0))
+            texphys.append(rawphys)
         elif rawphys in type_dict: 
             texphys.append(type_dict[rawphys].tex)
         else: 
@@ -121,12 +134,18 @@ def make_latex_bg_table(physics_cut_dict, out_file=Temp(), title=''):
             tup = (phys,cut)
             if tup in physics_cut_dict: 
                 value = physics_cut_dict[phys,cut]
-                line.append('{:.1f}'.format(value))
-                if phys.lower() != 'data' and not sigregex.search(phys): 
-                    total_bg += value
-                    if value > max_counts: 
-                        max_counts = value
-                        max_idx = phys_n
+                try: 
+                    line.append('{:.1f}'.format(value))
+                    is_stop = phys.startswith('stop')
+                    if phys.lower() != 'data' and not is_stop: 
+                        total_bg += value
+                        if value > max_counts: 
+                            max_counts = value
+                            max_idx = phys_n
+                except ValueError: 
+                    if value.startswith('stop-'): 
+                        value = value.replace('stop-','')
+                    line.append(value)
             else: 
                 line.append('XXX')
         if max_idx is not None: 

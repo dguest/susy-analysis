@@ -132,7 +132,7 @@ class TransferFactorRelitiveErrorTable(TransferTexPrinter):
                     row.append(self.colorer.format(string))
                 else: 
                     row.append(string)
-            line = self._row(row, first=rel_error)
+            line = self._row(row, first=rel_error.replace('_',' '))
             file_object.write(line)
 
     def write(self, file_object, control_regions='all'): 
