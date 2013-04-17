@@ -39,8 +39,10 @@ class Region(object):
         self.kinematics = yaml_dict['kinematics']
         self.btag_config = yaml_dict['btag_config']
         if self.type not in self._allowed_types: 
-            raise ValueError('region type {} is not known'.format(
+            raise RegionConfigError('region type {} is not known'.format(
                     self.type))
+        if not 'required' in self.bits: 
+            raise RegionConfigError("'required' bits should be in 'bits'")
 
     def get_yaml_dict(self): 
         """
@@ -201,3 +203,6 @@ def _superregion_tuple(region):
     return (req_bits, veto_bits, jet_tags, region.type, region_bits)
         
     
+class RegionConfigError(ValueError): 
+    def __init__(self, message): 
+        super(RegionConfigError,self).__init__(message)
