@@ -13,6 +13,7 @@ namespace reg {
   // region event filter flags
   const unsigned no_extra_jets = 1u << 0; 
   const unsigned throw_for_fun = 1u << 1; 
+  const unsigned mu_met        = 1u << 2; 
 }
 
 struct RegionConfig 

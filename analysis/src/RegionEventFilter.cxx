@@ -1,4 +1,5 @@
 #include "RegionEventFilter.hh"
+#include "RegionConfig.hh"
 #include "EventObjects.hh"
 #include "Jet.hh"
 #include <stdexcept> 
@@ -39,7 +40,8 @@ bool RegionEventFilter::pass(const EventObjects& obj) const {
   if (jets.at(0).Pt() < m_region_config.leading_jet_pt) { 
     return false; 
   }
-  const TVector2& met = obj.met; 
+  bool do_mu_met = m_region_config.region_bits & reg::mu_met; 
+  const TVector2& met = do_mu_met ? obj.mu_met : obj.met; 
   if (met.Mod() < m_region_config.met) { 
     return false; 
   }

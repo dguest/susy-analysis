@@ -44,4 +44,5 @@ final_dict = {
 region_event_filter_bits = { 
     'no_extra_jets': 1 << 0, 
     'throw_for_fun': 1 << 1, 
+    'mu_met': 1 << 2, 
     }

@@ -49,6 +49,7 @@ public:
   void entry(int); 
   std::vector<Jet> jets() const; 
   TVector2 met() const; 
+  TVector2 mu_met() const; 
   ull_t bits() const; 
   double dphi() const; 
   int n_good() const; 
@@ -67,6 +68,8 @@ private:
   std::vector<JetBuffer*> m_jet_buffers; 
   double m_met; 
   double m_met_phi; 
+  double m_mu_met; 
+  double m_mu_met_phi; 
   ull_t m_bits; 
   double m_dphi; 
   int m_n_good; 

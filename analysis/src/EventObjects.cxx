@@ -4,6 +4,7 @@
 
 EventObjects::EventObjects(const ObjectFactory* factory, unsigned build_flags): 
   met(factory->met()), 
+  mu_met(factory->mu_met()), 
   weight(factory->event_weight()), 
   event_mask(factory->bits()), 
   htx(factory->htx()), 

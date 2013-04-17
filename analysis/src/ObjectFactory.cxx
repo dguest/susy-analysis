@@ -44,6 +44,8 @@ ObjectFactory::ObjectFactory(std::string root_file, int n_jets) :
   int errors = 0; 
   errors += m_tree->SetBranchAddress("met",&m_met); 
   errors += m_tree->SetBranchAddress("met_phi",&m_met_phi); 
+  errors += m_tree->SetBranchAddress("mu_met",&m_mu_met); 
+  errors += m_tree->SetBranchAddress("mu_met_phi",&m_mu_met_phi); 
   errors += m_tree->SetBranchAddress("pass_bits",&m_bits); 
   errors += m_tree->SetBranchAddress("min_jetmet_dphi", &m_dphi); 
   errors += m_tree->SetBranchAddress("n_good_jets", &m_n_good); 
@@ -127,6 +129,11 @@ TVector2 ObjectFactory::met()   const  {
   TVector2 met; 
   met.SetMagPhi(m_met, m_met_phi); 
   return met; 
+}
+TVector2 ObjectFactory::mu_met()   const  { 
+  TVector2 mu_met; 
+  mu_met.SetMagPhi(m_mu_met, m_mu_met_phi); 
+  return mu_met; 
 }
 ull_t ObjectFactory::bits() const  { return m_bits; }
 double ObjectFactory::dphi()  const  { return m_dphi; }
