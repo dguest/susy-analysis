@@ -5,7 +5,6 @@
 #include "TVector2.h"
 #include <cassert>
 #include <map>
-#include "distiller/EventBits.hh"
 
 double get_mttop(const std::vector<Jet>& jets, TVector2 met) 
 {

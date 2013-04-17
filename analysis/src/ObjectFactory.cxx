@@ -2,7 +2,6 @@
 #include "Jet.hh"
 #include "BtagScaler.hh"
 #include "BtagBuffer.hh"
-#include "distiller/EventBits.hh"
 
 #include <string> 
 #include <vector> 

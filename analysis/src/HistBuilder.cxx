@@ -20,9 +20,6 @@
 #include <ostream>
 #include <fstream>
 
-#include "distiller/EventBits.hh"
-
-
 HistBuilder::HistBuilder(std::string input, const unsigned flags): 
   m_input_file(input), 
   m_build_flags(flags)
