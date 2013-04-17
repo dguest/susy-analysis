@@ -80,10 +80,12 @@ EXE_OBJ     := $(GEN_OBJ) $(T_DICTS) $(TOBJ)
 PYLIB_OBJ   := $(GEN_OBJ) $(T_DICTS) $(TOBJ)
 
 PY_OBJ       := _distiller.o
+BITDEFS      := ../python/stop/bits.yml
 
 ALLOBJ       := $(GEN_OBJ) $(PY_OBJ)
 
 ALLOUTPUT    := python/susy/_distiller.so unit-test
+ALLOUTPUT    += $(BITDEFS)
 
 all: $(ALLOUTPUT) 
 
@@ -98,6 +100,9 @@ python/susy/_distiller.so: $(PYLIB_OBJ:%=$(BIN)/%) $(PY_OBJ:%=$(BIN)/%)
 	@mkdir -p python/susy
 	@echo "linking $^ --> $@"
 	@$(CXX) -o $@ $^ $(LIBS) $(PY_LDFLAGS)
+$(BITDEFS): EventBits.hh
+	@echo 'rewriting $@'
+	@./get_event_bits.sh >| $@
 
 # --------------------------------------------------
 
