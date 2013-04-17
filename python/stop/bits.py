@@ -21,9 +21,6 @@ bits = get_bits()
 _bdict = dict(bits)
 
 composite_bits = [ 
-    ('ctag_opt', 
-     _bdict['j2_anti_b_opt'] | _bdict['j2_anti_u_opt'] | 
-     _bdict['j3_anti_b_opt'] | _bdict['j3_anti_u_opt'] ), 
     ('kinematic', 
      _bdict['leading_jet'] | _bdict['met']), 
     ('preselection', 
