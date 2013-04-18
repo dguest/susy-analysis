@@ -187,6 +187,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   // need to get susy muon indices before overlap
   std::vector<int> susy_muon_idx = get_indices(preselected_muons); 
 
+
   preselected_jets = remove_overlaping(preselected_electrons, 
 				  preselected_jets, 
 				  REMOVE_JET_CONE); 
@@ -201,19 +202,17 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   ob_counts["after_overlap_el"] += preselected_electrons.size(); 
   ob_counts["after_overlap_mu"] += preselected_muons.size(); 
 
-  auto signal_jets = object::signal_jets(preselected_jets); 
-  ob_counts["signal_jets"] += signal_jets.size(); 
-
   const auto veto_electrons = object::veto_electrons(preselected_electrons); 
   const auto veto_muons = object::veto_muons(preselected_muons); 
 
   ob_counts["veto_el"] += veto_electrons.size(); 
+  ob_counts["veto_mu"] += veto_muons.size(); 
+
+  auto signal_jets = object::signal_jets(preselected_jets); 
+  ob_counts["signal_jets"] += signal_jets.size(); 
 
   const auto control_electrons = object::control_electrons(veto_electrons); 
   const auto control_muons = object::control_muons(veto_muons); 
-
-  ob_counts["veto_mu"] += veto_muons.size(); 
-
 
   const int n_leading = std::min(signal_jets.size(), N_SR_JETS); 
   Jets leading_jets(signal_jets.begin(), signal_jets.begin() + n_leading); 
