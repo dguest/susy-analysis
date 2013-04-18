@@ -41,18 +41,18 @@ def _get_parser():
         help=('either a textfile of datasets'
               ' or an existing meta file ({})'.format(d)))
     parser.add_argument('--susy-lookup', help=d)
+    parser.add_argument('-m','--mc', action='store_true', 
+                            help='generate fresh mc file from mark\'s ds')
+    parser.add_argument('--jets', action='store_true', 
+                        help='generate fresh data list')
+    parser.add_argument('--muons', action='store_true', 
+                        help='generate fresh data list')
+    parser.add_argument('--variations', action='store_true')
 
     ami_mode = parser.add_mutually_exclusive_group()
     ami_mode.add_argument('--update-ami', action='store_true')
     ami_mode.add_argument('--rewrite-ami', action='store_true')
 
-    build_mode = parser.add_mutually_exclusive_group()
-    build_mode.add_argument('-m','--marks-mc', action='store_true', 
-                            help='generate fresh mc file from mark\'s ds')
-    build_mode.add_argument('--data', action='store_true', 
-                            help='generate fresh data list')
-    build_mode.add_argument('--variations', action='store_true')
-    parser.add_argument('-t', '--trust-ds-names', action='store_true')
     parser.add_argument('-d','--dump', action='store_true')
     parser.add_argument(
         '--write-steering', help='rewrite steering file')
@@ -74,10 +74,12 @@ def get_ds_lists(cache):
 def run(): 
     args = _get_parser().parse_args(sys.argv[1:])
 
-    if args.marks_mc: 
+    if args.mc: 
         build_mark_file(args.steering_file)
-    if args.data: 
-        build_data_file(args.steering_file)
+    if args.jets: 
+        build_jets_file(args.steering_file)
+    if args.muons: 
+        build_muons_file(args.steering_file)
     if args.variations: 
         build_variations_file(args.steering_file)
 
@@ -140,7 +142,7 @@ def build_mark_file(name):
         new_meta = ami.get_dataset_range(ids, phys_type)
         ds_cache.update(new_meta)
     ds_cache.write()
-    dumpbugs(ami)
+    dumpbugs(ami, 'mc-bugs.log')
 
 def build_variations_file(name): 
     from stop.lookup.ami import AmiAugmenter
@@ -152,25 +154,27 @@ def build_variations_file(name):
         new_meta = ami.get_dataset_range(ids, phys_type, atlfast=True)
         ds_cache.update(new_meta)
     ds_cache.write()
-    dumpbugs(ami)
+    dumpbugs(ami, 'variation-bugs.log')
 
-def build_data_file(name): 
+def build_jets_file(name): 
+    from stop.lookup.ami import AmiAugmenter
+    ami = AmiAugmenter('p1329', origin='data12_8TeV')
+    ami.bugstream = TemporaryFile()
+    with DatasetCache(name) as ds_cache: 
+        new_meta = ami.get_datasets_year(stream='physics_JetTauEtmiss')
+        ds_cache.update(new_meta)
+
+    dumpbugs(ami, 'muon-bugs.log')
+
+def build_muon_file(name): 
     from stop.lookup.ami import AmiAugmenter
     ami = AmiAugmenter('p1329', origin='data12_8TeV')
     ami.bugstream = TemporaryFile()
     with DatasetCache(name) as ds_cache: 
         mu_meta = ami.get_datasets_year(stream='physics_Muons')
         ds_cache.update(mu_meta)
-        new_meta = ami.get_datasets_year(stream='physics_JetTauEtmiss')
-        ds_cache.update(new_meta)
 
-    if ami.bugstream.tell(): 
-        ami.bugstream.seek(0)
-        bugslog = 'ami-bugs.log'
-        with open(bugslog,'w') as bugs: 
-            for line in ami.bugstream: 
-                bugs.write(line)
-        sys.stderr.write('wrote bugs to {}\n'.format(bugslog))
+    dumpbugs(ami, 'muon-bugs.log')
 
 if __name__ == '__main__': 
    run()

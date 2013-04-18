@@ -72,8 +72,8 @@ class AmiAugmenter(object):
                     type_filtered.append(m)
             if not type_filtered: 
                 raise DatasetMatchError(
-                    'stream filter removed all {} with {}'.format(
-                        args.items(), self.ntup_filter),match_sets)
+                    'stream filter {} removed all {} with {}'.format(
+                        stream, args.items(), self.ntup_filter))
             match_sets = type_filtered
 
         if len(match_sets) > 1: 
@@ -85,7 +85,7 @@ class AmiAugmenter(object):
             if not type_filtered: 
                 raise DatasetMatchError(
                     'type filter removed all {} with {}'.format(
-                        args.items(), self.ntup_filter),match_sets)
+                        args.items(), self.ntup_filter))
             
             match_sets = type_filtered
 
@@ -97,7 +97,7 @@ class AmiAugmenter(object):
             if not tagged_matches: 
                 raise DatasetMatchError(
                     'p filter removed all {} with {}'.format(
-                        args.items(), self.ntup_filter),match_sets)
+                        args.items(), self.ntup_filter))
             match_sets = tagged_matches
     
         if len(match_sets) > 1: 
@@ -108,7 +108,7 @@ class AmiAugmenter(object):
             if not atlmatch: 
                 raise DatasetMatchError(
                     'atlfilter filter removed all {} with {}'.format(
-                        args.items(), self.ntup_filter),match_sets)
+                        args.items(), self.ntup_filter))
                 
         if len(match_sets) == 0:
             raise DatasetMatchError('problem matching {} with {}'.format(
@@ -248,7 +248,7 @@ class AmiAugmenter(object):
         ds.meta_sources.add('ami')
 
 class DatasetMatchError(ValueError): 
-    def __init__(self, info, matches): 
+    def __init__(self, info, matches=[]): 
         super(DatasetMatchError, self).__init__(info)
         self.matches = matches
 
