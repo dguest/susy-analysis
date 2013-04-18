@@ -234,7 +234,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   if (signal_jets.size() >= N_SR_JETS) pass_bits |= pass::n_jet; 
 
   m_out_tree->htx = get_htx(signal_jets, N_SR_JETS); 
-  m_out_tree->min_jetmet_dphi = get_min_jetmet_dphi(leading_jets, met); 
+  m_out_tree->min_jetmet_dphi = get_min_jetmet_dphi(signal_jets, met); 
   if (m_out_tree->min_jetmet_dphi > MIN_DPHI_JET_MET) { 
     pass_bits |= pass::dphi_jetmet_min; 
   }
