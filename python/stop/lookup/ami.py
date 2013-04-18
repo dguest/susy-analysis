@@ -189,8 +189,10 @@ class AmiAugmenter(object):
             if period.project.endswith('TeV'): 
                 hep_periods.append(period.name)
         runs = query.get_runs(self.client, hep_periods, year=year)
-        for run in runs: 
-            self.outstream.write('looking for {}...'.format(run))
+        n_runs = len(runs)
+        for run_n, run in enumerate(runs): 
+            self.outstream.write(
+                'looking for {} of {} {}...'.format(run_n, n_runs, run))
             try: 
                 ds = self.ds_from_id(run, stream)
             except DatasetMatchError as err: 
