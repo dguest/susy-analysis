@@ -2,6 +2,7 @@ from tempfile import TemporaryFile as Temp
 import warnings, re
 from stop.stack.regions import Region 
 from stop.style import texify_sr
+from math import log
 
 # not used any more
 def _not_blinded(physics_cut_tup): 
@@ -90,6 +91,66 @@ def sort_physics(phys_list):
             bgs.append(phys)
     return bgs + sorted(stops) + other
 
+class RegionCountsFormatter(object): 
+    def __init__(self, cut): 
+        self.line = [texify_sr(cut)]
+        self.total_bg = 0.0
+        self.total_stats = 0
+        self.max_counts = 0.0
+        self.max_idx = None
+    def _add_value(self, value, error): 
+        if not error: 
+            prec = 0
+        else: 
+            prec = max(-int(log(error)) + 1, 0)
+        self.line.append('{n:.{p}f}({e:.{p}f})'.format(
+                n=value, p=prec, e=error))
+        
+    def add_bg_value(self, value): 
+        if not value: 
+            self.line.append('XXX')
+            return 
+
+        normed = value['normed']
+        stats = value['stats']
+        if not stats: 
+            stat_err = 0.0
+        else: 
+            stat_err = stats**0.5 / stats * normed
+        self._add_value(normed, stat_err)
+        self.total_bg += normed
+        self.total_stats += stats
+        if value > self.max_counts: 
+            self.max_counts = value
+            self.max_idx = len(self.line) - 1
+    def add_other(self, value): 
+        if not value: 
+            self.line.append('XXX')
+            return 
+
+        try: 
+            normed = value['normed']
+            stats = value['stats']
+            try: 
+                stat_err = stats**0.5 / stats * normed
+            except ZeroDivisionError: 
+                stat_err = 0
+            self._add_value(normed, stat_err)
+        except TypeError: 
+            try: 
+                normed = int(value)
+            except ValueError: 
+                normed = value
+            self.line.append(str(normed))
+
+    def get_line(self): 
+        if self.max_idx is not None: 
+            self.line[self.max_idx] = r'\textcolor{{red}}{{{}}}'.format(
+                self.line[self.max_idx])
+        self.line.append('{:.1f}'.format(self.total_bg))
+        return r'{} \\'.format(' & '.join(self.line))
+
+
 def make_latex_bg_table(physics_cut_dict, out_file=Temp(), title=''): 
     """
     returns a file-like object
@@ -125,33 +186,19 @@ def make_latex_bg_table(physics_cut_dict, out_file=Temp(), title=''):
     out_file.write(prereq + '\n')
     headrow = r' {} & {} \\ \hline'.format(title,' & '.join(texphys))
     out_file.write(headrow + '\n')
-    for cut in cut_list: 
-        line = [texify_sr(cut)]
-        total_bg = 0.0
-        max_counts = 0.0
-        max_idx = None
-        for phys_n, phys in enumerate(phys_list,1): 
+    for cut in cut_list:
+        line_formatter = RegionCountsFormatter(cut)
+        for phys in phys_list: 
             tup = (phys,cut)
             if tup in physics_cut_dict: 
                 value = physics_cut_dict[phys,cut]
-                try: 
-                    line.append('{:.1f}'.format(value))
-                    is_stop = phys.startswith('stop')
-                    if phys.lower() != 'data' and not is_stop: 
-                        total_bg += value
-                        if value > max_counts: 
-                            max_counts = value
-                            max_idx = phys_n
-                except ValueError: 
-                    if value.startswith('stop-'): 
-                        value = value.replace('stop-','')
-                    line.append(value)
+                if phys.lower() == 'data' or phys.startswith('stop'): 
+                    line_formatter.add_other(value)
+                else: 
+                    line_formatter.add_bg_value(value)
             else: 
-                line.append('XXX')
-        if max_idx is not None: 
-            line[max_idx] = r'\textcolor{{red}}{{{}}}'.format(line[max_idx])
-        line.append('{:.1f}'.format(total_bg))
-        textline = r'{} \\'.format(' & '.join(line))
+                line_formatter.add_other(None)
+        textline = line_formatter.get_line()
         out_file.write(textline + '\n')
 
     out_file.write(r'\end{tabular}' + '\n')

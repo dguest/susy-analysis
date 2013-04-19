@@ -54,7 +54,7 @@ def get_signal_finder(signal_point):
             return True
     return needed
 
-def get_max_signal_contamination(phys_cut_dict, min_dm=30): 
+def get_max_signal_contamination(phys_cut_dict, min_dm=0): 
     def check_for_signal(key): 
         if not key[0].startswith('stop'): 
             return False
@@ -66,13 +66,13 @@ def get_max_signal_contamination(phys_cut_dict, min_dm=30):
 
     maxes = {}
     for sig, region in signal_keys: 
-        old_max, old_name = maxes.get(region, (-1.0,''))
+        old_max, old_name = maxes.get(region, ({'normed':-1.0},''))
         sig_number = phys_cut_dict[sig, region]
-        if sig_number > old_max: 
-            if not sig_number: 
-                maxes[region] = (0.0, '--')
+        if sig_number['normed'] > old_max['normed']: 
+            if not sig_number['normed']: 
+                maxes[region] = ({'normed':0.0,'stats':0.0}, '--')
             else: 
-                maxes[region] = (sig_number, sig)
+                maxes[region] = (sig_number, sig.replace('stop-',''))
     return maxes
 
 def update_with_max_contamination(phys_cut_dict): 
