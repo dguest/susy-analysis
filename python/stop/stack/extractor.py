@@ -61,6 +61,11 @@ class RegionExtractor(object):
         Extract subregions from a (physics, variable, superegion) keyed dict. 
         Returns a (physics, region) tuple. 
         """
+        all_varaibles = set(k[1] for k in superdict)
+        if not variable in all_varaibles: 
+            raise ValueError(
+                "can't extract {}, allowed variables: {}".format(
+                    variable, ', '.join(all_varaibles)))
         regions = {}
         for (phys, var, supname), hist in superdict.iteritems(): 
             if var != variable: 

@@ -268,8 +268,21 @@ class Coordinator(object):
             extractor_yml = join(hist_path, self.super_region_meta_name)
             with open(extractor_yml) as yml: 
                 ext = extractor.RegionExtractor(yaml.load(yml))
-            counts = ext.extract_counts_dict(hist_dict)
-            return counts
+            normed = ext.extract_counts_dict(hist_dict, 
+                                             variable='kinematics')
+            stats = ext.extract_counts_dict(hist_dict, 
+                                            variable='kinematicStats')
+            def combine(k): 
+                if k in stats: 
+                    return {
+                        'normed': normed[k], 
+                        'stats': stats[k]
+                        }
+                else:
+                    return normed[k]
+
+            comb = {k:combine(k) for k in normed}
+            return comb
         else: 
             return table.get_physics_cut_dict(hist_dict)
             

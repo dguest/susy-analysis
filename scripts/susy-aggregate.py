@@ -5,13 +5,13 @@ uses run / mc meta data and ntuples files to produce stacks
 
 import argparse
 from stop.stack.coordinator import Coordinator
-from stop.systematics.merger import RegionMerger
+from stop.systematics.merger import RegionMerger, RegionMergeError
 from os.path import isfile
 from stop.stack import table
 from tempfile import TemporaryFile
 import yaml
 import sys
-
+import warnings
 
 def get_config(): 
     d = 'default: %(default)s'
@@ -81,7 +81,11 @@ def run():
         hierarchical_counts = table.yamlize(count_dict)
         with open(args.steering_file) as steer_yaml: 
             steering = yaml.load(steer_yaml)
-        RegionMerger(hierarchical_counts).merge_via_steering(steering)
+        try: 
+            RegionMerger(hierarchical_counts).merge_via_steering(steering)
+        except RegionMergeError as err: 
+            warnings.warn('merge error: {}, writing unmerged'.format(
+                    err))
         counts_file = steering['files']['counts']
         with open(counts_file,'w') as countfile: 
             for line in yaml.dump(hierarchical_counts): 
