@@ -6,7 +6,7 @@ from stop.stack.table import make_latex_bg_table, unyamlize
 from stop.stack.table import LatexCutsConfig
 from stop.systematics import transfer, tex
 
-import sys
+import sys, re
 from tempfile import TemporaryFile
 
 def get_config(): 
@@ -36,6 +36,14 @@ def get_config():
     transfer.add_argument('-x','--exclude', nargs='+')
     transfer.add_argument('-o','--only', nargs='+')
     transfer.add_argument('--green', type=float, default=0.2, help=d)
+
+    filt_counts = subs.add_parser('filter', parents=[shared_parser])
+    filt_counts.add_argument('--only-systematic')
+    filt_counts.add_argument('--region-regex')
+    filt_counts.add_argument('--region-veto-regex')
+    filt_counts.add_argument('--physics-regex')
+    filt_counts.add_argument('--physics-veto-regex') 
+    filt_counts.add_argument('-i','--overwrite', action='store_true')
 
     args = parser.parse_args(sys.argv[1:])
     return args
@@ -90,8 +98,52 @@ def run():
         'counts': get_counts, 
         'regions': get_regions, 
         'transfer': get_transfer, 
+        'filter': filter_counts, 
         }[args.which]
     action(args)
+
+def filter_counts(args): 
+    with open(args.config_file) as config_yml: 
+        config = yaml.load(config_yml)
+    counts_file = config['files']['counts']
+    with open(counts_file) as counts_yml: 
+        counts = yaml.load(counts_yml)
+    kept = {}
+    if args.only_systematic: 
+        counts = {args.only_systematic: counts[args.only_systematic]}
+
+    region_regex = region_veto_regex = None
+    if args.region_regex: 
+        region_regex = re.compile(args.region_regex)
+    if args.region_veto_regex: 
+        region_veto_regex = re.compile(args.region_veto_regex)
+
+    physics_regex = physics_veto_regex = None
+    if args.physics_regex: 
+        physics_regex = re.compile(args.physics_regex)
+    if args.physics_veto_regex: 
+        physics_veto_regex = re.compile(args.physics_veto_regex)
+
+    for syst_name, phys_dict in counts.iteritems(): 
+        kept.setdefault(syst_name, {})
+        for phys_name, reg_dict in phys_dict.iteritems(): 
+            if physics_regex and not physics_regex.search(phys_name): 
+                continue
+            if physics_veto_regex and physics_veto_regex.search(phys_name): 
+                continue
+            kept[syst_name].setdefault(phys_name, {})
+            for reg_name, counts_dict in reg_dict.iteritems(): 
+                if region_regex and not region_regex.search(reg_name): 
+                    continue
+                if region_veto_regex and region_veto_regex.search(reg_name): 
+                    continue
+                kept[syst_name][phys_name][reg_name] = counts_dict
+
+    if args.overwrite: 
+        with open(counts_file, 'w') as counts_yml: 
+            counts_yml.write(yaml.dump(kept))
+    else: 
+        print yaml.dump(kept)
 
 def get_transfer(args): 
     with open(args.config_file) as config_yml: 
