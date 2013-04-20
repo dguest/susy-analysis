@@ -30,7 +30,7 @@ class Stack(object):
         self.y_min = None
         self._proxy_legs = []
         self._bg_proxy_legs = []
-        self.ratio_max = 4.0
+        self.ratio_max = 2.0
         
     def _set_xlab(self, name): 
         if self.ratio: 
@@ -150,6 +150,8 @@ class Stack(object):
             
             
         self.ratio.axhline(y=1, linestyle='--', color='k')
+        self.ratio.axhline(y=0.5, linestyle=':', color='k')
+        self.ratio.axhline(y=1.5, linestyle=':', color='k')
 
     def add_data(self, hist): 
         x_vals, y_vals = hist.get_xy_center_pts()
@@ -187,7 +189,7 @@ class Stack(object):
             self.ax.set_ylim(0,ymax)
             self.ax.set_xlim(min(self.x_vals), max(self.x_vals))
         self.fig.tight_layout()# pad=0.0, h_pad=0.0
-        if self.ratio and self.ratio.get_ylim()[1] > self.ratio_max: 
+        if self.ratio: 
             self.ratio.set_ylim(0,self.ratio_max)
         self.fig.savefig(name, bbox_inches='tight')
     def close(self): 
