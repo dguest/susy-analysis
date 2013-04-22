@@ -8,6 +8,7 @@ from ROOT import ConfigMgr
 gROOT.Reset()
 import os
 import argparse
+import itertools
 
 # *** copied from config file ***
 from configManager import configMgr
@@ -50,6 +51,37 @@ def GenerateFitAndPlotCPP(fc, anaName, drawBeforeFit, drawAfterFit, drawCorrelat
 
     Util.GenerateFitAndPlot(fc.name, anaName, drawBeforeFit, drawAfterFit, drawCorrelationMatrix,
                             drawSeparateComponents, drawLogLikelihood, minos, minosPars)
+
+class ChannelFactory(object): 
+    def __init__(self, counts, asym_systematics, sym_systematics): 
+        self.counts = counts
+        self.asym_systematics = asym_systematics
+        self.sym_systematics = sym_systematics
+        self.color_itr = itertools.cycle([
+                kBlack,kWhite,kGray,kRed,kPink,kMagenta,kViolet,kBlue,
+                kAzure,kCyan,kTeal,kGreen,kSpring,kYellow,kOrange])
+        self.sample_colors = {}
+
+    def get_channel(self, signal_region, background_regions): 
+        pass
+
+    def _get_sample(self, sample, region):
+        sample = Sample(name=sample, color=next(self.color_itr))
+        nominal = self.counts['NONE'][sample][region]['normed']
+        stats = self.counts['NONE'][sample][region]['stats']
+        sample.setStatConfig(True)
+        sample.buildHisto(binValues=[nominal], region=region)
+        sample.buildStatErrors(stats**0.5)
+        for syst_name in self.sym_systematics: 
+            syst_count = self.counts[syst_name][sample][region]['normed']
+            high = syst / nominal / 2 # TODO: check me 
+            low = 1.0 - high
+            syst = Systematic(name=syst_name, nominal=1.0, 
+                              high=high, low=low, type='user', 
+                              method="userOverallSys")
+            sample.addSystematic(syst)
+        return sample
+
 
 def run(): 
     from configManager import configMgr
@@ -194,7 +226,6 @@ def run():
                 configMgr.AddBkgChlName(bkgArgs[iCx])
                 configMgr.AddBkgParName(bkgArgs[iCx+1])
                 configMgr.AddBkgCorrVal(float(bkgArgs[iCx+2]))
-                continue
 
     if args.minos:
         runMinos = True
@@ -224,10 +255,20 @@ def run():
     # number of values scanned of signal-strength for upper-limit determination of signal strength.
     configMgr.nPoints=20       
     
+    # Give the analysis a name
+    configMgr.analysisName = "stop"
+    configMgr.outputFileName = "results/%s_Output.root"%configMgr.analysisName
+    
+    # Define cuts
+    configMgr.cutsDict["UserRegion"] = "1."
+    
+    # Define weights
+    configMgr.weights = "1."
+
     ##########################
 
     fit_config = FitConfig(args.config)
-    fig_config.load_counts()
+    fit_config.load_counts()
     systematics = {
         'asymmetric': ['JESUP','JESDOWN'], 
         'symmetric': ['JER']
@@ -252,15 +293,6 @@ def run():
     
     
     
-    # Give the analysis a name
-    configMgr.analysisName = "stop"
-    configMgr.outputFileName = "results/%s_Output.root"%configMgr.analysisName
-    
-    # Define cuts
-    configMgr.cutsDict["UserRegion"] = "1."
-    
-    # Define weights
-    configMgr.weights = "1."
     
     # Define samples
     bkgSample = Sample(name="Bkg",  # used to position in the workspace
