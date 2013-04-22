@@ -21,7 +21,7 @@ import os
 
 # Setup for ATLAS plotting
 from ROOT import gROOT
-from os.path import dirname
+from os.path import dirname, isfile, isdir
 atl_style = '/'.join(configManager.__file__.split('/')[:-2] + [
         'macros/AtlasStyle.C'])
 gROOT.LoadMacro(atl_style)
@@ -74,7 +74,7 @@ def run():
     print "\n * * * Welcome to HistFitter * * *\n"
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('input_counts')
+    parser.add_argument('config')
     parser.add_argument("-L", "--log-level", help="set log level", choices=["VERBOSE", "DEBUG", "INFO", "WARNING", "ERROR", "FATAL", "ALWAYS"])
     parser.add_argument("-w", "--create-workspace", help="re-create workspace from histograms", action="store_true", default=configMgr.executeHistFactory)
     parser.add_argument("-x", "--use-XML", help="write XML files by hand and call hist2workspace on them, instead of directly writing workspaces", action="store_true", default=configMgr.writeXML)
@@ -215,8 +215,24 @@ def run():
     # **** mandatory user-defined configuration ****
     # (copied here because HistFitter authors don't know how to program)
 
-    with open(args.input_counts) as inputs_yml: 
-        counts = yaml.load(inputs_yml)
+    ##########################
+    
+    # Setting the parameters of the hypothesis test
+    #configMgr.nTOYs=5000
+    configMgr.calculatorType=2 # 2=asymptotic calculator
+    configMgr.testStatType=3   # 3=one-sided profile likelihood test
+    # number of values scanned of signal-strength for upper-limit determination of signal strength.
+    configMgr.nPoints=20       
+    
+    ##########################
+
+    fit_config = FitConfig(args.config)
+    fig_config.load_counts()
+    systematics = {
+        'asymmetric': ['JESUP','JESDOWN'], 
+        'symmetric': ['JER']
+        }
+    
 
     # Set observed and expected number of events in counting experiment
     ndata     =  7. 	# Number of events observed in data
@@ -235,16 +251,6 @@ def run():
     ucs = Systematic("ucs", configMgr.weights, 1.1,0.9, "user","userOverallSys")
     
     
-    ##########################
-    
-    # Setting the parameters of the hypothesis test
-    #configMgr.nTOYs=5000
-    configMgr.calculatorType=2 # 2=asymptotic calculator
-    configMgr.testStatType=3   # 3=one-sided profile likelihood test
-    # number of values scanned of signal-strength for upper-limit determination of signal strength.
-    configMgr.nPoints=20       
-    
-    ##########################
     
     # Give the analysis a name
     configMgr.analysisName = "stop"
@@ -349,6 +355,47 @@ def run():
         cons = InteractiveConsole(locals())
         cons.interact("Continuing interactive session... press Ctrl+d to exit")
         pass
+
+
+class FitConfig(object): 
+    """
+    Reads in the configuration. 
+    """
+    template = { 
+        'fit': { 
+            'signal_regions': [], 
+            'control_regions': [], 
+            },
+        
+        }
+    def __init__(self, file_name): 
+        if not isfile(file_name): 
+            raise IOError('no config file')
+        with open(file_name) as config_yml: 
+            config = yaml.load(config_yml)
+        if not 'fit' in config: 
+            raise NoFitConfigError()
+        try: 
+            self.counts_file = config['files']['counts']
+            self.signal_regions = config['fit']['signal_regions']
+            self.control_regions = config['fit']['control_regions']
+        except KeyError as err: 
+            raise KeyError('{}, raised reading in {}'.format(err, file_name))
+        self._counts = None
+        
+    def load_counts(self): 
+        with open(self.counts_file) as counts_yml: 
+            self._counts = yaml.load(counts_yml)
+
+    @property
+    def counts(self): 
+        if not self._counts: 
+            raise IOError('counts not loaded')
+        return self._counts
+
+class NoFitConfigError(StandardError): 
+    def __init__(self): 
+        super(NoFitConfigError, self).__init__('no config')
 
 if __name__ == "__main__":
     run()
