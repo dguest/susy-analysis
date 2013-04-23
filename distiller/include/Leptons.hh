@@ -21,7 +21,7 @@ public:
 private: 
   bool m_pass_susy; 
   bool m_is_signal; 
-  bool m_rel_isolation; 
+  double m_rel_isolation; 
   int m_index; 
   float m_charge; 
 }; 
