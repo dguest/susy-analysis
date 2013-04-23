@@ -300,7 +300,7 @@ def run():
     bkgSample.setStatConfig(True)
     bkgSample.buildHisto(binValues=[nbkg],
                          region="UserRegion", # also used to position in WS
-                         var="cuts")          # no fucking clue
+                         var="cuts")          # no clue, maybe the channel?
     bkgSample.buildStatErrors(binStatErrors=[nbkgErr],
                               region="UserRegion",
                               var="cuts")
@@ -321,7 +321,7 @@ def run():
     dataSample.buildHisto([ndata],"UserRegion","cuts")
     
     # Define top-level
-    ana = configMgr.addTopLevelXML("SPlusB")
+    ana = configMgr.addFitConfig("SPlusB")
     ana.addSamples([bkgSample,sigSample,dataSample])
     ana.setSignalSample(sigSample)
     
