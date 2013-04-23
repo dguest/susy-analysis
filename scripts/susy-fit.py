@@ -63,16 +63,16 @@ class ChannelFactory(object):
         self.sample_colors = {}
 
 class SampleFactory(object): 
+    color_itr = itertools.cycle([
+            kGray,kRed,kPink,kMagenta,kViolet,kBlue,
+            kAzure,kCyan,kTeal,kGreen,kSpring,kYellow,kOrange])
     def __init__(self, counts, asym_systematics=[], sym_systematics=[]): 
         self.counts = counts
-        self.color_itr = itertools.cycle([
-                kBlack,kWhite,kGray,kRed,kPink,kMagenta,kViolet,kBlue,
-                kAzure,kCyan,kTeal,kGreen,kSpring,kYellow,kOrange])
         self.what_the_fuck_is_this = 'cuts' 
         self.asym_systematics = asym_systematics
         self.sym_systematics = sym_systematics
         
-    def get_bg_sample(self, sample, region):
+    def get_sample(self, sample, region):
         roo_sample = Sample(name=sample, color=next(self.color_itr))
         nominal = self.counts['NONE'][sample][region]['normed']
         stats = self.counts['NONE'][sample][region]['stats']
@@ -93,7 +93,12 @@ class SampleFactory(object):
         roo_sample.setNormFactor(
             name='mu_{}'.format(sample), val=1.0, low=0.0, high=2.0)
         return roo_sample
-
+    def get_data_sample(self, region): 
+        roo_sample = Sample('Data', kBlack)
+        roo_sample.setData()
+        n_data = self.counts['NONE']['data'][region]
+        roo_sample.buildHisto([n_data], region, self.what_the_fuck_is_this)
+        return roo_sample
 
 def run(): 
     from configManager import configMgr
@@ -290,11 +295,22 @@ def run():
         'NONE': { 
             'Bkg': {
                 'UserRegion': {'normed': 5, 'stats': 25}
+                }, 
+            'Sig': { 
+                'UserRegion': {'normed': 5, 'stats': 25.0 / 4.0}
+                }, 
+            'data': { 
+                'UserRegion': 7.0
                 }
             }, 
         'ucb': { 
             'Bkg': { 
                 'UserRegion': {'normed': 2 * 0.2 * 5}
+                }
+            }, 
+        'ucs': { 
+            'Sig': { 
+                'UserRegion': {'normed': 2 * 0.1 * 5}
                 }
             }
         }
@@ -302,34 +318,22 @@ def run():
         
         }
     test_factory = SampleFactory(testcounts, sym_systematics=['ucb'])
+    sig_factory = SampleFactory(testcounts, sym_systematics=['ucs'])
 
     # Set observed and expected number of events in counting experiment
     ndata     =  7. 	# Number of events observed in data
-    nbkg      =  5.	 	# Number of predicted bkg events
-    nsig      =  5.  	# Number of predicted signal events
-    nbkgErr   =  1.  	# (Absolute) Statistical error on bkg estimate
-    nsigErr   =  2.  	# (Absolute) Statistical error on signal estimate
     lumiError = 0.039 	# Relative luminosity uncertainty
     
     ucs = Systematic(
         "ucs", configMgr.weights, 1.1,0.9, "user","userOverallSys")
     
     
-    bkgSample = test_factory.get_bg_sample('Bkg', 'UserRegion')
-    
-    sigSample = Sample("Sig",kPink)
-    sigSample.setNormFactor("mu_Sig",1.,0.,10.)
-    sigSample.setStatConfig(True)
+    bkgSample = test_factory.get_sample('Bkg', 'UserRegion')
+    sigSample = sig_factory.get_sample('Sig', 'UserRegion')
     # not sure what this does... cryptic way to say "use lumi uncertainty"?
     sigSample.setNormByTheory()     
-    
-    sigSample.buildHisto([nsig],"UserRegion","cuts")
-    sigSample.buildStatErrors([nsigErr],"UserRegion","cuts")
-    sigSample.addSystematic(ucs)
-    
-    dataSample = Sample("Data",kBlack)
-    dataSample.setData()
-    dataSample.buildHisto([ndata],"UserRegion","cuts")
+
+    dataSample = test_factory.get_data_sample('UserRegion')
     
     # Define top-level
     ana = configMgr.addFitConfig('sb')
