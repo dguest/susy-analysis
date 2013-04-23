@@ -13,6 +13,16 @@
 #include <stdexcept>
 #include <boost/format.hpp>
 
+namespace {
+  bool has_min_pt(int iJet, const SusyBuffer& buffer, float pt); 
+  bool fill_jet(int iJet, 
+		const SusyBuffer& buffer, 
+		SUSYObjDef& def, 
+		const unsigned flags, 
+		const RunInfo& info); 
+
+  bool check_buffer(const SusyBuffer& buffer); 
+}
 
 SelectedJet::SelectedJet(const EventJets* parent, int jet_index): 
   m_bits(0)
