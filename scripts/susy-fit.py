@@ -62,25 +62,37 @@ class ChannelFactory(object):
                 kAzure,kCyan,kTeal,kGreen,kSpring,kYellow,kOrange])
         self.sample_colors = {}
 
-    def get_channel(self, signal_region, background_regions): 
-        pass
-
-    def _get_sample(self, sample, region):
-        sample = Sample(name=sample, color=next(self.color_itr))
+class SampleFactory(object): 
+    def __init__(self, counts, asym_systematics=[], sym_systematics=[]): 
+        self.counts = counts
+        self.color_itr = itertools.cycle([
+                kBlack,kWhite,kGray,kRed,kPink,kMagenta,kViolet,kBlue,
+                kAzure,kCyan,kTeal,kGreen,kSpring,kYellow,kOrange])
+        self.what_the_fuck_is_this = 'cuts' 
+        self.asym_systematics = asym_systematics
+        self.sym_systematics = sym_systematics
+        
+    def get_bg_sample(self, sample, region):
+        roo_sample = Sample(name=sample, color=next(self.color_itr))
         nominal = self.counts['NONE'][sample][region]['normed']
         stats = self.counts['NONE'][sample][region]['stats']
-        sample.setStatConfig(True)
-        sample.buildHisto(binValues=[nominal], region=region)
-        sample.buildStatErrors(stats**0.5)
+        roo_sample.setStatConfig(True)
+        roo_sample.buildHisto(binValues=[nominal], region=region, 
+                              var=self.what_the_fuck_is_this)
+        roo_sample.buildStatErrors(binStatErrors=[1/stats**0.5 * nominal], 
+                                   region=region, 
+                                   var=self.what_the_fuck_is_this)
         for syst_name in self.sym_systematics: 
             syst_count = self.counts[syst_name][sample][region]['normed']
-            high = syst / nominal / 2 # TODO: check me 
+            high = syst_count / nominal / 2 # TODO: check me 
             low = 1.0 - high
             syst = Systematic(name=syst_name, nominal=1.0, 
                               high=high, low=low, type='user', 
                               method="userOverallSys")
-            sample.addSystematic(syst)
-        return sample
+            roo_sample.addSystematic(syst)
+        roo_sample.setNormFactor(
+            name='mu_{}'.format(sample), val=1.0, low=0.0, high=2.0)
+        return roo_sample
 
 
 def run(): 
@@ -273,7 +285,23 @@ def run():
         'asymmetric': ['JESUP','JESDOWN'], 
         'symmetric': ['JER']
         }
-    
+
+    testcounts = { 
+        'NONE': { 
+            'Bkg': {
+                'UserRegion': {'normed': 5, 'stats': 25}
+                }
+            }, 
+        'ucb': { 
+            'Bkg': { 
+                'UserRegion': {'normed': 2 * 0.2 * 5}
+                }
+            }
+        }
+    test_sym_systematics = { 
+        
+        }
+    test_factory = SampleFactory(testcounts, sym_systematics=['ucb'])
 
     # Set observed and expected number of events in counting experiment
     ndata     =  7. 	# Number of events observed in data
@@ -283,28 +311,11 @@ def run():
     nsigErr   =  2.  	# (Absolute) Statistical error on signal estimate
     lumiError = 0.039 	# Relative luminosity uncertainty
     
-    ucb = Systematic(name="ucb", 
-                     nominal=configMgr.weights, # why not 1? 
-                     high=1.2,
-                     low=0.8, 
-                     type="user",   # this should be "user" if not creating tree
-                     method="userOverallSys") # no idea what this does
-    ucs = Systematic("ucs", configMgr.weights, 1.1,0.9, "user","userOverallSys")
+    ucs = Systematic(
+        "ucs", configMgr.weights, 1.1,0.9, "user","userOverallSys")
     
     
-    
-    
-    # Define samples
-    bkgSample = Sample(name="Bkg",  # used to position in the workspace
-                       color=kGreen-9)
-    bkgSample.setStatConfig(True)
-    bkgSample.buildHisto(binValues=[nbkg],
-                         region="UserRegion", # also used to position in WS
-                         var="cuts")          # no clue, maybe the channel?
-    bkgSample.buildStatErrors(binStatErrors=[nbkgErr],
-                              region="UserRegion",
-                              var="cuts")
-    bkgSample.addSystematic(ucb)
+    bkgSample = test_factory.get_bg_sample('Bkg', 'UserRegion')
     
     sigSample = Sample("Sig",kPink)
     sigSample.setNormFactor("mu_Sig",1.,0.,10.)
@@ -321,7 +332,7 @@ def run():
     dataSample.buildHisto([ndata],"UserRegion","cuts")
     
     # Define top-level
-    ana = configMgr.addFitConfig("SPlusB")
+    ana = configMgr.addFitConfig('sb')
     ana.addSamples([bkgSample,sigSample,dataSample])
     ana.setSignalSample(sigSample)
     
