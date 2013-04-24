@@ -74,9 +74,8 @@ namespace object {
     Jets out; 
     for (auto jet_itr = jets.cbegin(); jet_itr != jets.cend(); jet_itr++) {
       auto& jet = **jet_itr; 
-      bool is_low_pt = jet.Pt() < JET_PT_CUT; 
       bool pass_susy = (jet.bits() & jetbit::pass_susy_def); 
-      if (!is_low_pt && !pass_susy) { 
+      if (!pass_susy) { 
 	out.push_back(*jet_itr); 
       }
     }
