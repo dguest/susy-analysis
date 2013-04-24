@@ -17,6 +17,7 @@ namespace object {
   Jets preselection_jets(const Jets&); 
   Jets veto_jets(const Jets&); 
   Jets signal_jets(const Jets&); 
+  Jets remove_bad_jets(const Jets&); 
 }
 
 #endif 

@@ -181,8 +181,6 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
     
   auto preselected_jets = object::preselection_jets(all_jets); 
   ob_counts["preselected_jets"] += preselected_jets.size(); 
-  auto veto_jets = object::veto_jets(all_jets); 
-  ob_counts["veto_jets"] += veto_jets.size(); 
 
   // need to get susy muon indices before overlap
   std::vector<int> susy_muon_idx = get_indices(preselected_muons); 
@@ -191,6 +189,11 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   preselected_jets = remove_overlaping(preselected_electrons, 
 				  preselected_jets, 
 				  REMOVE_JET_CONE); 
+
+  auto veto_jets = object::veto_jets(preselected_jets); 
+  ob_counts["veto_jets"] += veto_jets.size(); 
+
+  preselected_jets = object::remove_bad_jets(preselected_jets); 
   preselected_electrons = remove_overlaping(preselected_jets, 
 					    preselected_electrons, 
 					    REMOVE_EL_CONE); 
@@ -201,6 +204,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   ob_counts["after_overlap_jets"] += preselected_jets.size(); 
   ob_counts["after_overlap_el"] += preselected_electrons.size(); 
   ob_counts["after_overlap_mu"] += preselected_muons.size(); 
+
 
   const auto veto_electrons = object::veto_electrons(preselected_electrons); 
   const auto veto_muons = object::veto_muons(preselected_muons); 
