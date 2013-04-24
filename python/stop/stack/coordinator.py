@@ -274,10 +274,13 @@ class Coordinator(object):
                                            variable='kinematicWt2')
             def combine(k): 
                 if k in wt_2: 
-                    eff_stats = normed[k]**2.0 / wt_2[k]
+                    if wt_2[k]: 
+                        eff_stats = normed[k]**2.0 / wt_2[k]
+                    else: 
+                        eff_stats = 0.0
                     return {
-                        'normed': eff_stats[k], 
-                        'stats': stats[k]
+                        'normed': normed[k], 
+                        'stats': eff_stats, 
                         }
                 else:
                     return normed[k]
