@@ -236,7 +236,9 @@ class SampleAggregator(object):
                     for variable in variables:
                         h5hist = vargroup[variable]
                         hist = HistNd(h5hist)
-                        if not variable.endswith('Stats'): 
+                        if variable.endswith('Wt2'): 
+                            hist *= lumi_scale**2.0
+                        else: 
                             hist *= lumi_scale
                         idx_tuple = (physics_type, variable, cut_name)
                         if not idx_tuple in plots_dict: 

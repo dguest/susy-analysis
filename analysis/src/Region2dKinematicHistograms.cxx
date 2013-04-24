@@ -20,7 +20,7 @@ Region2dKinematicHistograms
   m_build_flags(flags), 
 
   m_leading_pt_vs_met(0), 
-  m_leading_pt_vs_met_stats(0)
+  m_leading_pt_vs_met_sum_wt2(0)
 { 
   if (config.output_name.size() == 0) { 
     throw std::runtime_error("output histograms not named, quitting"); 
@@ -46,14 +46,14 @@ Region2dKinematicHistograms
   std::vector<Axis> axes = {leading_jet_pt, met}; 
   m_leading_pt_vs_met = new Histogram(axes); 
   if (!(flags & buildflag::is_data)) { 
-    m_leading_pt_vs_met_stats = new Histogram(axes); 
+    m_leading_pt_vs_met_sum_wt2 = new Histogram(axes); 
   }
 
 }
 
 Region2dKinematicHistograms::~Region2dKinematicHistograms() { 
   delete m_leading_pt_vs_met; 
-  delete m_leading_pt_vs_met_stats; 
+  delete m_leading_pt_vs_met_sum_wt2; 
 }
 
 void Region2dKinematicHistograms::fill(const EventObjects& obj) { 
@@ -73,8 +73,8 @@ void Region2dKinematicHistograms::fill(const EventObjects& obj) {
   assert(jets.size() > 0); 
   const std::vector<double> ptmet = {jets.at(0).Pt(), met.Mod()}; 
   m_leading_pt_vs_met->fill(ptmet,  weight); 
-  if (m_leading_pt_vs_met_stats) { 
-    m_leading_pt_vs_met_stats->fill(ptmet, 1.0); 
+  if (m_leading_pt_vs_met_sum_wt2) { 
+    m_leading_pt_vs_met_sum_wt2->fill(ptmet, weight*weight); 
   }
 }
 
@@ -83,8 +83,8 @@ void Region2dKinematicHistograms::write_to(H5::CommonFG& file) const {
   Group region(file.createGroup(m_region_config.name)); 
 
   m_leading_pt_vs_met->write_to(region, "kinematics");
-  if (m_leading_pt_vs_met_stats) { 
-    m_leading_pt_vs_met_stats->write_to(region, "kinematicStats"); 
+  if (m_leading_pt_vs_met_sum_wt2) { 
+    m_leading_pt_vs_met_sum_wt2->write_to(region, "kinematicWt2"); 
   }
 }
 

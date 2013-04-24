@@ -38,7 +38,7 @@ private:
   const unsigned m_build_flags; 
 
   Histogram* m_leading_pt_vs_met; 
-  Histogram* m_leading_pt_vs_met_stats; 
+  Histogram* m_leading_pt_vs_met_sum_wt2; 
 }; 
 
 

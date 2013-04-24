@@ -270,12 +270,13 @@ class Coordinator(object):
                 ext = extractor.RegionExtractor(yaml.load(yml))
             normed = ext.extract_counts_dict(hist_dict, 
                                              variable='kinematics')
-            stats = ext.extract_counts_dict(hist_dict, 
-                                            variable='kinematicStats')
+            wt_2 = ext.extract_counts_dict(hist_dict, 
+                                           variable='kinematicWt2')
             def combine(k): 
-                if k in stats: 
+                if k in wt_2: 
+                    eff_stats = normed[k]**2.0 / wt_2[k]
                     return {
-                        'normed': normed[k], 
+                        'normed': eff_stats[k], 
                         'stats': stats[k]
                         }
                 else:
