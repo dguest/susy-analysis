@@ -3,9 +3,11 @@
 
 #include <string> 
 #include "systematic_defs.hh"
+#include "CutflowConfig.hh"
 
 struct RunInfo { 
   systematic::Systematic systematic; 
+  CutflowType cutflow_type; 
   std::string grl; 
   std::string trigger; 
   std::string btag_cal_dir; 

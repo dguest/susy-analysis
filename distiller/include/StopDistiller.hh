@@ -37,6 +37,7 @@ private:
   void setup_chain(const std::vector<std::string>& in); 
   void setup_susytools(); 
   void setup_outputs(); 
+  void setup_cutflow(CutflowType config); 
 
   void print_progress(int entry_n, std::ostream&); 
   RunInfo m_info; 

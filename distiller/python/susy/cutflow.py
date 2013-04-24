@@ -12,7 +12,8 @@ class CorruptedCutflow(list):
 
 
 def cutflow(input_files, flags, grl='', output_ntuple='', 
-            btag_cal_file='', cal_dir='', systematic='NONE'): 
+            btag_cal_file='', cal_dir='', systematic='NONE', 
+            cutflow='NONE'): 
     """
     Returns a list of pairs: (cut_name, n_passing). If output_ntuple is 
     given will also write an ntuple. 
@@ -58,6 +59,7 @@ def cutflow(input_files, flags, grl='', output_ntuple='',
         'btag_cal_dir':cal_dir, 
         'btag_cal_file':btag_cal_file, 
         'systematic':systematic, 
+        'cutflow_type': cutflow
         }
     if 'a' in flags: 
         return _aggressive_distill(

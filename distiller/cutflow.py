@@ -16,6 +16,7 @@ values = cutflow.cutflow(files, flags=flags,
                          output_ntuple='py-output.root', 
                          btag_cal_file='~/btag-calibration/BTagCalibration.env', 
                          cal_dir='~/btag-calibration', 
-                         systematic='NONE')
+                         systematic='NONE', 
+                         cutflow='NOMINAL')
 for key, value in values: 
     print '{:20}: {}'.format(key, value)

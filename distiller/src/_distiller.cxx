@@ -12,6 +12,7 @@
 #include "RunBits.hh"
 #include "RunInfo.hh"
 #include "systematic_defs.hh"
+#include "CutflowConfig.hh"
 
 
 static PyObject* py_distiller(PyObject *self, 
@@ -123,6 +124,9 @@ static bool fill_run_info(PyObject* dict, RunInfo* info) {
     else if (ckey == "systematic") { 
       if (!safe_copy(value, info->systematic)) return false; 
     }
+    else if (ckey == "cutflow_type") { 
+      if (!safe_copy(value, info->cutflow_type)) return false; 
+    }
     else { 
       std::string err = "got unknown string in distiller info dict: " + ckey; 
       PyErr_SetString(PyExc_ValueError, err.c_str()); 
@@ -161,6 +165,33 @@ static bool safe_copy(PyObject* value, systematic::Systematic& dest) {
   }
   else { 
     std::string problem = "got undefined systematic: " + name; 
+    PyErr_SetString(PyExc_ValueError,problem.c_str()); 
+    return false; 
+  }
+}
+
+static bool safe_copy(PyObject* value, CutflowType& dest) { 
+  char* sysname = PyString_AsString(value); 
+  if (PyErr_Occurred()) return false; 
+  std::string name(sysname); 
+  if (name == "NOMINAL") { 
+    dest = CutflowType::NOMINAL; 
+    return true; 
+  }
+  else if (name == "NONE") { 
+    dest = CutflowType::NONE; 
+    return true; 
+  }
+  else if (name == "ELECTRON_CR") { 
+    dest = CutflowType::ELECTRON_CR; 
+    return true; 
+  }
+  else if (name == "MUON_CR") { 
+    dest = CutflowType::MUON_CR; 
+    return true; 
+  }
+  else { 
+    std::string problem = "got undefined cutflow type: " + name; 
     PyErr_SetString(PyExc_ValueError,problem.c_str()); 
     return false; 
   }
