@@ -193,15 +193,15 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   auto veto_jets = object::veto_jets(preselected_jets); 
   ob_counts["veto_jets"] += veto_jets.size(); 
 
-  preselected_jets = object::remove_bad_jets(preselected_jets); 
-  preselected_electrons = remove_overlaping(preselected_jets, 
+  const auto good_jets = object::remove_bad_jets(preselected_jets); 
+  preselected_electrons = remove_overlaping(good_jets, 
 					    preselected_electrons, 
 					    REMOVE_EL_CONE); 
-  preselected_muons = remove_overlaping(preselected_jets, 
+  preselected_muons = remove_overlaping(good_jets, 
 					preselected_muons, 
 					REMOVE_MU_CONE); 
 
-  ob_counts["after_overlap_jets"] += preselected_jets.size(); 
+  ob_counts["after_overlap_jets"] += good_jets.size(); 
   ob_counts["after_overlap_el"] += preselected_electrons.size(); 
   ob_counts["after_overlap_mu"] += preselected_muons.size(); 
 
@@ -212,7 +212,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   ob_counts["veto_el"] += veto_electrons.size(); 
   ob_counts["veto_mu"] += veto_muons.size(); 
 
-  auto signal_jets = object::signal_jets(preselected_jets); 
+  auto signal_jets = object::signal_jets(good_jets); 
   ob_counts["signal_jets"] += signal_jets.size(); 
 
   const auto control_electrons = object::control_electrons(veto_electrons); 
@@ -230,7 +230,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
 
   if (veto_jets.size() == 0) pass_bits |= pass::jet_clean; 
   pass_bits |= signal_jet_bits(signal_jets); 
-  m_out_tree->n_susy_jets = preselected_jets.size(); 
+  m_out_tree->n_susy_jets = good_jets.size(); 
 
 
   if (signal_jets.size() == 2) pass_bits |= pass::dopplejet; 
