@@ -160,14 +160,16 @@ ull_t signal_jet_bits(const std::vector<SelectedJet*>& jets) {
   if (jets.size() >= 3) { 
     const SelectedJet* jet = jets.at(2); 
     if (pass_mainz_ctag(jet))       pass_bits |= pass::ctag_mainz; 
-    if (jets.at(1)->bits() & jets.at(2)->bits() & medium) { 
+    if ( (jets.at(1)->bits() & jets.at(2)->bits() & medium) == medium) { 
       pass_bits |= pass::cutflow_tag_2; 
     }
   }
   const unsigned loose = jetbit::cnn_loose_anti_u | jetbit::cnn_anti_b; 
   if (jets.size() >= 4) { 
-    if (jets.at(1)->bits() & jets.at(2)->bits() & loose) { 
-      if (jets.at(3)->bits() & medium) pass_bits |= pass::cutflow_tag_1; 
+    if ( (jets.at(1)->bits() & jets.at(2)->bits() & loose) == loose) { 
+      if ( (jets.at(3)->bits() & medium) == medium) {
+	pass_bits |= pass::cutflow_tag_1; 
+      }
     }
   }
   return pass_bits; 
