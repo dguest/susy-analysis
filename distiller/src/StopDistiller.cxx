@@ -253,6 +253,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   }
 
   pass_bits |= control_lepton_bits(control_electrons, control_muons); 
+  pass_bits |= z_control_bits(preselected_electrons, preselected_muons); 
 
   if (veto_electrons.size() == 0) pass_bits |= pass::electron_veto; 
   if (veto_muons.size() == 0) pass_bits |= pass::muon_veto; 

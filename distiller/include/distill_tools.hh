@@ -40,6 +40,8 @@ void copy_leading_jet_info(const std::vector<SelectedJet*>& signal_jets,
 
 ull_t control_lepton_bits(const std::vector<Electron*>&, 
 			  const std::vector<Muon*>&);
+ull_t z_control_bits(const std::vector<Electron*>&, 
+		     const std::vector<Muon*>&); 
 ull_t signal_jet_bits(const std::vector<SelectedJet*>& signal_jets); 
 ull_t met_bits(const TVector2& met); 
 

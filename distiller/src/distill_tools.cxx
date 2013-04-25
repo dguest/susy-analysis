@@ -77,9 +77,14 @@ ull_t control_lepton_bits(const std::vector<Electron*>& el,
   ull_t pass_bits = 0; 
   size_t n_el = el.size(); 
   size_t n_mu = mu.size(); 
-  if (n_el) pass_bits |= pass::control_electron; 
-  if (n_mu) pass_bits |= pass::control_muon; 
-  if (n_el + n_mu > 1) pass_bits |= pass::multi_lepton; 
+  if (n_el == 1) pass_bits |= pass::control_electron; 
+  if (n_mu == 1) pass_bits |= pass::control_muon; 
+  return pass_bits; 
+}
+
+ull_t z_control_bits(const std::vector<Electron*>& el, 
+		     const std::vector<Muon*>& mu) { 
+  ull_t pass_bits = 0; 
   if (has_os_zmass_pair(el)) pass_bits |= pass::os_zmass_el_pair; 
   if (has_os_zmass_pair(mu)) pass_bits |= pass::os_zmass_mu_pair; 
   return pass_bits; 

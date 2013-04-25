@@ -25,7 +25,7 @@ namespace pass {
   // requirements for control regions
   const ull_t control_muon       = 1ULL << 15; 
   const ull_t control_electron   = 1ULL << 16;    
-  const ull_t multi_lepton       = 1ULL << 17; 
+  // const ull_t multi_lepton       = 1ULL << 17; 
   const ull_t os_zmass_el_pair   = 1ULL << 18; 
   const ull_t os_zmass_mu_pair   = 1ULL << 19; 
 
