@@ -219,6 +219,9 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   const auto control_electrons = object::control_electrons(veto_electrons); 
   const auto control_muons = object::control_muons(veto_muons); 
 
+  ob_counts["control_el"] += control_electrons.size(); 
+  ob_counts["control_mu"] += control_muons.size(); 
+
   const int n_leading = std::min(signal_jets.size(), N_SR_JETS); 
   Jets leading_jets(signal_jets.begin(), signal_jets.begin() + n_leading); 
 
