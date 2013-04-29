@@ -61,7 +61,8 @@ def submit_ds(ds_name, debug=False, version=0, used_vars='used_vars.txt',
 
 _skimmer = r"""
 import sys
-from ROOT import TChain, TFile, TTree
+from ROOT import TChain, TFile, TTree, gDirectory, gROOT
+gROOT.SetBatch()
 
 branches = open(sys.argv[1])
 
@@ -81,9 +82,13 @@ for f in sys.argv[2].split(','):
 
 set_branches = open('set-branches.txt','w')
 entries = susy_chain.GetEntries()
+susy_chain.Draw('0.5 >> sum_hist(1,0,1)','mc_event_weight')
+wt_entries = gDirectory.Get('sum_hist').GetBinContent(1)
 
 entries_file = open('n-entries.txt','w')
 entries_file.write(str(entries) + '\n')
+entries_file.write(str(wt_entries) + '\n')
+entries_file.close()
 
 if not entries: 
     set_branches.write('none\n')
