@@ -52,6 +52,32 @@ def GenerateFitAndPlotCPP(fc, anaName, drawBeforeFit, drawAfterFit, drawCorrelat
     Util.GenerateFitAndPlot(fc.name, anaName, drawBeforeFit, drawAfterFit, drawCorrelationMatrix,
                             drawSeparateComponents, drawLogLikelihood, minos, minosPars)
 
+def test_counts(region='UserRegion', data_multiplier=1.0): 
+    testcounts = { 
+        'NONE': { 
+            'Bkg': {
+                region: {'normed': 5, 'stats': 25}
+                }, 
+            'Sig': { 
+                region: {'normed': 5, 'stats': 25.0 / 4.0}
+                }, 
+            'data': { 
+                region: 7.0 * data_multiplier
+                }
+            }, 
+        'ucb': { 
+            'Bkg': { 
+                region: {'normed': 2 * 0.2 * 5}
+                }
+            }, 
+        'ucs': { 
+            'Sig': { 
+                region: {'normed': 2 * 0.1 * 5}
+                }
+            }
+        }
+    return testcounts
+
 class ChannelFactory(object): 
     def __init__(self, counts, asym_systematics, sym_systematics): 
         self.counts = counts
@@ -71,9 +97,15 @@ class SampleFactory(object):
         self.what_the_fuck_is_this = 'cuts' 
         self.asym_systematics = asym_systematics
         self.sym_systematics = sym_systematics
+        self.samples = {}
+        self.data_sample = None
         
-    def get_sample(self, sample, region):
-        roo_sample = Sample(name=sample, color=next(self.color_itr))
+    def add_sample(self, sample, region, norm_by_theory=False):
+        if not sample in self.samples: 
+            roo_sample = Sample(name=sample, color=next(self.color_itr))
+            self.samples[sample] = roo_sample
+        else: 
+            roo_sample = self.samples[sample]
         nominal = self.counts['NONE'][sample][region]['normed']
         stats = self.counts['NONE'][sample][region]['stats']
         roo_sample.setStatConfig(True)
@@ -92,13 +124,24 @@ class SampleFactory(object):
             roo_sample.addSystematic(syst)
         roo_sample.setNormFactor(
             name='mu_{}'.format(sample), val=1.0, low=0.0, high=2.0)
-        return roo_sample
-    def get_data_sample(self, region): 
-        roo_sample = Sample('Data', kBlack)
+        if norm_by_theory: 
+            roo_sample.setNormByTheory()     
+
+    def add_data_sample(self, region): 
+        if not self.data_sample: 
+            roo_sample = Sample('Data', kBlack)
+        else: 
+            roo_sample = data_sample
         roo_sample.setData()
         n_data = self.counts['NONE']['data'][region]
         roo_sample.buildHisto([n_data], region, self.what_the_fuck_is_this)
-        return roo_sample
+        self.data_sample = roo_sample
+    def get_samples(self, no_data=False): 
+        samples = self.samples.values() 
+        if self.data_sample and not no_data: 
+            samples.append(self.data_sample)
+        return samples
+
 
 def run(): 
     from configManager import configMgr
@@ -285,40 +328,15 @@ def run():
     ##########################
 
     fit_config = FitConfig(args.config)
-    fit_config.load_counts()
+    # fit_config.load_counts()
     systematics = {
         'asymmetric': ['JESUP','JESDOWN'], 
         'symmetric': ['JER']
         }
 
-    testcounts = { 
-        'NONE': { 
-            'Bkg': {
-                'UserRegion': {'normed': 5, 'stats': 25}
-                }, 
-            'Sig': { 
-                'UserRegion': {'normed': 5, 'stats': 25.0 / 4.0}
-                }, 
-            'data': { 
-                'UserRegion': 7.0
-                }
-            }, 
-        'ucb': { 
-            'Bkg': { 
-                'UserRegion': {'normed': 2 * 0.2 * 5}
-                }
-            }, 
-        'ucs': { 
-            'Sig': { 
-                'UserRegion': {'normed': 2 * 0.1 * 5}
-                }
-            }
-        }
     test_sym_systematics = { 
         
         }
-    test_factory = SampleFactory(testcounts, sym_systematics=['ucb'])
-    sig_factory = SampleFactory(testcounts, sym_systematics=['ucs'])
 
     # Set observed and expected number of events in counting experiment
     ndata     =  7. 	# Number of events observed in data
@@ -327,18 +345,28 @@ def run():
     ucs = Systematic(
         "ucs", configMgr.weights, 1.1,0.9, "user","userOverallSys")
     
-    
-    bkgSample = test_factory.get_sample('Bkg', 'UserRegion')
-    sigSample = sig_factory.get_sample('Sig', 'UserRegion')
+    samples = []
+    testcounts = test_counts()
+    test_factory = SampleFactory(testcounts, sym_systematics=['ucb'])
+    sig_factory = SampleFactory(testcounts, sym_systematics=['ucs'])
+    for region, norm in [
+        ('UserRegion',1.1),
+        ('OtherRegion',1.1), 
+        ]: 
+        testcounts = test_counts(region=region, data_multiplier=norm)
+        test_factory.counts = testcounts
+        sig_factory.counts = testcounts
+        test_factory.add_sample('Bkg', region)
+        sig_factory.add_sample('Sig', region, norm_by_theory=True)
     # not sure what this does... cryptic way to say "use lumi uncertainty"?
-    sigSample.setNormByTheory()     
-
-    dataSample = test_factory.get_data_sample('UserRegion')
-    
+        test_factory.add_data_sample(region)
+            
     # Define top-level
     ana = configMgr.addFitConfig('sb')
-    ana.addSamples([bkgSample,sigSample,dataSample])
-    ana.setSignalSample(sigSample)
+    samples = test_factory.get_samples() + sig_factory.get_samples()
+    print samples
+    ana.addSamples(samples)
+    ana.setSignalSample(sig_factory.get_samples(no_data=True)[0])
     
     # Define measurement
     meas = ana.addMeasurement(name="NormalMeasurement",lumi=1.0,lumiErr=lumiError)
@@ -417,11 +445,11 @@ class FitConfig(object):
         }
     def __init__(self, file_name): 
         if not isfile(file_name): 
-            raise IOError('no config file')
+            raise NoFitConfigError('no config file {}'.format(file_name))
         with open(file_name) as config_yml: 
             config = yaml.load(config_yml)
         if not 'fit' in config: 
-            raise NoFitConfigError()
+            raise NoFitConfigError("no 'fit' section in {}".format(file_name))
         try: 
             self.counts_file = config['files']['counts']
             self.signal_regions = config['fit']['signal_regions']
@@ -441,8 +469,8 @@ class FitConfig(object):
         return self._counts
 
 class NoFitConfigError(StandardError): 
-    def __init__(self): 
-        super(NoFitConfigError, self).__init__('no config')
+    def __init__(self, args='no config'): 
+        super(NoFitConfigError, self).__init__(args)
 
 if __name__ == "__main__":
     run()
