@@ -92,8 +92,9 @@ class Dataset(object):
 
     @property
     def effective_luminosity_fb(self): 
-        warn(FutureWarning, "we're going to remove this accesser, "
-             "use get_effective_luminosity_fb()")
+        warn("we're going to remove this accesser, "
+             "use get_effective_luminosity_fb()", FutureWarning, 
+             stacklevel=2)
 
         return self.get_effective_luminosity_fb()
     def get_effective_luminosity_fb(self): 
