@@ -21,6 +21,7 @@ def get_config():
     parser.add_argument('steering_file', help="created if it doesn't exist")
     parser.add_argument('-f','--force-aggregation', action='store_true')
     parser.add_argument('-r','--rerun-stack', action='store_true')
+    parser.add_argument('-c','--remake-counts', action='store_true')
     parser.add_argument(
         '--mode', choices={'histmill','kinematic_stat'}, 
         default='kinematic_stat', help='default: %(default)s')
@@ -59,6 +60,7 @@ def run():
         needed_systematics, 
         args.force_aggregation, 
         args.rerun_stack, 
+        args.remake_counts, 
         ]
     if not any(to_do): 
         sys.exit('nothing to do...')
