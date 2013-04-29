@@ -191,6 +191,9 @@ class SampleAggregator(object):
                 bugline = '{}: {}\n'.format(
                     file_meta.name, str(exc))
                 self.bugstream.write(bugline)
+            if not eff_lumi_fb: 
+                raise ArithmeticError(
+                    'lumi problem in {}'.format(file_meta.full_name))
                     
             return self.lumi_fb / eff_lumi_fb
 
