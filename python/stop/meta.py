@@ -28,6 +28,7 @@ class Dataset(object):
         self.n_raw_entries = 0
         self.total_xsec_fb = 0
         self.n_expected_entries = 0
+        self.sum_event_weight = 0.0
 
         self.d3pds = []
         self.skim_paths = {}
@@ -53,6 +54,7 @@ class Dataset(object):
         for key in self.merge_safe_to_copy: 
             new.__dict__[key] = copy.deepcopy(self.__dict__[key])
         new.n_raw_entries = self.n_raw_entries + other.n_raw_entries
+        new.sum_event_weight = self.sum_event_weight + other.sum_event_weight
         new.d3pds = self.d3pds + other.d3pds
         new.n_corrupted_files = (
             self.n_corrupted_files + other.n_corrupted_files)
@@ -90,12 +92,22 @@ class Dataset(object):
 
     @property
     def effective_luminosity_fb(self): 
+        warn(FutureWarning, "we're going to remove this accesser, "
+             "use get_effective_luminosity_fb()")
+
+        return self.get_effective_luminosity_fb()
+    def get_effective_luminosity_fb(self): 
         if not self.total_xsec_fb: 
             raise ArithmeticError(
                 "no cross section can't calculate effective luminosity")
 
+        sum_evt_wt = self.sum_event_weight
+        if not sum_evt_wt: 
+            warn("using raw entries as a proxy for sumed event weight")
+            sum_evt_wt = self.n_raw_entries
+
         if not self.kfactor and not self.filteff: 
-            eff_lumi = self.n_raw_entries / self.total_xsec_fb
+            eff_lumi = sum_evt_wt / self.total_xsec_fb
             raise EffectiveLuminosityError(
                 eff_lumi, ['kfactor', 'filter efficiency'])
 
@@ -103,7 +115,7 @@ class Dataset(object):
         if not kfactor: 
             if not self.physics_type == 'signal': 
                 corrected_x = self.total_xsec_fb * self.filteff
-                eff_lumi = self.n_raw_entries / corrected_x
+                eff_lumi = sum_evt_wt / corrected_x
                 raise MissingKfactorError(eff_lumi)
             else: 
                 kfactor = 1.0
@@ -111,7 +123,7 @@ class Dataset(object):
 
         if not self.filteff: 
             corrected_x = self.total_xsec_fb * self.kfactor
-            eff_lumi = self.n_raw_entries / corrected_x
+            eff_lumi = sum_evt_wt / corrected_x
             raise MissingFilterEfficiencyError(eff_lumi)
         else: 
             filt_eff = self.filteff
@@ -120,7 +132,7 @@ class Dataset(object):
         assert kfactor
         assert filt_eff
         corrected_x = self.total_xsec_fb * kfactor * filt_eff
-        return self.n_raw_entries / corrected_x
+        return sum_evt_wt / corrected_x
 
     def __str__(self): 
         def stringify(name): 
@@ -293,17 +305,24 @@ class MetaTextCollector(object):
             raise MissingMetaError("can't find meta", txt_name, root_file)
         with open(txt_name) as textfile: 
             n_events = int(next(textfile))
-        return n_events
+            try: 
+                sum_evt_weight = float(next(textfile))
+            except StopIteration: 
+                sum_evt_weight = 0.0
+        return n_events, sum_evt_weight
     def get_recorded_events(self, d3pd_list, aggressive=False): 
         """
         returns a tuple: recorded events. If aggressive will mutate list
         by removing corrupted files
         """
         n_events = 0
+        total_sum_wt = 0.0
         bad_d3pds = []
         for d3pd in d3pd_list: 
             try: 
-                n_events += self._get_recorded_events(d3pd)
+                n_raw, sum_wt = self._get_recorded_events(d3pd)
+                n_events += n_raw
+                total_sum_wt += sum_wt
             except MissingMetaError as err: 
                 if not aggressive: 
                     raise 
@@ -311,7 +330,7 @@ class MetaTextCollector(object):
         for bad in bad_d3pds: 
             d3pd_list.remove(bad)
         n_corrupted = len(bad_d3pds)
-        return n_events, n_corrupted
+        return n_events, total_sum_wt, n_corrupted
 
 class MissingMetaError(IOError): 
     """

@@ -28,13 +28,6 @@ def _run_distill(ds):
             btag_cal_file=btag_env, 
             cal_dir=ds.calibration_dir)
 
-        # collection trees have more events than the susy tree in skims, 
-        # but ami reports the number in the susy tree, thus we don't 
-        # care about the number in the collection tree (total_events)
-        # for data 
-        if not ds.is_data:      
-            ds.n_raw_entries = dict(cut_counts)['total_events']
-
         if not hasattr(ds,'cutflow') or isinstance(ds.cutflow, list): 
             ds.cutflow = {}
         cut_list = [list(c) for c in cut_counts]
@@ -209,14 +202,19 @@ class Distiller(object):
                 if ds.is_data: 
                     ds.grl = grl
                     ds.btag_env = ''
-                    # with data we need to look at textfiles which 
-                    # give the original count of events in the susy tree
-                    ds.n_raw_entries, n_corr = textmeta.get_recorded_events(
-                        ds.d3pds, aggressive=('a' in self.base_flags))
-                    ds.n_corrupted_files += n_corr
                 else: 
                     ds.grl = ''
                     ds.btag_env = btag_env
+
+                # In data we need to look at textfiles, which 
+                # give the original count of events in the susy tree. 
+                # In MC, we also need the summed event weight, which 
+                # has to be generated in the skim at the moment. 
+                n_raw, sum_wt, n_corr = textmeta.get_recorded_events(
+                    ds.d3pds, aggressive=('a' in self.base_flags))
+                ds.n_raw_entries = n_raw
+                ds.sum_event_weight = sum_wt
+                ds.n_corrupted_files += n_corr
 
     def split_datasets(self, max_d3pd_per_job): 
         with DatasetCache(self.meta_info_path) as cache: 
