@@ -21,8 +21,6 @@ def get_config():
     parser.add_argument('steering_file', help="created if it doesn't exist")
     parser.add_argument('-f','--force-aggregation', action='store_true')
     parser.add_argument('-r','--rerun-stack', action='store_true')
-    parser.add_argument('-c', '--counts-file', action='store_true')
-
     parser.add_argument(
         '--mode', choices={'histmill','kinematic_stat'}, 
         default='kinematic_stat', help='default: %(default)s')
@@ -58,7 +56,6 @@ def run():
     needed_systematics = coord.get_needed_aggregates(args.mode)
 
     to_do = [
-        args.counts_file, 
         needed_systematics, 
         args.force_aggregation, 
         args.rerun_stack, 
@@ -77,7 +74,7 @@ def run():
     if args.fast: 
         count_dict = {'NONE':count_dict}
     
-    if args.counts_file: 
+    if args.mode == 'kinematic_stat': 
         hierarchical_counts = table.yamlize(count_dict)
         with open(args.steering_file) as steer_yaml: 
             steering = yaml.load(steer_yaml)

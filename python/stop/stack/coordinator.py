@@ -288,7 +288,7 @@ class Coordinator(object):
             comb = {k:combine(k) for k in normed}
             return comb
         else: 
-            return table.get_physics_cut_dict(hist_dict)
+            return None
             
     def write(self, yaml_file): 
         for line in yaml.dump(self._config_dict): 
