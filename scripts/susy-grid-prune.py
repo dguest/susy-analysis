@@ -74,16 +74,15 @@ out_file = TFile('skim-output.root', 'recreate')
 for f in sys.argv[2].split(','): 
     print 'adding', f
     ret = susy_chain.Add(f,-1)
-    if ret != 1: 
-        raise RuntimeError(f + ' susy is fucked')
     ret = collection_chain.Add(f,-1)
-    if ret != 1: 
-        raise RuntimeError(f + ' CollectionTree is fucked')
 
 set_branches = open('set-branches.txt','w')
 entries = susy_chain.GetEntries()
 susy_chain.Draw('0.5 >> sum_hist(1,0,1)','mc_event_weight')
-wt_entries = gDirectory.Get('sum_hist').GetBinContent(1)
+try: 
+    wt_entries = gDirectory.Get('sum_hist').GetBinContent(1)
+except AttributeError: 
+    wt_entries = 0.0
 
 entries_file = open('n-entries.txt','w')
 entries_file.write(str(entries) + '\n')
