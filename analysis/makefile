@@ -70,6 +70,7 @@ GEN_OBJ     += HistConfig.o BtagConfig.o RegionConfig.o
 GEN_OBJ     += TruthJetHists.o RegionHistograms.o EventObjects.o
 GEN_OBJ     += Region2dKinematicHistograms.o
 GEN_OBJ     += RegionEventFilter.o
+GEN_OBJ     += RegionJetEfficiencyHistograms.o
 GEN_OBJ     += common_functions.o BtagScaler.o BtagBuffer.o
 EXE_OBJ     := $(GEN_OBJ) $(TOBJ) drink.o
 PYLIB_OBJ   := $(GEN_OBJ) $(TOBJ)

@@ -6,7 +6,7 @@ const double GeV = 1e3;
 const double W_MASS = 80.385*GeV; 
 
 // ok, not physical constants, but probably won't change
-enum Flavor { 
+enum class Flavor { 
   CHARM = 4, 
   BOTTOM = 5, 
   LIGHT = 0, 

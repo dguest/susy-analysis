@@ -15,7 +15,7 @@ namespace H5 {
   class CommonFG; 
 }
 
-namespace { 
+namespace kin2d { 
   const float MAX_LEADING_JET_PT = 500e3; 
   const float MAX_MET = 500e3; 
   const float MEV_PER_BIN = 5.0e3; 

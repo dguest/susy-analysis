@@ -22,6 +22,7 @@ Region2dKinematicHistograms
   m_leading_pt_vs_met(0), 
   m_leading_pt_vs_met_sum_wt2(0)
 { 
+  using namespace kin2d; 
   if (config.output_name.size() == 0) { 
     throw std::runtime_error("output histograms not named, quitting"); 
   }
@@ -90,6 +91,7 @@ void Region2dKinematicHistograms::write_to(H5::CommonFG& file) const {
 
 int Region2dKinematicHistograms::get_n_bins(double low, double high) const 
 { 
+  using namespace kin2d; 
   double span = high - low; 
   if (span < 0) { 
     throw std::runtime_error("set a low hist bin above the high bin"); 

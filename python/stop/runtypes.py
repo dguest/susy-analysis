@@ -40,5 +40,6 @@ variations = {
     'ttbar_mcnlo': [105200], 
     'ttbar_alpgen': DsRange((164440,164443), (164450, 164453)) + [
         116108, 116109], 
+    'ttbar_sherpa': DsRange((117800, 117809)), 
     }
     

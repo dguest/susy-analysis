@@ -19,6 +19,7 @@ def stacksusy(input_file, region_list, flags=''):
         - leading_jet_pt: cut on leading jet pt
         - met: cut on met
         - jet_tag_requirements: list of enums
+        - hists: {HISTMILL, KINEMATIC_STAT, TAG_EFFICIENCY}
 
     Flags: 
         v: verbose

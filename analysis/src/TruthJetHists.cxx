@@ -38,16 +38,16 @@ void TruthJetHists::write_to(H5::CommonFG& file) {
 void TruthJetHists::fill(const Jet& jet, double w) { 
   int label = jet.flavor_truth_label(); 
   switch (label) { 
-  case BOTTOM: 
+  case Flavor::BOTTOM: 
     m_bottom->fill(jet,  w); 
     return; 
-  case CHARM: 
+  case Flavor::CHARM: 
     m_charm->fill(jet,  w); 
     return; 
-  case LIGHT: 
+  case Flavor::LIGHT: 
     m_light->fill(jet,  w); 
     return; 
-  case TAU:
+  case Flavor::TAU:
     m_tau->fill(jet,  w); 
     return; 
   default: 
