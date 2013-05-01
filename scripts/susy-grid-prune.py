@@ -22,7 +22,7 @@ def _strip_front(ds_name):
     return ds_name
 
 def submit_ds(ds_name, debug=False, version=0, used_vars='used_vars.txt', 
-              out_talk=None, in_tar=None, maxgb=False): 
+              out_talk=None, in_tar=None, maxgb=False, blacklist=[]): 
 
     user = os.path.expandvars('$USER')
     preskim_name = _strip_front(ds_name)
@@ -41,6 +41,8 @@ def submit_ds(ds_name, debug=False, version=0, used_vars='used_vars.txt',
         '--extFile={}'.format(used_vars), 
         '--athenaTag=17.2.1', 
         ]
+    if blacklist: 
+        input_args.append('--excludedSite={}'.format(','.join(blacklist)))
     if in_tar: 
         input_args.append('--inTarBal={}'.format(in_tar))
     if maxgb: 
@@ -292,6 +294,7 @@ if __name__ == '__main__':
                         help=d)
     parser.add_argument('-i', '--increment-version', action='store_true')
     parser.add_argument('-g', '--ngb-max', action='store_true')
+    parser.add_argument('--blacklist', nargs='*', default=[])
     parser.add_argument('--get-slimmer', action='store_true')
     parser.add_argument('--debug', action='store_true')
     args = parser.parse_args()
@@ -345,7 +348,8 @@ if __name__ == '__main__':
                              used_vars=used_vars, 
                              out_talk=reporter.queue, 
                              in_tar=tarball, 
-                             maxgb=args.ngb_max)
+                             maxgb=args.ngb_max, 
+                             blacklist=args.blacklist)
 
         pool = Pool(10)
         with LocalSkimmer(used_vars, cuts, tarball=tarball): 
