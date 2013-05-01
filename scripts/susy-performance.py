@@ -44,10 +44,13 @@ def get_config():
     tag_agg.add_argument('whiskey_dir')
     tag_agg.add_argument('-o', '--output-dir', default='hists', 
                          help='output dir for hists, ' + d)
+    tag_plot = tag_step.add_parser('plot')
+    tag_plot.add_argument('input_hist')
     return parser.parse_args(sys.argv[1:])
 
 def jet_tag_efficinecy(config): 
-    subs = {'distill':distill_d3pds,'stack':aggregate_jet_plots}
+    subs = {'distill':distill_d3pds,'stack':aggregate_jet_plots, 
+            'plot':plot_jet_eff}
     subs[config.step](config)
 
 def distill_d3pds(config): 
@@ -92,9 +95,10 @@ def aggregate_jet_plots(config):
         os.mkdir(config.output_dir)
     for tup in whiskey: 
         out_hist_name = splitext(basename(tup))[0] + '.h5'
+        out_hist_path = join(config.output_dir, out_hist_name)
         region_dict = {
             'name':'alljet', 
-            'output_name': out_hist_name, 
+            'output_name': out_hist_path, 
             'type': 'CONTROL', 
             'hists': 'TAG_EFFICIENCY', 
             'jet_tag_requirements':['NOTAG'], 
@@ -102,6 +106,9 @@ def aggregate_jet_plots(config):
         hyperstack.stacksusy(
             input_file=tup, region_list=[region_dict], flags='v')
                       
+def plot_jet_eff(config): 
+    hist_file_name = config.input_hist
+    
 
 def _is_atlfast(sample): 
     sim_re = re.compile('\.e[0-9]+_([as])[0-9]+_')
@@ -127,6 +134,7 @@ def _ntuple_name_from_ds_name(ds_name):
     dsid = fields[type_index + 1]
     sim_name = fields[type_index + 2].split('_')[0]
     return '{}-{}.root'.format(sim_name, dsid)
+
 def _ds_key_from_ds_name(ds_name): 
     bname = basename(ds_name)
     fields = bname.split('.')

@@ -9,4 +9,6 @@ def poisson_interval(points, alpha=erf(1/2**0.5)):
     return low, high
 
 def binomial_interval(x, n, alpha=(1-erf(1/2**0.5))): 
-    return beta.ppf(alpha/2, x, n - x - 1), beta.ppf(alpha/2, x + 1, n - x)
+    low = beta.ppf(alpha/2, x, n - x - 1) * n
+    high = beta.ppf(alpha/2, x + 1, n - x) * n
+    return low, high
