@@ -3,6 +3,7 @@
 
 #include "IRegionHistograms.hh"
 #include <map>
+#include <string> 
 #include <boost/noncopyable.hpp>
 #include "Flavor.hh"
 
@@ -19,7 +20,7 @@ public:
   JetEfficiencyHists(double max_pt_mev); 
   ~JetEfficiencyHists(); 
   void fill(const Jet& jet); 
-  void write_to(H5::CommonFG&) const;
+  void write_to(H5::CommonFG&, std::string group_name) const;
 private: 
   Histogram* m_jet_pt_all; 
   Histogram* m_jet_pt_loose; 
@@ -40,12 +41,11 @@ private:
   typedef RegionJetEfficiencyHistograms ThisClass; 
   ThisClass& operator=(const ThisClass&) = delete; 
   RegionJetEfficiencyHistograms(const ThisClass&) = delete; 
-  void add_hists(Flavor); 
   const unsigned m_build_flags; 
   const RegionConfig* m_region_config; 
   const RegionEventFilter* m_event_filter; 
   
-  std::map<int, JetEfficiencyHists*> m_jet_pt_hists; 
+  std::map<Flavor, JetEfficiencyHists*> m_jet_pt_hists; 
 }; 
 
 #endif 

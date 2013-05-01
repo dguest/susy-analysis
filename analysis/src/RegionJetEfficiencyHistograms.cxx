@@ -37,11 +37,13 @@ void JetEfficiencyHists::fill(const Jet& jet) {
   }
 
 }
-void JetEfficiencyHists::write_to(H5::CommonFG& group) const { 
-  m_jet_pt_all->write_to(group, "all"); 
-  m_jet_pt_medium->write_to(group, "medium"); 
-  m_jet_pt_loose->write_to(group, "loose"); 
-  m_jet_pt_antiloose->write_to(group, "antiloose"); 
+void JetEfficiencyHists::write_to(H5::CommonFG& group, 
+				  std::string group_name) const { 
+  H5::Group subgroup(group.createGroup(group_name)); 
+  m_jet_pt_all->write_to(subgroup, "all"); 
+  m_jet_pt_medium->write_to(subgroup, "medium"); 
+  m_jet_pt_loose->write_to(subgroup, "loose"); 
+  m_jet_pt_antiloose->write_to(subgroup, "antiloose"); 
 }
 
 
@@ -53,10 +55,10 @@ RegionJetEfficiencyHistograms
   m_region_config(new RegionConfig(config)), 
   m_event_filter(new RegionEventFilter(config))
 { 
-  add_hists(Flavor::CHARM); 
-  add_hists(Flavor::BOTTOM); 
-  add_hists(Flavor::LIGHT); 
-  add_hists(Flavor::TAU); 
+  m_jet_pt_hists[Flavor::CHARM] = new JetEfficiencyHists(MAX_PT_MEV); 
+  m_jet_pt_hists[Flavor::BOTTOM] = new JetEfficiencyHists(MAX_PT_MEV); 
+  m_jet_pt_hists[Flavor::LIGHT] = new JetEfficiencyHists(MAX_PT_MEV); 
+  m_jet_pt_hists[Flavor::TAU] = new JetEfficiencyHists(MAX_PT_MEV); 
 }
 RegionJetEfficiencyHistograms::~RegionJetEfficiencyHistograms() { 
   delete m_region_config; 
@@ -66,25 +68,22 @@ RegionJetEfficiencyHistograms::~RegionJetEfficiencyHistograms() {
     itr->second = 0; 
   }
 }
-void RegionJetEfficiencyHistograms::add_hists(Flavor flavor) { 
-  // ugly static cast used to map flavor types
-  int index = static_cast<int>(flavor); 
-  m_jet_pt_hists.insert
-    (std::make_pair(index, new JetEfficiencyHists(MAX_PT_MEV))); 
-}
 void RegionJetEfficiencyHistograms::fill(const EventObjects& objects) { 
   if (!m_event_filter->pass(objects)) return; 
   const auto& jets = objects.jets; 
   for (auto jitr = jets.cbegin(); jitr != jets.cend(); jitr++){
-    // this is another ugly cast
-    int flav_idx = static_cast<int>(jitr->flavor_truth_label()); 
-    auto hist_itr = m_jet_pt_hists.find(flav_idx); 
+    auto hist_itr = m_jet_pt_hists.find(jitr->flavor_truth_label()); 
     if (hist_itr == m_jet_pt_hists.end()) { 
       throw std::logic_error("unknown jet flavor label in "__FILE__); 
     }
-    // **** WORK DO HERE
+    hist_itr->second->fill(*jitr); 
   }
 }
 void RegionJetEfficiencyHistograms::write_to(H5::CommonFG& group) const { 
-  // *** work do here
+  using namespace H5; 
+  Group region(group.createGroup(m_region_config->name)); 
+  for (auto flav_itr = m_jet_pt_hists.cbegin(); 
+       flav_itr != m_jet_pt_hists.cend(); flav_itr++) { 
+    flav_itr->second->write_to(region, as_char(flav_itr->first)); 
+  }
 }
