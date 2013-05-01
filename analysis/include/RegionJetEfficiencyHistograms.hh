@@ -31,6 +31,7 @@ private:
 class RegionJetEfficiencyHistograms: 
   public IRegionHistograms
 {
+public: 
   RegionJetEfficiencyHistograms(const RegionConfig& config, 
 				const unsigned hist_builder_flags = 0); 
   ~RegionJetEfficiencyHistograms(); 

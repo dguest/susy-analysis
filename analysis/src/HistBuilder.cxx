@@ -6,6 +6,7 @@
 #include "RegionHistograms.hh"
 #include "IRegionHistograms.hh"
 #include "Region2dKinematicHistograms.hh"
+#include "RegionJetEfficiencyHistograms.hh"
 #include "PhysicalConstants.hh"
 #include "common_functions.hh"
 #include "H5Cpp.h"
@@ -54,6 +55,11 @@ void HistBuilder::add_region(const RegionConfig& region){
     m_histograms.push_back
       (make_pair(region.name, 
 		 new Region2dKinematicHistograms(region, m_build_flags))); 
+  }
+  else if (region.hists == reg::TAG_EFFICIENCY) { 
+    m_histograms.push_back
+      (make_pair(region.name, 
+		 new RegionJetEfficiencyHistograms(region, m_build_flags)));
   }
   else { 
     throw std::logic_error("unknown hist type for region " + region.name); 

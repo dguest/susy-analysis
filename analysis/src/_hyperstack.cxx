@@ -167,6 +167,10 @@ static bool safe_copy(PyObject* value, reg::Hists& dest) {
     dest = KINEMATIC_STAT; 
     return true; 
   }
+  else if (name == "TAG_EFFICIENCY") { 
+    dest = TAG_EFFICIENCY; 
+    return true; 
+  }
   else { 
     std::string problem = "got undefined hists type: " + name; 
     PyErr_SetString(PyExc_ValueError,problem.c_str()); 
