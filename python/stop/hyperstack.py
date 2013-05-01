@@ -10,7 +10,7 @@ def stacksusy(input_file, region_list, flags=''):
     Required: 
         - name: name of region 
         - output_name: file to save region in
-        - type: {control, signal, validation}
+        - type: {CONTROL, SIGNAL, VALIDATION}
 
     Optional: 
         - required_bits: bitmask 

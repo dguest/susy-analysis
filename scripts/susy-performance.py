@@ -2,6 +2,12 @@
 """
 This is intended to be the top level script for various performance scripts. 
 """
+
+_tag_help="""
+Routine to run over d3pds (distill) condense resulting ntuples (stack), and 
+plot them (plot). Should probably be run from an empty directory. 
+"""
+
 import argparse, sys
 import glob
 from os.path import isdir, isfile, basename, join, expanduser, splitext
@@ -22,10 +28,10 @@ def get_config():
 
     parser = argparse.ArgumentParser(description=__doc__)
     subs = parser.add_subparsers(dest='which')
-    tag = subs.add_parser('tag')
+    tag = subs.add_parser('tag', description=_tag_help)
     tag_step = tag.add_subparsers(dest='step')
     tag_distill = tag_step.add_parser('distill')
-    tag_distill.add_argument('d3pds', help='input d3pds')
+    tag_distill.add_argument('d3pds', help='input d3pd dir')
     tag_distill.add_argument(
         '-o','--output-dir', default='whiskey', 
         help='output dir for distillates, ' + d)
@@ -66,7 +72,25 @@ def distill_d3pds(config):
         out_yml.write(yaml.dump(counts))
 
 def aggregate_jet_plots(config): 
-    pass
+    from stop import hyperstack
+    input_dir = config.whiskey_dir
+    if not isdir(whiskey_dir): 
+        raise IOError("intput dir '{}' doesn't exist".format(whiskey_dir))
+    whiskey = glob.glob(join(whiskey_dir, '*.root'))
+    if not isdir(config.output_dir): 
+        os.mkdir(config.output_dir)
+    bits = dict(get_bits())
+    for tup in whiskey: 
+        out_hist_name = splitext(basename(tup))[0] + '.h5'
+        region_dict = {
+            'name':'alljet', 
+            'output_name': out_hist_name, 
+            'type': 'CONTROL', 
+            'hists': 'TAG_EFFICIENCY', 
+            }
+        hyperstack.stacksusy(
+            input_file=tup, region_list=[region_dict], flags='v')
+                      
 
 def _is_atlfast(sample): 
     sim_re = re.compile('\.e[0-9]+_([af])[0-9]+_')

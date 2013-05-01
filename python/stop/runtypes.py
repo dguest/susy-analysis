@@ -41,5 +41,6 @@ variations = {
     'ttbar_alpgen': DsRange((164440,164443), (164450, 164453)) + [
         116108, 116109], 
     'ttbar_sherpa': DsRange((117800, 117809)), 
+    'ttbar_powheg_pythia':[117050], 
     }
     
