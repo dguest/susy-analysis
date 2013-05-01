@@ -10,12 +10,14 @@ plot them (plot). Should probably be run from an empty directory.
 
 import argparse, sys
 import glob
-from os.path import isdir, isfile, basename, join, expanduser, splitext
+from os.path import isdir, isfile, join, expanduser, splitext
+from os.path import dirname, basename
 import os
 import re
 import yaml
 
 from susy.distiller import cutflow
+from stop import meta
 
 def run(): 
     config = get_config()
@@ -32,6 +34,7 @@ def get_config():
     tag_step = tag.add_subparsers(dest='step')
     tag_distill = tag_step.add_parser('distill')
     tag_distill.add_argument('d3pds', help='input d3pd dir')
+    tag_distill.add_argument('meta', help='meta yaml file')
     tag_distill.add_argument(
         '-o','--output-dir', default='whiskey', 
         help='output dir for distillates, ' + d)
@@ -44,7 +47,7 @@ def get_config():
     return parser.parse_args(sys.argv[1:])
 
 def jet_tag_efficinecy(config): 
-    subs = {'distill':distill_d3pds,'aggregate':aggregate_jet_plots}
+    subs = {'distill':distill_d3pds,'stack':aggregate_jet_plots}
     subs[config.step](config)
 
 def distill_d3pds(config): 
@@ -54,32 +57,39 @@ def distill_d3pds(config):
     btag_env = join(calibration_dir, 'BTagCalibration.env')
     if not datasets: 
         return 
-    if not isdir(config.out_dir): 
-        os.mkdir(config.out_dir)
-    counts = {}
+    if not isdir(config.output_dir): 
+        os.mkdir(config.output_dir)
+    meta_lookup = meta.DatasetCache(config.meta)
+    ds_groups = {}
     for ds in datasets: 
         subfiles = glob.glob('{}/*.root*'.format(ds))
-        out_file = _ntuple_name_from_ds_name(ds)
-        out_path = join(config.out_dir, out_file)
+        ds_key = _ds_key_from_ds_name(ds)
+        if not ds_key in ds_groups: 
+            ds_groups[ds_key] = []
+        ds_groups[ds_key] += subfiles
+
+    counts = {}
+    for ds_key, subfiles in ds_groups.iteritems(): 
+        out_file = _ntuple_name_from_ds_name(dirname(subfiles[0]))
+        out_path = join(config.output_dir, out_file)
         flags = 'ev'
-        if _is_atlfast(ds): 
+        if _is_atlfast(meta_lookup[ds_key].full_name): 
             flags += 'f'
-        cut_counts = cutflow(
+        cut_counts = cutflow.cutflow(
             input_files=subfiles, flags=flags, output_ntuple=out_path, 
             btag_cal_file=btag_env, cal_dir=calibration_dir)
         counts[splitext(out_file)[0]] = cut_counts
-    with open(join(config.out_dir, 'obj_counts.yml'),'w') as out_yml: 
+    with open(join(config.output_dir, 'obj_counts.yml'),'w') as out_yml: 
         out_yml.write(yaml.dump(counts))
 
 def aggregate_jet_plots(config): 
     from stop import hyperstack
     input_dir = config.whiskey_dir
-    if not isdir(whiskey_dir): 
+    if not isdir(config.whiskey_dir): 
         raise IOError("intput dir '{}' doesn't exist".format(whiskey_dir))
-    whiskey = glob.glob(join(whiskey_dir, '*.root'))
+    whiskey = glob.glob(join(config.whiskey_dir, '*.root'))
     if not isdir(config.output_dir): 
         os.mkdir(config.output_dir)
-    bits = dict(get_bits())
     for tup in whiskey: 
         out_hist_name = splitext(basename(tup))[0] + '.h5'
         region_dict = {
@@ -87,17 +97,21 @@ def aggregate_jet_plots(config):
             'output_name': out_hist_name, 
             'type': 'CONTROL', 
             'hists': 'TAG_EFFICIENCY', 
+            'jet_tag_requirements':['NOTAG'], 
             }
         hyperstack.stacksusy(
             input_file=tup, region_list=[region_dict], flags='v')
                       
 
 def _is_atlfast(sample): 
-    sim_re = re.compile('\.e[0-9]+_([af])[0-9]+_')
-    char = sim_re.search(sample).group(1)
+    sim_re = re.compile('\.e[0-9]+_([as])[0-9]+_')
+    try: 
+        char = sim_re.search(sample).group(1)
+    except AttributeError: 
+        raise ValueError("can't find type of reco in {}".format(sample))
     if char == 'a': 
         return True
-    elif char == 'f': 
+    elif char == 's': 
         return False
     else: 
         raise ValueError(
@@ -106,10 +120,19 @@ def _is_atlfast(sample):
 def _ntuple_name_from_ds_name(ds_name): 
     bname = basename(ds_name)
     fields = bname.split('.')
-    type_index = fields.index('mc12_8TeV')
+    try: 
+        type_index = fields.index('mc12_8TeV')
+    except ValueError: 
+        raise ValueError("can't find type string in {}".format(bname))
     dsid = fields[type_index + 1]
     sim_name = fields[type_index + 2].split('_')[0]
     return '{}-{}.root'.format(sim_name, dsid)
+def _ds_key_from_ds_name(ds_name): 
+    bname = basename(ds_name)
+    fields = bname.split('.')
+    type_index = fields.index('mc12_8TeV')
+    dsid = fields[type_index + 1]
+    return 's{}'.format(dsid)
 
 if __name__ == '__main__': 
     run()
