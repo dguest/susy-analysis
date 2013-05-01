@@ -6,17 +6,24 @@
 
 #include "TLorentzVector.h"
 #include "TVector2.h"
+#include "Flavor.hh"
 
 Jet::Jet(const JetBuffer* basis, unsigned flags): 
   m_pb(basis->cnn_b), 
   m_pc(basis->cnn_c), 
   m_pu(basis->cnn_u), 
-  m_truth_label(basis->flavor_truth_label), 
   m_met_dphi(0), 
   m_ioflags(flags), 
   m_buffer(basis)
 {
   SetPtEtaPhiM(basis->pt, basis->eta, basis->phi, 0); 
+  switch (basis->flavor_truth_label) { 
+  case 0: m_truth_label = Flavor::LIGHT; break; 
+  case 4: m_truth_label = Flavor::CHARM; break; 
+  case 5: m_truth_label = Flavor::BOTTOM; break; 
+  case 15: m_truth_label = Flavor::TAU; break; 
+  default: m_truth_label = Flavor::NONE; break; 
+  }
 }
 void Jet::set_event_met(const TVector2& met) { 
   TLorentzVector met_4vec(met.X(), met.Y(), 0, 1); 
@@ -26,7 +33,7 @@ double Jet::met_dphi() const {return m_met_dphi; }
 double Jet::pb() const {req_flavor(); return m_pb; } 
 double Jet::pc() const {req_flavor(); return m_pc; } 
 double Jet::pu() const {req_flavor(); return m_pu; } 
-int    Jet::flavor_truth_label() const { 
+Flavor Jet::flavor_truth_label() const { 
   if (m_ioflags & ioflag::no_truth) { 
     throw std::runtime_error("no truth info, can't get flavor truth label"); 
   }

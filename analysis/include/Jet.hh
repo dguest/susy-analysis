@@ -5,6 +5,7 @@
 #include "systematic_defs.hh"
 #include "TLorentzVector.h"
 #include "typedefs.hh"
+#include "Flavor.hh"
 
 struct JetBuffer; 
 class TVector2; 
@@ -19,7 +20,7 @@ public:
   double pb() const; 
   double pc() const; 
   double pu() const; 
-  int flavor_truth_label() const; 
+  Flavor flavor_truth_label() const; 
   bool has_flavor() const; 
   bool pass_tag(btag::JetTag) const; 
   double get_scalefactor(btag::JetTag, syst::Systematic = syst::NONE) const; 
@@ -28,7 +29,7 @@ private:
   double m_pb; 
   double m_pc; 
   double m_pu; 
-  int m_truth_label; 
+  Flavor m_truth_label; 
   double m_met_dphi; 
 
   unsigned m_ioflags; 

@@ -12,7 +12,8 @@
 #include "TFile.h"
 #include "TTree.h"
 
-JetBuffer::JetBuffer() 
+JetBuffer::JetBuffer(): 
+  flavor_truth_label(-1)
 { 
 }
 JetBuffer::~JetBuffer() { 

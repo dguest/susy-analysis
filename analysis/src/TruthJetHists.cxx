@@ -2,7 +2,7 @@
 #include "Jet1DHists.hh"
 #include "H5Cpp.h"
 #include "Jet.hh"
-#include "PhysicalConstants.hh"
+#include "Flavor.hh"
 
 TruthJetHists::TruthJetHists(double max_pt, const unsigned flags) { 
   m_bottom = new Jet1DHists(max_pt, flags); 
@@ -36,7 +36,7 @@ void TruthJetHists::write_to(H5::CommonFG& file) {
 }
 
 void TruthJetHists::fill(const Jet& jet, double w) { 
-  int label = jet.flavor_truth_label(); 
+  Flavor label = jet.flavor_truth_label(); 
   switch (label) { 
   case Flavor::BOTTOM: 
     m_bottom->fill(jet,  w); 

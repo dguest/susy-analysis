@@ -7,6 +7,7 @@
 #include "systematic_defs.hh"
 #include "typedefs.hh"
 #include "BtagConfig.hh"
+#include "Flavor.hh"
 
 class BtagBuffer; 
 
@@ -19,7 +20,7 @@ class BtagScaler: boost::noncopyable
 {
 public: 
   BtagScaler(const BtagBuffer* buffer, btag::JetTag); 
-  double get_scalefactor(unsigned jet_mask, int flavor, 
+  double get_scalefactor(unsigned jet_mask, Flavor flavor, 
 			 syst::Systematic = syst::NONE) const; 
 private: 
   const BtagBuffer* m_buffer; 

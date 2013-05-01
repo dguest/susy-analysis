@@ -2,7 +2,7 @@
 #include "Jet.hh"
 #include "Histogram.hh"
 #include "HistBuilderFlags.hh"
-#include "PhysicalConstants.hh"
+#include "Flavor.hh"
 #include "H5Cpp.h"
 
 #include <string> 
@@ -63,7 +63,7 @@ void Jet1DHists::fill(const Jet& jet, double w) {
   m_met_dphi->fill(fabs(jet.met_dphi()),  w); 
 
   if (m_truth_label) { 
-    int label = jet.flavor_truth_label(); 
+    int label = static_cast<int>(jet.flavor_truth_label()); 
     m_truth_label->fill(label,  w); 
   }
 
