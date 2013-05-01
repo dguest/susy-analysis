@@ -12,6 +12,10 @@ class EfficiencyPlot(object):
         self.ax = self.fig.add_subplot(1,1,1)
         self._color_itr = iter('kbgrm')
         self._legs = []
+    def __enter__(self): 
+        return self
+    def __exit__(self, ex_type, ex_val, ex_trace): 
+        self.close()
         
     def add_efficiency(self, num, denom, extent, name=''): 
         """
@@ -22,7 +26,14 @@ class EfficiencyPlot(object):
         valid = denom > 0.0
         ratio = np.zeros(num.shape)
         ratio[valid] = num[valid] / denom[valid]
-        low, high = binomial_interval(num, denom)
+        low, high = binomial_interval(num, denom) / denom
+        
+        # force within window
+        ratio[ratio > self.y_range[1]] = self.y_range[1]
+        high[high > self.y_range[1]] = self.y_range[1]
+        low[low <= self.y_range[0]] = self.y_range[0] 
+        low[np.isnan(low)] = 0.0
+
         err_down = ratio - low
         err_up = high - ratio
         fmt = '{}.'.format(next(self._color_itr))
@@ -34,9 +45,10 @@ class EfficiencyPlot(object):
         
     def save(self, name): 
         if self._legs: 
-            legend = self.ax.legend(*zip(self._legs), numpoints=1)
+            legend = self.ax.legend(*zip(*self._legs), numpoints=1)
             legend.get_frame().set_linewidth(0)
             legend.get_frame().set_alpha(0)
+        self.ax.set_ylim(*self.y_range)
         self.fig.savefig(name, bbox_inches='tight')
     def close(self): 
         plt.close(self.fig)

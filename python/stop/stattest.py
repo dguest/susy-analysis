@@ -1,5 +1,6 @@
 from scipy.stats import chi2, beta
 from math import erf
+import numpy as np
 
 def poisson_interval(points, alpha=erf(1/2**0.5)): 
     a = alpha
@@ -10,5 +11,5 @@ def poisson_interval(points, alpha=erf(1/2**0.5)):
 
 def binomial_interval(x, n, alpha=(1-erf(1/2**0.5))): 
     low = beta.ppf(alpha/2, x, n - x - 1) * n
-    high = beta.ppf(alpha/2, x + 1, n - x) * n
+    high = beta.ppf(1-alpha/2, x + 1, n - x) * n
     return low, high
