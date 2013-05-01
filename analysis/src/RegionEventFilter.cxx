@@ -37,8 +37,10 @@ bool RegionEventFilter::pass(const EventObjects& obj) const {
     if (!pass) return false; 
   }
 
-  if (jets.at(0).Pt() < m_region_config.leading_jet_pt) { 
-    return false; 
+  if (m_region_config.leading_jet_pt > 0.0) { 
+    if (jets.at(0).Pt() < m_region_config.leading_jet_pt) { 
+      return false; 
+    }
   }
   bool do_mu_met = m_region_config.region_bits & reg::mu_met; 
   const TVector2& met = do_mu_met ? obj.mu_met : obj.met; 

@@ -34,6 +34,7 @@ struct JetBuffer
   int flavor_truth_label; 
   unsigned bits; 
   std::map<std::string, BtagBuffer*> btag_buffers; 
+  // TODO: the btag scalers  shoudldn't be owned by the buffer. 
   std::vector<BtagScaler*> btag_scalers; 
   JetBuffer(); 
   ~JetBuffer(); 

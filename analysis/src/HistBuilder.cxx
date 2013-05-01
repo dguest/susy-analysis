@@ -60,6 +60,8 @@ void HistBuilder::add_region(const RegionConfig& region){
     m_histograms.push_back
       (make_pair(region.name, 
 		 new RegionJetEfficiencyHistograms(region, m_build_flags)));
+    using namespace btag; 
+    m_factory->set_btagging({NOTAG, LOOSE, MEDIUM, ANTILOOSE}); 
   }
   else { 
     throw std::logic_error("unknown hist type for region " + region.name); 
