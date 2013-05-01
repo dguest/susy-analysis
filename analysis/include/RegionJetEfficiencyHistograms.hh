@@ -7,6 +7,10 @@
 #include <boost/noncopyable.hpp>
 #include "Flavor.hh"
 
+namespace jeteff { 
+  const double MAX_PT_MEV = 1e6; 
+}
+
 class RegionConfig; 
 class RegionEventFilter; 
 class Histogram; 
@@ -38,7 +42,6 @@ public:
   virtual void fill(const EventObjects& objects); 
   virtual void write_to(H5::CommonFG&) const; 
 private: 
-  static const double MAX_PT_MEV = 1000e3; 
   typedef RegionJetEfficiencyHistograms ThisClass; 
   ThisClass& operator=(const ThisClass&) = delete; 
   RegionJetEfficiencyHistograms(const ThisClass&) = delete; 

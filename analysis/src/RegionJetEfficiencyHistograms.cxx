@@ -9,6 +9,7 @@
 #include "EventObjects.hh"
 #include <stdexcept> 
 
+
 JetEfficiencyHists::JetEfficiencyHists(double max_pt_mev )
 { 
   const std::string units = "MeV"; 
@@ -46,8 +47,6 @@ void JetEfficiencyHists::write_to(H5::CommonFG& group,
   m_jet_pt_antiloose->write_to(subgroup, "antiloose"); 
 }
 
-
-
 RegionJetEfficiencyHistograms
 ::RegionJetEfficiencyHistograms(const RegionConfig& config, 
 				const unsigned flags): 
@@ -55,6 +54,7 @@ RegionJetEfficiencyHistograms
   m_region_config(new RegionConfig(config)), 
   m_event_filter(new RegionEventFilter(config))
 { 
+  using namespace jeteff; 
   m_jet_pt_hists[Flavor::CHARM] = new JetEfficiencyHists(MAX_PT_MEV); 
   m_jet_pt_hists[Flavor::BOTTOM] = new JetEfficiencyHists(MAX_PT_MEV); 
   m_jet_pt_hists[Flavor::LIGHT] = new JetEfficiencyHists(MAX_PT_MEV); 
