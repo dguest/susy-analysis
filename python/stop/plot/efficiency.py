@@ -1,4 +1,5 @@
-import matplotlib.pyplot as plt
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from matplotlib.figure import Figure
 import numpy as np
 from stop.stattest import binomial_interval
 
@@ -8,14 +9,11 @@ class EfficiencyPlot(object):
     """
     def __init__(self, y_min, y_max): 
         self.y_range = (y_min, y_max)
-        self.fig = plt.figure(figsize=(8,6))
+        self.fig = Figure(figsize=(8,6))
+        self.canvas = FigureCanvas(self.fig)
         self.ax = self.fig.add_subplot(1,1,1)
         self._color_itr = iter('kbgrm')
         self._legs = []
-    def __enter__(self): 
-        return self
-    def __exit__(self, ex_type, ex_val, ex_trace): 
-        self.close()
         
     def add_efficiency(self, num, denom, extent, name=''): 
         """
@@ -54,5 +52,3 @@ class EfficiencyPlot(object):
             legend.get_frame().set_alpha(0)
         self.ax.set_ylim(*self.y_range)
         self.fig.savefig(name, bbox_inches='tight')
-    def close(self): 
-        plt.close(self.fig)
