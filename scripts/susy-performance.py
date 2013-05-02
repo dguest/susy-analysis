@@ -33,7 +33,8 @@ def get_config():
     tag = subs.add_parser('tag', description=_tag_help)
     tag_step = tag.add_subparsers(dest='step')
     tag_distill = tag_step.add_parser('distill')
-    tag_distill.add_argument('d3pds', help='input d3pd dir')
+    tag_distill.add_argument(
+        'd3pds', help='input d3pd dir OR file listing d3pds')
     tag_distill.add_argument('meta', help='meta yaml file')
     tag_distill.add_argument(
         '-o','--output-dir', default='whiskey', 
@@ -56,7 +57,11 @@ def jet_tag_efficinecy(config):
     subs[config.step](config)
 
 def distill_d3pds(config): 
-    d3pd_contents = glob.glob('{}/*'.format(config.d3pds))
+    if isfile(config.d3pds): 
+        with open(config.d3pds) as d3pd_file: 
+            d3pd_contents = [l.strip() for l in d3pd_file.readlines()]
+    else: 
+        d3pd_contents = glob.glob('{}/*'.format(config.d3pds))
     datasets = [subdir for subdir in d3pd_contents if isdir(subdir)]
     calibration_dir = expanduser(config.calibration)
     btag_env = join(calibration_dir, 'BTagCalibration.env')
