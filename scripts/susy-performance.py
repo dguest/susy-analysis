@@ -75,7 +75,7 @@ def distill_d3pds(config):
     for ds_key, subfiles in ds_groups.iteritems(): 
         out_file = _ntuple_name_from_ds_name(dirname(subfiles[0]))
         out_path = join(config.output_dir, out_file)
-        flags = 'ev'
+        flags = 'ev'            # all events saved, verbose
         if _is_atlfast(meta_lookup[ds_key].full_name): 
             flags += 'f'
         cut_counts = cutflow.cutflow(
@@ -97,11 +97,11 @@ def aggregate_jet_plots(config):
         out_hist_name = splitext(basename(tup))[0] + '.h5'
         out_hist_path = join(config.output_dir, out_hist_name)
         region_dict = {
-            'name':'alljet', 
+            'name':'alljet',    # the top level in the output
             'output_name': out_hist_path, 
-            'type': 'CONTROL', 
+            'type': 'CONTROL',  # doesn't really matter
             'hists': 'TAG_EFFICIENCY', 
-            'jet_tag_requirements':['NOTAG'], 
+            'jet_tag_requirements':['NOTAG'], # require one jet 
             }
         hyperstack.stacksusy(
             input_file=tup, region_list=[region_dict], flags='v')

@@ -23,9 +23,13 @@ class EfficiencyPlot(object):
         """
         tmp_xpts = len(num)*2 + 1
         x_vals = np.linspace(*extent, num=tmp_xpts)[1:-1:2]
+
+        # remove the points where the denominator is zero
         valid = denom > 0.0
-        ratio = np.zeros(num.shape)
-        ratio[valid] = num[valid] / denom[valid]
+        x_vals = x_vals[valid]
+        num = num[valid]
+        denom = denom[valid]
+        ratio = num / denom
         low, high = binomial_interval(num, denom) / denom
         
         # force within window
