@@ -305,10 +305,13 @@ class MetaTextCollector(object):
         if not isfile(txt_name): 
             raise MissingMetaError("can't find meta", txt_name, root_file)
         with open(txt_name) as textfile: 
-            n_events = int(next(textfile))
-            try: 
-                sum_evt_weight = float(next(textfile))
-            except StopIteration: 
+            values = textfile.readlines()
+            if len(values) == 0: 
+                raise MissingMetaError('no n_events', txt_name, root_file)
+            n_events = int(values[0])
+            if len(values) > 1: 
+                sum_evt_weight = float(values[1])
+            else: 
                 sum_evt_weight = 0.0
         return n_events, sum_evt_weight
     def get_recorded_events(self, d3pd_list, aggressive=False): 
