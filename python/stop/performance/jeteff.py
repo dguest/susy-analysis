@@ -49,8 +49,8 @@ class JetEfficiencyPlotter(object):
                     flavor_group = h5_file[self._group_name]
                 except KeyError as err: 
                     keys = ', '.join(h5_file.keys())
-                    raise KeyError(
-                        '{} possible keys: {}'.format(err, keys))
+                    err = "error opening '{}' in '{}' possible keys: {}"
+                    raise IOError(err.format(self._group_name, sample, keys))
                 if flavors == 'all': 
                     flavors = flavor_group.keys()
                 for flavor in flavors: 

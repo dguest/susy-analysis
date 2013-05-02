@@ -45,7 +45,9 @@ def get_config():
     tag_agg.add_argument('-o', '--output-dir', default='hists', 
                          help='output dir for hists, ' + d)
     tag_plot = tag_step.add_parser('plot')
-    tag_plot.add_argument('input_hists')
+    tag_plot.add_argument('input_hists', nargs='*')
+    tag_plot.add_argument('-o', '--output-dir', default='plots', 
+                          help='output dir for plots, ' + d)
     return parser.parse_args(sys.argv[1:])
 
 def jet_tag_efficinecy(config): 
@@ -107,8 +109,11 @@ def aggregate_jet_plots(config):
             input_file=tup, region_list=[region_dict], flags='v')
                       
 def plot_jet_eff(config): 
-    hist_file_name = config.input_hists
-    
+    from stop.performance.jeteff import JetEfficiencyPlotter
+    if not isdir(config.output_dir): 
+        os.mkdir(config.output_dir)
+    plotter = JetEfficiencyPlotter()
+    plotter.plot_samples(config.input_hists, out_dir=config.output_dir)
     
 
 def _is_atlfast(sample): 
