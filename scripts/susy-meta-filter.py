@@ -64,6 +64,7 @@ def strip_distiller_meta(item, merging=True):
         item.subset_index = 0
         item.total_subsets = 0
         item.n_raw_entries = 0
+        item.n_corrupted_files = 0
         item.meta_sources -= set(['distiller'])
 
 def run(): 
