@@ -185,7 +185,7 @@ class SampleAggregator(object):
             return 1.0
         else: 
             try: 
-                eff_lumi_fb = file_meta.effective_luminosity_fb
+                eff_lumi_fb = file_meta.get_effective_luminosity_fb()
             except meta.EffectiveLuminosityError as exc: 
                 eff_lumi_fb = exc.best_guess_fb
                 bugline = '{}: {}\n'.format(
