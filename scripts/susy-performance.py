@@ -42,7 +42,8 @@ def get_config():
     tag_distill.add_argument('--calibration', default='~/calibration', 
                              help=d)
     tag_agg = tag_step.add_parser('stack')
-    tag_agg.add_argument('whiskey_dir')
+    tag_agg.add_argument(
+        'whiskey_dir', help='input dir (or file)')
     tag_agg.add_argument('-o', '--output-dir', default='hists', 
                          help='output dir for hists, ' + d)
     tag_plot = tag_step.add_parser('plot')
@@ -95,9 +96,12 @@ def distill_d3pds(config):
 def aggregate_jet_plots(config): 
     from stop import hyperstack
     input_dir = config.whiskey_dir
-    if not isdir(config.whiskey_dir): 
+    if isdir(config.whiskey_dir): 
+        whiskey = glob.glob(join(config.whiskey_dir, '*.root'))
+    elif isfile(config.whiskey_dir): 
+        whiskey = [config.whiskey_dir]
+    else:
         raise IOError("intput dir '{}' doesn't exist".format(whiskey_dir))
-    whiskey = glob.glob(join(config.whiskey_dir, '*.root'))
     if not isdir(config.output_dir): 
         os.mkdir(config.output_dir)
     for tup in whiskey: 
