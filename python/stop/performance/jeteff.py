@@ -7,7 +7,8 @@ from stop.plot.efficiency import EfficiencyPlot
 
 class JetEfficiencyPlotter(object): 
     _group_name = 'alljet'
-    def __init__(self): 
+    _wt2_append = 'Wt2'
+    def __init__(self, do_wt2_error=True): 
         self.group_name = self._group_name 
         self.max_pt_gev = 400.0
         self.custom_ranges = { 
@@ -22,6 +23,7 @@ class JetEfficiencyPlotter(object):
             'McAtNlo': 'g'
             }
             
+        self.do_wt2_error = do_wt2_error
         self.x_range_gev = (0.0, 400.0)
 
     def _get_color(self, name): 
@@ -95,7 +97,7 @@ class JetEfficiencyPlotter(object):
         tuple_dict = self._get_tuple_dict(sample_names, tags, flavors)
         all_samples, all_flavors, all_tags = self._get_sft(tuple_dict)
         if tags == 'all': 
-            tags = all_tags
+            tags = [tag for tag in all_tags if not tag.endswith('Wt2')]
         if flavors == 'all': 
             flavors = all_flavors
         for flavor in flavors: 
@@ -116,8 +118,16 @@ class JetEfficiencyPlotter(object):
                                        x=0.98, ha='right')
                 for key in pl_keys: 
                     name = key[0]
+                    wt2_tag = key[2] + self._wt2_append
+                    num_wt2 = denom_wt2 = None
+                    if self.do_wt2_error: 
+                        num_wt2, denom_wt2, wt_ext = tuple_dict[
+                            name, flavor, wt2_tag]
                     color = self._get_color(name)
                     eff_plot.add_efficiency(*tuple_dict[key], 
-                                            name=name, color=color)
+                                             name=name, color=color, 
+                                             num_wt2=num_wt2, 
+                                             denom_wt2=denom_wt2)
+
                 plot_name = '{}/{}-{}.pdf'.format(out_dir, flavor, tag)
                 eff_plot.save(plot_name)

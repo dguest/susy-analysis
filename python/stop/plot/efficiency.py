@@ -15,10 +15,23 @@ class EfficiencyPlot(object):
         self._color_itr = iter('kbgrm')
         self._legs = []
         self.x_range = x_range
-        
-    def add_efficiency(self, num, denom, extent, name='', color=None): 
+
+    def _error_from_num_denom(self, num, denom, num_wt2, denom_wt2): 
+        p = num 
+        f = denom - num 
+        f_wt2 = denom_wt2 - num_wt2
+        p_wt2 = num_wt2
+        error = (p_wt2**0.5 * f + f_wt2**0.5 * p) / (p + f)**2.0
+        return error
+
+    def add_efficiency(self, num, denom, extent, name='', color=None, 
+                       num_wt2=None, denom_wt2=None): 
         """
-        overflow bins should not be included. 
+        Adds efficiency num / denom. If no wt2 arrays are given, calculates
+        binomial errors. Otherwise uses linear error propagation (assuming
+        num is a subset of denom). 
+
+        Overflow bins should not be included. 
         """
         tmp_xpts = len(num)*2 + 1
         x_vals = np.linspace(*extent, num=tmp_xpts)[1:-1:2]
@@ -33,7 +46,14 @@ class EfficiencyPlot(object):
         num = num[valid]
         denom = denom[valid]
         ratio = num / denom
-        low, high = binomial_interval(num, denom) / denom
+        if num_wt2 is not None and denom_wt2 is not None: 
+            num_wt2 = num_wt2[valid]
+            denom_wt2 = denom_wt2[valid]
+            err = self._error_from_num_denom(num, denom, num_wt2, denom_wt2)
+            low = ratio - err
+            high = ratio + err
+        else: 
+            low, high = binomial_interval(num, denom) / denom
         
         # force within window
         ratio[ratio > self.y_range[1]] = self.y_range[1]

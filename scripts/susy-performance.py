@@ -50,6 +50,10 @@ def get_config():
     tag_plot.add_argument('input_hists', nargs='*')
     tag_plot.add_argument('-o', '--output-dir', default='plots', 
                           help='output dir for plots, ' + d)
+    tag_plot.add_argument(
+        '-b', '--binomial-error', action='store_true', 
+        help=('calculate errors as binomial rather than using wt2 linear '
+              'propagation'))
     return parser.parse_args(sys.argv[1:])
 
 def jet_tag_efficinecy(config): 
@@ -121,7 +125,8 @@ def plot_jet_eff(config):
     from stop.performance.jeteff import JetEfficiencyPlotter
     if not isdir(config.output_dir): 
         os.mkdir(config.output_dir)
-    plotter = JetEfficiencyPlotter()
+    wt2_error = not config.binomial_error
+    plotter = JetEfficiencyPlotter(do_wt2_error=wt2_error)
     plotter.plot_samples(config.input_hists, out_dir=config.output_dir)
     
 
