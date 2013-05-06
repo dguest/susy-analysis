@@ -1,6 +1,7 @@
 #include "BosonTruthFilter.hh"
 #include "SusyBuffer.h"
 #include <stdexcept> 
+#include <cassert> 
 
 #include "TLorentzVector.h"
 
@@ -9,6 +10,7 @@ BosonTruthFilter::BosonTruthFilter(double threshold_mev):
 {
 }
 bool BosonTruthFilter::is_over_threshold(const SusyBuffer* buffer) { 
+  assert(buffer->mc_status); 
   int mc_n = buffer->mc_n; 
   TLorentzVector l1;
   TLorentzVector l2;

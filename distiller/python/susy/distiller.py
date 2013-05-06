@@ -7,6 +7,9 @@ from warnings import warn
 
 def _run_distill(ds): 
     """
+    Stand alond function to process a D3PD -> whiskey tuple. 
+    Needed to run multiprocessing (maybe not worth the hassle). 
+
     Note: need to rework the interface between this and cutflow.cutflow
     """
     print '{} starting, type: {}'.format(ds.id,ds.name)
@@ -62,7 +65,9 @@ class Distiller(object):
     """
     Builds distillates from D3PDs. 
 
-    Designed to run over one meta file and produce 
+    Designed to run over one meta file and produce an ntuple. 
+
+    Currently does multiprocessing (for better or worse). 
     """
     base_systematic = 'baseline'
     def __init__(self, config): 
@@ -143,6 +148,8 @@ class Distiller(object):
         if self._signal_finder(ds.name): 
             flags += 's'
         
+        # the sherpa samples with boson Pt0 are inclusive and must not be
+        # included if the pt overlaps with the first binned sample. 
         overlaping_sherpa_finder = re.compile('MassiveCBPt0_')
         sherpa_pt_range_finder = re.compile('Pt[0-9]+_[0-9]+')
         if overlaping_sherpa_finder.search(ds.name): 
