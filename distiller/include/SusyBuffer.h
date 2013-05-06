@@ -9,7 +9,7 @@
 #define susy_h
 
 #include <vector> 
-
+#include <string> 
 
 struct BranchNames 
 { 
