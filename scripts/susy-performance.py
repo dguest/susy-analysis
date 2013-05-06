@@ -8,6 +8,10 @@ Routine to run over d3pds (distill) condense resulting ntuples (stack), and
 plot them (plot). Should probably be run from an empty directory. 
 """
 
+_tag_list_help="""
+Prints lists of files / datasets in a meta file. 
+"""
+
 import argparse, sys
 import glob
 from os.path import isdir, isfile, join, expanduser, splitext
@@ -32,6 +36,7 @@ def get_config():
     subs = parser.add_subparsers(dest='which')
     tag = subs.add_parser('tag', description=_tag_help)
     tag_step = tag.add_subparsers(dest='step')
+
     tag_distill = tag_step.add_parser('distill')
     tag_distill.add_argument(
         'd3pds', help='input d3pd dir OR file listing d3pds')
@@ -41,11 +46,19 @@ def get_config():
         help='output dir for distillates, ' + d)
     tag_distill.add_argument('--calibration', default='~/calibration', 
                              help=d)
+
+    tag_list = tag_step.add_parser('list', description=_tag_list_help)
+    tag_list.add_argument('meta_file')
+    list_type = tag_list.add_mutually_exclusive_group(required=True)
+    list_type.add_argument('--physics')
+    tag_list.add_argument('-d', '--ntuples-dir')
+
     tag_agg = tag_step.add_parser('stack')
     tag_agg.add_argument(
         'whiskey_dir', help='input dir (or file)')
     tag_agg.add_argument('-o', '--output-dir', default='hists', 
                          help='output dir for hists, ' + d)
+
     tag_plot = tag_step.add_parser('plot')
     tag_plot.add_argument('input_hists', nargs='*')
     tag_plot.add_argument('-o', '--output-dir', default='plots', 
@@ -58,8 +71,27 @@ def get_config():
 
 def jet_tag_efficinecy(config): 
     subs = {'distill':distill_d3pds,'stack':aggregate_jet_plots, 
-            'plot':plot_jet_eff}
+            'plot':plot_jet_eff, 'list':list_meta_info}
     subs[config.step](config)
+
+def list_meta_info(config): 
+    from stop.meta import DatasetCache
+    meta = DatasetCache(config.meta_file)
+    filt_meta = {}
+    if config.physics: 
+        for ds_key, ds in meta.iteritems(): 
+            if ds.physics_type == config.physics: 
+                filt_meta[ds_key] = ds
+
+    if config.ntuples_dir: 
+        ntuples = glob.glob('{}/*.root*'.format(config.ntuples_dir))
+        for ntuple in ntuples: 
+            for ds in filt_meta.values(): 
+                if str(ds.id) in ntuple: 
+                    print ntuple
+    else: 
+        for ds in filt_meta.values(): 
+            print ds.full_name
 
 def distill_d3pds(config): 
     if isfile(config.d3pds): 
