@@ -80,7 +80,7 @@ for f in sys.argv[2].split(','):
 
 set_branches = open('set-branches.txt','w')
 entries = susy_chain.GetEntries()
-susy_chain.Draw('0.5 >> sum_hist(1,0,1)','mc_event_weight')
+susy_chain.Draw('0.5 >> sum_hist(1,0,1)','mcevt_weight[0][0]')
 try: 
     wt_entries = gDirectory.Get('sum_hist').GetBinContent(1)
 except AttributeError: 
