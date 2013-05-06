@@ -90,6 +90,12 @@ class JetEfficiencyPlotter(object):
     def _get_sft(self, tup_dict): 
         return tuple(set(x) for x in zip(*tup_dict.keys()))
 
+    def _is_numerator(self, tag): 
+        conditions = [
+            not tag.endswith(self._wt2_append), 
+            tag != 'all']
+        return all(conditions)
+
     def plot_samples(self, sample_names, tags='all', flavors='all', 
                      out_dir='plots'): 
         if not isdir(out_dir): 
@@ -97,7 +103,7 @@ class JetEfficiencyPlotter(object):
         tuple_dict = self._get_tuple_dict(sample_names, tags, flavors)
         all_samples, all_flavors, all_tags = self._get_sft(tuple_dict)
         if tags == 'all': 
-            tags = [tag for tag in all_tags if not tag.endswith('Wt2')]
+            tags = [tag for tag in all_tags if self._is_numerator(tag)]
         if flavors == 'all': 
             flavors = all_flavors
         for flavor in flavors: 
