@@ -19,17 +19,28 @@ namespace H5 {
 }
 class Jet; 
 
+class Wt2Hist: boost::noncopyable { 
+public: 
+  Wt2Hist(int bins, double low, double high, std::string units); 
+  ~Wt2Hist(); 
+  void fill(double value, double wt); 
+  void write_to(H5::CommonFG&, std::string basename) const; 
+private: 
+  Histogram *m_hist; 
+  Histogram *m_hist_wt2; 
+}; 
+
 class JetEfficiencyHists: boost::noncopyable { 
 public: 
   JetEfficiencyHists(double max_pt_mev); 
   ~JetEfficiencyHists(); 
-  void fill(const Jet& jet); 
+  void fill(const Jet& jet, double weight = 1.0); 
   void write_to(H5::CommonFG&, std::string group_name) const;
 private: 
-  Histogram* m_jet_pt_all; 
-  Histogram* m_jet_pt_loose; 
-  Histogram* m_jet_pt_medium; 
-  Histogram* m_jet_pt_antiloose; 
+  Wt2Hist* m_jet_pt_all; 
+  Wt2Hist* m_jet_pt_loose; 
+  Wt2Hist* m_jet_pt_medium; 
+  Wt2Hist* m_jet_pt_antiloose; 
 }; 
 
 class RegionJetEfficiencyHistograms: 

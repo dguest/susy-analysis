@@ -10,13 +10,31 @@
 #include <stdexcept> 
 
 
+Wt2Hist::Wt2Hist(int bins, double low, double high, std::string units): 
+  m_hist(new Histogram(bins, low, high, units)), 
+  m_hist_wt2(new Histogram(bins, low, high, units))
+{ 
+}
+Wt2Hist::~Wt2Hist() { 
+  delete m_hist; 
+  delete m_hist_wt2; 
+}
+void Wt2Hist::fill(double value, double wt) { 
+  m_hist->fill(value, wt); 
+  m_hist_wt2->fill(value, wt*wt); 
+}
+void Wt2Hist::write_to(H5::CommonFG& group, std::string basename) const { 
+  m_hist->write_to(group, basename); 
+  m_hist_wt2->write_to(group, basename + "Wt2"); 
+}
+
 JetEfficiencyHists::JetEfficiencyHists(double max_pt_mev )
 { 
   const std::string units = "MeV"; 
-  m_jet_pt_all = new Histogram(100, 0, max_pt_mev, units); 
-  m_jet_pt_medium = new Histogram(100, 0, max_pt_mev, units); 
-  m_jet_pt_loose = new Histogram(100, 0, max_pt_mev, units); 
-  m_jet_pt_antiloose = new Histogram(100, 0, max_pt_mev, units); 
+  m_jet_pt_all = new Wt2Hist(100, 0, max_pt_mev, units); 
+  m_jet_pt_medium = new Wt2Hist(100, 0, max_pt_mev, units); 
+  m_jet_pt_loose = new Wt2Hist(100, 0, max_pt_mev, units); 
+  m_jet_pt_antiloose = new Wt2Hist(100, 0, max_pt_mev, units); 
 }
 JetEfficiencyHists::~JetEfficiencyHists() { 
   delete m_jet_pt_all; 
@@ -24,17 +42,17 @@ JetEfficiencyHists::~JetEfficiencyHists() {
   delete m_jet_pt_loose; 
   delete m_jet_pt_antiloose; 
 }
-void JetEfficiencyHists::fill(const Jet& jet) { 
+void JetEfficiencyHists::fill(const Jet& jet, double weight) { 
   double pt = jet.Pt(); 
-  m_jet_pt_all->fill(pt); 
+  m_jet_pt_all->fill(pt, weight); 
   if (jet.pass_tag(btag::MEDIUM)) { 
-    m_jet_pt_medium->fill(pt); 
+    m_jet_pt_medium->fill(pt, weight); 
   }
   if (jet.pass_tag(btag::LOOSE)) { 
-    m_jet_pt_loose->fill(pt); 
+    m_jet_pt_loose->fill(pt, weight); 
   }
   if (jet.pass_tag(btag::ANTILOOSE)) { 
-    m_jet_pt_antiloose->fill(pt); 
+    m_jet_pt_antiloose->fill(pt, weight); 
   }
 
 }
