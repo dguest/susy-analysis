@@ -193,6 +193,18 @@ void SusyBuffer::set_mc_branches(SmartChain* chain,
   chain->SetBranch(jc + "_flavor_truth_label", 
 		     &jet_flavor_truth_label); 
   chain->SetBranch("mc_event_weight", &mc_event_weight); 
+
+  // we can't use the mc_event_weight with sherpa tag 
+  chain->SetBranch("mcevt_weight", &mcevt_weight); 
+  chain->SetBranch("mc_n", &mc_n); 
+  chain->SetBranch("mc_pt", &mc_pt); 
+  chain->SetBranch("mc_eta", &mc_eta); 
+  chain->SetBranch("mc_phi", &mc_phi); 
+  chain->SetBranch("mc_m", &mc_m); 
+
+  chain->SetBranch("mc_status", &mc_status); 
+  chain->SetBranch("mc_pdgId", &mc_pdgId); 
+  
   if (br & spartid) { 
     chain->SetBranch("SUSY_Spart1_pdgId", &spart1_pdgid); 
     chain->SetBranch("SUSY_Spart2_pdgId", &spart2_pdgid); 

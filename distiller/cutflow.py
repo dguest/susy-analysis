@@ -12,10 +12,10 @@ if 'data' in files[0]:
     flags += 'd'
 
 values = cutflow.cutflow(files, flags=flags, 
-                         grl='~/btag-calibration/grl.xml', 
+                         grl='~/calibration/grl.xml', 
                          output_ntuple='py-output.root', 
-                         btag_cal_file='~/btag-calibration/BTagCalibration.env', 
-                         cal_dir='~/btag-calibration', 
+                         btag_cal_file='~/calibration/BTagCalibration.env', 
+                         cal_dir='~/calibration', 
                          systematic='NONE', 
                          cutflow='NOMINAL')
 for key, value in values: 

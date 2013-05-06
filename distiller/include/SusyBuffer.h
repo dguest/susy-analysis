@@ -34,10 +34,21 @@ public :
   unsigned        tileError;
   unsigned        coreFlags; 
 
+  // truth info
   int hfor_type; 
   int spart1_pdgid; 
   int spart2_pdgid; 
   float mc_event_weight; 
+  // hack for sherpa bug
+  std::vector<std::vector<double> >* mcevt_weight; 
+
+  int mc_n; 
+  std::vector<float>* mc_pt; 
+  std::vector<float>* mc_eta; 
+  std::vector<float>* mc_phi; 
+  std::vector<float>* mc_m; 
+  std::vector<int>* mc_status; 
+  std::vector<int>* mc_pdgId; 
 
   //Random Event
   float Eventshape_rhoKt4LC; 
