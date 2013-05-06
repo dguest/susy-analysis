@@ -7,15 +7,16 @@ class EfficiencyPlot(object):
     """
     Plots the efficiency of several distributions overlayed. 
     """
-    def __init__(self, y_min, y_max): 
-        self.y_range = (y_min, y_max)
+    def __init__(self, y_range, x_range=None): 
+        self.y_range = y_range
         self.fig = Figure(figsize=(8,6))
         self.canvas = FigureCanvas(self.fig)
         self.ax = self.fig.add_subplot(1,1,1)
         self._color_itr = iter('kbgrm')
         self._legs = []
+        self.x_range = x_range
         
-    def add_efficiency(self, num, denom, extent, name=''): 
+    def add_efficiency(self, num, denom, extent, name='', color=None): 
         """
         overflow bins should not be included. 
         """
@@ -24,6 +25,10 @@ class EfficiencyPlot(object):
 
         # remove the points where the denominator is zero
         valid = denom > 0.0
+        # also remove points outside x-range
+        if self.x_range: 
+            valid &= x_vals > self.x_range[0]
+            valid &= x_vals < self.x_range[1]
         x_vals = x_vals[valid]
         num = num[valid]
         denom = denom[valid]
@@ -38,7 +43,9 @@ class EfficiencyPlot(object):
 
         err_down = ratio - low
         err_up = high - ratio
-        fmt = '{}.'.format(next(self._color_itr))
+        if not color: 
+            color = next(self._color_itr)
+        fmt = '{}.'.format(color)
         line, cap, notsure = self.ax.errorbar(
             x_vals, ratio, ms=10, fmt=fmt, 
             yerr=[err_down, err_up])

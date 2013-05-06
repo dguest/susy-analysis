@@ -9,6 +9,26 @@ class JetEfficiencyPlotter(object):
     _group_name = 'alljet'
     def __init__(self): 
         self.group_name = self._group_name 
+        self.max_pt_gev = 400.0
+        self.custom_ranges = { 
+            ('charm','loose'): (0.9, 1.1), 
+            ('charm','medium'): (0.0, 0.3), 
+            ('bottom','medium'): (0.0, 0.4), 
+            }
+        self.custom_colors = { 
+            'Powheg': 'r', 
+            'Sherpa-LeptHad.h5': 'b', 
+            'Sherpa-TauleptHad.h5': 'k', 
+            'McAtNlo': 'g'
+            }
+            
+        self.x_range_gev = (0.0, 400.0)
+
+    def _get_color(self, name): 
+        for match in self.custom_colors: 
+            if match in name: 
+                return self.custom_colors[match]
+        return None
 
     def _process_hist(self, hist_nd): 
         """
@@ -41,6 +61,9 @@ class JetEfficiencyPlotter(object):
         return out_dict
 
     def _get_tuple_dict(self, sample_names, tags='all', flavors='all'): 
+        """
+        the returned hists will have units of GeV
+        """
         plot_tuples = {}
         for sample in sample_names: 
             shortsample = basename(splitext(sample)[0])
@@ -64,7 +87,7 @@ class JetEfficiencyPlotter(object):
     
     def _get_sft(self, tup_dict): 
         return tuple(set(x) for x in zip(*tup_dict.keys()))
-    
+
     def plot_samples(self, sample_names, tags='all', flavors='all', 
                      out_dir='plots'): 
         if not isdir(out_dir): 
@@ -81,14 +104,20 @@ class JetEfficiencyPlotter(object):
                     s, f, t = key_tup
                     return f == flavor and t == tag
                 pl_keys = {k for k in tuple_dict if selector(k)}
-                eff_plot = EfficiencyPlot(0.0, 1.0)
+                if (flavor, tag) in self.custom_ranges: 
+                    y_range = self.custom_ranges[flavor, tag]
+                else: 
+                    y_range = (0.0, 1.0)
+                eff_plot = EfficiencyPlot(x_range=self.x_range_gev, 
+                                          y_range=y_range)
                 eff_plot.ax.set_ylabel('{} tag efficiency'.format(flavor), 
                                        y=0.98, va='top')
                 eff_plot.ax.set_xlabel(r'Jet $p_{\mathrm{T}}$ [GeV]', 
                                        x=0.98, ha='right')
                 for key in pl_keys: 
                     name = key[0]
+                    color = self._get_color(name)
                     eff_plot.add_efficiency(*tuple_dict[key], 
-                                            name=name)
+                                            name=name, color=color)
                 plot_name = '{}/{}-{}.pdf'.format(out_dir, flavor, tag)
                 eff_plot.save(plot_name)
