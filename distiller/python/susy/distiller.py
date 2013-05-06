@@ -142,6 +142,15 @@ class Distiller(object):
             flags += 'f'
         if self._signal_finder(ds.name): 
             flags += 's'
+        
+        overlaping_sherpa_finder = re.compile('MassiveCBPt0_')
+        sherpa_pt_range_finder = re.compile('Pt[0-9]+_[0-9]+')
+        if overlaping_sherpa_finder.search(ds.name): 
+            flags += 'h'
+            if sherpa_pt_range_finder.search(ds.name): 
+                raise IOError( 
+                    "can't determine if {} needs pt overlap removal".format(
+                        ds.full_name))
 
         if not flags: 
             return '_'          # placeholder

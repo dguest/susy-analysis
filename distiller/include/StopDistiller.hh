@@ -19,6 +19,7 @@ class CutCounter;
 class SelectedJet; 
 class BtagCalibration; 
 class OutputFilter; 
+class BosonTruthFilter; 
 
 class StopDistiller : public boost::noncopyable
 { 
@@ -59,6 +60,7 @@ private:
   BitmapCutflow* m_cutflow; 
   CutCounter* m_object_counter; 
   BtagCalibration* m_btag_calibration; 
+  BosonTruthFilter* m_boson_truth_filter; 
 }; 
 
 #endif

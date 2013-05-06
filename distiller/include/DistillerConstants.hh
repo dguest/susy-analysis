@@ -20,4 +20,6 @@ const static float CONTROL_MUON_PT = 20e3;
 const static float Z_MASS = 91.188e3; 
 const static float Z_MASS_WINDOW = 15.0e3; 
 
+const static float BOSON_PT_OVERLAP_CUT_MEV = 70.0e3; 
+
 #endif 

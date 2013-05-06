@@ -26,6 +26,7 @@ def cutflow(input_files, flags, grl='', output_ntuple='',
         e: save all events (don't do further skimming)
         f: is atlfast
         g: get branches as textfile
+        h: enable boson pt cut at 70 (hackish, should fix)
         i: get sparticle id (requires truth)
         j: vector output
         m: save mv3 weights

@@ -14,6 +14,7 @@
 #include "CollectionTreeReport.hh"
 #include "EventPreselector.hh"
 #include "BtagCalibration.hh"
+#include "BosonTruthFilter.hh"
 #include "CheckSize.hh"
 
 #include "RunBits.hh"
@@ -57,7 +58,8 @@ StopDistiller::StopDistiller(const std::vector<std::string>& in,
   m_event_preselector(0), 
   m_out_tree(0), 
   m_cutflow(0), 
-  m_btag_calibration(0)
+  m_btag_calibration(0), 
+  m_boson_truth_filter(0)
 { 
   gErrorIgnoreLevel = kWarning;
   setup_flags(); 
@@ -66,6 +68,9 @@ StopDistiller::StopDistiller(const std::vector<std::string>& in,
   setup_susytools(); 
   setup_outputs(); 
   setup_cutflow(info.cutflow_type); 
+  if (flags & cutflag::boson_pt_cut_70) { 
+    m_boson_truth_filter = new BosonTruthFilter(BOSON_PT_OVERLAP_CUT_MEV); 
+  }
 }
 
 StopDistiller::~StopDistiller() { 
@@ -87,6 +92,7 @@ StopDistiller::~StopDistiller() {
   delete m_cutflow; 
   delete m_object_counter; 
   delete m_btag_calibration; 
+  delete m_boson_truth_filter; 
 }
 
 StopDistiller::Cutflow StopDistiller::run_cutflow() { 
@@ -148,6 +154,12 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
     print_progress(evt_n, std::cout); 
   }
   m_chain->GetEntry(evt_n); 
+
+  if (m_boson_truth_filter) { 
+    if (m_boson_truth_filter->is_over_threshold(m_susy_buffer)) { 
+      return; 
+    }
+  }
 
   m_def->Reset(); 
   m_out_tree->clear_buffer(); 
