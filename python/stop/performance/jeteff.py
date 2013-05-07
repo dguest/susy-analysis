@@ -33,6 +33,7 @@ class JetEfficiencyPlotter(object):
             
         self.do_wt2_error = do_wt2_error
         self.x_range_gev = (0.0, 400.0)
+        self.max_bins = 150
 
     def _get_color(self, name): 
         if not name in self.color_bank: 
@@ -46,9 +47,10 @@ class JetEfficiencyPlotter(object):
         """
         units = hist_nd.axes['x'].units
         raw_array, extent = hist_nd.project_1d('x')
+        array = raw_array[1:-1]
         factor = {'MeV':1e-3, 'GeV':1.0}[units]
         extent = [e*factor for e in extent]
-        return raw_array[1:-1], extent
+        return array, extent
 
     def _get_arrays(self, hist_group, tags): 
         """
@@ -69,7 +71,8 @@ class JetEfficiencyPlotter(object):
             out_dict[tag] = (num_array, all_array, all_ext)
         return out_dict
 
-    def _get_tuple_dict(self, sample_names, tags='all', flavors='all'): 
+    def _get_tuple_dict(self, sample_names, tags='all', flavors='all', 
+                        rebin=False): 
         """
         the returned hists will have units of GeV
         """
@@ -92,6 +95,11 @@ class JetEfficiencyPlotter(object):
                     tag_dict = self._get_arrays(tag_group, tags)
                     for tag, tup in tag_dict.iteritems(): 
                         plot_tuples[shortsample, flavor, tag] = tup
+        if rebin: 
+            rebined = {}
+            for k in plot_tuples: 
+                rebined[k] = self._rebin_tuple(*plot_tuples[k])
+            return rebined
         return plot_tuples
     
     def _get_sft(self, tup_dict): 
@@ -115,11 +123,20 @@ class JetEfficiencyPlotter(object):
             eff_plot.ax.axvline(val_gev, **opts)
         eff_plot.legends.append( (Line2D([0],[0],**opts), name)) 
 
+    def _rebin_tuple(self, num, denom, extent): 
+        if len(num) > self.max_bins and len(num) % 2 == 0: 
+            new_num = num.reshape((-1,2)).sum(1)
+            new_denom = denom.reshape((-1, 2)).sum(1)
+            # call self recursively until rebinning is done
+            return self._rebin_tuple(new_num, new_denom, extent)
+        return num, denom, extent
+
     def plot_samples(self, sample_names, tags='all', flavors='all', 
                      out_dir='plots'): 
         if not isdir(out_dir): 
             os.mkdir(out_dir)
-        tuple_dict = self._get_tuple_dict(sample_names, tags, flavors)
+        tuple_dict = self._get_tuple_dict(sample_names, tags, flavors, 
+                                          rebin=True)
         all_samples, all_flavors, all_tags = self._get_sft(tuple_dict)
         if tags == 'all': 
             tags = [tag for tag in all_tags if self._is_numerator(tag)]
@@ -146,8 +163,9 @@ class JetEfficiencyPlotter(object):
                     wt2_tag = key[2] + self._wt2_append
                     num_wt2 = denom_wt2 = None
                     if self.do_wt2_error: 
-                        num_wt2, denom_wt2, wt_ext = tuple_dict[
-                            name, flavor, wt2_tag]
+                        wt2_key = (name, flavor, wt2_tag)
+                        num_wt2, denom_wt2, wt_ext = tuple_dict[wt2_key]
+                        
                     color = self._get_color(name)
                     eff_plot.add_efficiency(*tuple_dict[key], 
                                              name=name, color=color, 
