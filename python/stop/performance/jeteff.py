@@ -10,9 +10,11 @@ class JetEfficiencyPlotter(object):
     _wt2_append = 'Wt2'
     _colors = ['black','red','blue','green','purple', 'cyan']
     _jetfitter_pt_bins_gev = [25.0, 35.0, 50.0, 80.0, 120.0, 200.0]
-    def __init__(self, do_wt2_error=True, do_bins=True): 
+    _scalefactor_pt_bins_gev = [
+        25.0, 30.0, 40.0, 50.0, 60.0, 75.0, 90.0, 110.0, 140.0, 200.0, 300.0]
+    def __init__(self, do_wt2_error=True, draw_bins='jf'): 
         self.group_name = self._group_name 
-        self.do_bins = do_bins
+        self.draw_bins = draw_bins
         self.max_pt_gev = 400.0
         self.custom_ranges = { 
             ('charm','loose'): (0.9, 1.1), 
@@ -103,10 +105,15 @@ class JetEfficiencyPlotter(object):
 
     def _add_bins(self, eff_plot): 
         from matplotlib.lines import Line2D
-        opts = dict(linestyle = ':', color = 'red')
+        if self.draw_bins == 'jf': 
+            opts = dict(linestyle = ':', color = 'red')
+            name = 'JetFitter bins'
+        elif self.draw_bins == 'sf': 
+            opts = dict(linestyle = ':', color = 'green')
+            name = 'SF bins'
         for val_gev in self._jetfitter_pt_bins_gev: 
             eff_plot.ax.axvline(val_gev, **opts)
-        eff_plot.legends.append( (Line2D([0],[0],**opts), 'JetFitter bins')) 
+        eff_plot.legends.append( (Line2D([0],[0],**opts), name)) 
 
     def plot_samples(self, sample_names, tags='all', flavors='all', 
                      out_dir='plots'): 
@@ -146,7 +153,6 @@ class JetEfficiencyPlotter(object):
                                              name=name, color=color, 
                                              num_wt2=num_wt2, 
                                              denom_wt2=denom_wt2)
-                if self.do_bins: 
-                    self._add_bins(eff_plot)
+                self._add_bins(eff_plot)
                 plot_name = '{}/{}-{}.pdf'.format(out_dir, flavor, tag)
                 eff_plot.save(plot_name)
