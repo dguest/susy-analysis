@@ -19,6 +19,7 @@ from os.path import dirname, basename, abspath
 import os
 import re
 import yaml
+import warnings
 
 import h5py
 from h5py import Group, Dataset
@@ -166,14 +167,26 @@ class HistAdder(object):
                 print path, subgroup.array.sum()
 
 def hadd(config): 
-    with h5py.File(config.input_hists[0]) as base_h5: 
+    good_files = []
+    for hist_file in config.input_hists: 
+        with h5py.File(hist_file) as h5: 
+            if len(h5.keys()): 
+                good_files.append(hist_file)
+    if len(good_files) != len(config.input_hists): 
+        warnings.warn('only {} of {} files have any hists'.format(
+                len(good_files), len(config.input_hists)))
+    with h5py.File(good_files[0]) as base_h5: 
         hadder = HistAdder(base_h5)
-    for add_file in config.input_hists[1:]: 
+    for add_file in good_files[1:]: 
+        if not isfile(add_file): 
+            raise IOError("{} doesn't exist".format(add_file))
         with h5py.File(add_file) as add_h5: 
             hadder.add(add_h5)
     if config.output_hist: 
         with h5py.File(config.output_hist,'w') as out_file: 
             hadder.write_to(out_file)
+    else:
+        hadder.dump()
 
 def rename(config): 
     junk_finder = re.compile('_([A-Z0-9]+_)')
