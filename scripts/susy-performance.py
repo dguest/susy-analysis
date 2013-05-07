@@ -30,7 +30,7 @@ from stop import meta
 def run(): 
     config = get_config()
     subs = {'tag':jet_tag_efficinecy, 'list':list_meta_info, 
-            'hadd':hadd}
+            'hadd':hadd, 'rename':rename}
     subs[config.which](config)
 
 def get_config(): 
@@ -73,11 +73,21 @@ def get_config():
     list_type.add_argument('--physics')
     meta_list.add_argument('-d', '--ntuples-dir')
 
+    meta_rename = subs.add_parser('rename')
+    meta_rename.add_argument('meta_file')
+    meta_rename.add_argument('files', nargs='+')
+    meta_rename.add_argument('-d', '--dummy', action='store_true')
+
     hist_add = subs.add_parser('hadd') 
     hist_add.add_argument('input_hists', nargs='+')
     hist_add.add_argument('-o', '--output-hist')
 
     return parser.parse_args(sys.argv[1:])
+
+# --------------------------------------------------------------------
+# --- these guys should be moved into some other more general routine 
+#     (call it susy-util or something)
+# --------------------------------------------------------------------
 
 def list_meta_info(config): 
     from stop.meta import DatasetCache
@@ -164,6 +174,34 @@ def hadd(config):
     if config.output_hist: 
         with h5py.File(config.output_hist,'w') as out_file: 
             hadder.write_to(out_file)
+
+def rename(config): 
+    junk_finder = re.compile('_([A-Z0-9]+_)')
+    meta_lookup = meta.DatasetCache(config.meta_file)
+    rename_map = {}
+    used_out = set()
+    for old_name in config.files: 
+        old_base, old_ext = splitext(basename(old_name))
+        if old_base in meta_lookup: 
+            new_name = meta_lookup[old_base].name
+            try: 
+                junk = junk_finder.search(new_name).group(1)
+                new_name = new_name.replace(junk, '')
+            except AttributeError: 
+                pass
+            new_path = join(dirname(old_name), new_name + old_ext)
+            if new_path in used_out: 
+                raise ValueError('rename would overwrite {}'.format(new_path))
+            used_out.add(new_path)
+            rename_map[old_name] = new_path
+    for old_name, new_name in rename_map.iteritems(): 
+        if config.dummy: 
+            print '{} --> {}'.format(old_name, new_name)
+        else: 
+            os.rename(old_name, new_name)
+            
+
+# ------------------- end of things to move ------------------------
 
 def jet_tag_efficinecy(config): 
     subs = {'distill':distill_d3pds,'stack':aggregate_jet_plots, 
