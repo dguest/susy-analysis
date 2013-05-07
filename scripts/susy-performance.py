@@ -15,17 +15,22 @@ Prints lists of files / datasets in a meta file.
 import argparse, sys
 import glob
 from os.path import isdir, isfile, join, expanduser, splitext
-from os.path import dirname, basename
+from os.path import dirname, basename, abspath
 import os
 import re
 import yaml
+
+import h5py
+from h5py import Group, Dataset
+from stop.hists import HistNd
 
 from susy.distiller import cutflow
 from stop import meta
 
 def run(): 
     config = get_config()
-    subs = {'tag':jet_tag_efficinecy}
+    subs = {'tag':jet_tag_efficinecy, 'list':list_meta_info, 
+            'hadd':hadd}
     subs[config.which](config)
 
 def get_config(): 
@@ -47,12 +52,6 @@ def get_config():
     tag_distill.add_argument('--calibration', default='~/calibration', 
                              help=d)
 
-    tag_list = tag_step.add_parser('list', description=_tag_list_help)
-    tag_list.add_argument('meta_file')
-    list_type = tag_list.add_mutually_exclusive_group(required=True)
-    list_type.add_argument('--physics')
-    tag_list.add_argument('-d', '--ntuples-dir')
-
     tag_agg = tag_step.add_parser('stack')
     tag_agg.add_argument(
         'whiskey_dir', help='input dir (or file)')
@@ -67,12 +66,18 @@ def get_config():
         '-b', '--binomial-error', action='store_true', 
         help=('calculate errors as binomial rather than using wt2 linear '
               'propagation'))
-    return parser.parse_args(sys.argv[1:])
 
-def jet_tag_efficinecy(config): 
-    subs = {'distill':distill_d3pds,'stack':aggregate_jet_plots, 
-            'plot':plot_jet_eff, 'list':list_meta_info}
-    subs[config.step](config)
+    meta_list = subs.add_parser('list', description=_tag_list_help)
+    meta_list.add_argument('meta_file')
+    list_type = meta_list.add_mutually_exclusive_group(required=True)
+    list_type.add_argument('--physics')
+    meta_list.add_argument('-d', '--ntuples-dir')
+
+    hist_add = subs.add_parser('hadd') 
+    hist_add.add_argument('input_hists', nargs='+')
+    hist_add.add_argument('-o', '--output-hist')
+
+    return parser.parse_args(sys.argv[1:])
 
 def list_meta_info(config): 
     from stop.meta import DatasetCache
@@ -92,6 +97,79 @@ def list_meta_info(config):
     else: 
         for ds in filt_meta.values(): 
             print ds.full_name
+
+class HistAdder(object): 
+    def __init__(self, base_group): 
+        self.hists = self._search(base_group)
+        
+    def _search(self, group): 
+        subhists = {}
+        for key, subgroup in group.iteritems(): 
+            if isinstance(subgroup, Group): 
+                subhists[key] = self._search(subgroup)
+            elif isinstance(subgroup, Dataset): 
+                subhists[key] = HistNd(subgroup)
+            else: 
+                raise ValueError('not sure what to do with {} {}'.format(
+                        type(subgroup), key))
+        return subhists
+    def _merge(self, hist_dict, new_hists): 
+        merged = {}
+        for key, subgroup in hist_dict.iteritems(): 
+            if not key in new_hists: 
+                raise ValueError("node {} not found in new hists".format(key))
+            if isinstance(subgroup, dict): 
+                merged[key] = self._merge(subgroup, new_hists[key])
+            elif isinstance(subgroup, HistNd): 
+                if not isinstance(new_hists[key], Dataset): 
+                    raise ValueError("tried to merge non-dataset {}".format(
+                            key))
+                new_hist = HistNd(new_hists[key])
+                merged[key] = subgroup + new_hist
+            else: 
+                raise ValueError('not sure what to do with {}, {}'.format(
+                        type(subgroup), key))
+        return merged
+
+    def _write(self, hists, group): 
+        for key, hist in hists.iteritems(): 
+            if isinstance(hist, dict): 
+                subgrp = group.create_group(key)
+                self._write(hist, subgrp)
+            else: 
+                hist.write_to(group, key)
+
+    def add(self, group): 
+        self.hists = self._merge(self.hists, group)
+
+    def write_to(self, group): 
+        self._write(self.hists, group)
+        
+    def dump(self, group=None, base=''): 
+        if not group: 
+            group = self.hists
+        for key, subgroup in group.iteritems(): 
+            path = '/'.join([base, key])
+            if isinstance(subgroup, dict): 
+                self.dump(subgroup, path)
+            else: 
+                print path, subgroup.array.sum()
+
+def hadd(config): 
+    with h5py.File(config.input_hists[0]) as base_h5: 
+        hadder = HistAdder(base_h5)
+    for add_file in config.input_hists[1:]: 
+        with h5py.File(add_file) as add_h5: 
+            hadder.add(add_h5)
+    if config.output_hist: 
+        with h5py.File(config.output_hist,'w') as out_file: 
+            hadder.write_to(out_file)
+
+def jet_tag_efficinecy(config): 
+    subs = {'distill':distill_d3pds,'stack':aggregate_jet_plots, 
+            'plot':plot_jet_eff}
+    subs[config.step](config)
+
 
 def distill_d3pds(config): 
     if isfile(config.d3pds): 
@@ -134,6 +212,9 @@ def aggregate_jet_plots(config):
     input_dir = config.whiskey_dir
     if isdir(config.whiskey_dir): 
         whiskey = glob.glob(join(config.whiskey_dir, '*.root'))
+    elif isfile(config.whiskey_dir) and config.whiskey_dir.endswith('.txt'): 
+        with open(config.whiskey_dir) as files: 
+            whiskey = [l.strip() for l in files.readlines()]
     elif isfile(config.whiskey_dir): 
         whiskey = [config.whiskey_dir]
     else:
@@ -150,8 +231,11 @@ def aggregate_jet_plots(config):
             'hists': 'TAG_EFFICIENCY', 
             'jet_tag_requirements':['NOTAG'], # require one jet 
             }
+        path = abspath(tup)
+        if not isfile(path): 
+            raise IOError("{} can't be found".format(path))
         hyperstack.stacksusy(
-            input_file=tup, region_list=[region_dict], flags='v')
+            input_file=abspath(tup), region_list=[region_dict], flags='v')
                       
 def plot_jet_eff(config): 
     from stop.performance.jeteff import JetEfficiencyPlotter
