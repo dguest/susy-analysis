@@ -9,6 +9,7 @@
 
 namespace jeteff { 
   const double MAX_PT_MEV = 1e6; 
+  const int N_PT_BINS = 200; 
 }
 
 class RegionConfig; 

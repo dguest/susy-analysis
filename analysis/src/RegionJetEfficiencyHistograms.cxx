@@ -31,10 +31,11 @@ void Wt2Hist::write_to(H5::CommonFG& group, std::string basename) const {
 JetEfficiencyHists::JetEfficiencyHists(double max_pt_mev )
 { 
   const std::string units = "MeV"; 
-  m_jet_pt_all = new Wt2Hist(100, 0, max_pt_mev, units); 
-  m_jet_pt_medium = new Wt2Hist(100, 0, max_pt_mev, units); 
-  m_jet_pt_loose = new Wt2Hist(100, 0, max_pt_mev, units); 
-  m_jet_pt_antiloose = new Wt2Hist(100, 0, max_pt_mev, units); 
+  const int n_bins = jeteff::N_PT_BINS; 
+  m_jet_pt_all = new Wt2Hist(n_bins, 0, max_pt_mev, units); 
+  m_jet_pt_medium = new Wt2Hist(n_bins, 0, max_pt_mev, units); 
+  m_jet_pt_loose = new Wt2Hist(n_bins, 0, max_pt_mev, units); 
+  m_jet_pt_antiloose = new Wt2Hist(n_bins, 0, max_pt_mev, units); 
 }
 JetEfficiencyHists::~JetEfficiencyHists() { 
   delete m_jet_pt_all; 
