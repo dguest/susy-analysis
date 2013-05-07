@@ -27,8 +27,7 @@ from stop import meta
 
 def run(): 
     config = get_config()
-    subs = {'tag':jet_tag_efficinecy, 'list':list_meta_info, 
-            'hadd':hadd, 'rename':rename}
+    subs = {'tag':jet_tag_efficinecy}
     subs[config.which](config)
 
 def get_config(): 

@@ -13,7 +13,7 @@ class EfficiencyPlot(object):
         self.canvas = FigureCanvas(self.fig)
         self.ax = self.fig.add_subplot(1,1,1)
         self._color_itr = iter('kbgrm')
-        self._legs = []
+        self.legends = []
         self.x_range = x_range
 
     def _error_from_num_denom(self, num, denom, num_wt2, denom_wt2): 
@@ -65,16 +65,16 @@ class EfficiencyPlot(object):
         err_up = high - ratio
         if not color: 
             color = next(self._color_itr)
-        fmt = '{}.'.format(color)
         line, cap, notsure = self.ax.errorbar(
-            x_vals, ratio, ms=10, fmt=fmt, 
+            x_vals, ratio, ms=10, fmt='.', mfc=color, mec=color, 
+            ecolor=color, 
             yerr=[err_down, err_up])
         if name: 
-            self._legs.append( (line, name))
+            self.legends.append( (line, name))
         
     def save(self, name): 
-        if self._legs: 
-            legend = self.ax.legend(*zip(*self._legs), numpoints=1)
+        if self.legends: 
+            legend = self.ax.legend(*zip(*self.legends), numpoints=1)
             legend.get_frame().set_linewidth(0)
             legend.get_frame().set_alpha(0)
         self.ax.set_ylim(*self.y_range)

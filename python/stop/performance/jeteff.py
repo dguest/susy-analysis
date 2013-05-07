@@ -8,29 +8,34 @@ from stop.plot.efficiency import EfficiencyPlot
 class JetEfficiencyPlotter(object): 
     _group_name = 'alljet'
     _wt2_append = 'Wt2'
-    def __init__(self, do_wt2_error=True): 
+    _colors = ['black','red','blue','green','purple', 'cyan']
+    _jetfitter_pt_bins_gev = [25.0, 35.0, 50.0, 80.0, 120.0, 200.0]
+    def __init__(self, do_wt2_error=True, do_bins=True): 
         self.group_name = self._group_name 
+        self.do_bins = do_bins
         self.max_pt_gev = 400.0
         self.custom_ranges = { 
             ('charm','loose'): (0.9, 1.1), 
             ('charm','medium'): (0.0, 0.3), 
             ('bottom','medium'): (0.0, 0.4), 
+            ('light', 'medium'): (0.0, 0.03), 
             }
         self.custom_colors = { 
             'Powheg': 'r', 
             'Sherpa-LeptHad.h5': 'b', 
             'Sherpa-TauleptHad.h5': 'k', 
-            'McAtNlo': 'g'
+            'McAtNlo': 'g', 
             }
+        self.color_bank = {}
+        self.color_itr = iter(self._colors)
             
         self.do_wt2_error = do_wt2_error
         self.x_range_gev = (0.0, 400.0)
 
     def _get_color(self, name): 
-        for match in self.custom_colors: 
-            if match in name: 
-                return self.custom_colors[match]
-        return None
+        if not name in self.color_bank: 
+            self.color_bank[name] = next(self.color_itr)
+        return self.color_bank[name]
 
     def _process_hist(self, hist_nd): 
         """
@@ -96,6 +101,13 @@ class JetEfficiencyPlotter(object):
             tag != 'all']
         return all(conditions)
 
+    def _add_bins(self, eff_plot): 
+        from matplotlib.lines import Line2D
+        opts = dict(linestyle = ':', color = 'red')
+        for val_gev in self._jetfitter_pt_bins_gev: 
+            eff_plot.ax.axvline(val_gev, **opts)
+        eff_plot.legends.append( (Line2D([0],[0],**opts), 'JetFitter bins')) 
+
     def plot_samples(self, sample_names, tags='all', flavors='all', 
                      out_dir='plots'): 
         if not isdir(out_dir): 
@@ -134,6 +146,7 @@ class JetEfficiencyPlotter(object):
                                              name=name, color=color, 
                                              num_wt2=num_wt2, 
                                              denom_wt2=denom_wt2)
-
+                if self.do_bins: 
+                    self._add_bins(eff_plot)
                 plot_name = '{}/{}-{}.pdf'.format(out_dir, flavor, tag)
                 eff_plot.save(plot_name)
