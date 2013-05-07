@@ -20,7 +20,7 @@ import yaml
 import warnings
 import h5py
 from stop.hists import HistNd, HistAdder
-
+from stop import meta
 
 def run(): 
     config = get_config()
@@ -57,7 +57,10 @@ def get_config():
 
     hist_add = subs.add_parser('hadd') 
     hist_add.add_argument('input_hists', nargs='+')
-    hist_add.add_argument('-o', '--output-hist')
+    hist_add.add_argument('-o', '--output', 
+                          help='hist or (for dash-hadd) directory')
+    hist_add.add_argument('-d', '--dash-hadd', action='store_true', 
+                          help='multiple hadds, splits input hists at \'-\'')
 
     return parser.parse_args(sys.argv[1:])
 
@@ -104,6 +107,21 @@ def hadd(config):
         sys.stderr.write(
             'ACHTUNG: only {} of {} files have any hists\n'.format(
                 len(good_files), len(config.input_hists)))
+    if config.dash_hadd: 
+        def key_from_name(fname): 
+            return splitext(basename(fname))[0].split('-')[0]
+        if not isdir(config.output): 
+            os.mkdir(config.output)
+        base_keys = {key_from_name(f) for f in good_files}
+        for key in base_keys: 
+            out_path = join(config.output, '{}.h5'.format(key))
+            print 'making {}'.format(out_path)
+            file_group = [f for f in good_files if key in f]
+            _hadd(file_group, out_path)
+    else: 
+        _hadd(good_files, config.output)
+
+def _hadd(good_files, output):
     with h5py.File(good_files[0]) as base_h5: 
         hadder = HistAdder(base_h5)
     for add_file in good_files[1:]: 
@@ -111,8 +129,8 @@ def hadd(config):
             raise IOError("{} doesn't exist".format(add_file))
         with h5py.File(add_file) as add_h5: 
             hadder.add(add_h5)
-    if config.output_hist: 
-        with h5py.File(config.output_hist,'w') as out_file: 
+    if output: 
+        with h5py.File(output,'w') as out_file: 
             hadder.write_to(out_file)
     else:
         hadder.dump()
