@@ -3,6 +3,7 @@ from collections import defaultdict
 import copy
 import bisect
 import weakref, warnings
+from h5py import Group, Dataset
 
 class Hist1d(object): 
     """
@@ -503,3 +504,69 @@ class HistNd(object):
     def write_to(self, hdf_fg, name): 
         self.__to_hdf(hdf_fg, name)
 
+class HistAdder(object): 
+    """
+    Generic histogram adder. Traverses the first given file to map out 
+    histograms, then finds the corresponding hists for each call to add 
+    and adds them. 
+    """
+    def __init__(self, base_group): 
+        self.hists = self._search(base_group)
+        
+    def _search(self, group): 
+        subhists = {}
+        for key, subgroup in group.iteritems(): 
+            if isinstance(subgroup, Group): 
+                subhists[key] = self._search(subgroup)
+            elif isinstance(subgroup, Dataset): 
+                subhists[key] = HistNd(subgroup)
+            else: 
+                raise HistAddError('not sure what to do with {} {}'.format(
+                        type(subgroup), key))
+        return subhists
+    def _merge(self, hist_dict, new_hists): 
+        merged = {}
+        for key, subgroup in hist_dict.iteritems(): 
+            if not key in new_hists: 
+                raise HistAddError(
+                    "node {} not found in new hists".format(key))
+            if isinstance(subgroup, dict): 
+                merged[key] = self._merge(subgroup, new_hists[key])
+            elif isinstance(subgroup, HistNd): 
+                if not isinstance(new_hists[key], Dataset): 
+                    raise HistAddError(
+                        "tried to merge non-dataset {}".format(key))
+                new_hist = HistNd(new_hists[key])
+                merged[key] = subgroup + new_hist
+            else: 
+                raise HistAddError('not sure what to do with {}, {}'.format(
+                        type(subgroup), key))
+        return merged
+
+    def _write(self, hists, group): 
+        for key, hist in hists.iteritems(): 
+            if isinstance(hist, dict): 
+                subgrp = group.create_group(key)
+                self._write(hist, subgrp)
+            else: 
+                hist.write_to(group, key)
+
+    def add(self, group): 
+        self.hists = self._merge(self.hists, group)
+
+    def write_to(self, group): 
+        self._write(self.hists, group)
+        
+    def dump(self, group=None, base=''): 
+        if not group: 
+            group = self.hists
+        for key, subgroup in group.iteritems(): 
+            path = '/'.join([base, key])
+            if isinstance(subgroup, dict): 
+                self.dump(subgroup, path)
+            else: 
+                print path, subgroup.array.sum()
+
+class HistAddError(StandardError): 
+    def __init__(self, args): 
+        super(HistAddError, self).__init__(args)

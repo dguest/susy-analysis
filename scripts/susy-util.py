@@ -4,19 +4,22 @@ Top level script for vairous generic data manipulation.
 """
 
 _tag_list_help="""
-Prints lists of files / datasets in a meta file. 
+Routines to print lists of files / datasets referenced in a meta file. 
+"""
+
+_rename_help="""
+Swaps the ds key file names for something more readable. 
 """
 
 import argparse, sys
 from os.path import isdir, isfile, join, expanduser, splitext
 from os.path import dirname, basename, abspath
 import os
-import re
+import re, glob
 import yaml
 import warnings
 import h5py
-from h5py import Group, Dataset
-from stop.hists import HistNd
+from stop.hists import HistNd, HistAdder
 
 
 def run(): 
@@ -34,13 +37,20 @@ def get_config():
     parser = argparse.ArgumentParser(description=__doc__)
     subs = parser.add_subparsers(dest='which')
 
-    meta_list = subs.add_parser('list', description=_tag_list_help)
-    meta_list.add_argument('meta_file')
-    list_type = meta_list.add_mutually_exclusive_group(required=True)
-    list_type.add_argument('--physics')
-    meta_list.add_argument('-d', '--ntuples-dir')
+    meta_list_shared = argparse.ArgumentParser(add_help=False)
+    list_type = meta_list_shared.add_mutually_exclusive_group()
+    list_type.add_argument('--physics', help='filter meta by physics')
+    meta_list_shared.add_argument('meta_file')
 
-    meta_rename = subs.add_parser('rename')
+    meta_list = subs.add_parser('list', description=_tag_list_help)
+    list_subs = meta_list.add_subparsers(dest='outlist')
+    list_files = list_subs.add_parser('files', parents=[meta_list_shared])
+    list_files.add_argument('ntuples_dir')
+    
+    list_meta = list_subs.add_parser('meta', parents=[meta_list_shared])
+    list_names = list_subs.add_parser('names', parents=[meta_list_shared])
+
+    meta_rename = subs.add_parser('rename', description=_rename_help)
     meta_rename.add_argument('meta_file')
     meta_rename.add_argument('files', nargs='+')
     meta_rename.add_argument('-d', '--dummy', action='store_true')
@@ -60,73 +70,29 @@ def list_meta_info(config):
         for ds_key, ds in meta.iteritems(): 
             if ds.physics_type == config.physics: 
                 filt_meta[ds_key] = ds
+    else: 
+        filt_meta = meta
 
+    subopts = {'files': list_files, 'meta': list_meta, 'names':list_names}
+    subopts[config.outlist](config, filt_meta)
+
+def list_files(config, filt_meta): 
     if config.ntuples_dir: 
         ntuples = glob.glob('{}/*.root*'.format(config.ntuples_dir))
         for ntuple in ntuples: 
             for ds in filt_meta.values(): 
                 if str(ds.id) in ntuple: 
                     print ntuple
-    else: 
-        for ds in filt_meta.values(): 
-            print ds.full_name
 
-class HistAdder(object): 
-    def __init__(self, base_group): 
-        self.hists = self._search(base_group)
-        
-    def _search(self, group): 
-        subhists = {}
-        for key, subgroup in group.iteritems(): 
-            if isinstance(subgroup, Group): 
-                subhists[key] = self._search(subgroup)
-            elif isinstance(subgroup, Dataset): 
-                subhists[key] = HistNd(subgroup)
-            else: 
-                raise ValueError('not sure what to do with {} {}'.format(
-                        type(subgroup), key))
-        return subhists
-    def _merge(self, hist_dict, new_hists): 
-        merged = {}
-        for key, subgroup in hist_dict.iteritems(): 
-            if not key in new_hists: 
-                raise ValueError("node {} not found in new hists".format(key))
-            if isinstance(subgroup, dict): 
-                merged[key] = self._merge(subgroup, new_hists[key])
-            elif isinstance(subgroup, HistNd): 
-                if not isinstance(new_hists[key], Dataset): 
-                    raise ValueError("tried to merge non-dataset {}".format(
-                            key))
-                new_hist = HistNd(new_hists[key])
-                merged[key] = subgroup + new_hist
-            else: 
-                raise ValueError('not sure what to do with {}, {}'.format(
-                        type(subgroup), key))
-        return merged
+def list_names(config, filt_meta): 
+    for ds in filt_meta.values(): 
+        print '{}/'.format(ds.full_name)
+def list_meta(config, filt_meta): 
+    meta = {}
+    for ds in filt_meta.values(): 
+        meta[ds.key] = ds.yml_dict()
+    print yaml.dump(meta)
 
-    def _write(self, hists, group): 
-        for key, hist in hists.iteritems(): 
-            if isinstance(hist, dict): 
-                subgrp = group.create_group(key)
-                self._write(hist, subgrp)
-            else: 
-                hist.write_to(group, key)
-
-    def add(self, group): 
-        self.hists = self._merge(self.hists, group)
-
-    def write_to(self, group): 
-        self._write(self.hists, group)
-        
-    def dump(self, group=None, base=''): 
-        if not group: 
-            group = self.hists
-        for key, subgroup in group.iteritems(): 
-            path = '/'.join([base, key])
-            if isinstance(subgroup, dict): 
-                self.dump(subgroup, path)
-            else: 
-                print path, subgroup.array.sum()
 
 def hadd(config): 
     good_files = []
@@ -135,7 +101,8 @@ def hadd(config):
             if len(h5.keys()): 
                 good_files.append(hist_file)
     if len(good_files) != len(config.input_hists): 
-        warnings.warn('only {} of {} files have any hists'.format(
+        sys.stderr.write(
+            'ACHTUNG: only {} of {} files have any hists\n'.format(
                 len(good_files), len(config.input_hists)))
     with h5py.File(good_files[0]) as base_h5: 
         hadder = HistAdder(base_h5)
