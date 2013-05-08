@@ -55,9 +55,24 @@ class JetEfficiencyBase(object):
     def _shortsample(self, samp_path): 
         return basename(splitext(samp_path)[0])
     
-    def _get_tuple_dict(self, sample_names, tags='all', flavors='all'): 
+    def get_tuple_dict(self, sample_names, tags='all', flavors='all'): 
         """
-        the returned hists will have units of GeV
+        Digs into files given by 'sample_names'. Expects the following 
+        hierarchy: 
+         - group_name (class variable)
+         - flavor truth tag
+         - flavor tag (i.e. medium, loose)
+
+        The last group also includes hists with 'Wt2' suffixes. 
+
+        The returned dict is keyed by (sample, flavor, tag), the values
+        are tuples of the form (passing_count, all_count, extent), where 
+        extent has units of GeV. 
+        
+        Notes: Overflow and underflow bins are stripped off count arrays. 
+
+        TODO: consider adding a level to the group hierarchy to get rid of 
+        the ugly 'Wt2' suffixes. Would require some work downstream too. 
         """
         plot_tuples = {}
         for sample in sample_names: 
@@ -151,53 +166,57 @@ class JetEfficiencyPlotter(JetPlotBase, JetEfficiencyBase):
                      out_dir='plots', plotter=BinnedEfficiencyPlot): 
         if not isdir(out_dir): 
             os.mkdir(out_dir)
-        tuple_dict = self._get_tuple_dict(sample_names, tags, flavors)
+        tuple_dict = self.get_tuple_dict(sample_names, tags, flavors)
         all_samples, all_flavors, all_tags = self._get_sft(tuple_dict)
         if tags == 'all': 
             tags = [tag for tag in all_tags if self._is_numerator(tag)]
         if flavors == 'all': 
             flavors = all_flavors
-        # TODO: replace nested loop with product
-        for flavor in flavors: 
-            for tag in tags: 
-                def selector(key_tup): 
-                    s, f, t = key_tup
-                    return f == flavor and t == tag
-                pl_keys = {k for k in tuple_dict if selector(k)}
-                if (flavor, tag) in self.custom_ranges: 
-                    y_range = self.custom_ranges[flavor, tag]
-                else: 
-                    y_range = (0.0, 1.0)
 
-                # TODO: figure out how to make this call slightly less ugly: 
-                #   lots of the current args are ignored so that we can 
-                #   stick in multiple plotters here. 
-                eff_plot = plotter(x_range=self.x_range_gev, 
-                                   y_range=y_range, 
-                                   bins=self._scalefactor_pt_bins_gev, 
-                                   max_bins=self._max_uniform_bins)
-                eff_plot.ax.set_ylabel('{} tag efficiency'.format(flavor), 
-                                       y=0.98, va='top')
-                eff_plot.ax.set_xlabel(r'Jet $p_{\mathrm{T}}$ [GeV]', 
-                                       x=0.98, ha='right')
-                for key in pl_keys: 
-                    name = key[0]
-                    wt2_tag = key[2] + self._wt2_append
-                    num_wt2 = denom_wt2 = None
-                    if self.do_wt2_error: 
-                        wt2_key = (name, flavor, wt2_tag)
-                        num_wt2, denom_wt2, wt_ext = tuple_dict[wt2_key]
-                        
-                    color = self._get_color(name)
-                    eff_plot.add_efficiency(*tuple_dict[key], 
-                                             name=name, color=color, 
-                                             num_wt2=num_wt2, 
-                                             denom_wt2=denom_wt2)
-                self._add_bins(eff_plot)
-                plot_name = '{}/{}-{}.pdf'.format(out_dir, flavor, tag)
-                eff_plot.save(plot_name)
+        for flavor, tag in itertools.product(flavors, tags): 
+            def selector(key_tup): 
+                s, f, t = key_tup
+                return f == flavor and t == tag
+            pl_keys = {k for k in tuple_dict if selector(k)}
+            if (flavor, tag) in self.custom_ranges: 
+                y_range = self.custom_ranges[flavor, tag]
+            else: 
+                y_range = (0.0, 1.0)
+
+            # TODO: figure out how to make this call slightly less ugly: 
+            #   lots of the current args are ignored so that we can 
+            #   stick in multiple plotters here. 
+            eff_plot = plotter(x_range=self.x_range_gev, 
+                               y_range=y_range, 
+                               bins=self._scalefactor_pt_bins_gev, 
+                               max_bins=self._max_uniform_bins)
+            eff_plot.ax.set_ylabel('{} tag efficiency'.format(flavor), 
+                                   y=0.98, va='top')
+            eff_plot.ax.set_xlabel(r'Jet $p_{\mathrm{T}}$ [GeV]', 
+                                   x=0.98, ha='right')
+            for key in pl_keys: 
+                name = key[0]
+                wt2_tag = key[2] + self._wt2_append
+                num_wt2 = denom_wt2 = None
+                if self.do_wt2_error: 
+                    wt2_key = (name, flavor, wt2_tag)
+                    num_wt2, denom_wt2, wt_ext = tuple_dict[wt2_key]
+                    
+                color = self._get_color(name)
+                eff_plot.add_efficiency(*tuple_dict[key], 
+                                         name=name, color=color, 
+                                         num_wt2=num_wt2, 
+                                         denom_wt2=denom_wt2)
+            self._add_bins(eff_plot)
+            plot_name = '{}/{}-{}.pdf'.format(out_dir, flavor, tag)
+            eff_plot.save(plot_name)
 
 class JetEffRatioCalc(JetEfficiencyBase): 
+    """
+    Produces jet efficiency ratio plots binned by pt. At the moment
+    expects histograms to have a cooresponding 'Wt2' hist in the same 
+    Group. 
+    """
     def __init__(self): 
         super(JetEffRatioCalc, self).__init__()
         self.binner = HistToBinsConverter(self._scalefactor_pt_bins_gev)
@@ -242,7 +261,7 @@ class JetEffRatioCalc(JetEfficiencyBase):
         """
         all_samples = set(num_samples) | set(denom_samples)
         # gets a dictionary with values of the form (num, denom, extent)
-        samples_dict = self._get_tuple_dict(all_samples)
+        samples_dict = self.get_tuple_dict(all_samples)
         samples, flavors, all_tags = self._get_sft(samples_dict)
         tags = [tag for tag in all_tags if self._is_numerator(tag)]
         
@@ -312,7 +331,7 @@ class JetRatioPlotter(object):
                     tag, flav), y=0.98, va='top')
             plotter.ax.set_xlabel(r'Jet $p_{\mathrm{T}}$ [GeV]', 
                                   x=0.98, ha='right')
-            for num in nums: 
+            for num in sorted(nums): 
                 values = self.ratio_dict[num, denom, flav, tag]
                 plotter.add_ratio(values, name=num)
             plotter.save(plot_name)
