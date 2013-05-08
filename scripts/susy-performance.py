@@ -59,8 +59,10 @@ def get_config():
     tag_plot.add_argument('input_hists', nargs='*')
     tag_plot.add_argument('-o', '--output-dir', default='plots', 
                           help='output dir for plots, ' + d)
+    tag_plot.add_argument('-b', '--binned', action='store_true', 
+                          help='bin by flavortag bins')
     tag_plot.add_argument(
-        '-b', '--binomial-error', action='store_true', 
+        '--binomial-error', action='store_true', 
         help=('calculate errors as binomial rather than using wt2 linear '
               'propagation'))
 
@@ -148,11 +150,18 @@ def aggregate_jet_plots(config):
                       
 def plot_jet_eff(config): 
     from stop.performance.jeteff import JetEfficiencyPlotter
+    from stop.plot.efficiency import EfficiencyPlot, BinnedEfficiencyPlot
     if not isdir(config.output_dir): 
         os.mkdir(config.output_dir)
     wt2_error = not config.binomial_error
-    plotter = JetEfficiencyPlotter(do_wt2_error=wt2_error)
-    plotter.plot_samples(config.input_hists, out_dir=config.output_dir)
+    plotter = EfficiencyPlot
+    if config.binned: 
+        plotter = BinnedEfficiencyPlot
+        draw_bins = ''
+    outer_plotter = JetEfficiencyPlotter(do_wt2_error=wt2_error, 
+                                         draw_bins=draw_bins)
+    outer_plotter.plot_samples(config.input_hists, out_dir=config.output_dir, 
+                               plotter=plotter)
     
 
 def _is_atlfast(sample): 

@@ -3,7 +3,7 @@ import h5py
 from stop.hists import HistNd
 from os.path import basename, splitext, isdir
 import os
-from stop.plot.efficiency import EfficiencyPlot
+from stop.plot.efficiency import EfficiencyPlot, BinnedEfficiencyPlot
 
 class JetEfficiencyPlotter(object): 
     _group_name = 'alljet'
@@ -12,6 +12,7 @@ class JetEfficiencyPlotter(object):
     _jetfitter_pt_bins_gev = [25.0, 35.0, 50.0, 80.0, 120.0, 200.0]
     _scalefactor_pt_bins_gev = [
         25.0, 30.0, 40.0, 50.0, 60.0, 75.0, 90.0, 110.0, 140.0, 200.0, 300.0]
+    _max_uniform_bins = 150
     def __init__(self, do_wt2_error=True, draw_bins='jf'): 
         self.group_name = self._group_name 
         self.draw_bins = draw_bins
@@ -74,8 +75,7 @@ class JetEfficiencyPlotter(object):
             out_dict[tag] = (num_array, all_array, all_ext)
         return out_dict
 
-    def _get_tuple_dict(self, sample_names, tags='all', flavors='all', 
-                        rebin=False): 
+    def _get_tuple_dict(self, sample_names, tags='all', flavors='all'): 
         """
         the returned hists will have units of GeV
         """
@@ -98,11 +98,7 @@ class JetEfficiencyPlotter(object):
                     tag_dict = self._get_arrays(tag_group, tags)
                     for tag, tup in tag_dict.iteritems(): 
                         plot_tuples[shortsample, flavor, tag] = tup
-        if rebin: 
-            rebined = {}
-            for k in plot_tuples: 
-                rebined[k] = self._rebin_tuple(*plot_tuples[k])
-            return rebined
+
         return plot_tuples
     
     def _get_sft(self, tup_dict): 
@@ -116,6 +112,8 @@ class JetEfficiencyPlotter(object):
 
     def _add_bins(self, eff_plot): 
         from matplotlib.lines import Line2D
+        if not self.draw_bins: 
+            return 
         if self.draw_bins == 'jf': 
             opts = dict(linestyle = ':', color = 'red')
             name = 'JetFitter bins'
@@ -126,20 +124,11 @@ class JetEfficiencyPlotter(object):
             eff_plot.ax.axvline(val_gev, **opts)
         eff_plot.legends.append( (Line2D([0],[0],**opts), name)) 
 
-    def _rebin_tuple(self, num, denom, extent): 
-        if len(num) > self.max_bins and len(num) % 2 == 0: 
-            new_num = num.reshape((-1,2)).sum(1)
-            new_denom = denom.reshape((-1, 2)).sum(1)
-            # call self recursively until rebinning is done
-            return self._rebin_tuple(new_num, new_denom, extent)
-        return num, denom, extent
-
     def plot_samples(self, sample_names, tags='all', flavors='all', 
-                     out_dir='plots'): 
+                     out_dir='plots', plotter=BinnedEfficiencyPlot): 
         if not isdir(out_dir): 
             os.mkdir(out_dir)
-        tuple_dict = self._get_tuple_dict(sample_names, tags, flavors, 
-                                          rebin=True)
+        tuple_dict = self._get_tuple_dict(sample_names, tags, flavors)
         all_samples, all_flavors, all_tags = self._get_sft(tuple_dict)
         if tags == 'all': 
             tags = [tag for tag in all_tags if self._is_numerator(tag)]
@@ -155,8 +144,14 @@ class JetEfficiencyPlotter(object):
                     y_range = self.custom_ranges[flavor, tag]
                 else: 
                     y_range = (0.0, 1.0)
-                eff_plot = EfficiencyPlot(x_range=self.x_range_gev, 
-                                          y_range=y_range)
+
+                # TODO: figure out how to make this call slightly less ugly: 
+                #   lots of the current args are ignored so that we can 
+                #   stick in multiple plotters here. 
+                eff_plot = plotter(x_range=self.x_range_gev, 
+                                   y_range=y_range, 
+                                   bins=self._scalefactor_pt_bins_gev, 
+                                   max_bins=self._max_uniform_bins)
                 eff_plot.ax.set_ylabel('{} tag efficiency'.format(flavor), 
                                        y=0.98, va='top')
                 eff_plot.ax.set_xlabel(r'Jet $p_{\mathrm{T}}$ [GeV]', 
@@ -178,22 +173,6 @@ class JetEfficiencyPlotter(object):
                 plot_name = '{}/{}-{}.pdf'.format(out_dir, flavor, tag)
                 eff_plot.save(plot_name)
 
-    def plot_binned_eff(self, sample_names, out_dir='plots'): 
-        if not isdir(out_dir): 
-            os.mkdir(out_dir)
-        tuple_dict = self._get_tuple_dict(sample_names)
-        all_samples, all_flavors, all_tags = self._get_sft(tuple_dict)
-        tags = [tag for tag in all_tags if self._is_numerator(tag)]
-        for flavor in all_flavors: 
-            for tag in tags: 
-                def selector(key_tup): 
-                    s, f, t = key_tup
-                    return f == flavor and t == tag
-                pl_keys = {k for k in tuple_dict if selector(k)}
-                if (flavor, tag) in self.custom_ranges: 
-                    y_range = self.custom_ranges[flavor, tag]
-                else: 
-                    y_range = (0.0, 1.0)
 
                 
                 
