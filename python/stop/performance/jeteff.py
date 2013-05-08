@@ -5,41 +5,14 @@ from os.path import basename, splitext, isdir
 import os
 from stop.plot.efficiency import EfficiencyPlot, BinnedEfficiencyPlot
 
-class JetEfficiencyPlotter(object): 
+class JetEfficiencyBase(object): 
     _group_name = 'alljet'
-    _wt2_append = 'Wt2'
-    _colors = ['black','red','blue','green','purple', 'cyan']
-    _jetfitter_pt_bins_gev = [25.0, 35.0, 50.0, 80.0, 120.0, 200.0]
     _scalefactor_pt_bins_gev = [
         25.0, 30.0, 40.0, 50.0, 60.0, 75.0, 90.0, 110.0, 140.0, 200.0, 300.0]
-    _max_uniform_bins = 150
-    def __init__(self, do_wt2_error=True, draw_bins='jf'): 
-        self.group_name = self._group_name 
-        self.draw_bins = draw_bins
-        self.max_pt_gev = 400.0
-        self.custom_ranges = { 
-            ('charm','loose'): (0.9, 1.1), 
-            ('charm','medium'): (0.0, 0.3), 
-            ('bottom','medium'): (0.0, 0.4), 
-            ('light', 'medium'): (0.0, 0.03), 
-            }
-        self.custom_colors = { 
-            'Powheg': 'r', 
-            'Sherpa-LeptHad.h5': 'b', 
-            'Sherpa-TauleptHad.h5': 'k', 
-            'McAtNlo': 'g', 
-            }
-        self.color_bank = {}
-        self.color_itr = iter(self._colors)
-            
-        self.do_wt2_error = do_wt2_error
-        self.x_range_gev = (0.0, 400.0)
-        self.max_bins = 150
+    _wt2_append = 'Wt2'
 
-    def _get_color(self, name): 
-        if not name in self.color_bank: 
-            self.color_bank[name] = next(self.color_itr)
-        return self.color_bank[name]
+    def __init__(self): 
+        self.group_name = self._group_name
 
     def _process_hist(self, hist_nd, include_overflow=False): 
         """
@@ -74,7 +47,7 @@ class JetEfficiencyPlotter(object):
         for tag, num_array in numerator_arrays.iteritems(): 
             out_dict[tag] = (num_array, all_array, all_ext)
         return out_dict
-
+    
     def _get_tuple_dict(self, sample_names, tags='all', flavors='all'): 
         """
         the returned hists will have units of GeV
@@ -84,11 +57,11 @@ class JetEfficiencyPlotter(object):
             shortsample = basename(splitext(sample)[0])
             with h5py.File(sample) as h5_file: 
                 try: 
-                    flavor_group = h5_file[self._group_name]
+                    flavor_group = h5_file[self.group_name]
                 except KeyError as err: 
                     keys = ', '.join(h5_file.keys())
                     err = "error opening '{}' in '{}' possible keys: {}"
-                    raise IOError(err.format(self._group_name, sample, keys))
+                    raise IOError(err.format(self.group_name, sample, keys))
                 if flavors == 'all': 
                     flavors = flavor_group.keys()
                 for flavor in flavors: 
@@ -109,6 +82,39 @@ class JetEfficiencyPlotter(object):
             not tag.endswith(self._wt2_append), 
             tag != 'all']
         return all(conditions)
+
+class JetEfficiencyPlotter(JetEfficiencyBase): 
+    _colors = ['black','red','blue','green','purple', 'cyan']
+    _jetfitter_pt_bins_gev = [25.0, 35.0, 50.0, 80.0, 120.0, 200.0]
+    _max_uniform_bins = 150
+    def __init__(self, do_wt2_error=True, draw_bins='jf'): 
+        super(JetEfficiencyPlotter, self).__init__()
+        self.group_name = self._group_name 
+        self.draw_bins = draw_bins
+        self.max_pt_gev = 400.0
+        self.custom_ranges = { 
+            ('charm','loose'): (0.9, 1.1), 
+            ('charm','medium'): (0.0, 0.3), 
+            ('bottom','medium'): (0.0, 0.4), 
+            ('light', 'medium'): (0.0, 0.03), 
+            }
+        self.custom_colors = { 
+            'Powheg': 'r', 
+            'Sherpa-LeptHad.h5': 'b', 
+            'Sherpa-TauleptHad.h5': 'k', 
+            'McAtNlo': 'g', 
+            }
+        self.color_bank = {}
+        self.color_itr = iter(self._colors)
+            
+        self.do_wt2_error = do_wt2_error
+        self.x_range_gev = (0.0, 400.0)
+        self.max_bins = 150
+
+    def _get_color(self, name): 
+        if not name in self.color_bank: 
+            self.color_bank[name] = next(self.color_itr)
+        return self.color_bank[name]
 
     def _add_bins(self, eff_plot): 
         from matplotlib.lines import Line2D

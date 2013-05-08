@@ -155,6 +155,7 @@ def plot_jet_eff(config):
         os.mkdir(config.output_dir)
     wt2_error = not config.binomial_error
     plotter = EfficiencyPlot
+    draw_bins = 'jf'
     if config.binned: 
         plotter = BinnedEfficiencyPlot
         draw_bins = ''
