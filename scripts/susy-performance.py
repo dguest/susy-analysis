@@ -66,6 +66,10 @@ def get_config():
         help=('calculate errors as binomial rather than using wt2 linear '
               'propagation'))
 
+    eff_ratio = tag_step.add_parser('ratio')
+    eff_ratio.add_argument('numerator')
+    eff_ratio.add_argument('denominator')
+
     return parser.parse_args(sys.argv[1:])
 
 # --------------------------------------------------------------------
@@ -78,7 +82,7 @@ def get_config():
 
 def jet_tag_efficinecy(config): 
     subs = {'distill':distill_d3pds,'stack':aggregate_jet_plots, 
-            'plot':plot_jet_eff}
+            'plot':plot_jet_eff, 'ratio': jet_eff_ratio}
     subs[config.step](config)
 
 
@@ -163,7 +167,14 @@ def plot_jet_eff(config):
                                          draw_bins=draw_bins)
     outer_plotter.plot_samples(config.input_hists, out_dir=config.output_dir, 
                                plotter=plotter)
-    
+
+def jet_eff_ratio(config): 
+    from stop.performance.jeteff import JetEffRatioCalc
+    plotter = JetEffRatioCalc()
+    rat_dict = plotter.get_ratios([config.numerator], [config.denominator])
+    for (num, denom, flav, tag), values in rat_dict.iteritems(): 
+        if flav == 'charm' and tag == 'medium': 
+            print values
 
 def _is_atlfast(sample): 
     sim_re = re.compile('\.e[0-9]+_([as])[0-9]+_')

@@ -1,12 +1,13 @@
 import glob
 import h5py
-from stop.hists import HistNd
+from stop.hists import HistNd, HistToBinsConverter
 from os.path import basename, splitext, isdir
-import os
+import os, sys
 from stop.plot.efficiency import EfficiencyPlot, BinnedEfficiencyPlot
 
 class JetEfficiencyBase(object): 
     _group_name = 'alljet'
+    _jetfitter_pt_bins_gev = [25.0, 35.0, 50.0, 80.0, 120.0, 200.0]
     _scalefactor_pt_bins_gev = [
         25.0, 30.0, 40.0, 50.0, 60.0, 75.0, 90.0, 110.0, 140.0, 200.0, 300.0]
     _wt2_append = 'Wt2'
@@ -48,6 +49,9 @@ class JetEfficiencyBase(object):
         for tag, num_array in numerator_arrays.iteritems(): 
             out_dict[tag] = (num_array, all_array, all_ext)
         return out_dict
+
+    def _shortsample(self, samp_path): 
+        return basename(splitext(samp_path)[0])
     
     def _get_tuple_dict(self, sample_names, tags='all', flavors='all'): 
         """
@@ -55,7 +59,7 @@ class JetEfficiencyBase(object):
         """
         plot_tuples = {}
         for sample in sample_names: 
-            shortsample = basename(splitext(sample)[0])
+            shortsample = self._shortsample(sample)
             with h5py.File(sample) as h5_file: 
                 try: 
                     flavor_group = h5_file[self.group_name]
@@ -85,8 +89,11 @@ class JetEfficiencyBase(object):
         return all(conditions)
 
 class JetPlotBase(object): 
+    """
+    Adds _get_color and _add_bins (which in turn adds vertical bins)
+    TODO: get rid of this as a baseclass (could just be a component)
+    """
     _colors = ['black','red','blue','green','purple', 'cyan']
-    _jetfitter_pt_bins_gev = [25.0, 35.0, 50.0, 80.0, 120.0, 200.0]
     _max_uniform_bins = 150
 
     def __init__(self, draw_bins='jf', **kwargs): 
@@ -107,10 +114,13 @@ class JetPlotBase(object):
         if self.draw_bins == 'jf': 
             opts = dict(linestyle = ':', color = 'red')
             name = 'JetFitter bins'
+            bin_values = self._jetfitter_pt_bins_gev
         elif self.draw_bins == 'sf': 
             opts = dict(linestyle = ':', color = 'green')
             name = 'SF bins'
-        for val_gev in self._jetfitter_pt_bins_gev: 
+            bin_values = self._scalefactor_pt_bins_gev
+
+        for val_gev in bin_values: 
             eff_plot.ax.axvline(val_gev, **opts)
         eff_plot.legends.append( (Line2D([0],[0],**opts), name)) 
 
@@ -184,3 +194,96 @@ class JetEfficiencyPlotter(JetPlotBase, JetEfficiencyBase):
                 plot_name = '{}/{}-{}.pdf'.format(out_dir, flavor, tag)
                 eff_plot.save(plot_name)
 
+class JetEffRatioCalc(JetEfficiencyBase): 
+    def __init__(self): 
+        super(JetEffRatioCalc, self).__init__()
+        self.binner = HistToBinsConverter(self._scalefactor_pt_bins_gev)
+
+    def _get_x_xerr_y_yerr(self, sampdic, key): 
+        """
+        looks up values and wt2 hists in sampdic, returns efficiency 
+        with errors. 
+        """
+        n_pass, n_all, extent = sampdic[key]
+        # need some magic to get the sum weights
+        wt_key = key[0], key[1], key[2] + self._wt2_append
+        pass_wt2, all_wt2, extent = sampdic[wt_key]
+
+        # we don't need all the binner's return values
+        def get_x_xerr_y(array, extent, do_x=False): 
+            under, x, x_err, y, over = self.binner.get_bin_counts(
+                array, extent, overflows_included=False)
+            if do_x: 
+                return x, x_err, y
+            else: 
+                return y
+        x, xerr, pass_b = get_x_xerr_y(n_pass, extent, do_x=True)
+        all_b = get_x_xerr_y(n_all, extent)
+        pass_wt2_b = get_x_xerr_y(pass_wt2, extent)
+        all_wt2_b = get_x_xerr_y(all_wt2, extent)
+        
+        p = pass_b
+        f = all_b - pass_b
+        # use nan when we have zero stats (suppresses warnings)
+        f[(f == 0.0) & (p == 0.0)] = float('nan')
+        p_wt2 = pass_wt2_b
+        f_wt2 = all_wt2_b - pass_wt2_b
+        y_err = (p_wt2**0.5 * f + f_wt2**0.5 * p) / (p + f)**2.0
+        y = p / (p + f)
+        return x, xerr, y, y_err
+
+    def get_ratios(self, num_samples, denom_samples): 
+        """
+        Returns a dict, keyed by (num_sample, denom_sample, flav, tag), 
+        holding another dict keyed by {x_center, x_error, y_center, y_error}
+        """
+        all_samples = set(num_samples) | set(denom_samples)
+        # gets a dictionary with values of the form (num, denom, extent)
+        samples_dict = self._get_tuple_dict(all_samples)
+        samples, flavors, all_tags = self._get_sft(samples_dict)
+        tags = [tag for tag in all_tags if self._is_numerator(tag)]
+        
+        short_num = {self._shortsample(s) for s in num_samples}
+        short_denom = {self._shortsample(s) for s in denom_samples}
+
+        rat_dict = {}
+
+        for flavor in flavors: 
+            for tag in tags: 
+                def selector(key_tup): 
+                    s, f, t = key_tup
+                    return (f == flavor) and (t == tag) 
+                keys = {k for k in samples_dict if selector(k)}
+                
+                key_pairs = { 
+                    frozenset((k1, k2)) for k1 in keys for k2 in keys}
+                key_pairs = {k for k in key_pairs if len(k) == 2}
+                ordered_pairs = set()
+                for first, second in key_pairs: 
+                    f_samp, f_flav, f_tag = first
+                    if f_samp in short_num: 
+                        ordered_pairs.add( (first, second) )
+                    else: 
+                        ordered_pairs.add( (second, first) )
+                
+                binner = HistToBinsConverter(self._scalefactor_pt_bins_gev)
+                for numkey, denomkey in ordered_pairs: 
+                    numx, numxerr, numy, numyerr = self._get_x_xerr_y_yerr(
+                        samples_dict,numkey)
+                    denx, denxerr, deny, denyerr = self._get_x_xerr_y_yerr(
+                        samples_dict, denomkey)
+
+                    ratio = numy / deny
+                    # assume errors are uncorrelated
+                    rel_err = (
+                        (numyerr / numy)**2 + (denyerr / deny)**2)**0.5 
+                    ratio_error = rel_err * ratio
+                    rat_dict[numkey, denomkey, flavor, tag] = { 
+                        'x_center': numx, 'x_error': numxerr, 
+                        'y_center': ratio, 'y_error': ratio_error }
+        return rat_dict
+                    
+
+    
+    
+        

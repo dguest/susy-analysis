@@ -165,3 +165,13 @@ class BinnedEfficiencyPlot(EfficiencyPlot):
         if name: 
             self.legends.append( (line, name))
         
+class RatioPlotter(object): 
+    _colors = ['black','red','blue','green','purple', 'cyan']
+    def __init__(self, y_range=(0.5, 1.5) ): 
+        self.fig = Figure(figsize=(8,6))
+        self.canvas = FigureCanvas(self.fig)
+        self.ax = self.fig.add_subplot(1,1,1)
+        self.color_map = {}
+        self.legends = []
+    def add_ratio(self, ratio_dict): 
+        pass
