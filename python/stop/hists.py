@@ -579,18 +579,52 @@ class HistToBinsConverter(object):
     """
     def __init__(self, bins): 
         self.bins = bins
+        self.error_threshold = 1e-4
 
-    def get_bin_counts(self, full_array, extent): 
+    def _check_bins(self, in_centers): 
+        """
+        checks to make sure the bins are aligned in the input / output. 
+        """
+        in_delta = np.mean(np.diff(in_centers))
+        bin_lows = in_centers - in_delta / 2.0
+        bin_highs = in_centers + in_delta / 2.0
+        
+        bins = np.array(self.bins)
+        binlow_off_matrix = bins[:-1].reshape((-1,1)) - bin_lows
+        binhigh_off_matrix = bins[1:].reshape((-1,1)) - bin_highs
+        low_offset2 = np.min(binlow_off_matrix**2, -1)
+        high_offset2 = np.min(binhigh_off_matrix**2, -1)
+        max_rel_high = np.max(low_offset2 / in_delta)
+        max_rel_low = np.max(high_offset2 / in_delta)
+
+        max_rel_off = max(max_rel_low, max_rel_high)
+        if max_rel_off > self.error_threshold: 
+            raise ValueError(
+                'rel bin misalignment of {} (max allowed: {})'.format(
+                    max_rel_off, self.error_threshold))
+
+    def get_bin_counts(self, counts_array, extent, 
+                       overflows_included=True): 
         """
         returns (underflow, x_center, x_err, y_sum, overflow). 
-        Assumes the first and last entries in array are under / overflow. 
+        Assumes the first and last entries in array are under / overflow, 
+        unless overflows_included == False. 
         """
-        array = full_array[1:-1]
+        if overflows_included: 
+            array = counts_array[1:-1]
+            under = counts_array[0]
+            over = counts_array[-1]
+        else: 
+            array = counts_array
+            under = 0.0
+            over = 0.0
+
         in_centers = np.linspace(*extent, num=(len(array)*2 + 1))[1:-1:2]
+        self._check_bins(in_centers)
         counts, edges = np.histogram(
             in_centers, bins=self.bins, weights=array)
         x_center = np.vstack([edges[1:], edges[:-1]]).mean(0)
         x_err = np.diff(edges) / 2.0
-        under = array[in_centers < edges[0]].sum() + full_array[0]
-        over = array[in_centers >= edges[-1]].sum() + full_array[-1]
+        under += array[in_centers < edges[0]].sum() 
+        over += array[in_centers >= edges[-1]].sum() 
         return under, x_center, x_err, counts, over
