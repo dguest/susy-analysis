@@ -570,3 +570,27 @@ class HistAdder(object):
 class HistAddError(StandardError): 
     def __init__(self, args): 
         super(HistAddError, self).__init__(args)
+
+
+class HistToBinsConverter(object): 
+    """
+    Initalized with a selection of bins in a window. 
+    Converts count, extent arrays into binned values. 
+    """
+    def __init__(self, bins): 
+        self.bins = bins
+
+    def get_bin_counts(self, full_array, extent): 
+        """
+        returns (underflow, x_center, x_err, y_sum, overflow). 
+        Assumes the first and last entries in array are under / overflow. 
+        """
+        array = full_array[1:-1]
+        in_centers = np.linspace(*extent, num=(len(array)*2 + 1))[1:-1:2]
+        counts, edges = np.histogram(
+            in_centers, bins=self.bins, weights=array)
+        x_center = np.vstack([edges[1:], edges[:-1]]).mean(0)
+        x_err = np.diff(edges) / 2.0
+        under = array[in_centers < edges[0]].sum() + full_array[0]
+        over = array[in_centers >= edges[-1]].sum() + full_array[-1]
+        return under, x_center, x_err, counts, over

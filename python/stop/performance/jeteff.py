@@ -40,14 +40,17 @@ class JetEfficiencyPlotter(object):
             self.color_bank[name] = next(self.color_itr)
         return self.color_bank[name]
 
-    def _process_hist(self, hist_nd): 
+    def _process_hist(self, hist_nd, include_overflow=False): 
         """
         converts the n-dim hist into an (array,extent) tuple, 
         which is the expected input for EfficiencyPlot
         """
         units = hist_nd.axes['x'].units
         raw_array, extent = hist_nd.project_1d('x')
-        array = raw_array[1:-1]
+        if not include_overflow: 
+            array = raw_array[1:-1]
+        else: 
+            array = raw_array
         factor = {'MeV':1e-3, 'GeV':1.0}[units]
         extent = [e*factor for e in extent]
         return array, extent
@@ -174,3 +177,24 @@ class JetEfficiencyPlotter(object):
                 self._add_bins(eff_plot)
                 plot_name = '{}/{}-{}.pdf'.format(out_dir, flavor, tag)
                 eff_plot.save(plot_name)
+
+    def plot_binned_eff(self, sample_names, out_dir='plots'): 
+        if not isdir(out_dir): 
+            os.mkdir(out_dir)
+        tuple_dict = self._get_tuple_dict(sample_names)
+        all_samples, all_flavors, all_tags = self._get_sft(tuple_dict)
+        tags = [tag for tag in all_tags if self._is_numerator(tag)]
+        for flavor in all_flavors: 
+            for tag in tags: 
+                def selector(key_tup): 
+                    s, f, t = key_tup
+                    return f == flavor and t == tag
+                pl_keys = {k for k in tuple_dict if selector(k)}
+                if (flavor, tag) in self.custom_ranges: 
+                    y_range = self.custom_ranges[flavor, tag]
+                else: 
+                    y_range = (0.0, 1.0)
+
+                
+                
+    
