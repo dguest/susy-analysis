@@ -8,6 +8,10 @@ Routine to run over d3pds (distill) condense resulting ntuples (stack), and
 plot them (plot). Should probably be run from an empty directory. 
 """
 
+_ratio_help="""
+Computes the ratio between two efficiencies. Output is either plotted or 
+dumped as yaml
+"""
 
 import argparse, sys
 import glob
@@ -66,9 +70,10 @@ def get_config():
         help=('calculate errors as binomial rather than using wt2 linear '
               'propagation'))
 
-    eff_ratio = tag_step.add_parser('ratio')
-    eff_ratio.add_argument('numerator')
-    eff_ratio.add_argument('denominator')
+    eff_ratio = tag_step.add_parser('ratio', description=_ratio_help)
+    eff_ratio.add_argument('-n','--numerators', nargs='+')
+    eff_ratio.add_argument('-d','--denominators', nargs='+')
+    eff_ratio.add_argument('-o','--plot-dir')
 
     return parser.parse_args(sys.argv[1:])
 
@@ -169,12 +174,16 @@ def plot_jet_eff(config):
                                plotter=plotter)
 
 def jet_eff_ratio(config): 
-    from stop.performance.jeteff import JetEffRatioCalc
-    plotter = JetEffRatioCalc()
-    rat_dict = plotter.get_ratios([config.numerator], [config.denominator])
-    for (num, denom, flav, tag), values in rat_dict.iteritems(): 
-        if flav == 'charm' and tag == 'medium': 
-            print values
+    from stop.performance.jeteff import JetEffRatioCalc, JetRatioPlotter
+    calc = JetEffRatioCalc()
+    rat_dict = calc.get_ratios(config.numerators, config.denominators)
+    if config.plot_dir: 
+        if not isdir(config.plot_dir): 
+            os.mkdir(config.plot_dir)
+        
+        plotter = JetRatioPlotter(rat_dict)
+        
+        plotter.overlay_numerators(config.plot_dir)
 
 def _is_atlfast(sample): 
     sim_re = re.compile('\.e[0-9]+_([as])[0-9]+_')

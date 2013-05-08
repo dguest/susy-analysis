@@ -165,13 +165,35 @@ class BinnedEfficiencyPlot(EfficiencyPlot):
         if name: 
             self.legends.append( (line, name))
         
-class RatioPlotter(object): 
+class RatioPlot(object): 
+    """
+    Probably a good general purpose plotter... 
+    """
     _colors = ['black','red','blue','green','purple', 'cyan']
-    def __init__(self, y_range=(0.5, 1.5) ): 
+    def __init__(self, y_range=(0.5, 1.5) , legend_title=None): 
         self.fig = Figure(figsize=(8,6))
         self.canvas = FigureCanvas(self.fig)
+        self.y_range = y_range
         self.ax = self.fig.add_subplot(1,1,1)
-        self.color_map = {}
+        self.color_itr = iter(self._colors)
         self.legends = []
-    def add_ratio(self, ratio_dict): 
-        pass
+        self.legend_title = legend_title
+    def add_ratio(self, ratio_dict, name='', color=None): 
+        if not color: 
+            color = next(self.color_itr)
+        line, cap, unsure = self.ax.errorbar(
+            ratio_dict['x_center'], ratio_dict['y_center'], ms=10, 
+            fmt='.', mfc=color, mec=color, ecolor=color, 
+            yerr=ratio_dict['y_error'], xerr=ratio_dict['x_error'])
+        if name: 
+            self.legends.append( (line, name))
+
+    def save(self, name): 
+        if self.legends: 
+            legend = self.ax.legend(*zip(*self.legends), numpoints=1, 
+                                     title=self.legend_title)
+            legend.get_frame().set_linewidth(0)
+            legend.get_frame().set_alpha(0)
+        self.ax.set_ylim(*self.y_range)
+        self.fig.savefig(name, bbox_inches='tight')
+

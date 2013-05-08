@@ -4,6 +4,8 @@ from stop.hists import HistNd, HistToBinsConverter
 from os.path import basename, splitext, isdir
 import os, sys
 from stop.plot.efficiency import EfficiencyPlot, BinnedEfficiencyPlot
+from stop.plot.efficiency import RatioPlot
+import itertools
 
 class JetEfficiencyBase(object): 
     _group_name = 'alljet'
@@ -155,6 +157,7 @@ class JetEfficiencyPlotter(JetPlotBase, JetEfficiencyBase):
             tags = [tag for tag in all_tags if self._is_numerator(tag)]
         if flavors == 'all': 
             flavors = all_flavors
+        # TODO: replace nested loop with product
         for flavor in flavors: 
             for tag in tags: 
                 def selector(key_tup): 
@@ -248,42 +251,70 @@ class JetEffRatioCalc(JetEfficiencyBase):
 
         rat_dict = {}
 
-        for flavor in flavors: 
-            for tag in tags: 
-                def selector(key_tup): 
-                    s, f, t = key_tup
-                    return (f == flavor) and (t == tag) 
-                keys = {k for k in samples_dict if selector(k)}
-                
-                key_pairs = { 
-                    frozenset((k1, k2)) for k1 in keys for k2 in keys}
-                key_pairs = {k for k in key_pairs if len(k) == 2}
-                ordered_pairs = set()
-                for first, second in key_pairs: 
-                    f_samp, f_flav, f_tag = first
-                    if f_samp in short_num: 
-                        ordered_pairs.add( (first, second) )
-                    else: 
-                        ordered_pairs.add( (second, first) )
-                
-                binner = HistToBinsConverter(self._scalefactor_pt_bins_gev)
-                for numkey, denomkey in ordered_pairs: 
-                    numx, numxerr, numy, numyerr = self._get_x_xerr_y_yerr(
-                        samples_dict,numkey)
-                    denx, denxerr, deny, denyerr = self._get_x_xerr_y_yerr(
-                        samples_dict, denomkey)
+        for flavor, tag in itertools.product(flavors, tags): 
+            ordered_pairs = set()
+            for s1, s2 in itertools.product(short_num, short_denom): 
+                first = (s1, flavor, tag)
+                second = (s2, flavor, tag)
+                ordered_pairs.add( (first, second))
+            
+            binner = HistToBinsConverter(self._scalefactor_pt_bins_gev)
+            for numkey, denomkey in ordered_pairs: 
+                numx, numxerr, numy, numyerr = self._get_x_xerr_y_yerr(
+                    samples_dict,numkey)
+                denx, denxerr, deny, denyerr = self._get_x_xerr_y_yerr(
+                    samples_dict, denomkey)
 
-                    ratio = numy / deny
-                    # assume errors are uncorrelated
-                    rel_err = (
-                        (numyerr / numy)**2 + (denyerr / deny)**2)**0.5 
-                    ratio_error = rel_err * ratio
-                    rat_dict[numkey, denomkey, flavor, tag] = { 
-                        'x_center': numx, 'x_error': numxerr, 
-                        'y_center': ratio, 'y_error': ratio_error }
+                ratio = numy / deny
+                # assume errors are uncorrelated
+                rel_err = (
+                    (numyerr / numy)**2 + (denyerr / deny)**2)**0.5 
+                ratio_error = rel_err * ratio
+                rat_dict[numkey[0], denomkey[0], flavor, tag] = { 
+                    'x_center': numx, 'x_error': numxerr, 
+                    'y_center': ratio, 'y_error': ratio_error }
         return rat_dict
                     
+class JetRatioPlotter(object): 
+    """
+    Wrapper which prints a lot of RatioPlots. 
+    """
+    def __init__(self, ratio_dict): 
+        self.ratio_dict = ratio_dict
+        self.sample_replacements = {
+            'McAtNloJimmy_ttbar_LeptonFilter': r'McAtNloJimmy $t\bar{t}$', 
+            }
+    def plot_all_ratios(self, plot_dir): 
+        for (num, denom, flav, tag), values in self.ratio_dict.iteritems(): 
+            out_path = '{}/{}-over-{}-{}Tag-{}Truth.pdf'.format(
+                plot_dir, num, denom, tag, flav)
+            sys.stderr.write('plotting {}\n'.format(out_path))
+            plotter = RatioPlot()
+            plotter.add_ratio(values)
+            plotter.ax.set_ylabel('{} tag efficiency'.format(flav), 
+                                  y=0.98, va='top')
+            plotter.ax.set_xlabel(r'Jet $p_{\mathrm{T}}$ [GeV]', 
+                                  x=0.98, ha='right')
+            plotter.save(out_path)
 
-    
-    
+    def overlay_numerators(self, plot_dir): 
+        nums, denoms, flavs, tags = (
+            set(s) for s in zip(*self.ratio_dict.keys()))
+        for flav, tag, denom in itertools.product(flavs, tags, denoms): 
+            plot_name = '{}/all-over-{}-{}Tag-{}Truth.pdf'.format(
+                plot_dir, denom, tag, flav)
+            sys.stderr.write('plotting {}\n'.format(plot_name))
+            fancy_denom = self.sample_replacements.get(denom,denom)
+            plotter = RatioPlot(
+                legend_title='Generator / {}'.format(fancy_denom))
+            plotter.ax.set_ylabel(
+                'eff ratio, {} {} tag efficiency'.format(
+                    tag, flav), y=0.98, va='top')
+            plotter.ax.set_xlabel(r'Jet $p_{\mathrm{T}}$ [GeV]', 
+                                  x=0.98, ha='right')
+            for num in nums: 
+                values = self.ratio_dict[num, denom, flav, tag]
+                plotter.add_ratio(values, name=num)
+            plotter.save(plot_name)
+            
         
