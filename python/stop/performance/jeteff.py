@@ -11,7 +11,8 @@ class JetEfficiencyBase(object):
         25.0, 30.0, 40.0, 50.0, 60.0, 75.0, 90.0, 110.0, 140.0, 200.0, 300.0]
     _wt2_append = 'Wt2'
 
-    def __init__(self): 
+    def __init__(self, **kwargs): 
+        super(JetEfficiencyBase, self).__init__(**kwargs)
         self.group_name = self._group_name
 
     def _process_hist(self, hist_nd, include_overflow=False): 
@@ -83,33 +84,16 @@ class JetEfficiencyBase(object):
             tag != 'all']
         return all(conditions)
 
-class JetEfficiencyPlotter(JetEfficiencyBase): 
+class JetPlotBase(object): 
     _colors = ['black','red','blue','green','purple', 'cyan']
     _jetfitter_pt_bins_gev = [25.0, 35.0, 50.0, 80.0, 120.0, 200.0]
     _max_uniform_bins = 150
-    def __init__(self, do_wt2_error=True, draw_bins='jf'): 
-        super(JetEfficiencyPlotter, self).__init__()
-        self.group_name = self._group_name 
-        self.draw_bins = draw_bins
-        self.max_pt_gev = 400.0
-        self.custom_ranges = { 
-            ('charm','loose'): (0.9, 1.1), 
-            ('charm','medium'): (0.0, 0.3), 
-            ('bottom','medium'): (0.0, 0.4), 
-            ('light', 'medium'): (0.0, 0.03), 
-            }
-        self.custom_colors = { 
-            'Powheg': 'r', 
-            'Sherpa-LeptHad.h5': 'b', 
-            'Sherpa-TauleptHad.h5': 'k', 
-            'McAtNlo': 'g', 
-            }
+
+    def __init__(self, draw_bins='jf', **kwargs): 
+        super(JetPlotBase, self).__init__(**kwargs)
         self.color_bank = {}
         self.color_itr = iter(self._colors)
-            
-        self.do_wt2_error = do_wt2_error
-        self.x_range_gev = (0.0, 400.0)
-        self.max_bins = 150
+        self.draw_bins = draw_bins
 
     def _get_color(self, name): 
         if not name in self.color_bank: 
@@ -129,6 +113,27 @@ class JetEfficiencyPlotter(JetEfficiencyBase):
         for val_gev in self._jetfitter_pt_bins_gev: 
             eff_plot.ax.axvline(val_gev, **opts)
         eff_plot.legends.append( (Line2D([0],[0],**opts), name)) 
+
+class JetEfficiencyPlotter(JetPlotBase, JetEfficiencyBase): 
+    def __init__(self, do_wt2_error=True, draw_bins='jf'): 
+        super(JetEfficiencyPlotter, self).__init__(draw_bins)
+        self.max_pt_gev = 400.0
+        self.custom_ranges = { 
+            ('charm','loose'): (0.9, 1.1), 
+            ('charm','medium'): (0.0, 0.3), 
+            ('bottom','medium'): (0.0, 0.4), 
+            ('light', 'medium'): (0.0, 0.03), 
+            }
+        self.custom_colors = { 
+            'Powheg': 'r', 
+            'Sherpa-LeptHad.h5': 'b', 
+            'Sherpa-TauleptHad.h5': 'k', 
+            'McAtNlo': 'g', 
+            }
+            
+        self.do_wt2_error = do_wt2_error
+        self.x_range_gev = (0.0, 400.0)
+        self.max_bins = 150
 
     def plot_samples(self, sample_names, tags='all', flavors='all', 
                      out_dir='plots', plotter=BinnedEfficiencyPlot): 
@@ -179,7 +184,3 @@ class JetEfficiencyPlotter(JetEfficiencyBase):
                 plot_name = '{}/{}-{}.pdf'.format(out_dir, flavor, tag)
                 eff_plot.save(plot_name)
 
-
-                
-                
-    
