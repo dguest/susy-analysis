@@ -15,12 +15,14 @@ Adds the hists of datasets that were fragmented in distillation.
 import argparse, sys
 import yaml
 import glob
-from os.path import join, splitext, isdir
+from os.path import join, splitext, isdir, isfile
 import os
 from itertools import groupby
 
 from stop.stack.regions import Region, condense_regions
 from stop.stack.stacker import Stacker
+import h5py
+from stop.hists import HistAdder
 
 def run(): 
     config = get_config()
@@ -53,7 +55,9 @@ def get_config():
     
     hadd_parser = subs.add_parser('hadd', description=_hadd_help)
     hadd_parser.add_argument('steering_file')
-    hadd_parser.add_argument('-c', '--clean', action='store_true')
+    hadd_parser.add_argument('-c', '--clean', action='store_true', 
+                             help='remove partial files after adding')
+    hadd_parser.add_argument('-v','--verbose', action='store_true')
     return parser.parse_args(sys.argv[1:])
 
 def setup_steering(config): 
@@ -152,36 +156,22 @@ def run_hadd(config):
     all_files = glob.glob(join(hist_dir, method_dir, syst_dir, '*-*.h5'))
 
     def stub_finder(file_name): 
-        master_stub, part, ext = in_file.rpartition('-')
+        master_stub, part, ext = file_name.rpartition('-')
         try: 
             int(splitext(ext)[0])
         except ValueError: 
-            raise ValueError("{} doesn't parse in hadd".format(in_file))
-    for stub, in_files in groupby(all_files, stub_finder): 
-        print stub, list(in_files)
-    sys.exit()
+            raise ValueError("{} doesn't parse in hadd".format(file_name))
+        return master_stub
 
-    for hist_file in config.input_hists: 
-        with h5py.File(hist_file) as h5: 
-            if len(h5.keys()): 
-                good_files.append(hist_file)
-    if len(good_files) != len(config.input_hists): 
-        sys.stderr.write(
-            'ACHTUNG: only {} of {} files have any hists\n'.format(
-                len(good_files), len(config.input_hists)))
-    if config.dash_hadd: 
-        def key_from_name(fname): 
-            return splitext(basename(fname))[0].split('-')[0]
-        if not isdir(config.output): 
-            os.mkdir(config.output)
-        base_keys = {key_from_name(f) for f in good_files}
-        for key in base_keys: 
-            out_path = join(config.output, '{}.h5'.format(key))
-            print 'making {}'.format(out_path)
-            file_group = [f for f in good_files if key in f]
-            _hadd(file_group, out_path)
-    else: 
-        _hadd(good_files, config.output)
+    for stub, in_itr in groupby(sorted(all_files), stub_finder): 
+        in_files = list(in_itr)
+        out_name = '{}.h5'.format(stub)
+        if config.verbose: 
+            print 'hadding {}'.format(out_name)
+        _hadd(in_files, out_name)
+        if config.clean: 
+            for old_in in in_files: 
+                os.remove(old_in)
 
 def _hadd(good_files, output):
     with h5py.File(good_files[0]) as base_h5: 
@@ -191,11 +181,9 @@ def _hadd(good_files, output):
             raise IOError("{} doesn't exist".format(add_file))
         with h5py.File(add_file) as add_h5: 
             hadder.add(add_h5)
-    if output: 
-        with h5py.File(output,'w') as out_file: 
-            hadder.write_to(out_file)
-    else:
-        hadder.dump()
+
+    with h5py.File(output,'w') as out_file: 
+        hadder.write_to(out_file)
 
 
 if __name__ == '__main__': 
