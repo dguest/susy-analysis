@@ -67,8 +67,9 @@ def run():
 
     systematic = 'NONE' if args.fast else 'all'
     coord.bugstream = TemporaryFile()
-    coord.stack(systematic=systematic, 
-                rerun=args.rerun_stack, mode=args.mode)
+    if args.rerun_stack: 
+        coord.stack(systematic=systematic, 
+                    rerun=args.rerun_stack, mode=args.mode)
 
     count_dict = coord.aggregate(systematic=systematic,
                                  rerun=args.force_aggregation, 
