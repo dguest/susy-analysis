@@ -66,6 +66,7 @@ def strip_distiller_meta(item, merging=True):
         item.n_raw_entries = 0
         item.n_corrupted_files = 0
         item.meta_sources -= set(['distiller'])
+        item.sum_event_weight = 0.0
 
 def run(): 
     args = _get_parser().parse_args(sys.argv[1:])
