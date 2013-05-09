@@ -108,8 +108,11 @@ void fill_event_truth(outtree::OutTree& out_tree, const SusyBuffer& buffer,
   if (flags & cutflag::spartid) { 
     out_tree.spart1_pdgid = buffer.spart1_pdgid; 
     out_tree.spart2_pdgid = buffer.spart2_pdgid; 
-  }
-  out_tree.mc_event_weight = buffer.mc_event_weight; 
+  } 
+  // currently there is a bug in mc_event_weight, we have to use 
+  // mcevt_weight[0][0] instead
+  //out_tree.mc_event_weight = buffer.mc_event_weight; 
+  out_tree.mc_event_weight = buffer.mcevt_weight->at(0).at(0); 
 }
 
 void fill_cjet_truth(outtree::OutTree& out_tree, 

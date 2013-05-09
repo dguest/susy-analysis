@@ -23,7 +23,7 @@ class SmartChain;
 class SusyBuffer {
 public :
 
-  // Declaration of leaf types
+
   unsigned int RunNumber; 
   unsigned int EventNumber; 
   unsigned lbn; 
@@ -34,14 +34,16 @@ public :
   unsigned        tileError;
   unsigned        coreFlags; 
 
-  // truth info
+  //  --- truth info ---
   int hfor_type; 
   int spart1_pdgid; 
   int spart2_pdgid; 
   float mc_event_weight; 
+
   // hack for sherpa bug
   std::vector<std::vector<double> >* mcevt_weight; 
 
+  // needed for boson filter
   int mc_n; 
   std::vector<float>* mc_pt; 
   std::vector<float>* mc_eta; 
@@ -50,10 +52,10 @@ public :
   std::vector<int>* mc_status; 
   std::vector<int>* mc_pdgId; 
 
-  //Random Event
+  // --- Random Event ---
   float Eventshape_rhoKt4LC; 
 
-  // MET things
+  //  --- MET things ---
   vector<vector<float> >*    jet_MET_Egamma10NoTau_wet;
   vector<vector<float> >*    jet_MET_Egamma10NoTau_wpx;
   vector<vector<float> >*    jet_MET_Egamma10NoTau_wpy;
