@@ -6,7 +6,9 @@
 #include "TLorentzVector.h"
 
 BosonTruthFilter::BosonTruthFilter(double threshold_mev): 
-  m_threshold_mev(threshold_mev)
+  m_threshold_mev(threshold_mev), 
+  m_lt_2_lepton_events(0), 
+  m_2_lepton_events(0)
 {
 }
 bool BosonTruthFilter::is_over_threshold(const SusyBuffer* buffer) { 
@@ -38,7 +40,9 @@ bool BosonTruthFilter::is_over_threshold(const SusyBuffer* buffer) {
     }
   }
   if (!foundSecond) { 
-    throw std::runtime_error("couldn't find 2 leptons (in "__FILE__")"); 
+    m_lt_2_lepton_events++; 
+    // a boson decaying to less than two leptons is probably under threshold
+    return false; 
   }
   TLorentzVector v = l1 + l2; 
   if (v.Pt() > m_threshold_mev) { 
@@ -47,4 +51,8 @@ bool BosonTruthFilter::is_over_threshold(const SusyBuffer* buffer) {
   else { 
     return false; 
   }
+}
+
+int BosonTruthFilter::get_n_lt_2_lepton_events() const { 
+  return m_lt_2_lepton_events; 
 }

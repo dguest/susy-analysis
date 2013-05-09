@@ -144,6 +144,10 @@ StopDistiller::Cutflow StopDistiller::run_cutflow() {
   for (auto cut = obj_counts.begin(); cut != obj_counts.end(); cut++) { 
     cutflow_vec.push_back(*cut); 
   }
+  if (m_boson_truth_filter) { 
+    int n_lt_2_lepton = m_boson_truth_filter->get_n_lt_2_lepton_events(); 
+    cutflow_vec.push_back(std::make_pair("lt_2_lepton", n_lt_2_lepton)); 
+  }
   return cutflow_vec;
 
 }
