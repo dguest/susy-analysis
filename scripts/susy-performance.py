@@ -48,6 +48,10 @@ def get_config():
         'd3pds', help='input d3pd dir OR file listing d3pds')
     tag_distill.add_argument('meta', help='meta yaml file')
     tag_distill.add_argument(
+        '-f','--filter-output', action='store_true', 
+        help=('apply same output filter as is applied to the search skims'
+              ' (for compatibility)'))
+    tag_distill.add_argument(
         '-o','--output-dir', default='whiskey', 
         help='output dir for distillates, ' + d)
     tag_distill.add_argument('--calibration', default='~/calibration', 
@@ -117,7 +121,9 @@ def distill_d3pds(config):
     for ds_key, subfiles in ds_groups.iteritems(): 
         out_file = _ntuple_name_from_ds_name(dirname(subfiles[0]))
         out_path = join(config.output_dir, out_file)
-        flags = 'ev'            # all events saved, verbose
+        flags = 'v'             # verbose
+        if not config.filter_output: 
+            flags += 'e'        # save all events
         if _is_atlfast(meta_lookup[ds_key].full_name): 
             flags += 'f'
         cut_counts = cutflow.cutflow(
