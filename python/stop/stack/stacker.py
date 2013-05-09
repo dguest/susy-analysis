@@ -1,3 +1,6 @@
+import sys, os
+from os.path import join, isdir, basename, splitext, isfile
+
 class Stacker(object): 
     """
     Constructed  with a regions dict. Runs the stacking routine when 
@@ -22,7 +25,7 @@ class Stacker(object):
     def verbose(self, value): 
         self._verbose = value
         if value:
-            self.flags += set('v')
+            self.flags |= set('v')
         else: 
             self.flags -= set('v')
     def _ismc(self, ntuple_name): 
