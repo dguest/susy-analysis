@@ -39,6 +39,7 @@ private:
   std::vector<Jet1DHists*> m_jet_hists; 
 
   Histogram* m_met; 
+  Histogram* m_alt_met; 
   Histogram* m_min_dphi; 
   Histogram* m_mttop; 
   Histogram* m_n_good_jets; 

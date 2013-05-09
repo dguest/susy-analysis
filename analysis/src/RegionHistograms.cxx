@@ -36,6 +36,7 @@ RegionHistograms::RegionHistograms(const RegionConfig& config,
     m_jet_hists.push_back(new Jet1DHists(max_pt, flags)); 
   }
   m_met = new Histogram(N_BINS, 0.0, max_pt, "MeV"); 
+  m_alt_met = new Histogram(N_BINS, 0.0, max_pt, "MeV"); 
   m_min_dphi = new Histogram(N_BINS, 0.0, 3.2); 
   m_mttop = new Histogram(N_BINS, 0.0, max_pt, "MeV"); 
   m_n_good_jets = new Histogram(11, -0.5, 10.5); 
@@ -62,6 +63,7 @@ RegionHistograms::~RegionHistograms() {
   }
 
   delete m_met; 
+  delete m_alt_met; 
   delete m_min_dphi; 
   delete m_mttop; 
   delete m_n_good_jets; 
@@ -86,10 +88,13 @@ void RegionHistograms::fill(const EventObjects& obj) {
   if (! (m_build_flags & buildflag::is_data)) { 
     weight *= m_event_filter.jet_scalefactor(obj); 
   }
-  const TVector2 met = obj.met; 
+  const bool do_mu_met = m_region_config.region_bits & reg::mu_met; 
+  const TVector2 met = do_mu_met ? obj.mu_met: obj.met; 
+  const TVector2 alt_met = do_mu_met ? obj.met: obj.mu_met; 
   const TLorentzVector met4(met.Px(), met.Py(), 0, 0); 
 
-  m_met->fill(obj.met.Mod(),  weight); 
+  m_met->fill(met.Mod(),  weight); 
+  m_alt_met->fill(alt_met.Mod(), weight); 
 
   unsigned n_jets = std::min(jets.size(), m_jet_hists.size()); 
   for (size_t jet_n = 0; jet_n < n_jets; jet_n++) { 
@@ -135,6 +140,7 @@ void RegionHistograms::write_to(H5::CommonFG& file) const {
   }
 
   m_met->write_to(region, "met");
+  m_alt_met->write_to(region, "altMet");
   m_min_dphi->write_to(region, "minDphi"); 
   m_mttop->write_to(region, "mttop"); 
   m_n_good_jets->write_to(region, "nGoodJets"); 
