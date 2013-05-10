@@ -21,7 +21,7 @@ bool BosonTruthFilter::is_over_threshold(const SusyBuffer* buffer) {
   bool foundSecond = false; 
   for ( int j = 0; j < mc_n; ++j){
     int mc_status = buffer->mc_status->at(j); 
-    int abs_pdgid = std::fabs(buffer->mc_status->at(j)); 
+    int abs_pdgid = std::abs(buffer->mc_pdgId->at(j)); 
     if (mc_status == 3 && abs_pdgid >= 11 && abs_pdgid <= 16){
       float pt = buffer->mc_pt->at(j); 
       float eta = buffer->mc_pt->at(j); 
