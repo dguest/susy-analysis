@@ -449,6 +449,10 @@ class HistNd(object):
 
         The hist must be integrated and looses a dimension.
         """
+
+        warnings.warn("this will be removed, use Axis.slice() instead", 
+                      FutureWarning, stacklevel=2)
+
         assert not reverse
         ax = self._axes.pop(axis)
         assert ax.type == 'integral'
