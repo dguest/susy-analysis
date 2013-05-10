@@ -181,6 +181,7 @@ def plot_jet_eff(config):
 
 def jet_eff_ratio(config): 
     from stop.performance.jeteff import JetEffRatioCalc, JetRatioPlotter
+    from stop.performance.jeteff import JetRatioDumper
     calc = JetEffRatioCalc()
     rat_dict = calc.get_ratios(config.numerators, config.denominators)
     if config.plot_dir: 
@@ -190,6 +191,12 @@ def jet_eff_ratio(config):
         plotter = JetRatioPlotter(rat_dict)
         
         plotter.overlay_numerators(config.plot_dir)
+
+    else: 
+        dumper = JetRatioDumper(rat_dict)
+        # print dumper.as_xml()
+        print yaml.dump(dumper.as_nested_dict(),
+                        default_flow_style=False)
 
 def _is_atlfast(sample): 
     sim_re = re.compile('\.e[0-9]+_([as])[0-9]+_')

@@ -6,6 +6,8 @@ import os, sys
 from stop.plot.efficiency import EfficiencyPlot, BinnedEfficiencyPlot
 from stop.plot.efficiency import RatioPlot
 import itertools
+from xml.etree import ElementTree as etree
+from xml.dom import minidom
 
 class JetEfficiencyBase(object): 
     _group_name = 'alljet'
@@ -336,4 +338,76 @@ class JetRatioPlotter(object):
                 plotter.add_ratio(values, name=num)
             plotter.save(plot_name)
             
-        
+class JetRatioDumper(object): 
+    def __init__(self, ratio_dict): 
+        self.ratio_dict = ratio_dict
+
+    def _pt_binned_list(self, num, denom, flavor, tag): 
+        """
+        looks for value {x_center, x_error, y_center, y_error}
+        """
+        values = self.ratio_dict[num, denom, flavor, tag]
+        x_centers = values['x_center']
+        y_centers = values['y_center']
+        x_errors = values['x_error']
+        y_errors = values['y_error']
+        pt_bins = []
+        for iii in xrange(len(x_centers)): 
+            pt_bin = {
+                'pt_min':float(x_centers[iii] - x_errors[iii]), 
+                'pt_max':float(x_centers[iii] + x_errors[iii]), 
+                'correction': float(y_centers[iii]), 
+                'error': float(y_errors[iii]) }
+            pt_bins.append(pt_bin)
+        return pt_bins
+
+    def as_nested_dict(self): 
+        """
+        Quite easy to convert to yaml. 
+        """
+        nums, denoms, flavs, tags = (set(s) for s in zip(*self.ratio_dict))
+        top_level = {}
+        for correct_from in denoms: 
+            correct_to_dict = {}
+            for correct_to in nums: 
+                tag_dict = {}
+                for tag in tags: 
+                    flavor_dict = {}
+                    for flavor in flavs: 
+                        flavor_dict[str(flavor)] = self._pt_binned_list(
+                            correct_to, correct_from, flavor, tag)
+                    tag_dict[str(tag)] = flavor_dict
+                correct_to_dict[str(correct_to)] = tag_dict
+            top_level[str(correct_from)] = correct_to_dict
+        return top_level
+            
+    def as_xml(self): 
+        nums, denoms, flavs, tags = (set(s) for s in zip(*self.ratio_dict))
+        root = etree.Element('corrections')
+        for correct_from in denoms: 
+            from_el = etree.SubElement(root, 'from_generator')
+            from_el.attrib['name'] = correct_from
+            for correct_to in nums: 
+                to_el = etree.SubElement(from_el, 'to_generator')
+                to_el.attrib['name'] = correct_to
+                for tag in tags: 
+                    tag_el = etree.SubElement(to_el, 'tag')
+                    tag_el.attrib['name'] = tag
+                    for flavor in flavs: 
+                        flav_el = etree.SubElement(tag_el, 'flavor')
+                        flav_el.attrib['name'] = flavor
+                        pt_list = self._pt_binned_list(
+                            correct_to, correct_from, flavor, tag)
+
+                        for pt_bin in pt_list:
+                            pt_node = etree.SubElement(flav_el, 'bin')
+                            pt_node.attrib['min'] = str(pt_bin['pt_min'])
+                            pt_node.attrib['max'] = str(pt_bin['pt_max'])
+                            pt_value = etree.SubElement(pt_node, 'correction')
+                            pt_value.text = str(pt_bin['correction'])
+                            pt_error = etree.SubElement(pt_node, 'error')
+                            pt_error.text = str(pt_bin['error'])
+                
+        string = etree.tostring(root)
+        reparsed = minidom.parseString(string)
+        return reparsed.toprettyxml(indent="  ")
