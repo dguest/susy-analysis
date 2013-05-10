@@ -192,7 +192,7 @@ class Axis(object):
     def extent(self): 
         return self.min, self.max
 
-    def get_slice(self, val): 
+    def get_slice(self, val, upper_val=None): 
         """
         Get sub-histogram by slicing the axis at this value. 
 
@@ -202,7 +202,17 @@ class Axis(object):
         bin_bounds = np.linspace(self.min,self.max,self.bins + 1)
         bin_n = bisect.bisect(bin_bounds, val)
         extent = self._get_bounds(bin_bounds, bin_n)
-        subhist = self._hist()._get_slice(self.name, bin_n)
+        if upper_val is not None: 
+            if not upper_val > val: 
+                raise ValueError('upper_val must be > val')
+            upper_bin = bisect.bisect(bin_bounds, upper_val)
+            upper_extent = self._get_bounds(bin_bounds, upper_bin)
+            extent = (extent[0], upper_extent[1])
+        else: 
+            upper_bin = None
+
+        # _get_slice should take care of copying
+        subhist = self._hist()._get_slice(self.name, bin_n, upper_bin)
         if not subhist.axes: 
             assert subhist.array.size == 1
             subhist = subhist.array[0]
@@ -232,7 +242,9 @@ class HistNd(object):
 
     def __init__(self,array=None): 
         self._axes = {}
-        if array: 
+        if array == 'example': 
+            self._init_example()
+        elif array: 
             self.__from_hdf(array)
 
     def __copy__(self): 
@@ -278,6 +290,20 @@ class HistNd(object):
             ds.attrs['{}_max'.format(ax.name)] = ax.max
             ds.attrs['{}_type'.format(ax.name)] = ax.type
             ds.attrs['{}_units'.format(ax.name)] = ax.units
+
+    def _init_example(self): 
+        self._array = np.arange(-1,11) + np.arange(-10,110,10).reshape((-1,1))
+        for ax_n, ax_name in enumerate('xy'): 
+            axis = Axis()
+            axis._axis = ax_n
+            axis._name = ax_name
+            axis._bins = 10
+            axis._min = 0.0
+            axis._max = 1.0
+            axis._untis = ''
+            axis._type = 'bare'
+            axis._hist = weakref.ref(self)
+            self._axes[ax_name] = axis
 
     def __check_consistency(self, other): 
         for axis in self._axes: 
@@ -429,16 +455,20 @@ class HistNd(object):
             raise ValueError(
                 'an axis somehow got undefined type: {}'.format(ax.type))
 
-    def _get_slice(self, axis, bin_n): 
+    def _get_slice(self, axis, bin_n, upper_bin=None): 
         new_axes = copy.deepcopy(self._axes)
         sl_tuple = [slice(None)]*len(new_axes)
         ax = new_axes.pop(axis)
-        sl_tuple[ax.number] = bin_n
+        if upper_bin is None: 
+            upper_bin = bin_n + 1
+        sl_tuple[ax.number] = slice(bin_n, upper_bin)
+        new_array = np.array(self._array[sl_tuple])
+        new_array = new_array.sum(ax.number)
+
         # FIXME: replace with something cleaner as above
         for ax_name in new_axes: 
             if new_axes[ax_name].number > ax.number: 
                 new_axes[ax_name]._axis -= 1
-        new_array = np.array(self._array[sl_tuple])
         new_hist = HistNd()
         new_hist._array = new_array
         new_hist._axes = new_axes
