@@ -256,10 +256,15 @@ class Axis(object):
         bin_bounds = np.linspace(self.min,self.max,self.bins + 1)
         return self._get_bounds(bin_bounds, num)
     
-    def integrate(self, reverse=False): 
+    def integrate(self, reverse=False, in_place=False): 
         """
         NOTE: should replace with something that returns a new hist. 
         """
+        if not in_place: 
+            warnings.warn(
+                "The default behavior of this function will change, "
+                "set 'in_place' to True to preserve", FutureWarning, 
+                stacklevel=2)
         self._hist._integrate(self.name, reverse)
 
 
@@ -404,7 +409,8 @@ class HistNd(object):
         return self._array.sum()
 
     def integrate(self, axis=None, reverse=False): 
-        warnings.warn(FutureWarning, "integrate will be made an axis method")
+        warnings.warn("integrate will be made an axis method", FutureWarning, 
+                      stacklevel=2)
         # this should be made an axis method
         if axis is None: 
             for axis in self._axes: 

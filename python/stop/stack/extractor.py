@@ -21,7 +21,7 @@ class RegionExtractor(object):
     def _get_subregion_counts(self, region, normed): 
         for axis in normed.axes.values(): 
             if not axis.type == 'integral': 
-                axis.integrate(reverse=True)
+                axis.integrate(reverse=True, in_place=True)
         kin = region['kinematics']
         met_cut = kin['met_gev']*1e3
         lead_cut = kin['leading_jet_gev']*1e3
