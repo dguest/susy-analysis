@@ -58,6 +58,10 @@ def get_config():
     hadd_parser.add_argument('-c', '--clean', action='store_true', 
                              help='remove partial files after adding')
     hadd_parser.add_argument('-v','--verbose', action='store_true')
+    hadd_parser.add_argument(
+        '--systematic', help='only hadd this systematic', default='*')
+    hadd_parser.add_argument(
+        '--method', help='only hadd this method', default='*')
     return parser.parse_args(sys.argv[1:])
 
 def setup_steering(config): 
@@ -151,8 +155,8 @@ def run_hadd(config):
         steering_dict = yaml.load(steering)
 
     hist_dir = steering_dict['files']['hists']
-    method_dir = '*'
-    syst_dir = '*'
+    method_dir = config.method
+    syst_dir = config.systematic
     all_files = glob.glob(join(hist_dir, method_dir, syst_dir, '*-*.h5'))
 
     def stub_finder(file_name): 
