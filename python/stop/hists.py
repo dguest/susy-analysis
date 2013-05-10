@@ -139,7 +139,7 @@ class Axis(object):
         return new
 
     def remove(self): 
-        hist = self._hist()
+        hist = self._hist
         if hist: 
             hist._reduce(self.name)
 
@@ -169,7 +169,7 @@ class Axis(object):
     def valid(self): 
         if not self._hist: 
             return False
-        hist = self._hist()
+        hist = self._hist
         if not hist: 
             return False
         conditions = [ 
@@ -205,17 +205,18 @@ class Axis(object):
         if upper_val is not None: 
             if not upper_val > val: 
                 raise ValueError('upper_val must be > val')
-            upper_bin = bisect.bisect(bin_bounds, upper_val)
+            # should add 1 to ensure that the upper bin is counted
+            upper_bin = bisect.bisect(bin_bounds, upper_val) + 1
             upper_extent = self._get_bounds(bin_bounds, upper_bin)
             extent = (extent[0], upper_extent[1])
         else: 
             upper_bin = None
 
         # _get_slice should take care of copying
-        subhist = self._hist()._get_slice(self.name, bin_n, upper_bin)
+        subhist = self._hist._get_slice(self.name, bin_n, upper_bin)
         if not subhist.axes: 
             assert subhist.array.size == 1
-            subhist = subhist.array[0]
+            subhist = subhist.array
         return subhist, extent
         
     def _get_bounds(self, bin_bounds, num): 
@@ -231,7 +232,7 @@ class Axis(object):
         return self._get_bounds(bin_bounds, num)
     
     def integrate(self, reverse=False): 
-        self._hist()._integrate(self.name, reverse)
+        self._hist._integrate(self.name, reverse)
 
 
 class HistNd(object): 
@@ -261,7 +262,7 @@ class HistNd(object):
  
     def _update_axes(self): 
         for ax in self._axes.itervalues(): 
-            ax._hist = weakref.ref(self)
+            ax._hist = self
 
     def __from_hdf(self, hdf_array): 
         self._array = np.array(hdf_array)
@@ -270,7 +271,7 @@ class HistNd(object):
             the_axis = self._axes.get(ax_name, Axis())
             setattr(the_axis, '_' + ax_prop, atr)
             the_axis._name = ax_name
-            the_axis._hist = weakref.ref(self)
+            the_axis._hist = self
             self._axes[ax_name] = the_axis
 
         for name, axis in self._axes.items(): 
@@ -302,7 +303,7 @@ class HistNd(object):
             axis._max = 1.0
             axis._untis = ''
             axis._type = 'bare'
-            axis._hist = weakref.ref(self)
+            axis._hist = self
             self._axes[ax_name] = axis
 
     def __check_consistency(self, other): 
