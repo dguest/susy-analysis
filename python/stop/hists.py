@@ -192,6 +192,34 @@ class Axis(object):
     def extent(self): 
         return self.min, self.max
 
+    def slice(self, low, high, tolerance=1e-5): 
+        """
+        Finds closest bins, slices those (or throws error). 
+        Intended to be a replacement for the get_slice() method below. 
+        """
+        bin_bounds = np.linspace(self.min,self.max,self.bins + 1)
+        def get_delta2_and_bin_n(value): 
+            if value == float('-inf'): 
+                return 0.0, 0
+            elif value == float('inf'): 
+                return 0.0, self.bins + 2
+            deltas = (bin_bounds - value)**2 
+            bin_n = deltas.argmin() + 1
+            delta2 = deltas.min()
+            return delta2, bin_n
+            
+        low_delta, low_bin = get_delta2_and_bin_n(low)
+        high_delta, high_bin = get_delta2_and_bin_n(high)
+        bin_width = (self.max - self.min) / (self.bins + 1)
+        total_rel_delta = low_delta + high_delta / bin_width**2
+
+        if abs(total_rel_delta > tolerance): 
+            raise ValueError(
+                'in bounds {} too far from bin bounds {}'.format(
+                    (low,high), (bin_bounds[low_bin], bin_bounds[high_bin])))
+
+        return self._hist._get_slice(self.name, low_bin, high_bin)
+
     def get_slice(self, val, upper_val=None): 
         """
         Get sub-histogram by slicing the axis at this value. 
@@ -214,9 +242,6 @@ class Axis(object):
 
         # _get_slice should take care of copying
         subhist = self._hist._get_slice(self.name, bin_n, upper_bin)
-        if not subhist.axes: 
-            assert subhist.array.size == 1
-            subhist = subhist.array
         return subhist, extent
         
     def _get_bounds(self, bin_bounds, num): 
@@ -232,6 +257,9 @@ class Axis(object):
         return self._get_bounds(bin_bounds, num)
     
     def integrate(self, reverse=False): 
+        """
+        NOTE: should replace with something that returns a new hist. 
+        """
         self._hist._integrate(self.name, reverse)
 
 
@@ -305,6 +333,7 @@ class HistNd(object):
             axis._type = 'bare'
             axis._hist = self
             self._axes[ax_name] = axis
+            assert axis.valid
 
     def __check_consistency(self, other): 
         for axis in self._axes: 
@@ -350,6 +379,12 @@ class HistNd(object):
         new._update_axes()
         new._array = self._array**value
         return new
+
+    def __getitem__(self, ax_key): 
+        return self.axes[ax_key]
+    
+    def __delitem__(self, ax_key): 
+        self._reduce(ax_key)
 
     @property
     def array(self): 
@@ -474,6 +509,9 @@ class HistNd(object):
         new_hist._array = new_array
         new_hist._axes = new_axes
         new_hist._update_axes()
+        if not new_hist.axes: 
+            assert new_hist.array.size == 1
+            new_hist = new_hist.array
         return new_hist
 
     def project_1d(self, axis): 
