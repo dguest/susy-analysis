@@ -11,6 +11,11 @@ _rename_help="""
 Swaps the ds key file names for something more readable. 
 """
 
+_group_help="""
+Groups d3pds into datasets by file. Will break larger datasets into multiple
+outputs. 
+"""
+
 import argparse, sys
 from os.path import isdir, isfile, join, expanduser, splitext
 from os.path import dirname, basename, abspath
@@ -21,11 +26,13 @@ import warnings
 import h5py
 from stop.hists import HistNd, HistAdder
 from stop import meta
+from collections import defaultdict
 
 def run(): 
     config = get_config()
     subs = {
-        'list':list_meta_info, 
+        'group': group_input_files, 
+        'meta':list_meta_info, 
         'hadd':hadd, 'rename':rename}
     subs[config.which](config)
 
@@ -42,7 +49,7 @@ def get_config():
     list_type.add_argument('--physics', help='filter meta by physics')
     meta_list_shared.add_argument('meta_file')
 
-    meta_list = subs.add_parser('list', description=_tag_list_help)
+    meta_list = subs.add_parser('meta', description=_tag_list_help)
     list_subs = meta_list.add_subparsers(dest='outlist')
     list_files = list_subs.add_parser('files', parents=[meta_list_shared])
     list_files.add_argument('ntuples_dir')
@@ -61,6 +68,16 @@ def get_config():
                           help='hist or (for dash-hadd) directory')
     hist_add.add_argument('-d', '--dash-hadd', action='store_true', 
                           help='multiple hadds, splits input hists at \'-\'')
+
+    group = subs.add_parser('group', description=_group_help)
+    group.add_argument(
+        'input_dirs', nargs='+', 
+        help='dataset directories, must each have a dsid')
+    group.add_argument(
+        '-n', '--n-file-per-job', type=int, default=5, 
+        help='number of root files to put in each out file, ' + d)
+    group.add_argument('-o', '--output-dir', default='whiskey', 
+                       help=d)
 
     return parser.parse_args(sys.argv[1:])
 
@@ -159,6 +176,43 @@ def rename(config):
             print '{} --> {}'.format(old_name, new_name)
         else: 
             os.rename(old_name, new_name)
-            
+
+def group_input_files(config): 
+    files_by_dsid = defaultdict(set)
+    dsid_finder = re.compile('mc.._.TeV\.([0-9]{6})\.')
+    run_finder = re.compile('data.._.TeV\.([0-9]{8})\.')
+    for in_dir in config.input_dirs: 
+        prechar = 's'           # s is for simulation 
+        dsid_match = dsid_finder.search(in_dir)
+        if not dsid_match: 
+            dsid_match = run_finder.search(in_dir)
+            prechar = 'd'       # data
+        if not dsid_match: 
+            raise IOError("can't find dsid for {}".format(in_dir))
+        ds_key = prechar + dsid_match.group(1)
+        sub_root_files = set(glob.glob('{}/*.root*'.format(in_dir)))
+        files_by_dsid[ds_key] |= sub_root_files
+    
+    if not isdir(config.output_dir): 
+        os.mkdir(config.output_dir)
+
+    for dsid, files in files_by_dsid.iteritems(): 
+        file_list = sorted(files)
+        n_files = len(file_list)
+        subsets = []
+        n_per_job = config.n_files_per_job
+        for iii in xrange(0, n_files, n_per_job): 
+            subset = file_list[iii:iii+n_per_job]
+            subsets.append(subset)
+        n_subsets = len(subsets)
+        for set_n, subset in enumerate(n_subsets,1): 
+            out_name = '{}-{}of{}.txt'.format(dsid, set_n, n_subsets)
+            out_path = join(config.output_dir, out_name)
+            with open(out_path,'w') as out_file: 
+                for ds in subset: 
+                    out_file.write(ds + '\n')
+                    
+    
+
 if __name__ == '__main__': 
     run()
