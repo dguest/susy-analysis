@@ -13,6 +13,12 @@ Computes the ratio between two efficiencies. Output is either plotted or
 dumped as yaml
 """
 
+_distill_help="""
+Produces one output file for the dir or textfile given. 
+If a textfile is given, it should contain a list of root files. If a 
+directory is given, it should be for one entire dataset. 
+"""
+
 import argparse, sys
 import glob
 from os.path import isdir, isfile, join, expanduser, splitext
@@ -101,40 +107,34 @@ def jet_tag_efficinecy(config):
 def distill_d3pds(config): 
     if isfile(config.d3pds): 
         with open(config.d3pds) as d3pd_file: 
-            d3pd_contents = [l.strip() for l in d3pd_file.readlines()]
+            files = [l.strip() for l in d3pd_file.readlines()]
+        out_file = splitext(basename(config.d3pds))[0] + '.root'
     else: 
-        d3pd_contents = glob.glob('{}/*'.format(config.d3pds))
-    datasets = [subdir for subdir in d3pd_contents if isdir(subdir)]
+        out_file = _ntuple_name_from_ds_name(dirname(config.d3pds))
+        files = glob.glob('{}/*'.format(config.d3pds))
     calibration_dir = expanduser(config.calibration)
     btag_env = join(calibration_dir, 'BTagCalibration.env')
-    if not datasets: 
+    if not files: 
         return 
     if not isdir(config.output_dir): 
         os.mkdir(config.output_dir)
     meta_lookup = meta.DatasetCache(config.meta)
-    ds_groups = {}
-    for ds in datasets: 
-        subfiles = glob.glob('{}/*.root*'.format(ds))
-        ds_key = _ds_key_from_ds_name(ds)
-        if not ds_key in ds_groups: 
-            ds_groups[ds_key] = []
-        ds_groups[ds_key] += subfiles
 
-    counts = {}
-    for ds_key, subfiles in ds_groups.iteritems(): 
-        out_file = _ntuple_name_from_ds_name(dirname(subfiles[0]))
-        out_path = join(config.output_dir, out_file)
-        flags = 'v'             # verbose
-        if not config.filter_output: 
-            flags += 'e'        # save all events
-        if _is_atlfast(meta_lookup[ds_key].full_name): 
-            flags += 'f'
-        cut_counts = cutflow.cutflow(
-            input_files=subfiles, flags=flags, output_ntuple=out_path, 
-            btag_cal_file=btag_env, cal_dir=calibration_dir)
-        counts[splitext(out_file)[0]] = cut_counts
-    with open(join(config.output_dir, 'obj_counts.yml'),'w') as out_yml: 
-        out_yml.write(yaml.dump(counts))
+    ds_key = basename(out_file).split('-')[0]
+
+    out_path = join(config.output_dir, out_file)
+    flags = 'v'             # verbose
+    if not config.filter_output: 
+        flags += 'e'        # save all events
+    if _is_atlfast(meta_lookup[ds_key].full_name): 
+        flags += 'f'
+    cut_counts = cutflow.cutflow(
+        input_files=files, flags=flags, output_ntuple=out_path, 
+        btag_cal_file=btag_env, cal_dir=calibration_dir)
+    counts_path = splitext(out_path)[0] + '_counts.yml'
+    list_counts = [list(c) for c in cut_counts]
+    with open(counts_path,'w') as out_yml: 
+        out_yml.write(yaml.dump(list_counts))
 
 def aggregate_jet_plots(config): 
     from stop import hyperstack

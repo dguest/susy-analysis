@@ -74,9 +74,9 @@ def get_config():
         'input_dirs', nargs='+', 
         help='dataset directories, must each have a dsid')
     group.add_argument(
-        '-n', '--n-file-per-job', type=int, default=5, 
+        '-n', '--n-files-per-job', type=int, default=5, 
         help='number of root files to put in each out file, ' + d)
-    group.add_argument('-o', '--output-dir', default='whiskey', 
+    group.add_argument('-o', '--output-dir', default='d3pds', 
                        help=d)
 
     return parser.parse_args(sys.argv[1:])
@@ -205,8 +205,12 @@ def group_input_files(config):
             subset = file_list[iii:iii+n_per_job]
             subsets.append(subset)
         n_subsets = len(subsets)
-        for set_n, subset in enumerate(n_subsets,1): 
-            out_name = '{}-{}of{}.txt'.format(dsid, set_n, n_subsets)
+        strlen_subsets = len(str(n_subsets))
+        for set_n, subset in enumerate(subsets,1): 
+            out_name = '{}-{:0{}d}of{}.txt'.format(
+                dsid, set_n, strlen_subsets, n_subsets)
+            if n_subsets == 1: 
+                out_name = '{}.txt'.format(dsid)
             out_path = join(config.output_dir, out_name)
             with open(out_path,'w') as out_file: 
                 for ds in subset: 
