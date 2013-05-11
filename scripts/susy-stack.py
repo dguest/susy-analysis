@@ -1,15 +1,21 @@
 #!/usr/bin/env python2.7
 """
-An attempt at a dumber stacking routine. Runs from a textfile, decides on 
-which systematics / regions to use based on a metafile. 
+An attempt at a dumber stacking routine for the full analysis. 
+Sets up textfiles that point to collections of root files, decides on 
+which systematics / regions to use based on a metafile and the 
+path to the root files. 
 """
 
 _setup_help="""
-sets up the textfile used to steer the actual stacker. 
+Sets up the textfiles. Can set up multiple textfiles, which are simply 
+named for batch submission. 
 """
 
 _hadd_help="""
 Adds the hists of datasets that were fragmented in distillation. 
+
+NOTE: will require updating if we move to including the total number of ds
+in the split ds names. 
 """
 
 import argparse, sys

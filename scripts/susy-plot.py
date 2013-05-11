@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.7
 """
-Top level for plotting routines. 
+Top level for mc / data stack plotting routines for the main analysis. 
 """
 import argparse
 from stop.stack import plot

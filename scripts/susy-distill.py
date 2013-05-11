@@ -1,6 +1,8 @@
 #!/usr/bin/env python2.7
 """
-A simpler distillation script. 
+A simpler distillation script.
+
+NOTE: should change the names of output files to the qDSID-XofY.root format.
 """
 
 from susy.distiller import Distiller

@@ -1,4 +1,8 @@
 #!/usr/bin/env python2.7
+"""
+Part of the main analysis suite of routines. This prints the counts / 
+stacking steering file info to latex. 
+"""
 
 import argparse
 import yaml 

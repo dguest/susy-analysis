@@ -1,6 +1,8 @@
 #!/usr/bin/env python2.7
 """
-uses run / mc meta data and ntuples files to produce stacks
+uses run / mc meta data and ntuples files to produce stacks. 
+
+NOTE: the stacking routine here has been superseded by susy-stack. 
 """
 
 import argparse
@@ -55,6 +57,10 @@ def run():
     with open(args.steering_file) as yml: 
         coord = Coordinator(yml)
     needed_systematics = coord.get_needed_aggregates(args.mode)
+
+    if args.rerun_stack: 
+        warnings.warn("we're trying to replace this with susy-stack", 
+                      FutureWarning)
 
     to_do = [
         needed_systematics, 

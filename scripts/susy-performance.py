@@ -17,6 +17,11 @@ _distill_help="""
 Produces one output file for the dir or textfile given. 
 If a textfile is given, it should contain a list of root files. If a 
 directory is given, it should be for one entire dataset. 
+
+TODO: think about how to merge this with the susy-distill routine. 
+In theory this script could be simpler / easier to use with batch systems
+than the older susy-distill, but for the moment it doesn't do enough 
+with systematics. 
 """
 
 import argparse, sys
@@ -49,7 +54,7 @@ def get_config():
     tag = subs.add_parser('tag', description=_tag_help)
     tag_step = tag.add_subparsers(dest='step')
 
-    tag_distill = tag_step.add_parser('distill')
+    tag_distill = tag_step.add_parser('distill', description=_distill_help)
     tag_distill.add_argument(
         'd3pds', help='input d3pd dir OR file listing d3pds')
     tag_distill.add_argument('meta', help='meta yaml file')
