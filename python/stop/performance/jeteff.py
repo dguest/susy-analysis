@@ -165,7 +165,8 @@ class JetEfficiencyPlotter(JetPlotBase, JetEfficiencyBase):
         self.max_bins = 150
 
     def plot_samples(self, sample_names, tags='all', flavors='all', 
-                     out_dir='plots', plotter=BinnedEfficiencyPlot): 
+                     out_dir='plots', plotter=BinnedEfficiencyPlot, 
+                     plot_extension='.pdf'): 
         if not isdir(out_dir): 
             os.mkdir(out_dir)
         tuple_dict = self.get_tuple_dict(sample_names, tags, flavors)
@@ -210,7 +211,8 @@ class JetEfficiencyPlotter(JetPlotBase, JetEfficiencyBase):
                                          num_wt2=num_wt2, 
                                          denom_wt2=denom_wt2)
             self._add_bins(eff_plot)
-            plot_name = '{}/{}-{}.pdf'.format(out_dir, flavor, tag)
+            plot_name = '{}/{}-{}{}'.format(out_dir, flavor, tag, 
+                                            plot_extension)
             eff_plot.save(plot_name)
 
 class JetEffRatioCalc(JetEfficiencyBase): 
@@ -318,12 +320,12 @@ class JetRatioPlotter(object):
                                   x=0.98, ha='right')
             plotter.save(out_path)
 
-    def overlay_numerators(self, plot_dir): 
+    def overlay_numerators(self, plot_dir, plot_extension='.pdf'): 
         nums, denoms, flavs, tags = (
             set(s) for s in zip(*self.ratio_dict.keys()))
         for flav, tag, denom in itertools.product(flavs, tags, denoms): 
-            plot_name = '{}/all-over-{}-{}Tag-{}Truth.pdf'.format(
-                plot_dir, denom, tag, flav)
+            plot_name = '{}/all-over-{}-{}Tag-{}Truth{}'.format(
+                plot_dir, denom, tag, flav, plot_extension)
             sys.stderr.write('plotting {}\n'.format(plot_name))
             fancy_denom = self.sample_replacements.get(denom,denom)
             plotter = RatioPlot(
