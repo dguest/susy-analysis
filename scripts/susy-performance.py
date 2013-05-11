@@ -198,13 +198,15 @@ def jet_eff_ratio(config):
         
         plotter = JetRatioPlotter(rat_dict)
         
-        plotter.overlay_numerators(config.plot_dir, config.ext)
+        plotter.overlay_denominators(config.plot_dir, config.ext)
 
     else: 
         dumper = JetRatioDumper(rat_dict)
-        # print dumper.as_xml()
-        print yaml.dump(dumper.as_nested_dict(),
-                        default_flow_style=False)
+        if config.ext == '.xml': 
+            print dumper.as_xml()
+        else: 
+            print yaml.dump(dumper.as_nested_dict(),
+                            default_flow_style=False)
 
 def _is_atlfast(sample): 
     sim_re = re.compile('\.e[0-9]+_([as])[0-9]+_')

@@ -307,12 +307,13 @@ class JetRatioPlotter(object):
         self.sample_replacements = {
             'McAtNloJimmy_ttbar_LeptonFilter': r'McAtNloJimmy $t\bar{t}$', 
             }
+        self.y_range = (0.7, 2.0)
     def plot_all_ratios(self, plot_dir): 
         for (num, denom, flav, tag), values in self.ratio_dict.iteritems(): 
             out_path = '{}/{}-over-{}-{}Tag-{}Truth.pdf'.format(
                 plot_dir, num, denom, tag, flav)
             sys.stderr.write('plotting {}\n'.format(out_path))
-            plotter = RatioPlot()
+            plotter = RatioPlot(y_range=self.y_range)
             plotter.add_ratio(values)
             plotter.ax.set_ylabel('{} tag efficiency'.format(flav), 
                                   y=0.98, va='top')
@@ -320,24 +321,24 @@ class JetRatioPlotter(object):
                                   x=0.98, ha='right')
             plotter.save(out_path)
 
-    def overlay_numerators(self, plot_dir, plot_extension='.pdf'): 
+    def overlay_denominators(self, plot_dir, plot_extension='.pdf'): 
         nums, denoms, flavs, tags = (
             set(s) for s in zip(*self.ratio_dict.keys()))
-        for flav, tag, denom in itertools.product(flavs, tags, denoms): 
-            plot_name = '{}/all-over-{}-{}Tag-{}Truth{}'.format(
-                plot_dir, denom, tag, flav, plot_extension)
+        for flav, tag, num in itertools.product(flavs, tags, nums): 
+            plot_name = '{}/{}-over-all-{}Tag-{}Truth{}'.format(
+                plot_dir, num, tag, flav, plot_extension)
             sys.stderr.write('plotting {}\n'.format(plot_name))
-            fancy_denom = self.sample_replacements.get(denom,denom)
-            plotter = RatioPlot(
-                legend_title='Generator / {}'.format(fancy_denom))
+            fancy_num = self.sample_replacements.get(num,num)
+            plotter = RatioPlot(y_range=self.y_range, 
+                legend_title='{} / ... '.format(fancy_num))
             plotter.ax.set_ylabel(
                 'eff ratio, {} {} tag efficiency'.format(
                     tag, flav), y=0.98, va='top')
             plotter.ax.set_xlabel(r'Jet $p_{\mathrm{T}}$ [GeV]', 
                                   x=0.98, ha='right')
-            for num in sorted(nums): 
+            for denom in sorted(denoms): 
                 values = self.ratio_dict[num, denom, flav, tag]
-                plotter.add_ratio(values, name=num)
+                plotter.add_ratio(values, name=denom)
             plotter.save(plot_name)
             
 class JetRatioDumper(object): 
