@@ -1,6 +1,8 @@
 #!/usr/bin/env python2.7
 import yaml, itertools
 from ROOT import kBlack,kWhite,kGray,kRed,kPink,kMagenta,kViolet,kBlue,kAzure,kCyan,kTeal,kGreen,kSpring,kYellow,kOrange
+from stop.bullshit import OutputFilter
+import tempfile, os, re
 
 def test_counts(region='UserRegion', data_multiplier=1.0): 
     testcounts = { 
@@ -34,7 +36,7 @@ def run():
     import ROOT
 
     # Set observed and expected number of events in counting experiment
-    ndata     =  7. 	# Number of events observed in data
+    ndata     =  3. 	# Number of events observed in data
     lumiError = 0.039 	# Relative luminosity uncertainty
     
 
@@ -43,10 +45,10 @@ def run():
     # Create the measurement
     meas = ROOT.RooStats.HistFactory.Measurement("meas", "meas")
 
-    meas.SetOutputFilePrefix("./results/example_UsingPy")
+    meas.SetOutputFilePrefix("./results/example")
     meas.SetPOI("SigXsecOverSM")
     meas.AddConstantParam("Lumi")
-    meas.AddConstantParam("alpha_syst1")
+    # meas.AddConstantParam("alpha_syst1")
 
     meas.SetLumi(1.0)
     meas.SetLumiRelErr(lumiError)
@@ -62,24 +64,24 @@ def run():
 
     # Create the signal sample
     signal = ROOT.RooStats.HistFactory.Sample("signal")
-    signal.SetValue(2.0)
+    signal.SetValue(1.0)
     signal.AddOverallSys("syst1",  0.95, 1.05)
-    signal.AddNormFactor("SigXsecOverSM", 1, 0, 3)
+    signal.AddNormFactor("SigXsecOverSM", 5, 0, 5)
     chan.AddSample(signal)
 
 
     # Background 1
     background1 = ROOT.RooStats.HistFactory.Sample("background1")
-    background1.SetValue(2.0)
+    background1.SetValue(1.0)
     background1.AddOverallSys("syst2", 0.95, 1.05 )
     chan.AddSample(background1)
 
 
-    # Background 1
-    background2 = ROOT.RooStats.HistFactory.Sample("background2")
-    background2.SetValue(2.0)
-    background2.AddOverallSys("syst3", 0.95, 1.05 )
-    chan.AddSample(background2)
+    # # Background 1
+    # background2 = ROOT.RooStats.HistFactory.Sample("background2")
+    # background2.SetValue(2.0)
+    # background2.AddOverallSys("syst3", 0.95, 1.05 )
+    # chan.AddSample(background2)
 
 
     # Done with this channel
@@ -96,8 +98,32 @@ def run():
     # meas.PrintXML("xmlFromCCode", meas.GetOutputFilePrefix());
 
     # Now, do the measurement
-    workspace = ROOT.RooStats.HistFactory.MakeModelAndMeasurementFast(meas);
+    ROOT.gROOT.SetBatch(True)
+    with OutputFilter(): 
+        workspace = ROOT.RooStats.HistFactory.MakeModelAndMeasurementFast(meas)
+    print '------------ fitting -------------------'
+    with OutputFilter(): 
+        ROOT.RooStats.HistFactory.FitModel(workspace)
+    print workspace.var("SigXsecOverSM").getValV()
+    for v in roo_arg_set_itr(workspace.allVars()): 
+        print v.GetName(), v.getValV()
 
+def roo_arg_set_itr(all_vars): 
+    """
+    incredibly hackish way to iterate over workspace variables
+    """
+    temp = tempfile.NamedTemporaryFile()
+    old_out = os.dup(1)
+    os.dup2(temp.fileno(), 1)
+    all_vars.dump()
+    os.dup2(old_out, 1)
+    temp.seek(0)
+    var_getter = re.compile('\((.*)\)')
+    for line in temp: 
+        var_search = var_getter.search(line)
+        if var_search: 
+            variable = all_vars[var_search.group(1)]
+            yield variable
 
 class FitConfig(object): 
     """
