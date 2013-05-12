@@ -34,21 +34,21 @@ def test_counts(region='UserRegion', data_multiplier=1.0):
 def run(): 
 
     import ROOT
+    with OutputFilter(): 
+        hf = ROOT.RooStats.HistFactory
 
     # Set observed and expected number of events in counting experiment
-    ndata     =  3. 	# Number of events observed in data
     lumiError = 0.039 	# Relative luminosity uncertainty
-    
 
     # ****** here be HistFactory ******
 
     # Create the measurement
-    meas = ROOT.RooStats.HistFactory.Measurement("meas", "meas")
+    meas = hf.Measurement("meas", "meas")
 
     meas.SetOutputFilePrefix("./results/example")
-    meas.SetPOI("SigXsecOverSM")
+    meas.SetPOI("c1norm")
     meas.AddConstantParam("Lumi")
-    # meas.AddConstantParam("alpha_syst1")
+    meas.AddConstantParam("alpha_syst1")
 
     meas.SetLumi(1.0)
     meas.SetLumiRelErr(lumiError)
@@ -56,57 +56,53 @@ def run():
 
     # Create a channel
 
-    chan = ROOT.RooStats.HistFactory.Channel("channel1")
-    chan.SetData(ndata)
+    chan = hf.Channel("channel1")
+    chan.SetData(10)
     chan.SetStatErrorConfig(0.05, "Poisson")
 
     # Now, create some samples
 
     # Create the signal sample
-    signal = ROOT.RooStats.HistFactory.Sample("signal")
-    signal.SetValue(1.0)
+    signal = hf.Sample("signal")
+    signal.SetValue(5)
     signal.AddOverallSys("syst1",  0.95, 1.05)
-    signal.AddNormFactor("SigXsecOverSM", 5, 0, 5)
+    signal.AddNormFactor("c1norm", 5, 0, 5)
     chan.AddSample(signal)
 
 
     # Background 1
-    background1 = ROOT.RooStats.HistFactory.Sample("background1")
-    background1.SetValue(1.0)
-    background1.AddOverallSys("syst2", 0.95, 1.05 )
+    background1 = hf.Sample("background1")
+    background1.SetValue(5)
+    background1.AddOverallSys("syst1", 0.95, 1.05 )
+    background1.AddNormFactor("some_norm", 1,0,10)
     chan.AddSample(background1)
 
-
-    # # Background 1
-    # background2 = ROOT.RooStats.HistFactory.Sample("background2")
-    # background2.SetValue(2.0)
-    # background2.AddOverallSys("syst3", 0.95, 1.05 )
-    # chan.AddSample(background2)
-
-
-    # Done with this channel
-    # Add it to the measurement:
+    other_chan = hf.Channel('chan2')
+    other_chan.SetData(10.0)
+    other_chan.SetStatErrorConfig(0.05, "Poisson")
+    bg_other = hf.Sample('more_bg')
+    bg_other.SetValue(10.0)
+    bg_other.AddOverallSys("syst1", 0.95, 1.05)
+    bg_other.AddNormFactor("some_norm", 4, 0, 10)
+    other_chan.AddSample(bg_other)
 
     meas.AddChannel(chan)
-
-    # Collect the histograms from their files,
-    # print some output, 
-    # meas.PrintTree();
-
-    # One can print XML code to an
-    # output directory:
-    # meas.PrintXML("xmlFromCCode", meas.GetOutputFilePrefix());
+    meas.AddChannel(other_chan)
 
     # Now, do the measurement
     ROOT.gROOT.SetBatch(True)
-    with OutputFilter(): 
-        workspace = ROOT.RooStats.HistFactory.MakeModelAndMeasurementFast(meas)
+    with OutputFilter(accept_re='ERROR:'): 
+        workspace = hf.MakeModelAndMeasurementFast(meas)
     print '------------ fitting -------------------'
     with OutputFilter(): 
         ROOT.RooStats.HistFactory.FitModel(workspace)
-    print workspace.var("SigXsecOverSM").getValV()
+    valdict = {}
     for v in roo_arg_set_itr(workspace.allVars()): 
-        print v.GetName(), v.getValV()
+        valdict[v.GetName()] =  v.getValV()
+
+    for n, v in sorted(valdict.iteritems()): 
+        if not n.startswith('binWidth') and not n.startswith('nom_'): 
+            print n, v
 
 def roo_arg_set_itr(all_vars): 
     """

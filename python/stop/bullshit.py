@@ -1,14 +1,19 @@
 import tempfile
-import os, sys
+import os, sys, re
 
 class OutputFilter(object): 
     """
     Workaround filter for annoying and worthless ROOT errors. 
     """
-    def __init__(self, veto_words={'TClassTable'}, accept_words={}): 
+    def __init__(self, veto_words={'TClassTable'}, accept_words={}, 
+                 accept_re=''): 
         self.veto_words = set(veto_words)
         self.accept_words = set(accept_words)
         self.temp = tempfile.NamedTemporaryFile()
+        if accept_re: 
+            self.re = re.compile(accept_re)
+        else: 
+            self.re = None
     def __enter__(self): 
         sys.stdout.flush()
         sys.stderr.flush()
@@ -24,5 +29,9 @@ class OutputFilter(object):
         for line in self.temp: 
             veto = set(line.split()) & self.veto_words
             accept = set(line.split()) & self.accept_words
-            if not veto and accept: 
+            if self.re is not None: 
+                re_found = self.re.search(line)
+            else: 
+                re_found = False
+            if not veto and accept or re_found: 
                 sys.stderr.write(line)
