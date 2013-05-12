@@ -369,38 +369,38 @@ class JetRatioDumper(object):
         Quite easy to convert to yaml. 
         """
         nums, denoms, flavs, tags = (set(s) for s in zip(*self.ratio_dict))
-        top_level = {}
-        for correct_from in denoms: 
-            correct_to_dict = {}
-            for correct_to in nums: 
+        num_dict = {}
+        for num in nums: 
+            denom_dict = {}
+            for denom in denoms: 
                 tag_dict = {}
                 for tag in tags: 
                     flavor_dict = {}
                     for flavor in flavs: 
                         flavor_dict[str(flavor)] = self._pt_binned_list(
-                            correct_to, correct_from, flavor, tag)
+                            num, denom, flavor, tag)
                     tag_dict[str(tag)] = flavor_dict
-                correct_to_dict[str(correct_to)] = tag_dict
-            top_level[str(correct_from)] = correct_to_dict
-        return top_level
+                denom_dict[str(denom)] = tag_dict
+            num_dict[str(num)] = denom_dict
+        return num_dict
             
     def as_xml(self): 
         nums, denoms, flavs, tags = (set(s) for s in zip(*self.ratio_dict))
         root = etree.Element('corrections')
-        for correct_from in denoms: 
-            from_el = etree.SubElement(root, 'from_generator')
-            from_el.attrib['name'] = correct_from
-            for correct_to in nums: 
-                to_el = etree.SubElement(from_el, 'to_generator')
-                to_el.attrib['name'] = correct_to
+        for num in nums: 
+            num_el = etree.SubElement(root, 'numerator_generator')
+            num_el.attrib['name'] = num
+            for denom in denoms: 
+                denom_el = etree.SubElement(num_el, 'denominator_generator')
+                denom_el.attrib['name'] = denom
                 for tag in tags: 
-                    tag_el = etree.SubElement(to_el, 'tag')
+                    tag_el = etree.SubElement(denom_el, 'tag')
                     tag_el.attrib['name'] = tag
                     for flavor in flavs: 
                         flav_el = etree.SubElement(tag_el, 'flavor')
                         flav_el.attrib['name'] = flavor
                         pt_list = self._pt_binned_list(
-                            correct_to, correct_from, flavor, tag)
+                            num, denom, flavor, tag)
 
                         for pt_bin in pt_list:
                             pt_node = etree.SubElement(flav_el, 'bin')
