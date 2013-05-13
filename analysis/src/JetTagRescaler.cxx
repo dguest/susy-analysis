@@ -7,12 +7,13 @@ JetTagRescaler::JetTagRescaler(std::istream& in_file) {
   double pt_low;       // not used, but could be for error checks
   double pt_high;      // locate the pt bin with this number
   double correction;   
-  double error; 		// not used, but could be... 
+  double error; 		
   std::string flavor; 
   std::string op; 
 
   // these aren't used, but they may be if we decide to use multiple 
-  // scalefactors across different samples. 
+  // scalefactors across different samples, so the columns exist in the 
+  // textfile. 
   std::string numerator; 	// the MC the b-tagging group calibrated for
   std::string denominator; 	// the MC we're using 
 
