@@ -2,7 +2,9 @@
 #include <sstream>
 #include <stdexcept> 
 
-JetTagRescaler::JetTagRescaler(std::istream& in_file) { 
+JetTagRescaler::JetTagRescaler(std::istream& in_file): 
+  m_return_dummy(false)
+{ 
   std::string line; 
   double pt_low;       // not used, but could be for error checks
   double pt_high;      // locate the pt bin with this number
@@ -36,6 +38,11 @@ JetTagRescaler::JetTagRescaler(std::istream& in_file) {
   }
 }
 
+void JetTagRescaler::set_dummy(double value, double error) { 
+  m_return_dummy = true; 
+  m_dummy_value = std::make_pair(value, error);  
+}
+
 double JetTagRescaler::get_sf(double pt, int flavor_truth_label, 
 			      jettag::TaggingPoint tp) const { 
   return get_sf_err(pt, flavor_truth_label, tp).first; 
@@ -46,10 +53,16 @@ std::pair<double, double> JetTagRescaler
 { 
   OPMap::const_iterator flavor_map =  m_op_map.find(tp); 
   if (flavor_map == m_op_map.end()) { 
+    if (m_return_dummy) { 
+      return m_dummy_value; 
+    }
     throw std::logic_error("can't find operating point in "__FILE__); 
   }
   TruthMap::const_iterator pt_map = flavor_map->second.find(truth_label); 
   if (pt_map == flavor_map->second.end() ) {
+    if (m_return_dummy) { 
+      return m_dummy_value; 
+    }
     throw std::runtime_error("can't find flavor in "__FILE__); 
   }
 
@@ -65,6 +78,9 @@ std::pair<double, double> JetTagRescaler
 
   PtMap::const_iterator sf_err = pt_map->second.upper_bound(pt); 
   if (sf_err == pt_map->second.end()) { 
+    if (m_return_dummy) { 
+      return m_dummy_value; 
+    }
     throw std::runtime_error("can't find pt bin in "__FILE__); 
   }
   return sf_err->second; 

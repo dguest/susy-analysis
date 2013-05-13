@@ -23,9 +23,13 @@ public:
   //  - correction factor
   //  - correction factor error
   JetTagRescaler(std::istream& in_file); 
+  
+  // if the flavor / operating point can't be found return this number
+  // with no error. By default we'll just throw an exception. 
+  void set_dummy(double, double error=0.0); 
 
-  // Convenience method, since we probably won't use errors
-  // pt in MeV. 
+  // Convenience method, since we probably won't use errors. 
+  // Expects pt in MeV. 
   double get_sf(double pt, int flavor_truth_label, 
 		jettag::TaggingPoint) const; 
   
@@ -41,6 +45,8 @@ private:
   typedef std::map<double, SfAndError > PtMap; 
   typedef std::map<int, PtMap> TruthMap; 
   typedef std::map<jettag::TaggingPoint, TruthMap> OPMap; 
+  std::pair<double,double> m_dummy_value; 
+  bool m_return_dummy; 
   jettag::TaggingPoint tp_from_str(std::string); 
   int truth_label_from_str(std::string); 
   OPMap m_op_map; 

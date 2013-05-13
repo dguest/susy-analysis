@@ -8,7 +8,8 @@ int main (int nargs, char* argv[]) {
   if (nargs == 1) return 1; 
   std::ifstream in_file(argv[1]); 
   JetTagRescaler rescaler(in_file); 
-  std::vector<int> flavors = {0, 4, 5, 15}; 
+  rescaler.set_dummy(1); 
+  std::vector<int> flavors = {0, 4, 5, 15, 20}; 
   std::vector<float> pts = {30.0, 35.0, 40.0, 45.0, 150.0, 200.0, 400.0};
   for (auto flav = flavors.begin(); flav != flavors.end(); flav++) { 
     for (auto ptitr = pts.begin(); ptitr != pts.end(); ptitr++) { 
