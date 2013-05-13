@@ -3,6 +3,7 @@ import yaml, itertools
 from ROOT import kBlack,kWhite,kGray,kRed,kPink,kMagenta,kViolet,kBlue,kAzure,kCyan,kTeal,kGreen,kSpring,kYellow,kOrange
 from stop.bullshit import OutputFilter
 import tempfile, os, re
+from os.path import isfile
 
 def test_counts(region='UserRegion', data_multiplier=1.0): 
     testcounts = { 
@@ -30,7 +31,6 @@ def test_counts(region='UserRegion', data_multiplier=1.0):
         }
     return testcounts
 
-
 def run(): 
 
     import ROOT
@@ -42,52 +42,82 @@ def run():
 
     # ****** here be HistFactory ******
 
+    fit_config = FitConfig('stack.yml')
+    print '--- loading counts ---'
+    fit_config.load_counts()
+    print 'done'
     # Create the measurement
     meas = hf.Measurement("meas", "meas")
 
     meas.SetOutputFilePrefix("./results/example")
     meas.SetPOI("c1norm")
     meas.AddConstantParam("Lumi")
-    meas.AddConstantParam("alpha_syst1")
+    for syst in fit_config.systematics: 
+        meas.AddConstantParam('alpha_{}'.format(syst))
 
     meas.SetLumi(1.0)
     meas.SetLumiRelErr(lumiError)
     meas.SetExportOnly(False)
 
-    # Create a channel
+    # Create the channel
+    for cr in fit_config.control_regions: 
+        chan = hf.Channel(cr)
+        chan.SetData(fit_config.counts['NONE']['data'][cr])
+        chan.SetStatErrorConfig(0.05, "Poisson")
 
-    chan = hf.Channel("channel1")
-    chan.SetData(10)
-    chan.SetStatErrorConfig(0.05, "Poisson")
+        for bg in fit_config.backgrounds: 
+            background = hf.Sample('_'.join([cr,bg]))
+            base_count = fit_config.counts['NONE'][bg][cr]['normed']
+            background.SetValue(base_count)
+            background.AddNormFactor(bg, 1,0,10)
 
-    # Now, create some samples
+            for syst in fit_config.systematics: 
+                if syst in {'JES', 'U','C','B','T'}: 
+                    syst_up = fit_config.counts[syst + 'UP'][bg][cr]
+                    sup_normed = syst_up['normed']
+                    sys_down = fit_config.counts[syst + 'DOWN'][bg][cr]
+                    sdn_normed = sys_down['normed']
+                    
+                    background.AddOverallSys(
+                        syst, sup_normed / base_count, 
+                        sdn_normed / base_count)
+                else: 
+                    syst_counts = fit_config.counts[syst][bg][cr]
+                    syst_normed = syst_counts['normed']
+                    rel_syst = syst_normed / base_count - 1
+                    background.AddOverallSys(
+                        syst, 1 - rel_syst/2, 1 + rel_syst/2)
 
-    # Create the signal sample
-    signal = hf.Sample("signal")
-    signal.SetValue(5)
-    signal.AddOverallSys("syst1",  0.95, 1.05)
-    signal.AddNormFactor("c1norm", 5, 0, 5)
-    chan.AddSample(signal)
+
+            chan.AddSample(background)
+        meas.AddChannel(chan)
+
+    # # Create the signal sample
+    # signal = hf.Sample("signal")
+    # signal.SetValue(5)
+    # signal.AddOverallSys("syst1",  0.95, 1.05)
+    # signal.AddNormFactor("c1norm", 5, 0, 5)
+    # chan.AddSample(signal)
 
 
     # Background 1
-    background1 = hf.Sample("background1")
-    background1.SetValue(5)
-    background1.AddOverallSys("syst1", 0.95, 1.05 )
-    background1.AddNormFactor("some_norm", 1,0,10)
-    chan.AddSample(background1)
+    # background1 = hf.Sample("background1")
+    # background1.SetValue(5)
+    # background1.AddOverallSys("syst1", 0.95, 1.05 )
+    # background1.AddNormFactor("some_norm", 1,0,10)
+    # chan.AddSample(background1)
 
-    other_chan = hf.Channel('chan2')
-    other_chan.SetData(10.0)
-    other_chan.SetStatErrorConfig(0.05, "Poisson")
-    bg_other = hf.Sample('more_bg')
-    bg_other.SetValue(10.0)
-    bg_other.AddOverallSys("syst1", 0.95, 1.05)
-    bg_other.AddNormFactor("some_norm", 4, 0, 10)
-    other_chan.AddSample(bg_other)
+    # other_chan = hf.Channel('chan2')
+    # other_chan.SetData(10.0)
+    # other_chan.SetStatErrorConfig(0.05, "Poisson")
+    # bg_other = hf.Sample('more_bg')
+    # bg_other.SetValue(10.0)
+    # bg_other.AddOverallSys("syst1", 0.95, 1.05)
+    # bg_other.AddNormFactor("some_norm", 4, 0, 10)
+    # other_chan.AddSample(bg_other)
 
-    meas.AddChannel(chan)
-    meas.AddChannel(other_chan)
+    # meas.AddChannel(chan)
+    # meas.AddChannel(other_chan)
 
     # Now, do the measurement
     ROOT.gROOT.SetBatch(True)
@@ -140,9 +170,14 @@ class FitConfig(object):
         if not 'fit' in config: 
             raise NoFitConfigError("no 'fit' section in {}".format(file_name))
         try: 
-            self.counts_file = config['files']['counts']
+            try: 
+                self.counts_file = config['fit']['counts']
+            except KeyError: 
+                self.counts_file = config['files']['counts']
             self.signal_regions = config['fit']['signal_regions']
             self.control_regions = config['fit']['control_regions']
+            self.systematics = config['fit']['systematics']
+            self.backgrounds = config['backgrounds']['used']
         except KeyError as err: 
             raise KeyError('{}, raised reading in {}'.format(err, file_name))
         self._counts = None
