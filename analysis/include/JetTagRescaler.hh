@@ -13,7 +13,7 @@ namespace jettag {
 
 class JetTagRescaler { 
 public: 
-  // Constructed from a textfile. The columns of the file must be: 
+  // Constructed from a textstream. The columns must be: 
   //  - numerator mc name
   //  - denominator mc name
   //  - flavor {tau, charm, light, bottom} for sf
@@ -23,6 +23,9 @@ public:
   //  - correction factor
   //  - correction factor error
   JetTagRescaler(std::istream& in_file); 
+
+  // you can also construct from the file path (calls above)
+  JetTagRescaler(const std::string& file_path); 
   
   // if the flavor / operating point can't be found return this number
   // with no error. By default we'll just throw an exception. 
@@ -41,6 +44,7 @@ public:
 				      jettag::TaggingPoint) const; 
 
 private: 
+  void init(std::istream& in_file); 
   typedef std::pair<double, double> SfAndError; 
   typedef std::map<double, SfAndError > PtMap; 
   typedef std::map<int, PtMap> TruthMap; 

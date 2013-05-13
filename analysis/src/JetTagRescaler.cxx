@@ -1,9 +1,21 @@
 #include "JetTagRescaler.hh"
 #include <sstream>
 #include <stdexcept> 
+#include <fstream>
 
 JetTagRescaler::JetTagRescaler(std::istream& in_file): 
   m_return_dummy(false)
+{
+  init(in_file); 
+}
+
+JetTagRescaler::JetTagRescaler(const std::string& in_path): 
+  m_return_dummy(false)
+{ 
+  std::ifstream in_file(in_path); 
+  init(in_file); 
+}
+void JetTagRescaler::init(std::istream& in_file)
 { 
   std::string line; 
   double pt_low;       // not used, but could be for error checks
