@@ -66,25 +66,26 @@ PY_LDFLAGS += -shared
 # ---- define objects
 TOBJ        := ObjectFactory.o
 GEN_OBJ     := HistBuilder.o Jet1DHists.o Jet.o
+GEN_OBJ     += JetTagRescaler.o
 GEN_OBJ     += HistConfig.o BtagConfig.o RegionConfig.o Flavor.o
 GEN_OBJ     += TruthJetHists.o RegionHistograms.o EventObjects.o
 GEN_OBJ     += Region2dKinematicHistograms.o
 GEN_OBJ     += RegionEventFilter.o
 GEN_OBJ     += RegionJetEfficiencyHistograms.o
 GEN_OBJ     += common_functions.o BtagScaler.o BtagBuffer.o
-EXE_OBJ     := $(GEN_OBJ) $(TOBJ) drink.o
+EXE_OBJ     := $(GEN_OBJ) $(TOBJ) unit-test.o
 PYLIB_OBJ   := $(GEN_OBJ) $(TOBJ)
 
 PY_OBJ       := _hyperstack.o
 PY_LIB       := ../python/stop/_hyperstack.so
 
-ALLOBJ       := $(GEN_OBJ) $(PY_OBJ) $(TOBJ) drink.o
+ALLOBJ       := $(GEN_OBJ) $(PY_OBJ) $(TOBJ) unit-test.o
 
-ALLOUTPUT    := $(PY_LIB)
+ALLOUTPUT    := $(PY_LIB) unit-test
 
 all: $(ALLOUTPUT) 
 
-drink: $(EXE_OBJ:%=$(BIN)/%)
+unit-test: $(EXE_OBJ:%=$(BIN)/%)
 	@echo "linking $^ --> $@"
 	@$(CXX) -o $@ $^ $(LIBS) $(LDFLAGS)
 

@@ -1,0 +1,105 @@
+#include "JetTagRescaler.hh"
+#include <sstream>
+#include <stdexcept> 
+
+JetTagRescaler::JetTagRescaler(std::istream& in_file) { 
+  std::string line; 
+  double pt_low;       // not used, but could be for error checks
+  double pt_high;      // locate the pt bin with this number
+  double correction;   
+  double error; 		// not used, but could be... 
+  std::string flavor; 
+  std::string op; 
+
+  // these aren't used, but they may be if we decide to use multiple 
+  // scalefactors across different samples. 
+  std::string numerator; 	// the MC the b-tagging group calibrated for
+  std::string denominator; 	// the MC we're using 
+
+
+  while (std::getline(in_file, line)) { 
+    if (line.at(0) == '#') continue; 
+    std::stringstream stream(line); 
+    if (! ( stream >> numerator >> denominator >> flavor >> op >> pt_low >> 
+	    pt_high >> correction >> error)) { 
+      throw std::runtime_error
+	("couldn't parse line in flavor calibrator: \n" + line); 
+    }
+    jettag::TaggingPoint tagging_pt = tp_from_str(op);
+    int flavor_truth_label = truth_label_from_str(flavor); 
+    std::pair<double, double> cor_err(correction, error); 
+    m_op_map[tagging_pt][flavor_truth_label][pt_high * 1e3] = cor_err; 
+  }
+  if (m_op_map.size() == 0) { 
+    throw std::runtime_error("no jet tag rescaler info parsed"); 
+  }
+}
+
+double JetTagRescaler::get_sf(double pt, int flavor_truth_label, 
+			      jettag::TaggingPoint tp) const { 
+  return get_sf_err(pt, flavor_truth_label, tp).first; 
+}
+
+std::pair<double, double> JetTagRescaler
+::get_sf_err(double pt, int truth_label, jettag::TaggingPoint tp) const 
+{ 
+  OPMap::const_iterator flavor_map =  m_op_map.find(tp); 
+  if (flavor_map == m_op_map.end()) { 
+    throw std::logic_error("can't find operating point in "__FILE__); 
+  }
+  TruthMap::const_iterator pt_map = flavor_map->second.find(truth_label); 
+  if (pt_map == flavor_map->second.end() ) {
+    throw std::runtime_error("can't find flavor in "__FILE__); 
+  }
+
+  double min_pt = pt_map->second.begin()->first; 
+  double max_pt = pt_map->second.rbegin()->first; 
+
+  if (pt < min_pt) { 
+    return pt_map->second.begin()->second; 
+  }
+  else if (pt >= max_pt) { 
+    return pt_map->second.rbegin()->second; 
+  }
+
+  PtMap::const_iterator sf_err = pt_map->second.upper_bound(pt); 
+  if (sf_err == pt_map->second.end()) { 
+    throw std::runtime_error("can't find pt bin in "__FILE__); 
+  }
+  return sf_err->second; 
+}
+
+int JetTagRescaler::truth_label_from_str(std::string flavor) { 
+  if (flavor == "bottom") { 
+    return 5; 
+  } else if (flavor == "charm") { 
+    return 4; 
+  } else if (flavor == "light") { 
+    return 0; 
+  } else if (flavor == "tau") { 
+    return 15; 
+  } else { 
+    throw std::runtime_error("got unknown flavor string while"
+			     " parsing calibration file: " + flavor); 
+  }
+}
+
+jettag::TaggingPoint JetTagRescaler::tp_from_str(std::string op) { 
+  using namespace jettag; 
+  if (op == "loose") { 
+    return LOOSE; 
+  }
+  else if (op == "medium") { 
+    return MEDIUM; 
+  }
+  else if (op == "tight") { 
+    return TIGHT; 
+  }
+  else if (op == "antiloose") { 
+    return ANTILOOSE; 
+  }
+  else { 
+    throw std::runtime_error("not sure what to do with OP " + op + 
+			     " in "__FILE__); 
+  }
+}
