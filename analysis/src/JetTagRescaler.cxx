@@ -31,6 +31,11 @@ JetTagRescaler::JetTagRescaler(std::istream& in_file):
     jettag::TaggingPoint tagging_pt = tp_from_str(op);
     int flavor_truth_label = truth_label_from_str(flavor); 
     std::pair<double, double> cor_err(correction, error); 
+    if (m_op_map[tagging_pt][flavor_truth_label][pt_high * 1e3].first != 0.0){
+      throw std::runtime_error("tried to redefine scalefactor "
+			       "(in "__FILE__")"); 
+    }
+      
     m_op_map[tagging_pt][flavor_truth_label][pt_high * 1e3] = cor_err; 
   }
   if (m_op_map.size() == 0) { 
