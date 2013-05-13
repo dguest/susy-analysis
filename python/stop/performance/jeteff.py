@@ -414,3 +414,45 @@ class JetRatioDumper(object):
         string = etree.tostring(root)
         reparsed = minidom.parseString(string)
         return reparsed.toprettyxml(indent="  ")
+
+    def _raw_txt_from(self, pt_bin): 
+        pt_min = pt_bin['pt_min']
+        pt_max = pt_bin['pt_max']
+        correction = pt_bin['correction']
+        error = pt_bin['error']
+        string = ' '.join(['{:> 8.0f}']*2 + ['{:> 8.3f}']*2).format(
+            pt_min, pt_max, correction, error)
+        return string
+
+    def _get_max_width(self, strings, buff=2): 
+        return max(len(x) for x in strings) + buff
+
+    def as_raw_text(self): 
+        """
+        return a list of formated lines
+        """
+        nums, denoms, flavs, tags = (set(s) for s in zip(*self.ratio_dict))
+        lens = {
+            'num': self._get_max_width(nums), 
+            'den': self._get_max_width(denoms), 
+            'fla': self._get_max_width(flavs), 
+            'tag': self._get_max_width(tags), 
+            'min': 8, 
+            'cor': 8, 
+            }
+        lines = []
+        line = ('{:{num}} {:{den}} {:{fla}} {:{tag}}' 
+                ' {:>{min}} {:>{min}} {:>{cor}} {:>{cor}}'
+                ).format(
+            '# numerator', 'denominator', 'flavor', 'tag', 'pt_min', 
+            'pt_max', 'sf', 'err', **lens)
+        lines.append(line)
+        for num, denom, flavor, tag in itertools.product(
+            nums, denoms, flavs, tags): 
+            pt_list = self._pt_binned_list(
+                num, denom, flavor, tag)
+            for pt_bin in pt_list: 
+                line = '{:<{num}} {:<{den}} {:<{fla}} {:<{tag}} '.format(
+                    num, denom, flavor, tag, **lens)
+                lines.append(line + self._raw_txt_from(pt_bin))
+        return lines

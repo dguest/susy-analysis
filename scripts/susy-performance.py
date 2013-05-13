@@ -204,6 +204,9 @@ def jet_eff_ratio(config):
         dumper = JetRatioDumper(rat_dict)
         if config.ext == '.xml': 
             print dumper.as_xml()
+        elif config.ext == '.txt': 
+            for line in dumper.as_raw_text(): 
+                print line
         else: 
             print yaml.dump(dumper.as_nested_dict(),
                             default_flow_style=False)
