@@ -7,6 +7,11 @@ _tag_list_help="""
 Routines to print lists of files / datasets referenced in a meta file. 
 """
 
+_meta_help="""
+Top level for routines that print / filter / manipulate meta data. 
+Routines here share common filters. 
+"""
+
 _rename_help="""
 Swaps the ds key file names for something more readable. 
 """
@@ -44,24 +49,28 @@ def get_config():
     parser = argparse.ArgumentParser(description=__doc__)
     subs = parser.add_subparsers(dest='which')
 
+    # meta stuff
     meta_list_shared = argparse.ArgumentParser(add_help=False)
     list_type = meta_list_shared.add_mutually_exclusive_group()
     list_type.add_argument('--physics', help='filter meta by physics')
+    list_type.add_argument('--anti-physics', help='show all but matches')
     meta_list_shared.add_argument('meta_file')
 
-    meta_list = subs.add_parser('meta', description=_tag_list_help)
+    meta_list = subs.add_parser('meta', description=_meta_help)
     list_subs = meta_list.add_subparsers(dest='outlist')
     list_files = list_subs.add_parser('files', parents=[meta_list_shared])
     list_files.add_argument('ntuples_dir')
-    
-    list_meta = list_subs.add_parser('meta', parents=[meta_list_shared])
+    list_meta = list_subs.add_parser('meta', parents=[meta_list_shared], 
+                                     description=_tag_list_help)
     list_names = list_subs.add_parser('names', parents=[meta_list_shared])
 
+    # rename stuff
     meta_rename = subs.add_parser('rename', description=_rename_help)
     meta_rename.add_argument('meta_file')
     meta_rename.add_argument('files', nargs='+')
     meta_rename.add_argument('-d', '--dummy', action='store_true')
 
+    # hadd stuff 
     hist_add = subs.add_parser('hadd') 
     hist_add.add_argument('input_hists', nargs='+')
     hist_add.add_argument('-o', '--output', 
@@ -86,10 +95,17 @@ def list_meta_info(config):
     from stop.meta import DatasetCache
     meta = DatasetCache(config.meta_file)
     filt_meta = {}
-    if config.physics: 
+    filters = [config.physics, config.anti_physics]
+    if any(filters): 
         for ds_key, ds in meta.iteritems(): 
-            if ds.physics_type == config.physics: 
+            pass_conditions = [ 
+                not config.physics or ds.physics_type == config.physics, 
+                not config.anti_physics or (
+                    ds.physics_type != config.anti_physics)
+                ]
+            if all(pass_conditions): 
                 filt_meta[ds_key] = ds
+
     else: 
         filt_meta = meta
 

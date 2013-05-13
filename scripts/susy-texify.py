@@ -4,6 +4,10 @@ Part of the main analysis suite of routines. This prints the counts /
 stacking steering file info to latex. 
 """
 
+_filter_help="""
+Filter counts file. This probably belongs in another script...
+"""
+
 import argparse
 import yaml 
 from stop.stack.table import make_latex_bg_table, unyamlize
@@ -41,13 +45,14 @@ def get_config():
     transfer.add_argument('-o','--only', nargs='+')
     transfer.add_argument('--green', type=float, default=0.2, help=d)
 
-    filt_counts = subs.add_parser('filter', parents=[shared_parser])
+    filt_counts = subs.add_parser('filter', description=_filter_help)
     filt_counts.add_argument('--only-systematic')
     filt_counts.add_argument('--region-regex')
     filt_counts.add_argument('--region-veto-regex')
     filt_counts.add_argument('--physics-regex')
     filt_counts.add_argument('--physics-veto-regex') 
     filt_counts.add_argument('-i','--overwrite', action='store_true')
+    filt_counts.add_argument('counts_file')
 
     args = parser.parse_args(sys.argv[1:])
     return args
@@ -107,10 +112,7 @@ def run():
     action(args)
 
 def filter_counts(args): 
-    with open(args.config_file) as config_yml: 
-        config = yaml.load(config_yml)
-    counts_file = config['files']['counts']
-    with open(counts_file) as counts_yml: 
+    with open(args.counts_file) as counts_yml: 
         counts = yaml.load(counts_yml)
     kept = {}
     if args.only_systematic: 
