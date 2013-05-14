@@ -169,7 +169,7 @@ def hadd(config):
                 file_key = basename(splitext(in_file)[0])
                 eff_lumi = lookup[file_key].get_effective_luminosity_fb()
                 weights_dict[in_file] = 1.0/eff_lumi
-        _hadd(good_files, config.output)
+        _hadd(good_files, config.output, weights_dict)
 
 def _ok_extensions(file_group): 
     """
