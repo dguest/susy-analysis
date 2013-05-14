@@ -308,12 +308,17 @@ class JetRatioPlotter(object):
             'McAtNloJimmy_ttbar_LeptonFilter': r'McAtNloJimmy $t\bar{t}$', 
             }
         self.y_range = (0.7, 2.0)
+        self.special_tag_ranges = {
+            'tau': (0.0, 2.0), 
+            'light': (0.0, 2.0), 
+            }
     def plot_all_ratios(self, plot_dir): 
         for (num, denom, flav, tag), values in self.ratio_dict.iteritems(): 
             out_path = '{}/{}-over-{}-{}Tag-{}Truth.pdf'.format(
                 plot_dir, num, denom, tag, flav)
             sys.stderr.write('plotting {}\n'.format(out_path))
-            plotter = RatioPlot(y_range=self.y_range)
+            y_range = self.special_tag_ranges.get(flav, self.y_range)
+            plotter = RatioPlot(y_range=y_range)
             plotter.add_ratio(values)
             plotter.ax.set_ylabel('{} tag efficiency'.format(flav), 
                                   y=0.98, va='top')
@@ -329,7 +334,8 @@ class JetRatioPlotter(object):
                 plot_dir, num, tag, flav, plot_extension)
             sys.stderr.write('plotting {}\n'.format(plot_name))
             fancy_num = self.sample_replacements.get(num,num)
-            plotter = RatioPlot(y_range=self.y_range, 
+            y_range = self.special_tag_ranges.get(flav, self.y_range)
+            plotter = RatioPlot(y_range=y_range, 
                 legend_title='{} / ... '.format(fancy_num))
             plotter.ax.set_ylabel(
                 'eff ratio, {} {} tag efficiency'.format(

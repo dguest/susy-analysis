@@ -195,9 +195,8 @@ def jet_eff_ratio(config):
     if config.plot_dir: 
         if not isdir(config.plot_dir): 
             os.mkdir(config.plot_dir)
-        
+
         plotter = JetRatioPlotter(rat_dict)
-        
         plotter.overlay_denominators(config.plot_dir, config.ext)
 
     else: 
