@@ -8,6 +8,7 @@ from stop.plot.efficiency import RatioPlot
 import itertools
 from xml.etree import ElementTree as etree
 from xml.dom import minidom
+from stop.performance.style import get_jet_eff_color
 
 class JetEfficiencyBase(object): 
     _group_name = 'alljet'
@@ -122,6 +123,9 @@ class JetPlotBase(object):
         self.draw_bins = draw_bins
 
     def _get_color(self, name): 
+        color = get_jet_eff_color(name)
+        if color: 
+            return color
         if not name in self.color_bank: 
             self.color_bank[name] = next(self.color_itr)
         return self.color_bank[name]
@@ -335,8 +339,10 @@ class JetRatioPlotter(object):
             sys.stderr.write('plotting {}\n'.format(plot_name))
             fancy_num = self.sample_replacements.get(num,num)
             y_range = self.special_tag_ranges.get(flav, self.y_range)
-            plotter = RatioPlot(y_range=y_range, 
-                legend_title='{} / ... '.format(fancy_num))
+            plotter = RatioPlot(
+                y_range=y_range, 
+                legend_title='{} / ... '.format(fancy_num), 
+                color_function=get_jet_eff_color)
             plotter.ax.set_ylabel(
                 'eff ratio, {} {} tag efficiency'.format(
                     tag, flav), y=0.98, va='top')

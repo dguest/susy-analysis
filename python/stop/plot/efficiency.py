@@ -170,17 +170,23 @@ class RatioPlot(object):
     Probably a good general purpose plotter... 
     """
     _colors = ['black','red','blue','green','purple', 'cyan']
-    def __init__(self, y_range=(0.5, 1.5) , legend_title=None): 
+    def __init__(self, y_range=(0.5, 1.5) , legend_title=None, 
+                 color_function=None): 
         self.fig = Figure(figsize=(8,6))
         self.canvas = FigureCanvas(self.fig)
         self.y_range = y_range
         self.ax = self.fig.add_subplot(1,1,1)
+        # TODO: replace this with a color function default
         self.color_itr = iter(self._colors)
         self.legends = []
         self.legend_title = legend_title
+        self.color_function = color_function
     def add_ratio(self, ratio_dict, name='', color=None): 
         if not color: 
-            color = next(self.color_itr)
+            if self.color_function: 
+                color = self.color_function(name)
+            else: 
+                color = next(self.color_itr)
         line, cap, unsure = self.ax.errorbar(
             ratio_dict['x_center'], ratio_dict['y_center'], ms=10, 
             fmt='.', mfc=color, mec=color, ecolor=color, 

@@ -95,14 +95,6 @@ def get_config():
 
     return parser.parse_args(sys.argv[1:])
 
-# --------------------------------------------------------------------
-# --- these guys should be moved into some other more general routine 
-#     (call it susy-util or something)
-# --------------------------------------------------------------------
-
-
-# ------------------- end of things to move ------------------------
-
 def jet_tag_efficinecy(config): 
     subs = {'distill':distill_d3pds,'stack':aggregate_jet_plots, 
             'plot':plot_jet_eff, 'ratio': jet_eff_ratio}
