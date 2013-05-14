@@ -77,6 +77,8 @@ def get_config():
                           help='hist or (for dash-hadd) directory')
     hist_add.add_argument('-d', '--dash-hadd', action='store_true', 
                           help='multiple hadds, splits input hists at \'-\'')
+    hist_add.add_argument('--norm', help=(
+            'normalize using this meta file (scales to 1 fb^-1)'))
 
     group = subs.add_parser('group', description=_group_help)
     group.add_argument(
@@ -131,6 +133,9 @@ def list_meta(config, filt_meta):
 
 
 def hadd(config): 
+    """
+    Scales to 1 fb^-1 if scaling is requested. 
+    """
     good_files = []
     for hist_file in config.input_hists: 
         with h5py.File(hist_file) as h5: 
@@ -141,6 +146,8 @@ def hadd(config):
             'ACHTUNG: only {} of {} files have any hists\n'.format(
                 len(good_files), len(config.input_hists)))
     if config.dash_hadd: 
+        if config.norm: 
+            raise ValueError('normalization not allowed for dash-hadd')
         def key_from_name(fname): 
             return splitext(basename(fname))[0].split('-')[0]
         if not isdir(config.output): 
@@ -150,18 +157,50 @@ def hadd(config):
             out_path = join(config.output, '{}.h5'.format(key))
             print 'making {}'.format(out_path)
             file_group = [f for f in good_files if key in f]
+            if not _ok_extensions(file_group): 
+                raise IOError(
+                    "file {} doens't have the right number of subfiles")
             _hadd(file_group, out_path)
     else: 
+        weights_dict = {}
+        if config.norm: 
+            lookup = DatasetCache(config.norm)
+            for in_file in good_files: 
+                file_key = basename(splitext(in_file)[0])
+                eff_lumi = lookup[file_key].get_effective_luminosity_fb()
+                weights_dict[in_file] = 1.0/eff_lumi
         _hadd(good_files, config.output)
 
-def _hadd(good_files, output):
-    with h5py.File(good_files[0]) as base_h5: 
-        hadder = HistAdder(base_h5)
+def _ok_extensions(file_group): 
+    """
+    checks the 'XofY' string on the end of histogram files. 
+    """
+    if not 'of' in file_group[0].split('-')[-1]: 
+        return True
+    else: 
+        extensions = [f.split('-')[-1] for f in file_group]
+        numbers = set()
+        total = set()
+        for ext in extensions: 
+            num, tot = ext.split('of')
+            numbers.add(num)
+            total.add(tot)
+        if not len(total) == 1: 
+            return False
+        if not len(numbers) == int(next(total)): 
+            return False
+        return True
+
+def _hadd(good_files, output, weights_dict={}):
+    with h5py.File(good_files[0]) as base_h5:
+        weight = weights_dict.get(good_files[0],1.0)
+        hadder = HistAdder(base_h5, weight=weight)
     for add_file in good_files[1:]: 
         if not isfile(add_file): 
             raise IOError("{} doesn't exist".format(add_file))
+        weight = weights_dict.get(add_file, 1.0)
         with h5py.File(add_file) as add_h5: 
-            hadder.add(add_h5)
+            hadder.add(add_h5, weight=weight)
     if output: 
         with h5py.File(output,'w') as out_file: 
             hadder.write_to(out_file)

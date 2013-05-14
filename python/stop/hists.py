@@ -589,33 +589,33 @@ class HistAdder(object):
     histograms, then finds the corresponding hists for each call to add 
     and adds them. 
     """
-    def __init__(self, base_group): 
-        self.hists = self._search(base_group)
+    def __init__(self, base_group, weight=1.0): 
+        self.hists = self._search(base_group, weight)
         
-    def _search(self, group): 
+    def _search(self, group, weight): 
         subhists = {}
         for key, subgroup in group.iteritems(): 
             if isinstance(subgroup, Group): 
                 subhists[key] = self._search(subgroup)
             elif isinstance(subgroup, Dataset): 
-                subhists[key] = HistNd(subgroup)
+                subhists[key] = HistNd(subgroup)*weight
             else: 
                 raise HistAddError('not sure what to do with {} {}'.format(
                         type(subgroup), key))
         return subhists
-    def _merge(self, hist_dict, new_hists): 
+    def _merge(self, hist_dict, new_hists, weight): 
         merged = {}
         for key, subgroup in hist_dict.iteritems(): 
             if not key in new_hists: 
                 raise HistAddError(
                     "node {} not found in new hists".format(key))
             if isinstance(subgroup, dict): 
-                merged[key] = self._merge(subgroup, new_hists[key])
+                merged[key] = self._merge(subgroup, new_hists[key], weight)
             elif isinstance(subgroup, HistNd): 
                 if not isinstance(new_hists[key], Dataset): 
                     raise HistAddError(
                         "tried to merge non-dataset {}".format(key))
-                new_hist = HistNd(new_hists[key])
+                new_hist = HistNd(new_hists[key])*weight
                 merged[key] = subgroup + new_hist
             else: 
                 raise HistAddError('not sure what to do with {}, {}'.format(
@@ -630,8 +630,8 @@ class HistAdder(object):
             else: 
                 hist.write_to(group, key)
 
-    def add(self, group): 
-        self.hists = self._merge(self.hists, group)
+    def add(self, group, weight=1.0): 
+        self.hists = self._merge(self.hists, group, weight)
 
     def write_to(self, group): 
         self._write(self.hists, group)
