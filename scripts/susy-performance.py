@@ -195,6 +195,13 @@ def distill_d3pds(config):
 
     ds_key = basename(splitext(out_file)[0]).split('-')[0]
 
+    # update the meta file
+    collector = meta.MetaTextCollector()
+    n_events, total_wt, n_corrupted = collector.get_recorded_events(files)
+    with meta.DatasetCache(config.meta) as meta: 
+        meta[ds_key].sum_event_weight = total_wt
+        meta[ds_key].n_raw_entries = n_events
+
     out_path = join(config.output_dir, out_file)
     flags = 'v'             # verbose
     if not config.filter_output: 
