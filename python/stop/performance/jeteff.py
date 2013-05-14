@@ -156,6 +156,10 @@ class JetEfficiencyPlotter(JetPlotBase, JetEfficiencyBase):
             ('charm','medium'): (0.0, 0.3), 
             ('bottom','medium'): (0.0, 0.4), 
             ('light', 'medium'): (0.0, 0.03), 
+            ('tau', 'antiloose'): (0.0, 0.25), 
+            ('charm', 'antiloose'): (0.0, 0.10), 
+            ('light', 'antiloose'): (0.0, 0.05), 
+            ('tau', 'medium'): (0.0, 0.20), 
             }
         self.custom_colors = { 
             'Powheg': 'r', 
