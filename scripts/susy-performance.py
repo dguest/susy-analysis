@@ -119,6 +119,13 @@ def distill_d3pds(config):
 
     ds_key = basename(out_file).split('-')[0]
 
+    # update the meta file
+    collector = meta.MetaTextCollector()
+    n_events, total_wt, n_corrupted = collector.get_recorded_events(files)
+    with meta.DatasetCache(config.meta) as meta: 
+        meta[ds_key].sum_event_weight = total_wt
+        meta[ds_key].n_raw_entries = n_events
+
     out_path = join(config.output_dir, out_file)
     flags = 'v'             # verbose
     if not config.filter_output: 
@@ -132,6 +139,7 @@ def distill_d3pds(config):
     list_counts = [list(c) for c in cut_counts]
     with open(counts_path,'w') as out_yml: 
         out_yml.write(yaml.dump(list_counts))
+    
 
 def aggregate_jet_plots(config): 
     from stop import hyperstack
