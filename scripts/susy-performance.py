@@ -110,6 +110,7 @@ def get_config():
         help=('calculate errors as binomial rather than using wt2 linear '
               'propagation'))
     tag_plot.add_argument('--ext', help='plot extension ' + d, default='.pdf')
+    tag_plot.add_argument('--flavor', default='all', help=d)
 
     eff_ratio = tag_step.add_parser('ratio', description=_ratio_help)
     eff_ratio.add_argument('-n','--numerators', nargs='+')
@@ -252,6 +253,8 @@ def plot_jet_eff(config):
     if not isdir(config.output_dir): 
         os.mkdir(config.output_dir)
     wt2_error = not config.binomial_error
+    if config.flavor != 'all': 
+        config.flavor = [config.flavor]
     plotter = EfficiencyPlot
     draw_bins = 'jf'
     if config.binned: 
@@ -259,8 +262,9 @@ def plot_jet_eff(config):
         draw_bins = ''
     outer_plotter = JetEfficiencyPlotter(do_wt2_error=wt2_error, 
                                          draw_bins=draw_bins)
-    outer_plotter.plot_samples(config.input_hists, out_dir=config.output_dir, 
-                               plotter=plotter, plot_extension=config.ext)
+    outer_plotter.plot_samples(
+        config.input_hists, out_dir=config.output_dir, flavors=config.flavor, 
+        plotter=plotter, plot_extension=config.ext)
 
 def jet_eff_ratio(config): 
     from stop.performance.jeteff import JetEffRatioCalc, JetRatioPlotter

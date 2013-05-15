@@ -152,13 +152,16 @@ class JetEfficiencyPlotter(JetPlotBase, JetEfficiencyBase):
         super(JetEfficiencyPlotter, self).__init__(draw_bins)
         self.max_pt_gev = 400.0
         self.custom_ranges = { 
-            ('charm','loose'): (0.9, 1.1), 
+            ('charm','loose'): (0.95, 1.0), 
+            ('charm','antiloose'): (0.0, 0.05), 
             ('charm','medium'): (0.0, 0.3), 
             ('bottom','medium'): (0.0, 0.4), 
             ('light', 'medium'): (0.0, 0.03), 
-            ('tau', 'antiloose'): (0.0, 0.25), 
+            ('tau', 'antiloose'): (0.0, 0.05), 
+            ('tau', 'loose'): (0.95, 1.0), 
             ('charm', 'antiloose'): (0.0, 0.10), 
-            ('light', 'antiloose'): (0.0, 0.05), 
+            ('light', 'antiloose'): (0.0, 0.02), 
+            ('light', 'loose'): (0.98, 1.0), 
             ('tau', 'medium'): (0.0, 0.20), 
             }
         self.custom_colors = { 
@@ -319,15 +322,15 @@ class JetRatioPlotter(object):
             }
         self.y_range = (0.7, 2.0)
         self.special_tag_ranges = {
-            'tau': (0.0, 2.0), 
-            'light': (0.0, 2.0), 
+            ('tau','loose'): (0.9, 1.1), 
+            ('light','loose'): (0.9, 1.1), 
             }
     def plot_all_ratios(self, plot_dir): 
         for (num, denom, flav, tag), values in self.ratio_dict.iteritems(): 
             out_path = '{}/{}-over-{}-{}Tag-{}Truth.pdf'.format(
                 plot_dir, num, denom, tag, flav)
             sys.stderr.write('plotting {}\n'.format(out_path))
-            y_range = self.special_tag_ranges.get(flav, self.y_range)
+            y_range = self.special_tag_ranges.get((flav, tag), self.y_range)
             plotter = RatioPlot(y_range=y_range)
             plotter.add_ratio(values)
             plotter.ax.set_ylabel('{} tag efficiency'.format(flav), 
