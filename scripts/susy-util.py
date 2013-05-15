@@ -182,12 +182,12 @@ def _ok_extensions(file_group):
         numbers = set()
         total = set()
         for ext in extensions: 
-            num, tot = ext.split('of')
+            num, tot = splitext(ext)[0].split('of')
             numbers.add(num)
             total.add(tot)
         if not len(total) == 1: 
             return False
-        if not len(numbers) == int(next(total)): 
+        if not len(numbers) == int(next(iter(total))): 
             return False
         return True
 

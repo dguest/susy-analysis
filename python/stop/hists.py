@@ -596,7 +596,7 @@ class HistAdder(object):
         subhists = {}
         for key, subgroup in group.iteritems(): 
             if isinstance(subgroup, Group): 
-                subhists[key] = self._search(subgroup)
+                subhists[key] = self._search(subgroup, weight)
             elif isinstance(subgroup, Dataset): 
                 subhists[key] = HistNd(subgroup)*weight
             else: 
