@@ -194,7 +194,7 @@ def _ok_extensions(file_group):
 def _hadd(good_files, output, weights_dict={}):
     with h5py.File(good_files[0]) as base_h5:
         weight = weights_dict.get(good_files[0],1.0)
-        hadder = HistAdder(base_h5, weight=weight)
+        hadder = HistAdder(base_h5, weight=weight, wt2_ext='Wt2')
     for add_file in good_files[1:]: 
         if not isfile(add_file): 
             raise IOError("{} doesn't exist".format(add_file))

@@ -589,7 +589,8 @@ class HistAdder(object):
     histograms, then finds the corresponding hists for each call to add 
     and adds them. 
     """
-    def __init__(self, base_group, weight=1.0): 
+    def __init__(self, base_group, weight=1.0, wt2_ext=None): 
+        self.wt2_ext = wt2_ext
         self.hists = self._search(base_group, weight)
         
     def _search(self, group, weight): 
@@ -598,7 +599,12 @@ class HistAdder(object):
             if isinstance(subgroup, Group): 
                 subhists[key] = self._search(subgroup, weight)
             elif isinstance(subgroup, Dataset): 
-                subhists[key] = HistNd(subgroup)*weight
+                # proper treating of weighted hists
+                # FIXME: this should be a hist attribute
+                if self.wt2_ext and key.endswith(self.wt2_ext): 
+                    subhists[key] = HistNd(subgroup) * weight**2
+                else: 
+                    subhists[key] = HistNd(subgroup)*weight
             else: 
                 raise HistAddError('not sure what to do with {} {}'.format(
                         type(subgroup), key))
@@ -615,7 +621,11 @@ class HistAdder(object):
                 if not isinstance(new_hists[key], Dataset): 
                     raise HistAddError(
                         "tried to merge non-dataset {}".format(key))
-                new_hist = HistNd(new_hists[key])*weight
+                # proper treating of weighted hists
+                if self.wt2_ext and key.endswith(self.wt2_ext): 
+                    new_hist = HistNd(new_hists[key]) * weight**2
+                else: 
+                    new_hist = HistNd(new_hists[key])*weight
                 merged[key] = subgroup + new_hist
             else: 
                 raise HistAddError('not sure what to do with {}, {}'.format(
