@@ -208,6 +208,7 @@ def distill_d3pds(config):
     list_counts = [list(c) for c in cut_counts]
     with open(counts_path,'w') as out_yml: 
         out_yml.write(yaml.dump(list_counts))
+    
 
 def aggregate_jet_plots(config): 
     from stop import hyperstack
