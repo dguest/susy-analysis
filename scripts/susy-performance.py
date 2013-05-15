@@ -18,10 +18,18 @@ Produces one output file for the dir or textfile given.
 If a textfile is given, it should contain a list of root files. If a 
 directory is given, it should be for one entire dataset. 
 
+This is designed to be run in parallel. 
+
 TODO: think about how to merge this with the susy-distill routine. 
 In theory this script could be simpler / easier to use with batch systems
 than the older susy-distill, but for the moment it doesn't do enough 
 with systematics. 
+"""
+
+_setup_help="""
+General setup for D3PD -> whiskey_tuple -> histogram chain. 
+
+TODO: move to top level? 
 """
 
 import argparse, sys
@@ -54,6 +62,14 @@ def get_config():
     tag = subs.add_parser('tag', description=_tag_help)
     tag_step = tag.add_subparsers(dest='step')
 
+    tag_setup = tag_step.add_parser('setup', description=_setup_help)
+    tag_setup.add_argument(
+        'input_textfiles', nargs='+', 
+        help='can be produced with susy-utils')
+    tag_setup.add_argument('-m', '--update-meta', required=True, 
+                           help='update meta file with sum_wt etc')
+    tag_setup.add_argument('-s', '--script', help='build this PBS script')
+
     tag_distill = tag_step.add_parser('distill', description=_distill_help)
     tag_distill.add_argument(
         'd3pds', help='input d3pd dir OR file listing d3pds')
@@ -69,10 +85,18 @@ def get_config():
                              help=d)
 
     tag_agg = tag_step.add_parser('stack')
-    tag_agg.add_argument(
+    tag_agg_step = tag_agg.add_subparsers(dest='stackstep')
+    tag_agg_run = tag_agg_step.add_parser('run')
+    tag_agg_run.add_argument(
         'whiskey_dir', help='input dir (or file)')
-    tag_agg.add_argument('-o', '--output-dir', default='hists', 
-                         help='output dir for hists, ' + d)
+    tag_agg_run.add_argument('-o', '--output-dir', default='hists', 
+                             help='output dir for hists, ' + d)
+    tag_agg_setup = tag_agg_step.add_parser('setup')
+    tag_agg_setup.add_argument('whiskey_dir')
+    tag_agg_setup.add_argument('hist_dir')
+    tag_agg_setup.add_argument(
+        '-s', '--script', default='crocosaurus.sh', 
+        help=d)
 
     tag_plot = tag_step.add_parser('plot')
     tag_plot.add_argument('input_hists', nargs='*')
@@ -96,10 +120,62 @@ def get_config():
     return parser.parse_args(sys.argv[1:])
 
 def jet_tag_efficinecy(config): 
-    subs = {'distill':distill_d3pds,'stack':aggregate_jet_plots, 
-            'plot':plot_jet_eff, 'ratio': jet_eff_ratio}
+    subs = {'distill':distill_d3pds,'stack':jet_tag_stack, 
+            'plot':plot_jet_eff, 'ratio': jet_eff_ratio, 
+            'setup': make_setup}
     subs[config.step](config)
 
+def jet_tag_stack(config): 
+    subs = {'setup':make_stack_setup, 'run':aggregate_jet_plots}
+    subs[config.stackstep](config)
+
+def make_stack_setup(config): 
+    in_dir = config.whiskey_dir
+    in_files = glob.glob('{}/*.root'.format(in_dir))
+    
+    sub_dict = {
+        'n_jobs': len(in_files), 
+        'out_dir': 'stack-output', 
+        'in_dir': in_dir.rstrip('/'), 
+        'in_ext': '.root', 
+        'routine': 'susy-performance.py tag stack run', 
+        'run_args': '-o {}'.format(config.hist_dir), 
+        }
+    submit_script = _submit_script.format(**sub_dict)
+    with open(config.script, 'w') as out_script: 
+        out_script.write(submit_script)
+    
+
+def make_setup(config): 
+    ds_meta = None
+    if config.update_meta: 
+        ds_meta = meta.DatasetCache(config.update_meta)
+        for ds_key in ds_meta: 
+            ds_meta[ds_key].sum_event_weight = 0.0
+            ds_meta[ds_key].n_raw_entries = 0
+        collector = meta.MetaTextCollector()
+        out_meta = meta.DatasetCache()
+        for textfile in config.input_textfiles: 
+            ds_key = basename(splitext(textfile)[0]).split('-')[0]
+            with open(textfile) as steering_file: 
+                files = [l.strip() for l in steering_file.readlines()]
+            n_events, total_wt, n_cor = collector.get_recorded_events(files)
+            out_meta[ds_key] = ds_meta[ds_key]
+            out_meta[ds_key].sum_event_weight += total_wt
+            out_meta[ds_key].n_raw_entries += n_events
+        out_meta.write(config.update_meta)
+    if config.script: 
+        sub_dict = {
+            'n_jobs': len(config.input_textfiles), 
+            'out_dir': 'distill-output', 
+            'in_dir': 'd3pds', 
+            'in_ext': '.txt', 
+            'routine': 'susy-performance.py tag distill', 
+            'run_args': config.update_meta, 
+            }
+        submit_script = _submit_script.format(**sub_dict)
+        with open(config.script, 'w') as out_script: 
+            out_script.write(submit_script)
 
 def distill_d3pds(config): 
     if isfile(config.d3pds): 
@@ -117,7 +193,7 @@ def distill_d3pds(config):
         os.mkdir(config.output_dir)
     meta_lookup = meta.DatasetCache(config.meta)
 
-    ds_key = basename(out_file).split('-')[0]
+    ds_key = basename(splitext(out_file)[0]).split('-')[0]
 
     # update the meta file
     collector = meta.MetaTextCollector()
@@ -241,6 +317,25 @@ def _ds_key_from_ds_name(ds_name):
     type_index = fields.index('mc12_8TeV')
     dsid = fields[type_index + 1]
     return 's{}'.format(dsid)
+
+_submit_script="""
+#!/usr/bin/env bash
+
+#PBS -t 1-{n_jobs}
+#PBS -l mem=4gb,walltime=00:06:00:00
+#PBS -l nodes=1:ppn=1
+#PBS -q hep
+#PBS -o {out_dir}/out.txt
+#PBS -e {out_dir}/error.txt
+
+cd $PBS_O_WORKDIR
+mkdir -p {out_dir}
+echo 'submitted from: ' $PBS_O_WORKDIR 
+
+files=($(ls {in_dir}/*{in_ext} | sort))
+
+{routine} ${{files[$PBS_ARRAYID-1]}} {run_args}
+"""
 
 if __name__ == '__main__': 
     run()
