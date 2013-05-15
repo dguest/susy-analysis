@@ -69,6 +69,7 @@ def get_config():
     tag_setup.add_argument('-m', '--update-meta', required=True, 
                            help='update meta file with sum_wt etc')
     tag_setup.add_argument('-s', '--script', help='build this PBS script')
+    tag_setup.add_argument('-f', '--filter-output', action='store_true')
 
     tag_distill = tag_step.add_parser('distill', description=_distill_help)
     tag_distill.add_argument(
@@ -165,13 +166,16 @@ def make_setup(config):
             out_meta[ds_key].n_raw_entries += n_events
         out_meta.write(config.update_meta)
     if config.script: 
+        run_args = config.update_meta
+        if config.filter_output: 
+            run_args += ' --filter-output'
         sub_dict = {
             'n_jobs': len(config.input_textfiles), 
             'out_dir': 'distill-output', 
             'in_dir': 'd3pds', 
             'in_ext': '.txt', 
             'routine': 'susy-performance.py tag distill', 
-            'run_args': config.update_meta, 
+            'run_args': run_args, 
             }
         submit_script = _submit_script.format(**sub_dict)
         with open(config.script, 'w') as out_script: 
@@ -201,6 +205,8 @@ def distill_d3pds(config):
         flags += 'e'        # save all events
     if _is_atlfast(meta_lookup[ds_key].full_name): 
         flags += 'f'
+    if _needs_overlap_removal(meta_lookup[ds_key].full_name): 
+        flags += 'h'
     cut_counts = cutflow.cutflow(
         input_files=files, flags=flags, output_ntuple=out_path, 
         btag_cal_file=btag_env, cal_dir=calibration_dir)
@@ -292,6 +298,17 @@ def _is_atlfast(sample):
     else: 
         raise ValueError(
             "not sure what kind of sample '{}' is".format(sample))
+
+def _needs_overlap_removal(sample): 
+    overlaping_sherpa_finder = re.compile('MassiveCBPt0_')
+    sherpa_pt_range_finder = re.compile('Pt[0-9]+_[0-9]+')
+    if overlaping_sherpa_finder.search(sample): 
+        if sherpa_pt_range_finder.search(sample): 
+            raise IOError( 
+                "can't determine if {} needs pt overlap removal".format(
+                    sample))
+        return True
+    return False
 
 def _ntuple_name_from_ds_name(ds_name): 
     bname = basename(ds_name)
