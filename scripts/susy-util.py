@@ -54,6 +54,8 @@ def get_config():
     list_type = meta_list_shared.add_mutually_exclusive_group()
     list_type.add_argument('--physics', help='filter meta by physics')
     list_type.add_argument('--anti-physics', help='show all but matches')
+    meta_list_shared.add_argument(
+        '--name-regex', help='filter full dataset name')
     meta_list_shared.add_argument('meta_file')
 
     meta_list = subs.add_parser('meta', description=_meta_help)
@@ -63,6 +65,7 @@ def get_config():
     list_meta = list_subs.add_parser('meta', parents=[meta_list_shared], 
                                      description=_tag_list_help)
     list_names = list_subs.add_parser('names', parents=[meta_list_shared])
+    list_keys = list_subs.add_parser('keys', parents=[meta_list_shared])
 
     # rename stuff
     meta_rename = subs.add_parser('rename', description=_rename_help)
@@ -97,13 +100,22 @@ def list_meta_info(config):
     from stop.meta import DatasetCache
     meta = DatasetCache(config.meta_file)
     filt_meta = {}
-    filters = [config.physics, config.anti_physics]
+    filters = [config.physics, config.anti_physics, config.name_regex]
+    if config.name_regex: 
+        name_re = re.compile(config.name_regex)
+        def check_name(name): 
+            return name_re.search(name)
+    else:
+        def check_name(name): 
+            return True
+
     if any(filters): 
         for ds_key, ds in meta.iteritems(): 
             pass_conditions = [ 
                 not config.physics or ds.physics_type == config.physics, 
                 not config.anti_physics or (
-                    ds.physics_type != config.anti_physics)
+                    ds.physics_type != config.anti_physics), 
+                check_name(ds.full_name), 
                 ]
             if all(pass_conditions): 
                 filt_meta[ds_key] = ds
@@ -111,12 +123,15 @@ def list_meta_info(config):
     else: 
         filt_meta = meta
 
-    subopts = {'files': list_files, 'meta': list_meta, 'names':list_names}
+    subopts = {'files': list_files, 'meta': list_meta, 
+               'names':list_names, 'keys': list_keys}
     subopts[config.outlist](config, filt_meta)
 
 def list_files(config, filt_meta): 
     if config.ntuples_dir: 
         ntuples = glob.glob('{}/*.root*'.format(config.ntuples_dir))
+        if not ntuples: 
+            ntuples = glob.glob('{}/*.h5'.format(config.ntuples_dir))
         for ntuple in ntuples: 
             for ds in filt_meta.values(): 
                 if str(ds.id) in ntuple: 
@@ -130,7 +145,9 @@ def list_meta(config, filt_meta):
     for ds in filt_meta.values(): 
         meta[ds.key] = ds.yml_dict()
     print yaml.dump(meta)
-
+def list_keys(config, filt_meta): 
+    for ds in filt_meta.values(): 
+        print ds.key
 
 def hadd(config): 
     """
@@ -164,7 +181,7 @@ def hadd(config):
     else: 
         weights_dict = {}
         if config.norm: 
-            lookup = DatasetCache(config.norm)
+            lookup = meta.DatasetCache(config.norm)
             for in_file in good_files: 
                 file_key = basename(splitext(in_file)[0])
                 eff_lumi = lookup[file_key].get_effective_luminosity_fb()

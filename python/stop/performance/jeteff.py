@@ -266,14 +266,16 @@ class JetEffRatioCalc(JetEfficiencyBase):
         y = p / (p + f)
         return x, xerr, y, y_err
 
-    def get_ratios(self, num_samples, denom_samples): 
+    def get_ratios(self, num_samples, denom_samples, flavor='all'): 
         """
         Returns a dict, keyed by (num_sample, denom_sample, flav, tag), 
         holding another dict keyed by {x_center, x_error, y_center, y_error}
         """
         all_samples = set(num_samples) | set(denom_samples)
         # gets a dictionary with values of the form (num, denom, extent)
-        samples_dict = self.get_tuple_dict(all_samples)
+        if flavor != 'all': 
+            flavor = [flavor]
+        samples_dict = self.get_tuple_dict(all_samples, flavors=flavor)
         samples, flavors, all_tags = self._get_sft(samples_dict)
         tags = [tag for tag in all_tags if self._is_numerator(tag)]
         

@@ -117,7 +117,7 @@ def get_config():
     eff_ratio.add_argument('-o','--plot-dir')
     eff_ratio.add_argument('--ext', help='plot extension ' + d, 
                            default='.pdf')
-
+    eff_ratio.add_argument('--flavor', default='all')
     return parser.parse_args(sys.argv[1:])
 
 def jet_tag_efficinecy(config): 
@@ -266,7 +266,9 @@ def jet_eff_ratio(config):
     from stop.performance.jeteff import JetEffRatioCalc, JetRatioPlotter
     from stop.performance.jeteff import JetRatioDumper
     calc = JetEffRatioCalc()
-    rat_dict = calc.get_ratios(config.numerators, config.denominators)
+    rat_dict = calc.get_ratios(config.numerators, 
+                               config.denominators, 
+                               flavor=config.flavor)
     if config.plot_dir: 
         if not isdir(config.plot_dir): 
             os.mkdir(config.plot_dir)
