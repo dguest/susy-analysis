@@ -1,7 +1,7 @@
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
 import numpy as np
-from stop.stattest import binomial_interval
+from stop.stattest import binomial_interval, efficiency_error
 from stop.hists import HistToBinsConverter
 
 class EfficiencyPlot(object): 
@@ -28,16 +28,8 @@ class EfficiencyPlot(object):
         p_wt2 = num_wt2
         if np.any(f_wt2 < 0.0): 
             raise ValueError('negative fail counts in some bins')
-        def valid_delta(n, wt2): 
-            out = np.empty(n.shape)
-            out[:] = float('nan')
-            mask = wt2 > 0.0
-            out[mask] = n[mask] / wt2[mask]**0.5
-            return out
-        delta_p = valid_delta(p, p_wt2)
-        delta_f = valid_delta(f, f_wt2)
-        error = (delta_p * f + delta_f * p) / (p + f)**2.0
-        return error
+
+        return efficiency_error(p, f, p_wt2, f_wt2)
 
     def _rebin(self, num): 
         if len(num) > self.max_bins and len(num) % 2 == 0: 

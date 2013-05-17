@@ -9,6 +9,7 @@ import itertools
 from xml.etree import ElementTree as etree
 from xml.dom import minidom
 from stop.performance.style import get_jet_eff_color
+from stop.stattest import efficiency_error
 
 class JetEfficiencyBase(object): 
     _group_name = 'alljet'
@@ -272,7 +273,7 @@ class JetEffRatioCalc(JetEfficiencyBase):
         f[(f == 0.0) & (p == 0.0)] = float('nan')
         p_wt2 = pass_wt2_b
         f_wt2 = all_wt2_b - pass_wt2_b
-        y_err = (p_wt2**0.5 * f + f_wt2**0.5 * p) / (p + f)**2.0
+        y_err = efficiency_error(p, f, p_wt2, f_wt2)
         y = p / (p + f)
         return x, xerr, y, y_err
 
