@@ -4,11 +4,17 @@ An attempt at a dumber stacking routine for the full analysis.
 Sets up textfiles that point to collections of root files, decides on 
 which systematics / regions to use based on a metafile and the 
 path to the root files. 
+
+NOTE: Should really consider merging this with the susy-performance stacking
+routine, which manages the construction of batch submit scripts. 
 """
 
 _setup_help="""
 Sets up the textfiles. Can set up multiple textfiles, which are simply 
 named for batch submission. 
+
+NOTE: should remove this, the functionality could be provided by the 
+susy-performance routines. 
 """
 
 _hadd_help="""
