@@ -3,10 +3,6 @@
 Top level script for vairous generic data manipulation. 
 """
 
-_tag_list_help="""
-Routines to print lists of files / datasets referenced in a meta file. 
-"""
-
 _meta_help="""
 Top level for routines that print / filter / manipulate meta data. 
 Routines here share common filters. 
@@ -50,24 +46,20 @@ def get_config():
     subs = parser.add_subparsers(dest='which')
 
     # meta stuff
-    meta_list_shared = argparse.ArgumentParser(add_help=False)
-    list_type = meta_list_shared.add_mutually_exclusive_group()
+    meta_list = subs.add_parser('meta', description=_meta_help)
+    meta_filters = meta_list.add_argument_group(
+        title='filters')
+    list_type = meta_filters.add_mutually_exclusive_group()
     list_type.add_argument('--physics', help='filter meta by physics')
     list_type.add_argument('--anti-physics', help='show all but matches')
-    meta_list_shared.add_argument(
+    meta_filters.add_argument(
         '--name-regex', help='filter full dataset name')
-    meta_list_shared.add_argument(
+    meta_filters.add_argument(
         '-d', '--dir-filter', help='only use keys in this dir')
-    meta_list_shared.add_argument('meta_file')
-
-    meta_list = subs.add_parser('meta', description=_meta_help)
-    list_subs = meta_list.add_subparsers(dest='outlist')
-    list_files = list_subs.add_parser('files', parents=[meta_list_shared])
-    list_files.add_argument('ntuples_dir')
-    list_meta = list_subs.add_parser('meta', parents=[meta_list_shared], 
-                                     description=_tag_list_help)
-    list_names = list_subs.add_parser('names', parents=[meta_list_shared])
-    list_keys = list_subs.add_parser('keys', parents=[meta_list_shared])
+    meta_list.add_argument('meta_file')
+    meta_list.add_argument(
+        '-o', '--output-format', default='names', 
+        choices={'files','meta','names','keys'})
 
     # rename stuff
     meta_rename = subs.add_parser('rename', description=_rename_help)
@@ -114,6 +106,7 @@ def list_meta_info(config):
     check_dir = lambda x: True
     if config.dir_filter: 
         files = glob.glob('{}/*.h5'.format(config.dir_filter))
+        files += glob.glob('{}/*.root'.format(config.dir_filter))
         keys = set(splitext(basename(f).split('-')[0])[0] for f in files)
         def check_dir(key): 
             return key in keys
@@ -135,17 +128,15 @@ def list_meta_info(config):
 
     subopts = {'files': list_files, 'meta': list_meta, 
                'names':list_names, 'keys': list_keys}
-    subopts[config.outlist](config, filt_meta)
+    subopts[config.output_format](config, filt_meta)
 
 def list_files(config, filt_meta): 
-    if config.ntuples_dir: 
-        ntuples = glob.glob('{}/*.root*'.format(config.ntuples_dir))
-        if not ntuples: 
-            ntuples = glob.glob('{}/*.h5'.format(config.ntuples_dir))
-        for ntuple in ntuples: 
-            for ds in filt_meta.values(): 
-                if str(ds.id) in ntuple: 
-                    print ntuple
+    if not config.dir_filter: 
+        raise ValueError('--dir-filter is required')
+    for ds in filt_meta.values(): 
+        files = glob.glob('{}/*{}*'.format(config.dir_filter, ds.key))
+        for f in files: 
+            print f
 
 def list_names(config, filt_meta): 
     for ds in filt_meta.values(): 
