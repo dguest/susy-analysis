@@ -56,6 +56,8 @@ def get_config():
     list_type.add_argument('--anti-physics', help='show all but matches')
     meta_list_shared.add_argument(
         '--name-regex', help='filter full dataset name')
+    meta_list_shared.add_argument(
+        '-d', '--dir-filter', help='only use keys in this dir')
     meta_list_shared.add_argument('meta_file')
 
     meta_list = subs.add_parser('meta', description=_meta_help)
@@ -100,14 +102,21 @@ def list_meta_info(config):
     from stop.meta import DatasetCache
     meta = DatasetCache(config.meta_file)
     filt_meta = {}
-    filters = [config.physics, config.anti_physics, config.name_regex]
+    filters = [config.physics, config.anti_physics, 
+               config.name_regex, config.dir_filter]
+
+    check_name = lambda x: True
     if config.name_regex: 
         name_re = re.compile(config.name_regex)
         def check_name(name): 
             return name_re.search(name)
-    else:
-        def check_name(name): 
-            return True
+
+    check_dir = lambda x: True
+    if config.dir_filter: 
+        files = glob.glob('{}/*.h5'.format(config.dir_filter))
+        keys = set(splitext(basename(f).split('-')[0])[0] for f in files)
+        def check_dir(key): 
+            return key in keys
 
     if any(filters): 
         for ds_key, ds in meta.iteritems(): 
@@ -116,6 +125,7 @@ def list_meta_info(config):
                 not config.anti_physics or (
                     ds.physics_type != config.anti_physics), 
                 check_name(ds.full_name), 
+                check_dir(ds.key)
                 ]
             if all(pass_conditions): 
                 filt_meta[ds_key] = ds
