@@ -26,7 +26,17 @@ class EfficiencyPlot(object):
         f = denom - num 
         f_wt2 = denom_wt2 - num_wt2
         p_wt2 = num_wt2
-        error = (p_wt2**0.5 * f + f_wt2**0.5 * p) / (p + f)**2.0
+        if np.any(f_wt2 < 0.0): 
+            raise ValueError('negative fail counts in some bins')
+        def valid_delta(n, wt2): 
+            out = np.empty(n.shape)
+            out[:] = float('nan')
+            mask = wt2 > 0.0
+            out[mask] = n[mask] / wt2[mask]**0.5
+            return out
+        delta_p = valid_delta(p, p_wt2)
+        delta_f = valid_delta(f, f_wt2)
+        error = (delta_p * f + delta_f * p) / (p + f)**2.0
         return error
 
     def _rebin(self, num): 

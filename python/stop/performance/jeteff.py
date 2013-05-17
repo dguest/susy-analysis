@@ -41,8 +41,10 @@ class JetEfficiencyBase(object):
         returns a dict of tuples of the form {name: (num, denom, extent)}.
         """
         all_hist = HistNd(hist_group['all'])
+        all_wt_hist = HistNd(hist_group['allWt2'])
         tags = {tag: HistNd(hist_group[tag]) for tag in tags}
         all_array, all_ext = self._process_hist(all_hist)
+        all_wt, all_ext = self._process_hist(all_wt_hist)
         numerator_arrays = {}
         for tag, num in tags.iteritems(): 
             num_array, num_ext = self._process_hist(num)
@@ -51,8 +53,13 @@ class JetEfficiencyBase(object):
                     'hist extents unequal: {} != {}'.format(num_ext, all_ext))
             numerator_arrays[tag] = num_array
         out_dict = {}
+            
         for tag, num_array in numerator_arrays.iteritems(): 
-            out_dict[tag] = (num_array, all_array, all_ext)
+            if tag.endswith('Wt2'): 
+                denom = all_wt
+            else: 
+                denom = all_array
+            out_dict[tag] = (num_array, denom, all_ext)
         return out_dict
 
     def _shortsample(self, samp_path): 
