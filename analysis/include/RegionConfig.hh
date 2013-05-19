@@ -29,6 +29,7 @@ struct RegionConfig
   std::string output_name; 
   reg::Type type; 
   reg::Hists hists; 
+  std::string mc_mc_jet_reweight_file; 
   RegionConfig(); 
 };
 

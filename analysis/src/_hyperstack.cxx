@@ -67,6 +67,8 @@ static bool safe_copy(PyObject* dict, RegionConfig& region)
   if (!copy(dict, "jet_tag_requirements", 
 	    region.jet_tag_requirements)) return false; 
   if (!copy(dict, "hists", region.hists)) return false; 
+  if (!copy(dict, "mc_mc_jet_reweight_file", 
+	    region.mc_mc_jet_reweight_file)) return false; 
 
   return true; 
 }

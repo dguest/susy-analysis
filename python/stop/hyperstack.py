@@ -20,6 +20,7 @@ def stacksusy(input_file, region_list, flags=''):
         - met: cut on met
         - jet_tag_requirements: list of enums
         - hists: {HISTMILL, KINEMATIC_STAT, TAG_EFFICIENCY}
+        - mc_mc_jet_reweight_file: path to textfile that does reweighting
 
     Flags: 
         v: verbose
