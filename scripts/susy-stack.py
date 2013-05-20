@@ -27,7 +27,7 @@ in the split ds names.
 import argparse, sys
 import yaml
 import glob
-from os.path import join, splitext, isdir, isfile
+from os.path import join, splitext, isdir, isfile, expanduser
 import os
 from itertools import groupby
 
@@ -138,8 +138,8 @@ def run_stacker(config):
         with open(join(hists_dir, 'superregions.yml'), 'w') as super_yml: 
             super_yml.write(yaml.dump(super_dict))
 
-    stacker = Stacker(regions, meta_dict=self._config_dict['files']['meta'])
-    stacker.mc_mc_sf_file = self._config_dict['files']['mc_mc_sf_file']
+    stacker = Stacker(regions, meta_dict=config_dict['files']['meta'])
+    stacker.mc_mc_sf_file = expanduser(config_dict['files']['mcsf'])
     stacker.rerun = True
     stacker.make_dirs = True
     stacker.verbose = False

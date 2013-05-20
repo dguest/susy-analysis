@@ -134,10 +134,12 @@ class Stacker(object):
 
         # calibration for sherpa jets is hacked in here. 
         if self.mc_mc_sf_file: 
-            ntuple_key = basename(splitext(ntuple)[0])
-            ds_name = self.meta_dict[ntuple_key]
+            ntuple_key = basename(splitext(ntuple)[0]).split('-')[0]
+            ds_name = self.meta_dict[ntuple_key].name
             if 'Sherpa' in ds_name: 
-                regdic['mc_mc_jet_reweight_file'] = self.mc_mc_sf_file
+                mcfile = self.mc_mc_sf_file
+                for region in regions: 
+                    region['mc_mc_jet_reweight_file'] = mcfile
 
         stacksusy(ntuple, regions, flags=flags)
         
