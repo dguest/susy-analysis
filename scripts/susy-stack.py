@@ -138,7 +138,8 @@ def run_stacker(config):
         with open(join(hists_dir, 'superregions.yml'), 'w') as super_yml: 
             super_yml.write(yaml.dump(super_dict))
 
-    stacker = Stacker(regions)
+    stacker = Stacker(regions, meta_dict=self._config_dict['files']['meta'])
+    stacker.mc_mc_sf_file = self._config_dict['files']['mc_mc_sf_file']
     stacker.rerun = True
     stacker.make_dirs = True
     stacker.verbose = False

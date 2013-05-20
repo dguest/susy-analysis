@@ -5,6 +5,7 @@ from stop.stack.regions import Region, condense_regions
 from stop.stack.stacker import Stacker
 from os.path import basename, isfile, isdir, join, splitext
 import glob, os, tempfile, sys
+import warnings
 
 class Coordinator(object): 
     """
@@ -180,6 +181,9 @@ class Coordinator(object):
             self._print_new_line()
 
     def stack(self, systematic='NONE', rerun=False, mode='histmill'): 
+        warnings.warn(
+            'this function should be removed, use susy-stack', 
+            FutureWarning, stacklevel=2)
         if systematic == 'all': 
             self._fast_stack(rerun, mode)
             return 
