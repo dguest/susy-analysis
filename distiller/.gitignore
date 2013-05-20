@@ -11,3 +11,4 @@ cleanup/
 btag-calibration/
 /stop-files
 unit-test
+/data-file
