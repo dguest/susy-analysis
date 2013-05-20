@@ -15,6 +15,7 @@ namespace jeteff {
 class RegionConfig; 
 class RegionEventFilter; 
 class Histogram; 
+class JetTagRescaler; 
 namespace H5 { 
   class CommonFG; 
 }
@@ -37,11 +38,13 @@ public:
   ~JetEfficiencyHists(); 
   void fill(const Jet& jet, double weight = 1.0); 
   void write_to(H5::CommonFG&, std::string group_name) const;
+  void set_tag_rescaler(const JetTagRescaler*); 
 private: 
   Wt2Hist* m_jet_pt_all; 
   Wt2Hist* m_jet_pt_loose; 
   Wt2Hist* m_jet_pt_medium; 
   Wt2Hist* m_jet_pt_antiloose; 
+  const JetTagRescaler* m_rescaler; 
 }; 
 
 class RegionJetEfficiencyHistograms: 
@@ -60,6 +63,7 @@ private:
   const unsigned m_build_flags; 
   const RegionConfig* m_region_config; 
   const RegionEventFilter* m_event_filter; 
+  const JetTagRescaler* m_tag_rescaler; 
   
   std::map<Flavor, JetEfficiencyHists*> m_jet_pt_hists; 
 }; 

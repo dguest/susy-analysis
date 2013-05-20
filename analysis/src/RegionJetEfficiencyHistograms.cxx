@@ -1,6 +1,7 @@
 #include "RegionJetEfficiencyHistograms.hh"
 #include "RegionConfig.hh"
 #include "RegionEventFilter.hh"
+#include "JetTagRescaler.hh"
 #include "Histogram.hh"
 #include "Flavor.hh"
 #include "H5Cpp.h"
@@ -28,7 +29,8 @@ void Wt2Hist::write_to(H5::CommonFG& group, std::string basename) const {
   m_hist_wt2->write_to(group, basename + "Wt2"); 
 }
 
-JetEfficiencyHists::JetEfficiencyHists(double max_pt_mev )
+JetEfficiencyHists::JetEfficiencyHists(double max_pt_mev ): 
+  m_rescaler(0)
 { 
   const std::string units = "MeV"; 
   const int n_bins = jeteff::N_PT_BINS; 
@@ -45,15 +47,28 @@ JetEfficiencyHists::~JetEfficiencyHists() {
 }
 void JetEfficiencyHists::fill(const Jet& jet, double weight) { 
   double pt = jet.Pt(); 
+  int flavor = static_cast<int>(jet.flavor_truth_label()); 
   m_jet_pt_all->fill(pt, weight); 
   if (jet.pass_tag(btag::MEDIUM)) { 
-    m_jet_pt_medium->fill(pt, weight); 
+    double rescale = 1.0; 
+    if (m_rescaler) { 
+      rescale = m_rescaler->get_sf(pt, flavor, jettag::MEDIUM); 
+    }
+    m_jet_pt_medium->fill(pt, weight*rescale); 
   }
   if (jet.pass_tag(btag::LOOSE)) { 
-    m_jet_pt_loose->fill(pt, weight); 
+    double rescale = 1.0; 
+    if (m_rescaler) { 
+      rescale = m_rescaler->get_sf(pt, flavor, jettag::LOOSE); 
+    }
+    m_jet_pt_loose->fill(pt, weight*rescale); 
   }
   if (jet.pass_tag(btag::ANTILOOSE)) { 
-    m_jet_pt_antiloose->fill(pt, weight); 
+    double rescale = 1.0; 
+    if (m_rescaler) { 
+      rescale = m_rescaler->get_sf(pt, flavor, jettag::ANTILOOSE); 
+    }
+    m_jet_pt_antiloose->fill(pt, weight*rescale); 
   }
 
 }
@@ -65,19 +80,30 @@ void JetEfficiencyHists::write_to(H5::CommonFG& group,
   m_jet_pt_loose->write_to(subgroup, "loose"); 
   m_jet_pt_antiloose->write_to(subgroup, "antiloose"); 
 }
+void JetEfficiencyHists::set_tag_rescaler(const JetTagRescaler* rescaler) { 
+  m_rescaler = rescaler; 
+}
 
 RegionJetEfficiencyHistograms
 ::RegionJetEfficiencyHistograms(const RegionConfig& config, 
 				const unsigned flags): 
   m_build_flags(flags), 
   m_region_config(new RegionConfig(config)), 
-  m_event_filter(new RegionEventFilter(config))
+  m_event_filter(new RegionEventFilter(config)), 
+  m_tag_rescaler(0)
 { 
   using namespace jeteff; 
   m_jet_pt_hists[Flavor::CHARM] = new JetEfficiencyHists(MAX_PT_MEV); 
   m_jet_pt_hists[Flavor::BOTTOM] = new JetEfficiencyHists(MAX_PT_MEV); 
   m_jet_pt_hists[Flavor::LIGHT] = new JetEfficiencyHists(MAX_PT_MEV); 
   m_jet_pt_hists[Flavor::TAU] = new JetEfficiencyHists(MAX_PT_MEV); 
+  if (config.mc_mc_jet_reweight_file.size()) { 
+    m_tag_rescaler = new JetTagRescaler(config.mc_mc_jet_reweight_file); 
+    for (auto hitr = m_jet_pt_hists.begin(); hitr != m_jet_pt_hists.end(); 
+	 hitr++) { 
+      hitr->second->set_tag_rescaler(m_tag_rescaler); 
+    }
+  }
 }
 RegionJetEfficiencyHistograms::~RegionJetEfficiencyHistograms() { 
   delete m_region_config; 
@@ -86,6 +112,7 @@ RegionJetEfficiencyHistograms::~RegionJetEfficiencyHistograms() {
     delete itr->second; 
     itr->second = 0; 
   }
+  delete m_tag_rescaler; 
 }
 void RegionJetEfficiencyHistograms::fill(const EventObjects& objects) { 
   if (!m_event_filter->pass(objects)) return; 
