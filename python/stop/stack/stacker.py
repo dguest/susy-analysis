@@ -1,14 +1,18 @@
 import sys, os
 from os.path import join, isdir, basename, splitext, isfile
+from stop import meta
 
 class Stacker(object): 
     """
     Constructed  with a regions dict. Runs the stacking routine when 
     hist_from_ntuple is called.
+
+    Some calibration is applied: if the mc_mc_sf_file is given all tagged 
+    Sherpa jets will be rescaled. 
     """
     data_prepend = 'dme'
     mc_prepend = 's'
-    def __init__(self, regions_dict): 
+    def __init__(self, regions_dict, meta_dict=None): 
         self._regions = regions_dict
         self.dummy = False
         self.flags = set()
@@ -18,6 +22,10 @@ class Stacker(object):
         self.bugstream = sys.stderr
         self.rerun = False
         self.make_dirs = False
+        self.mc_mc_sf_file = ''
+        self.meta_dict = None
+        if meta_dict: 
+            self.meta_dict = meta.DatasetCache(meta_dict)
     @property
     def verbose(self): 
         return self._verbose
@@ -28,6 +36,7 @@ class Stacker(object):
             self.flags |= set('v')
         else: 
             self.flags -= set('v')
+
     def _ismc(self, ntuple_name): 
         first = ntuple_name.split('/')[-1][0]
         if first in self.data_prepend: 
@@ -66,6 +75,8 @@ class Stacker(object):
                 return None
         regdic['output_name'] = full_out_path
         regdic['systematic'] = systematic
+
+
         return regdic
 
     def run_multisys(self, ntuple, basedir, systematics, tuple_n=None, 
@@ -120,5 +131,13 @@ class Stacker(object):
             flags += 'd'
         if not isfile(ntuple): 
             raise IOError(3,"doesn't exist",ntuple)
+
+        # calibration for sherpa jets is hacked in here. 
+        if self.mc_mc_sf_file: 
+            ntuple_key = basename(splitext(ntuple)[0])
+            ds_name = self.meta_dict[ntuple_key]
+            if 'Sherpa' in ds_name: 
+                regdic['mc_mc_jet_reweight_file'] = self.mc_mc_sf_file
+
         stacksusy(ntuple, regions, flags=flags)
         

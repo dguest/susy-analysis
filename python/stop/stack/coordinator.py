@@ -48,6 +48,7 @@ class Coordinator(object):
                 'hists': 'hists', 
                 'meta':'meta-all.yml', 
                 'counts':'counts.yml', 
+                'mc_mc_sf_file': 'mc-mc-sf.txt'
                 'plots':'plots'}
         if not 'misc' in self._config_dict: 
             if yaml_file: 
@@ -154,7 +155,10 @@ class Coordinator(object):
         if mode == 'kinematic_stat': 
             stacker_regions = condense_regions(stacker_regions)
             self._write_plot_region_meta(stacker_regions)
-        stacker = Stacker(stacker_regions)
+        stacker = Stacker(
+            stacker_regions,
+            meta_dict=self._config_dict['files']['meta'])
+        stacker.mc_mc_sf_file = self._config_dict['files']['mc_mc_sf_file']
         stacker.total_ntuples = len(ntuples)
         stacker.rerun = rerun
         stacker.make_dirs = True
@@ -198,7 +202,10 @@ class Coordinator(object):
             k:Region(v) for k,v in self._config_dict['regions'].items()}
         if mode == 'kinematic_stat': 
             stacker_regions = condense_regions(stacker_regions)
-        stacker = Stacker(stacker_regions)
+        stacker = Stacker(
+            stacker_regions, 
+            meta_dict=self._config_dict['files']['meta'])
+        stacker.mc_mc_sf_file = self._config_dict['files']['mc_mc_sf_file']
         stacker.total_ntuples = len(ntuples)
         stacker.rerun = rerun
         stacker.make_dirs = True
