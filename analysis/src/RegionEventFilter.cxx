@@ -1,12 +1,21 @@
 #include "RegionEventFilter.hh"
 #include "RegionConfig.hh"
 #include "EventObjects.hh"
+#include "JetTagRescaler.hh"
+#include "enum_converters.hh"
 #include "Jet.hh"
 #include <stdexcept> 
 
 RegionEventFilter::RegionEventFilter(const RegionConfig& config, unsigned): 
-  m_region_config(config)
+  m_region_config(config), 
+  m_jet_rescaler(0)
 {
+  if (config.mc_mc_jet_reweight_file.size()) { 
+    m_jet_rescaler = new JetTagRescaler(config.mc_mc_jet_reweight_file); 
+  }
+}
+RegionEventFilter::~RegionEventFilter() { 
+  delete m_jet_rescaler; 
 }
 
 bool RegionEventFilter::pass(const EventObjects& obj) const { 
@@ -59,6 +68,13 @@ double RegionEventFilter::jet_scalefactor(const EventObjects& obj) const {
     const auto requested_tag = jet_req.at(jet_n); 
     weight *= jet.get_scalefactor(requested_tag, 
 				  m_region_config.systematic);
+    if (m_jet_rescaler) { 
+      jettag::TaggingPoint rescale_op = jettag_from_btag(requested_tag); 
+      double jpt = jet.Pt(); 
+      int ftl = static_cast<int>(jet.flavor_truth_label()); 
+      weight *= m_jet_rescaler->get_sf(jpt, ftl, rescale_op); 
+    }
+    
   }
   return weight; 
 }

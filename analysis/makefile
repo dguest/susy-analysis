@@ -72,7 +72,8 @@ GEN_OBJ     += TruthJetHists.o RegionHistograms.o EventObjects.o
 GEN_OBJ     += Region2dKinematicHistograms.o
 GEN_OBJ     += RegionEventFilter.o
 GEN_OBJ     += RegionJetEfficiencyHistograms.o
-GEN_OBJ     += common_functions.o BtagScaler.o BtagBuffer.o
+GEN_OBJ     += common_functions.o enum_converters.o
+GEN_OBJ     += BtagScaler.o BtagBuffer.o
 EXE_OBJ     := $(GEN_OBJ) $(TOBJ) unit-test.o
 PYLIB_OBJ   := $(GEN_OBJ) $(TOBJ)
 

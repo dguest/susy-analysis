@@ -1,6 +1,10 @@
 #ifndef EVENT_OBJECTS_HH
 #define EVENT_OBJECTS_HH
 
+// Structure that can be built once per event and passed into all the 
+// histograming routines. 
+// Constructed in HistBuilder
+
 #include "TVector2.h"
 #include "Jet.hh"
 #include <vector> 
