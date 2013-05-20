@@ -8,7 +8,7 @@
 // ----- Class to rescale b-tagging weights across MC. ----
 
 namespace jettag { 
-  enum TaggingPoint {LOOSE, MEDIUM, TIGHT, ANTILOOSE}; 
+  enum TaggingPoint {LOOSE, MEDIUM, TIGHT, ANTILOOSE, NOTAG}; 
 }
 
 class JetTagRescaler { 

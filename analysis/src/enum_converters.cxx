@@ -10,6 +10,7 @@ btag::JetTag btag_from_jettag(jettag::TaggingPoint p) {
   case jettag::MEDIUM: return MEDIUM; 
   case jettag::TIGHT: return TIGHT; 
   case jettag::ANTILOOSE: return ANTILOOSE; 
+  case jettag::NOTAG: return NOTAG; 
   default: throw std::logic_error("unknown tag op in "__FILE__); 
   }
 }
@@ -21,6 +22,7 @@ jettag::TaggingPoint jettag_from_btag(btag::JetTag p){
   case btag::MEDIUM: return MEDIUM; 
   case btag::TIGHT: return TIGHT; 
   case btag::ANTILOOSE: return ANTILOOSE; 
+  case btag::NOTAG: return NOTAG; 
   default: throw std::logic_error("unknown tag op in "__FILE__); 
   }
 }

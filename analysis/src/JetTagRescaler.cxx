@@ -68,6 +68,7 @@ double JetTagRescaler::get_sf(double pt, int flavor_truth_label,
 std::pair<double, double> JetTagRescaler
 ::get_sf_err(double pt, int truth_label, jettag::TaggingPoint tp) const 
 { 
+  if (tp == jettag::NOTAG) return std::make_pair(1.0,0); 
   OPMap::const_iterator flavor_map =  m_op_map.find(tp); 
   if (flavor_map == m_op_map.end()) { 
     if (m_return_dummy) { 
