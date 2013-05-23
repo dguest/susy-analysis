@@ -1,0 +1,42 @@
+1 of 100000 (0%) processedbtag Calib: retrieveContainer: failed 2nd attempt to get JetFitterCOMBCharm/AntiKt4TopoLCJVF/-1_0_1_0/C/default_Eff
+btag Calib: retrieveContainer: failed 2nd attempt to get JetFitterCOMBCharm/AntiKt4TopoLCJVF/-1_0_-0_82/C/default_Eff
+btag Calib: retrieveContainer: failed 2nd attempt to get JetFitterCOMBCharm/AntiKt4TopoLCJVF/-1_0_1_0/Light/default_Eff
+btag Calib: retrieveContainer: failed 2nd attempt to get JetFitterCOMBCharm/AntiKt4TopoLCJVF/-1_0_-0_82/Light/default_Eff
+btag Calib: retrieveContainer: failed 2nd attempt to get JetFitterCOMBCharm/AntiKt4TopoLCJVF/-1_0_0_0/C/default_Eff
+btag Calib: retrieveContainer: failed 2nd attempt to get JetFitterCOMBCharm/AntiKt4TopoLCJVF/-1_0_0_0/Light/default_Eff
+btag Calib: retrieveContainer: failed 2nd attempt to get JetFitterCOMBCharm/AntiKt4TopoLCJVF/-1_0_1_0/B/default_Eff
+btag Calib: retrieveContainer: failed 2nd attempt to get JetFitterCOMBCharm/AntiKt4TopoLCJVF/-1_0_-0_82/B/default_Eff
+btag Calib: retrieveContainer: failed 2nd attempt to get JetFitterCOMBCharm/AntiKt4TopoLCJVF/-1_0_0_0/B/default_Eff
+1001 of 100000 (1%) processed2001 of 100000 (2%) processed3001 of 100000 (3%) processed4001 of 100000 (4%) processed5001 of 100000 (5%) processed6001 of 100000 (6%) processed7001 of 100000 (7%) processed8001 of 100000 (8%) processed9001 of 100000 (9%) processed10001 of 100000 (10%) processed11001 of 100000 (11%) processed12001 of 100000 (12%) processed13001 of 100000 (13%) processed14001 of 100000 (14%) processed15001 of 100000 (15%) processed16001 of 100000 (16%) processedbtag Calib: retrieveContainer: failed 2nd attempt to get JetFitterCOMBCharm/AntiKt4TopoLCJVF/-1_0_1_0/T/default_Eff
+btag Calib: retrieveContainer: failed 2nd attempt to get JetFitterCOMBCharm/AntiKt4TopoLCJVF/-1_0_-0_82/T/default_Eff
+17001 of 100000 (17%) processed18001 of 100000 (18%) processed19001 of 100000 (19%) processed20001 of 100000 (20%) processed21001 of 100000 (21%) processed22001 of 100000 (22%) processed23001 of 100000 (23%) processed24001 of 100000 (24%) processed25001 of 100000 (25%) processed26001 of 100000 (26%) processed27001 of 100000 (27%) processed28001 of 100000 (28%) processed29001 of 100000 (29%) processed30001 of 100000 (30%) processed31001 of 100000 (31%) processed32001 of 100000 (32%) processed33001 of 100000 (33%) processed34001 of 100000 (34%) processed35001 of 100000 (35%) processed36001 of 100000 (36%) processed37001 of 100000 (37%) processed38001 of 100000 (38%) processed39001 of 100000 (39%) processed40001 of 100000 (40%) processed41001 of 100000 (41%) processed42001 of 100000 (42%) processed43001 of 100000 (43%) processed44001 of 100000 (44%) processed45001 of 100000 (45%) processed46001 of 100000 (46%) processed47001 of 100000 (47%) processed48001 of 100000 (48%) processed49001 of 100000 (49%) processed50001 of 100000 (50%) processed51001 of 100000 (51%) processed52001 of 100000 (52%) processed53001 of 100000 (53%) processed54001 of 100000 (54%) processed55001 of 100000 (55%) processed56001 of 100000 (56%) processed57001 of 100000 (57%) processed58001 of 100000 (58%) processed59001 of 100000 (59%) processed60001 of 100000 (60%) processed61001 of 100000 (61%) processed62001 of 100000 (62%) processed63001 of 100000 (63%) processed64001 of 100000 (64%) processed65001 of 100000 (65%) processed66001 of 100000 (66%) processed67001 of 100000 (67%) processed68001 of 100000 (68%) processed69001 of 100000 (69%) processed70001 of 100000 (70%) processed71001 of 100000 (71%) processed72001 of 100000 (72%) processed73001 of 100000 (73%) processed74001 of 100000 (74%) processed75001 of 100000 (75%) processed76001 of 100000 (76%) processed77001 of 100000 (77%) processed78001 of 100000 (78%) processed79001 of 100000 (79%) processed80001 of 100000 (80%) processed81001 of 100000 (81%) processed82001 of 100000 (82%) processed83001 of 100000 (83%) processed84001 of 100000 (84%) processed85001 of 100000 (85%) processed86001 of 100000 (86%) processed87001 of 100000 (87%) processed88001 of 100000 (88%) processed89001 of 100000 (89%) processed90001 of 100000 (90%) processed91001 of 100000 (91%) processed92001 of 100000 (92%) processed93001 of 100000 (93%) processed94001 of 100000 (94%) processed95001 of 100000 (95%) processed96001 of 100000 (96%) processed97001 of 100000 (97%) processed98001 of 100000 (98%) processed99001 of 100000 (99%) processed100000 of 100000 (100%) processed
+total_events        : 100000
+n_skimmed_events    : 100000
+GRL                 : 100000
+EF_xe80_tclcw_tight : 34382
+primary_vertex      : 34375
+lar_error           : 34375
+tile_error          : 34375
+core                : 34375
+tile_trip           : 34375
+event_cleaning      : 34375
+electron_veto       : 34324
+muon_veto           : 34299
+lepton_veto         : 34299
+bad_jet_veto        : 34275
+n_jet_geq_3         : 19195
+dphi_jetmet_min     : 14927
+met_280             : 638
+leading_jet_280     : 364
+jtag_2              : 5
+jtag_1              : 1
+preselected_el      : 565
+preselected_mu      : 4144
+preselected_jets    : 386921
+veto_jets           : 52
+after_overlap_jets  : 386352
+after_overlap_el    : 529
+after_overlap_mu    : 251
+veto_el             : 147
+veto_mu             : 84
+signal_jets         : 238497
