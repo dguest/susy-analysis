@@ -71,6 +71,11 @@ class Distiller(object):
     """
     base_systematic = 'baseline'
     def __init__(self, config): 
+        warnings.warn(
+            ('this whole class is deprecated and will be removed, '
+             'going to replace with '
+             'simpler susy-distill where parallel stuff is handled in PBS'), 
+            FutureWarning, stacklevel=2)
         self.out_dir = config.out_dir
         self.meta_info_path = config.meta_info_path
         self.base_flags = 'z'

@@ -13,8 +13,7 @@ _setup_help="""
 Sets up the textfiles. Can set up multiple textfiles, which are simply 
 named for batch submission. 
 
-NOTE: should remove this, the functionality could be provided by the 
-susy-performance routines. 
+NOTE: should remove this, or move to susy-setup. 
 """
 
 _hadd_help="""
