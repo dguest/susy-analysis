@@ -2,8 +2,6 @@
 """
 A simpler distillation script. No longer does multiprocessing or stores
 lots of info in the meta file. 
-
-NOTE: should change the names of output files to the qDSID-XofY.root format.
 """
 import argparse
 import sys
@@ -20,7 +18,7 @@ def _get_config():
         '-o', '--output-dir', default='whiskey', 
         help='where the outputs go, ' + d)
     parser.add_argument(
-        '-s', '--systematic', choices={'NONE', 'JESUP', 'JESDOWN', 'JER'}
+        '-s', '--systematic', choices={'NONE', 'JESUP', 'JESDOWN', 'JER'}, 
         help=d, default='NONE')
     parser.add_argument(
         '-c', '--calibration', default='~/calibration', help=d)
