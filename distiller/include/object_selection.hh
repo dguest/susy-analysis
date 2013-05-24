@@ -5,6 +5,7 @@
 class Electron; 
 class Muon; 
 class SelectedJet; 
+class TLorentzVector; 
 
 namespace object { 
   typedef std::vector<Electron*> Electrons; 
@@ -18,6 +19,7 @@ namespace object {
   Jets veto_jets(const Jets&); 
   Jets signal_jets(const Jets&); 
   Jets remove_bad_jets(const Jets&); 
+  SelectedJet* get_leptojet(const Jets&, const TLorentzVector&); 
 }
 
 #endif 

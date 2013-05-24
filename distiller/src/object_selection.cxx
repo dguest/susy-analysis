@@ -3,6 +3,7 @@
 #include "JetConstants.hh"
 #include "Jets.hh"
 #include "Leptons.hh"
+#include <cassert> 
 #include <vector> 
 
 namespace object { 
@@ -94,6 +95,20 @@ namespace object {
       }
     }
     return out; 
+  }
+
+  SelectedJet* get_leptojet(const Jets& jets, const TLorentzVector& lepton){
+    SelectedJet* nearest_jet = 0; 
+    float min_delta_r = 10; 
+    for (auto j_itr = jets.cbegin(); j_itr != jets.cend(); j_itr++) { 
+      float delta_r = lepton.DeltaR(**j_itr); 
+      if (delta_r < min_delta_r) { 
+	nearest_jet = *j_itr; 
+	min_delta_r = delta_r; 
+      }
+    }
+    assert(nearest_jet); 
+    return nearest_jet; 
   }
   
 }
