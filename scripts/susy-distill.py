@@ -4,8 +4,12 @@ A simpler distillation script. No longer does multiprocessing or stores
 lots of info in the meta file. 
 """
 import argparse
-import sys
-from os.path import isfile, isdir, join
+import sys, os
+from os.path import isfile, isdir
+from os.path import join, splitext, basename, expanduser
+from stop import meta
+import re
+import yaml
 
 def _get_config(): 
     d = 'default: %(default)s'
@@ -22,6 +26,7 @@ def _get_config():
         help=d, default='NONE')
     parser.add_argument(
         '-c', '--calibration', default='~/calibration', help=d)
+    parser.add_argument('--test', action='store_true')
     return parser.parse_args(sys.argv[1:])
 
 
@@ -37,15 +42,19 @@ def distill_d3pds(config):
     if not files: 
         return 
     if not isdir(config.output_dir): 
-        os.mkdir(config.output_dir)
+        os.makedirs(config.output_dir)
     meta_lookup = meta.DatasetCache(config.meta)
 
     ds_key = basename(splitext(out_file)[0]).split('-')[0]
 
     out_path = join(config.output_dir, out_file)
-    flags = 'v'             # verbose
-    if not config.filter_output: 
-        flags += 'e'        # save all events
+    
+    flags = ''
+    if sys.stdin.isatty(): 
+        flags += 'v'            # verbose
+    else: 
+        print 'running {}'.format(config.input_file)
+        
     if _is_atlfast(meta_lookup[ds_key].full_name): 
         flags += 'f'
     if _needs_overlap_removal(meta_lookup[ds_key].full_name): 
@@ -53,6 +62,7 @@ def distill_d3pds(config):
     if config.test: 
         cut_counts = [('test',1)]
     else: 
+        from susy import cutflow
         cut_counts = cutflow.cutflow(
             input_files=files, 
             flags=flags, 

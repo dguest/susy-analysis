@@ -4,6 +4,7 @@ Omega setup scripts
 """
 import argparse, sys
 from stop import meta
+from os.path import basename, splitext
 
 def run(): 
     config = get_config()
@@ -44,20 +45,48 @@ def setup_distill(config):
             out_meta[ds_key].n_raw_entries += n_events
         out_meta.write(config.update_meta)
     if config.script: 
-        run_args = config.update_meta
-        sub_dict = {
-            'n_jobs': len(config.input_textfiles), 
-            'out_dir': 'distill-output', 
-            'in_dir': 'd3pds', 
-            'in_ext': '.txt', 
-            'routine': 'susy-distill.py', 
-            'run_args': run_args, 
-            }
-        submit_script = _submit_script.format(**sub_dict)
-        with open(config.script, 'w') as out_script: 
-            out_script.write(submit_script)
+        _write_distill_config(script_name=config.script, 
+                              meta_name=config.update_meta, 
+                              input_files=config.input_textfiles)
 
-_submit_script="""
+
+def _dirify(systematic_name): 
+    if systematic_name == 'NONE': 
+        return 'baseline'
+    return systematic_name.lower()
+
+def _write_distill_config(script_name, meta_name, input_files, 
+                          systematic='all'): 
+    sub_dict = {
+        'n_jobs': len(input_files), 
+        'out_dir': 'distill-output', 
+        'in_dir': 'd3pds', 
+        'in_ext': '.txt', 
+        }
+
+    if systematic == 'all': 
+        systematics = ['JESUP', 'JESDOWN', 'JER', 'NONE']
+    else: 
+        systematics = [systematic]
+
+    submit_head = _submit_head.format(**sub_dict)
+
+    with open(script_name, 'w') as out_script: 
+        out_script.write(submit_head)
+        for syst in systematics:
+            run_args = [
+                meta_name, 
+                '-s {}'.format(syst), 
+                '-o whiskey/{}'.format(_dirify(syst))]
+            line_args = { 
+                'routine': 'susy-distill.py', 
+                'run_args': ' '.join(run_args), 
+                }
+            syst_line = _submit_line.format(**line_args)
+            out_script.write(syst_line + '\n')
+    
+
+_submit_head="""
 #!/usr/bin/env bash
 
 #PBS -t 1-{n_jobs}
@@ -73,8 +102,8 @@ echo 'submitted from: ' $PBS_O_WORKDIR
 
 files=($(ls {in_dir}/*{in_ext} | sort))
 
-{routine} ${{files[$PBS_ARRAYID-1]}} {run_args}
 """
+_submit_line = '{routine} ${{files[$PBS_ARRAYID-1]}} {run_args}'
 
 if __name__ == '__main__': 
     run()
