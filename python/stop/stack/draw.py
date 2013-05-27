@@ -6,6 +6,8 @@ import numpy as np
 from itertools import chain
 from stop import stattest
 from warnings import warn
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from matplotlib.figure import Figure
 
 class Stack(object): 
     """
@@ -246,3 +248,71 @@ class Hist2d(object):
 class PlottingError(StandardError): 
     def __init__(self, problem): 
         super(PlottingError,self).__init__(problem)
+
+
+# ============================================
+# this should be made into a class
+# ============================================
+
+def make_plot_for_jet_number(plots_dict, jetn, signal_point): 
+    color_groups = { 
+        'red': ['ttbar', 't'], 
+        'green': [signal_point], 
+        'blue': ['Wjets','Zjets'], 
+        }
+
+    def get_im_dict(physics, jet_number): 
+        hist_name = 'jet{}/taggerWeights'.format(jet_number)
+        key = (physics, hist_name, 'preselection')
+        hist = plots_dict[key]
+        x_name, y_name = (ax for ax in hist)
+        return hist.project_imshow(x_name, y_name)
+
+    phys_dicts = {}
+    for phys in chain(*color_groups.values()): 
+        phys_dicts[phys] = get_im_dict(phys, jetn)
+    
+    color_arrays = {k:None for k in color_groups}
+    for color, physics_types in color_groups.iteritems(): 
+        for phys in physics_types: 
+            if color_arrays[color] is None: 
+                color_arrays[color] = phys_dicts[phys]['X']
+            else: 
+                color_arrays[color] += phys_dicts[phys]['X']
+
+    stacked_array = np.dstack( 
+        (color_arrays[color] for color in ['red','green','blue']))
+
+    stacked_array = np.log(stacked_array + 1)
+    for i in xrange(3): 
+        the_max = stacked_array[:,:,i].max()
+        stacked_array[:,:,i] /= the_max
+
+    # sum_array = stacked_array.sum(2)
+    # stacked_array = (stacked_array - sum_array[:,:,np.newaxis] / 3.0)
+    # # stacked_array -= stacked_array.min()
+    # for i in xrange(3): 
+    #     the_max = stacked_array[:,:,i].max()
+    #     stacked_array[:,:,i] /= the_max
+    # # stacked_array /= stacked_array.max()
+
+    chop_factor = 0.5
+    new_max = stacked_array.max()*chop_factor
+    chop_vals = (stacked_array > new_max).any(2)
+    stacked_array[np.dstack((chop_vals,chop_vals,chop_vals))] = new_max
+    stacked_array /= stacked_array.max()
+    print stacked_array[chop_vals]
+
+    for color, array in color_arrays.iteritems(): 
+        print color, array.sum()
+
+    im_dic = phys_dicts[signal_point].copy()
+    im_dic['X'] = stacked_array
+
+    figure = Figure(figsize=(8,6))
+    canvas = FigureCanvas(figure)
+    ax = figure.add_subplot(1,1,1)
+    ax.imshow(**im_dic)
+    canvas.print_figure('text-{}.pdf'.format(jetn))
+
+    # print stacked_array.max(0).max(0)

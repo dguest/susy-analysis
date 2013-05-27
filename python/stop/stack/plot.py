@@ -204,3 +204,6 @@ class H2Printer(object):
                 mclist = mc[id_tup]
                 bg_total = sum(mclist[1:], mclist[0])
                 bg_total.save(mc_name, log=self.log)
+
+        
+    

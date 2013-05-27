@@ -390,6 +390,10 @@ class HistNd(object):
     
     def __delitem__(self, ax_key): 
         self._reduce(ax_key)
+        
+    def __iter__(self): 
+        for ax in sorted(self._axes.values(), key=lambda x: x.number): 
+            yield ax.name
 
     @property
     def array(self): 
