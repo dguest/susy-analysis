@@ -23,9 +23,6 @@ def get_config():
         'steering_file', help="created if it doesn't exist")
     plotting_general.add_argument(
         '--ext', help='plot extensions, ' + d, default='.pdf')
-    plotting_general.add_argument(
-        '-s','--signal-point', default='stop-150-90', 
-        help="assumes <particle>-<something> type name, " + d)
     plotting_general.add_argument('--filt')
 
     top_parser = argparse.ArgumentParser(description=__doc__)
@@ -37,8 +34,21 @@ def get_config():
         default='histmill', help='default: %(default)s')
     parser.add_argument('--scale', choices={'log','linear', 'both'}, 
                         default='linear', help=d)
+    parser.add_argument(
+        '-s','--signal-point', default='stop-150-90', 
+        help="assumes <particle>-<something> type name, " + d)
 
     overlay_parser = subs.add_parser('tagger', parents=[plotting_general])
+    overlay_parser.add_argument(
+        '-s','--signal-point', default='stop-150-90', 
+        help="assumes <particle>-<something> type name, " + d)
+    overlay_parser.add_argument('-o', '--output-dir', 
+                               help=d, default='tag-plots')
+
+    single_parser = subs.add_parser('tagone', parents=[plotting_general])
+    single_parser.add_argument('-p','--physics-type', required=True)
+    single_parser.add_argument('-o', '--output-dir', 
+                               help=d, default='tag-plots')
 
     args = top_parser.parse_args(sys.argv[1:])
     return args
@@ -58,7 +68,8 @@ def get_signal_finder(signal_point):
 
 def run(): 
     args = get_config()
-    subs = {'mill':run_plotmill, 'tagger':run_tagger_overlay}
+    subs = {'mill':run_plotmill, 'tagger':run_tagger_overlay, 
+            'tagone':run_tagger_one_type}
     subs[args.which](args)
 
 _overlay_cut = 'preselection'
@@ -81,8 +92,28 @@ def run_tagger_overlay(args):
         plots_dict.update(hists)
 
     for jetn in xrange(3): 
-        draw.make_plot_for_jet_number(
-            plots_dict, jetn, args.signal_point)
+        draw.tagger_overlay_plot_for_jet_number(
+            plots_dict, jetn, args.signal_point, args.ext, args.output_dir)
+
+def run_tagger_one_type(args): 
+    with open(args.steering_file) as steering_yml: 
+        config = yaml.load(steering_yml)
+    hists_base = config['files']['hists']
+    aggregates = glob.glob(
+        join(hists_base,'histmill','baseline','aggregate.h5'))
+
+    physics_set = {args.physics_type}
+
+    plots_dict = {}
+    for agg_file in aggregates: 
+        print 'loading {}'.format(agg_file)
+        hists = HistDict(agg_file, args.filt, 
+                         physics_set=physics_set, cut_set={_overlay_cut})
+        plots_dict.update(hists)
+
+    for jetn in xrange(3): 
+        draw.tagger_plot_for_jet_number(
+            plots_dict, jetn, args.physics_type, args.ext, args.output_dir)
 
 def run_plotmill(args): 
     with open(args.steering_file) as steering_yml: 

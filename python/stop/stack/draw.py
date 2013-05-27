@@ -1,13 +1,16 @@
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm, Normalize
 from matplotlib.gridspec import GridSpec
-from matplotlib.ticker import MaxNLocator, LogLocator, LogFormatter
+from matplotlib.ticker import MaxNLocator, LogLocator
+from matplotlib.ticker import LogFormatterMathtext, LogFormatter
 import numpy as np
 from itertools import chain
 from stop import stattest
 from warnings import warn
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
+from os.path import join, isdir, dirname
+import os
 
 class Stack(object): 
     """
@@ -234,7 +237,7 @@ class Hist2d(object):
         cb_dict = {}
         if log: 
             cb_dict['ticks'] = LogLocator(10, np.arange(0.1,1,0.1))
-            cb_dict['format'] = LogFormatter(10)
+            cb_dict['format'] = LogFormatterMathtext(10)
             
         try: 
             cb = plt.colorbar(im, **cb_dict)
@@ -254,7 +257,22 @@ class PlottingError(StandardError):
 # this should be made into a class
 # ============================================
 
-def make_plot_for_jet_number(plots_dict, jetn, signal_point): 
+
+def tagger_plot_for_jet_number(plots_dict, jetn, signal_point, ext, 
+                               out_dir): 
+
+    hist_name = 'jet{}/taggerWeights'.format(jetn)
+    key = (signal_point, hist_name, 'preselection')
+    hist = plots_dict[key]
+    x_name, y_name = (ax for ax in hist)
+    hist2d = Hist2d(hist.project_imshow(x_name, y_name), x_name, y_name)
+    if not isdir(out_dir):
+        os.mkdir(out_dir)
+    out_title = 'jet{}-wt-{}{}'.format(jetn, signal_point, ext)
+    hist2d.save(join(out_dir, out_title), log=True)
+
+def tagger_overlay_plot_for_jet_number(plots_dict, jetn, signal_point, 
+                                       ext, out_dir): 
     color_groups = { 
         'red': ['ttbar', 't'], 
         'green': [signal_point], 
@@ -288,20 +306,12 @@ def make_plot_for_jet_number(plots_dict, jetn, signal_point):
         the_max = stacked_array[:,:,i].max()
         stacked_array[:,:,i] /= the_max
 
-    # sum_array = stacked_array.sum(2)
-    # stacked_array = (stacked_array - sum_array[:,:,np.newaxis] / 3.0)
-    # # stacked_array -= stacked_array.min()
-    # for i in xrange(3): 
-    #     the_max = stacked_array[:,:,i].max()
-    #     stacked_array[:,:,i] /= the_max
-    # # stacked_array /= stacked_array.max()
 
     chop_factor = 0.5
     new_max = stacked_array.max()*chop_factor
-    chop_vals = (stacked_array > new_max).any(2)
-    stacked_array[np.dstack((chop_vals,chop_vals,chop_vals))] = new_max
+    chop_vals = (stacked_array > new_max)
+    stacked_array[chop_vals] = new_max
     stacked_array /= stacked_array.max()
-    print stacked_array[chop_vals]
 
     for color, array in color_arrays.iteritems(): 
         print color, array.sum()
@@ -313,6 +323,21 @@ def make_plot_for_jet_number(plots_dict, jetn, signal_point):
     canvas = FigureCanvas(figure)
     ax = figure.add_subplot(1,1,1)
     ax.imshow(**im_dic)
-    canvas.print_figure('text-{}.pdf'.format(jetn))
+    y_lims = ax.get_ylim()
+    x_lims = ax.get_xlim()
+
+    for color, phys_types in color_groups.iteritems(): 
+        label = ', '.join(phys_types)
+        ax.plot(np.zeros(0), color[0] + '-', lw=10, label=label)
+    ax.legend(loc='lower right')
+    ax.set_ylim(*y_lims)
+    ax.set_xlim(*x_lims)
+    ax.set_xlabel(r'$\log(P_c/P_u)$', x=0.98, ha='right', fontsize=18)
+    ax.set_ylabel(r'$\log(P_c/P_b)$', y=0.98, va='top', fontsize=18)
+
+    if not isdir(out_dir):
+        os.mkdir(out_dir)
+    out_title = 'jet{}-wtOverlay-{}{}'.format(jetn, signal_point, ext)
+    canvas.print_figure(join(out_dir, out_title), bbox_inches='tight')
 
     # print stacked_array.max(0).max(0)
