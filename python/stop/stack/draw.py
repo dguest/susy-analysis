@@ -319,7 +319,7 @@ def tagger_overlay_plot_for_jet_number(plots_dict, jetn, signal_point,
     im_dic = phys_dicts[signal_point].copy()
     im_dic['X'] = stacked_array
 
-    figure = Figure(figsize=(8,6))
+    figure = Figure(figsize=(8,8))
     canvas = FigureCanvas(figure)
     ax = figure.add_subplot(1,1,1)
     ax.imshow(**im_dic)
