@@ -1,6 +1,7 @@
 #include "RegionHistograms.hh"
 #include "HistBuilderFlags.hh"
 #include "Jet1DHists.hh"
+#include "Jet2DHists.hh"
 #include "TruthJetHists.hh"
 #include "PhysicalConstants.hh"
 #include "Histogram.hh"
@@ -34,6 +35,7 @@ RegionHistograms::RegionHistograms(const RegionConfig& config,
 
   for (size_t jet_n = 0; jet_n < n_jets; jet_n++) { 
     m_jet_hists.push_back(new Jet1DHists(max_pt, flags)); 
+    m_jet_2hists.push_back(new Jet2DHists(flags)); 
   }
   m_met = new Histogram(N_BINS, 0.0, max_pt, "MeV"); 
   m_alt_met = new Histogram(N_BINS, 0.0, max_pt, "MeV"); 
@@ -60,6 +62,10 @@ RegionHistograms::~RegionHistograms() {
   for (size_t iii = 0; iii < m_jet_hists.size(); iii++) { 
     delete m_jet_hists.at(iii); 
     m_jet_hists.at(iii) = 0; 
+  }
+  for (auto hitr = m_jet_2hists.begin(); hitr != m_jet_2hists.end(); hitr++){
+    delete *hitr; 
+    *hitr = 0; 
   }
 
   delete m_met; 
@@ -100,6 +106,7 @@ void RegionHistograms::fill(const EventObjects& obj) {
   for (size_t jet_n = 0; jet_n < n_jets; jet_n++) { 
     const Jet& jet = jets.at(jet_n); 
     m_jet_hists.at(jet_n)->fill(jet, weight); 
+    m_jet_2hists.at(jet_n)->fill(jet, weight); 
   }
   if (jets.size() >= 3) { 
     double mttop = get_mttop(std::vector<Jet>(jets.begin(), 
@@ -137,6 +144,7 @@ void RegionHistograms::write_to(H5::CommonFG& file) const {
     std::string jet_name = (boost::format("jet%i") % iii).str(); 
     Group jet(region.createGroup(jet_name)); 
     m_jet_hists.at(iii)->write_to(jet); 
+    m_jet_2hists.at(iii)->write_to(jet); 
   }
 
   m_met->write_to(region, "met");

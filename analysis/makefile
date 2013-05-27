@@ -65,7 +65,8 @@ PY_LDFLAGS += -shared
 
 # ---- define objects
 TOBJ        := ObjectFactory.o
-GEN_OBJ     := HistBuilder.o Jet1DHists.o Jet.o
+GEN_OBJ     := HistBuilder.o Jet.o
+GEN_OBJ     += Jet2DHists.o Jet1DHists.o 
 GEN_OBJ     += JetTagRescaler.o
 GEN_OBJ     += HistConfig.o BtagConfig.o RegionConfig.o Flavor.o
 GEN_OBJ     += TruthJetHists.o RegionHistograms.o EventObjects.o

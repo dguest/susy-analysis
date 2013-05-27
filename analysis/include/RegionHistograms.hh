@@ -13,6 +13,7 @@ struct EventObjects;
 class Jet1DHists; 
 class TruthJetHists; 
 class Histogram; 
+class Jet2DHists; 
 
 namespace H5 { 
   class CommonFG; 
@@ -37,6 +38,7 @@ private:
   const unsigned m_build_flags; 
 
   std::vector<Jet1DHists*> m_jet_hists; 
+  std::vector<Jet2DHists*> m_jet_2hists; 
 
   Histogram* m_met; 
   Histogram* m_alt_met; 

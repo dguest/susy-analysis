@@ -1,5 +1,5 @@
-#ifndef OBJ_KINEMATICS
-#define OBJ_KINEMATICS
+#ifndef JET_1D_HISTS
+#define JET_1D_HISTS
 
 class Jet; 
 namespace H5 { 
