@@ -334,6 +334,8 @@ def tagger_overlay_plot_for_jet_number(plots_dict, jetn, signal_point,
     ax.set_xlim(*x_lims)
     ax.set_xlabel(r'$\log(P_c/P_u)$', x=0.98, ha='right', fontsize=18)
     ax.set_ylabel(r'$\log(P_c/P_b)$', y=0.98, va='top', fontsize=18)
+    ax.axvline(-0.82, linestyle='--', color='red')
+    ax.axhline(-1.0, linestyle='--', color='red')
 
     if not isdir(out_dir):
         os.mkdir(out_dir)
