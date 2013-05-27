@@ -1,10 +1,11 @@
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm, Normalize
 from matplotlib.gridspec import GridSpec
-from matplotlib.ticker import MaxNLocator
+from matplotlib.ticker import MaxNLocator, LogLocator, LogFormatter
 import numpy as np
 from itertools import chain
 from stop import stattest
+from warnings import warn
 
 class Stack(object): 
     """
@@ -217,6 +218,10 @@ class Hist2d(object):
         return Hist2d(out_im, self.x_label, self.y_label)
 
     def save(self, name, log=False): 
+        if self.imdict['X'].sum() == 0.0 and log: 
+            warn("can't plot {}, in log mode".format(name), RuntimeWarning, 
+                 stacklevel=2)
+            return 
         fig = plt.figure(figsize=(8,6))
         ax = fig.add_subplot(1,1,1)
         if log: 
@@ -225,8 +230,14 @@ class Hist2d(object):
             norm=Normalize()
         im = ax.imshow(norm=norm,**self.imdict)
         cb_dict = {}
+        if log: 
+            cb_dict['ticks'] = LogLocator(10, np.arange(0.1,1,0.1))
+            cb_dict['format'] = LogFormatter(10)
             
-        cb = plt.colorbar(im, **cb_dict)
+        try: 
+            cb = plt.colorbar(im, **cb_dict)
+        except ValueError: 
+            print self.imdict['X'].sum()
         ax.set_xlabel(self.x_label, x=0.98, ha='right')        
         ax.set_ylabel(self.y_label, y=0.98, va='top')
         fig.savefig(name, bbox_inches='tight')

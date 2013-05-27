@@ -19,8 +19,9 @@ def make_plots(plots_dict, misc_info, log=False):
     printer = StackPlotPrinter(misc_info)
     printer.log = log
     printer.print_plots(*sort_data_mc(hist1_dict))
-    # h2print = H2Printer(misc_info)
-    # h2print.print_plots(*sort_data_mc(hist2_dict))
+    h2print = H2Printer(misc_info)
+    h2print.log = log
+    h2print.print_plots(*sort_data_mc(hist2_dict))
     
 
 class HistConverter(object): 
@@ -181,6 +182,7 @@ class H2Printer(object):
         self.plot_dir = options['base_dir']
         self.ext = options['output_ext']
         self.verbose = True
+        self.log = False
         
     def print_plots(self, data, mc, signal={}): 
         if not isdir(self.plot_dir): 
@@ -201,4 +203,4 @@ class H2Printer(object):
             if id_tup in mc: 
                 mclist = mc[id_tup]
                 bg_total = sum(mclist[1:], mclist[0])
-                bg_total.save(mc_name)
+                bg_total.save(mc_name, log=self.log)
