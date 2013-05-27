@@ -2,13 +2,13 @@
 """
 Omega setup scripts
 """
-import argparse, sys
+import argparse, sys, os
 from stop import meta
-from os.path import basename, splitext
+from os.path import basename, splitext, dirname, isdir
 
 def run(): 
     config = get_config()
-    subs = {'distill': setup_distill}
+    subs = {'distill': setup_distill, 'stack': setup_stack}
     subs[config.which](config)
 
 def get_config(): 
@@ -24,7 +24,48 @@ def get_config():
     distil_args.add_argument('-m', '--update-meta', required=True, 
                            help='update meta file with sum_wt etc')
     distil_args.add_argument('-s', '--script', help='build this PBS script')
+
+    stack_args = subs.add_parser('stack')
+    stack_args.add_argument('input_ntuples', nargs='+')
+    stack_args.add_argument('-y', '--steering', required=True)
+    stack_args.add_argument('-s', '--script', help='build this', 
+                            default='crocosaurus.sh')
+    stack_args.add_argument('-o', '--output-name', 
+                            default='ntuple-list/ntuples.txt', help=d)
+    stack_args.add_argument('-n','--n-outputs', type=int, default=20, help=d)
+
     return parser.parse_args(sys.argv[1:])
+
+def setup_stack(config): 
+    all_files = config.input_ntuples
+    subfiles = {x:[] for x in xrange(config.n_outputs)}
+    for in_n, in_file in enumerate(all_files): 
+        subfiles[in_n % config.n_outputs].append(in_file)
+    for file_n in xrange(config.n_outputs): 
+        file_name = '{}-{n}{}'.format(
+            *splitext(config.output_name), n=file_n)
+        if not isdir(dirname(file_name)): 
+            os.mkdir(dirname(file_name))
+        with open(file_name, 'w') as out_file: 
+            out_file.writelines('\n'.join(subfiles[file_n]) + '\n')
+
+    sub_dict = {
+        'n_jobs': config.n_outputs, 
+        'out_dir': 'stack-output', 
+        'in_dir': dirname(config.output_name), 
+        'in_ext': '.txt', 
+        }
+    submit_head = _submit_head.format(**sub_dict)
+
+    line_args = { 
+        'routine': 'susy-stack.py run', 
+        'run_args': config.steering
+        }
+    run_line = _submit_line.format(**line_args)
+
+    with open(config.script, 'w') as out_script: 
+        out_script.write(submit_head)
+        out_script.write(run_line + '\n')
 
 def setup_distill(config): 
     ds_meta = None
