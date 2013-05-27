@@ -8,7 +8,8 @@ from os.path import basename, splitext, dirname, isdir
 
 def run(): 
     config = get_config()
-    subs = {'distill': setup_distill, 'stack': setup_stack}
+    subs = {'distill': setup_distill, 'stack': setup_stack, 
+            'hadd': setup_hadd}
     subs[config.which](config)
 
 def get_config(): 
@@ -34,7 +35,15 @@ def get_config():
                             default='ntuple-list/ntuples.txt', help=d)
     stack_args.add_argument('-n','--n-outputs', type=int, default=20, help=d)
 
+    stack_args = subs.add_parser('hadd')
+    stack_args.add_argument('input_dirs', nargs='+')
+    stack_args.add_argument('-s', '--script', help='build this', 
+                            default='varzo.sh')
+
     return parser.parse_args(sys.argv[1:])
+
+def setup_hadd(config): 
+    sys.exit('not implemented')
 
 def setup_stack(config): 
     all_files = config.input_ntuples
