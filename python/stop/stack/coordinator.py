@@ -49,7 +49,7 @@ class Coordinator(object):
                 'hists': 'hists', 
                 'meta':'meta-all.yml', 
                 'counts':'counts.yml', 
-                'mc_mc_sf_file': 'mc-mc-sf.txt'
+                'mc_mc_sf_file': 'mc-mc-sf.txt', 
                 'plots':'plots'}
         if not 'misc' in self._config_dict: 
             if yaml_file: 
