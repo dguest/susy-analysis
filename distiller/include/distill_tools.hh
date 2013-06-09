@@ -76,6 +76,7 @@ TVector2 get_met(const SusyBuffer& buffer,
 TVector2 get_mumet(const TVector2& met, const std::vector<Muon*> muons); 
 
 bool has_lower_pt(const TLorentzVector*, const TLorentzVector*); 
+bool has_higher_pt(const TLorentzVector*, const TLorentzVector*); 
 
 void set_bit(std::vector<SelectedJet*>& jets, unsigned bit); 
 

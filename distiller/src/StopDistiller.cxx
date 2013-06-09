@@ -188,8 +188,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
 
   // --- object selection 
 
-  std::sort(all_jets.begin(),all_jets.end(),has_lower_pt); 
-  std::reverse(all_jets.begin(), all_jets.end()); 
+  std::sort(all_jets.begin(),all_jets.end(),has_higher_pt); 
 
   if (all_jets.size()) { 
     all_jets.at(0)->set_flavor_tag(m_btag_calibration); 
@@ -239,7 +238,11 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   // add the electrojets into the jet container 
   // (we veto events with control electrons, so this shouldn't mess up the 
   //  signal regions)
-  // ***** work do here ************
+  if (control_electrons.size() == 1) { 
+    auto control_el = control_electrons.at(0); 
+    signal_jets.push_back(object::get_leptojet(all_jets, *control_el)); 
+    std::sort(signal_jets.begin(), signal_jets.end(), has_higher_pt); 
+  }
 
   const int n_leading = std::min(signal_jets.size(), N_SR_JETS); 
   Jets leading_jets(signal_jets.begin(), signal_jets.begin() + n_leading); 

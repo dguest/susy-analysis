@@ -19,6 +19,8 @@ namespace object {
   Jets veto_jets(const Jets&); 
   Jets signal_jets(const Jets&); 
   Jets remove_bad_jets(const Jets&); 
+
+  // returns jet with lowest delta R to the TLorentzVector
   SelectedJet* get_leptojet(const Jets&, const TLorentzVector&); 
 }
 
