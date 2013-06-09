@@ -26,26 +26,62 @@ def get_config():
                            help='update meta file with sum_wt etc')
     distil_args.add_argument('-s', '--script', help='build this PBS script')
 
-    stack_args = subs.add_parser('stack')
+    stack_args = subs.add_parser('stack', description=setup_stack.__doc__)
     stack_args.add_argument('input_ntuples', nargs='+')
     stack_args.add_argument('-y', '--steering', required=True)
-    stack_args.add_argument('-s', '--script', help='build this', 
+    stack_args.add_argument('-s', '--script', help='build this, ' + d, 
                             default='crocosaurus.sh')
     stack_args.add_argument('-o', '--output-name', 
                             default='ntuple-list/ntuples.txt', help=d)
     stack_args.add_argument('-n','--n-outputs', type=int, default=20, help=d)
 
-    stack_args = subs.add_parser('hadd')
+    stack_args = subs.add_parser('hadd', description=setup_hadd.__doc__)
     stack_args.add_argument('input_dirs', nargs='+')
-    stack_args.add_argument('-s', '--script', help='build this', 
+    stack_args.add_argument('-o', '--textfile-name', 
+                            default='hadddir-list/hadd.txt', help=d)
+    stack_args.add_argument('-s', '--script', help='build this, ' + d, 
                             default='varzo.sh')
+    stack_args.add_argument('-d', '--hadd-dir', default='hadd-hists', 
+                            help=d)
 
     return parser.parse_args(sys.argv[1:])
 
 def setup_hadd(config): 
-    sys.exit('not implemented')
+    """
+    Sets up text files and shell script to run hadding via susy-utils. 
+    Creates one job for each directory to hadd. 
+    """
+    for dir_n, hadd_dir in enumerate(config.input_dirs): 
+        if not isdir(hadd_dir): 
+            raise OSError("inputs must be directories")
+        txt_file_name = '{}-{n}{}'.format(*splitext(config.output_name), 
+                                           n=dir_n)
+        with open(txt_file_name, 'w') as out_file: 
+            out_file.write(hadd_dir + '\n')
+
+    sub_dict = {
+        'n_jobs': len(config.input_dirs), 
+        'out_dir': 'hadd-output', 
+        'in_dir': dirname(config.textfile_name), 
+        'in_ext': '.txt', 
+        }
+    submit_head = _submit_head.format(**sub_dict)
+    line_args = { 
+        'routine': 'susy-util.py hadd', 
+        'run_args': '--recursive --output {}'.format(config.hadd_dir), 
+        }
+    submit_line = '{routine} $(cat ${{files[$PBS_ARRAYID-1]}}) {run_args}'
+    run_line = submit_line.format(**line_args)
+
+    with open(config.script, 'w') as out_script: 
+        out_script.write(submit_head)
+        out_script.write(run_line + '\n')
 
 def setup_stack(config): 
+    """
+    Sets up textfiles and shell script to run histograming via susy-stack.
+    One histogram file will be created for each input ntuple. 
+    """
     all_files = config.input_ntuples
     subfiles = {x:[] for x in xrange(config.n_outputs)}
     for in_n, in_file in enumerate(all_files): 
