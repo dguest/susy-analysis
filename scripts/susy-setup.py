@@ -32,13 +32,13 @@ def get_config():
     stack_args.add_argument('-s', '--script', help='build this, ' + d, 
                             default='crocosaurus.sh')
     stack_args.add_argument('-o', '--output-name', 
-                            default='ntuple-list/ntuples.txt', help=d)
+                            default='batch/ntuple/ntuples.txt', help=d)
     stack_args.add_argument('-n','--n-outputs', type=int, default=20, help=d)
 
     stack_args = subs.add_parser('hadd', description=setup_hadd.__doc__)
     stack_args.add_argument('input_dirs', nargs='+')
     stack_args.add_argument('-o', '--textfile-name', 
-                            default='hadddir-list/hadd.txt', help=d)
+                            default='batch/hadddir/hadd.txt', help=d)
     stack_args.add_argument('-s', '--script', help='build this, ' + d, 
                             default='varzo.sh')
     stack_args.add_argument('-d', '--hadd-dir', default='hadd-hists', 
@@ -54,14 +54,16 @@ def setup_hadd(config):
     for dir_n, hadd_dir in enumerate(config.input_dirs): 
         if not isdir(hadd_dir): 
             raise OSError("inputs must be directories")
-        txt_file_name = '{}-{n}{}'.format(*splitext(config.output_name), 
+        txt_file_name = '{}-{n}{}'.format(*splitext(config.textfile_name), 
                                            n=dir_n)
+        if not isdir(dirname(txt_file_name)): 
+            os.makedirs(dirname(txt_file_name))
         with open(txt_file_name, 'w') as out_file: 
             out_file.write(hadd_dir + '\n')
 
     sub_dict = {
         'n_jobs': len(config.input_dirs), 
-        'out_dir': 'hadd-output', 
+        'out_dir': 'output/hadd', 
         'in_dir': dirname(config.textfile_name), 
         'in_ext': '.txt', 
         }
@@ -90,13 +92,13 @@ def setup_stack(config):
         file_name = '{}-{n}{}'.format(
             *splitext(config.output_name), n=file_n)
         if not isdir(dirname(file_name)): 
-            os.mkdir(dirname(file_name))
+            os.makedirs(dirname(file_name))
         with open(file_name, 'w') as out_file: 
             out_file.writelines('\n'.join(subfiles[file_n]) + '\n')
 
     sub_dict = {
         'n_jobs': config.n_outputs, 
-        'out_dir': 'stack-output', 
+        'out_dir': 'output/stack', 
         'in_dir': dirname(config.output_name), 
         'in_ext': '.txt', 
         }
@@ -143,10 +145,11 @@ def _dirify(systematic_name):
 
 def _write_distill_config(script_name, meta_name, input_files, 
                           systematic='all'): 
+    in_dir = dirname(input_files[0])
     sub_dict = {
         'n_jobs': len(input_files), 
-        'out_dir': 'distill-output', 
-        'in_dir': 'd3pds', 
+        'out_dir': 'output/distill', 
+        'in_dir': in_dir, 
         'in_ext': '.txt', 
         }
 

@@ -90,7 +90,7 @@ def get_config():
     group.add_argument(
         '-n', '--n-files-per-job', type=int, default=5, 
         help='number of root files to put in each out file, ' + d)
-    group.add_argument('-o', '--output-dir', default='d3pds', 
+    group.add_argument('-o', '--output-dir', default='batch/d3pds', 
                        help=d)
 
     return parser.parse_args(sys.argv[1:])
@@ -299,12 +299,12 @@ def group_input_files(config):
             prechar = 'd'       # data
         if not dsid_match: 
             raise IOError("can't find dsid for {}".format(in_dir))
-        ds_key = prechar + dsid_match.group(1)
+        ds_key = prechar + dsid_match.group(1).lstrip('0')
         sub_root_files = set(glob.glob('{}/*.root*'.format(in_dir)))
         files_by_dsid[ds_key] |= sub_root_files
     
     if not isdir(config.output_dir): 
-        os.mkdir(config.output_dir)
+        os.makedirs(config.output_dir)
 
     for dsid, files in files_by_dsid.iteritems(): 
         file_list = sorted(files)
