@@ -25,6 +25,7 @@ import re, glob
 import yaml
 import warnings
 import h5py
+from itertools import chain
 from stop.hists import HistNd, HistAdder
 from stop import meta
 from collections import defaultdict
@@ -72,8 +73,13 @@ def get_config():
     hist_add.add_argument('input_hists', nargs='+')
     hist_add.add_argument('-o', '--output', 
                           help='hist or (for dash-hadd) directory')
-    hist_add.add_argument('-d', '--dash-hadd', action='store_true', 
-                          help='multiple hadds, splits input hists at \'-\'')
+    hist_add_method = hist_add.add_mutually_exclusive_group()
+    hist_add_method.add_argument(
+        '-d', '--dash-hadd', action='store_true', 
+        help='multiple hadds, splits input hists at \'-\'')
+    hist_add_method.add_argument(
+        '-r', '--recursive', action='store_true', 
+        help='multiple hadds, splits input by dir and hists at \'-\'')
     hist_add.add_argument('--norm', help=(
             'normalize using this meta file (scales to 1 fb^-1)'))
 
@@ -154,31 +160,14 @@ def hadd(config):
     """
     Scales to 1 fb^-1 if scaling is requested. 
     """
-    good_files = []
-    for hist_file in config.input_hists: 
-        with h5py.File(hist_file) as h5: 
-            if len(h5.keys()): 
-                good_files.append(hist_file)
-    if len(good_files) != len(config.input_hists): 
-        sys.stderr.write(
-            'ACHTUNG: only {} of {} files have any hists\n'.format(
-                len(good_files), len(config.input_hists)))
+    if config.recursive: 
+        _recursive_hadd(config)
+        return 
+    good_files = _get_good_files(config.input_hists)
     if config.dash_hadd: 
         if config.norm: 
             raise ValueError('normalization not allowed for dash-hadd')
-        def key_from_name(fname): 
-            return splitext(basename(fname))[0].split('-')[0]
-        if not isdir(config.output): 
-            os.mkdir(config.output)
-        base_keys = {key_from_name(f) for f in good_files}
-        for key in base_keys: 
-            out_path = join(config.output, '{}.h5'.format(key))
-            print 'making {}'.format(out_path)
-            file_group = [f for f in good_files if key in f]
-            if not _ok_extensions(file_group): 
-                raise IOError(
-                    "file {} doens't have the right number of subfiles")
-            _hadd(file_group, out_path)
+        _dash_hadd(good_files, config.output)
     else: 
         weights_dict = {}
         if config.norm: 
@@ -188,6 +177,54 @@ def hadd(config):
                 eff_lumi = lookup[file_key].get_effective_luminosity_fb()
                 weights_dict[in_file] = 1.0/eff_lumi
         _hadd(good_files, config.output, weights_dict)
+
+def _get_good_files(input_hists): 
+    good_files = []
+    for hist_file in input_hists: 
+        if not hist_file.endswith('.h5'): 
+            raise OSError("unrecognized extension: {}".format(
+                    splitext(hist_file)[-1]))
+        with h5py.File(hist_file, 'r') as h5: 
+            if len(h5.keys()): 
+                good_files.append(hist_file)
+    if len(good_files) != len(input_hists): 
+        sys.stderr.write(
+            'ACHTUNG: only {} of {} files have any hists\n'.format(
+                len(good_files), len(input_hists)))
+    return good_files
+
+def _recursive_hadd(config): 
+    if not all(isdir(x) for x in config.input_hists): 
+        raise OSError("recursive hadd requires input_hists to be dir")
+    all_walk = chain(*(os.walk(x) for x in config.input_hists))
+    for dirpath, dirnames, file_names in all_walk: 
+        if not file_names: 
+            continue
+        out_path = join(config.output, *dirpath.split(os.path.sep)[1:])
+        file_paths = [join(dirpath, x) for x in file_names]
+        good_files = _get_good_files(file_paths)
+        if isdir(out_path): 
+            raise OSError(
+                "output directory {} already exists, "
+                " refusing overwrite".format(out_path))
+        os.makedirs(out_path)
+        _dash_hadd(good_files, out_path)
+
+def _dash_hadd(good_files, output): 
+    def key_from_name(fname): 
+        return splitext(basename(fname))[0].split('-')[0]
+    if not isdir(output): 
+        os.mkdir(output)
+    base_keys = {key_from_name(f) for f in good_files}
+    for key in base_keys: 
+        out_path = join(output, '{}.h5'.format(key))
+        print 'making {}'.format(out_path)
+        file_group = [f for f in good_files if key in f]
+        if not _ok_extensions(file_group): 
+            raise IOError(
+                "file {} doens't have the right number of subfiles")
+        _hadd(file_group, out_path)
+    
 
 def _ok_extensions(file_group): 
     """
