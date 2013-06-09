@@ -54,9 +54,14 @@ def distill_d3pds(config):
         flags += 'v'            # verbose
     else: 
         print 'running {}'.format(config.input_file)
-        
-    if _is_atlfast(meta_lookup[ds_key].full_name): 
+
+    if meta_lookup[ds_key].is_data: 
+        flags += 'd'
+        if config.systematic != 'NONE': 
+            return 
+    elif _is_atlfast(meta_lookup[ds_key].full_name): 
         flags += 'f'
+
     if _needs_overlap_removal(meta_lookup[ds_key].full_name): 
         flags += 'h'
     if config.test: 
@@ -100,6 +105,9 @@ def _needs_overlap_removal(sample):
                     sample))
         return True
     return False
+
+def _is_data(sample): 
+    return sample.startswith('data')
 
 def _ntuple_name_from_ds_name(ds_name): 
     bname = basename(ds_name)
