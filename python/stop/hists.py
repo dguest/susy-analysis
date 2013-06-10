@@ -214,9 +214,10 @@ class Axis(object):
         total_rel_delta = low_delta + high_delta / bin_width**2
 
         if abs(total_rel_delta > tolerance): 
+            pad_bounds = np.hstack([-np.Inf,bin_bounds, np.Inf])
             raise ValueError(
                 'in bounds {} too far from bin bounds {}'.format(
-                    (low,high), (bin_bounds[low_bin], bin_bounds[high_bin])))
+                    (low,high), (pad_bounds[low_bin], pad_bounds[high_bin])))
 
         return self._hist._get_slice(self.name, low_bin, high_bin)
 
