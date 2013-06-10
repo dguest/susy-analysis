@@ -78,69 +78,6 @@ def test_counts(region='UserRegion', data_multiplier=1.0):
         }
     return testcounts
 
-class ChannelFactory(object): 
-    def __init__(self, counts, asym_systematics, sym_systematics): 
-        self.counts = counts
-        self.asym_systematics = asym_systematics
-        self.sym_systematics = sym_systematics
-        self.color_itr = itertools.cycle([
-                kBlack,kWhite,kGray,kRed,kPink,kMagenta,kViolet,kBlue,
-                kAzure,kCyan,kTeal,kGreen,kSpring,kYellow,kOrange])
-        self.sample_colors = {}
-
-class SampleFactory(object): 
-    color_itr = itertools.cycle([
-            kGray,kRed,kPink,kMagenta,kViolet,kBlue,
-            kAzure,kCyan,kTeal,kGreen,kSpring,kYellow,kOrange])
-    def __init__(self, counts, asym_systematics=[], sym_systematics=[]): 
-        self.counts = counts
-        self.what_the_fuck_is_this = 'cuts' 
-        self.asym_systematics = asym_systematics
-        self.sym_systematics = sym_systematics
-        self.samples = {}
-        self.data_sample = None
-        
-    def add_sample(self, sample, region, norm_by_theory=False):
-        if not sample in self.samples: 
-            roo_sample = Sample(name=sample, color=next(self.color_itr))
-            self.samples[sample] = roo_sample
-        else: 
-            roo_sample = self.samples[sample]
-        nominal = self.counts['NONE'][sample][region]['normed']
-        stats = self.counts['NONE'][sample][region]['stats']
-        roo_sample.setStatConfig(True)
-        roo_sample.buildHisto(binValues=[nominal], region=region, 
-                              var=self.what_the_fuck_is_this)
-        roo_sample.buildStatErrors(binStatErrors=[1/stats**0.5 * nominal], 
-                                   region=region, 
-                                   var=self.what_the_fuck_is_this)
-        for syst_name in self.sym_systematics: 
-            syst_count = self.counts[syst_name][sample][region]['normed']
-            high = syst_count / nominal / 2 # TODO: check me 
-            low = 1.0 - high
-            syst = Systematic(name=syst_name, nominal=1.0, 
-                              high=high, low=low, type='user', 
-                              method="userOverallSys")
-            roo_sample.addSystematic(syst)
-        roo_sample.setNormFactor(
-            name='mu_{}'.format(sample), val=1.0, low=0.0, high=2.0)
-        if norm_by_theory: 
-            roo_sample.setNormByTheory()     
-
-    def add_data_sample(self, region): 
-        if not self.data_sample: 
-            roo_sample = Sample('Data', kBlack)
-        else: 
-            roo_sample = data_sample
-        roo_sample.setData()
-        n_data = self.counts['NONE']['data'][region]
-        roo_sample.buildHisto([n_data], region, self.what_the_fuck_is_this)
-        self.data_sample = roo_sample
-    def get_samples(self, no_data=False): 
-        samples = self.samples.values() 
-        if self.data_sample and not no_data: 
-            samples.append(self.data_sample)
-        return samples
 
 
 def run(): 
@@ -304,7 +241,7 @@ def run():
     gROOT.SetBatch(not runInterpreter)
 
     # **** mandatory user-defined configuration ****
-    # (copied here because HistFitter authors don't know how to program)
+    # (copied here because we don't need multiple configurations)
 
     ##########################
     
@@ -430,6 +367,71 @@ def run():
         cons = InteractiveConsole(locals())
         cons.interact("Continuing interactive session... press Ctrl+d to exit")
         pass
+
+
+class ChannelFactory(object): 
+    def __init__(self, counts, asym_systematics, sym_systematics): 
+        self.counts = counts
+        self.asym_systematics = asym_systematics
+        self.sym_systematics = sym_systematics
+        self.color_itr = itertools.cycle([
+                kBlack,kWhite,kGray,kRed,kPink,kMagenta,kViolet,kBlue,
+                kAzure,kCyan,kTeal,kGreen,kSpring,kYellow,kOrange])
+        self.sample_colors = {}
+
+class SampleFactory(object): 
+    color_itr = itertools.cycle([
+            kGray,kRed,kPink,kMagenta,kViolet,kBlue,
+            kAzure,kCyan,kTeal,kGreen,kSpring,kYellow,kOrange])
+    def __init__(self, counts, asym_systematics=[], sym_systematics=[]): 
+        self.counts = counts
+        self.what_the_fuck_is_this = 'cuts' 
+        self.asym_systematics = asym_systematics
+        self.sym_systematics = sym_systematics
+        self.samples = {}
+        self.data_sample = None
+        
+    def add_sample(self, sample, region, norm_by_theory=False):
+        if not sample in self.samples: 
+            roo_sample = Sample(name=sample, color=next(self.color_itr))
+            self.samples[sample] = roo_sample
+        else: 
+            roo_sample = self.samples[sample]
+        nominal = self.counts['NONE'][sample][region]['normed']
+        stats = self.counts['NONE'][sample][region]['stats']
+        roo_sample.setStatConfig(True)
+        roo_sample.buildHisto(binValues=[nominal], region=region, 
+                              var=self.what_the_fuck_is_this)
+        roo_sample.buildStatErrors(binStatErrors=[1/stats**0.5 * nominal], 
+                                   region=region, 
+                                   var=self.what_the_fuck_is_this)
+        for syst_name in self.sym_systematics: 
+            syst_count = self.counts[syst_name][sample][region]['normed']
+            high = syst_count / nominal / 2 # TODO: check me 
+            low = 1.0 - high
+            syst = Systematic(name=syst_name, nominal=1.0, 
+                              high=high, low=low, type='user', 
+                              method="userOverallSys")
+            roo_sample.addSystematic(syst)
+        roo_sample.setNormFactor(
+            name='mu_{}'.format(sample), val=1.0, low=0.0, high=2.0)
+        if norm_by_theory: 
+            roo_sample.setNormByTheory()     
+
+    def add_data_sample(self, region): 
+        if not self.data_sample: 
+            roo_sample = Sample('Data', kBlack)
+        else: 
+            roo_sample = data_sample
+        roo_sample.setData()
+        n_data = self.counts['NONE']['data'][region]
+        roo_sample.buildHisto([n_data], region, self.what_the_fuck_is_this)
+        self.data_sample = roo_sample
+    def get_samples(self, no_data=False): 
+        samples = self.samples.values() 
+        if self.data_sample and not no_data: 
+            samples.append(self.data_sample)
+        return samples
 
 
 class FitConfig(object): 
