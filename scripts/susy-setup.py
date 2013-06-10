@@ -104,15 +104,17 @@ def setup_stack(config):
         }
     submit_head = _submit_head.format(**sub_dict)
 
-    line_args = { 
-        'routine': 'susy-stack.py run', 
-        'run_args': config.steering
-        }
-    run_line = _submit_line.format(**line_args)
+    def get_runline(mode): 
+        line_args = { 
+            'routine': 'susy-stack.py run', 
+            'run_args': '{} --mode {}'.format(config.steering, mode), 
+            }
+        return _submit_line.format(**line_args) + '\n'
 
     with open(config.script, 'w') as out_script: 
         out_script.write(submit_head)
-        out_script.write(run_line + '\n')
+        out_script.write(get_runline('histmill'))
+        out_script.write(get_runline('kinematic_stat'))
 
 def setup_distill(config): 
     ds_meta = None
