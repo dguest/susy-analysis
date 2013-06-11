@@ -1,10 +1,10 @@
 #!/usr/bin/env python2.7
-import yaml, itertools
+import itertools, tempfile
 # from ROOT import kBlack,kWhite,kGray,kRed,kPink,kMagenta,kViolet,kBlue,kAzure,kCyan,kTeal,kGreen,kSpring,kYellow,kOrange
 from stop.hists import HistNd
 from stop.bullshit import OutputFilter
 import h5py
-import os, sys
+import os, sys, re
 from os.path import isfile, isdir, join
 from collections import defaultdict
 
@@ -40,7 +40,7 @@ class CountDict(dict):
 def run(): 
     inf = float('inf')
     counts = CountDict(sys.argv[1], quick=True)
-    print counts['baseline','data', 'ttbar0']['sum']['met'].slice(70000.0, inf)['leadingJetPt'].slice(150000.0, inf)
+    # print counts['baseline','data', 'ttbar0']['sum']['met'].slice(70000.0, inf)['leadingJetPt'].slice(150000.0, inf)
     
     import ROOT
     with OutputFilter(): 
@@ -71,17 +71,22 @@ def run():
         d_cut = (150000.0,inf)
         return hist['met'].slice(*d_cut)['leadingJetPt'].slice(*d_cut)
 
-    # Create the channel
+    # Create control region channels
     for cr in ['ttbar0']: 
         chan = hf.Channel(cr)
-        chan.SetData(cut_hist(counts['baseline','data',cr]['sum']))
+        data_count = cut_hist(counts['baseline','data',cr]['sum'])
+        print data_count
+        chan.SetData(data_count)
         chan.SetStatErrorConfig(0.05, "Poisson")
 
         for bg in ['ttbar']:
             background = hf.Sample('_'.join([cr,bg]))
             base_count = cut_hist(counts['baseline',bg,cr]['sum'])
+            print base_count
             background.SetValue(base_count)
-            background.AddNormFactor(bg, 1,0,10)
+            stat_error = cut_hist(counts['baseline',bg,cr]['wt2'])**0.5
+            background.GetHisto().SetBinError(1,stat_error)
+            background.AddNormFactor('mu_{}'.format(bg), 1,0,10)
 
             for syst in ['jer']:
                 if syst in {'JES', 'U','C','B','T'}: 
@@ -105,11 +110,10 @@ def run():
 
     # Now, do the measurement
     ROOT.gROOT.SetBatch(True)
-    with OutputFilter(accept_re='ERROR:'): 
-        pass
-    workspace = hf.MakeModelAndMeasurementFast(meas)
+    with OutputFilter(accept_re='(ERROR:|WARNING:)'): 
+        workspace = hf.MakeModelAndMeasurementFast(meas)
     print '------------ fitting -------------------'
-    with OutputFilter(): 
+    with OutputFilter(accept_re='(ERROR:|WARNING:)'): 
         ROOT.RooStats.HistFactory.FitModel(workspace)
     valdict = {}
     for v in roo_arg_set_itr(workspace.allVars()): 
