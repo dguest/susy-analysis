@@ -32,7 +32,7 @@ marks_types = {
     }
 
 scharm = {
-    'squark-signal': DsRange( (162000,162299)), 
+    'squark-signal': DsRange( (162000,162349)), 
     }
 
 variations = { 
