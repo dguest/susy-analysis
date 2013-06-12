@@ -31,6 +31,10 @@ marks_types = {
     'signal': DsRange( (157851, 157908) , (176270, 176320) )
     }
 
+scharm = {
+    'squark-signal': DsRange( (162000,162299)), 
+    }
+
 variations = { 
     # truth level... maybe not for now
     # 'ttbar_scale': DsRange( (174763, 174766)), 
