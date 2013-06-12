@@ -220,31 +220,37 @@ def _dash_hadd(good_files, output):
         out_path = join(output, '{}.h5'.format(key))
         print 'making {}'.format(out_path)
         file_group = [f for f in good_files if key in f]
-        if not _ok_extensions(file_group): 
+        missing = _get_missing_subfiles(file_group)
+        if missing: 
+            subfiles_str = ', '.join(str(x) for x in sorted(missing))
             raise IOError(
-                "file {} doens't have the right number of subfiles")
+                "file {} can't be created, missing subfiles: {}".format(
+                    out_path, subfiles_str))
         _hadd(file_group, out_path)
     
 
-def _ok_extensions(file_group): 
+def _get_missing_subfiles(file_group): 
     """
     checks the 'XofY' string on the end of histogram files. 
     """
     if not 'of' in file_group[0].split('-')[-1]: 
-        return True
+        return []
     else: 
         extensions = [f.split('-')[-1] for f in file_group]
         numbers = set()
-        total = set()
+        total_set = set()
         for ext in extensions: 
             num, tot = splitext(ext)[0].split('of')
-            numbers.add(num)
-            total.add(tot)
-        if not len(total) == 1: 
-            return False
-        if not len(numbers) == int(next(iter(total))): 
-            return False
-        return True
+            numbers.add(int(num))
+            total_set.add(int(tot))
+        total = int(next(iter(total_set)))
+        if not len(total_set) == 1: 
+            gname = file_group[0].split('-')[0]
+            raise IOError('two totals ({}) found for {}'.format(
+                    ', '.join(total_set), gname))
+        if not len(numbers) == total: 
+            return set(xrange(1, total + 1)) - numbers
+        return []
 
 def _hadd(good_files, output, weights_dict={}):
     with h5py.File(good_files[0]) as base_h5:

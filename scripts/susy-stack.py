@@ -29,6 +29,7 @@ import glob
 from os.path import join, splitext, isdir, isfile, expanduser
 import os
 from itertools import groupby
+import errno
 
 from stop.stack.regions import Region, condense_regions
 from stop.stack.stacker import Stacker
@@ -121,6 +122,18 @@ class SystMap(object):
         else: 
             return [syst]
 
+def _make_dir_if_none(hists_dir): 
+    """
+    Avoids race condition from launching multiple jobs. 
+    """
+    try: 
+        os.mkdir(hists_dir)
+    except OSError as err: 
+        if err.errno == errno.EEXIST and isdir(hists_dir): 
+            pass
+        else: 
+            raise
+
 def run_stacker(config): 
     with open(config.steering_file) as steering_yml: 
         config_dict = yaml.load(steering_yml)
@@ -129,8 +142,9 @@ def run_stacker(config):
 
     regions = {k:Region(v) for k, v in config_dict['regions'].iteritems()}
     hists_dir = config_dict['files']['hists']
-    if not isdir(hists_dir): 
-        os.mkdir(hists_dir)
+    
+    _make_dir_if_none(hists_dir)
+
     if config.mode == 'kinematic_stat': 
         regions = condense_regions(regions)
         super_dict = {n:v.get_yaml_dict() for n,v in regions.iteritems()}
