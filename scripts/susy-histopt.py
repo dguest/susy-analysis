@@ -12,7 +12,16 @@ class CountDict(dict):
     """
     Stores as (syst, physics, region)
     """
-    def __init__(self, kin_dir, quick=False): 
+    def __init__(self, kin_dir, systematics='all'): 
+
+        def has_systematic(syst): 
+            if syst in systematics + ['baseline']: 
+                return True
+            if syst.replace('up','') in systematics:
+                return True
+            if syst.replace('down','') in systematics: 
+                return True
+            return False
 
         self.systematics = []
         for d in os.listdir(kin_dir): 
@@ -20,7 +29,7 @@ class CountDict(dict):
                 self.systematics.append(d)
 
         for syst in self.systematics: 
-            if quick and syst not in ['baseline', 'jer']: 
+            if not has_systematic(syst): 
                 continue
             tmp = defaultdict(dict)
             print 'loading {}'.format(syst)
@@ -39,8 +48,9 @@ class CountDict(dict):
 
 def run(): 
     inf = float('inf')
-    counts = CountDict(sys.argv[1], quick=True)
-    # print counts['baseline','data', 'ttbar0']['sum']['met'].slice(70000.0, inf)['leadingJetPt'].slice(150000.0, inf)
+    backgrounds = ['ttbar']
+    systematics = ['jer','jes']
+    counts = CountDict(sys.argv[1], systematics=systematics)
     
     import ROOT
     with OutputFilter(): 
@@ -59,8 +69,7 @@ def run():
         os.mkdir(result_dir)
     meas.SetOutputFilePrefix(join(result_dir,'example'))
     meas.SetPOI("mu_SIG")
-    # meas.AddConstantParam("Lumi")
-    for syst in ['jer']: 
+    for syst in systematics: 
         meas.AddConstantParam('alpha_{}'.format(syst))
 
     meas.SetLumi(1.0)
@@ -79,7 +88,7 @@ def run():
         chan.SetData(data_count)
         chan.SetStatErrorConfig(0.05, "Poisson")
 
-        for bg in ['ttbar']:
+        for bg in backgrounds:
             background = hf.Sample('_'.join([cr,bg]))
             base_count = cut_hist(counts['baseline',bg,cr]['sum'])
             print base_count
@@ -88,12 +97,10 @@ def run():
             background.GetHisto().SetBinError(1,stat_error)
             background.AddNormFactor('mu_{}'.format(bg), 1,0,10)
 
-            for syst in ['jer']:
-                if syst in {'JES', 'U','C','B','T'}: 
-                    syst_up = fit_config.counts[syst + 'UP'][bg][cr]
-                    sup_normed = syst_up['normed']
-                    sys_down = fit_config.counts[syst + 'DOWN'][bg][cr]
-                    sdn_normed = sys_down['normed']
+            for syst in systematics:
+                if syst in {'jes', 'u','c','b','t'}: 
+                    sup_normed = cut_hist(counts[syst + 'up',bg,cr]['sum'])
+                    sdn_normed = cut_hist(counts[syst + 'down',bg,cr]['sum'])
                     
                     background.AddOverallSys(
                         syst, sup_normed / base_count, 

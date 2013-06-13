@@ -160,9 +160,12 @@ def get_config(config_name):
     if not config.has_section('cuts'): 
         config.add_section('cuts')
         config.set('cuts', 'met_low', '70000')
+        config.set('cuts','mark_skim', 'true')
     return config
 
 def get_cuts_and_vars(cuts_dict): 
+    if cuts_dict['mark_skim'] == 'true': 
+        return get_marks_skim(cuts_dict)
     cuts = {}
     variables = []
     if 'met_low' in cuts_dict: 
@@ -192,6 +195,38 @@ def get_cuts_and_vars(cuts_dict):
         and_cuts.append('( {} )'.format(or_str))
     return ' && '.join(and_cuts), variables
 
+def get_marks_skim(cuts_dict): 
+    met_final = 'MET_Egamma10NoTau_RefFinal'
+    met_muon = 'MET_Egamma10NoTau_Muon_Total_Staco'
+    triggers = [
+        'EF_xe80_tclcw_loose','EF_xe80_tclcw_tight','EF_xe80T_tclcw_loose']
+    met_final_exp = '{f}_etx * {f}_etx + {f}_ety * {f}_ety'.format(
+        f=met_final)
+    met_muon_exp = (
+        '({f}_etx - {m}_etx)*({f}_etx - {m}_etx) + ' 
+        '({f}_ety - {m}_ety)*({f}_ety - {m}_ety)' 
+        ).format(f=met_final, m=met_muon)
+    met_final_str = '(sqrt({}) > {})'.format(
+        met_final_exp, cuts_dict['met_low'])
+    met_muon_str = '(sqrt({}) > {})'.format(
+        met_muon_exp, cuts_dict['met_low'])
+    trig_or = ' || '.join(triggers)
+    met_or = ' {} || {} '.format(met_final_str, met_muon_str)
+    branches = triggers + [
+        '{}_et{}'.format(m,c) for m in [met_final, met_muon] for c in 'xy']
+    final = '({}) && ({})'.format(trig_or, met_or)
+
+    return final, branches
+
+def add_vars(new_vars, file_name): 
+    """
+    adds new_vars to end of file 'file_name' if they aren't there already
+    """
+    with open(file_name, 'r+') as f: 
+        all_vars = set(x.strip() for x in f.readlines())
+        missing_vars = set(new_vars) - all_vars
+        for var in missing_vars: 
+            f.write(var + '\n')
 
 class Reporter(Process): 
     """
@@ -306,7 +341,7 @@ if __name__ == '__main__':
             config.write(cfg)
         sys.exit('wrote config, exiting')
 
-    cuts, add_vars = get_cuts_and_vars(dict(config.items('cuts')))
+    cuts, new_variables = get_cuts_and_vars(dict(config.items('cuts')))
 
     if args.get_slimmer: 
         LocalSkimmer(args.ds_list, all_the_cuts=cuts).write()
@@ -322,6 +357,7 @@ if __name__ == '__main__':
 
     used_vars = config.get('variables','varlist')
     datasets = []
+    add_vars(new_variables, used_vars)
 
     if not os.path.isfile(used_vars): 
         sys.exit('you need {}!'.format(used_vars))
