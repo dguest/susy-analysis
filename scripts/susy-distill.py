@@ -26,6 +26,7 @@ def _get_config():
         help=d, default='NONE')
     parser.add_argument(
         '-c', '--calibration', default='~/calibration', help=d)
+    parser.add_argument('-i', '--more-info', action='store_true')
     parser.add_argument('--test', action='store_true')
     return parser.parse_args(sys.argv[1:])
 
@@ -50,6 +51,8 @@ def distill_d3pds(config):
     out_path = join(config.output_dir, out_file)
     
     flags = ''
+    if config.more_info: 
+        flags += 'ei'           # save all events, save sparticle id
     if sys.stdin.isatty(): 
         flags += 'v'            # verbose
     else: 
