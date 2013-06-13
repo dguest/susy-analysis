@@ -25,6 +25,7 @@ def get_config():
     distil_args.add_argument('-m', '--update-meta', required=True, 
                            help='update meta file with sum_wt etc')
     distil_args.add_argument('-s', '--script', help='build this PBS script')
+    distil_args.add_argument('-a', '--aggressive', action='store_true')
 
     stack_args = subs.add_parser('stack', description=setup_stack.__doc__)
     stack_args.add_argument('input_ntuples', nargs='+')
@@ -129,7 +130,8 @@ def setup_distill(config):
             ds_key = basename(splitext(textfile)[0]).split('-')[0]
             with open(textfile) as steering_file: 
                 files = [l.strip() for l in steering_file.readlines()]
-            n_events, total_wt, n_cor = collector.get_recorded_events(files)
+            n_events, total_wt, n_cor = collector.get_recorded_events(
+                files, aggressive=config.aggressive)
             out_meta[ds_key] = ds_meta[ds_key]
             out_meta[ds_key].sum_event_weight += total_wt
             out_meta[ds_key].n_raw_entries += n_events

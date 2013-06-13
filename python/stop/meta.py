@@ -302,7 +302,8 @@ class MetaTextCollector(object):
     def _get_recorded_events(self, root_file): 
         txt_name = root_file.replace(self.root_extension,
                                      self.text_extension)
-        if not isfile(txt_name): 
+
+        if not isfile(txt_name) or not self.text_extension in txt_name: 
             raise MissingMetaError("can't find meta", txt_name, root_file)
         with open(txt_name) as textfile: 
             values = textfile.readlines()
