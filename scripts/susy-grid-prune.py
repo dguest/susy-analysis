@@ -185,7 +185,7 @@ def get_cuts_and_vars(cuts_dict):
         cuts['n_staco'] = 'mu_staco_n >= {}'.format(cuts_dict['n_staco'])
 
     ored_cuts = set(cuts_dict.get('or','').split())
-    all_cuts = set(cuts_dict.keys())
+    all_cuts = set(cuts.keys())
     anded_cuts = all_cuts - ored_cuts - set(['or'])
 
     or_cuts = [cuts[x] for x in ored_cuts]
