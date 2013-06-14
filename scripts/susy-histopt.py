@@ -46,6 +46,99 @@ class CountDict(dict):
                                tmp[syst, phys, region]['wt2'] = HistNd(hist)
             self.update(tmp)
 
+inf = float('inf')
+
+class BackgroundFit(object): 
+    def __init__(self, counts, systematics, backgrounds): 
+        import ROOT
+        with OutputFilter(): 
+            self.hf = ROOT.RooStats.HistFactory
+
+        self.counts = counts
+        self.systematics = systematics
+        self.backgrounds = backgrounds
+        self.meas = self.hf.Measurement("meas", "meas")
+
+        result_dir = 'results'
+        if not isdir(result_dir): 
+            os.mkdir(result_dir)
+        self.meas.SetOutputFilePrefix(join(result_dir,'example'))
+        self.meas.SetPOI("mu_SIG")
+        for syst in systematics: 
+            self.meas.AddConstantParam('alpha_{}'.format(syst))
+
+        self.meas.SetLumi(1.0)
+        lumiError = 0.039
+        self.meas.SetLumiRelErr(lumiError)
+        self.meas.SetExportOnly(False)
+
+    def add_cr(self, cr, met_cut, ljpt_cut): 
+        def cut_hist(hist): 
+            m_cut = (met_cut,inf)
+            j_cut = (ljpt_cut,inf)
+            return hist['met'].slice(*m_cut)['leadingJetPt'].slice(*j_cut)
+
+        chan = self.hf.Channel(cr)
+        data_count = cut_hist(self.counts['baseline','data',cr]['sum'])
+        print data_count
+        chan.SetData(data_count)
+        chan.SetStatErrorConfig(0.05, "Poisson")
+
+        for bg in self.backgrounds:
+            background = self.hf.Sample('_'.join([cr,bg]))
+            base_count = cut_hist(self.counts['baseline',bg,cr]['sum'])
+            print base_count
+            background.SetValue(base_count)
+            stat_error = cut_hist(self.counts['baseline',bg,cr]['wt2'])**0.5
+            background.GetHisto().SetBinError(1,stat_error)
+            background.AddNormFactor('mu_{}'.format(bg), 1,0,10)
+
+            for syst in self.systematics:
+                if syst in {'jes', 'u','c','b','t'}: 
+                    sup_normed = cut_hist(
+                        self.counts[syst + 'up',bg,cr]['sum'])
+                    sdn_normed = cut_hist(
+                        self.counts[syst + 'down',bg,cr]['sum'])
+                    
+                    background.AddOverallSys(
+                        syst, sup_normed / base_count, 
+                        sdn_normed / base_count)
+                else: 
+                    syst_counts = cut_hist(self.counts[syst,bg,cr]['sum'])
+                    rel_syst = syst_counts / base_count - 1
+                    background.AddOverallSys(
+                        syst, 1 - rel_syst/2, 1 + rel_syst/2)
+
+
+            chan.AddSample(background)
+        self.meas.AddChannel(chan)
+
+    def add_sr(sr, met_cut, ljpt_cut): 
+        def cut_hist(hist): 
+            m_cut = (met_cut,inf)
+            j_cut = (ljpt_cut,inf)
+            return hist['met'].slice(*m_cut)['leadingJetPt'].slice(*j_cut)
+        
+        
+    def fit(self): 
+        
+        # Now, do the measurement
+        import ROOT
+        # ROOT.gROOT.SetBatch(True)
+        with OutputFilter(accept_re='(ERROR:|WARNING:)'): 
+            workspace = self.hf.MakeModelAndMeasurementFast(self.meas)
+        print '------------ fitting -------------------'
+        with OutputFilter(accept_re='(ERROR:|WARNING:)'): 
+            ROOT.RooStats.HistFactory.FitModel(workspace)
+        valdict = {}
+        for v in roo_arg_set_itr(workspace.allVars()): 
+            valdict[v.GetName()] =  v.getValV()
+    
+        for n, v in sorted(valdict.iteritems()): 
+            if not n.startswith('binWidth') and not n.startswith('nom_'): 
+                print n, v
+    
+
 def run(): 
     inf = float('inf')
     backgrounds = ['ttbar']
@@ -56,79 +149,12 @@ def run():
     with OutputFilter(): 
         hf = ROOT.RooStats.HistFactory
 
-    # Set observed and expected number of events in counting experiment
-    lumiError = 0.039 	# Relative luminosity uncertainty
-
-    # ****** here be HistFactory ******
-
-    # Create the measurement
-    meas = hf.Measurement("meas", "meas")
-
-    result_dir = 'results'
-    if not isdir(result_dir): 
-        os.mkdir(result_dir)
-    meas.SetOutputFilePrefix(join(result_dir,'example'))
-    meas.SetPOI("mu_SIG")
-    for syst in systematics: 
-        meas.AddConstantParam('alpha_{}'.format(syst))
-
-    meas.SetLumi(1.0)
-    meas.SetLumiRelErr(lumiError)
-    meas.SetExportOnly(False)
-
-    def cut_hist(hist): 
-        d_cut = (150000.0,inf)
-        return hist['met'].slice(*d_cut)['leadingJetPt'].slice(*d_cut)
-
-    # Create control region channels
+    fit = BackgroundFit(counts, systematics, backgrounds)
     for cr in ['ttbar0']: 
-        chan = hf.Channel(cr)
-        data_count = cut_hist(counts['baseline','data',cr]['sum'])
-        print data_count
-        chan.SetData(data_count)
-        chan.SetStatErrorConfig(0.05, "Poisson")
+        fit.add_cr(cr, 150000.0, 150000.0)
+    
+    fit.fit()
 
-        for bg in backgrounds:
-            background = hf.Sample('_'.join([cr,bg]))
-            base_count = cut_hist(counts['baseline',bg,cr]['sum'])
-            print base_count
-            background.SetValue(base_count)
-            stat_error = cut_hist(counts['baseline',bg,cr]['wt2'])**0.5
-            background.GetHisto().SetBinError(1,stat_error)
-            background.AddNormFactor('mu_{}'.format(bg), 1,0,10)
-
-            for syst in systematics:
-                if syst in {'jes', 'u','c','b','t'}: 
-                    sup_normed = cut_hist(counts[syst + 'up',bg,cr]['sum'])
-                    sdn_normed = cut_hist(counts[syst + 'down',bg,cr]['sum'])
-                    
-                    background.AddOverallSys(
-                        syst, sup_normed / base_count, 
-                        sdn_normed / base_count)
-                else: 
-                    syst_counts = cut_hist(counts[syst,bg,cr]['sum'])
-                    rel_syst = syst_counts / base_count - 1
-                    background.AddOverallSys(
-                        syst, 1 - rel_syst/2, 1 + rel_syst/2)
-
-
-            chan.AddSample(background)
-        meas.AddChannel(chan)
-
-    # Now, do the measurement
-    ROOT.gROOT.SetBatch(True)
-    with OutputFilter(accept_re='(ERROR:|WARNING:)'): 
-        workspace = hf.MakeModelAndMeasurementFast(meas)
-    print '------------ fitting -------------------'
-    with OutputFilter(accept_re='(ERROR:|WARNING:)'): 
-        ROOT.RooStats.HistFactory.FitModel(workspace)
-    valdict = {}
-    for v in roo_arg_set_itr(workspace.allVars()): 
-        valdict[v.GetName()] =  v.getValV()
-
-    for n, v in sorted(valdict.iteritems()): 
-        if not n.startswith('binWidth') and not n.startswith('nom_'): 
-            print n, v
 
 def roo_arg_set_itr(all_vars): 
     """
