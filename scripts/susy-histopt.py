@@ -48,7 +48,8 @@ class CountDict(dict):
 
 inf = float('inf')
 
-class BackgroundFit(object): 
+class Workspace(object): 
+    meas_name = 'meas'
     def __init__(self, counts, systematics, backgrounds): 
         import ROOT
         with OutputFilter(): 
@@ -57,12 +58,8 @@ class BackgroundFit(object):
         self.counts = counts
         self.systematics = systematics
         self.backgrounds = backgrounds
-        self.meas = self.hf.Measurement("meas", "meas")
+        self.meas = self.hf.Measurement(self.meas_name, self.meas_name)
 
-        result_dir = 'results'
-        if not isdir(result_dir): 
-            os.mkdir(result_dir)
-        self.meas.SetOutputFilePrefix(join(result_dir,'example'))
         self.meas.SetPOI("mu_SIG")
         for syst in systematics: 
             self.meas.AddConstantParam('alpha_{}'.format(syst))
@@ -119,9 +116,17 @@ class BackgroundFit(object):
             j_cut = (ljpt_cut,inf)
             return hist['met'].slice(*m_cut)['leadingJetPt'].slice(*j_cut)
         
+
+    def save_workspace(self, results_dir='results', prefix='stop'): 
+        if not isdir(results_dir): 
+            os.mkdir(results_dir)
+        self.meas.SetOutputFilePrefix(join(results_dir,prefix))
+        with OutputFilter(accept_re='(ERROR:|WARNING:)'): 
+            workspace = self.hf.MakeModelAndMeasurementFast(self.meas)
+
         
     def fit(self): 
-        
+        raise NotImplementedError("this doesn't work right now")
         # Now, do the measurement
         import ROOT
         # ROOT.gROOT.SetBatch(True)
@@ -132,7 +137,7 @@ class BackgroundFit(object):
             ROOT.RooStats.HistFactory.FitModel(workspace)
         valdict = {}
         for v in roo_arg_set_itr(workspace.allVars()): 
-            valdict[v.GetName()] =  v.getValV()
+            valdict[v.GetName()] =  v.getVal()
     
         for n, v in sorted(valdict.iteritems()): 
             if not n.startswith('binWidth') and not n.startswith('nom_'): 
@@ -149,11 +154,11 @@ def run():
     with OutputFilter(): 
         hf = ROOT.RooStats.HistFactory
 
-    fit = BackgroundFit(counts, systematics, backgrounds)
+    fit = Workspace(counts, systematics, backgrounds)
     for cr in ['ttbar0']: 
         fit.add_cr(cr, 150000.0, 150000.0)
     
-    fit.fit()
+    fit.save_workspace('results')
 
 
 def roo_arg_set_itr(all_vars): 
