@@ -7,6 +7,7 @@ import h5py
 import os, sys, re
 from os.path import isfile, isdir, join
 from collections import defaultdict
+import argparse
 
 class CountDict(dict): 
     """
@@ -143,13 +144,34 @@ class Workspace(object):
             if not n.startswith('binWidth') and not n.startswith('nom_'): 
                 print n, v
     
-
 def run(): 
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers(dest='which')
+
+    ws = subparsers.add_parser('ws')
+    ws.add_argument('kinematic_stat_dir')
+
+    fit = subparsers.add_parser('fit')
+    fit.add_argument('workspace')
+    
+    config = parser.parse_args(sys.argv[1:])
+    {'ws':_setup_workspace, 'fit':_histfit}[config.which](config)
+
+def _histfit(config): 
+    import ROOT
+    ROOT.gSystem.Load("/data2/dguest/blackbox/HistFitter/lib/libSusyFitter.so")
+    import configManager as cf
+    from ROOT import Util
+
+    workspace = Util.GetWorkspaceFromFile(config.workspace,"combined")
+    
+
+def _setup_workspace(config): 
     inf = float('inf')
     backgrounds = ['ttbar']
     systematics = ['jer','jes']
-    counts = CountDict(sys.argv[1], systematics=systematics)
-    
+    counts = CountDict(config.kinematic_stat_dir, systematics=systematics)
+
     import ROOT
     with OutputFilter(): 
         hf = ROOT.RooStats.HistFactory
@@ -159,7 +181,7 @@ def run():
         fit.add_cr(cr, 150000.0, 150000.0)
     
     fit.save_workspace('results')
-
+    # histfit('results/example_combined_meas_model.root')
 
 def roo_arg_set_itr(all_vars): 
     """
