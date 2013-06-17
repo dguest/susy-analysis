@@ -53,20 +53,20 @@ def distill_d3pds(config):
     flags = ''
     if config.more_info: 
         flags += 'ei'           # save all events, save sparticle id
-    if sys.stdin.isatty(): 
-        flags += 'v'            # verbose
-    else: 
-        print 'running {}'.format(config.input_file)
-
     if meta_lookup[ds_key].is_data: 
         flags += 'd'
         if config.systematic != 'NONE': 
             return 
     elif _is_atlfast(meta_lookup[ds_key].full_name): 
         flags += 'f'
-
     if _needs_overlap_removal(meta_lookup[ds_key].full_name): 
         flags += 'h'
+
+    if sys.stdin.isatty(): 
+        flags += 'v'            # verbose
+    else: 
+        print 'running {} with flags {}'.format(config.input_file, flags)
+
     if config.test: 
         cut_counts = [('test',1)]
     else: 
