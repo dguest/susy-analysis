@@ -108,6 +108,7 @@ namespace outtree {
     double htx; 
 
     outtree::Jet leading_jet_uncensored; 
+    outtree::Jet electron_jet; 
 
     std::vector<outtree::Jet*> jets; 
   private:

@@ -235,14 +235,6 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   ob_counts["control_el"] += control_electrons.size(); 
   ob_counts["control_mu"] += control_muons.size(); 
 
-  // add the electrojets into the jet container 
-  // (we veto events with control electrons, so this shouldn't mess up the 
-  //  signal regions)
-  if (control_electrons.size() == 1) { 
-    auto control_el = control_electrons.at(0); 
-    signal_jets.push_back(object::get_leptojet(all_jets, *control_el)); 
-    std::sort(signal_jets.begin(), signal_jets.end(), has_higher_pt); 
-  }
 
   const int n_leading = std::min(signal_jets.size(), N_SR_JETS); 
   Jets leading_jets(signal_jets.begin(), signal_jets.begin() + n_leading); 
@@ -294,6 +286,14 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   m_out_tree->mu_met_phi = mu_met.Phi(); 
 
   m_out_tree->event_number = m_susy_buffer->EventNumber; 
+
+  // save electron jet
+  if (control_electrons.size() == 1) { 
+    auto control_el = control_electrons.at(0); 
+    auto el_jet = object::get_leptojet(all_jets, *control_el); 
+    el_jet->set_flavor_tag(m_btag_calibration); 
+    copy_jet_info(el_jet, m_out_tree->electron_jet); 
+  }
 
   if (m_output_filter->should_save_event(pass_bits)) { 
     m_out_tree->fill(); 

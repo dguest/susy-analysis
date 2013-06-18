@@ -66,6 +66,8 @@ namespace outtree {
       m_jet_vector.set_branches(m_tree, "jet_", flags); 
     }
 
+    electron_jet.set_branches(m_tree, "electron_jet_", flags); 
+
     if (flags & cutflag::raw_evt_info) {
       leading_jet_uncensored.set_branches(m_tree, "leading_jet_uncensored_", 
 					  flags); 
@@ -100,6 +102,7 @@ namespace outtree {
       (*itr)->clear(); 
     }
     leading_jet_uncensored.clear(); 
+    electron_jet.clear(); 
   }
 
 
