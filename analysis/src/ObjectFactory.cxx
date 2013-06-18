@@ -114,7 +114,7 @@ void ObjectFactory::set_btagging(const std::vector<btag::JetTag>& tag_points){
   }
   if (m_electron_jet_buffer) { 
     for (auto tag_iter = tags.begin(); tag_iter != tags.end(); tag_iter++) { 
-      set_btag(m_electron_jet_buffer, *tag_iter, "electron_jet_"); 
+      set_btag(m_electron_jet_buffer, *tag_iter, "electron_jet"); 
     }
   }
 }
@@ -213,6 +213,7 @@ void ObjectFactory::set_btag_n(size_t jet_n, btag::JetTag tag) {
 
 void ObjectFactory::set_btag(JetBuffer* buffer, btag::JetTag tag, 
 			     std::string branch_name) { 
+  if (tag == btag::NOTAG) return; 
   std::string sf_br_name = branch_name + 
     btag::joiner(tag) + "scale_factor"; 
   if (!buffer->btag_buffers.count(sf_br_name)) { 
