@@ -5,7 +5,9 @@
 
 #include <string> 
 #include <vector> 
+#include <set> 
 #include <stdexcept> 
+#include <algorithm>
 #include <boost/format.hpp>
 
 #include "TVector2.h"
@@ -13,7 +15,8 @@
 #include "TTree.h"
 
 JetBuffer::JetBuffer(): 
-  flavor_truth_label(-1)
+  flavor_truth_label(-1), 
+  is_electron_jet(false)
 { 
 }
 JetBuffer::~JetBuffer() { 
@@ -28,6 +31,7 @@ JetBuffer::~JetBuffer() {
 }
 
 ObjectFactory::ObjectFactory(std::string root_file, int n_jets) : 
+  m_electron_jet_buffer(0), 
   m_hfor_type(-1), 
   m_leading_cjet_pos(-1), 
   m_subleading_cjet_pos(-1), 
@@ -75,7 +79,8 @@ ObjectFactory::ObjectFactory(std::string root_file, int n_jets) :
   }
   for (int i = 0; i < n_jets; i++) { 
     std::string base_name = (boost::format("jet%i_") % i).str(); 
-    set_buffer(base_name); 
+    m_jet_buffers.push_back(new JetBuffer); 
+    set_buffer(*m_jet_buffers.rbegin(), base_name); 
   }
 } 
 
@@ -87,13 +92,30 @@ ObjectFactory::~ObjectFactory()
   }
   delete m_file; 
 }
-void ObjectFactory::set_btagging(const std::vector<btag::JetTag>& tag_points) { 
+
+void ObjectFactory::use_electron_jet(bool use) { 
+  if (use && !m_electron_jet_buffer) { 
+    m_electron_jet_buffer = new JetBuffer; 
+    m_electron_jet_buffer->is_electron_jet = true; 
+    set_buffer(m_electron_jet_buffer, "electron_jet_"); 
+  }
+  else if (!use) { 
+    delete m_electron_jet_buffer; 
+    m_electron_jet_buffer = 0; 
+  }
+}
+
+void ObjectFactory::set_btagging(const std::vector<btag::JetTag>& tag_points){ 
+  std::set<btag::JetTag> tags(tag_points.begin(), tag_points.end()); 
   for (size_t jet_n = 0; jet_n < tag_points.size(); jet_n++) { 
-    btag::JetTag tag = tag_points.at(jet_n); 
-    if (tag == btag::NOTAG) { 
-      continue; 
+    for (auto tag_iter = tags.begin(); tag_iter != tags.end(); tag_iter++) { 
+      set_btag_n(jet_n, *tag_iter); 
     }
-    set_btag(jet_n, tag); 
+  }
+  if (m_electron_jet_buffer) { 
+    for (auto tag_iter = tags.begin(); tag_iter != tags.end(); tag_iter++) { 
+      set_btag(m_electron_jet_buffer, *tag_iter, "electron_jet_"); 
+    }
   }
 }
 
@@ -122,6 +144,13 @@ std::vector<Jet> ObjectFactory::jets() const {
     jets_out.push_back(Jet(*itr,m_ioflags)); 
     Jet& jet = *jets_out.rbegin(); 
     jet.set_event_met(met()); 
+  }
+  if (m_electron_jet_buffer) { 
+    if (m_electron_jet_buffer->pt > 0) { 
+      jets_out.push_back(Jet(m_electron_jet_buffer, m_ioflags)); 
+      jets_out.rbegin()->set_event_met(met()); 
+      std::sort(jets_out.begin(), jets_out.end(), has_higher_pt); 
+    }
   }
   return jets_out; 
 }
@@ -168,24 +197,28 @@ hfor::JetType ObjectFactory::hfor_type() const {
   }
 }
 
-void ObjectFactory::set_btag(size_t jet_n, btag::JetTag tag) { 
-  std::string full_branch_name = (boost::format("jet%i") % jet_n).str(); 
+void ObjectFactory::set_btag_n(size_t jet_n, btag::JetTag tag) { 
+  std::string branch_name = (boost::format("jet%i") % jet_n).str(); 
   if ( !(m_jet_buffers.size() > jet_n)) { 
     throw std::range_error("asked for out of range jet " + 
-			   full_branch_name); 
+			   branch_name); 
   }
   if (m_ioflags & ioflag::no_truth) { 
     throw std::logic_error("tried to set btag buffer with no truth info"); 
   }
 
   JetBuffer* buffer = m_jet_buffers.at(jet_n); 
+  set_btag(buffer, tag, branch_name); 
+}
 
-  std::string branch_name = full_branch_name + 
+void ObjectFactory::set_btag(JetBuffer* buffer, btag::JetTag tag, 
+			     std::string branch_name) { 
+  std::string sf_br_name = branch_name + 
     btag::joiner(tag) + "scale_factor"; 
-  if (!buffer->btag_buffers.count(branch_name)) { 
-    buffer->btag_buffers[branch_name] = new BtagBuffer(m_tree, branch_name); 
+  if (!buffer->btag_buffers.count(sf_br_name)) { 
+    buffer->btag_buffers[sf_br_name] = new BtagBuffer(m_tree, sf_br_name); 
   }
-  const BtagBuffer* btag_buffer = buffer->btag_buffers[branch_name]; 
+  const BtagBuffer* btag_buffer = buffer->btag_buffers[sf_br_name]; 
 
   size_t needed_size = tag + 1; 
   size_t scalers_size = buffer->btag_scalers.size(); 
@@ -200,12 +233,10 @@ void ObjectFactory::set_btag(size_t jet_n, btag::JetTag tag) {
 }
 
 
-void ObjectFactory::set_buffer(std::string base_name) 
+void ObjectFactory::set_buffer(JetBuffer* b, std::string base_name) 
 {
   using namespace std; 
   int errors = 0; 
-  m_jet_buffers.push_back(new JetBuffer); 
-  JetBuffer* b = *m_jet_buffers.rbegin(); 
   string pt = base_name + "pt"; 
   string eta = base_name + "eta"; 
   string phi = base_name + "phi"; 
@@ -246,4 +277,7 @@ void ObjectFactory::set_buffer(std::string base_name)
 
 }
 
+bool has_higher_pt(const Jet& v1, const Jet& v2) { 
+  return v1.Pt() > v2.Pt(); 
+}
 

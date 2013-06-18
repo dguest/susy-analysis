@@ -70,6 +70,10 @@ double Jet::get_scalefactor(btag::JetTag tag, syst::Systematic systematic)
     (m_buffer->bits, flavor_truth_label(),systematic); 
 }
 
+bool Jet::is_electron_jet() const { 
+  return m_buffer->is_electron_jet; 
+}
+
 void Jet::req_flavor() const 
 {
   if (!has_flavor()) { 
@@ -77,3 +81,4 @@ void Jet::req_flavor() const
   }
   
 }
+

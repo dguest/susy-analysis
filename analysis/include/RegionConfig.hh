@@ -14,6 +14,7 @@ namespace reg {
   const unsigned no_extra_jets = 1u << 0; 
   const unsigned throw_for_fun = 1u << 1; 
   const unsigned mu_met        = 1u << 2; 
+  const unsigned electron_jet  = 1u << 3; 
 }
 
 struct RegionConfig 

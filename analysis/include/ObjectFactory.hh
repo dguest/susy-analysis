@@ -15,12 +15,13 @@ class TFile;
 class TVector2;
 class BtagScaler; 
 class BtagBuffer; 
+class TLorentzVector; 
 
 namespace ioflag {
   const unsigned no_flavor = 1u << 0; 
   const unsigned no_truth  = 1u << 1; 
+  // const unsigned use_electron_jet = 1u << 2; 
 }
-
 
 struct JetBuffer
 { 
@@ -36,6 +37,7 @@ struct JetBuffer
   std::map<std::string, BtagBuffer*> btag_buffers; 
   // TODO: the btag scalers  shoudldn't be owned by the buffer. 
   std::vector<BtagScaler*> btag_scalers; 
+  bool is_electron_jet; 
   JetBuffer(); 
   ~JetBuffer(); 
 };
@@ -45,6 +47,7 @@ class ObjectFactory
 public: 
   ObjectFactory(std::string root_file, int n_jets); 
   ~ObjectFactory(); 
+  void use_electron_jet(bool = true); 
   void set_btagging(const std::vector<btag::JetTag>&); 
   int entries() const; 
   void entry(int); 
@@ -61,12 +64,14 @@ public:
   double htx() const; 
   double event_weight() const; 
 private: 
-  void set_btag(size_t jet_n, btag::JetTag); 
+  void set_btag_n(size_t jet_n, btag::JetTag); 
+  void set_btag(JetBuffer*, btag::JetTag, std::string branch_name); 
   Jet jet(int) const; 		// not fully supported
-  void set_buffer(std::string base_name); 
+  void set_buffer(JetBuffer* buffer, std::string base_name); 
   TTree* m_tree; 
   TFile* m_file; 
   std::vector<JetBuffer*> m_jet_buffers; 
+  JetBuffer* m_electron_jet_buffer; 
   double m_met; 
   double m_met_phi; 
   double m_mu_met; 
@@ -86,5 +91,6 @@ private:
   unsigned m_ioflags; 
 }; 
 
+bool has_higher_pt(const Jet&, const Jet&); 
 
 #endif // JET_FACTORY_H

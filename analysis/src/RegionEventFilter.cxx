@@ -44,6 +44,9 @@ bool RegionEventFilter::pass(const EventObjects& obj) const {
     const auto requested_tag = jet_req.at(jet_n); 
     bool pass = jet.pass_tag(requested_tag); 
     if (!pass) return false; 
+    if (! (m_region_config.region_bits & reg::electron_jet) ) { 
+      if (jet.is_electron_jet()) return false; 
+    }
   }
 
   if (m_region_config.leading_jet_pt > 0.0) { 
