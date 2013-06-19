@@ -61,7 +61,8 @@ void Region2dKinematicHistograms::fill(const EventObjects& obj) {
   typedef std::vector<Jet> Jets; 
 
   double weight = obj.weight; 
-  const Jets jets = obj.jets; 
+  bool use_electron_jet = m_region_config.region_bits & reg::electron_jet; 
+  const Jets jets = use_electron_jet ? obj.jets_with_eljet : obj.jets; 
 
   if (!m_event_filter.pass(obj)) return; 
 

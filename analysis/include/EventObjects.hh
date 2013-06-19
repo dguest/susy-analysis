@@ -23,6 +23,7 @@ struct EventObjects
   int subleading_cjet_pos; 
   int n_signal_jets; 
   std::vector<Jet> jets; 
+  std::vector<Jet> jets_with_eljet; 
   EventObjects(const ObjectFactory*, unsigned build_flags); 
 }; 
 
