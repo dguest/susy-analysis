@@ -47,6 +47,7 @@ class Coordinator(object):
             self._config_dict['files'] = {
                 'ntuples': {s:s.lower() for s in self.distiller_systematics}, 
                 'hists': 'hists', 
+                'hadd-hists':'hadd-hists', 
                 'meta':'meta-all.yml', 
                 'counts':'counts.yml', 
                 'mc_mc_sf_file': 'mc-mc-sf.txt', 
@@ -79,7 +80,7 @@ class Coordinator(object):
         return 'baseline' if systematic == 'NONE' else systematic.lower()
 
     def _make_hist_path(self, systematic='', mode='' , create=False): 
-        hists_path = self._config_dict['files']['hists']
+        hists_path = self._config_dict['files']['hadd-hists']
         if not systematic and mode: 
             systematic = 'baseline'
         elif systematic: 
@@ -116,7 +117,7 @@ class Coordinator(object):
         return meta
 
     def clean(self): 
-        hists_dir = self._config_dict['files']['hists']
+        hists_dir = self._config_dict['files']['hadd-hists']
         if isdir(hists_dir): 
             for syst in self.distiller_systematics: 
                 histsyst_dir = join(hists_dir, self._dirify(syst))
