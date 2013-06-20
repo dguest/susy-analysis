@@ -1,5 +1,6 @@
 import sys, os
 from os.path import join, isdir, basename, splitext, isfile
+from stop.bullshit import make_dir_if_none
 from stop import meta
 
 class Stacker(object): 
@@ -63,7 +64,7 @@ class Stacker(object):
         full_out_dir = join(basedir, modedir, systdir)
         if not isdir(full_out_dir): 
             if self.make_dirs: 
-                os.makedirs(full_out_dir)
+                make_dir_if_none(full_out_dir)
             else: 
                 raise IOError(99,"no dir",full_out_dir)
         histname = '{}.h5'.format(basename(splitext(ntuple)[0]))

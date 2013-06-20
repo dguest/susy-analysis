@@ -33,6 +33,7 @@ import errno
 
 from stop.stack.regions import Region, condense_regions
 from stop.stack.stacker import Stacker
+from stop.bullshit import make_dir_if_none
 import h5py
 from stop.hists import HistAdder
 
@@ -122,17 +123,6 @@ class SystMap(object):
         else: 
             return [syst]
 
-def _make_dir_if_none(hists_dir): 
-    """
-    Avoids race condition from launching multiple jobs. 
-    """
-    try: 
-        os.mkdir(hists_dir)
-    except OSError as err: 
-        if err.errno == errno.EEXIST and isdir(hists_dir): 
-            pass
-        else: 
-            raise
 
 def run_stacker(config): 
     with open(config.steering_file) as steering_yml: 
@@ -143,7 +133,7 @@ def run_stacker(config):
     regions = {k:Region(v) for k, v in config_dict['regions'].iteritems()}
     hists_dir = config_dict['files']['hists']
     
-    _make_dir_if_none(hists_dir)
+    make_dir_if_none(hists_dir)
 
     if config.mode == 'kinematic_stat': 
         regions = condense_regions(regions)
