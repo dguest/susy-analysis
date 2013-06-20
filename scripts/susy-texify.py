@@ -10,7 +10,7 @@ Filter counts file. This probably belongs in another script...
 
 import argparse
 import yaml 
-from stop.stack.table import make_latex_bg_table, unyamlize
+from stop.stack.table import make_latex_bg_table, unyamlize, make_marktable
 from stop.stack.table import LatexCutsConfig
 from stop.systematics import transfer, tex
 
@@ -35,6 +35,7 @@ def get_config():
         help="assumes <particle>-<something> type name, " + d)
     count_signal_mode.add_argument('-m','--max-point', action='store_true')
     counts.add_argument('-f', '--filters', nargs='+', default=[])
+    counts.add_argument('-t', '--transpose', action='store_true')
 
     regions = subs.add_parser('regions', parents=[shared_parser])
 
@@ -229,15 +230,17 @@ def get_counts(args):
     if args.max_point: 
         update_with_max_contamination(phys_cut_dict)
 
-    make_latex_bg_table(phys_cut_dict, title='baseline', 
-                        out_file=out_file)
+    build_table = make_marktable if args.transpose else make_latex_bg_table
+    
+
+    build_table(phys_cut_dict, title='baseline', 
+                out_file=out_file)
 
     if args.systematics: 
         for systematic in all_systematics: 
             syst_dict = filtered[systematic]
             phys_cut_dict = unyamlize(syst_dict)
-            make_latex_bg_table(phys_cut_dict, title=systematic, 
-                                out_file=out_file)
+            build_table(phys_cut_dict, title=systematic, out_file=out_file)
 
     out_file.seek(0)
     for line in out_file: 

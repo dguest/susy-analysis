@@ -93,7 +93,7 @@ def sort_physics(phys_list):
 
 class RegionCountsFormatter(object): 
     def __init__(self, cut): 
-        self.line = [texify_sr(cut)]
+        self.line = [cut]
         self.total_bg = 0.0
         self.total_stats = 0
         self.max_counts = 0.0
@@ -143,17 +143,20 @@ class RegionCountsFormatter(object):
                 normed = value
             self.line.append(str(normed))
 
-    def get_line(self): 
-        if self.max_idx is not None: 
+    def get_line(self, redmax=True, total=True): 
+        if self.max_idx is not None and redmax: 
             self.line[self.max_idx] = r'\textcolor{{red}}{{{}}}'.format(
                 self.line[self.max_idx])
-        self.line.append('{:.1f}'.format(self.total_bg))
+        if total: 
+            self.line.append('{:.1f}'.format(self.total_bg))
         return r'{} \\'.format(' & '.join(self.line))
 
 
 def make_latex_bg_table(physics_cut_dict, out_file=Temp(), title=''): 
     """
-    returns a file-like object
+    Makes table with columns named by mc type, rows named by region. 
+
+    returns a file-like object. 
     """
     from stop.style import type_dict
 
@@ -187,7 +190,7 @@ def make_latex_bg_table(physics_cut_dict, out_file=Temp(), title=''):
     headrow = r' {} & {} \\ \hline'.format(title,' & '.join(texphys))
     out_file.write(headrow + '\n')
     for cut in cut_list:
-        line_formatter = RegionCountsFormatter(cut)
+        line_formatter = RegionCountsFormatter(texify_sr(cut))
         for phys in phys_list: 
             tup = (phys,cut)
             if tup in physics_cut_dict: 
@@ -203,6 +206,63 @@ def make_latex_bg_table(physics_cut_dict, out_file=Temp(), title=''):
 
     out_file.write(r'\end{tabular}' + '\n')
     return out_file
+
+def make_marktable(physics_cut_dict, out_file, title=''): 
+    """
+    Makes table with columns named by region, rows named by physics type. 
+
+    returns a file-like object. 
+    """
+    from stop.style import type_dict
+
+    phys_list, reg_list = zip(*physics_cut_dict.keys())
+    phys_list = sort_physics(set(phys_list))
+    def cr_sort(key): 
+        splkey = key.split('_')
+        if len(splkey) == 1: 
+            return '-' + key
+        return ''.join(splkey[::-1])
+    reg_list = sorted(set(reg_list), key=cr_sort)
+    sigregex = re.compile('stop-[0-9]+-[0-9]+')
+    signals = [s for s in phys_list if sigregex.search(s)]
+    for signal in signals: 
+        phys_list.append(phys_list.pop(phys_list.index(signal)))
+    datname = [x for x in phys_list if x.lower() == 'data']
+    if datname: 
+        phys_list.append(phys_list.pop(phys_list.index(datname[0])))
+    texphys = []
+    for rawphys in phys_list: 
+        if rawphys.startswith('stop'): 
+            texphys.append(rawphys)
+        elif rawphys in type_dict: 
+            texphys.append(type_dict[rawphys].tex)
+        else: 
+            texphys.append(rawphys)
+    texphys.append('total BG')
+    colstring = '|'.join(['c']*(len(reg_list) +1))
+    prereq = r'\begin{{tabular}}{{ {} }}'.format(colstring)
+    out_file.write(prereq + '\n')
+    texreg = [texify_sr(x) for x in reg_list]
+    headrow = r' {} & {} \\ \hline'.format(title,' & '.join(texreg))
+    out_file.write(headrow + '\n')
+    for phys in phys_list:
+        line_formatter = RegionCountsFormatter(phys)
+        for cut in reg_list: 
+            tup = (phys,cut)
+            if tup in physics_cut_dict: 
+                value = physics_cut_dict[phys,cut]
+                if phys.lower() == 'data' or phys.startswith('stop'): 
+                    line_formatter.add_other(value)
+                else: 
+                    line_formatter.add_bg_value(value)
+            else: 
+                line_formatter.add_other(None)
+        textline = line_formatter.get_line(redmax=False, total=False)
+        out_file.write(textline + '\n')
+
+    out_file.write(r'\end{tabular}' + '\n')
+    return out_file
+    
 
 def _get_fields(region): 
     region_dict =  {
