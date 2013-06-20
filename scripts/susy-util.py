@@ -17,6 +17,10 @@ Groups d3pds into datasets by file. Will break larger datasets into multiple
 outputs. 
 """
 
+_cutflow_help="""
+Gets the aggregated cutflow from lots of files. 
+"""
+
 import argparse, sys
 from os.path import isdir, isfile, join, expanduser, splitext
 from os.path import dirname, basename, abspath
@@ -28,14 +32,16 @@ import h5py
 from itertools import chain
 from stop.hists import HistNd, HistAdder
 from stop import meta
-from collections import defaultdict
+from collections import defaultdict, Counter
 
 def run(): 
     config = get_config()
     subs = {
         'group': group_input_files, 
         'meta':list_meta_info, 
-        'hadd':hadd, 'rename':rename}
+        'hadd':hadd, 
+        'rename':rename, 
+        'cutflow':cutflow}
     subs[config.which](config)
 
 
@@ -83,6 +89,7 @@ def get_config():
     hist_add.add_argument('--norm', help=(
             'normalize using this meta file (scales to 1 fb^-1)'))
 
+    # group stuff
     group = subs.add_parser('group', description=_group_help)
     group.add_argument(
         'input_dirs', nargs='+', 
@@ -93,8 +100,29 @@ def get_config():
     group.add_argument('-o', '--output-dir', default='batch/d3pds', 
                        help=d)
 
+    # cutflow stuff
+    cutflow = subs.add_parser('cutflow', description=_cutflow_help)
+    cutflow.add_argument('count_files', nargs='+')
     return parser.parse_args(sys.argv[1:])
 
+def cutflow(config): 
+    cut_counts = Counter()
+    with open(config.count_files[0]) as first_file: 
+        cuts = [c[0] for c in yaml.load(first_file)]
+    cutset = set(cuts)
+    for f in config.count_files: 
+        with open(f) as count_file: 
+            cut_list = yaml.load(count_file)
+        these_cuts = set(c[0] for c in cut_list)
+        if these_cuts - cutset: 
+            if cutset - these_cuts: 
+                raise ValueError('weird {}'.format(cutset - these_cuts))
+            cuts = [c[0] for c in cut_list]
+            cutset = set(cuts)
+        cut_counts.update(dict(cut_list))
+    cut_strlen = max(len(x) for x in cuts) + 1
+    for cut in cuts: 
+        print '{:>{}}: {}'.format(cut, cut_strlen, cut_counts[cut])
 
 def list_meta_info(config): 
     from stop.meta import DatasetCache
