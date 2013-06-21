@@ -125,17 +125,15 @@ def setup_distill(config):
             ds_meta[ds_key].sum_event_weight = 0.0
             ds_meta[ds_key].n_raw_entries = 0
         collector = meta.MetaTextCollector()
-        out_meta = meta.DatasetCache()
         for textfile in config.input_textfiles: 
             ds_key = basename(splitext(textfile)[0]).split('-')[0]
             with open(textfile) as steering_file: 
                 files = [l.strip() for l in steering_file.readlines()]
             n_events, total_wt, n_cor = collector.get_recorded_events(
                 files, aggressive=config.aggressive)
-            out_meta[ds_key] = ds_meta[ds_key]
-            out_meta[ds_key].sum_event_weight += total_wt
-            out_meta[ds_key].n_raw_entries += n_events
-        out_meta.write(config.update_meta)
+            ds_meta[ds_key].sum_event_weight += total_wt
+            ds_meta[ds_key].n_raw_entries += n_events
+        ds_meta.write(config.update_meta)
     if config.script: 
         _write_distill_config(script_name=config.script, 
                               meta_name=config.update_meta, 
