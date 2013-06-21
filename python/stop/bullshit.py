@@ -6,7 +6,7 @@ def make_dir_if_none(hists_dir):
     Avoids race condition from launching multiple jobs. 
     """
     try: 
-        os.mkdir(hists_dir)
+        os.makedirs(hists_dir)
     except OSError as err: 
         if err.errno == errno.EEXIST and os.path.isdir(hists_dir): 
             pass
