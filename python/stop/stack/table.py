@@ -3,6 +3,7 @@ import warnings, re
 from stop.stack.regions import Region 
 from stop.style import texify_sr
 from math import log
+from collections import Counter
 
 # not used any more
 def _not_blinded(physics_cut_tup): 
@@ -244,6 +245,7 @@ def make_marktable(physics_cut_dict, out_file, title=''):
     out_file.write(prereq + '\n')
     texreg = [texify_sr(x) for x in reg_list]
     headrow = r' {} & {} \\ \hline'.format(title,' & '.join(texreg))
+    bg_counter = Counter()
     out_file.write(headrow + '\n')
     for phys in phys_list:
         line_formatter = RegionCountsFormatter(phys)
@@ -255,11 +257,16 @@ def make_marktable(physics_cut_dict, out_file, title=''):
                     line_formatter.add_other(value)
                 else: 
                     line_formatter.add_bg_value(value)
+                    bg_counter[cut] += value['normed']
             else: 
                 line_formatter.add_other(None)
         textline = line_formatter.get_line(redmax=False, total=False)
         out_file.write(textline + '\n')
 
+    bg_total = RegionCountsFormatter('Total BG')
+    for cut in reg_list: 
+        bg_total.add_other(bg_counter[cut])
+    out_file.write(bg_total.get_line(redmax=False,total=False) + '\n')
     out_file.write(r'\end{tabular}' + '\n')
     return out_file
     
