@@ -267,6 +267,15 @@ def make_marktable(physics_cut_dict, out_file, title=''):
     for cut in reg_list: 
         bg_total.add_other(bg_counter[cut])
     out_file.write(bg_total.get_line(redmax=False,total=False) + '\n')
+
+    ratio_line = RegionCountsFormatter('Data / MC')
+    for cut in reg_list: 
+        try: 
+            ratio = float(physics_cut_dict['data', cut]) / bg_counter[cut] 
+            ratio_line.add_other('{:.2f}'.format(ratio))
+        except KeyError: 
+            ratio_line.add_other(None)
+    out_file.write(ratio_line.get_line(redmax=False, total=False) + '\n')
     out_file.write(r'\end{tabular}' + '\n')
     return out_file
     
