@@ -7,6 +7,9 @@ _meta_help="""
 Check meta file for missing events
 """
 
+_stext_help="""
+Check susy events textfile. 
+"""
 
 import argparse, sys
 from os.path import isdir, isfile, join, expanduser, splitext
@@ -22,6 +25,7 @@ def run():
     config = get_config()
     subs = {
         'meta': check_meta, 
+        'stext': check_susy_events_file
         }
     subs[config.which](config)
 
@@ -34,10 +38,82 @@ def get_config():
     subs = parser.add_subparsers(dest='which')
 
     # check meta
-    check = subs.add_parser('meta', description=_meta_help)
-    check.add_argument('meta_file')
+    metacheck = subs.add_parser('meta', description=_meta_help)
+    metacheck.add_argument('meta_file')
+
+    # check susy-events file
+    susy_text_check = subs.add_parser('stext', description=_stext_help)
+    susy_text_check.add_argument('text_file')
+    susy_text_check.add_argument('meta_file', nargs='?')
 
     return parser.parse_args(sys.argv[1:])
+
+def check_susy_events_file(config): 
+    """
+    For summing over the susy group provided textfile on event counts. 
+    """
+    datasets = set()
+    ds_counts = {}
+    repeats = 0
+    with open(config.text_file) as susy_file: 
+        running_total = 0
+        for line in susy_file: 
+            sline = [e.strip() for e in line.split('|')]
+            if len(sline) >= 5: 
+                ds_name = sline[4].split()[1]
+                if ds_name.startswith('data12'): 
+                    dsid = int(ds_name.split('.')[1])
+                    total_events = int(sline[3].split()[1])
+                    if dsid in datasets: 
+                        repeats += 1
+                        if total_events != ds_counts[dsid]: 
+                            prob = 'ACHTUNG: {} != {} in {}'.format(
+                                ds_counts[dsid], total_events, dsid)
+                            sys.stderr.write(prob + '\n')
+                                    
+                    else: 
+                        datasets.add(dsid)
+                        running_total += total_events
+                    ds_counts[dsid] = total_events
+
+    print '{:,} total events in {} datasets ({} repeats)'.format(
+        running_total, len(datasets), repeats)
+    if config.meta_file: 
+        meta_dsids = set()
+        data_expected = 0
+        data_skimmed = 0
+        cache = DatasetCache(config.meta_file)
+        for key, ds in cache.iteritems(): 
+            keychar = 'd'
+            if key.startswith(keychar): 
+                meta_dsids.add(int(key.lstrip(keychar)))
+                data_expected += ds.n_expected_entries
+                data_skimmed += ds.n_raw_entries
+        not_in_susy = meta_dsids - datasets
+        def listinate(dsids): 
+            return ', '.join(str(i) for i in dsids)
+        if not_in_susy: 
+            print '{} found in meta and not susy'.format(
+                listinate(not_in_susy))
+
+        not_in_meta = datasets - meta_dsids
+        if not_in_meta: 
+            print '{} found in susy and not meta'.format(
+                listinate(not_in_meta))
+
+        print 'expected from AMI: {:,}'.format(data_expected)
+        print 'skimmed: {:,}'.format(data_skimmed)
+
+def _is_total_line(sline):
+    if not sline[0].startswith('='): 
+        return False
+    numbs = sline[0].lstrip('=').split('/')
+    if not len(numbs) == 2: 
+        return False
+    if numbs[0] == numbs[1]: 
+        return True
+    raise ValueError('just fucking shit')
+    
 
 def check_meta(config): 
     type_expected_counter = Counter()
