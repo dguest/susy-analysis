@@ -123,7 +123,7 @@ class SuperRegion(object):
             'leading_jet_gev': leading_jet_lower_bound, 
             'met_gev': met_lower_bound}
     def add_subregion(self, name, region):
-        reg_tuple = _superregion_tuple(region)
+        reg_tuple = superregion_tuple(region)
         if self.tuple:
             if reg_tuple != self.tuple: 
                 raise ValueError(
@@ -179,7 +179,7 @@ def condense_regions(regions):
     """
     super_regions = {}
     for name, region in regions.iteritems(): 
-        supertuple = _superregion_tuple(region)
+        supertuple = superregion_tuple(region)
         if not supertuple in super_regions: 
             super_regions[supertuple] = SuperRegion()
         super_regions[supertuple].add_subregion(name, region)
@@ -195,7 +195,7 @@ def condense_regions(regions):
         named_regions[final_name] = region
     return named_regions
 
-def _superregion_tuple(region): 
+def superregion_tuple(region): 
     req_bits = region.get_bits()
     veto_bits = region.get_antibits()
     region_bits = region.get_region_bits()

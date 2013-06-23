@@ -1,6 +1,8 @@
 from stop.hists import HistNd
 from h5py import File
 from os.path import isfile
+from stop.stack.regions import Region, superregion_tuple
+from itertools import product
 
 class RegionExtractor(object): 
     """
@@ -56,7 +58,8 @@ class RegionExtractor(object):
                             extracted[phname,meth,name] = counts
         return extracted
     
-    def extract_counts_dict(self, superdict, variable='kinematics'): 
+    def extract_counts_dict(self, superdict, reg_dicts, 
+                            variable='kinematics'): 
         """
         Extract subregions from a (physics, variable, superegion) keyed dict. 
         Returns a (physics, region) tuple. 
@@ -66,14 +69,34 @@ class RegionExtractor(object):
             raise ValueError(
                 "can't extract {}, allowed variables: {}".format(
                     variable, ', '.join(all_varaibles)))
-        regions = {}
+        super_regions = {}
+        all_phys = set()
         for (phys, var, supname), hist in superdict.iteritems(): 
             if var != variable: 
                 continue
             subregions = self.superregions[supname]['subregions']
-            for regname, region in subregions.iteritems(): 
-                count = self._get_subregion_counts(region, hist)
-                regions[phys,regname] = count
+            tup = None
+            for regname, region_dict in subregions.iteritems(): 
+                region = Region(region_dict)
+                if not tup: 
+                    tup = superregion_tuple(region)
+                elif tup != superregion_tuple(region): 
+                    raise ValueError(
+                        'inconpatible subregions found'
+                        ' in superregion {}'.format(supname))
+            super_regions[tup] = supname
+            all_phys.add(phys)
+        
+        regions = {}
+        for phys, regname in product(all_phys, reg_dicts.keys()): 
+            region = Region(reg_dicts[regname])
+            regtup = superregion_tuple(region)
+            super_region = super_regions[regtup]
+            if not (phys, variable, super_region) in superdict: 
+                continue
+            hist = superdict[phys, variable, super_region]
+            count = self._get_subregion_counts(reg_dicts[regname], hist)
+            regions[phys,regname] = count
         return regions
             
 

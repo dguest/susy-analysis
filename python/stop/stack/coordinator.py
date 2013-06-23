@@ -281,9 +281,10 @@ class Coordinator(object):
             extractor_yml = join(hist_path, self.super_region_meta_name)
             with open(extractor_yml) as yml: 
                 ext = extractor.RegionExtractor(yaml.load(yml))
-            normed = ext.extract_counts_dict(hist_dict, 
+            regions = self._config_dict['regions']
+            normed = ext.extract_counts_dict(hist_dict, regions, 
                                              variable='kinematics')
-            wt_2 = ext.extract_counts_dict(hist_dict, 
+            wt_2 = ext.extract_counts_dict(hist_dict, regions, 
                                            variable='kinematicWt2')
             def combine(k): 
                 if k in wt_2: 

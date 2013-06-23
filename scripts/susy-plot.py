@@ -76,7 +76,7 @@ _overlay_cut = 'preselection'
 def run_tagger_overlay(args): 
     with open(args.steering_file) as steering_yml: 
         config = yaml.load(steering_yml)
-    hists_base = config['files']['hists']
+    hists_base = config['files']['hadd-hists']
     aggregates = glob.glob(
         join(hists_base,'histmill','baseline','aggregate.h5'))
 
@@ -98,7 +98,7 @@ def run_tagger_overlay(args):
 def run_tagger_one_type(args): 
     with open(args.steering_file) as steering_yml: 
         config = yaml.load(steering_yml)
-    hists_base = config['files']['hists']
+    hists_base = config['files']['hadd-hists']
     aggregates = glob.glob(
         join(hists_base,'histmill','baseline','aggregate.h5'))
 
@@ -118,7 +118,7 @@ def run_tagger_one_type(args):
 def run_plotmill(args): 
     with open(args.steering_file) as steering_yml: 
         config = yaml.load(steering_yml)
-    hists_base = config['files']['hists']
+    hists_base = config['files']['hadd-hists']
     used_physics = config['backgrounds']['used'] + ['data']
 
     aggregates = glob.glob(
