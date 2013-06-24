@@ -127,10 +127,14 @@ class Workspace(object):
 
         
     def fit(self): 
-        raise NotImplementedError("this doesn't work right now")
+        """
+        This isn't actually called anywhere. 
+        """
         # Now, do the measurement
         import ROOT
+        from ROOT import Util
         # ROOT.gROOT.SetBatch(True)
+        raise NotImplementedError("this doesn't work right now")
         with OutputFilter(accept_re='(ERROR:|WARNING:)'): 
             workspace = self.hf.MakeModelAndMeasurementFast(self.meas)
         print '------------ fitting -------------------'
@@ -164,12 +168,12 @@ def _histfit(config):
     from ROOT import Util
 
     workspace = Util.GetWorkspaceFromFile(config.workspace,"combined")
-    
+    result = Util.FitPdf(workspace)
 
 def _setup_workspace(config): 
     inf = float('inf')
-    backgrounds = ['ttbar']
-    systematics = ['jer','jes']
+    backgrounds = ['ttbar','Wjets','Zjets','diboson']
+    systematics = ['jer','jes','b','c','u']
     counts = CountDict(config.kinematic_stat_dir, systematics=systematics)
 
     import ROOT
@@ -177,7 +181,7 @@ def _setup_workspace(config):
         hf = ROOT.RooStats.HistFactory
 
     fit = Workspace(counts, systematics, backgrounds)
-    for cr in ['ttbar0']: 
+    for cr in ['ttbar0','Wenu0','Wmunu0','Znunu0']: 
         fit.add_cr(cr, 150000.0, 150000.0)
     
     fit.save_workspace('results')
