@@ -169,6 +169,13 @@ def _histfit(config):
 
     workspace = Util.GetWorkspaceFromFile(config.workspace,"combined")
     result = Util.FitPdf(workspace)
+    for region in ['ttbar0']: 
+        comp = Util.GetComponent(workspace,"ttbar",region) 
+        print comp.getVal()
+        print comp.getPropagatedError(result)
+    # nbkgerrinRegionList = [ 
+    #     Util.GetPropagatedError(bkginRegion, result) for bkginRegion in bkginRegionList]
+
 
 def _setup_workspace(config): 
     inf = float('inf')
