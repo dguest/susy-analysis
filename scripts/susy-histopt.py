@@ -168,6 +168,13 @@ def _histfit(config):
     from ROOT import Util
 
     workspace = Util.GetWorkspaceFromFile(config.workspace,"combined")
+    sim_pdf = workspace.pdf('simPdf')
+    model_config = Util.GetModelConfig(workspace)
+    observable_set = model_config.GetObservables()
+    float_parameters = Util.getFloatParList(sim_pdf, observable_set)
+    print float_parameters
+    sys.exit('you got work to do here')
+
     result = Util.FitPdf(workspace)
     for region in ['ttbar0']: 
         comp = Util.GetComponent(workspace,"ttbar",region) 
@@ -175,7 +182,6 @@ def _histfit(config):
         print comp.getPropagatedError(result)
     # nbkgerrinRegionList = [ 
     #     Util.GetPropagatedError(bkginRegion, result) for bkginRegion in bkginRegionList]
-
 
 def _setup_workspace(config): 
     inf = float('inf')
