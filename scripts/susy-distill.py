@@ -77,7 +77,8 @@ def distill_d3pds(config):
             output_ntuple=out_path, 
             grl=grl,
             systematic=config.systematic, 
-            btag_cal_file=btag_env, cal_dir=calibration_dir)
+            btag_cal_file=btag_env, cal_dir=calibration_dir, 
+            cutflow='NOMINAL')
 
     counts_path = splitext(out_path)[0] + '_counts.yml'
     list_counts = [list(c) for c in cut_counts]
