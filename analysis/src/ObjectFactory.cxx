@@ -126,15 +126,6 @@ void ObjectFactory::entry(int n) {
   m_tree->GetEntry(n); 
 }
 
-Jet ObjectFactory::jet(int jet_number) const { 
-  // offset in the jet numbersing right now
-  JetBuffer* the_buffer = m_jet_buffers.at(jet_number); 
-  assert(the_buffer); 
-  if (the_buffer->pt <= 0) { 
-    throw std::out_of_range("asked for undefined jet"); 
-  }
-  return Jet(the_buffer, m_ioflags); 
-}
 std::vector<Jet> ObjectFactory::jets() const { 
   std::vector<Jet> jets_out; 
   for (auto itr = m_jet_buffers.begin(); itr != m_jet_buffers.end(); itr++) { 

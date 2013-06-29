@@ -66,7 +66,6 @@ public:
 private: 
   void set_btag_n(size_t jet_n, btag::JetTag); 
   void set_btag(JetBuffer*, btag::JetTag, std::string branch_name); 
-  Jet jet(int) const; 		// not fully supported
   void set_buffer(JetBuffer* buffer, std::string base_name); 
   TTree* m_tree; 
   TFile* m_file; 
