@@ -144,6 +144,7 @@ std::vector<Jet> ObjectFactory::jets() const {
     jets_out.push_back(Jet(*itr,m_ioflags)); 
     Jet& jet = *jets_out.rbegin(); 
     jet.set_event_met(met()); 
+    jet.set_mu_met(mu_met()); 
   }
   if (m_electron_jet_buffer) { 
     if (m_electron_jet_buffer->pt > 0) { 

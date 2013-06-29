@@ -29,7 +29,12 @@ void Jet::set_event_met(const TVector2& met) {
   TLorentzVector met_4vec(met.X(), met.Y(), 0, 1); 
   m_met_dphi = met_4vec.DeltaPhi(*this); 
 }
+void Jet::set_mu_met(const TVector2& met) { 
+  TLorentzVector met_4vec(met.X(), met.Y(), 0, 1); 
+  m_mu_met_dphi = met_4vec.DeltaPhi(*this); 
+}
 double Jet::met_dphi() const {return m_met_dphi; }
+double Jet::mu_met_dphi() const {return m_mu_met_dphi; }
 double Jet::pb() const {req_flavor(); return m_pb; } 
 double Jet::pc() const {req_flavor(); return m_pc; } 
 double Jet::pu() const {req_flavor(); return m_pu; } 
