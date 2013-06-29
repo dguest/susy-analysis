@@ -63,8 +63,8 @@ void Jet1DHists::fill(const Jet& jet, double w) {
   m_cnnLogCu->fill(log(jet.pc() / jet.pu()),  w); 
   m_cnnLogCb->fill(log(jet.pc() / jet.pb()),  w); 
   m_cnnLogBu->fill(log(jet.pb() / jet.pu()),  w); 
-  m_met_dphi->fill(abs(jet.met_dphi()),  w);
-  m_mu_met_dphi->fill(abs(jet.mu_met_dphi()), w); 
+  m_met_dphi->fill(std::abs(jet.met_dphi()),  w);
+  m_mu_met_dphi->fill(std::abs(jet.mu_met_dphi()), w); 
 
   if (m_truth_label) { 
     int label = static_cast<int>(jet.flavor_truth_label()); 
