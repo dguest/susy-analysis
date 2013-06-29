@@ -20,6 +20,7 @@
 #include "RunBits.hh"
 #include "EventBits.hh"
 #include "DistillerConstants.hh"
+#include "CutflowConstants.hh"
 
 #include <iostream>
 #include <fstream>
@@ -272,6 +273,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   if (veto_muons.size() == 0) pass_bits |= pass::muon_veto; 
 
   pass_bits |= met_bits(met); 
+  if (mu_met.Mod() > FILTER_MET) pass_bits |= pass::mu_met; 
 
   if ( m_flags & cutflag::truth ) { 
     fill_cjet_truth(*m_out_tree, signal_jets); 

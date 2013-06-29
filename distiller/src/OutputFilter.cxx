@@ -19,6 +19,8 @@ bool OutputFilter::should_save_event(const ull_t event_mask) {
   if ( (dopplejet_sel & event_mask) == dopplejet_sel) return true;
   const ull_t zmumu_selection = preselection | pass::os_zmass_mu_pair; 
   if ( (zmumu_selection & event_mask) == zmumu_selection) return true; 
+  const ull_t wmunu_sel = preselection | pass::mu_met | pass::control_muon; 
+  if ( (wmunu_sel & event_mask) == wmunu_sel) return true; 
   const ull_t zee_selection = preselection | pass::os_zmass_el_pair; 
   if ( (zee_selection & event_mask) == zee_selection) return true; 
   return false; 

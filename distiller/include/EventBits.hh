@@ -31,10 +31,12 @@ namespace pass {
 
   // must be set in the Analysis routines
   const ull_t mttop              = 1ULL << 21; 
-  // const ull_t j2_anti_b_opt      = 1ULL << 22; 
   // const ull_t j2_anti_u_opt      = 1ULL << 23; 
   // const ull_t j3_anti_b_opt      = 1ULL << 24; 
   // const ull_t j3_anti_u_opt      = 1ULL << 25; 
+
+  // late addition control region 
+  const ull_t mu_met             = 1ULL << 22; 
 
   // late additons to event cleaning 
   const ull_t tile_error         = 1ULL <<  35; 
