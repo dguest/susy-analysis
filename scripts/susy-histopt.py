@@ -5,7 +5,7 @@ from stop.hists import HistNd
 from stop.bullshit import OutputFilter
 import h5py
 import os, sys, re
-from os.path import isfile, isdir, join
+from os.path import isfile, isdir, join, dirname
 from collections import defaultdict
 import argparse
 import warnings
@@ -87,8 +87,8 @@ class Workspace(object):
             background = self.hf.Sample('_'.join([cr,bg]))
             base_count = cut_hist(self.counts['baseline',bg,cr]['sum'])
             if base_count == 0.0: 
-                warn_str = ('zero base count found in {} {}'
-                            ' skipping').format(bg, syst)
+                warn_str = ('zero base count found in {}'
+                            ' skipping').format(bg)
                 warnings.warn(warn_str, stacklevel=2)
                 continue
 
@@ -165,29 +165,50 @@ def run():
     fit.add_argument('workspace')
     
     config = parser.parse_args(sys.argv[1:])
-    {'ws':_setup_workspace, 'fit':_histfit}[config.which](config)
+    {'ws':_setup_workspace, 'fit':_new_histfit}[config.which](config)
 
-def _histfit(config): 
+def _load_susyfit(): 
+    """
+    Loads the root interfaces with HistFitter
+    """
+    from distutils import spawn
+    hf = dirname(spawn.find_executable('HistFitter.py'))
     import ROOT
-    ROOT.gSystem.Load("/data2/dguest/blackbox/HistFitter/lib/libSusyFitter.so")
-    import configManager as cf
+    with OutputFilter(): 
+        ROOT.gSystem.Load('{}/../lib/libSusyFitter.so'.format(hf))
+
+def _new_histfit(config): 
+    import ROOT
+    _load_susyfit()
+
+    # import configManager as cf
+    # from ROOT import Util
+    # import ConfigMgr as mgr
+    from ROOT import ConfigMgr
     from ROOT import Util
+    mgr = ConfigMgr.getInstance()
+    mgr.initialize()
+    mgr.setNToys(1000)
+    fit_config = mgr.addFitConfig('testFitConfig')
+    fit_config.m_inputWorkspaceFileName = config.workspace
+    fit_config.lumi = 21.0      # FIXME
+    for bg_chan in ['ttbar0','Wenu0','Wmunu0','Znunu0']: 
+        fit_config.m_bkgConstrainChannels.push_back(bg_chan)
 
-    workspace = Util.GetWorkspaceFromFile(config.workspace,"combined")
-    sim_pdf = workspace.pdf('simPdf')
-    model_config = Util.GetModelConfig(workspace)
-    observable_set = model_config.GetObservables()
-    float_parameters = Util.getFloatParList(sim_pdf, observable_set)
-    print float_parameters
-    sys.exit('you got work to do here')
-
-    result = Util.FitPdf(workspace)
-    for region in ['ttbar0']: 
-        comp = Util.GetComponent(workspace,"ttbar",region) 
-        print comp.getVal()
-        print comp.getPropagatedError(result)
-    # nbkgerrinRegionList = [ 
-    #     Util.GetPropagatedError(bkginRegion, result) for bkginRegion in bkginRegionList]
+    _fit_and_plot(fit_config.m_name, draw_after=True, plot_corr_matrix=True)
+    raw_input('press ENTER')
+    style = ROOT.ChannelStyle("WREl_meffInc");
+  
+    
+def _fit_and_plot(name, draw_before=False, draw_after=False, 
+                  plot_corr_matrix=False, plot_components=False, 
+                  plot_nll=False, minos=False): 
+    from ROOT import Util
+    Util.GenerateFitAndPlot(
+        name, 'ana_name', draw_before, draw_after, plot_corr_matrix, 
+        plot_components, plot_nll, minos)
+                            
+                  
 
 def _setup_workspace(config): 
     inf = float('inf')
