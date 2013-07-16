@@ -8,6 +8,7 @@ import os, sys, re
 from os.path import isfile, isdir, join
 from collections import defaultdict
 import argparse
+import warnings
 
 class CountDict(dict): 
     """
@@ -85,7 +86,12 @@ class Workspace(object):
         for bg in self.backgrounds:
             background = self.hf.Sample('_'.join([cr,bg]))
             base_count = cut_hist(self.counts['baseline',bg,cr]['sum'])
-            print base_count
+            if base_count == 0.0: 
+                warn_str = ('zero base count found in {} {}'
+                            ' skipping').format(bg, syst)
+                warnings.warn(warn_str, stacklevel=2)
+                continue
+
             background.SetValue(base_count)
             stat_error = cut_hist(self.counts['baseline',bg,cr]['wt2'])**0.5
             background.GetHisto().SetBinError(1,stat_error)
