@@ -8,5 +8,5 @@ def load_susyfit():
     
     hf = dirname(spawn.find_executable('HistFitter.py'))
     import ROOT
-    with OutputFilter(): 
+    with OutputFilter(accept_re='ERROR'): 
         ROOT.gSystem.Load('{}/../lib/libSusyFitter.so'.format(hf))

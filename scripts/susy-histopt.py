@@ -71,6 +71,42 @@ class Workspace(object):
         self.meas.SetLumiRelErr(lumiError)
         self.meas.SetExportOnly(False)
 
+    def _add_bgs_to_channel(self, chan, sr, cutfunc): 
+        for bg in self.backgrounds:
+            background = self.hf.Sample('_'.join([sr,bg]))
+            base_count = cutfunc(self.counts['baseline',bg,sr]['sum'])
+            if base_count == 0.0: 
+                warn_str = ('zero base count found in {}'
+                            ' skipping').format(bg)
+                warnings.warn(warn_str, stacklevel=2)
+                continue
+
+            background.SetValue(base_count)
+            stat_error = cutfunc(self.counts['baseline',bg,sr]['wt2'])**0.5
+            background.GetHisto().SetBinError(1,stat_error)
+            background.AddNormFactor('mu_{}'.format(bg), 1,0,10)
+            # background.AddNormFactor('Lumi', 1,0,10)
+
+            for syst in self.systematics:
+                if syst in {'jes', 'u','c','b','t'}: 
+                    sup_normed = cutfunc(
+                        self.counts[syst + 'up',bg,sr]['sum'])
+                    sdn_normed = cutfunc(
+                        self.counts[syst + 'down',bg,sr]['sum'])
+                    
+                    background.AddOverallSys(
+                        syst, sup_normed / base_count, 
+                        sdn_normed / base_count)
+                else: 
+                    syst_counts = cutfunc(self.counts[syst,bg,sr]['sum'])
+                    rel_syst = syst_counts / base_count - 1
+                    background.AddOverallSys(
+                        syst, 1 - rel_syst/2, 1 + rel_syst/2)
+
+
+            chan.AddSample(background)
+        
+
     def add_cr(self, cr, met_cut, ljpt_cut): 
         def cut_hist(hist): 
             m_cut = (met_cut,inf)
@@ -83,45 +119,27 @@ class Workspace(object):
         chan.SetData(data_count)
         chan.SetStatErrorConfig(0.05, "Poisson")
 
-        for bg in self.backgrounds:
-            background = self.hf.Sample('_'.join([cr,bg]))
-            base_count = cut_hist(self.counts['baseline',bg,cr]['sum'])
-            if base_count == 0.0: 
-                warn_str = ('zero base count found in {}'
-                            ' skipping').format(bg)
-                warnings.warn(warn_str, stacklevel=2)
-                continue
+        self._add_bgs_to_channel(chan, cr, cut_hist)
 
-            background.SetValue(base_count)
-            stat_error = cut_hist(self.counts['baseline',bg,cr]['wt2'])**0.5
-            background.GetHisto().SetBinError(1,stat_error)
-            background.AddNormFactor('mu_{}'.format(bg), 1,0,10)
-
-            for syst in self.systematics:
-                if syst in {'jes', 'u','c','b','t'}: 
-                    sup_normed = cut_hist(
-                        self.counts[syst + 'up',bg,cr]['sum'])
-                    sdn_normed = cut_hist(
-                        self.counts[syst + 'down',bg,cr]['sum'])
-                    
-                    background.AddOverallSys(
-                        syst, sup_normed / base_count, 
-                        sdn_normed / base_count)
-                else: 
-                    syst_counts = cut_hist(self.counts[syst,bg,cr]['sum'])
-                    rel_syst = syst_counts / base_count - 1
-                    background.AddOverallSys(
-                        syst, 1 - rel_syst/2, 1 + rel_syst/2)
-
-
-            chan.AddSample(background)
         self.meas.AddChannel(chan)
 
-    def add_sr(sr, met_cut, ljpt_cut): 
+    def add_sr(self, sr, met_cut, ljpt_cut, add_data=False): 
         def cut_hist(hist): 
             m_cut = (met_cut,inf)
             j_cut = (ljpt_cut,inf)
             return hist['met'].slice(*m_cut)['leadingJetPt'].slice(*j_cut)
+
+        chan = self.hf.Channel(sr)
+        if add_data: 
+            data_count = cut_hist(self.counts['baseline','data',sr]['sum'])
+            chan.SetData(data_count)
+        else: 
+            chan.SetData(1.0)     # hack since the data isn't in this region
+        chan.SetStatErrorConfig(0.05, "Poisson")
+
+        self._add_bgs_to_channel(chan, sr, cut_hist)
+
+        self.meas.AddChannel(chan)
         
 
     def save_workspace(self, results_dir='results', prefix='stop'): 
@@ -194,8 +212,11 @@ def _new_histfit(config):
     fit_config.lumi = 21.0      # FIXME
     for bg_chan in ['ttbar0','Wenu0','Wmunu0','Znunu0']: 
         fit_config.m_bkgConstrainChannels.push_back(bg_chan)
+    for sig_chan in ['SR0']:
+        fit_config.m_validationChannels.push_back(sig_chan)
 
-    _fit_and_plot(fit_config.m_name, draw_after=True, plot_corr_matrix=True)
+    _fit_and_plot(fit_config.m_name, 
+                  draw_before=True, draw_after=True, plot_corr_matrix=True)
     raw_input('press ENTER')
     style = ROOT.ChannelStyle("WREl_meffInc");
   
@@ -223,6 +244,9 @@ def _setup_workspace(config):
     fit = Workspace(counts, systematics, backgrounds)
     for cr in ['ttbar0','Wenu0','Wmunu0','Znunu0']: 
         fit.add_cr(cr, 150000.0, 150000.0)
+
+    for sr in ['SR0']: 
+        fit.add_sr(sr, 150000.0, 150000.0)
     
     fit.save_workspace('results')
     # histfit('results/example_combined_meas_model.root')
