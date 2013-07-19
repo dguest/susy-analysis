@@ -51,6 +51,10 @@ class CountDict(dict):
 inf = float('inf')
 
 class Workspace(object): 
+    '''
+    Organizes the building of workspaces, mainly by providing functions to 
+    transfer from a custom Histogram class to a RooFit workspace. 
+    '''
     meas_name = 'meas'
     def __init__(self, counts, systematics, backgrounds): 
         import ROOT
@@ -62,7 +66,7 @@ class Workspace(object):
         self.backgrounds = backgrounds
         self.meas = self.hf.Measurement(self.meas_name, self.meas_name)
 
-        self.meas.SetPOI("mu_SIG")
+        self.signal_point = None
         for syst in systematics: 
             self.meas.AddConstantParam('alpha_{}'.format(syst))
 
@@ -71,7 +75,34 @@ class Workspace(object):
         self.meas.SetLumiRelErr(lumiError)
         self.meas.SetExportOnly(False)
 
-    def _add_bgs_to_channel(self, chan, sr, cutfunc): 
+    def set_signal(self, signal_name): 
+        valid_signals = set(zip(*self.counts.keys())[1])
+        if not signal_name in valid_signals: 
+            possible_sigs = '\n'.join(valid_signals)
+            raise ValueError(
+                '{} not in:\n {}'.format(signal_name, possible_sigs))
+        if self.signal_point: 
+            raise ValueError('tried to overwrite {} with {}'.format(
+                    self.signal_point, signal_name))
+        self.signal_point = signal_name
+        self.meas.SetPOI("mu_{}".format(signal_name))
+
+    def _add_mc_to_channel(self, chan, sr, cutfunc): 
+        """
+        Adds the signal mc and the backgrounds to this channel. 
+        Will throw exceptions if the signal isn't set. 
+        """
+        if self.signal_point: 
+            signal = self.hf.Sample('_'.join([self.signal_point,sr]))
+            sig_hists = self.counts['baseline', self.signal_point, sr]
+            signal_count = cutfunc(sig_hists['sum'])
+            signal.SetValue(signal_count)
+            sig_stat_error = cutfunc(sig_hists['wt2'])**0.5
+            signal.GetHisto().SetBinError(1,sig_stat_error)
+            signal.SetNormalizeByTheory(True)
+            signal.AddNormFactor('mu_{}'.format(self.signal_point),1,0,2)
+            chan.AddSample(signal)
+
         for bg in self.backgrounds:
             background = self.hf.Sample('_'.join([sr,bg]))
             base_count = cutfunc(self.counts['baseline',bg,sr]['sum'])
@@ -103,9 +134,7 @@ class Workspace(object):
                     background.AddOverallSys(
                         syst, 1 - rel_syst/2, 1 + rel_syst/2)
 
-
             chan.AddSample(background)
-        
 
     def add_cr(self, cr, met_cut, ljpt_cut): 
         def cut_hist(hist): 
@@ -119,7 +148,7 @@ class Workspace(object):
         chan.SetData(data_count)
         chan.SetStatErrorConfig(0.05, "Poisson")
 
-        self._add_bgs_to_channel(chan, cr, cut_hist)
+        self._add_mc_to_channel(chan, cr, cut_hist)
 
         self.meas.AddChannel(chan)
 
@@ -137,16 +166,23 @@ class Workspace(object):
             chan.SetData(1.0)     # hack since the data isn't in this region
         chan.SetStatErrorConfig(0.05, "Poisson")
 
-        self._add_bgs_to_channel(chan, sr, cut_hist)
+        self._add_mc_to_channel(chan, sr, cut_hist)
 
         self.meas.AddChannel(chan)
         
 
-    def save_workspace(self, results_dir='results', prefix='stop'): 
+    def save_workspace(self, results_dir='results', prefix='stop',
+                       verbose=False): 
+        if not self.signal_point: 
+            self.meas.SetPOI("mu_SIG")
         if not isdir(results_dir): 
             os.mkdir(results_dir)
         self.meas.SetOutputFilePrefix(join(results_dir,prefix))
-        with OutputFilter(accept_re='(ERROR:|WARNING:)'): 
+        pass_strings = ['ERROR:','WARNING:']
+        if verbose: 
+            pass_strings.append('INFO:')
+        self.meas.SetExportOnly(True)
+        with OutputFilter(accept_re='({})'.format('|'.join(pass_strings))): 
             workspace = self.hf.MakeModelAndMeasurementFast(self.meas)
 
         
@@ -181,6 +217,7 @@ def run():
 
     fit = subparsers.add_parser('fit')
     fit.add_argument('workspace')
+    fit.add_argument('-l','--upper-limit',action='store_true')
     
     config = parser.parse_args(sys.argv[1:])
     {'ws':_setup_workspace, 'fit':_new_histfit}[config.which](config)
@@ -206,19 +243,21 @@ def _new_histfit(config):
     from ROOT import Util
     mgr = ConfigMgr.getInstance()
     mgr.initialize()
-    mgr.setNToys(1000)
+    mgr.setNToys(100)
     fit_config = mgr.addFitConfig('testFitConfig')
     fit_config.m_inputWorkspaceFileName = config.workspace
     fit_config.lumi = 21.0      # FIXME
     for bg_chan in ['ttbar0','Wenu0','Wmunu0','Znunu0']: 
         fit_config.m_bkgConstrainChannels.push_back(bg_chan)
     for sig_chan in ['SR0']:
-        fit_config.m_validationChannels.push_back(sig_chan)
+        fit_config.m_signalChannels.push_back(sig_chan)
 
     _fit_and_plot(fit_config.m_name, 
                   draw_before=True, draw_after=True, plot_corr_matrix=True)
     raw_input('press ENTER')
-    style = ROOT.ChannelStyle("WREl_meffInc");
+    mgr.m_outputFileName = 'upper-lim.root'
+    if config.upper_limit: 
+        mgr.doUpperLimitAll()
   
     
 def _fit_and_plot(name, draw_before=False, draw_after=False, 
@@ -237,16 +276,19 @@ def _setup_workspace(config):
     systematics = ['jer','jes','b','c','u']
     counts = CountDict(config.kinematic_stat_dir, systematics=systematics)
 
+    GeV = 1000.0
+
     import ROOT
     with OutputFilter(): 
         hf = ROOT.RooStats.HistFactory
 
     fit = Workspace(counts, systematics, backgrounds)
+    fit.set_signal('stop-150-75')
     for cr in ['ttbar0','Wenu0','Wmunu0','Znunu0']: 
         fit.add_cr(cr, 150000.0, 150000.0)
 
     for sr in ['SR0']: 
-        fit.add_sr(sr, 150000.0, 150000.0)
+        fit.add_sr(sr, 410*GeV, 270*GeV)
     
     fit.save_workspace('results')
     # histfit('results/example_combined_meas_model.root')
