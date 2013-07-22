@@ -6,7 +6,7 @@ from stop.bullshit import OutputFilter
 import h5py
 import os, sys, re
 from os.path import isfile, isdir, join, dirname
-from collections import defaultdict
+from collections import defaultdict, Counter
 import argparse
 import warnings
 
@@ -75,6 +75,17 @@ class Workspace(object):
         self.meas.SetLumiRelErr(lumiError)
         self.meas.SetExportOnly(False)
 
+        # for blinding / pseudodata
+        self.region_sums = Counter()
+        self.do_pseudodata = False
+        self.blinded = True
+        self.pseudodata_regions = {}
+        
+        # we have to add the channels _after_ adding data
+        # so using pseudodata means we have to save the channels
+        # and add them later
+        self.channels = {}
+
     def set_signal(self, signal_name): 
         valid_signals = set(zip(*self.counts.keys())[1])
         if not signal_name in valid_signals: 
@@ -97,6 +108,8 @@ class Workspace(object):
             sig_hists = self.counts['baseline', self.signal_point, sr]
             signal_count = cutfunc(sig_hists['sum'])
             signal.SetValue(signal_count)
+            if self.do_pseudodata: 
+                self.region_sums[sr] += signal_count
             sig_stat_error = cutfunc(sig_hists['wt2'])**0.5
             signal.GetHisto().SetBinError(1,sig_stat_error)
             signal.SetNormalizeByTheory(True)
@@ -106,6 +119,7 @@ class Workspace(object):
         for bg in self.backgrounds:
             background = self.hf.Sample('_'.join([sr,bg]))
             base_count = cutfunc(self.counts['baseline',bg,sr]['sum'])
+            self.region_sums[sr] += base_count
             if base_count == 0.0: 
                 warn_str = ('zero base count found in {}'
                             ' skipping').format(bg)
@@ -144,31 +158,33 @@ class Workspace(object):
 
         chan = self.hf.Channel(cr)
         data_count = cut_hist(self.counts['baseline','data',cr]['sum'])
-        print data_count
-        chan.SetData(data_count)
+        if self.do_pseudodata: 
+            self.pseudodata_regions[cr] = chan
+        else: 
+            chan.SetData(data_count)
         chan.SetStatErrorConfig(0.05, "Poisson")
 
         self._add_mc_to_channel(chan, cr, cut_hist)
 
-        self.meas.AddChannel(chan)
+        self.channels[cr] = chan
 
-    def add_sr(self, sr, met_cut, ljpt_cut, add_data=False): 
+    def add_sr(self, sr, met_cut, ljpt_cut): 
         def cut_hist(hist): 
             m_cut = (met_cut,inf)
             j_cut = (ljpt_cut,inf)
             return hist['met'].slice(*m_cut)['leadingJetPt'].slice(*j_cut)
 
         chan = self.hf.Channel(sr)
-        if add_data: 
+        if self.blinded: 
+            self.pseudodata_regions[sr] = chan
+        else: 
             data_count = cut_hist(self.counts['baseline','data',sr]['sum'])
             chan.SetData(data_count)
-        else: 
-            chan.SetData(1.0)     # hack since the data isn't in this region
         chan.SetStatErrorConfig(0.05, "Poisson")
 
         self._add_mc_to_channel(chan, sr, cut_hist)
 
-        self.meas.AddChannel(chan)
+        self.channels[sr] = chan
         
 
     def save_workspace(self, results_dir='results', prefix='stop',
@@ -177,6 +193,13 @@ class Workspace(object):
             self.meas.SetPOI("mu_SIG")
         if not isdir(results_dir): 
             os.mkdir(results_dir)
+
+        for chan_name, channel in self.channels.iteritems(): 
+            if chan_name in self.pseudodata_regions: 
+                pseudo_count = self.region_sums[chan_name]
+                channel.SetData(pseudo_count)
+            self.meas.AddChannel(channel)
+
         self.meas.SetOutputFilePrefix(join(results_dir,prefix))
         pass_strings = ['ERROR:','WARNING:']
         if verbose: 
@@ -243,7 +266,7 @@ def _new_histfit(config):
     from ROOT import Util
     mgr = ConfigMgr.getInstance()
     mgr.initialize()
-    mgr.setNToys(100)
+    mgr.setNToys(500)
     fit_config = mgr.addFitConfig('testFitConfig')
     fit_config.m_inputWorkspaceFileName = config.workspace
     fit_config.lumi = 21.0      # FIXME
@@ -283,6 +306,7 @@ def _setup_workspace(config):
         hf = ROOT.RooStats.HistFactory
 
     fit = Workspace(counts, systematics, backgrounds)
+    # fit.do_pseudodata = True
     fit.set_signal('stop-150-75')
     for cr in ['ttbar0','Wenu0','Wmunu0','Znunu0']: 
         fit.add_cr(cr, 150000.0, 150000.0)
