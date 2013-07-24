@@ -208,28 +208,6 @@ class Workspace(object):
         with OutputFilter(accept_re='({})'.format('|'.join(pass_strings))): 
             workspace = self.hf.MakeModelAndMeasurementFast(self.meas)
 
-        
-    def fit(self): 
-        """
-        This isn't actually called anywhere. 
-        """
-        # Now, do the measurement
-        import ROOT
-        from ROOT import Util
-        # ROOT.gROOT.SetBatch(True)
-        raise NotImplementedError("this doesn't work right now")
-        with OutputFilter(accept_re='(ERROR:|WARNING:)'): 
-            workspace = self.hf.MakeModelAndMeasurementFast(self.meas)
-        print '------------ fitting -------------------'
-        with OutputFilter(accept_re='(ERROR:|WARNING:)'): 
-            ROOT.RooStats.HistFactory.FitModel(workspace)
-        valdict = {}
-        for v in roo_arg_set_itr(workspace.allVars()): 
-            valdict[v.GetName()] =  v.getVal()
-    
-        for n, v in sorted(valdict.iteritems()): 
-            if not n.startswith('binWidth') and not n.startswith('nom_'): 
-                print n, v
     
 def run(): 
     parser = argparse.ArgumentParser()
