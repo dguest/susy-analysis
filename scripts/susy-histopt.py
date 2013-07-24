@@ -217,9 +217,15 @@ def run():
     fit = subparsers.add_parser('fit')
     fit.add_argument('workspace')
     fit.add_argument('-l','--upper-limit',action='store_true')
+    fit.add_argument('-p','--p-value', action='store_true')
+    fit.add_argument('-d','--draw-plots', action='store_true')
+
+    pval = subparsers.add_parser('pval')
+    pval.add_argument('workspace')
     
     config = parser.parse_args(sys.argv[1:])
-    {'ws':_setup_workspace, 'fit':_new_histfit}[config.which](config)
+    opts = {'ws':_setup_workspace, 'fit':_new_histfit, 'pval':_get_p_value}
+    opts[config.which](config)
 
 def _load_susyfit(): 
     """
@@ -251,13 +257,29 @@ def _new_histfit(config):
     for sig_chan in ['SR0']:
         fit_config.m_signalChannels.push_back(sig_chan)
 
-    _fit_and_plot(fit_config.m_name, 
-                  draw_before=True, draw_after=True, plot_corr_matrix=True)
-    raw_input('press ENTER')
+    draw_opts = {}
+    if config.draw_plots: 
+        draw_opts = dict(draw_before=True, 
+                         draw_after=True, 
+                         plot_corr_matrix=True)
+
+    _fit_and_plot(fit_config.m_name, **draw_opts)
+    
+    if draw_opts: 
+        raw_input('press ENTER')
+
     mgr.m_outputFileName = 'upper-lim.root'
     if config.upper_limit: 
         mgr.doUpperLimitAll()
-  
+
+def _get_p_value(config): 
+    import ROOT
+    _load_susyfit()
+    from ROOT import get_Pvalue
+    from ROOT import Util
+    workspace = Util.GetWorkspaceFromFile(config.workspace, 'w')
+
+    p_val = get_Pvalue(workspace)
     
 def _fit_and_plot(name, draw_before=False, draw_after=False, 
                   plot_corr_matrix=False, plot_components=False, 
@@ -266,7 +288,6 @@ def _fit_and_plot(name, draw_before=False, draw_after=False,
     Util.GenerateFitAndPlot(
         name, 'ana_name', draw_before, draw_after, plot_corr_matrix, 
         plot_components, plot_nll, minos)
-                            
                   
 
 def _setup_workspace(config): 
@@ -283,7 +304,7 @@ def _setup_workspace(config):
 
     fit = Workspace(counts, systematics, backgrounds)
     # fit.do_pseudodata = True
-    fit.set_signal('stop-150-75')
+    fit.set_signal('stop-225-150')
     for cr in ['ttbar0','Wenu0','Wmunu0','Znunu0']: 
         fit.add_cr(cr, 150000.0, 150000.0)
 
@@ -292,6 +313,10 @@ def _setup_workspace(config):
     
     fit.save_workspace('results')
     # histfit('results/example_combined_meas_model.root')
+
+
+
+# --- utility functions ---
 
 def roo_arg_set_itr(all_vars): 
     """
