@@ -108,8 +108,6 @@ class Workspace(object):
             sig_hists = self.counts['baseline', self.signal_point, sr]
             signal_count = cutfunc(sig_hists['sum'])
             signal.SetValue(signal_count)
-            if self.do_pseudodata: 
-                self.region_sums[sr] += signal_count
             sig_stat_error = cutfunc(sig_hists['wt2'])**0.5
             signal.GetHisto().SetBinError(1,sig_stat_error)
             signal.SetNormalizeByTheory(True)
