@@ -222,6 +222,9 @@ def run():
 
     pval = subparsers.add_parser('pval')
     pval.add_argument('workspace')
+    pval.add_argument(
+        '-n','--n-toys', type=int, default=None, const=300, nargs='?',
+        help='defaults to asymptotic, %(const)s with no args')
     
     config = parser.parse_args(sys.argv[1:])
     opts = {'ws':_setup_workspace, 'fit':_new_histfit, 'pval':_get_p_value}
@@ -275,11 +278,25 @@ def _new_histfit(config):
 def _get_p_value(config): 
     import ROOT
     _load_susyfit()
-    from ROOT import get_Pvalue
     from ROOT import Util
-    workspace = Util.GetWorkspaceFromFile(config.workspace, 'w')
+    from ROOT import RooStats
+    workspace = Util.GetWorkspaceFromFile(config.workspace, 'combined')
 
-    p_val = get_Pvalue(workspace)
+    Util.SetInterpolationCode(workspace,4)
+    if config.n_toys is None: 
+        calc_type = 2           # asymtotic
+        n_toys = 1
+    else:
+        calc_type = 0
+        n_toys = config.n_toys
+    with OutputFilter(): 
+        p_val = RooStats.get_Pvalue(
+            workspace,
+            True,    # doUL (exclusion rather than discovery)
+            n_toys, 
+            calc_type)  
+    print '{} -- {} -- {}'.format(
+        p_val.GetCLsd1S(), p_val.GetCLsexp(), p_val.GetCLsu1S())
     
 def _fit_and_plot(name, draw_before=False, draw_after=False, 
                   plot_corr_matrix=False, plot_components=False, 
