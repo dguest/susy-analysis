@@ -1,6 +1,5 @@
 #!/usr/bin/env python2.7
 import itertools, tempfile
-# from ROOT import kBlack,kWhite,kGray,kRed,kPink,kMagenta,kViolet,kBlue,kAzure,kCyan,kTeal,kGreen,kSpring,kYellow,kOrange
 from stop.hists import HistNd
 from stop.bullshit import OutputFilter
 import h5py
@@ -225,9 +224,13 @@ def run():
     pval.add_argument(
         '-n','--n-toys', type=int, default=None, const=300, nargs='?',
         help='defaults to asymptotic, %(const)s with no args')
+
+    upper_lim = subparsers.add_parser('ul')
+    upper_lim.add_argument('workspace')
     
     config = parser.parse_args(sys.argv[1:])
-    opts = {'ws':_setup_workspace, 'fit':_new_histfit, 'pval':_get_p_value}
+    opts = {'ws':_setup_workspace, 'fit':_new_histfit, 'pval':_get_p_value,
+            'ul':_get_upper_limit}
     opts[config.which](config)
 
 def _load_susyfit(): 
@@ -294,6 +297,29 @@ def _get_p_value(config):
             calc_type)  
     print '{} -- {} -- {}'.format(
         p_val.GetCLsd1S(), p_val.GetCLsexp(), p_val.GetCLsu1S())
+
+def _get_upper_limit(config): 
+    import ROOT
+    _load_susyfit()
+    from ROOT import Util
+    from ROOT import RooStats
+    workspace = Util.GetWorkspaceFromFile(config.workspace, 'combined')
+
+    Util.SetInterpolationCode(workspace,4)
+    with OutputFilter(): 
+        inverted = RooStats.DoHypoTestInversion(
+            workspace, 
+            1,                      # n_toys
+            2,                      # asymtotic calculator
+            3,                      # test type (3 is atlas standard)
+            True,                   # use CLs
+            20,                     # number of points
+            0,                      # POI min
+            -1,                     # POI max (why -1?)
+            )
+    mean_limit = inverted.GetExpectedUpperLimit(0)
+    print mean_limit
+
     
 def _fit_and_plot(name, draw_before=False, draw_after=False, 
                   plot_corr_matrix=False, plot_components=False, 
