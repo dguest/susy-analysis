@@ -244,9 +244,6 @@ def _new_histfit(config):
     import ROOT
     _load_susyfit()
 
-    # import configManager as cf
-    # from ROOT import Util
-    # import ConfigMgr as mgr
     from ROOT import ConfigMgr
     from ROOT import Util
     mgr = ConfigMgr.getInstance()
@@ -320,7 +317,6 @@ def _setup_workspace(config):
         hf = ROOT.RooStats.HistFactory
 
     fit = Workspace(counts, systematics, backgrounds)
-    # fit.do_pseudodata = True
     fit.set_signal('stop-225-150')
     for cr in ['ttbar0','Wenu0','Wmunu0','Znunu0']: 
         fit.add_cr(cr, 150000.0, 150000.0)
