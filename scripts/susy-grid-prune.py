@@ -68,7 +68,7 @@ gROOT.SetBatch()
 
 branches = open(sys.argv[1])
 
-susy_chain = TChain('susy')
+susy_chain = TChain('{chain_name}')
 collection_chain = TChain('CollectionTree')
 
 out_file = TFile('skim-output.root', 'recreate')
@@ -112,10 +112,12 @@ out_file.WriteTObject(out_collection)
 
 class LocalSkimmer(object): 
     script_name = 'skimmer.py'
-    def __init__(self, vars_file, all_the_cuts='', tarball=None): 
+    def __init__(self, vars_file, all_the_cuts='', tarball=None, 
+                 chain='susy'): 
         self.all_the_cuts = all_the_cuts
         self.vars_file = vars_file
         self.tarball = tarball
+        self.chain = chain
     def __enter__(self): 
         if os.path.isfile(self.script_name): 
             os.remove(self.script_name)
@@ -124,7 +126,9 @@ class LocalSkimmer(object):
             self.tar()
     def write(self): 
         with open(self.script_name,'w') as sk: 
-            sk.write(_skimmer.format(all_the_cuts=self.all_the_cuts))
+            sk.write(_skimmer.format(
+                    all_the_cuts=self.all_the_cuts,
+                    chain_name=self.chain))
         return self
     def tar(self): 
         user = os.path.expandvars('$USER')
@@ -332,6 +336,7 @@ if __name__ == '__main__':
     parser.add_argument('--blacklist', nargs='*', default=[])
     parser.add_argument('--get-slimmer', action='store_true')
     parser.add_argument('--debug', action='store_true')
+    parser.add_argument('--chain', default='susy', help=d)
     args = parser.parse_args()
 
     config = get_config(args.config)
@@ -344,7 +349,8 @@ if __name__ == '__main__':
     cuts, new_variables = get_cuts_and_vars(dict(config.items('cuts')))
 
     if args.get_slimmer: 
-        LocalSkimmer(args.ds_list, all_the_cuts=cuts).write()
+        LocalSkimmer(args.ds_list, all_the_cuts=cuts, 
+                     chain=args.chain).write()
         sys.exit('got skimmer, exiting...')
 
     if not find_executable('prun'): 
@@ -388,7 +394,7 @@ if __name__ == '__main__':
                              blacklist=args.blacklist)
 
         pool = Pool(10)
-        with LocalSkimmer(used_vars, cuts, tarball=tarball): 
+        with LocalSkimmer(used_vars, cuts, tarball=tarball, chain=args.chain): 
             out_tuples = pool.map(submit, datasets)
         reporter.close()
         output_datasets = [ds for ds, out, err in out_tuples]
@@ -398,7 +404,8 @@ if __name__ == '__main__':
     else: 
             
         for ds in datasets: 
-            with LocalSkimmer(used_vars, cuts, tarball=tarball): 
+            with LocalSkimmer(used_vars, cuts, tarball=tarball, 
+                              chain=args.chain): 
                 out_ds = submit_ds(ds, args.debug, version)
             output_container_list.write(out_ds + '\n')
 
