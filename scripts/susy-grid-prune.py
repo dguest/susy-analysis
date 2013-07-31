@@ -46,7 +46,7 @@ def submit_ds(ds_name, debug=False, version=0, used_vars='used_vars.txt',
     if in_tar: 
         input_args.append('--inTarBal={}'.format(in_tar))
     if maxgb: 
-        input_args.append('--nGBPerJob=MAX')
+        input_args.append('--nGBPerJob={}'.format(maxgb))
 
     exec_string = run_string
 
@@ -153,6 +153,8 @@ class LocalSkimmer(object):
             os.remove(self.tarball)
         
 def get_config(config_name, varlist_name): 
+    if not varlist_name: 
+        varlist_name = 'branches.txt'
     config = SafeConfigParser()
     config.read([config_name])
 
@@ -337,7 +339,9 @@ def _get_args():
     parser.add_argument('--full-log', default='full-ds-submit.log',
                         help=d)
     parser.add_argument('-i', '--increment-version', action='store_true')
-    parser.add_argument('-g', '--ngb-max', action='store_true')
+    parser.add_argument(
+        '-g', '--ngb', nargs='?', const='MAX', 
+        help='number of gb per job (with no arg: %(const)s )')
     parser.add_argument('--blacklist', nargs='*', default=[])
     parser.add_argument('--get-slimmer', action='store_true')
     parser.add_argument('--debug', action='store_true')
@@ -404,7 +408,7 @@ if __name__ == '__main__':
                              used_vars=used_vars, 
                              out_talk=reporter.queue, 
                              in_tar=tarball, 
-                             maxgb=args.ngb_max, 
+                             maxgb=args.ngb, 
                              blacklist=args.blacklist)
 
         pool = Pool(10)
