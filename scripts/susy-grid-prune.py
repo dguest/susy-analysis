@@ -152,15 +152,17 @@ class LocalSkimmer(object):
         if self.tarball: 
             os.remove(self.tarball)
         
-def get_config(config_name): 
+def get_config(config_name, varlist_name): 
     config = SafeConfigParser()
     config.read([config_name])
+
     if not config.has_section('version'): 
         config.add_section('version')
         config.set('version','version','0')
     if not config.has_section('variables'): 
         config.add_section('variables')
-        config.set('variables','varlist','all-branches.txt')
+        config.set('variables','varlist', varlist_name)
+        config.set('variables','chain','susy')
     if not config.has_section('cuts'): 
         config.add_section('cuts')
         config.set('cuts', 'met_low', '70000')
@@ -168,7 +170,7 @@ def get_config(config_name):
     return config
 
 def get_cuts_and_vars(cuts_dict): 
-    if cuts_dict['mark_skim'] == 'true': 
+    if cuts_dict.get('mark_skim','false') == 'true': 
         return get_marks_skim(cuts_dict)
     cuts = {}
     variables = []
@@ -318,11 +320,14 @@ class Reporter(Process):
         self.queue.close()
         self.join()
 
-if __name__ == '__main__': 
+def _get_args(): 
     parser = argparse.ArgumentParser(description=__doc__)
 
     d = 'default: %(default)s'
-    parser.add_argument('ds_list', nargs='?')
+    parser.add_argument('ds_list', nargs='?', 
+                        help='file listing datasets (can also pipe in list)')
+    parser.add_argument('-v','--variable-list', 
+                        help='file containing variables to skim over')
     parser.add_argument('--mono', action='store_true',
                         help="don't multiprocess")
     parser.add_argument('--out-name', default='output-containers.txt', 
@@ -336,10 +341,26 @@ if __name__ == '__main__':
     parser.add_argument('--blacklist', nargs='*', default=[])
     parser.add_argument('--get-slimmer', action='store_true')
     parser.add_argument('--debug', action='store_true')
-    parser.add_argument('--chain', default='susy', help=d)
-    args = parser.parse_args()
+    return parser.parse_args()
 
-    config = get_config(args.config)
+def _get_datasets(ds_list_name): 
+    datasets = []
+    if args.ds_list: 
+        with open(ds_list_name) as ds_list: 
+            for line in ds_list: 
+                dataset = line.split('#')[0].strip()
+                if dataset: 
+                    datasets.append(dataset)
+
+    elif not sys.stdin.isatty(): 
+        for ds_name in sys.stdin.readlines(): 
+            datasets.append(ds_name.strip())
+    return datasets
+
+if __name__ == '__main__': 
+
+    args = _get_args()
+    config = get_config(args.config, args.variable_list)
     if not os.path.isfile(args.config): 
         print 'writing config'
         with open(args.config,'w') as cfg: 
@@ -348,9 +369,10 @@ if __name__ == '__main__':
 
     cuts, new_variables = get_cuts_and_vars(dict(config.items('cuts')))
 
+    chain_name = config.get('variables','chain')
     if args.get_slimmer: 
         LocalSkimmer(args.ds_list, all_the_cuts=cuts, 
-                     chain=args.chain).write()
+                     chain=chain_name).write()
         sys.exit('got skimmer, exiting...')
 
     if not find_executable('prun'): 
@@ -361,23 +383,15 @@ if __name__ == '__main__':
         version += 1
         config.set('version','version',str(version))
 
-    used_vars = config.get('variables','varlist')
-    datasets = []
+    used_vars = args.variable_list
+    if not used_vars: 
+        used_vars = config.get('variables','varlist')
     add_vars(new_variables, used_vars)
 
     if not os.path.isfile(used_vars): 
         sys.exit('you need {}!'.format(used_vars))
 
-    if args.ds_list: 
-        with open(args.ds_list) as ds_list: 
-            for line in ds_list: 
-                dataset = line.split('#')[0].strip()
-                if dataset: 
-                    datasets.append(dataset)
-
-    elif not sys.stdin.isatty(): 
-        for ds_name in sys.stdin.readlines(): 
-            datasets.append(ds_name.strip())
+    datasets = _get_datasets(args.ds_list)
 
     output_container_list = open(args.out_name,'w')
     out_log = open(args.full_log,'w')
@@ -394,7 +408,7 @@ if __name__ == '__main__':
                              blacklist=args.blacklist)
 
         pool = Pool(10)
-        with LocalSkimmer(used_vars, cuts, tarball=tarball, chain=args.chain): 
+        with LocalSkimmer(used_vars, cuts, tarball=tarball, chain=chain_name): 
             out_tuples = pool.map(submit, datasets)
         reporter.close()
         output_datasets = [ds for ds, out, err in out_tuples]
@@ -405,7 +419,7 @@ if __name__ == '__main__':
             
         for ds in datasets: 
             with LocalSkimmer(used_vars, cuts, tarball=tarball, 
-                              chain=args.chain): 
+                              chain=chain_name): 
                 out_ds = submit_ds(ds, args.debug, version)
             output_container_list.write(out_ds + '\n')
 
