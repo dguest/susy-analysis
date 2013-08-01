@@ -207,7 +207,9 @@ def get_marks_skim(cuts_dict):
     met_final = 'MET_Egamma10NoTau_RefFinal'
     met_muon = 'MET_Egamma10NoTau_Muon_Total_Staco'
     triggers = [
-        'EF_xe80_tclcw_loose','EF_xe80_tclcw_tight','EF_xe80T_tclcw_loose']
+        'EF_xe80_tclcw_loose','EF_xe80_tclcw_tight','EF_xe80T_tclcw_loose',
+        'mu24i_tight',          # for Z CR
+        ]
     met_final_exp = '{f}_etx * {f}_etx + {f}_ety * {f}_ety'.format(
         f=met_final)
     met_muon_exp = (
