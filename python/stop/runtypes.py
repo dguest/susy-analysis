@@ -1,16 +1,18 @@
+import copy
 class DsRange(object): 
     def __init__(self, *range_tuples): 
         self.range_tuples = range_tuples
         self.ds_list = []
     def __add__(self, other): 
         all_tuples = list(self.range_tuples)  
+        ds_list = copy.deepcopy(self.ds_list)
         if isinstance(other,list): 
-            self.ds_list += other
+            ds_list += other
         else: 
             all_tuples += list(other.range_tuples)
 
         new = DsRange(*all_tuples)
-        new.ds_list = self.ds_list
+        new.ds_list = ds_list
         return new
     def __radd__(self, other): 
         return self.__add__(other)
