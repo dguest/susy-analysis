@@ -317,8 +317,15 @@ def _get_upper_limit(config):
             0,                      # POI min
             -1,                     # POI max (why -1?)
             )
+
+    # one might think that inverted.GetExpectedLowerLimit(-1) would do 
+    # something different from GetExpectedUpperLimit(-1), but then one would 
+    # be wrong...
     mean_limit = inverted.GetExpectedUpperLimit(0)
-    print mean_limit
+    lower_limit = inverted.GetExpectedUpperLimit(-1)
+    upper_limit = inverted.GetExpectedUpperLimit(1)
+    print '{} -- {} -- {}'.format(
+        lower_limit, mean_limit, upper_limit)
 
     
 def _fit_and_plot(name, draw_before=False, draw_after=False, 
