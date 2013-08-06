@@ -86,7 +86,7 @@ static unsigned get_flags(const char* flags_str)
   if (strchr(flags_str,'e')) flags |= cutflag::save_all_events; 
   if (strchr(flags_str,'f')) flags |= cutflag::is_atlfast; 
   if (strchr(flags_str,'g')) flags |= cutflag::get_branches; 
-  if (strchr(flags_str,'h')) flags |= cutflag::boson_pt_cut_70; 
+  if (strchr(flags_str,'h')) flags |= cutflag::boson_pt_cut_40; 
   if (strchr(flags_str,'i')) flags |= cutflag::spartid; 
   if (strchr(flags_str,'j')) flags |= cutflag::vector_output; 
   if (strchr(flags_str,'m')) flags |= cutflag::mv3; 

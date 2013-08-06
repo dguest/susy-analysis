@@ -69,7 +69,7 @@ StopDistiller::StopDistiller(const std::vector<std::string>& in,
   setup_susytools(); 
   setup_outputs(); 
   setup_cutflow(info.cutflow_type); 
-  if (flags & cutflag::boson_pt_cut_70) { 
+  if (flags & cutflag::boson_pt_cut_40) { 
     m_boson_truth_filter = new BosonTruthFilter(BOSON_PT_OVERLAP_CUT_MEV); 
   }
 }
