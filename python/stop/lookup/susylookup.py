@@ -44,7 +44,8 @@ class MetaFactory(object):
 
     def lookup_susy(self, susy_file): 
         """
-        Matches whatever datasets have a cross section listed in the susy file.
+        Matches whatever datasets have a cross section listed in the 
+        susy file.
         """
         id_line = ''
         split_dict = {}
@@ -67,7 +68,8 @@ class MetaFactory(object):
             except IndexError: 
                 if 'http' in clean_line: 
                     warn('some fucktard stuck http in the file without'
-                         ' commenting it out... skipping line')
+                         ' commenting it out... skipping line', 
+                         stacklevel=2)
                     continue
                 raise ValueError("can't parse {}".format(clean_line))
             split_dict[ds_id] = spl
