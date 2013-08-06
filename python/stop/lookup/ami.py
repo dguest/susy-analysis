@@ -205,6 +205,26 @@ class AmiAugmenter(object):
             datasets[ds.key] = ds
         return datasets
 
+    def _bug_report_line(self, line, ds, info): 
+        diagnostic = 'for {} {}. In info: {}\n'.format(
+            ds.key, ds.name, ', '.join(info.extra.keys()))
+
+        responsible = ''
+        argv=["SearchQuery"]
+        argv.append(
+            "-sql=select physicistResponsible from dataset where "
+            "logicalDatasetName='{}'".format(info.info['logicalDatasetName']))
+        argv.append('project=mc12_001')
+        argv.append('processingStep=production')
+        result = self.client.execute(argv)
+        for row in result.rows(): 
+            if 'physicistResponsible' in row: 
+                assert not responsible, 'two responsible physicists found'
+                responsible = row['physicistResponsible']
+
+        tmp_str = '{} (email: {res}) {}' if responsible else '{} {}'
+        return tmp_str.format(line, diagnostic, res=responsible)
+
     def _write_mc_ami_info(self, ds, info, overwrite=False):
         if not ds.filteff or overwrite:
             filteff_list = ['GenFiltEff_mean', 'approx_GenFiltEff']
@@ -215,8 +235,7 @@ class AmiAugmenter(object):
 
         if not ds.filteff: 
             self.bugstream.write(
-                "can't find filteff for {} {}. In info: {}\n".format(
-                    ds.key, ds.name, ', '.join(info.extra.keys())))
+                self._bug_report_line("can't find filteff", ds, info))
 
         new_xsec = 0.0
         xsec_list = ['crossSection_mean', 'approx_crossSection']
@@ -228,8 +247,7 @@ class AmiAugmenter(object):
 
         if not new_xsec: 
             self.bugstream.write(
-                "can't find xsection for {} {}. In info: {}\n".format(
-                    ds.key, ds.name, ', '.join(info.extra.keys())))
+                self._bug_report_line("can't find xsection", ds, info))
             return 
 
         if not ds.total_xsec_fb or overwrite:
