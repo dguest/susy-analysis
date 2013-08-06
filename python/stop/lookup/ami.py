@@ -17,6 +17,7 @@ class AmiAugmenter(object):
         self.outstream = sys.stdout
         self.bugstream = sys.stderr
         self.atlfinder = re.compile('(_a([0-9])+)+')
+        self.fullsim_finder = re.compile('(_r([0-9])+)+')
 
     def _setup_ami_client(self): 
         self.client = AMIClient()
@@ -24,25 +25,12 @@ class AmiAugmenter(object):
             create_auth_config()
         self.client.read_config(AMI_CONFIG)
 
-    def _filter_datasets(self, in_list, filt_func): 
-        if not in_list: 
-            raise DatasetMatchError('found nothing to filter')
-        filtered = []
-        for m in in_list: 
-            if filt_func(m): 
-                filtered.append(m)
-        if not filtered: 
-            raise DatasetMatchError(
-                'filter removed all {} with {}'.format(
-                    args.items(), self.ntup_filter),in_list)
-        return filtered
-
-    def get_dataset_range(self, ds_range, physics_type=None, atlfast=False): 
+    def get_dataset_range(self, ds_range, physics_type=None): 
         datasets = []
         for num in ds_range: 
             self.outstream.write('looking up {}, category {}\n'.format(
                     num, physics_type))
-            ds = self.ds_from_id(num, atlfast=atlfast)
+            ds = self.ds_from_id(num)
             if physics_type: 
                 ds.physics_type = physics_type
             datasets.append(ds)
@@ -52,7 +40,17 @@ class AmiAugmenter(object):
     def _ldn(self, ddict): 
         return ddict['logicalDatasetName']
 
-    def ds_from_id(self, ds_id, stream=None, atlfast=False): 
+    def _largest_fullsim_number(self, *datasets): 
+        largest = None
+        largest_number = 0
+        for ds in datasets: 
+            ldn = self._ldn(ds)
+            fullsim_number = int(self.fullsim_finder.search(ldn).group(2))
+            if fullsim_number > largest_number: 
+                largest = ds
+        return largest
+
+    def ds_from_id(self, ds_id, stream=None): 
         if 'data' in self.origin: 
             args = {'run':ds_id}
         else: 
@@ -64,7 +62,6 @@ class AmiAugmenter(object):
             raise DatasetMatchError('found nothing with {}'.format(
                     args.items()), match_sets)
         
-        # TODO: replace all these calls with the _filter_datasets function
         if len(match_sets) > 1: 
             type_filtered = []
             for m in match_sets: 
@@ -99,16 +96,8 @@ class AmiAugmenter(object):
                     'p filter removed all {} with {}'.format(
                         args.items(), self.ntup_filter))
             match_sets = tagged_matches
-    
-        if len(match_sets) > 1: 
-            atlmatch = []
-            for m in match_sets: 
-                if bool(self.atlfinder.search(self._ldn(m))) == atlfast: 
-                    atlmatch.append(m)
-            if not atlmatch: 
-                raise DatasetMatchError(
-                    'atlfilter filter removed all {} with {}'.format(
-                        args.items(), self.ntup_filter))
+
+        match_sets = self._atlfast_filter(match_sets)
                 
         if len(match_sets) == 0:
             raise DatasetMatchError('problem matching {} with {}'.format(
@@ -127,7 +116,44 @@ class AmiAugmenter(object):
             self._write_mc_ami_info(ds, info)
             ds.physics_type = 'data'
         return ds
-    
+
+    def _atlfast_filter(self, match_sets, fullsim_tolerance=1.2): 
+        if len(match_sets) == 1: 
+            return match_sets
+        atlfast_ds = None
+        fullsim_ds = None
+        for m in match_sets: 
+            ldn = self._ldn(m)
+            if self.atlfinder.search(self._ldn(m)): 
+                if atlfast_ds: 
+                    raise DatasetMatchError('at least two atlfast', 
+                                            [atlfast_ds,m])
+                atlfast_ds = m
+            else: 
+                if fullsim_ds: 
+                    fullsim_ds = self._largest_fullsim_number(fullsim_ds, m)
+
+        # if only one or the other exists, use that
+        if atlfast_ds and not fullsim_ds: 
+            return [atlfast_ds]
+        elif fullsim_ds and not atlfast_ds: 
+            return [fullsim_ds]
+
+        # otherwise we need to figure out which has more stats
+        def get_expected_counts(ds): 
+            ldn = self._ldn(ds)
+            info = query.get_dataset_info(self.client, ldn)
+            matched_counts = float(info.info['totalEvents'])
+            return matched_counts
+        
+        atlfast_counts = get_expected_counts(atlfast_ds)
+        fullsim_counts = get_expected_counts(fullsim_ds)
+
+        if atlfast_counts < fullsim_counts * fullsim_tolerance: 
+            return [fullsim_ds]
+        else: 
+            return [atlfast_ds]
+            
 
     def update_ds(self, ds, overwrite=True): 
         if ds.is_data: 

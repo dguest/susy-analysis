@@ -48,6 +48,7 @@ def _get_parser():
     parser.add_argument('--muons', action='store_true', 
                         help='generate fresh data list')
     parser.add_argument('--variations', action='store_true')
+    parser.add_argument('--stop', action='store_true')
     parser.add_argument('--scharm', action='store_true')
 
     ami_mode = parser.add_mutually_exclusive_group()
@@ -85,6 +86,8 @@ def run():
         build_variations_file(args.steering_file)
     if args.scharm: 
         build_scharm_file(args.steering_file)
+    if args.stop: 
+        build_stop_file(args.steering_file)
 
     if args.update_ami or args.rewrite_ami: 
         update(args.steering_file, overwrite=args.rewrite_ami)
@@ -147,6 +150,18 @@ def build_mark_file(name):
     ds_cache.write()
     dumpbugs(ami, 'mc-bugs.log')
 
+def build_stop_file(name): 
+    from stop.lookup.ami import AmiAugmenter
+    from stop.runtypes import stop_signal
+    ami = AmiAugmenter('p1328', 'mc12_8TeV')
+    ami.bugstream = TemporaryFile()
+    ds_cache = DatasetCache(name)
+    for phys_type, ids in stop_signal.iteritems(): 
+        new_meta = ami.get_dataset_range(ids, phys_type)
+        ds_cache.update(new_meta)
+    ds_cache.write()
+    dumpbugs(ami, 'stopgrid-bugs.log')
+
 def build_scharm_file(name): 
     from stop.lookup.ami import AmiAugmenter
     from stop.runtypes import scharm
@@ -166,7 +181,7 @@ def build_variations_file(name):
     ami.bugstream = TemporaryFile()
     ds_cache = DatasetCache(name)
     for phys_type, ids in variations.iteritems(): 
-        new_meta = ami.get_dataset_range(ids, phys_type, atlfast=True)
+        new_meta = ami.get_dataset_range(ids, phys_type)
         ds_cache.update(new_meta)
     ds_cache.write()
     dumpbugs(ami, 'variation-bugs.log')
