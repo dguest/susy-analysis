@@ -6,7 +6,7 @@ Script to submit prun jobs to skim D3PDs.
 Creates a skimmer.py in the current directory. 
 """
 
-import sys, os, re
+import sys, os, re, shutil
 import argparse
 from subprocess import Popen, PIPE
 from multiprocessing import Pool, Process, Queue
@@ -79,7 +79,7 @@ for f in sys.argv[2].split(','):
     ret = susy_chain.Add(f,-1)
     ret = collection_chain.Add(f,-1)
 
-set_branches = open('set-branches.txt','w')
+set_branches = open('{branches_file}','w')
 entries = susy_chain.GetEntries()
 susy_chain.Draw('0.5 >> sum_hist(1,0,1)','mcevt_weight[0][0]')
 try: 
@@ -125,11 +125,13 @@ class LocalSkimmer(object):
         self.write()
         if self.tarball: 
             self.tar()
+        self.current_files = set(os.listdir('.'))
     def write(self): 
         with open(self.script_name,'w') as sk: 
             sk.write(_skimmer.format(
                     all_the_cuts=self.all_the_cuts,
-                    chain_name=self.chain))
+                    chain_name=self.chain, 
+                    branches_file=self.vars_file))
         return self
     def tar(self): 
         user = os.path.expandvars('$USER')
@@ -152,6 +154,14 @@ class LocalSkimmer(object):
         os.remove(self.script_name)
         if self.tarball: 
             os.remove(self.tarball)
+    
+        # clean up junk
+        new_files = set(os.listdir('.')) - self.current_files
+        for f in new_files: 
+            if os.path.isdir(f): 
+                shutil.rmtree(f)
+            else: 
+                os.remove(f)
         
 def get_config(config_name, varlist_name): 
     if not varlist_name: 
@@ -416,7 +426,7 @@ if __name__ == '__main__':
 
         pool = Pool(10)
         with LocalSkimmer(used_vars, cuts, tarball=tarball, chain=chain_name): 
-            out_tuples = pool.map(submit, datasets)
+            out_tuples = pool.map_async(submit, datasets).get(999999)
         reporter.close()
         output_datasets = [ds for ds, out, err in out_tuples]
         for ds in output_datasets: 
