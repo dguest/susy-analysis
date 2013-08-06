@@ -80,7 +80,7 @@ def run():
     if args.jets: 
         build_jets_file(args.steering_file)
     if args.muons: 
-        build_muons_file(args.steering_file)
+        build_muon_file(args.steering_file)
     if args.variations: 
         build_variations_file(args.steering_file)
     if args.scharm: 
