@@ -79,7 +79,7 @@ for f in sys.argv[2].split(','):
     ret = susy_chain.Add(f,-1)
     ret = collection_chain.Add(f,-1)
 
-set_branches = open('{branches_file}','w')
+set_branches = open('set-branches.txt','w')
 entries = susy_chain.GetEntries()
 susy_chain.Draw('0.5 >> sum_hist(1,0,1)','mcevt_weight[0][0]')
 try: 
@@ -298,6 +298,8 @@ class Reporter(Process):
     def _file_out(self, message): 
         if self.has_error(message): 
             result = 'ERROR'
+        elif self.already_done(message): 
+            result = 'DONE'
         else: 
             result = 'SUCCESS'
         out = '{} of {}, result: {}\n'.format(
