@@ -9,7 +9,7 @@
 #include "_distiller.hh"
 #include "StopDistiller.hh"
 
-#include "RunBits.hh"
+#include "cutflag.hh"
 #include "RunInfo.hh"
 #include "systematic_defs.hh"
 #include "CutflowConfig.hh"

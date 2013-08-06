@@ -5,7 +5,7 @@
 
 #include "SusyBuffer.h"
 #include "SmartChain.hh"
-#include "RunBits.hh"
+#include "cutflag.hh"
 
 SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br, 
 		       BranchNames names)

@@ -8,7 +8,7 @@
 #include "constants.hh"
 #include "RunInfo.hh"
 
-#include "RunBits.hh"
+#include "cutflag.hh"
 #include "EventBits.hh"
 
 #include <iostream>

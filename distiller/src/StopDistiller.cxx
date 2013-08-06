@@ -17,7 +17,7 @@
 #include "BosonTruthFilter.hh"
 #include "CheckSize.hh"
 
-#include "RunBits.hh"
+#include "cutflag.hh"
 #include "EventBits.hh"
 #include "DistillerConstants.hh"
 #include "CutflowConstants.hh"

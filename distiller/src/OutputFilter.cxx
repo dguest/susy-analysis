@@ -2,7 +2,7 @@
 #include "RunInfo.hh"
 #include "typedefs.hh"
 #include "EventBits.hh"
-#include "RunBits.hh"
+#include "cutflag.hh"
 
 OutputFilter::OutputFilter(const RunInfo&, unsigned run_flags ) { 
   m_save_all_events = (run_flags & cutflag::save_all_events); 

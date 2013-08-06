@@ -3,7 +3,7 @@
 #include "SusyBuffer.h"
 #include "Grl.hh"
 #include "EventBits.hh"
-#include "RunBits.hh"
+#include "cutflag.hh"
 #include "SUSYTools/SUSYObjDef.h"
 
 EventPreselector::EventPreselector(unsigned flags, std::string grl) : 
