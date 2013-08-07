@@ -3,8 +3,8 @@ import itertools, tempfile
 from stop.bullshit import OutputFilter
 import os, sys, re
 import argparse
-from pyroot.fitter import CountDict
-from pyroot.fitter import Workspace
+from pyroot.fitter import CountDict, Workspace, sr_path
+
 
 inf = float('inf')
 
@@ -30,10 +30,13 @@ def run():
 
     upper_lim = subparsers.add_parser('ul')
     upper_lim.add_argument('workspace')
+
+    multispace = subparsers.add_parser('ms')
+    multispace.add_argument('kinematic_stat_dir')
     
     config = parser.parse_args(sys.argv[1:])
     opts = {'ws':_setup_workspace, 'fit':_new_histfit, 'pval':_get_p_value,
-            'ul':_get_upper_limit}
+            'ul':_get_upper_limit, 'ms':_multispaces}
     opts[config.which](config)
 
 
@@ -136,8 +139,16 @@ def _fit_and_plot(name, draw_before=False, draw_after=False,
 
 def _setup_workspace(config): 
     inf = float('inf')
-    backgrounds = ['ttbar','Wjets','Zjets','diboson']
-    systematics = ['jer','jes','b','c','u']
+    backgrounds = [
+        'ttbar',
+        'Wjets',
+        'Zjets','diboson'
+        ]
+    systematics = [
+        'jer',
+        'jes',
+        'b','c','u',
+        ]
     counts = CountDict(config.kinematic_stat_dir, systematics=systematics)
 
     GeV = 1000.0
@@ -155,9 +166,55 @@ def _setup_workspace(config):
         fit.add_sr(sr, 410*GeV, 270*GeV)
     
     fit.save_workspace('results')
-    # histfit('results/example_combined_meas_model.root')
 
+def _multispaces(config): 
+    inf = float('inf')
+    
+    # hardcoded for now, consider freeing up
+    backgrounds = ['ttbar','Wjets','Zjets','diboson']
+    systematics = [
+        'jer',
+        # 'jes',
+        # 'b',
+        # 'c',
+        # 'u',
+        ]
+    signal_point = 'stop-225-150'
 
+    counts = CountDict(config.kinematic_stat_dir, systematics=systematics)
+
+    GeV = 1000.0
+
+    import ROOT
+    with OutputFilter(): 
+        hf = ROOT.RooStats.HistFactory
+
+    met_values = xrange(150,500,20)
+    ljpt_values = xrange(200,300,20)
+    for met_gev, ljpt_gev in itertools.product(met_values, ljpt_values): 
+
+        # TODO: this leaks memory like crazy because it rebooks histograms
+        # for now just using output filters
+        fit = Workspace(counts, systematics, backgrounds)
+        fit.set_signal(signal_point)
+        for cr in ['ttbar0','Wenu0','Wmunu0','Znunu0']: 
+            with OutputFilter(): 
+                fit.add_cr(cr, 150000.0, 150000.0)
+
+        for sr in ['SR0']: 
+            with OutputFilter(): 
+                fit.add_sr(sr, met_cut=met_gev*GeV, ljpt_cut=ljpt_gev*GeV)
+    
+        out_dir = sr_path(
+            met_gev=met_gev, pt_gev=ljpt_gev, signal_point=signal_point)
+        if not os.path.isdir(out_dir): 
+            os.makedirs(out_dir)
+        
+        # with OutputFilter(): 
+        fit.save_workspace(out_dir)
+        # close method is supposed to delete all the histograms, need to 
+        # figure it out... 
+        # fit.close()
 
 # --- utility functions ---
 

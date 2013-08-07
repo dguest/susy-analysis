@@ -47,3 +47,4 @@ class OutputFilter(object):
                 re_found = False
             if not veto and accept or re_found: 
                 sys.stderr.write(line)
+        self.temp.close()

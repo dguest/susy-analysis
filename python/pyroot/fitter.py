@@ -6,6 +6,10 @@ from os.path import isdir, join, isfile
 from collections import defaultdict, Counter
 import warnings
 
+def sr_path(met_gev, pt_gev, signal_point, tag_config='conf'): 
+    path_tmp = '{tag}/met{met:.0f}/pt{pt:.0f}/{sp}'
+    return path_tmp.format(
+        tag=tag_config, met=met_gev, pt=pt_gev, sp=signal_point)
 
 class CountDict(dict): 
     """
@@ -83,6 +87,10 @@ class Workspace(object):
         # and add them later
         self.channels = {}
 
+        # being a pile of shit, HistFitter doesn't delete it's histograms
+        # we have to keep track and do it ourselves
+        self.names_to_delete = set()
+
     def set_signal(self, signal_name): 
         valid_signals = set(zip(*self.counts.keys())[1])
         if not signal_name in valid_signals: 
@@ -107,6 +115,7 @@ class Workspace(object):
             signal.SetValue(signal_count)
             sig_stat_error = cutfunc(sig_hists['wt2'])**0.5
             signal.GetHisto().SetBinError(1,sig_stat_error)
+            self.names_to_delete.add(signal.GetHisto().GetName())
             signal.SetNormalizeByTheory(True)
             signal.AddNormFactor('mu_{}'.format(self.signal_point),1,0,2)
             chan.AddSample(signal)
@@ -124,6 +133,7 @@ class Workspace(object):
             background.SetValue(base_count)
             stat_error = cutfunc(self.counts['baseline',bg,sr]['wt2'])**0.5
             background.GetHisto().SetBinError(1,stat_error)
+            self.names_to_delete.add(background.GetHisto().GetName())
             background.AddNormFactor('mu_{}'.format(bg), 1,0,10)
             # background.AddNormFactor('Lumi', 1,0,10)
 
@@ -157,6 +167,7 @@ class Workspace(object):
             self.pseudodata_regions[cr] = chan
         else: 
             chan.SetData(data_count)
+            self.names_to_delete.add('{}_data'.format(cr))
         chan.SetStatErrorConfig(0.05, "Poisson")
 
         self._add_mc_to_channel(chan, cr, cut_hist)
@@ -175,6 +186,7 @@ class Workspace(object):
         else: 
             data_count = cut_hist(self.counts['baseline','data',sr]['sum'])
             chan.SetData(data_count)
+            self.names_to_delete.add('{}_data'.format(sr))
         chan.SetStatErrorConfig(0.05, "Poisson")
 
         self._add_mc_to_channel(chan, sr, cut_hist)
@@ -193,6 +205,7 @@ class Workspace(object):
             if chan_name in self.pseudodata_regions: 
                 pseudo_count = self.region_sums[chan_name]
                 channel.SetData(pseudo_count)
+                self.names_to_delete.add('{}_data'.format(chan_name))
             self.meas.AddChannel(channel)
 
         self.meas.SetOutputFilePrefix(join(results_dir,prefix))
@@ -203,3 +216,7 @@ class Workspace(object):
         with OutputFilter(accept_re='({})'.format('|'.join(pass_strings))): 
             workspace = self.hf.MakeModelAndMeasurementFast(self.meas)
 
+    def close(self): 
+        import ROOT
+        for name in self.names_to_delete: 
+            ROOT.gROOT.ProcessLine('delete {}'.format(name))
