@@ -233,19 +233,11 @@ def run():
             'ul':_get_upper_limit}
     opts[config.which](config)
 
-def _load_susyfit(): 
-    """
-    Loads the root interfaces with HistFitter
-    """
-    from distutils import spawn
-    hf = dirname(spawn.find_executable('HistFitter.py'))
-    import ROOT
-    with OutputFilter(): 
-        ROOT.gSystem.Load('{}/../lib/libSusyFitter.so'.format(hf))
 
 def _new_histfit(config): 
     import ROOT
-    _load_susyfit()
+    from pyroot import utils
+    utils.load_susyfit()
 
     from ROOT import ConfigMgr
     from ROOT import Util
@@ -277,7 +269,8 @@ def _new_histfit(config):
 
 def _get_p_value(config): 
     import ROOT
-    _load_susyfit()
+    from pyroot import utils
+    utils.load_susyfit()
     from ROOT import Util
     from ROOT import RooStats
     workspace = Util.GetWorkspaceFromFile(config.workspace, 'combined')
@@ -300,7 +293,8 @@ def _get_p_value(config):
 
 def _get_upper_limit(config): 
     import ROOT
-    _load_susyfit()
+    from pyroot import utils
+    utils.load_susyfit()
     from ROOT import Util
     from ROOT import RooStats
     workspace = Util.GetWorkspaceFromFile(config.workspace, 'combined')
