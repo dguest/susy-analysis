@@ -27,8 +27,6 @@ class OutputFilter(object):
         else: 
             self.re = None
     def __enter__(self): 
-        sys.stdout.flush()
-        sys.stderr.flush()
         self.old_out, self.old_err = os.dup(1), os.dup(2)
         os.dup2(self.temp.fileno(), 1)
         os.dup2(self.temp.fileno(), 2)
@@ -37,6 +35,8 @@ class OutputFilter(object):
         sys.stderr.flush()
         os.dup2(self.old_out, 1)
         os.dup2(self.old_err, 2)
+        os.close(self.old_out)
+        os.close(self.old_err)
         self.temp.seek(0)
         for line in self.temp: 
             veto = set(line.split()) & self.veto_words
@@ -47,4 +47,3 @@ class OutputFilter(object):
                 re_found = False
             if not veto and accept or re_found: 
                 sys.stderr.write(line)
-        self.temp.close()
