@@ -45,5 +45,5 @@ class OutputFilter(object):
                 re_found = self.re.search(line)
             else: 
                 re_found = False
-            if not veto and accept or re_found: 
+            if not veto and (accept or re_found): 
                 sys.stderr.write(line)
