@@ -6,10 +6,11 @@ from os.path import isdir, join, isfile
 from collections import defaultdict, Counter
 import warnings
 
-def sr_path(met_gev, pt_gev, signal_point, tag_config='conf'): 
-    path_tmp = '{tag}/met{met:.0f}/pt{pt:.0f}/{sp}'
+def sr_path(met_gev, pt_gev, signal_point, tag_config='conf', 
+            top='workspaces'): 
+    path_tmp = '{top}/{tag}/met{met:.0f}/pt{pt:.0f}/{sp}'
     return path_tmp.format(
-        tag=tag_config, met=met_gev, pt=pt_gev, sp=signal_point)
+        tag=tag_config, met=met_gev, pt=pt_gev, sp=signal_point, top=top)
 
 class CountDict(dict): 
     """

@@ -9,7 +9,7 @@ from os.path import basename, splitext, dirname, isdir
 def run(): 
     config = get_config()
     subs = {'distill': setup_distill, 'stack': setup_stack, 
-            'hadd': setup_hadd}
+            'hadd': setup_hadd, 'fit': setup_fit}
     subs[config.which](config)
 
 def get_config(): 
@@ -45,7 +45,49 @@ def get_config():
     stack_args.add_argument('-d', '--hadd-dir', default='hadd-hists', 
                             help=d)
 
+    fit_args = subs.add_parser('fit', description=setup_fit.__doc__)
+    fit_args.add_argument('root')
+
     return parser.parse_args(sys.argv[1:])
+
+def setup_fit(config): 
+    """
+    Sets up histfitter jobs. Will run one job for each leaf directory given 
+    under the root directory. 
+    """
+    batch_dir = 'batch/fits'
+    batch_file = 'fit-path.txt'
+    model_name = 'stop_combined_meas_model.root'
+
+    if not isdir(batch_dir): 
+        os.makedirs(batch_dir)
+    
+    n_jobs = 0
+    for root, subdirs, files in os.walk(config.root): 
+        if not model_name in files: 
+            continue
+        n_jobs += 1
+        fname = '{}-{n}{}'.format(*splitext(batch_file), n=n_jobs)
+        full_path = os.path.join(root, model_name)
+        with open(os.path.join(batch_dir, fname),'w') as bfile: 
+            bfile.write(full_path + '\n')
+
+    sub_dict = {
+        'n_jobs': n_jobs, 
+        'out_dir': 'output/fit', 
+        'in_dir': batch_dir, 
+        'in_ext': '.txt', 
+        }
+    submit_head = _submit_head.format(**sub_dict)
+
+    line_args = { 
+        'routine': 'susy-histopt.py ul', 
+        'run_args': '--save-yaml' 
+        }
+    submit_line =  _submit_line.format(**line_args) + '\n'
+    with open('all-the-fits.sh','w') as fits: 
+        fits.write(submit_head + '\n')
+        fits.write(submit_line + '\n')
 
 def setup_hadd(config): 
     """
