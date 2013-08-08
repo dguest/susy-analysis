@@ -1,7 +1,7 @@
 #!/usr/bin/env python2.7
 import itertools, tempfile
 from stop.bullshit import OutputFilter
-import os, sys, re
+import os, sys, re, yaml
 import argparse
 from pyroot.fitter import CountDict, Workspace, sr_path
 
@@ -30,6 +30,9 @@ def run():
 
     upper_lim = subparsers.add_parser('ul')
     upper_lim.add_argument('workspace')
+    upper_lim.add_argument(
+        '-y', '--save-yaml', nargs='?', const='fit-result.yml', 
+        help='save as yaml (with no args: %(const)s)')
 
     multispace = subparsers.add_parser('ms')
     multispace.add_argument('kinematic_stat_dir')
@@ -124,6 +127,17 @@ def _get_upper_limit(config):
     mean_limit = inverted.GetExpectedUpperLimit(0)
     lower_limit = inverted.GetExpectedUpperLimit(-1)
     upper_limit = inverted.GetExpectedUpperLimit(1)
+    if config.save_yaml: 
+        ul_dict = {
+            'upper': upper_limit, 
+            'lower': lower_limit, 
+            'mean': mean_limit, 
+            }
+        yaml_dict = { 'upper_limit': ul_dict } 
+        with open(config.save_yaml,'w') as yml: 
+            yml.write(yaml.dump(yaml_dict))
+        return 
+
     print '{} -- {} -- {}'.format(
         lower_limit, mean_limit, upper_limit)
 
@@ -210,9 +224,6 @@ def _multispaces(config):
         
         fit.save_workspace(out_dir)
         ROOT.gDirectory.GetList().Delete()
-        # close method is supposed to delete all the histograms, need to 
-        # figure it out... 
-        # fit.close()
 
 # --- utility functions ---
 
