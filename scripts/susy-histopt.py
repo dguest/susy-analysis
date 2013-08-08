@@ -174,10 +174,10 @@ def _multispaces(config):
     backgrounds = ['ttbar','Wjets','Zjets','diboson']
     systematics = [
         'jer',
-        # 'jes',
-        # 'b',
-        # 'c',
-        # 'u',
+        'jes',
+        'b',
+        'c',
+        'u',
         ]
     signal_point = 'stop-225-150'
 
