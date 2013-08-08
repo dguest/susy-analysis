@@ -347,7 +347,7 @@ def _get_args():
                         help='file containing variables to skim over')
     parser.add_argument('--mono', action='store_true',
                         help="don't multiprocess")
-    parser.add_argument('--out-name', default='output-containers.txt', 
+    parser.add_argument('-o', '--out-name', default='output-containers.txt', 
                         help=d)
     parser.add_argument('--config', default='submit.cfg', 
                         help=d)
