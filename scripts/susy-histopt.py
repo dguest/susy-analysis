@@ -182,6 +182,7 @@ def _setup_workspace(config):
     fit.save_workspace('results')
 
 def _multispaces(config): 
+    import ROOT
     inf = float('inf')
     
     # hardcoded for now, consider freeing up
@@ -198,10 +199,6 @@ def _multispaces(config):
     counts = CountDict(config.kinematic_stat_dir, systematics=systematics)
 
     GeV = 1000.0
-
-    import ROOT
-    with OutputFilter(): 
-        hf = ROOT.RooStats.HistFactory
 
     met_values = xrange(150,500,20)
     ljpt_values = xrange(150,500,20)
