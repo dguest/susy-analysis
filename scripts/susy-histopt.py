@@ -198,20 +198,18 @@ def _multispaces(config):
         fit = Workspace(counts, systematics, backgrounds)
         fit.set_signal(signal_point)
         for cr in ['ttbar0','Wenu0','Wmunu0','Znunu0']: 
-            with OutputFilter(): 
-                fit.add_cr(cr, 150000.0, 150000.0)
+            fit.add_cr(cr, 150000.0, 150000.0)
 
         for sr in ['SR0']: 
-            with OutputFilter(): 
-                fit.add_sr(sr, met_cut=met_gev*GeV, ljpt_cut=ljpt_gev*GeV)
+            fit.add_sr(sr, met_cut=met_gev*GeV, ljpt_cut=ljpt_gev*GeV)
     
         out_dir = sr_path(
             met_gev=met_gev, pt_gev=ljpt_gev, signal_point=signal_point)
         if not os.path.isdir(out_dir): 
             os.makedirs(out_dir)
         
-        # with OutputFilter(): 
         fit.save_workspace(out_dir)
+        ROOT.gDirectory.GetList().Delete()
         # close method is supposed to delete all the histograms, need to 
         # figure it out... 
         # fit.close()
