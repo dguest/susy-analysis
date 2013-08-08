@@ -190,9 +190,9 @@ def _multispaces(config):
         hf = ROOT.RooStats.HistFactory
 
     met_values = xrange(150,500,20)
-    ljpt_values = xrange(200,300,20)
+    ljpt_values = xrange(150,500,20)
     for met_gev, ljpt_gev in itertools.product(met_values, ljpt_values): 
-
+        print 'building met {:.0f}, ljpt {:.0f}'.format(met_gev, ljpt_gev)
         # TODO: this leaks memory like crazy because it rebooks histograms
         # for now just using output filters
         fit = Workspace(counts, systematics, backgrounds)

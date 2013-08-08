@@ -204,5 +204,7 @@ class Workspace(object):
         if verbose: 
             pass_strings.append('INFO:')
         self.meas.SetExportOnly(True)
-        with OutputFilter(accept_re='({})'.format('|'.join(pass_strings))): 
+        with OutputFilter(
+            accept_re='({})'.format('|'.join(pass_strings)), 
+            veto_words={'nominalLumi'}): 
             workspace = self.hf.MakeModelAndMeasurementFast(self.meas)
