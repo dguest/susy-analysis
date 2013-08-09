@@ -209,3 +209,40 @@ class Workspace(object):
             accept_re='({})'.format('|'.join(pass_strings)), 
             veto_words={'nominalLumi'}): 
             workspace = self.hf.MakeModelAndMeasurementFast(self.meas)
+
+class UpperLimitCalc(object): 
+    def __init__(self):
+        """
+        for now has no init... 
+        """
+        pass 
+    def lim_range(self, workspace_name): 
+        """
+        returns a 3-tuple of limits
+        """
+        from pyroot import utils
+        utils.load_susyfit()
+        from ROOT import Util
+        from ROOT import RooStats
+        workspace = Util.GetWorkspaceFromFile(workspace_name, 'combined')
+
+        Util.SetInterpolationCode(workspace,4)
+        with OutputFilter(): 
+            inverted = RooStats.DoHypoTestInversion(
+                workspace, 
+                1,                      # n_toys
+                2,                      # asymtotic calculator
+                3,                      # test type (3 is atlas standard)
+                True,                   # use CLs
+                20,                     # number of points
+                0,                      # POI min
+                -1,                     # POI max (why -1?)
+                )
+
+        # one might think that inverted.GetExpectedLowerLimit(-1) would do 
+        # something different from GetExpectedUpperLimit(-1), 
+        # but then one would be wrong...
+        mean_limit = inverted.GetExpectedUpperLimit(0)
+        lower_limit = inverted.GetExpectedUpperLimit(-1)
+        upper_limit = inverted.GetExpectedUpperLimit(1)
+        return lower_limit, mean_limit, upper_limit

@@ -2,8 +2,9 @@
 import itertools, tempfile
 from stop.bullshit import OutputFilter
 import os, sys, re, yaml
+from os.path import dirname, join
 import argparse
-from pyroot.fitter import CountDict, Workspace, sr_path
+from pyroot.fitter import CountDict, Workspace, sr_path, UpperLimitCalc
 
 
 inf = float('inf')
@@ -29,10 +30,12 @@ def run():
         help='defaults to asymptotic, %(const)s with no args')
 
     upper_lim = subparsers.add_parser('ul')
-    upper_lim.add_argument('workspace')
+    upper_lim.add_argument(
+        'workspace', help='can also be a textfile pointing to the workspace')
     upper_lim.add_argument(
         '-y', '--save-yaml', nargs='?', const='fit-result.yml', 
-        help='save as yaml (with no args: %(const)s)')
+        help='save output as yaml in the workspace directory '
+        '(with no args: %(const)s)')
 
     multispace = subparsers.add_parser('ms')
     multispace.add_argument('kinematic_stat_dir')
@@ -106,27 +109,16 @@ def _get_upper_limit(config):
     utils.load_susyfit()
     from ROOT import Util
     from ROOT import RooStats
-    workspace = Util.GetWorkspaceFromFile(config.workspace, 'combined')
 
-    Util.SetInterpolationCode(workspace,4)
-    with OutputFilter(): 
-        inverted = RooStats.DoHypoTestInversion(
-            workspace, 
-            1,                      # n_toys
-            2,                      # asymtotic calculator
-            3,                      # test type (3 is atlas standard)
-            True,                   # use CLs
-            20,                     # number of points
-            0,                      # POI min
-            -1,                     # POI max (why -1?)
-            )
+    if config.workspace.endswith('.txt'): 
+        with open(config.workspace) as txt_file: 
+            workspace_name = list(line.strip() for line in txt_file)[0]
+    else: 
+        workspace_name = config.workspace
 
-    # one might think that inverted.GetExpectedLowerLimit(-1) would do 
-    # something different from GetExpectedUpperLimit(-1), but then one would 
-    # be wrong...
-    mean_limit = inverted.GetExpectedUpperLimit(0)
-    lower_limit = inverted.GetExpectedUpperLimit(-1)
-    upper_limit = inverted.GetExpectedUpperLimit(1)
+    ul_calc = UpperLimitCalc()
+    lower_limit, mean_limit, upper_limit = ul_calc.lim_range(workspace_name)
+
     if config.save_yaml: 
         ul_dict = {
             'upper': upper_limit, 
@@ -134,7 +126,8 @@ def _get_upper_limit(config):
             'mean': mean_limit, 
             }
         yaml_dict = { 'upper_limit': ul_dict } 
-        with open(config.save_yaml,'w') as yml: 
+        yaml_path = join(dirname(workspace_name), config.save_yaml)
+        with open(yaml_path,'w') as yml: 
             yml.write(yaml.dump(yaml_dict))
         return 
 
