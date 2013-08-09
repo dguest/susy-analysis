@@ -1,16 +1,21 @@
 from stop.bullshit import OutputFilter
 from stop.hists import HistNd
 import h5py
-import os
+import os, re
 from os.path import isdir, join, isfile
 from collections import defaultdict, Counter
 import warnings
 
-def sr_path(met_gev, pt_gev, signal_point, tag_config='conf', 
+def path_from_sr(met_gev, pt_gev, signal_point, tag_config='conf', 
             top='workspaces'): 
     path_tmp = '{top}/{tag}/met{met:.0f}/pt{pt:.0f}/{sp}'
     return path_tmp.format(
         tag=tag_config, met=met_gev, pt=pt_gev, sp=signal_point, top=top)
+
+def sr_from_path(path): 
+    sr_re = re.compile('([^/]*)/met([0-9]+)/pt([0-9]+)/(.*)')
+    tag, mstr, pstr, sp = sr_re.search(path).group(1,2,3,4)
+    return int(mstr), int(pstr), sp, tag
 
 class CountDict(dict): 
     """

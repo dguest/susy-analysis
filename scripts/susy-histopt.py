@@ -4,8 +4,8 @@ from stop.bullshit import OutputFilter
 import os, sys, re, yaml
 from os.path import dirname, join
 import argparse
-from pyroot.fitter import CountDict, Workspace, sr_path, UpperLimitCalc
-
+from pyroot.fitter import CountDict, Workspace, UpperLimitCalc
+from pyroot.fitter import sr_from_path, path_from_sr
 
 inf = float('inf')
 
@@ -37,14 +37,41 @@ def run():
         help='save output as yaml in the workspace directory '
         '(with no args: %(const)s)')
 
+    agg = subparsers.add_parser('agg', description=_aggregate.__doc__)
+    agg.add_argument('root_dir_name')
+    agg.add_argument('-o','--output-yaml')
+    agg.add_argument('--fit-result-name', default='fit-result.yml')
+    
+
     multispace = subparsers.add_parser('ms')
     multispace.add_argument('kinematic_stat_dir')
     
     config = parser.parse_args(sys.argv[1:])
     opts = {'ws':_setup_workspace, 'fit':_new_histfit, 'pval':_get_p_value,
-            'ul':_get_upper_limit, 'ms':_multispaces}
+            'ul':_get_upper_limit, 'ms':_multispaces, 'agg': _aggregate}
     opts[config.which](config)
 
+def _aggregate(config): 
+    """
+    aggregate yaml output files from fits
+    """
+    all_points = []
+    for root, dirs, files in os.walk(config.root_dir_name): 
+        if config.fit_result_name in files: 
+            met, ljpt, sp, tag = sr_from_path(root)
+            with open(join(root, config.fit_result_name)) as result: 
+                res_dict = yaml.load(result)
+            new_info = { 
+                'met': met, 
+                'leading_jet_pt': ljpt, 
+                'signal_point': sp, 
+                'tag_config': tag
+                }
+            new_info.update(res_dict)
+            all_points.append(new_info)
+    if config.output_yaml: 
+        with open(config.output_yaml,'w') as yml: 
+            yml.writelines(yaml.dump(all_points))
 
 def _new_histfit(config): 
     import ROOT
@@ -207,7 +234,7 @@ def _multispaces(config):
         for sr in ['SR0']: 
             fit.add_sr(sr, met_cut=met_gev*GeV, ljpt_cut=ljpt_gev*GeV)
     
-        out_dir = sr_path(
+        out_dir = path_from_sr(
             met_gev=met_gev, pt_gev=ljpt_gev, signal_point=signal_point)
         if not os.path.isdir(out_dir): 
             os.makedirs(out_dir)
