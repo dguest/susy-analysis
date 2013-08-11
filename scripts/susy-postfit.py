@@ -8,7 +8,7 @@ aggregation.
 import argparse
 import sys
 import yaml
-from stop.postfit import split_to_planes
+from stop.postfit import split_to_planes, numpy_plane_from_dict
 
 def run(): 
     parser = argparse.ArgumentParser()
@@ -20,8 +20,8 @@ def run():
 
 def hdify(point_list): 
     planes = split_to_planes(point_list)
-    
-
+    for plane_key, plane in planes.iteritems():
+        numpy_plane_from_dict(plane)
 
 if __name__ == '__main__': 
     run()
