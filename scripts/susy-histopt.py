@@ -39,7 +39,7 @@ def run():
 
     agg = subparsers.add_parser('agg', description=_aggregate.__doc__)
     agg.add_argument('root_dir_name')
-    agg.add_argument('-o','--output-yaml')
+    agg.add_argument('-o','--output-file')
     agg.add_argument('--fit-result-name', default='fit-result.yml')
     
 
@@ -69,9 +69,14 @@ def _aggregate(config):
                 }
             new_info.update(res_dict)
             all_points.append(new_info)
-    if config.output_yaml: 
-        with open(config.output_yaml,'w') as yml: 
-            yml.writelines(yaml.dump(all_points))
+    if config.output_file: 
+        if config.output_file.endswith('.yml'): 
+            with open(config.output_yaml,'w') as yml: 
+                yml.writelines(yaml.dump(all_points))
+        elif config.output_file.endswith('h5'): 
+            from stop.postfit import kinematic_plane_from_pointlist
+            import h5py
+            
 
 def _new_histfit(config): 
     import ROOT
