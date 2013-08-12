@@ -111,7 +111,7 @@ class Workspace(object):
         Will throw exceptions if the signal isn't set. 
         """
         if self.signal_point: 
-            signal = self.hf.Sample('_'.join([self.signal_point,sr]))
+            signal = self.hf.Sample(str('_'.join([self.signal_point,sr])))
             sig_hists = self.counts['baseline', self.signal_point, sr]
             signal_count = cutfunc(sig_hists['sum'])
             signal.SetValue(signal_count)

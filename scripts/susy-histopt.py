@@ -1,14 +1,11 @@
 #!/usr/bin/env python2.7
 import itertools, tempfile
 from stop.bullshit import OutputFilter
-import os, sys, re, yaml
+import os, sys, re, yaml, fnmatch
 from os.path import dirname, join
 import argparse
 from pyroot.fitter import CountDict, Workspace, UpperLimitCalc
 from pyroot.fitter import sr_from_path, path_from_sr
-
-inf = float('inf')
-
     
 def run(): 
     parser = argparse.ArgumentParser()
@@ -37,14 +34,17 @@ def run():
         help='save output as yaml in the workspace directory '
         '(with no args: %(const)s)')
 
+    # TODO: move this to susy-postfit
     agg = subparsers.add_parser('agg', description=_aggregate.__doc__)
     agg.add_argument('root_dir_name')
     agg.add_argument('-o','--output-file')
     agg.add_argument('--fit-result-name', default='fit-result.yml')
-    
 
     multispace = subparsers.add_parser('ms')
     multispace.add_argument('kinematic_stat_dir')
+    multispace.add_argument(
+        '-s','--signal-point', default='stop-225-150', 
+        help='default: %(default)s, allows globbing, and numbering')
     
     config = parser.parse_args(sys.argv[1:])
     opts = {'ws':_setup_workspace, 'fit':_new_histfit, 'pval':_get_p_value,
@@ -177,7 +177,6 @@ def _fit_and_plot(name, draw_before=False, draw_after=False,
                   
 
 def _setup_workspace(config): 
-    inf = float('inf')
     backgrounds = [
         'ttbar',
         'Wjets',
@@ -207,11 +206,7 @@ def _setup_workspace(config):
     fit.save_workspace('results')
 
 def _multispaces(config): 
-    import ROOT
-    inf = float('inf')
-    
     # hardcoded for now, consider freeing up
-    backgrounds = ['ttbar','Wjets','Zjets','diboson']
     systematics = [
         'jer',
         'jes',
@@ -219,18 +214,29 @@ def _multispaces(config):
         'c',
         'u',
         ]
-    signal_point = 'stop-225-150'
 
     counts = CountDict(config.kinematic_stat_dir, systematics=systematics)
+    all_sp = sorted({k[1] for k in counts if 'stop' in k[1]})
+    try: 
+        signal_points = [all_sp[int(config.signal_point)]]
+    except ValueError: 
+        signal_points = fnmatch.filter(all_sp, config.signal_point)
 
+    for sp in signal_points: 
+        print 'booking signal point {}'.format(sp)
+        _book_signal_point(counts, sp, systematics)
+
+def _book_signal_point(counts, signal_point, systematics): 
+    import ROOT
+    backgrounds = ['ttbar','Wjets','Zjets','diboson']
     GeV = 1000.0
 
     met_values = xrange(150,500,20)
     ljpt_values = xrange(150,500,20)
     for met_gev, ljpt_gev in itertools.product(met_values, ljpt_values): 
         print 'building met {:.0f}, ljpt {:.0f}'.format(met_gev, ljpt_gev)
-        # TODO: this leaks memory like crazy because it rebooks histograms
-        # for now just using output filters
+        # TODO: this leaks memory like crazy, not sure why but bug reports
+        # have been filed. For now just using output filters. 
         fit = Workspace(counts, systematics, backgrounds)
         fit.set_signal(signal_point)
         for cr in ['ttbar0','Wenu0','Wmunu0','Znunu0']: 
@@ -246,6 +252,7 @@ def _multispaces(config):
         
         fit.save_workspace(out_dir)
         ROOT.gDirectory.GetList().Delete()
+    
 
 # --- utility functions ---
 

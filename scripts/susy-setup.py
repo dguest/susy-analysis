@@ -9,7 +9,7 @@ from os.path import basename, splitext, dirname, isdir
 def run(): 
     config = get_config()
     subs = {'distill': setup_distill, 'stack': setup_stack, 
-            'hadd': setup_hadd, 'fit': setup_fit}
+            'hadd': setup_hadd, 'fit': setup_fit, 'ws': setup_workspaces}
     subs[config.which](config)
 
 def get_config(): 
@@ -45,10 +45,34 @@ def get_config():
     stack_args.add_argument('-d', '--hadd-dir', default='hadd-hists', 
                             help=d)
 
+    ws_args = subs.add_parser('ws', description=setup_workspaces.__doc__)
+    ws_args.add_argument('kinematic_stat_dir')
+
     fit_args = subs.add_parser('fit', description=setup_fit.__doc__)
     fit_args.add_argument('root')
 
     return parser.parse_args(sys.argv[1:])
+
+def setup_workspaces(config): 
+    """
+    Setup jobs to build workspaces for fitting. 
+    """
+    from pyroot.fitter import CountDict
+    counts = CountDict(config.kinematic_stat_dir, systematics=[])
+    n_sp = len({k[1] for k in counts if 'stop' in k[1]})
+
+    sub_dict = {
+        'n_jobs': n_sp, 
+        'out_dir': 'output/workspace', 
+        'in_dir': '.', 
+        'in_ext': '.txt', 
+        }
+    submit_head = _submit_head.format(**sub_dict)
+    submit_line = 'susy-histopt.py ms {} -s $(($PBS_ARRAYID-1))'.format(
+        config.kinematic_stat_dir)
+    with open('leaky-rootf.sh','w') as the_job: 
+        the_job.write(submit_head + '\n')
+        the_job.write(submit_line + '\n')
 
 def setup_fit(config): 
     """
