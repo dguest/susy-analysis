@@ -16,13 +16,14 @@ def split_to_planes(input_list):
 
 def numpy_plane_from_dict(input_list): 
     """
-    converts points in a list (composed of dicts) to an h5 array
+    converts points in a list (composed of dicts) to an numpy array.
+    Extents are given by extrapolating one bin above the largest. 
     """
     axes = ('leading_jet_pt','met')
     ax_values = []
     ax_dims = []
     for axis in axes: 
-        def val_iter(list_o_dicts): 
+        def val_iter(list_o_dicts):
             for d in list_o_dicts: 
                 yield d[axis]
         all_values = np.fromiter(val_iter(input_list),'i')
@@ -40,4 +41,14 @@ def numpy_plane_from_dict(input_list):
         if np.any(val_plane[idx] > 0): 
             print val_plane[idx]
         val_plane[idx] = entry['upper_limit']['mean']
-    print np.around(val_plane,0)
+    
+    extents = []
+    for axvals in ax_values: 
+        extents.append(axvals[0])
+        bin_size = np.unique(np.diff(axvals))
+        if not bin_size.size == 1: 
+            raise ArithmeticError('bins not evenly spaced, sizes: {}'.format(
+                    np.diff(axvals)))
+        upper = axvals[-1] + bin_size[0]
+        extents.append(upper)
+    return val_plane, extents, axes

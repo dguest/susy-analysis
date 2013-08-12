@@ -73,3 +73,6 @@ ax_labels = {
 
 def event_label(lumi): 
     return r'Events / {:.1f} fb$^{{-1}}$'.format(lumi)
+
+hdict = dict(x=0.98, ha='right', fontsize=18)
+vdict = dict(y=0.98, va='top', fontsize=18)
