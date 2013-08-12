@@ -66,8 +66,9 @@ def setup_workspaces(config):
         'out_dir': 'output/workspace', 
         'in_dir': '.', 
         'in_ext': '.txt', 
+        'walltime': '30:00', 
         }
-    submit_head = _submit_head.format(**sub_dict)
+    submit_head = _get_submit_head(**sub_dict)
     submit_line = 'susy-histopt.py ms {} -s $(($PBS_ARRAYID-1))'.format(
         config.kinematic_stat_dir)
     with open('leaky-rootf.sh','w') as the_job: 
@@ -101,8 +102,9 @@ def setup_fit(config):
         'out_dir': 'output/fit', 
         'in_dir': batch_dir, 
         'in_ext': '.txt', 
+        'walltime': '30:00', 
         }
-    submit_head = _submit_head.format(**sub_dict)
+    submit_head = _get_submit_head(**sub_dict)
 
     line_args = { 
         'routine': 'susy-histopt.py ul', 
@@ -134,7 +136,7 @@ def setup_hadd(config):
         'in_dir': dirname(config.textfile_name), 
         'in_ext': '.txt', 
         }
-    submit_head = _submit_head.format(**sub_dict)
+    submit_head = _get_submit_head(**sub_dict)
     line_args = { 
         'routine': 'susy-util.py hadd', 
         'run_args': '--recursive --output {}'.format(config.hadd_dir), 
@@ -169,7 +171,7 @@ def setup_stack(config):
         'in_dir': dirname(config.output_name), 
         'in_ext': '.txt', 
         }
-    submit_head = _submit_head.format(**sub_dict)
+    submit_head = _get_submit_head(**sub_dict)
 
     def get_runline(mode): 
         line_args = { 
@@ -226,7 +228,7 @@ def _write_distill_config(script_name, meta_name, input_files,
     else: 
         systematics = [systematic]
 
-    submit_head = _submit_head.format(**sub_dict)
+    submit_head = _get_submit_head(**sub_dict)
 
     with open(script_name, 'w') as out_script: 
         out_script.write(submit_head)
@@ -247,7 +249,7 @@ _submit_head="""
 #!/usr/bin/env bash
 
 #PBS -t 1-{n_jobs}
-#PBS -l mem=4gb,walltime=00:06:00:00
+#PBS -l mem={mem},walltime={walltime}
 #PBS -l nodes=1:ppn=1
 #PBS -q hep
 #PBS -o {out_dir}/out.txt
@@ -260,6 +262,16 @@ echo 'submitted from: ' $PBS_O_WORKDIR
 files=($(ls {in_dir}/*{in_ext} | sort))
 
 """
+
+def _get_submit_head(n_jobs, out_dir, **args): 
+    default_args = dict(
+        in_dir='.', in_ext='.txt', mem='4gb', walltime='00:06:00:00')
+    default_args.update(args)
+    return _submit_head.format(n_jobs=n_jobs, out_dir=out_dir, **default_args)
+
+        
+    
+
 _submit_line = '{routine} ${{files[$PBS_ARRAYID-1]}} {run_args}'
 
 if __name__ == '__main__': 
