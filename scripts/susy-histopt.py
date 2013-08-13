@@ -95,7 +95,7 @@ def _aggregate(config):
             all_points.append(new_info)
     if config.output_file: 
         if config.output_file.endswith('.yml'): 
-            with open(config.output_yaml,'w') as yml: 
+            with open(config.output_file,'w') as yml: 
                 yml.writelines(yaml.dump(all_points))
         elif config.output_file.endswith('h5'): 
             from stop.postfit import kinematic_plane_from_pointlist
