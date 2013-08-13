@@ -6,6 +6,7 @@ from os.path import dirname, join
 import argparse
 from pyroot.fitter import CountDict, Workspace, UpperLimitCalc
 from pyroot.fitter import sr_from_path, path_from_sr
+from time import time
     
 def run(): 
     parser = argparse.ArgumentParser()
@@ -51,13 +52,36 @@ def run():
             'ul':_get_upper_limit, 'ms':_multispaces, 'agg': _aggregate}
     opts[config.which](config)
 
+class ProgressMeter(object): 
+    def __init__(self, level=3): 
+        self.last_epoch = None
+        self.level = level
+        print 'walking'
+        self.n_query = 0
+        self.start = time()
+
+    def get_walk_progress(self,root): 
+        self.n_query += 1
+        level = self.level
+        dir_path = root.split('/')
+        if len(dir_path) >= level:
+            if dir_path[-level] != self.last_epoch: 
+                self.last_epoch = dir_path[-level]
+                rate = self.n_query / float(time() - self.start) 
+                self.start = time()
+                self.n_query = 0
+                print 'working on {} ({:.1f} Hz)'.format(
+                    dir_path[-level], rate)
+
 def _aggregate(config): 
     """
     aggregate yaml output files from fits
     """
     all_points = []
+    prog = ProgressMeter(3)
     for root, dirs, files in os.walk(config.root_dir_name): 
         if config.fit_result_name in files: 
+            prog.get_walk_progress(root)
             met, ljpt, sp, tag = sr_from_path(root)
             with open(join(root, config.fit_result_name)) as result: 
                 res_dict = yaml.load(result)
