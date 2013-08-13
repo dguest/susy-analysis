@@ -6,9 +6,11 @@ aggregation.
 """
 
 import argparse
-import sys
+import sys, os
 import yaml
+import itertools
 from stop.postfit import split_to_planes, numpy_plane_from_dict
+import h5py
 
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -19,15 +21,47 @@ from stop.style import ax_labels, vdict, hdict
 
 def run(): 
     parser = argparse.ArgumentParser()
-    parser.add_argument('yaml_file')
+    subs = parser.add_subparsers(dest='which')
+    yaml_reader = subs.add_parser('yml')
+    yaml_reader.add_argument('yaml_file')
+    yaml_reader.add_argument('-o', '--out-file')
     args = parser.parse_args(sys.argv[1:])
+    subroutines = {'yml':_yml_parser}
+    subroutines[args.which](args)
+
+def _yml_parser(args): 
+    print 'loading yaml file (slow)'
     with open(args.yaml_file) as yml: 
         point_list = yaml.load(yml)
-    plot(point_list)
+    if not args.out_file: 
+        args.out_file = os.path.splitext(args.yaml_file)[0] + '.h5'
+    save_h5(point_list, args.out_file)
+
+def save_h5(point_list, out_file_name): 
+    configs = set()
+    signal_points = set()
+    planes = split_to_planes(point_list)
+
+    for config, sp in planes: 
+        configs.add(config)
+        signal_points.add(sp)
+
+    with h5py.File(out_file_name) as h5_file: 
+        for config in configs: 
+            sp_group = h5_file.create_group(config)
+            for sp in signal_points: 
+                plane_list = planes[config, sp]
+                array, extents, ax_names = numpy_plane_from_dict(plane_list)
+                ds = sp_group.create_dataset(
+                    sp, data=array, compression='gzip')
+                ds.attrs['extent'] = extents
+                ds.attrs['ax_names'] = ax_names
 
 def plot(point_list): 
+    print 'splitting'
     planes = split_to_planes(point_list)
     for plane_key, plane in planes.iteritems():
+        print plane_key
         array, extents, ax_names = numpy_plane_from_dict(plane)
         _draw_plot(array, extents, plane_key, ax_names=ax_names)
         
@@ -48,7 +82,8 @@ def _draw_plot(array, extents, key, ax_names):
     cb = plt.colorbar(im,cax=cax)
     label_str = 'expected ul, {}'.format(key[1])
     cb.set_label(label_str, **vdict)
-    FigureCanvas(figure).print_figure('test.png',bbox_inches='tight')
+    out_file_name = '{}-plane.pdf'.format(key[1])
+    FigureCanvas(figure).print_figure(out_file_name,bbox_inches='tight')
 
 if __name__ == '__main__': 
     run()
