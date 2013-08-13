@@ -5,6 +5,7 @@ import os, re
 from os.path import isdir, join, isfile
 from collections import defaultdict, Counter
 import warnings
+import sqlite3
 
 def path_from_sr(met_gev, pt_gev, signal_point, tag_config='conf', 
             top='workspaces'): 
@@ -16,6 +17,33 @@ def sr_from_path(path):
     sr_re = re.compile('([^/]*)/met([0-9]+)/pt([0-9]+)/(.*)')
     tag, mstr, pstr, sp = sr_re.search(path).group(1,2,3,4)
     return int(mstr), int(pstr), sp, tag
+
+_sql_table = [        
+    'tag_config text', 
+    'met_gev integer', 
+    'pt_gev integer', 
+    'signal_point text', 
+    'ul_lower float', 
+    'ul_mean float', 
+    'ul_upper float']
+
+def make_sql(name='all-fit-results.db'): 
+    table_spec = ','.join(_sql_table)
+    conn = sqlite3.connect(name)
+    with conn: 
+        conn.execute('create table upperlimits ({})'.format(table_spec))
+
+def insert_sql(met_gev, pt_gev, signal_point, tag_config, upper_limits, 
+               name='all-fit-results.db'): 
+    col_names = [s.split()[0] for s in _sql_table]
+    ins_tup = (
+        tag_config, met_gev, pt_gev, signal_point, 
+        upper_limits['lower'], upper_limits['mean'], upper_limits['upper'])
+    conn = sqlite3.connect(name, timeout=900)
+    valstr = ','.join(['?']*len(ins_tup))
+    with conn: 
+        conn.execute(
+            "insert into upperlimits values ({})".format(valstr), ins_tup)
 
 class CountDict(dict): 
     """

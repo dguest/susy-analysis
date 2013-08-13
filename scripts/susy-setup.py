@@ -4,7 +4,7 @@ Omega setup scripts
 """
 import argparse, sys, os
 from stop import meta
-from os.path import basename, splitext, dirname, isdir
+from os.path import basename, splitext, dirname, isdir, isfile
 
 def run(): 
     config = get_config()
@@ -114,6 +114,11 @@ def setup_fit(config):
     with open('all-the-fits.sh','w') as fits: 
         fits.write(submit_head + '\n')
         fits.write(submit_line + '\n')
+    sql_name = 'all-fit-results.db'
+    from pyroot.fitter import make_sql
+    if isfile(sql_name): 
+        os.remove(sql_name)
+    make_sql(sql_name)
 
 def setup_hadd(config): 
     """
