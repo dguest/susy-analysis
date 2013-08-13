@@ -12,6 +12,7 @@ import itertools
 from stop.postfit import split_to_planes, numpy_plane_from_dict
 import h5py
 
+import numpy as np
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
@@ -22,11 +23,17 @@ from stop.style import ax_labels, vdict, hdict
 def run(): 
     parser = argparse.ArgumentParser()
     subs = parser.add_subparsers(dest='which')
+
     yaml_reader = subs.add_parser('yml')
     yaml_reader.add_argument('yaml_file')
     yaml_reader.add_argument('-o', '--out-file')
+
+    plotter = subs.add_parser('plot')
+    plotter.add_argument('hdf_file')
+    plotter.add_argument('-o', '--out-dir', default='plots')
+
     args = parser.parse_args(sys.argv[1:])
-    subroutines = {'yml':_yml_parser}
+    subroutines = {'yml':_yml_parser, 'plot':_plot}
     subroutines[args.which](args)
 
 def _yml_parser(args): 
@@ -57,20 +64,28 @@ def save_h5(point_list, out_file_name):
                 ds.attrs['extent'] = extents
                 ds.attrs['ax_names'] = ax_names
 
-def plot(point_list): 
-    print 'splitting'
-    planes = split_to_planes(point_list)
-    for plane_key, plane in planes.iteritems():
-        print plane_key
-        array, extents, ax_names = numpy_plane_from_dict(plane)
-        _draw_plot(array, extents, plane_key, ax_names=ax_names)
+def _plot(args): 
+    hdf = h5py.File(args.hdf_file)
+    for config, sp_group in hdf.iteritems(): 
+        for sp, dataset in sp_group.iteritems(): 
+            array = np.array(dataset)
+            extents = dataset.attrs['extent']
+            ax_names = dataset.attrs['ax_names']
+            
+            out_file_name = '{}-plane.pdf'.format(sp)
+            if not os.path.isdir(args.out_dir): 
+                os.mkdir(args.out_dir)
+            out_path = os.path.join(args.out_dir, out_file_name)
+            print 'plotting {}'.format(out_path)
+            _draw_plot(array, extents, (config, sp), ax_names=ax_names, 
+                       out_path=out_path)
         
 def _get_label(label): 
     for lab in ax_labels: 
         if lab in label: 
             return ax_labels[lab].axis_label
 
-def _draw_plot(array, extents, key, ax_names): 
+def _draw_plot(array, extents, key, ax_names, out_path): 
     figure = Figure(figsize=(9,8))
     ax = figure.add_subplot(1,1,1)
     divider = make_axes_locatable(ax)
@@ -82,8 +97,7 @@ def _draw_plot(array, extents, key, ax_names):
     cb = plt.colorbar(im,cax=cax)
     label_str = 'expected ul, {}'.format(key[1])
     cb.set_label(label_str, **vdict)
-    out_file_name = '{}-plane.pdf'.format(key[1])
-    FigureCanvas(figure).print_figure(out_file_name,bbox_inches='tight')
+    FigureCanvas(figure).print_figure(out_path, bbox_inches='tight')
 
 if __name__ == '__main__': 
     run()
