@@ -78,17 +78,21 @@ def setup_workspaces(config):
         the_job.write(submit_head + '\n')
         the_job.write(submit_line + '\n')
 
-def _build_fit_batch(root_dir, batch_path): 
+def _build_fit_batch(root_dir, batch_dir): 
+    batch_file = 'fit-path.txt'
+    model_name = 'stop_combined_meas_model.root'
     n_jobs = 0
     prog_meter = bullshit.ProgressMeter()
-    with open(batch_path, 'w') as bfile: 
-        for root, subdirs, files in os.walk(config.root): 
-            if not model_name in files: 
-                continue
-            prog_meter.get_walk_progress(root)
-            n_jobs += 1
-            full_path = os.path.join(root, model_name)
+    for root, subdirs, files in os.walk(root_dir): 
+        if not model_name in files: 
+            continue
+        prog_meter.get_walk_progress(root)
+        n_jobs += 1
+        fname = '{}-{n}{}'.format(*splitext(batch_file), n=n_jobs)
+        full_path = os.path.join(root, model_name)
+        with open(os.path.join(batch_dir, fname),'w') as bfile: 
             bfile.write(full_path + '\n')
+    return n_jobs
 
 def setup_fit(config): 
     """
@@ -96,21 +100,11 @@ def setup_fit(config):
     under the root directory. 
     """
     batch_dir = 'batch/fits'
-    batch_file = 'fit-path.txt'
-    model_name = 'stop_combined_meas_model.root'
 
     if not isdir(batch_dir): 
         os.makedirs(batch_dir)
-    
-    n_jobs = 0
-    for root, subdirs, files in os.walk(config.root): 
-        if not model_name in files: 
-            continue
-        n_jobs += 1
-        fname = '{}-{n}{}'.format(*splitext(batch_file), n=n_jobs)
-        full_path = os.path.join(root, model_name)
-        with open(os.path.join(batch_dir, fname),'w') as bfile: 
-            bfile.write(full_path + '\n')
+
+    n_jobs = _build_fit_batch(config.root, batch_dir)
 
     sub_dict = {
         'n_jobs': n_jobs, 
