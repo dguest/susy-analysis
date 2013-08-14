@@ -81,27 +81,25 @@ def setup_fit(config):
     under the root directory. 
     """
     batch_dir = 'batch/fits'
-    batch_file = 'fit-path.txt'
+    batch_file = 'fit-paths.txt'
     model_name = 'stop_combined_meas_model.root'
 
     if not isdir(batch_dir): 
         os.makedirs(batch_dir)
     
     n_jobs = 0
-    for root, subdirs, files in os.walk(config.root): 
-        if not model_name in files: 
-            continue
-        n_jobs += 1
-        fname = '{}-{n}{}'.format(*splitext(batch_file), n=n_jobs)
-        full_path = os.path.join(root, model_name)
-        with open(os.path.join(batch_dir, fname),'w') as bfile: 
+    batch_path = os.path.join(batch_dir, batch_file)
+    with open(batch_path, 'w') as bfile: 
+        for root, subdirs, files in os.walk(config.root): 
+            if not model_name in files: 
+                continue
+            n_jobs += 1
+            full_path = os.path.join(root, model_name)
             bfile.write(full_path + '\n')
 
     sub_dict = {
         'n_jobs': n_jobs, 
         'out_dir': 'output/fit', 
-        'in_dir': batch_dir, 
-        'in_ext': '.txt', 
         'walltime': '30:00', 
         }
     submit_head = _get_submit_head(**sub_dict)
@@ -110,7 +108,8 @@ def setup_fit(config):
         'routine': 'susy-histopt.py ul', 
         'run_args': '--save-yaml' 
         }
-    submit_line =  _submit_line.format(**line_args) + '\n'
+    submit_line = 'susy-histopt.py ul {} -n $(($PBS_ARRAYID-1))'.format(
+        batch_path)
     with open('all-the-fits.sh','w') as fits: 
         fits.write(submit_head + '\n')
         fits.write(submit_line + '\n')
