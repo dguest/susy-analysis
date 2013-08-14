@@ -1,6 +1,7 @@
 import tempfile
 import os, sys, re, errno
 from time import time
+from itertools import product
 
 def make_dir_if_none(hists_dir): 
     """
@@ -17,15 +18,23 @@ def make_dir_if_none(hists_dir):
 def fast_walk(base_dir): 
     """
     trying to be clever about using os.walk (which is slow on omega for
-    some reason). Assumes that directory structures are hypercubes.
+    some reason). Assumes that directory structures are hypercubes, and 
+    that files only exist in the leaf nodes, and that we only care about
+    files...
     """
-    # dirs_list = []
-    # for root, subdirs, files in os.walk(base_dir): 
-    #     dirs_list.append(subdirs)
-    #     if subdirs: 
-    #         subdirs = [subdirs[0]]
-    #     dirs
-    pass 
+    dirs_list = []
+    files_list = []
+    for root, subdirs, files in os.walk(base_dir): 
+        dirs_list.append(list(subdirs))
+        files_list.append(list(files))
+        if subdirs: 
+            subdirs = [subdirs[0]]
+
+    for dir_tup in product(*dir_list): 
+        root = os.path.join(*dir_tup)
+        yield root, [], leaf_list
+            
+    
 
 class ProgressMeter(object): 
     def __init__(self, level=3): 
