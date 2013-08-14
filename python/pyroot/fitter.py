@@ -29,8 +29,7 @@ _sql_table = [
 
 def make_sql(name='all-fit-results.db'): 
     table_spec = ','.join(_sql_table)
-    conn = sqlite3.connect(name)
-    with conn: 
+    with sqlite3.connect(name) as conn: 
         conn.execute('create table upperlimits ({})'.format(table_spec))
 
 def insert_sql(met_gev, pt_gev, signal_point, tag_config, upper_limits, 
@@ -39,9 +38,8 @@ def insert_sql(met_gev, pt_gev, signal_point, tag_config, upper_limits,
     ins_tup = (
         tag_config, met_gev, pt_gev, signal_point, 
         upper_limits['lower'], upper_limits['mean'], upper_limits['upper'])
-    conn = sqlite3.connect(name, timeout=900)
     valstr = ','.join(['?']*len(ins_tup))
-    with conn: 
+    with sqlite3.connect(name, timeout=900) as conn: 
         conn.execute(
             "insert into upperlimits values ({})".format(valstr), ins_tup)
 

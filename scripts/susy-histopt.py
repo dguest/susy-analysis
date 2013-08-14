@@ -2,7 +2,7 @@
 import itertools, tempfile
 from stop.bullshit import OutputFilter
 import os, sys, re, yaml, fnmatch
-from os.path import dirname, join
+from os.path import dirname, join, isfile
 import argparse
 from pyroot.fitter import CountDict, Workspace, UpperLimitCalc
 from pyroot.fitter import sr_from_path, path_from_sr
@@ -175,17 +175,23 @@ def _get_upper_limit(config):
     ul_calc = UpperLimitCalc()
     lower_limit, mean_limit, upper_limit = ul_calc.lim_range(workspace_name)
 
+    ul_dict = {
+        'upper': upper_limit, 
+        'lower': lower_limit, 
+        'mean': mean_limit, 
+        }
+
     if config.save_yaml: 
-        ul_dict = {
-            'upper': upper_limit, 
-            'lower': lower_limit, 
-            'mean': mean_limit, 
-            }
         yaml_dict = { 'upper_limit': ul_dict } 
         yaml_path = join(dirname(workspace_name), config.save_yaml)
         with open(yaml_path,'w') as yml: 
             yml.write(yaml.dump(yaml_dict))
         return 
+
+    fits_db = 'all-fit-results.db'
+    if isfile(fits_db): 
+        met, pt, sp, tag = sr_from_path(workspace_name)
+        insert_sql(met, pt, sp, tag, ul_dict, fits_db)
 
     print '{} -- {} -- {}'.format(
         lower_limit, mean_limit, upper_limit)
