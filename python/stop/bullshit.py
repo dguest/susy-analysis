@@ -14,6 +14,19 @@ def make_dir_if_none(hists_dir):
         else: 
             raise
 
+def fast_walk(base_dir): 
+    """
+    trying to be clever about using os.walk (which is slow on omega for
+    some reason). Assumes that directory structures are hypercubes.
+    """
+    # dirs_list = []
+    # for root, subdirs, files in os.walk(base_dir): 
+    #     dirs_list.append(subdirs)
+    #     if subdirs: 
+    #         subdirs = [subdirs[0]]
+    #     dirs
+    pass 
+
 class ProgressMeter(object): 
     def __init__(self, level=3): 
         self.last_epoch = None
