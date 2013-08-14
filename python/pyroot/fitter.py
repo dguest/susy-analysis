@@ -14,7 +14,7 @@ def path_from_sr(met_gev, pt_gev, signal_point, tag_config='conf',
         tag=tag_config, met=met_gev, pt=pt_gev, sp=signal_point, top=top)
 
 def sr_from_path(path): 
-    sr_re = re.compile('([^/]*)/met([0-9]+)/pt([0-9]+)/(.*)')
+    sr_re = re.compile('([^/]*)/met([0-9]+)/pt([0-9]+)/([^/]*)')
     tag, mstr, pstr, sp = sr_re.search(path).group(1,2,3,4)
     return int(mstr), int(pstr), sp, tag
 
@@ -255,6 +255,8 @@ class UpperLimitCalc(object):
         utils.load_susyfit()
         from ROOT import Util
         from ROOT import RooStats
+        if not isfile(workspace_name): 
+            raise OSError("can't find {}".format(workspace_name))
         workspace = Util.GetWorkspaceFromFile(workspace_name, 'combined')
 
         Util.SetInterpolationCode(workspace,4)

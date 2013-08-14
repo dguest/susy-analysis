@@ -58,7 +58,8 @@ def run():
 
 def _aggregate(config): 
     """
-    aggregate yaml output files from fits
+    aggregate yaml output files from fits. This should probably be removed, 
+    since we'd like to move to recording fit results in sql. 
     """
     all_points = []
     prog = ProgressMeter(3)
@@ -179,6 +180,8 @@ def _get_upper_limit(config):
     if isfile(fits_db): 
         met, pt, sp, tag = sr_from_path(workspace_name)
         insert_sql(met, pt, sp, tag, ul_dict, fits_db)
+    else: 
+        print 'no {} found, not recording in sql'.format(fits_db)
 
     print '{} -- {} -- {}'.format(
         lower_limit, mean_limit, upper_limit)

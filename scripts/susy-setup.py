@@ -50,6 +50,8 @@ def get_config():
 
     fit_args = subs.add_parser('fit', description=setup_fit.__doc__)
     fit_args.add_argument('root')
+    fit_args.add_argument('-t','--text-file',action='store_true', 
+                          help='make steering text file')
 
     return parser.parse_args(sys.argv[1:])
 
@@ -75,6 +77,18 @@ def setup_workspaces(config):
         the_job.write(submit_head + '\n')
         the_job.write(submit_line + '\n')
 
+def _build_fit_batch(root_dir, batch_path): 
+    n_jobs = 0
+    prog_meter = bullshit.ProgressMeter()
+    with open(batch_path, 'w') as bfile: 
+        for root, subdirs, files in os.walk(config.root): 
+            if not model_name in files: 
+                continue
+            prog_meter.get_walk_progress(root)
+            n_jobs += 1
+            full_path = os.path.join(root, model_name)
+            bfile.write(full_path + '\n')
+
 def setup_fit(config): 
     """
     Sets up histfitter jobs. Will run one job for each leaf directory given 
@@ -87,18 +101,17 @@ def setup_fit(config):
     if not isdir(batch_dir): 
         os.makedirs(batch_dir)
     
-    n_jobs = 0
     batch_path = os.path.join(batch_dir, batch_file)
-    prog_meter = bullshit.ProgressMeter()
-    with open(batch_path, 'w') as bfile: 
-        for root, subdirs, files in os.walk(config.root): 
-            if not model_name in files: 
-                continue
-            prog_meter.get_walk_progress(root)
-            n_jobs += 1
-            full_path = os.path.join(root, model_name)
-            bfile.write(full_path + '\n')
-
+    if config.text_file: 
+        n_jobs = _build_fit_batch(config.root, batch_path)
+    elif not isfile(batch_path): 
+        raise OSError("no batch file found at {}".format(batch_path))
+    else: 
+        n_jobs = 0
+        with open(batch_path) as bfile: 
+            for line in bfile: 
+                if line.strip(): 
+                    n_jobs += 1
     sub_dict = {
         'n_jobs': n_jobs, 
         'out_dir': 'output/fit', 
