@@ -52,6 +52,7 @@ def get_config():
     fit_args.add_argument('root')
     fit_args.add_argument('-t','--text-file',action='store_true', 
                           help='make steering text file')
+    fit_args.add_argument('-s','--sql-db', action='store_true')
 
     return parser.parse_args(sys.argv[1:])
 
@@ -128,11 +129,12 @@ def setup_fit(config):
     with open('all-the-fits.sh','w') as fits: 
         fits.write(submit_head + '\n')
         fits.write(submit_line + '\n')
-    sql_name = 'all-fit-results.db'
-    from pyroot.fitter import make_sql
-    if isfile(sql_name): 
-        os.remove(sql_name)
-    make_sql(sql_name)
+    if config.sql_db: 
+        sql_name = 'all-fit-results.db'
+        from pyroot.fitter import make_sql
+        if isfile(sql_name): 
+            os.remove(sql_name)
+        make_sql(sql_name)
 
 def setup_hadd(config): 
     """

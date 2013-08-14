@@ -256,7 +256,7 @@ class UpperLimitCalc(object):
         from ROOT import Util
         from ROOT import RooStats
         if not isfile(workspace_name): 
-            raise OSError("can't find {}".format(workspace_name))
+            raise OSError("can't find workspace {}".format(workspace_name))
         workspace = Util.GetWorkspaceFromFile(workspace_name, 'combined')
 
         Util.SetInterpolationCode(workspace,4)
