@@ -25,15 +25,14 @@ def fast_walk(base_dir):
     dirs_list = []
     files_list = []
     for root, subdirs, files in os.walk(base_dir): 
-        dirs_list.append(list(subdirs))
-        files_list.append(list(files))
+        dirs_list.append(subdirs[:])
+        files_list.append(files[:])
         if subdirs: 
-            subdirs = [subdirs[0]]
+            subdirs[:] = [subdirs[0]]
 
-    for dir_tup in product(*dir_list): 
+    for dir_tup in product(*dirs_list[:-1]): 
         root = os.path.join(*dir_tup)
-        yield root, [], leaf_list
-            
+        yield root, [], files_list[-1]
     
 
 class ProgressMeter(object): 
