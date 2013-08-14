@@ -277,3 +277,4 @@ class UpperLimitCalc(object):
         lower_limit = inverted.GetExpectedUpperLimit(-1)
         upper_limit = inverted.GetExpectedUpperLimit(1)
         return lower_limit, mean_limit, upper_limit
+

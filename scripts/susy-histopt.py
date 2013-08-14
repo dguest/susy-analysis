@@ -1,12 +1,11 @@
 #!/usr/bin/env python2.7
 import itertools, tempfile
-from stop.bullshit import OutputFilter
+from stop.bullshit import OutputFilter, ProgressMeter
 import os, sys, re, yaml, fnmatch
 from os.path import dirname, join, isfile
 import argparse
 from pyroot.fitter import CountDict, Workspace, UpperLimitCalc
-from pyroot.fitter import sr_from_path, path_from_sr
-from time import time
+from pyroot.fitter import sr_from_path, path_from_sr, insert_sql
 import linecache
     
 def run(): 
@@ -56,26 +55,6 @@ def run():
             'ul':_get_upper_limit, 'ms':_multispaces, 'agg': _aggregate}
     opts[config.which](config)
 
-class ProgressMeter(object): 
-    def __init__(self, level=3): 
-        self.last_epoch = None
-        self.level = level
-        print 'walking'
-        self.n_query = 0
-        self.start = time()
-
-    def get_walk_progress(self,root): 
-        self.n_query += 1
-        level = self.level
-        dir_path = root.split('/')
-        if len(dir_path) >= level:
-            if dir_path[-level] != self.last_epoch: 
-                self.last_epoch = dir_path[-level]
-                rate = self.n_query / float(time() - self.start) 
-                self.start = time()
-                self.n_query = 0
-                print 'working on {} ({:.1f} Hz)'.format(
-                    dir_path[-level], rate)
 
 def _aggregate(config): 
     """

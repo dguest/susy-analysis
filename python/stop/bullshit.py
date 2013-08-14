@@ -1,5 +1,6 @@
 import tempfile
 import os, sys, re, errno
+from time import time
 
 def make_dir_if_none(hists_dir): 
     """
@@ -12,6 +13,28 @@ def make_dir_if_none(hists_dir):
             pass
         else: 
             raise
+
+class ProgressMeter(object): 
+    def __init__(self, level=3): 
+        self.last_epoch = None
+        self.level = level
+        print 'walking'
+        self.n_query = 0
+        self.start = time()
+
+    def get_walk_progress(self,root): 
+        self.n_query += 1
+        level = self.level
+        dir_path = root.split('/')
+        if len(dir_path) >= level:
+            if dir_path[-level] != self.last_epoch: 
+                self.last_epoch = dir_path[-level]
+                rate = self.n_query / float(time() - self.start) 
+                self.start = time()
+                self.n_query = 0
+                print 'working on {} ({:.1f} Hz)'.format(
+                    dir_path[-level], rate)
+
 
 class OutputFilter(object): 
     """

@@ -3,7 +3,7 @@
 Omega setup scripts
 """
 import argparse, sys, os
-from stop import meta
+from stop import meta, bullshit
 from os.path import basename, splitext, dirname, isdir, isfile
 
 def run(): 
@@ -89,10 +89,12 @@ def setup_fit(config):
     
     n_jobs = 0
     batch_path = os.path.join(batch_dir, batch_file)
+    prog_meter = bullshit.ProgressMeter()
     with open(batch_path, 'w') as bfile: 
         for root, subdirs, files in os.walk(config.root): 
             if not model_name in files: 
                 continue
+            prog_meter.get_walk_progress(root)
             n_jobs += 1
             full_path = os.path.join(root, model_name)
             bfile.write(full_path + '\n')
