@@ -152,7 +152,7 @@ def _get_upper_limit(config):
     if config.workspace.endswith('.txt'): 
         if config.fit_number: 
             workspace_name = linecache.getline(
-                config.workspace, config.fit_number)
+                config.workspace, config.fit_number).strip()
         else: 
             with open(config.workspace) as txt_file: 
                 workspace_name = list(line.strip() for line in txt_file)[0]
