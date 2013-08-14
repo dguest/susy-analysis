@@ -21,19 +21,23 @@ import matplotlib as mp
 from stop.style import ax_labels, vdict, hdict
 
 def run(): 
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description=__doc__)
     subs = parser.add_subparsers(dest='which')
 
     yaml_reader = subs.add_parser('yml')
     yaml_reader.add_argument('yaml_file')
     yaml_reader.add_argument('-o', '--out-file')
 
-    plotter = subs.add_parser('plot')
+    plotter = subs.add_parser('plot', description=_plot.__doc__)
+    plotter.add_argument('hdf_file')
+    plotter.add_argument('-o', '--out-dir', default='plots')
+
+    plotter = subs.add_parser('nex', description=_plot_n_excluded.__doc__)
     plotter.add_argument('hdf_file')
     plotter.add_argument('-o', '--out-dir', default='plots')
 
     args = parser.parse_args(sys.argv[1:])
-    subroutines = {'yml':_yml_parser, 'plot':_plot}
+    subroutines = {'yml':_yml_parser, 'plot':_plot, 'nex':_plot_n_excluded}
     subroutines[args.which](args)
 
 def _yml_parser(args): 
@@ -65,6 +69,9 @@ def save_h5(point_list, out_file_name):
                 ds.attrs['ax_names'] = ax_names
 
 def _plot(args): 
+    """
+    Makes all the plots
+    """
     hdf = h5py.File(args.hdf_file)
     for config, sp_group in hdf.iteritems(): 
         for sp, dataset in sp_group.iteritems(): 
@@ -79,7 +86,30 @@ def _plot(args):
             print 'plotting {}'.format(out_path)
             _draw_plot(array, extents, (config, sp), ax_names=ax_names, 
                        out_path=out_path)
+
+def _plot_n_excluded(args): 
+    """
+    Counts number of excluded regions in each bin of the pt / eta plane, makes
+    a plot. 
+    """
+    hdf = h5py.File(args.hdf_file)
+    base_ds = next(next(hdf.itervalues()).itervalues())
+    counts_array = np.zeros(base_ds.shape)
+    extents = base_ds.attrs['extent']
+    ax_names = base_ds.attrs['ax_names']
+    for config, sp_group in hdf.iteritems(): 
+        for sp, dataset in sp_group.iteritems(): 
+            array = np.array(dataset)
+            counts_array[array < 1.0] += 1
         
+        out_file_name = 'n-excluded-{}.pdf'.format(config)
+        if not os.path.isdir(args.out_dir): 
+            os.mkdir(args.out_dir)
+        out_path = os.path.join(args.out_dir, out_file_name)
+        _draw_plot(counts_array, extents, (config, 'n excluded'), 
+                   ax_names, out_path)
+
+
 def _get_label(label): 
     for lab in ax_labels: 
         if lab in label: 
