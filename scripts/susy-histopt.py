@@ -6,7 +6,6 @@ from os.path import dirname, join, isfile
 import argparse
 from pyroot.fitter import CountDict, Workspace, UpperLimitCalc
 from pyroot.fitter import sr_from_path, path_from_sr, insert_sql
-import linecache
     
 def run(): 
     parser = argparse.ArgumentParser()
@@ -35,7 +34,7 @@ def run():
         help='save output as yaml in the workspace directory '
         '(with no args: %(const)s)')
     upper_lim.add_argument(
-        '-n', '--fit-number', type=int, 
+        '-n', '--ws-number', type=int, default=0, 
         help='skip to this line in the workspaces text file')
 
     # TODO: move this to susy-postfit (or remove entirely if we go to sql)
@@ -151,15 +150,8 @@ def _get_upper_limit(config):
     from ROOT import RooStats
 
     if config.workspace.endswith('.txt'): 
-        if config.fit_number: 
-            workspace_name = linecache.getline(
-                config.workspace, config.fit_number).strip()
-            if not workspace_name: 
-                raise OSError("no workspace found in {} at {}".format(
-                        config.workspace, config.fit_number))
-        else: 
-            with open(config.workspace) as txt_file: 
-                workspace_name = list(line.strip() for line in txt_file)[0]
+        with open(config.workspace) as txt_file: 
+            workspace_name = txt_file.readlines()[config.ws_number].strip()
     else: 
         workspace_name = config.workspace
 
