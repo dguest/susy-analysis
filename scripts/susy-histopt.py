@@ -6,6 +6,8 @@ from os.path import dirname, join, isfile
 import argparse
 from pyroot.fitter import CountDict, Workspace, UpperLimitCalc
 from pyroot.fitter import sr_from_path, path_from_sr, insert_sql
+import linecache
+import time
     
 def run(): 
     parser = argparse.ArgumentParser()
@@ -142,6 +144,22 @@ def _get_p_value(config):
     print '{} -- {} -- {}'.format(
         p_val.GetCLsd1S(), p_val.GetCLsexp(), p_val.GetCLsu1S())
 
+def _angry_get_line(text_file, line_number): 
+    ws_name = ''
+    warn_tmp =  'WARNING: had to try getting {} line {} {} times'
+    for retry in xrange(20): 
+        workspace_name = linecache.getline(text_file, line_number).strip()
+        if workspace_name: 
+            if retry: 
+                sys.stderr.write(warn_tmp.format(
+                        text_file, line_number, retry))
+            return workspace_name
+        time.sleep(5)
+        
+    raise OSError("no workspace found in {} at {}".format(
+            config.workspace, config.fit_number))
+    
+
 def _get_upper_limit(config): 
     import ROOT
     from pyroot import utils
@@ -150,8 +168,7 @@ def _get_upper_limit(config):
     from ROOT import RooStats
 
     if config.workspace.endswith('.txt'): 
-        with open(config.workspace) as txt_file: 
-            workspace_name = txt_file.readlines()[config.ws_number].strip()
+        workspace_name = _angry_get_line(config.workspace, config.ws_number)
     else: 
         workspace_name = config.workspace
 
