@@ -117,6 +117,7 @@ def setup_fit(config):
     sub_dict = {
         'n_jobs': n_jobs, 
         'out_dir': 'output/fit', 
+        'in_dir': batch_dir
         'walltime': '30:00', 
         }
     submit_head = _get_submit_head(**sub_dict)
