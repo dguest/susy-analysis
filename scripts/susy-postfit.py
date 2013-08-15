@@ -32,12 +32,15 @@ def run():
     plotter.add_argument('hdf_file')
     plotter.add_argument('-o', '--out-dir', default='plots')
 
-    plotter = subs.add_parser('nex', description=_plot_n_excluded.__doc__)
+    plotter = subs.add_parser('sum', description=_plot_sum_fom.__doc__)
     plotter.add_argument('hdf_file')
     plotter.add_argument('-o', '--out-dir', default='plots')
+    plotter.add_argument(
+        '-f', '--fom', choices={'tanh','log','nex'}, default='nex', 
+        help='figure of merit, default: %(default)s')
 
     args = parser.parse_args(sys.argv[1:])
-    subroutines = {'yml':_yml_parser, 'plot':_plot, 'nex':_plot_n_excluded}
+    subroutines = {'yml':_yml_parser, 'plot':_plot, 'sum':_plot_sum_fom}
     subroutines[args.which](args)
 
 def _yml_parser(args): 
@@ -87,11 +90,22 @@ def _plot(args):
             _draw_plot(array, extents, (config, sp), ax_names=ax_names, 
                        out_path=out_path)
 
-def _plot_n_excluded(args): 
+# --- several figures of merit to choose from
+def _is_excluded(array): 
+    base = np.zeros(array.shape)
+    base[array < 1.0] += 1
+    return base
+def _nlog(array): 
+    return -np.log(array)
+def _ntanh(array): 
+    return -np.tanh(array)
+_fom_funcs = {'tanh': _ntanh, 'log': _nlog, 'nex': _is_excluded}
+
+def _plot_sum_fom(args): 
     """
-    Counts number of excluded regions in each bin of the pt / eta plane, makes
-    a plot. 
+    Sums over signal points in the pt / eta plane, makes a plot. 
     """
+    fom_func = _fom_funcs[args.fom]
     hdf = h5py.File(args.hdf_file)
     base_ds = next(next(hdf.itervalues()).itervalues())
     counts_array = np.zeros(base_ds.shape)
@@ -100,13 +114,13 @@ def _plot_n_excluded(args):
     for config, sp_group in hdf.iteritems(): 
         for sp, dataset in sp_group.iteritems(): 
             array = np.array(dataset)
-            counts_array[array < 1.0] += 1
+            counts_array += fom_func(array)
         
-        out_file_name = 'n-excluded-{}.pdf'.format(config)
+        out_file_name = '{}-{}.pdf'.format(args.fom,config)
         if not os.path.isdir(args.out_dir): 
             os.mkdir(args.out_dir)
         out_path = os.path.join(args.out_dir, out_file_name)
-        _draw_plot(counts_array, extents, (config, 'n excluded'), 
+        _draw_plot(counts_array, extents, (config, args.fom), 
                    ax_names, out_path)
 
 
