@@ -148,22 +148,18 @@ def _get_p_value(config):
 def _angry_get_line(text_file, line_number): 
     ws_name = ''
     warn_tmp =  'WARNING: had to try getting {} line {} {} times'
-    for retry in xrange(20): 
-        workspace_name = linecache.getline(text_file, line_number).strip()
-        if workspace_name: 
+    for retry in xrange(100):
+        try: 
+            with open(text_file) as txt: 
+                workspace_name = txt.readlines()[line_number].strip()
             if retry: 
                 warnings.warn(warn_tmp.format(
                         text_file, line_number, retry),stacklevel=2)
             return workspace_name
-        linecache.clearcache()
-        time.sleep(5)
-        
-    if not os.path.isfile(text_file): 
-        raise OSError("no text file found at {}".format(text_file))
-    else: 
-        raise OSError("no line {} returned in {}".format(
-                line_number, text_file))
-    
+        except IOError: 
+            time.sleep(5)
+
+    raise OSError("no text file found at {}".format(text_file))
 
 def _get_upper_limit(config): 
     import ROOT
