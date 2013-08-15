@@ -146,6 +146,10 @@ def _get_p_value(config):
         p_val.GetCLsd1S(), p_val.GetCLsexp(), p_val.GetCLsu1S())
 
 def _angry_get_line(text_file, line_number): 
+    """
+    Not sure if this helps: I've never seen the WARNING below, although 
+    the OSError is common (was happening 1% of the time).
+    """
     ws_name = ''
     warn_tmp =  'WARNING: had to try getting {} line {} {} times'
     for retry in xrange(100):
