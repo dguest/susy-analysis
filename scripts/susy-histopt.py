@@ -8,6 +8,7 @@ from pyroot.fitter import CountDict, Workspace, UpperLimitCalc
 from pyroot.fitter import sr_from_path, path_from_sr, insert_sql
 import linecache
 import time
+import warnings
     
 def run(): 
     parser = argparse.ArgumentParser()
@@ -151,13 +152,17 @@ def _angry_get_line(text_file, line_number):
         workspace_name = linecache.getline(text_file, line_number).strip()
         if workspace_name: 
             if retry: 
-                sys.stderr.write(warn_tmp.format(
-                        text_file, line_number, retry))
+                warnings.warn(warn_tmp.format(
+                        text_file, line_number, retry),stacklevel=2)
             return workspace_name
+        linecache.clearcache()
         time.sleep(5)
         
-    raise OSError("no workspace found in {} at {}".format(
-            config.workspace, config.fit_number))
+    if not os.path.isfile(text_file): 
+        raise OSError("no text file found at {}".format(text_file))
+    else: 
+        raise OSError("no line {} returned in {}".format(
+                line_number, text_file))
     
 
 def _get_upper_limit(config): 
