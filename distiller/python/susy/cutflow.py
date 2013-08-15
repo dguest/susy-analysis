@@ -13,7 +13,7 @@ class CorruptedCutflow(list):
 
 def cutflow(input_files, flags, grl='', output_ntuple='', 
             btag_cal_file='', cal_dir='', systematic='NONE', 
-            cutflow='NONE'): 
+            cutflow='NONE', boson_pt_max_mev=-1): 
     """
     Returns a list of pairs: (cut_name, n_passing). If output_ntuple is 
     given will also write an ntuple. 
@@ -26,7 +26,6 @@ def cutflow(input_files, flags, grl='', output_ntuple='',
         e: save all events (don't do further skimming)
         f: is atlfast
         g: get branches as textfile
-        h: enable boson pt cut at 70 (hackish, should fix)
         i: get sparticle id (requires truth)
         j: vector output
         m: save mv3 weights
@@ -60,7 +59,8 @@ def cutflow(input_files, flags, grl='', output_ntuple='',
         'btag_cal_dir':cal_dir, 
         'btag_cal_file':btag_cal_file, 
         'systematic':systematic, 
-        'cutflow_type': cutflow
+        'cutflow_type': cutflow, 
+        'boson_pt_max_mev': boson_pt_max_mev, 
         }
     if 'a' in flags: 
         return _aggressive_distill(

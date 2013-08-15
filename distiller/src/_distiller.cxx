@@ -86,7 +86,7 @@ static unsigned get_flags(const char* flags_str)
   if (strchr(flags_str,'e')) flags |= cutflag::save_all_events; 
   if (strchr(flags_str,'f')) flags |= cutflag::is_atlfast; 
   if (strchr(flags_str,'g')) flags |= cutflag::get_branches; 
-  if (strchr(flags_str,'h')) flags |= cutflag::boson_pt_cut_40; 
+  // if (strchr(flags_str,'h')) flags |= cutflag::boson_pt_cut_40; 
   if (strchr(flags_str,'i')) flags |= cutflag::spartid; 
   if (strchr(flags_str,'j')) flags |= cutflag::vector_output; 
   if (strchr(flags_str,'m')) flags |= cutflag::mv3; 
@@ -127,6 +127,9 @@ static bool fill_run_info(PyObject* dict, RunInfo* info) {
     }
     else if (ckey == "cutflow_type") { 
       if (!safe_copy(value, info->cutflow_type)) return false; 
+    }
+    else if (ckey == "boson_pt_max_mev") { 
+      if (!safe_copy(value, info->boson_pt_max_mev)) return false; 
     }
     else { 
       std::string err = "got unknown string in distiller info dict: " + ckey; 
@@ -197,6 +200,14 @@ static bool safe_copy(PyObject* value, CutflowType& dest) {
     return false; 
   }
 }
+
+static bool safe_copy(PyObject* value, double& dest) { 
+  double the_double = PyFloat_AsDouble(value); 
+  if (PyErr_Occurred()) return false; 
+  dest = the_double; 
+  return true; 
+}
+
 
 static PyMethodDef methods[] = {
   {"_distiller", py_distiller, METH_VARARGS, 

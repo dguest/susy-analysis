@@ -12,6 +12,7 @@ struct RunInfo {
   std::string trigger; 
   std::string btag_cal_dir; 
   std::string btag_cal_file; 
+  double boson_pt_max_mev; 
   RunInfo(); 
 }; 
 

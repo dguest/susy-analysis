@@ -62,8 +62,11 @@ def distill_d3pds(config):
             return 
     elif _is_atlfast(meta_lookup[ds_key].full_name): 
         flags += 'f'
+
     if _needs_overlap_removal(meta_lookup[ds_key].full_name): 
-        flags += 'h'
+        boson_pt_max_mev = 70e3 # ACHTUNG: this will change to 40
+    else: 
+        boson_pt_max_mev = -1.0 # disables if negative
 
     if sys.stdin.isatty(): 
         flags += 'v'            # verbose
@@ -81,7 +84,8 @@ def distill_d3pds(config):
             grl=grl,
             systematic=config.systematic, 
             btag_cal_file=btag_env, cal_dir=calibration_dir, 
-            cutflow='NOMINAL')
+            cutflow='NOMINAL', 
+            boson_pt_max_mev=boson_pt_max_mev)
 
     counts_path = splitext(out_path)[0] + '_counts.yml'
     list_counts = [list(c) for c in cut_counts]
