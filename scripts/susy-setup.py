@@ -80,9 +80,10 @@ def setup_workspaces(config):
 
 def _build_fit_batch(root_dir, batch_path): 
     n_jobs = 0
+    model_name = 'stop_combined_meas_model.root'
     prog_meter = bullshit.ProgressMeter()
     with open(batch_path, 'w') as bfile: 
-        for root, subdirs, files in bullshit.fast_walk(config.root): 
+        for root, subdirs, files in bullshit.fast_walk(root_dir): 
             if not model_name in files: 
                 continue
             prog_meter.get_walk_progress(root)
@@ -98,7 +99,6 @@ def setup_fit(config):
     """
     batch_dir = 'batch/fits'
     batch_file = 'fit-paths.txt'
-    model_name = 'stop_combined_meas_model.root'
 
     if not isdir(batch_dir): 
         os.makedirs(batch_dir)
