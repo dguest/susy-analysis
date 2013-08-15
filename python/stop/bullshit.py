@@ -22,8 +22,8 @@ def fast_walk(base_dir):
     that files only exist in the leaf nodes, and that we only care about
     files...
     """
-    dirs_list = []
-    files_list = []
+    dirs_list = [ [base_dir] ]
+    files_list = [ [] ]
     for root, subdirs, files in os.walk(base_dir): 
         dirs_list.append(subdirs[:])
         files_list.append(files[:])
