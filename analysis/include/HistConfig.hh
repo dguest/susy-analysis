@@ -9,7 +9,7 @@
 #include <string> 
 
 struct HistConfig { 
-  btag::EventConfig btag_config; 
+  // btag::EventConfig btag_config; 
   syst::Systematic systematic; 
   // the floats map is a leftover hack, should remove
   std::map<std::string, float> floats; 

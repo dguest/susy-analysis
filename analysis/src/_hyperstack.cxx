@@ -6,7 +6,7 @@
 #include "HistBuilder.hh"
 #include "HistBuilderFlags.hh"
 #include "_hyperstack.hh"
-#include "HistConfig.hh"
+// #include "HistConfig.hh"
 #include "systematic_defs.hh"
 
 static unsigned parse_flags(const char* flags);
