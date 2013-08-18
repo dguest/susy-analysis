@@ -22,7 +22,6 @@ def get_config():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('steering_file', help="created if it doesn't exist")
     parser.add_argument('-f','--force-aggregation', action='store_true')
-    parser.add_argument('-r','--rerun-stack', action='store_true')
     parser.add_argument('-c','--remake-counts', action='store_true')
     parser.add_argument(
         '--mode', choices={'histmill','kinematic_stat'}, 
@@ -58,10 +57,6 @@ def run():
         coord = Coordinator(yml)
     needed_systematics = coord.get_needed_aggregates(args.mode)
 
-    if args.rerun_stack: 
-        warnings.warn("we're trying to replace this with susy-stack", 
-                      FutureWarning)
-
     to_do = [
         needed_systematics, 
         args.force_aggregation, 
@@ -73,9 +68,6 @@ def run():
 
     systematic = 'NONE' if args.fast else 'all'
     coord.bugstream = TemporaryFile()
-    if args.rerun_stack: 
-        coord.stack(systematic=systematic, 
-                    rerun=args.rerun_stack, mode=args.mode)
 
     count_dict = coord.aggregate(systematic=systematic,
                                  rerun=args.force_aggregation, 
