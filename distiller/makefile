@@ -85,7 +85,8 @@ BITDEFS      := ../python/stop/bits.yml
 
 ALLOBJ       := $(GEN_OBJ) $(PY_OBJ)
 
-ALLOUTPUT    := python/susy/_distiller.so unit-test
+PY_OUT_PATH  := ../python/stop/distiller/$(PY_OBJ:.o=.so)
+ALLOUTPUT    := $(PY_OUT_PATH) unit-test
 ALLOUTPUT    += $(BITDEFS)
 
 all: $(ALLOUTPUT) 
@@ -97,7 +98,7 @@ unit-test: $(EXE_OBJ:%=$(BIN)/%)
 	@echo "linking $^ --> $@"
 	@$(CXX) -o $@ $^ $(LIBS) $(LDFLAGS)
 
-python/susy/_distiller.so: $(PYLIB_OBJ:%=$(BIN)/%) $(PY_OBJ:%=$(BIN)/%)
+$(PY_OUT_PATH): $(PYLIB_OBJ:%=$(BIN)/%) $(PY_OBJ:%=$(BIN)/%)
 	@mkdir -p python/susy
 	@echo "linking $^ --> $@"
 	@$(CXX) -o $@ $^ $(LIBS) $(PY_LDFLAGS)

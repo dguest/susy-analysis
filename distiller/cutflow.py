@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.7
 
-from susy import cutflow
+from stop.distiller import cutflow
 import sys, glob
 
 files = sys.argv[1:]

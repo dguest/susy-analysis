@@ -67,7 +67,7 @@ def cutflow(input_files, flags, grl='', output_ntuple='',
             input_files, input_dict, flags, output_ntuple)
     else: 
         with BullshitFilter(): 
-            import _distiller 
+            from stop.distiller import _distiller 
 
         return _distiller._distiller(
             input_files, input_dict, flags, output_ntuple)
