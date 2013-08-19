@@ -24,9 +24,7 @@ public:
   double jvf() const; 
   void set_bit(unsigned, bool set_to = true); 
   unsigned bits() const; 
-  double pb() const; 
-  double pu() const; 
-  double pc() const; 
+  double flavor_weight(btag::Flavor, btag::Tagger) const; 
   int flavor_truth_label() const; 
   bool has_truth() const; 
   void set_flavor_tag(const BtagCalibration*); 
@@ -35,7 +33,8 @@ public:
   bool pass_anti_b(btag::OperatingPoint) const; 
 private: 
   void unset_bit(unsigned); 
-  void set_flavor_tag(btag::Flavor, btag::OperatingPoint, const BtagCalibration*); 
+  void set_flavor_tag(btag::Flavor, btag::OperatingPoint, 
+		      const BtagCalibration*); 
   unsigned get_tagger_bit(btag::Flavor, btag::OperatingPoint) const; 
   double m_cnn_b; 
   double m_cnn_c; 

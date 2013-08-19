@@ -79,14 +79,25 @@ int SelectedJet::index() const{
 double SelectedJet::jvf() const { 
   return m_jvf; 
 }
-double SelectedJet::pb() const { 
-  return m_cnn_b; 
-}
-double SelectedJet::pc() const { 
-  return m_cnn_c; 
-}
-double SelectedJet::pu() const { 
-  return m_cnn_u; 
+double SelectedJet::flavor_weight(btag::Flavor flavor, 
+				  btag::Tagger tag) const { 
+  if (tag == btag::CNN) { 
+    switch (flavor) { 
+    case btag::B: return m_cnn_b; 
+    case btag::C: return m_cnn_c; 
+    case btag::U: return m_cnn_u; 
+    default: abort(); 
+    }
+  }
+  else if (tag == btag::JFC) { 
+    switch (flavor) { 
+    case btag::B: return m_jfc_b; 
+    case btag::C: return m_jfc_c; 
+    case btag::U: return m_jfc_u; 
+    default: abort(); 
+    }
+  }
+  abort(); 
 }
 int SelectedJet::flavor_truth_label() const { 
   assert(m_flavor_truth_label != -1); 
