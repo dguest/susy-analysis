@@ -8,7 +8,8 @@
 #include <string> 
 #include <cmath>
 
-Jet2DHists::Jet2DHists(const unsigned flags): 
+Jet2DHists::Jet2DHists(const unsigned flags, btag::Tagger tag): 
+  m_tagger(tag), 
   m_anti_b_vs_anti_light(0)
 {
   Axis anti_light_wt; 
@@ -32,8 +33,10 @@ Jet2DHists::~Jet2DHists() {
 }
 
 void Jet2DHists::fill(const Jet& jet, double weight) { 
-  std::vector<double> wt_vector = {
-    log(jet.pc() / jet.pu() ), log(jet.pc() / jet.pb())}; 
+  double pb = jet.flavor_weight(Flavor::BOTTOM, m_tagger); 
+  double pc = jet.flavor_weight(Flavor::CHARM, m_tagger); 
+  double pu = jet.flavor_weight(Flavor::LIGHT, m_tagger); 
+  std::vector<double> wt_vector = {log(pc / pu), log(pc / pb)}; 
   m_anti_b_vs_anti_light->fill(wt_vector); 
 }
 

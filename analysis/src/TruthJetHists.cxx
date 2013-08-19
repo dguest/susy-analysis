@@ -4,12 +4,13 @@
 #include "Jet.hh"
 #include "Flavor.hh"
 
-TruthJetHists::TruthJetHists(double max_pt, const unsigned flags) { 
-  m_bottom = new Jet1DHists(max_pt, flags); 
-  m_charm = new Jet1DHists(max_pt, flags); 
-  m_light = new Jet1DHists(max_pt, flags); 
-  m_tau = new Jet1DHists(max_pt, flags); 
-  m_other = new Jet1DHists(max_pt, flags); 
+TruthJetHists::TruthJetHists(double max_pt, const unsigned flags, 
+			     btag::Tagger tag) { 
+  m_bottom = new Jet1DHists(max_pt, flags, tag); 
+  m_charm  = new Jet1DHists(max_pt, flags, tag); 
+  m_light  = new Jet1DHists(max_pt, flags, tag); 
+  m_tau    = new Jet1DHists(max_pt, flags, tag); 
+  m_other  = new Jet1DHists(max_pt, flags, tag); 
 }
 
 TruthJetHists::~TruthJetHists() { 

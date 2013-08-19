@@ -34,8 +34,8 @@ RegionHistograms::RegionHistograms(const RegionConfig& config,
   }
 
   for (size_t jet_n = 0; jet_n < n_jets; jet_n++) { 
-    m_jet_hists.push_back(new Jet1DHists(max_pt, flags)); 
-    m_jet_2hists.push_back(new Jet2DHists(flags)); 
+    m_jet_hists.push_back(new Jet1DHists(max_pt, flags, config.tagger)); 
+    m_jet_2hists.push_back(new Jet2DHists(flags, config.tagger)); 
   }
   m_met = new Histogram(N_BINS, 0.0, max_pt, "MeV"); 
   m_alt_met = new Histogram(N_BINS, 0.0, max_pt, "MeV"); 
@@ -51,7 +51,8 @@ RegionHistograms::RegionHistograms(const RegionConfig& config,
 
   if (flags & buildflag::fill_truth) { 
     for (size_t jet_n = 0; jet_n < n_jets; jet_n++) { 
-      m_jet_truth_hists.push_back(new TruthJetHists(max_pt, flags)); 
+      m_jet_truth_hists.push_back
+	(new TruthJetHists(max_pt, flags, config.tagger)); 
     }
   }
 

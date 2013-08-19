@@ -1,7 +1,7 @@
 #ifndef JET_H
 #define JET_H
 
-#include "BtagConfig.hh"
+#include "btag_enums.hh"
 #include "systematic_defs.hh"
 #include "TLorentzVector.h"
 #include "typedefs.hh"
@@ -19,9 +19,7 @@ public:
   double met_dphi() const; 
   double mu_met_dphi() const; 
   void set_event_flags(ull_t); 
-  double pb() const; 
-  double pc() const; 
-  double pu() const; 
+  double flavor_weight(Flavor, btag::Tagger) const; 
   Flavor flavor_truth_label() const; 
   bool has_flavor() const; 
   bool pass_tag(btag::OperatingPoint) const; 
@@ -32,6 +30,9 @@ private:
   double m_pb; 
   double m_pc; 
   double m_pu; 
+  double m_jfc_pb; 
+  double m_jfc_pc; 
+  double m_jfc_pu; 
   Flavor m_truth_label; 
   double m_met_dphi; 
   double m_mu_met_dphi; 

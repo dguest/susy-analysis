@@ -1,7 +1,7 @@
 #ifndef ENUM_CONVERTERS_HH
 #define ENUM_CONVERTERS_HH
 
-#include "BtagConfig.hh"
+#include "btag_enums.hh"
 #include "JetTagRescaler.hh"
 
 btag::OperatingPoint btag_from_jettag(jettag::TaggingPoint); 

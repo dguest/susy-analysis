@@ -9,7 +9,8 @@
 #include <cmath>
 
 
-Jet1DHists::Jet1DHists(double max_pt, const unsigned flags): 
+Jet1DHists::Jet1DHists(double max_pt, const unsigned flags, btag::Tagger tag): 
+  m_tagger(tag), 
   m_truth_label(0)
 { 
   m_pt = new Histogram(100, 0, max_pt, "MeV"); 
@@ -60,9 +61,13 @@ void Jet1DHists::write_truth_info(H5::CommonFG& file){
 void Jet1DHists::fill(const Jet& jet, double w) { 
   m_pt->fill(jet.Pt(),  w); 
   m_eta->fill(jet.Eta(),  w); 
-  m_cnnLogCu->fill(log(jet.pc() / jet.pu()),  w); 
-  m_cnnLogCb->fill(log(jet.pc() / jet.pb()),  w); 
-  m_cnnLogBu->fill(log(jet.pb() / jet.pu()),  w); 
+  double pb = jet.flavor_weight(Flavor::BOTTOM, m_tagger); 
+  double pc = jet.flavor_weight(Flavor::CHARM, m_tagger); 
+  double pu = jet.flavor_weight(Flavor::LIGHT, m_tagger); 
+
+  m_cnnLogCu->fill(log(pc / pu),  w); 
+  m_cnnLogCb->fill(log(pc / pb),  w); 
+  m_cnnLogBu->fill(log(pb / pu),  w); 
   m_met_dphi->fill(std::abs(jet.met_dphi()),  w);
   m_mu_met_dphi->fill(std::abs(jet.mu_met_dphi()), w); 
 

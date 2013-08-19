@@ -3,7 +3,7 @@
 
 #include <string> 
 #include <vector> 
-#include "BtagConfig.hh"
+#include "btag_enums.hh"
 #include "systematic_defs.hh"
 #include "typedefs.hh"
 
@@ -31,6 +31,7 @@ struct RegionConfig
   reg::Type type; 
   reg::Hists hists; 
   std::string mc_mc_jet_reweight_file; 
+  btag::Tagger tagger; 
   RegionConfig(); 
 };
 

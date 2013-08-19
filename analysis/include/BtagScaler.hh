@@ -6,7 +6,7 @@
 #include <boost/noncopyable.hpp>
 #include "systematic_defs.hh"
 #include "typedefs.hh"
-#include "BtagConfig.hh"
+#include "btag_enums.hh"
 #include "Flavor.hh"
 
 class BtagBuffer; 

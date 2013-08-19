@@ -2,6 +2,7 @@
 #include "Jet.hh"
 #include "BtagScaler.hh"
 #include "BtagBuffer.hh"
+#include "BtagConfig.hh"
 
 #include <string> 
 #include <vector> 
@@ -105,7 +106,8 @@ void ObjectFactory::use_electron_jet(bool use) {
   }
 }
 
-void ObjectFactory::set_btagging(const std::vector<btag::OperatingPoint>& tag_points){ 
+void ObjectFactory
+::set_btagging(const std::vector<btag::OperatingPoint>& tag_points){ 
   std::set<btag::OperatingPoint> tags(tag_points.begin(), tag_points.end()); 
   for (size_t jet_n = 0; jet_n < tag_points.size(); jet_n++) { 
     for (auto tag_iter = tags.begin(); tag_iter != tags.end(); tag_iter++) { 
@@ -237,6 +239,9 @@ void ObjectFactory::set_buffer(JetBuffer* b, std::string base_name)
   string pb = base_name + "cnn_b"; 
   string pc = base_name + "cnn_c"; 
   string pu = base_name + "cnn_u"; 
+  string pb_jfc = base_name + "jfc_b"; 
+  string pc_jfc = base_name + "jfc_c"; 
+  string pu_jfc = base_name + "jfc_u"; 
   string flavor_truth = base_name + "flavor_truth_label"; 
   string bits = base_name + "bits"; 
   
@@ -249,6 +254,9 @@ void ObjectFactory::set_buffer(JetBuffer* b, std::string base_name)
     errors += abs(m_tree->SetBranchAddress(pb.c_str(), &b->cnn_b)); 
     errors += abs(m_tree->SetBranchAddress(pc.c_str(), &b->cnn_c)); 
     errors += abs(m_tree->SetBranchAddress(pu.c_str(), &b->cnn_u)); 
+    errors += abs(m_tree->SetBranchAddress(pb_jfc.c_str(), &b->jfc_b)); 
+    errors += abs(m_tree->SetBranchAddress(pc_jfc.c_str(), &b->jfc_c)); 
+    errors += abs(m_tree->SetBranchAddress(pu_jfc.c_str(), &b->jfc_u)); 
   }
   else {
     m_ioflags |= ioflag::no_flavor; 

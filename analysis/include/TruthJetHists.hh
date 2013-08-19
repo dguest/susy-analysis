@@ -10,11 +10,12 @@ class Jet1DHists;
 #include <string> 
 #include <boost/noncopyable.hpp>
 #include "typedefs.hh"
+#include "btag_enums.hh"
 
 class TruthJetHists: public boost::noncopyable
 {
 public: 
-  TruthJetHists(double max_pt, const unsigned flags); 
+  TruthJetHists(double max_pt, const unsigned flags, btag::Tagger); 
   ~TruthJetHists(); 
   void write_to(H5::CommonFG&); 
   void fill(const Jet&, double weight = 1.0); 

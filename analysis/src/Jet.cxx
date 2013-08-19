@@ -1,6 +1,7 @@
 #include "Jet.hh"
 #include "ObjectFactory.hh"	// JetBuffer
 #include "BtagScaler.hh"
+#include "BtagConfig.hh"
 
 #include <stdexcept> 
 
@@ -35,9 +36,30 @@ void Jet::set_mu_met(const TVector2& met) {
 }
 double Jet::met_dphi() const {return m_met_dphi; }
 double Jet::mu_met_dphi() const {return m_mu_met_dphi; }
-double Jet::pb() const {req_flavor(); return m_pb; } 
-double Jet::pc() const {req_flavor(); return m_pc; } 
-double Jet::pu() const {req_flavor(); return m_pu; } 
+double Jet::flavor_weight(Flavor flav, btag::Tagger tagger) const { 
+  req_flavor(); 
+  if (tagger == btag::CNN) { 
+    switch (flav) { 
+    case Flavor::BOTTOM: return m_pb; 
+    case Flavor::CHARM:  return m_pc; 
+    case Flavor::LIGHT:  return m_pu; 
+    default: { 
+      throw std::invalid_argument("non-implemented flavor in "__FILE__); 
+    }
+    }
+  }
+  else if (tagger == btag::JFC) { 
+    switch (flav) { 
+    case Flavor::BOTTOM: return m_jfc_pb; 
+    case Flavor::CHARM:  return m_jfc_pc; 
+    case Flavor::LIGHT:  return m_jfc_pu; 
+    default: { 
+      throw std::invalid_argument("non-implemented flavor in "__FILE__); 
+    }
+    }
+  }
+  throw std::invalid_argument("non-implemented tagger in "__FILE__); 
+}
 Flavor Jet::flavor_truth_label() const { 
   if (m_ioflags & ioflag::no_truth) { 
     throw std::runtime_error("no truth info, can't get flavor truth label"); 

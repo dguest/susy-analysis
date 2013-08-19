@@ -2,7 +2,7 @@
 #define HYPERSTACK_HH
 
 #include <Python.h>
-#include "BtagConfig.hh"
+#include "btag_enums.hh"
 #include "systematic_defs.hh"
 #include "RegionConfig.hh"
 #include "typedefs.hh"

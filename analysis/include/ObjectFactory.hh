@@ -7,7 +7,7 @@
 #include "HforTypeDef.hh"
 #include "systematic_defs.hh"
 #include "typedefs.hh"
-#include "BtagConfig.hh"
+#include "btag_enums.hh"
 
 class Jet; 
 class TTree;
@@ -32,6 +32,9 @@ struct JetBuffer
   double cnn_b; 
   double cnn_c; 
   double cnn_u; 
+  double jfc_b; 
+  double jfc_c; 
+  double jfc_u; 
   int flavor_truth_label; 
   unsigned bits; 
   std::map<std::string, BtagBuffer*> btag_buffers; 

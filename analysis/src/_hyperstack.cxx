@@ -69,7 +69,7 @@ static bool safe_copy(PyObject* dict, RegionConfig& region)
   if (!copy(dict, "hists", region.hists)) return false; 
   if (!copy(dict, "mc_mc_jet_reweight_file", 
 	    region.mc_mc_jet_reweight_file)) return false; 
-
+  if (!copy(dict, "tagger", region.tagger)) return false; 
   return true; 
 }
 
@@ -125,12 +125,50 @@ static bool safe_copy(PyObject* value, btag::OperatingPoint& dest) {
     dest = ANTILOOSE; 
     return true; 
   }
+
+  else if (name == "JFC_LOOSE") { 
+    dest = JFC_LOOSE; 
+    return true; 
+  }
+  else if (name == "JFC_MEDIUM") { 
+    dest = JFC_MEDIUM; 
+    return true; 
+  }
+  else if (name == "JFC_TIGHT") { 
+    dest = JFC_TIGHT; 
+    return true; 
+  }
+  else if (name == "JFC_ANTILOOSE") { 
+    dest = JFC_ANTILOOSE; 
+    return true; 
+  }
+  else { 
+    std::string problem = "got undefined op: " + name; 
+    PyErr_SetString(PyExc_ValueError,problem.c_str()); 
+    return false; 
+  }
+}
+
+static bool safe_copy(PyObject* value, btag::Tagger& dest) { 
+  char* charname = PyString_AsString(value); 
+  if (PyErr_Occurred()) return false; 
+  std::string name(charname); 
+  using namespace btag; 
+  if (name == "CNN") { 
+    dest = CNN; 
+    return true; 
+  }
+  else if (name == "JFC") { 
+    dest = JFC; 
+    return true; 
+  }
   else { 
     std::string problem = "got undefined btag: " + name; 
     PyErr_SetString(PyExc_ValueError,problem.c_str()); 
     return false; 
   }
 }
+
 
 static bool safe_copy(PyObject* value, reg::Type& dest) { 
   char* charname = PyString_AsString(value); 
