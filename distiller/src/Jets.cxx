@@ -129,7 +129,7 @@ void SelectedJet::set_flavor_tag(const BtagCalibration* cal){
   set_flavor_tag(flavor, btag::CNN_LOOSE, cal); 
 }
 void SelectedJet::set_flavor_tag(btag::Flavor flavor, 
-				 btag::Tagger tagger, 
+				 btag::OperatingPoint tagger, 
 				 const BtagCalibration* cal) { 
   if (m_scale_factor.size() <= size_t(tagger)) { 
     size_t n_missing = size_t(tagger) - m_scale_factor.size() + 1; 
@@ -149,7 +149,7 @@ void SelectedJet::set_flavor_tag(btag::Flavor flavor,
   set_bit(get_tagger_bit(btag::B,tagger),cal->pass_anti_b(in, tagger)); 
 }
 unsigned SelectedJet::get_tagger_bit(btag::Flavor flavor, 
-				     btag::Tagger tagger) const{
+				     btag::OperatingPoint tagger) const{
   using namespace btag; 
   using namespace jetbit; 
   if (flavor == U) { 
@@ -168,7 +168,7 @@ unsigned SelectedJet::get_tagger_bit(btag::Flavor flavor,
 
 }
 
-std::pair<double, double> SelectedJet::scale_factor(btag::Tagger t) 
+std::pair<double, double> SelectedJet::scale_factor(btag::OperatingPoint t) 
   const 
 {
   if (m_scale_factor.size() <= size_t(t)) { 
@@ -176,10 +176,10 @@ std::pair<double, double> SelectedJet::scale_factor(btag::Tagger t)
   }
   return m_scale_factor.at(t); 
 }
-bool SelectedJet::pass_anti_u(btag::Tagger t) const { 
+bool SelectedJet::pass_anti_u(btag::OperatingPoint t) const { 
   return m_bits & get_tagger_bit(btag::U, t); 
 }
-bool SelectedJet::pass_anti_b(btag::Tagger t) const { 
+bool SelectedJet::pass_anti_b(btag::OperatingPoint t) const { 
   return m_bits & get_tagger_bit(btag::B, t); 
 }
 

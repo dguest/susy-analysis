@@ -30,13 +30,13 @@ public:
   int flavor_truth_label() const; 
   bool has_truth() const; 
   void set_flavor_tag(const BtagCalibration*); 
-  CalResult scale_factor(btag::Tagger) const; 
-  bool pass_anti_u(btag::Tagger) const; 
-  bool pass_anti_b(btag::Tagger) const; 
+  CalResult scale_factor(btag::OperatingPoint) const; 
+  bool pass_anti_u(btag::OperatingPoint) const; 
+  bool pass_anti_b(btag::OperatingPoint) const; 
 private: 
   void unset_bit(unsigned); 
-  void set_flavor_tag(btag::Flavor, btag::Tagger, const BtagCalibration*); 
-  unsigned get_tagger_bit(btag::Flavor, btag::Tagger) const; 
+  void set_flavor_tag(btag::Flavor, btag::OperatingPoint, const BtagCalibration*); 
+  unsigned get_tagger_bit(btag::Flavor, btag::OperatingPoint) const; 
   double m_cnn_b; 
   double m_cnn_c; 
   double m_cnn_u; 

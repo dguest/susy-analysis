@@ -39,7 +39,7 @@ BtagCalibration::~BtagCalibration() {
 BtagCalibration::CalResult 
 BtagCalibration::pass_factor(double pt, double eta, 
 			      btag::Flavor flavor, 
-			      btag::Tagger tagger, 
+			      btag::OperatingPoint tagger, 
 			      btag::Uncertainty uncert) const { 
   CalVars vars = get_vars(pt, eta); 
   std::string op = get_op(tagger); 
@@ -50,7 +50,7 @@ BtagCalibration::pass_factor(double pt, double eta,
 BtagCalibration::CalResult 
 BtagCalibration::fail_factor(double pt, double eta, 
 			     btag::Flavor flavor, 
-			     btag::Tagger tagger, 
+			     btag::OperatingPoint tagger, 
 			     btag::Uncertainty uncert) const { 
   CalVars vars = get_vars(pt, eta); 
   std::string op = get_op(tagger); 
@@ -61,7 +61,7 @@ BtagCalibration::fail_factor(double pt, double eta,
 
 BtagCalibration::CalResult
 BtagCalibration::applied_factor(const JetTagFactorInputs& tf_inputs, 
-				btag::Tagger tagger, 
+				btag::OperatingPoint tagger, 
 				btag::Uncertainty uncertainty) const { 
 
   if (pass_anti_b(tf_inputs, tagger) && pass_anti_u(tf_inputs, tagger)) { 
@@ -75,7 +75,7 @@ BtagCalibration::applied_factor(const JetTagFactorInputs& tf_inputs,
 }
 
 bool BtagCalibration::pass_anti_u(const JetTagFactorInputs& tf_inputs, 
-				  btag::Tagger tagger) 
+				  btag::OperatingPoint tagger) 
   const { 
   CutValue::const_iterator ucut = m_anti_u_cuts.find(tagger); 
   if (ucut == m_anti_u_cuts.end() ) { 
@@ -84,7 +84,7 @@ bool BtagCalibration::pass_anti_u(const JetTagFactorInputs& tf_inputs,
   return tf_inputs.anti_u > ucut->second; 
 }
 bool BtagCalibration::pass_anti_b(const JetTagFactorInputs& tf_inputs, 
-				  btag::Tagger tagger) 
+				  btag::OperatingPoint tagger) 
   const { 
   CutValue::const_iterator bcut = m_anti_b_cuts.find(tagger); 
   if (bcut == m_anti_b_cuts.end() ) { 
@@ -105,7 +105,7 @@ void BtagCalibration::check_cdi() const {
   }
 }
 
-BtagCalibration::CDI* BtagCalibration::get_cdi(btag::Tagger t)
+BtagCalibration::CDI* BtagCalibration::get_cdi(btag::OperatingPoint t)
   const { 
   Interfaces::const_iterator cdi = m_interfaces.find(t); 
   if (cdi == m_interfaces.end()) { 
@@ -114,7 +114,7 @@ BtagCalibration::CDI* BtagCalibration::get_cdi(btag::Tagger t)
   return cdi->second; 
 }
 
-std::string BtagCalibration::get_op(btag::Tagger t) const { 
+std::string BtagCalibration::get_op(btag::OperatingPoint t) const { 
   Names::const_iterator oper = m_ops.find(t); 
   if (oper == m_ops.end()) { 
     throw std::logic_error("didn't find OP in " __FILE__); 

@@ -28,29 +28,29 @@ public:
   BtagCalibration(std::string calibration_file, std::string file_path); 
   ~BtagCalibration(); 
   CalResult applied_factor(const JetTagFactorInputs& jet_tf_inputs,  
-			   btag::Tagger tagger, 
+			   btag::OperatingPoint tagger, 
 			   btag::Uncertainty = btag::Total) const; 
   bool pass_anti_u(const JetTagFactorInputs& jet_tf_inputs, 
-		   btag::Tagger) const; 
+		   btag::OperatingPoint) const; 
   bool pass_anti_b(const JetTagFactorInputs& jet_tf_inputs, 
-		   btag::Tagger) const; 
+		   btag::OperatingPoint) const; 
 private: 
   CalResult pass_factor(double pt, double eta, 
 			btag::Flavor flavor, 
-			btag::Tagger tagger, 
+			btag::OperatingPoint tagger, 
 			btag::Uncertainty = btag::Total) const;
   CalResult fail_factor(double pt, double eta, 
 			btag::Flavor flavor,
-			btag::Tagger tagger, 
+			btag::OperatingPoint tagger, 
 			btag::Uncertainty = btag::Total) const;
   typedef Analysis::CalibrationDataInterfaceROOT CDI; 
   typedef Analysis::CalibrationDataVariables CalVars; 
-  typedef std::map<btag::Tagger, CDI*> Interfaces;
-  typedef std::map<btag::Tagger, std::string> Names; 
-  typedef std::map<btag::Tagger, double> CutValue; 
+  typedef std::map<btag::OperatingPoint, CDI*> Interfaces;
+  typedef std::map<btag::OperatingPoint, std::string> Names; 
+  typedef std::map<btag::OperatingPoint, double> CutValue; 
   void check_cdi() const; 
-  std::string get_op(btag::Tagger) const; 
-  CDI* get_cdi(btag::Tagger) const; 
+  std::string get_op(btag::OperatingPoint) const; 
+  CDI* get_cdi(btag::OperatingPoint) const; 
   CalVars get_vars(double pt, double eta) const; 
   std::string get_label(btag::Flavor) const; 
   CDI* m_cnn; 

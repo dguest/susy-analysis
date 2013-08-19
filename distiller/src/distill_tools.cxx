@@ -52,7 +52,7 @@ void copy_jet_info(const SelectedJet* in, outtree::Jet& jet)
 }
 
 void copy_scale_factor(const SelectedJet* in, outtree::ScaleFactor& factor, 
-		       btag::Tagger tagger) { 
+		       btag::OperatingPoint tagger) { 
   SelectedJet::CalResult scale_factor = in->scale_factor(tagger); 
   factor.scale_factor = scale_factor.first; 
   factor.scale_factor_err = scale_factor.second; 
