@@ -12,6 +12,7 @@
 #include <cassert> 
 #include <stdexcept>
 #include <boost/format.hpp>
+#include <csignal>
 
 namespace {
   bool has_min_pt(int iJet, const SusyBuffer& buffer, float pt); 
@@ -81,12 +82,15 @@ double SelectedJet::jvf() const {
 }
 double SelectedJet::flavor_weight(btag::Flavor flavor, 
 				  btag::Tagger tag) const { 
+  const std::string err = "flavor fallthrough in "__FILE__; 
   if (tag == btag::CNN) { 
     switch (flavor) { 
     case btag::B: return m_cnn_b; 
     case btag::C: return m_cnn_c; 
     case btag::U: return m_cnn_u; 
-    default: abort(); 
+    default: {
+      throw std::logic_error(err);
+    }
     }
   }
   else if (tag == btag::JFC) { 
@@ -94,10 +98,12 @@ double SelectedJet::flavor_weight(btag::Flavor flavor,
     case btag::B: return m_jfc_b; 
     case btag::C: return m_jfc_c; 
     case btag::U: return m_jfc_u; 
-    default: abort(); 
+    default: {
+      throw std::logic_error(err);
+    }
     }
   }
-  abort(); 
+  throw std::logic_error("tag fallthrough in "__FILE__);
 }
 int SelectedJet::flavor_truth_label() const { 
   assert(m_flavor_truth_label != -1); 
