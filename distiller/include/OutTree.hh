@@ -53,6 +53,9 @@ namespace outtree {
     ScaleFactor cnn_tight; 
     ScaleFactor cnn_medium; 
     ScaleFactor cnn_loose; 
+    ScaleFactor jfc_tight; 
+    ScaleFactor jfc_medium; 
+    ScaleFactor jfc_loose; 
 
   private: 
     friend class OutTree; 

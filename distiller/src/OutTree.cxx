@@ -140,6 +140,10 @@ namespace outtree {
       cnn_tight.set_branches(tree, prefix + "cnn_tight_", flags); 
       cnn_medium.set_branches(tree, prefix + "cnn_medium_", flags); 
       cnn_loose.set_branches(tree, prefix + "cnn_loose_", flags); 
+
+      jfc_tight.set_branches(tree,  prefix + "jfc_tight_", flags); 
+      jfc_medium.set_branches(tree, prefix + "jfc_medium_", flags); 
+      jfc_loose.set_branches(tree,  prefix + "jfc_loose_", flags); 
     }
 
     tree->Branch((prefix + "cnn_b").c_str(), &cnn_b); 

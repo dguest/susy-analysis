@@ -20,6 +20,15 @@ BtagCalibration::BtagCalibration(std::string clb_file,
   m_interfaces[CNN_LOOSE] = m_cnn; 
   m_interfaces[CNN_MEDIUM] = m_cnn; 
   m_interfaces[CNN_TIGHT] = m_cnn; 
+
+  // ACHTUNG: these are hacks until we get a better CDI
+  m_ops[JFC_LOOSE] = m_ops[CNN_LOOSE]; 
+  m_ops[JFC_MEDIUM] = m_ops[CNN_MEDIUM]; 
+  m_ops[JFC_TIGHT] = m_ops[CNN_TIGHT]; 
+  m_interfaces[JFC_LOOSE] = m_cnn; 
+  m_interfaces[JFC_MEDIUM] = m_cnn; 
+  m_interfaces[JFC_TIGHT] = m_cnn; 
+
   if (m_cnn) { 
     check_cdi(); 
   }
@@ -29,6 +38,14 @@ BtagCalibration::BtagCalibration(std::string clb_file,
   m_anti_b_cuts[CNN_LOOSE]  = -1.0; 
   m_anti_b_cuts[CNN_MEDIUM] = -1.0;
   m_anti_b_cuts[CNN_TIGHT]  = -1.0;
+
+  m_anti_u_cuts[JFC_LOOSE] = -999; 
+  m_anti_u_cuts[JFC_MEDIUM] = 0.95; 
+  m_anti_u_cuts[JFC_TIGHT] = 2.5; 
+  m_anti_b_cuts[JFC_LOOSE]  = -0.9; 
+  m_anti_b_cuts[JFC_MEDIUM] = -0.9;
+  m_anti_b_cuts[JFC_TIGHT]  = -0.9;
+
 }
 
 BtagCalibration::~BtagCalibration() { 

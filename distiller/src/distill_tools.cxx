@@ -45,9 +45,12 @@ void copy_jet_info(const SelectedJet* in, outtree::Jet& jet)
   jet.jfc_u = in->flavor_weight(btag::U, btag::JFC); 
   if (in->has_truth()) { 
     jet.flavor_truth_label = in->flavor_truth_label(); 
-    copy_scale_factor(in, jet.cnn_tight, btag::CNN_TIGHT); 
+    copy_scale_factor(in, jet.cnn_tight,  btag::CNN_TIGHT); 
     copy_scale_factor(in, jet.cnn_medium, btag::CNN_MEDIUM); 
-    copy_scale_factor(in, jet.cnn_loose, btag::CNN_LOOSE); 
+    copy_scale_factor(in, jet.cnn_loose,  btag::CNN_LOOSE); 
+    copy_scale_factor(in, jet.jfc_tight,  btag::JFC_TIGHT); 
+    copy_scale_factor(in, jet.jfc_medium, btag::JFC_MEDIUM); 
+    copy_scale_factor(in, jet.jfc_loose,  btag::JFC_LOOSE); 
   }
   jet.cnn_log_cu = log( in->flavor_weight(btag::C, btag::CNN) / 
 			in->flavor_weight(btag::U, btag::CNN)); 

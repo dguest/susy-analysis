@@ -144,6 +144,9 @@ void SelectedJet::set_flavor_tag(const BtagCalibration* cal){
   set_flavor_tag(flavor, btag::CNN_TIGHT, cal); 
   set_flavor_tag(flavor, btag::CNN_MEDIUM, cal); 
   set_flavor_tag(flavor, btag::CNN_LOOSE, cal); 
+  set_flavor_tag(flavor, btag::JFC_TIGHT, cal); 
+  set_flavor_tag(flavor, btag::JFC_MEDIUM, cal); 
+  set_flavor_tag(flavor, btag::JFC_LOOSE, cal); 
 }
 void SelectedJet::set_flavor_tag(btag::Flavor flavor, 
 				 btag::OperatingPoint tagger, 
@@ -171,14 +174,20 @@ unsigned SelectedJet::get_tagger_bit(btag::Flavor flavor,
   using namespace jetbit; 
   if (flavor == U) { 
     switch (tagger) { 
-    case CNN_LOOSE: return cnn_loose_anti_u; 
+    case CNN_LOOSE:  return cnn_loose_anti_u; 
     case CNN_MEDIUM: return cnn_medium_anti_u; 
-    case CNN_TIGHT: return cnn_tight_anti_u; 
+    case CNN_TIGHT:  return cnn_tight_anti_u; 
+    case JFC_LOOSE:  return jfc_loose_anti_u; 
+    case JFC_MEDIUM: return jfc_medium_anti_u; 
+    case JFC_TIGHT:  return jfc_tight_anti_u; 
     }
   }
   else if (flavor == B) { 
     if (tagger == CNN_LOOSE || tagger == CNN_MEDIUM || tagger == CNN_TIGHT){
       return cnn_anti_b; 
+    }
+    if (tagger == JFC_LOOSE || tagger == JFC_MEDIUM || tagger == JFC_TIGHT){
+      return jfc_anti_b; 
     }
   }
   throw std::logic_error("tried to set unknown tagger bit"); 
