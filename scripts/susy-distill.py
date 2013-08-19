@@ -76,7 +76,7 @@ def distill_d3pds(config):
     if config.test: 
         cut_counts = [('test',1)]
     else: 
-        from susy import cutflow
+        from stop.distiller import cutflow
         cut_counts = cutflow.cutflow(
             input_files=files, 
             flags=flags, 
