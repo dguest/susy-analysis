@@ -40,6 +40,9 @@ private:
   double m_cnn_b; 
   double m_cnn_c; 
   double m_cnn_u; 
+  double m_jfc_b; 
+  double m_jfc_c; 
+  double m_jfc_u; 
   int m_jet_index;
   float m_jvf; //jet_jvtxf
   unsigned m_bits; 

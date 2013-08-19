@@ -46,6 +46,9 @@ SelectedJet::SelectedJet(const EventJets* parent, int jet_index):
   m_cnn_b = buffer.jet_flavor_component_jfitcomb_pb->at(jet_index); 
   m_cnn_c = buffer.jet_flavor_component_jfitcomb_pc->at(jet_index); 
   m_cnn_u = buffer.jet_flavor_component_jfitcomb_pu->at(jet_index); 
+  m_jfc_b = buffer.jet_flavor_component_jfitc_pb->at(jet_index); 
+  m_jfc_c = buffer.jet_flavor_component_jfitc_pc->at(jet_index); 
+  m_jfc_u = buffer.jet_flavor_component_jfitc_pu->at(jet_index); 
   if ( parent->m_flags & cutflag::truth) { 
     m_flavor_truth_label = buffer.jet_flavor_truth_label->at(jet_index); 
   }

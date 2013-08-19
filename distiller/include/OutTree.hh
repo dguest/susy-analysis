@@ -43,6 +43,9 @@ namespace outtree {
     double cnn_b; 
     double cnn_c; 
     double cnn_u; 
+    double jfc_b; 
+    double jfc_c; 
+    double jfc_u; 
     double cnn_log_cu; 
     double cnn_log_cb; 
     unsigned jet_bits; 

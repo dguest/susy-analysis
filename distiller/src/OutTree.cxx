@@ -145,6 +145,9 @@ namespace outtree {
     tree->Branch((prefix + "cnn_b").c_str(), &cnn_b); 
     tree->Branch((prefix + "cnn_c").c_str(), &cnn_c); 
     tree->Branch((prefix + "cnn_u").c_str(), &cnn_u); 
+    tree->Branch((prefix + "jfc_b").c_str(), &jfc_b); 
+    tree->Branch((prefix + "jfc_c").c_str(), &jfc_c); 
+    tree->Branch((prefix + "jfc_u").c_str(), &jfc_u); 
 
     tree->Branch((prefix + "bits").c_str(), &jet_bits); 
 
@@ -163,6 +166,9 @@ namespace outtree {
     cnn_b = -1; 
     cnn_c = -1; 
     cnn_u = -1; 
+    jfc_b = -1; 
+    jfc_c = -1; 
+    jfc_u = -1; 
     cnn_log_cu = -1000; 
     cnn_log_cb = -1000; 
     jet_bits = 0; 
