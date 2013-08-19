@@ -49,7 +49,7 @@ bool Jet::has_flavor() const {
   bool no_flavor = (m_ioflags & ioflag::no_flavor); 
   return !no_flavor; 
 }
-bool Jet::pass_tag(btag::JetTag tag) const { 
+bool Jet::pass_tag(btag::OperatingPoint tag) const { 
   const auto required = btag::required_from_tag(tag); 
   const auto veto = btag::veto_from_tag(tag); 
   const auto jet_bits = m_buffer->bits; 
@@ -58,7 +58,7 @@ bool Jet::pass_tag(btag::JetTag tag) const {
   return has_required & (!has_veto); 
 }
 
-double Jet::get_scalefactor(btag::JetTag tag, syst::Systematic systematic) 
+double Jet::get_scalefactor(btag::OperatingPoint tag, syst::Systematic systematic) 
   const 
 { 
   if (tag == btag::NOTAG) { 

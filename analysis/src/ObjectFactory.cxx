@@ -105,8 +105,8 @@ void ObjectFactory::use_electron_jet(bool use) {
   }
 }
 
-void ObjectFactory::set_btagging(const std::vector<btag::JetTag>& tag_points){ 
-  std::set<btag::JetTag> tags(tag_points.begin(), tag_points.end()); 
+void ObjectFactory::set_btagging(const std::vector<btag::OperatingPoint>& tag_points){ 
+  std::set<btag::OperatingPoint> tags(tag_points.begin(), tag_points.end()); 
   for (size_t jet_n = 0; jet_n < tag_points.size(); jet_n++) { 
     for (auto tag_iter = tags.begin(); tag_iter != tags.end(); tag_iter++) { 
       set_btag_n(jet_n, *tag_iter); 
@@ -189,7 +189,7 @@ hfor::JetType ObjectFactory::hfor_type() const {
   }
 }
 
-void ObjectFactory::set_btag_n(size_t jet_n, btag::JetTag tag) { 
+void ObjectFactory::set_btag_n(size_t jet_n, btag::OperatingPoint tag) { 
   std::string branch_name = (boost::format("jet%i") % jet_n).str(); 
   if ( !(m_jet_buffers.size() > jet_n)) { 
     throw std::range_error("asked for out of range jet " + 
@@ -203,7 +203,7 @@ void ObjectFactory::set_btag_n(size_t jet_n, btag::JetTag tag) {
   set_btag(buffer, tag, branch_name); 
 }
 
-void ObjectFactory::set_btag(JetBuffer* buffer, btag::JetTag tag, 
+void ObjectFactory::set_btag(JetBuffer* buffer, btag::OperatingPoint tag, 
 			     std::string branch_name) { 
   if (tag == btag::NOTAG) return; 
   std::string sf_br_name = branch_name + 

@@ -48,7 +48,7 @@ public:
   ObjectFactory(std::string root_file, int n_jets); 
   ~ObjectFactory(); 
   void use_electron_jet(bool = true); 
-  void set_btagging(const std::vector<btag::JetTag>&); 
+  void set_btagging(const std::vector<btag::OperatingPoint>&); 
   int entries() const; 
   void entry(int); 
   std::vector<Jet> jets() const; 
@@ -64,8 +64,8 @@ public:
   double htx() const; 
   double event_weight() const; 
 private: 
-  void set_btag_n(size_t jet_n, btag::JetTag); 
-  void set_btag(JetBuffer*, btag::JetTag, std::string branch_name); 
+  void set_btag_n(size_t jet_n, btag::OperatingPoint); 
+  void set_btag(JetBuffer*, btag::OperatingPoint, std::string branch_name); 
   void set_buffer(JetBuffer* buffer, std::string base_name); 
   TTree* m_tree; 
   TFile* m_file; 

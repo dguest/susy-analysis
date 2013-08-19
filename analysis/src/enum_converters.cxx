@@ -3,7 +3,7 @@
 
 // annoying conversion needed to keep the JetTagRescaler modular
 
-btag::JetTag btag_from_jettag(jettag::TaggingPoint p) { 
+btag::OperatingPoint btag_from_jettag(jettag::TaggingPoint p) { 
   using namespace btag; 
   switch (p){ 
   case jettag::LOOSE: return LOOSE; 
@@ -15,7 +15,7 @@ btag::JetTag btag_from_jettag(jettag::TaggingPoint p) {
   }
 }
 
-jettag::TaggingPoint jettag_from_btag(btag::JetTag p){ 
+jettag::TaggingPoint jettag_from_btag(btag::OperatingPoint p){ 
   using namespace jettag; 
   switch (p){ 
   case btag::LOOSE: return LOOSE; 

@@ -6,7 +6,7 @@
 #include "BtagConfig.hh"
 #include "distiller/JetBits.hh"
 
-BtagScaler::BtagScaler(const BtagBuffer* buffer, btag::JetTag tag): 
+BtagScaler::BtagScaler(const BtagBuffer* buffer, btag::OperatingPoint tag): 
   m_buffer(buffer)
 {
   m_required = btag::required_from_tag(tag); 

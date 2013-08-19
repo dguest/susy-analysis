@@ -20,7 +20,7 @@ namespace reg {
 struct RegionConfig 
 {
   std::string name; 
-  std::vector<btag::JetTag> jet_tag_requirements; 
+  std::vector<btag::OperatingPoint> jet_tag_requirements; 
   double leading_jet_pt; 
   double met;  
   ull_t required_bits; 

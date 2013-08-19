@@ -100,7 +100,7 @@ static bool safe_copy(PyObject* value, double& dest) {
   return true; 
 }
 
-static bool safe_copy(PyObject* value, btag::JetTag& dest) { 
+static bool safe_copy(PyObject* value, btag::OperatingPoint& dest) { 
   char* charname = PyString_AsString(value); 
   if (PyErr_Occurred()) return false; 
   std::string name(charname); 

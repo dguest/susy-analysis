@@ -5,10 +5,10 @@
 
 namespace btag { 
   enum Tagger {CNN, JFC}; 
-  enum JetTag {NOTAG, LOOSE, MEDIUM, TIGHT, ANTILOOSE}; 
-  unsigned required_from_tag(JetTag); 
-  unsigned veto_from_tag(JetTag); 
-  std::string joiner(JetTag tag); 
-  bool is_inverted(JetTag); 
+  enum OperatingPoint {NOTAG, LOOSE, MEDIUM, TIGHT, ANTILOOSE}; 
+  unsigned required_from_tag(OperatingPoint); 
+  unsigned veto_from_tag(OperatingPoint); 
+  std::string joiner(OperatingPoint tag); 
+  bool is_inverted(OperatingPoint); 
 } 
 #endif 

@@ -3,7 +3,7 @@
 #include <stdexcept>
 
 namespace btag { 
-  unsigned required_from_tag(JetTag tag)
+  unsigned required_from_tag(OperatingPoint tag)
   { 
     using namespace jetbit; 
     switch (tag){ 
@@ -15,7 +15,7 @@ namespace btag {
     default: throw std::logic_error("just... fuck"); 
     }
   }
-  unsigned veto_from_tag(JetTag tag)
+  unsigned veto_from_tag(OperatingPoint tag)
   { 
     using namespace jetbit; 
     switch (tag){ 
@@ -28,7 +28,7 @@ namespace btag {
     }
   }
 
-  std::string joiner(btag::JetTag tag) { 
+  std::string joiner(btag::OperatingPoint tag) { 
     switch (tag){ 
     case LOOSE:  return "_cnn_loose_";
     case MEDIUM: return "_cnn_medium_";
@@ -39,7 +39,7 @@ namespace btag {
     }
   }
   
-  bool is_inverted(btag::JetTag tag) { 
+  bool is_inverted(btag::OperatingPoint tag) { 
     if (tag == ANTILOOSE) return true; 
     else return false; 
   }

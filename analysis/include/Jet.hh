@@ -24,8 +24,8 @@ public:
   double pu() const; 
   Flavor flavor_truth_label() const; 
   bool has_flavor() const; 
-  bool pass_tag(btag::JetTag) const; 
-  double get_scalefactor(btag::JetTag, syst::Systematic = syst::NONE) const; 
+  bool pass_tag(btag::OperatingPoint) const; 
+  double get_scalefactor(btag::OperatingPoint, syst::Systematic = syst::NONE) const; 
   bool is_electron_jet() const; 
 private: 
   void req_flavor() const; 	// throws rumtime_error if no flavor

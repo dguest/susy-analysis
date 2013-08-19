@@ -4,7 +4,7 @@
 #include "BtagConfig.hh"
 #include "JetTagRescaler.hh"
 
-btag::JetTag btag_from_jettag(jettag::TaggingPoint); 
-jettag::TaggingPoint jettag_from_btag(btag::JetTag); 
+btag::OperatingPoint btag_from_jettag(jettag::TaggingPoint); 
+jettag::TaggingPoint jettag_from_btag(btag::OperatingPoint); 
 
 #endif 
