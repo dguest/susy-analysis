@@ -300,7 +300,10 @@ class HistNd(object):
 
     def __from_hdf(self, hdf_array): 
         self._array = np.array(hdf_array)
-        for name, atr in hdf_array.attrs.items(): 
+        for name, atr in hdf_array.attrs.iteritems(): 
+            if name == 'nan': 
+                self.nan = atr
+                continue
             ax_name, part, ax_prop = name.rpartition('_')
             the_axis = self._axes.get(ax_name, Axis())
             setattr(the_axis, '_' + ax_prop, atr)
