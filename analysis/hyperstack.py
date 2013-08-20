@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.7 
 
-from stop import hyperstack
+from stop.stack import hfw
 import os, sys
 from stop import bits
 
@@ -26,22 +26,28 @@ all_cuts = [
         'name': 'joe', 
         'output_name': 'stupid.h5', 
         'type': 'CONTROL', 
-        'jet_tag_requirements': ['NOTAG','ANTILOOSE'], 
-        'region_bits': 0x1
+        'jet_tag_requirements': ['NOTAG','JFC_ANTILOOSE'], 
+        'region_bits': 0x1, 
+        'tagger':'JFC', 
+        'systematic':'BUP'
         }, 
     { 
         'name': 'bob', 
         'output_name': 'stupider.h5', 
         'type': 'CONTROL', 
-        'jet_tag_requirements': ['NOTAG','LOOSE'], 
+        'jet_tag_requirements': ['NOTAG','JFC_LOOSE'], 
         'hists': 'KINEMATIC_STAT', 
+        'tagger':'JFC', 
+        'systematic':'BUP'
         }, 
     { 
         'name': 'boball', 
         'output_name': 'stupider.h5', 
         'type': 'CONTROL', 
-        'jet_tag_requirements': ['NOTAG','LOOSE'], 
+        'jet_tag_requirements': ['NOTAG','JFC_LOOSE'], 
         'hists': 'HISTMILL', 
+        'tagger':'JFC', 
+        'systematic':'BUP'
         }, 
     ]
 
@@ -56,4 +62,4 @@ added_cuts = dict(
     # j3_anti_u   = -0.5, 
     )
 
-hyperstack.stacksusy(sys.argv[1], all_cuts, flags='v')
+hfw.stacksusy(sys.argv[1], all_cuts, flags='v')
