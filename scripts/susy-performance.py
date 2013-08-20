@@ -218,7 +218,7 @@ def distill_d3pds(config):
     
 
 def aggregate_jet_plots(config): 
-    from stop import hyperstack
+    from stop.stack import hfw
     input_dir = config.whiskey_dir
     if isdir(config.whiskey_dir): 
         whiskey = glob.glob(join(config.whiskey_dir, '*.root'))
@@ -244,7 +244,7 @@ def aggregate_jet_plots(config):
         path = abspath(tup)
         if not isfile(path): 
             raise IOError("{} can't be found".format(path))
-        hyperstack.stacksusy(
+        hfw.stacksusy(
             input_file=abspath(tup), region_list=[region_dict], flags='v')
                       
 def plot_jet_eff(config): 

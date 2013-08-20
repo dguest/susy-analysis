@@ -80,7 +80,7 @@ EXE_OBJ     := $(GEN_OBJ) $(TOBJ) unit-test.o
 PYLIB_OBJ   := $(GEN_OBJ) $(TOBJ)
 
 PY_OBJ       := _hyperstack.o
-PY_LIB       := ../python/stop/_hyperstack.so
+PY_LIB       := ../python/stop/stack/_hfw.so
 
 ALLOBJ       := $(GEN_OBJ) $(PY_OBJ) $(TOBJ) unit-test.o
 

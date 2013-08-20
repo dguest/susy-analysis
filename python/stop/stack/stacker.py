@@ -126,7 +126,7 @@ class Stacker(object):
             for reg in regions: 
                 print reg
             return 
-        from stop.hyperstack import stacksusy
+        from stop.stack.hfw import stacksusy
         flags = ''.join(self.flags)
         if basename(ntuple).startswith('d'): 
             flags += 'd'

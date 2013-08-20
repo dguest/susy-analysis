@@ -1,5 +1,8 @@
-from _hyperstack import _stacksusy
-# from _hyperstack import _hypersusy, _cutflow
+"""
+Histograms from whiskey
+"""
+
+from _hfw import _stacksusy
 from os.path import basename, splitext
 
 def stacksusy(input_file, region_list, flags=''): 
