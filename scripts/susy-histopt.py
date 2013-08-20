@@ -51,6 +51,7 @@ def run():
     multispace.add_argument(
         '-s','--signal-point', default='stop-225-150', 
         help='default: %(default)s, allows globbing, and numbering')
+    multispace.add_argument('-t','--tag-config', default='unknown')
     
     config = parser.parse_args(sys.argv[1:])
     opts = {'ws':_setup_workspace, 'fit':_new_histfit, 'pval':_get_p_value,
@@ -261,9 +262,9 @@ def _multispaces(config):
 
     for sp in signal_points: 
         print 'booking signal point {}'.format(sp)
-        _book_signal_point(counts, sp, systematics)
+        _book_signal_point(counts, sp, systematics, config.tag_config)
 
-def _book_signal_point(counts, signal_point, systematics): 
+def _book_signal_point(counts, signal_point, systematics, tag_config): 
     import ROOT
     backgrounds = ['ttbar','Wjets','Zjets','diboson']
     GeV = 1000.0
@@ -283,7 +284,8 @@ def _book_signal_point(counts, signal_point, systematics):
             fit.add_sr(sr, met_cut=met_gev*GeV, ljpt_cut=ljpt_gev*GeV)
     
         out_dir = path_from_sr(
-            met_gev=met_gev, pt_gev=ljpt_gev, signal_point=signal_point)
+            met_gev=met_gev, pt_gev=ljpt_gev, signal_point=signal_point, 
+            tag_config=tag_config)
         if not os.path.isdir(out_dir): 
             os.makedirs(out_dir)
         

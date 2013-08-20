@@ -47,6 +47,9 @@ def get_config():
 
     ws_args = subs.add_parser('ws', description=setup_workspaces.__doc__)
     ws_args.add_argument('kinematic_stat_dir')
+    ws_args.add_argument('-t','--tag-config')
+    ws_args.add_argument('-s','--script',default='leaky-roof.sh', 
+                         help=d)
 
     fit_args = subs.add_parser('fit', description=setup_fit.__doc__)
     fit_args.add_argument('root')
@@ -58,11 +61,21 @@ def get_config():
 
 def setup_workspaces(config): 
     """
-    Setup jobs to build workspaces for fitting. 
+    Setup jobs to build workspaces for fitting. If no tag-config is given, 
+    uses the parent of kinematic_stat_dir. 
     """
     from pyroot.fitter import CountDict
     counts = CountDict(config.kinematic_stat_dir, systematics=[])
     n_sp = len({k[1] for k in counts if 'stop' in k[1]})
+
+    if not config.tag_config: 
+        try: 
+            tag_config = filter(
+                None,config.kinematic_stat_dir.split('/'))[-2]
+        except IndexError: 
+            tag_config = 'unknown'
+    else:
+        tag_config = config.tag_config
 
     sub_dict = {
         'n_jobs': n_sp, 
@@ -72,9 +85,9 @@ def setup_workspaces(config):
         'walltime': '30:00', 
         }
     submit_head = _get_submit_head(**sub_dict)
-    submit_line = 'susy-histopt.py ms {} -s $(($PBS_ARRAYID-1))'.format(
-        config.kinematic_stat_dir)
-    with open('leaky-rootf.sh','w') as the_job: 
+    submit_line = 'susy-histopt.py ms {} -s $(($PBS_ARRAYID-1)) -t {}'.format(
+        config.kinematic_stat_dir, tag_config)
+    with open(config.script,'w') as the_job: 
         the_job.write(submit_head + '\n')
         the_job.write(submit_line + '\n')
 
