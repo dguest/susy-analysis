@@ -277,6 +277,7 @@ class HistNd(object):
 
     def __init__(self,array=None): 
         self._axes = {}
+        self.nan = 0
         if array == 'example': 
             self._init_example()
         elif array: 
@@ -328,6 +329,7 @@ class HistNd(object):
             ds.attrs['{}_max'.format(ax.name)] = ax.max
             ds.attrs['{}_type'.format(ax.name)] = ax.type
             ds.attrs['{}_units'.format(ax.name)] = ax.units
+        ds.attrs['nan'] = self.nan
 
     def _init_example(self): 
         self._array = np.arange(-1,11) + np.arange(-10,110,10).reshape((-1,1))
