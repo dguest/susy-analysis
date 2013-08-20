@@ -55,12 +55,9 @@ def run():
 
     with open(args.steering_file) as yml: 
         coord = Coordinator(yml)
-    needed_systematics = coord.get_needed_aggregates(args.mode)
 
     to_do = [
-        needed_systematics, 
         args.force_aggregation, 
-        args.rerun_stack, 
         args.remake_counts, 
         ]
     if not any(to_do): 

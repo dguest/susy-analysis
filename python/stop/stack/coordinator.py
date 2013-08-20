@@ -91,70 +91,19 @@ class Coordinator(object):
                 os.makedirs(syst_hist_path)
         return syst_hist_path
 
-    def _write_plot_region_meta(self, regions, overwrite=True): 
-        hist_path = self._make_hist_path(create=True)
-        yml_path = join(hist_path, self.super_region_meta_name)
-        if isfile(yml_path): 
-            if overwrite: 
-                os.remove(yml_path)
-            else: 
-                raise IOError("{} already exists, won't overwrite".format(
-                        yml_path))
-        yml_dict = {
-            n:v.get_yaml_dict() for n,v in regions.iteritems()}
-        with open(yml_path, 'w') as yml: 
-            yml.write(yaml.dump(yml_dict))
-
-    def _print_new_line(self): 
-        if not self.verbose and self.outstream.isatty(): 
-            self.outstream.write('\n')
-
-    def get_plotting_meta(self): 
-        meta = {
-            'lumi_fb': self._config_dict['misc']['lumi_fb'], 
-            'base_dir': self._config_dict['files']['plots'], 
-            }
-        return meta
-
-    def clean(self): 
-        hists_dir = self._config_dict['files']['hadd-hists']
-        if isdir(hists_dir): 
-            for syst in self.distiller_systematics: 
-                histsyst_dir = join(hists_dir, self._dirify(syst))
-                if isdir(histsyst_dir): 
-                    for f in glob.glob('{}/*.h5'.format(histsyst_dir)): 
-                        os.remove(f)
-                    os.rmdir(histsyst_dir)
-            os.rmdir(hists_dir)
-
-    def get_broken_regions(self): 
-        broken = []
-        for name, region_dict in self._config_dict['regions'].items(): 
-            try: 
-                region = Region(region_dict)
-                bits = region.get_bits()
-                antibits = region.get_antibits()
-            except KeyError: 
-                broken.append(name)
-                continue
-            except ValueError: 
-                broken.append(name)
-        return broken
-
-
-    def get_needed_aggregates(self, mode): 
-        """
-        returns a list of systematics
-        """
-        all_syst = set(self.distiller_systematics + 
-                       self.scale_factor_systematics)
-        needed = []
-        for syst in all_syst: 
-            agg_name = join(self._make_hist_path(syst, mode), 
-                            self.aggregate_hist_name)
-            if not isfile(agg_name): 
-                needed.append(syst)
-        return needed
+    def _get_superregion_yaml(self): 
+        def checkpath(place): 
+            the_dir = self._config_dict['files'][place]
+            the_path = join(the_dir, self.super_region_meta_name)
+            if isfile(the_path): 
+                return the_path
+        primary = checkpath('hadd-hists')
+        if primary: 
+            return primary
+        secondary = checkpath('hists')
+        if secondary: 
+            return secondary
+        raise OSError('no {} found'.format(self.super_region_meta_name))
 
     def aggregate(self, systematic='NONE', rerun=False, variables='all', 
                   mode='histmill'): 
@@ -197,8 +146,7 @@ class Coordinator(object):
             hist_dict = aggregator.plots_dict
 
         if mode == 'kinematic_stat': 
-            hist_path = self._make_hist_path()
-            extractor_yml = join(hist_path, self.super_region_meta_name)
+            extractor_yml = self._get_superregion_yaml()
             with open(extractor_yml) as yml: 
                 ext = extractor.RegionExtractor(yaml.load(yml))
             regions = self._config_dict['regions']
