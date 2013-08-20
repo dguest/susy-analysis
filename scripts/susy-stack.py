@@ -65,6 +65,8 @@ def get_config():
     run_parser.add_argument(
         '--mode', default='histmill', choices={'histmill','kinematic_stat'}, 
         help=d)
+    run_parser.add_argument('-d','--dump-run', action='store_true', 
+                            help="dump region config, don't run")
     
     hadd_parser = subs.add_parser('hadd', description=_hadd_help)
     hadd_parser.add_argument('steering_file')
@@ -146,6 +148,7 @@ def run_stacker(config):
     stacker.rerun = True
     stacker.make_dirs = True
     stacker.verbose = False
+    stacker.dummy = config.dump_run
 
     ntuples = []
     with open(config.input_files_list) as file_list: 

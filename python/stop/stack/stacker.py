@@ -77,7 +77,6 @@ class Stacker(object):
         regdic['output_name'] = full_out_path
         regdic['systematic'] = systematic
 
-
         return regdic
 
     def run_multisys(self, ntuple, basedir, systematics, tuple_n=None, 
