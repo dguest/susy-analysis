@@ -5,7 +5,7 @@
 
 #include "HistBuilder.hh"
 #include "HistBuilderFlags.hh"
-#include "_hyperstack.hh"
+#include "_hfw.hh"
 // #include "HistConfig.hh"
 #include "systematic_defs.hh"
 
@@ -276,9 +276,9 @@ static PyMethodDef methods[] = {
 
 extern "C" { 
 
-  PyMODINIT_FUNC init_hyperstack(void)
+  PyMODINIT_FUNC init_hfw(void)
   {
-    Py_InitModule("_hyperstack", methods);
+    Py_InitModule("_hfw", methods);
   }
 
 }

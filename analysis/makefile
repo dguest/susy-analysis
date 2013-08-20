@@ -79,7 +79,7 @@ GEN_OBJ     += BtagScaler.o BtagBuffer.o
 EXE_OBJ     := $(GEN_OBJ) $(TOBJ) unit-test.o
 PYLIB_OBJ   := $(GEN_OBJ) $(TOBJ)
 
-PY_OBJ       := _hyperstack.o
+PY_OBJ       := _hfw.o
 PY_LIB       := ../python/stop/stack/_hfw.so
 
 ALLOBJ       := $(GEN_OBJ) $(PY_OBJ) $(TOBJ) unit-test.o
