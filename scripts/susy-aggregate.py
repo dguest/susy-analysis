@@ -22,7 +22,6 @@ def get_config():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('steering_file', help="created if it doesn't exist")
     parser.add_argument('-f','--force-aggregation', action='store_true')
-    parser.add_argument('-c','--remake-counts', action='store_true')
     parser.add_argument(
         '--mode', choices={'histmill','kinematic_stat'}, 
         default='kinematic_stat', help='default: %(default)s')
@@ -55,13 +54,6 @@ def run():
 
     with open(args.steering_file) as yml: 
         coord = Coordinator(yml)
-
-    to_do = [
-        args.force_aggregation, 
-        args.remake_counts, 
-        ]
-    if not any(to_do): 
-        sys.exit('nothing to do...')
 
     systematic = 'NONE' if args.fast else 'all'
     coord.bugstream = TemporaryFile()
