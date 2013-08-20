@@ -91,6 +91,7 @@ class Region(object):
             'region_bits': self.get_region_bits(), 
             'type': self.type.upper(), 
             'hists': 'HISTMILL', 
+            'tagger': _get_tagger(self.btag_config), 
             }
         return config_dict
 
@@ -169,6 +170,7 @@ class SuperRegion(object):
             'region_bits': reg_bits, 
             'type': reg_type.upper(), 
             'hists': 'KINEMATIC_STAT', 
+            'tagger': _get_tagger(jtags), 
             }
         return config_dict
         
@@ -206,3 +208,18 @@ def superregion_tuple(region):
 class RegionConfigError(ValueError): 
     def __init__(self, message): 
         super(RegionConfigError,self).__init__(message)
+
+def _get_tagger(jet_tags): 
+    """
+    Figure out the tagger based on the tags used. 
+    """
+    jfc_tags = {j for j in jet_tags if j.startswith('JFC')}
+    non_jfc = set(jet_tags) - jfc_tags
+    if jfc_tags and non_jfc: 
+        raise RegionConfigError(
+            "can't be mixing taggers (right now), tried to use {}".format(
+                ', '.join(set(jet_tags))))
+    if jfc_tags: 
+        return 'JFC'
+    else: 
+        return 'CNN'
