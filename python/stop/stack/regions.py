@@ -214,7 +214,7 @@ def _get_tagger(jet_tags):
     Figure out the tagger based on the tags used. 
     """
     jfc_tags = {j for j in jet_tags if j.startswith('JFC')}
-    non_jfc = set(jet_tags) - jfc_tags
+    non_jfc = set(jet_tags) - jfc_tags - set(['NOTAG'])
     if jfc_tags and non_jfc: 
         raise RegionConfigError(
             "can't be mixing taggers (right now), tried to use {}".format(
