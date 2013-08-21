@@ -109,6 +109,8 @@ def setup_fit(config):
     """
     Sets up histfitter jobs. Will run one job for each leaf directory given 
     under the root directory. 
+
+    Submits susy-histopt.py ul
     """
     batch_dir = 'batch/fits'
     batch_file = 'fit-paths.txt'
@@ -135,10 +137,6 @@ def setup_fit(config):
         }
     submit_head = _get_submit_head(**sub_dict)
 
-    line_args = { 
-        'routine': 'susy-histopt.py ul', 
-        'run_args': '--save-yaml' 
-        }
     submit_line = 'susy-histopt.py ul {} -n $(($PBS_ARRAYID-1))'.format(
         batch_path)
     with open('all-the-fits.sh','w') as fits: 
