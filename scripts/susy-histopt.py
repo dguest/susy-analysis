@@ -37,9 +37,9 @@ def run():
     upper_lim.add_argument(
         'workspace', help='can also be a textfile pointing to the workspace')
     upper_lim.add_argument(
-        '-y', '--save-yaml', nargs='?', const='fit-result.yml', 
+        '-y', '--yaml-dir', default='fit-results', 
         help='save output as yaml in the workspace directory '
-        '(with no args: %(const)s)')
+        '(default: %(default)s)')
     upper_lim.add_argument(
         '-n', '--ws-number', type=int, default=0, 
         help='skip to this line in the workspaces text file')
@@ -156,23 +156,19 @@ def _get_upper_limit(config):
         'mean': mean_limit, 
         }
 
-    if config.save_yaml: 
-        yaml_dict = { 'upper_limit': ul_dict } 
-        yaml_path = join(dirname(workspace_name), config.save_yaml)
-        with open(yaml_path,'w') as yml: 
-            yml.write(yaml.dump(yaml_dict))
-        return 
-
-    fits_db = 'all-fit-results.db'
-    if isfile(fits_db): 
-        met, pt, sp, tag = sr_from_path(workspace_name)
-        insert_sql(met, pt, sp, tag, ul_dict, fits_db)
-    else: 
-        print 'no {} found, not recording in sql'.format(fits_db)
-
-    print '{} -- {} -- {}'.format(
-        lower_limit, mean_limit, upper_limit)
-
+    met, pt, sp, tag = sr_from_path(workspace_name)
+    utils.make_dir_if_none(config.yaml_dir)
+        
+    bname = 'met{}_pt{}_{}_{}_fit-result.yml'.format(met, pt, sp, tag)
+    yaml_dict = { 
+        'upper_limit': ul_dict,  
+        'met': met, 
+        'leading_jet_pt': pt, 
+        'signal_point': sp, 
+        'tag_config': tag} 
+    yaml_path = join(config.yaml_dir, bname)
+    with open(yaml_path,'w') as yml: 
+        yml.write(yaml.dump(yaml_dict))
     
 def _fit_and_plot(name, draw_before=False, draw_after=False, 
                   plot_corr_matrix=False, plot_components=False, 
