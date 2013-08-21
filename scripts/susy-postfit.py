@@ -11,18 +11,25 @@ import yaml
 import itertools
 from stop.postfit import split_to_planes, numpy_plane_from_dict
 import h5py
-
 import numpy as np
-from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-from matplotlib.figure import Figure
-import matplotlib.pyplot as plt
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-import matplotlib as mp
-from stop.style import ax_labels, vdict, hdict
+from stop.bullshit import ProgressMeter
+
+def _load_plotters(): 
+    from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+    from matplotlib.figure import Figure
+    import matplotlib.pyplot as plt
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
+    import matplotlib as mp
+    from stop.style import ax_labels, vdict, hdict
 
 def run(): 
     parser = argparse.ArgumentParser(description=__doc__)
     subs = parser.add_subparsers(dest='which')
+
+    agg = subs.add_parser('agg', description=_aggregate.__doc__)
+    agg.add_argument('root_dir_name')
+    agg.add_argument('-o','--output-file')
+    agg.add_argument('--fit-result-name', default='fit-result.yml')
 
     yaml_reader = subs.add_parser('yml')
     yaml_reader.add_argument('yaml_file')
@@ -40,8 +47,38 @@ def run():
         help='figure of merit, default: %(default)s')
 
     args = parser.parse_args(sys.argv[1:])
-    subroutines = {'yml':_yml_parser, 'plot':_plot, 'sum':_plot_sum_fom}
+    subroutines = {'yml':_yml_parser, 'plot':_plot, 'sum':_plot_sum_fom, 
+                   'agg': _aggregate}
     subroutines[args.which](args)
+
+def _aggregate(config): 
+    """
+    aggregate yaml output files from fits. This should probably be removed, 
+    since we'd like to move to recording fit results in sql. 
+    """
+    all_points = []
+    prog = ProgressMeter(3)
+    for root, dirs, files in os.walk(config.root_dir_name): 
+        if config.fit_result_name in files: 
+            prog.get_walk_progress(root)
+            met, ljpt, sp, tag = sr_from_path(root)
+            with open(join(root, config.fit_result_name)) as result: 
+                res_dict = yaml.load(result)
+            new_info = { 
+                'met': met, 
+                'leading_jet_pt': ljpt, 
+                'signal_point': sp, 
+                'tag_config': tag
+                }
+            new_info.update(res_dict)
+            all_points.append(new_info)
+    if config.output_file: 
+        if config.output_file.endswith('.yml'): 
+            with open(config.output_file,'w') as yml: 
+                yml.writelines(yaml.dump(all_points))
+        elif config.output_file.endswith('h5'): 
+            from stop.postfit import kinematic_plane_from_pointlist
+            import h5py
 
 def _yml_parser(args): 
     print 'loading yaml file (slow)'
@@ -75,6 +112,7 @@ def _plot(args):
     """
     Makes all the plots
     """
+    _load_plotters()
     hdf = h5py.File(args.hdf_file)
     for config, sp_group in hdf.iteritems(): 
         for sp, dataset in sp_group.iteritems(): 
@@ -105,6 +143,7 @@ def _plot_sum_fom(args):
     """
     Sums over signal points in the pt / eta plane, makes a plot. 
     """
+    _load_plotters()
     fom_func = _fom_funcs[args.fom]
     hdf = h5py.File(args.hdf_file)
     base_ds = next(next(hdf.itervalues()).itervalues())

@@ -1,4 +1,8 @@
 #!/usr/bin/env python2.7
+"""
+Top level for all fitting / workspace creation. Also serves to keep 
+PyROOT crap out of the rest of the framework. 
+"""
 import itertools, tempfile
 from stop.bullshit import OutputFilter, ProgressMeter
 import os, sys, re, yaml, fnmatch
@@ -11,7 +15,7 @@ import time
 import warnings
     
 def run(): 
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest='which')
 
     ws = subparsers.add_parser('ws')
@@ -40,11 +44,6 @@ def run():
         '-n', '--ws-number', type=int, default=0, 
         help='skip to this line in the workspaces text file')
 
-    # TODO: move this to susy-postfit (or remove entirely if we go to sql)
-    agg = subparsers.add_parser('agg', description=_aggregate.__doc__)
-    agg.add_argument('root_dir_name')
-    agg.add_argument('-o','--output-file')
-    agg.add_argument('--fit-result-name', default='fit-result.yml')
 
     multispace = subparsers.add_parser('ms')
     multispace.add_argument('kinematic_stat_dir')
@@ -55,39 +54,9 @@ def run():
     
     config = parser.parse_args(sys.argv[1:])
     opts = {'ws':_setup_workspace, 'fit':_new_histfit, 'pval':_get_p_value,
-            'ul':_get_upper_limit, 'ms':_multispaces, 'agg': _aggregate}
+            'ul':_get_upper_limit, 'ms':_multispaces}
     opts[config.which](config)
 
-
-def _aggregate(config): 
-    """
-    aggregate yaml output files from fits. This should probably be removed, 
-    since we'd like to move to recording fit results in sql. 
-    """
-    all_points = []
-    prog = ProgressMeter(3)
-    for root, dirs, files in os.walk(config.root_dir_name): 
-        if config.fit_result_name in files: 
-            prog.get_walk_progress(root)
-            met, ljpt, sp, tag = sr_from_path(root)
-            with open(join(root, config.fit_result_name)) as result: 
-                res_dict = yaml.load(result)
-            new_info = { 
-                'met': met, 
-                'leading_jet_pt': ljpt, 
-                'signal_point': sp, 
-                'tag_config': tag
-                }
-            new_info.update(res_dict)
-            all_points.append(new_info)
-    if config.output_file: 
-        if config.output_file.endswith('.yml'): 
-            with open(config.output_file,'w') as yml: 
-                yml.writelines(yaml.dump(all_points))
-        elif config.output_file.endswith('h5'): 
-            from stop.postfit import kinematic_plane_from_pointlist
-            import h5py
-            
 
 def _new_histfit(config): 
     import ROOT
