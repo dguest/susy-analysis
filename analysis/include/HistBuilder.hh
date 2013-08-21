@@ -22,6 +22,7 @@ public:
   int build(); 
   void save() const; 
 private: 
+  void add_histogram(const RegionConfig& region); 
   const std::string m_input_file; 
   const unsigned m_build_flags; 
   

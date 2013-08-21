@@ -47,25 +47,7 @@ void HistBuilder::add_region(const RegionConfig& region){
     return; 
   }
 
-  if (region.hists == reg::HISTMILL) { 
-    m_histograms.push_back
-      (make_pair(region.name,new RegionHistograms(region, m_build_flags)));
-  }
-  else if (region.hists == reg::KINEMATIC_STAT) { 
-    m_histograms.push_back
-      (make_pair(region.name, 
-		 new Region2dKinematicHistograms(region, m_build_flags))); 
-  }
-  else if (region.hists == reg::TAG_EFFICIENCY) { 
-    m_histograms.push_back
-      (make_pair(region.name, 
-		 new RegionJetEfficiencyHistograms(region, m_build_flags)));
-    using namespace btag; 
-    m_factory->set_btagging({NOTAG, LOOSE, MEDIUM, ANTILOOSE}); 
-  }
-  else { 
-    throw std::logic_error("unknown hist type for region " + region.name); 
-  }
+  add_histogram(region); 
 
   if (region.region_bits & reg::electron_jet) { 
     m_factory->use_electron_jet(); 
@@ -138,5 +120,30 @@ void HistBuilder::save() const {
   }
 }
 
+// ==================== private =============================
 
+void HistBuilder::add_histogram(const RegionConfig& region) {
+  using namespace reg; 
+  switch (region.hists) { 
+  case HISTMILL: 
+    m_histograms.push_back
+      (make_pair(region.name,new RegionHistograms(region, m_build_flags)));
+    return; 
+  case KINEMATIC_STAT: 
+    m_histograms.push_back
+      (make_pair(region.name, 
+		 new Region2dKinematicHistograms(region, m_build_flags))); 
+    return; 
+  case TAG_EFFICIENCY:
+    m_histograms.push_back
+      (make_pair(region.name, 
+		 new RegionJetEfficiencyHistograms(region, m_build_flags)));
+    using namespace btag; 
+    m_factory->set_btagging({NOTAG, LOOSE, MEDIUM, ANTILOOSE}); 
+    return; 
+  default: {
+    throw std::logic_error("unknown hist type for region " + region.name); 
+  }
+  }
+}
 
