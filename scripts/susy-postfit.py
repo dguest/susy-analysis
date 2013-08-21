@@ -6,13 +6,14 @@ aggregation.
 """
 
 import argparse
+import time
 import sys, os
 import yaml
 import itertools
 from stop.postfit import split_to_planes, numpy_plane_from_dict
 import h5py
 import numpy as np
-from stop.bullshit import ProgressMeter
+from stop.bullshit import FlatProgressMeter
 
 def _load_plotters(): 
     from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
@@ -23,13 +24,15 @@ def _load_plotters():
     from stop.style import ax_labels, vdict, hdict
 
 def run(): 
+    d='default: %(default)s'
     parser = argparse.ArgumentParser(description=__doc__)
     subs = parser.add_subparsers(dest='which')
 
     agg = subs.add_parser('agg', description=_aggregate.__doc__)
-    agg.add_argument('root_dir_name')
-    agg.add_argument('-o','--output-file')
-    agg.add_argument('--fit-result-name', default='fit-result.yml')
+    agg.add_argument('yaml_files', help='aggregate these', nargs='+')
+    agg.add_argument(
+        '-o','--output-file', help='should be .h5 or .yml ' + d, 
+        default='all-fits.h5')
 
     yaml_reader = subs.add_parser('yml')
     yaml_reader.add_argument('yaml_file')
@@ -53,32 +56,26 @@ def run():
 
 def _aggregate(config): 
     """
-    aggregate yaml output files from fits. This should probably be removed, 
-    since we'd like to move to recording fit results in sql. 
+    aggregate yaml output files from fits. 
     """
+    allowed = {'.h5','.yml'}
+    if not os.path.splitext(config.output_file)[1] in allowed: 
+        raise OSError(
+            'extension should be in {}'.format(' or '.join(allowed)))
     all_points = []
-    prog = ProgressMeter(3)
-    for root, dirs, files in os.walk(config.root_dir_name): 
-        if config.fit_result_name in files: 
-            prog.get_walk_progress(root)
-            met, ljpt, sp, tag = sr_from_path(root)
-            with open(join(root, config.fit_result_name)) as result: 
-                res_dict = yaml.load(result)
-            new_info = { 
-                'met': met, 
-                'leading_jet_pt': ljpt, 
-                'signal_point': sp, 
-                'tag_config': tag
-                }
-            new_info.update(res_dict)
-            all_points.append(new_info)
-    if config.output_file: 
-        if config.output_file.endswith('.yml'): 
-            with open(config.output_file,'w') as yml: 
-                yml.writelines(yaml.dump(all_points))
-        elif config.output_file.endswith('h5'): 
-            from stop.postfit import kinematic_plane_from_pointlist
-            import h5py
+    n_files = len(config.yaml_files)
+    prog = FlatProgressMeter(n_files)
+    for filen, yfile in enumerate(config.yaml_files): 
+        prog.update(filen)
+        with open(yfile) as result: 
+            res_dict = yaml.load(result)
+        all_points.append(res_dict)
+
+    if config.output_file.endswith('.yml'): 
+        with open(config.output_file,'w') as yml: 
+            yml.writelines(yaml.dump(all_points))
+    elif config.output_file.endswith('.h5'): 
+        save_h5(all_points, config.output_file)
 
 def _yml_parser(args): 
     print 'loading yaml file (slow)'
@@ -97,7 +94,7 @@ def save_h5(point_list, out_file_name):
         configs.add(config)
         signal_points.add(sp)
 
-    with h5py.File(out_file_name) as h5_file: 
+    with h5py.File(out_file_name,'w') as h5_file: 
         for config in configs: 
             sp_group = h5_file.create_group(config)
             for sp in signal_points: 

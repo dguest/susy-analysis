@@ -1,6 +1,7 @@
 from os.path import dirname
 from stop.bullshit import OutputFilter
 import os
+import errno
 
 def load_susyfit(): 
     """

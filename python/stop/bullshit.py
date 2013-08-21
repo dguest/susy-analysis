@@ -2,6 +2,7 @@ import tempfile
 import os, sys, re, errno
 from time import time
 from itertools import product
+import math
 
 def make_dir_if_none(hists_dir): 
     """
@@ -56,6 +57,35 @@ class ProgressMeter(object):
                 print 'working on {} ({:.1f} Hz)'.format(
                     dir_path[-level], rate)
 
+class FlatProgressMeter(object): 
+    _stat_line = '\r{n:{l}} of {t} ({p:4.0%}, {hz:5.1f} {u})'
+    _units = {-1:'mHz',0:'Hz ',1:'kHz',2:'MHz',3:'GHz'}
+    def __init__(self, total, update_percent=1): 
+        self.total = total
+        self.update_inc = max(total * update_percent / 100, 1)
+        self.last_time = time()
+        self.last_count = 0
+        self.tot_len = len(str(total))
+    def update(self, count): 
+        cp = count + 1 # we start with 1
+        if cp % self.update_inc == 0:
+            now = time()
+            hz = float(cp - self.last_count) / (now - self.last_time)
+            self.last_count = cp
+            self.last_time = now
+            order = 0 if hz == 0 else int(math.floor(math.log(hz,1e3)))
+            try: 
+                unit = self._units[order]
+            except IndexError: 
+                order = 0
+                unit = 'Hz '
+            vals = dict(
+                n=cp, l=self.tot_len, t=self.total,
+                p=float(cp)/self.total, hz=hz/1000**order, u=unit)
+            sys.stdout.write(self._stat_line.format(**vals))
+            sys.stdout.flush()
+        if cp == self.total: 
+            sys.stdout.write('\n')
 
 class OutputFilter(object): 
     """
