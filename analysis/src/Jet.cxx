@@ -13,6 +13,9 @@ Jet::Jet(const JetBuffer* basis, unsigned flags):
   m_pb(basis->cnn_b), 
   m_pc(basis->cnn_c), 
   m_pu(basis->cnn_u), 
+  m_jfc_pb(basis->jfc_b), 
+  m_jfc_pc(basis->jfc_c), 
+  m_jfc_pu(basis->jfc_u), 
   m_met_dphi(0), 
   m_ioflags(flags), 
   m_buffer(basis)

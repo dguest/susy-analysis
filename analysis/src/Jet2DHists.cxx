@@ -7,6 +7,8 @@
 
 #include <string> 
 #include <cmath>
+#include <stdexcept> 
+#include <sstream>
 
 Jet2DHists::Jet2DHists(const unsigned flags, btag::Tagger tag): 
   m_tagger(tag), 
@@ -37,7 +39,15 @@ void Jet2DHists::fill(const Jet& jet, double weight) {
   double pc = jet.flavor_weight(Flavor::CHARM, m_tagger); 
   double pu = jet.flavor_weight(Flavor::LIGHT, m_tagger); 
   std::vector<double> wt_vector = {log(pc / pu), log(pc / pb)}; 
-  m_anti_b_vs_anti_light->fill(wt_vector); 
+  try { 
+    m_anti_b_vs_anti_light->fill(wt_vector); 
+  }
+  catch (std::range_error& r) { 
+    std::stringstream str; 
+    str << r.what() << " in 2d filling, (b,c,u) = " << 
+      pb << " " << pc << " " << pu; 
+    throw std::range_error(str.str()); 
+  }
 }
 
 void Jet2DHists::write_to(H5::CommonFG& file) { 

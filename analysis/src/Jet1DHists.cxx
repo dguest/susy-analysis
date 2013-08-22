@@ -7,7 +7,8 @@
 
 #include <string> 
 #include <cmath>
-
+#include <stdexcept>
+#include <sstream>
 
 Jet1DHists::Jet1DHists(double max_pt, const unsigned flags, btag::Tagger tag): 
   m_tagger(tag), 
@@ -65,9 +66,17 @@ void Jet1DHists::fill(const Jet& jet, double w) {
   double pc = jet.flavor_weight(Flavor::CHARM, m_tagger); 
   double pu = jet.flavor_weight(Flavor::LIGHT, m_tagger); 
 
-  m_cnnLogCu->fill(log(pc / pu),  w); 
-  m_cnnLogCb->fill(log(pc / pb),  w); 
-  m_cnnLogBu->fill(log(pb / pu),  w); 
+  try { 
+    m_cnnLogCu->fill(log(pc / pu),  w); 
+    m_cnnLogCb->fill(log(pc / pb),  w); 
+    m_cnnLogBu->fill(log(pb / pu),  w); 
+  }
+  catch (std::range_error& r) {
+    std::stringstream str; 
+    str << r.what() << " in 1d filling, (b,c,u) = " << 
+      pb << " " << pc << " " << pu; 
+    throw std::range_error(str.str()); 
+  }
   m_met_dphi->fill(std::abs(jet.met_dphi()),  w);
   m_mu_met_dphi->fill(std::abs(jet.mu_met_dphi()), w); 
 
