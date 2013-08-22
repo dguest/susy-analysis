@@ -61,4 +61,8 @@ private:
   CutValue m_anti_b_cuts; 
 }; 
 
+namespace btag { 
+  Tagger tagger_from_op(OperatingPoint); 
+}
+
 #endif 

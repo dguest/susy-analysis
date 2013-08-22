@@ -148,25 +148,29 @@ void SelectedJet::set_flavor_tag(const BtagCalibration* cal){
   set_flavor_tag(flavor, btag::JFC_MEDIUM, cal); 
   set_flavor_tag(flavor, btag::JFC_LOOSE, cal); 
 }
-void SelectedJet::set_flavor_tag(btag::Flavor flavor, 
-				 btag::OperatingPoint tagger, 
+void SelectedJet::set_flavor_tag(btag::Flavor truth_flavor, 
+				 btag::OperatingPoint op_point, 
 				 const BtagCalibration* cal) { 
-  if (m_scale_factor.size() <= size_t(tagger)) { 
-    size_t n_missing = size_t(tagger) - m_scale_factor.size() + 1; 
+  if (m_scale_factor.size() <= size_t(op_point)) { 
+    size_t n_missing = size_t(op_point) - m_scale_factor.size() + 1; 
     m_scale_factor.insert(m_scale_factor.end(), n_missing,
 			  std::make_pair(0,0) ); 
   }
   JetTagFactorInputs in; 
   in.pt = Pt(); 
   in.eta = Eta(); 
-  in.anti_b = log(m_cnn_c / m_cnn_b); 
-  in.anti_u = log(m_cnn_c / m_cnn_u); 
-  in.flavor = flavor; 
-  if (flavor != btag::DATA) { 
-    m_scale_factor.at(tagger) = cal->applied_factor(in, tagger); 
+  btag::Tagger tagger = btag::tagger_from_op(op_point); 
+  double pb = flavor_weight(btag::B, tagger); 
+  double pc = flavor_weight(btag::C, tagger); 
+  double pu = flavor_weight(btag::U, tagger); 
+  in.anti_b = log(pc / pb); 
+  in.anti_u = log(pc / pu); 
+  in.flavor = truth_flavor; 
+  if (truth_flavor != btag::DATA) { 
+    m_scale_factor.at(op_point) = cal->applied_factor(in, op_point); 
   }
-  set_bit(get_tagger_bit(btag::U,tagger),cal->pass_anti_u(in, tagger)); 
-  set_bit(get_tagger_bit(btag::B,tagger),cal->pass_anti_b(in, tagger)); 
+  set_bit(get_tagger_bit(btag::U,op_point),cal->pass_anti_u(in, op_point)); 
+  set_bit(get_tagger_bit(btag::B,op_point),cal->pass_anti_b(in, op_point)); 
 }
 unsigned SelectedJet::get_tagger_bit(btag::Flavor flavor, 
 				     btag::OperatingPoint tagger) const{

@@ -171,3 +171,19 @@ Analysis::Uncertainty get_unct(btag::Uncertainty u) {
     assert(false); 
   }
 }
+
+namespace btag { 
+  Tagger tagger_from_op(OperatingPoint op) { 
+    switch (op) { 		
+    case CNN_LOOSE:
+    case CNN_MEDIUM:
+    case CNN_TIGHT: 
+      return CNN; 		// intentional fallthrough to here
+    case JFC_LOOSE:
+    case JFC_MEDIUM:
+    case JFC_TIGHT: 
+      return JFC; 		// intentional fallthrough to here
+    }
+    assert(false); 
+  }
+}
