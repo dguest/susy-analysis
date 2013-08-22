@@ -52,7 +52,7 @@ namespace btag {
   }
   
   bool is_inverted(btag::OperatingPoint tag) { 
-    if (tag == ANTILOOSE) return true; 
+    if (tag == ANTILOOSE || tag == JFC_ANTILOOSE) return true; 
     else return false; 
   }
 
