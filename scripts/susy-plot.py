@@ -19,16 +19,18 @@ def get_config():
     c = "with no argument is '%(const)s'"
 
     plotting_general = argparse.ArgumentParser(add_help=False)
-    plotting_general.add_argument(
-        'steering_file', help="created if it doesn't exist")
+    plotting_general.add_argument('aggregate')
     plotting_general.add_argument(
         '--ext', help='plot extensions, ' + d, default='.pdf')
     plotting_general.add_argument('--filt')
+    plotting_general.add_argument('-o', '--output-dir', 
+                                  help=d, default='plots')
 
     top_parser = argparse.ArgumentParser(description=__doc__)
     subs = top_parser.add_subparsers(dest='which')
 
     parser = subs.add_parser('mill', parents=[plotting_general])
+    parser.add_argument('steering_file', nargs='?')
     parser.add_argument(
         '--mode', choices={'histmill','kinematic_stat'}, 
         default='histmill', help='default: %(default)s')
@@ -42,13 +44,9 @@ def get_config():
     overlay_parser.add_argument(
         '-s','--signal-point', default='stop-150-90', 
         help="assumes <particle>-<something> type name, " + d)
-    overlay_parser.add_argument('-o', '--output-dir', 
-                               help=d, default='tag-plots')
 
     single_parser = subs.add_parser('tagone', parents=[plotting_general])
     single_parser.add_argument('-p','--physics-type', required=True)
-    single_parser.add_argument('-o', '--output-dir', 
-                               help=d, default='tag-plots')
 
     args = top_parser.parse_args(sys.argv[1:])
     return args
@@ -74,11 +72,7 @@ def run():
 
 _overlay_cut = 'preselection'
 def run_tagger_overlay(args): 
-    with open(args.steering_file) as steering_yml: 
-        config = yaml.load(steering_yml)
-    hists_base = config['files']['hadd-hists']
-    aggregates = glob.glob(
-        join(hists_base,'histmill','baseline','aggregate.h5'))
+    aggregates = [args.aggregate]
 
     physics_set = {'Zjets','Wjets','ttbar','t'}
     if args.signal_point: 
@@ -96,11 +90,7 @@ def run_tagger_overlay(args):
             plots_dict, jetn, args.signal_point, args.ext, args.output_dir)
 
 def run_tagger_one_type(args): 
-    with open(args.steering_file) as steering_yml: 
-        config = yaml.load(steering_yml)
-    hists_base = config['files']['hadd-hists']
-    aggregates = glob.glob(
-        join(hists_base,'histmill','baseline','aggregate.h5'))
+    aggregates = [args.aggregate]
 
     physics_set = {args.physics_type}
 
@@ -115,15 +105,11 @@ def run_tagger_one_type(args):
         draw.tagger_plot_for_jet_number(
             plots_dict, jetn, args.physics_type, args.ext, args.output_dir)
 
-def run_plotmill(args): 
-    with open(args.steering_file) as steering_yml: 
-        config = yaml.load(steering_yml)
-    hists_base = config['files']['hadd-hists']
-    used_physics = config['backgrounds']['used'] + ['data']
 
-    aggregates = glob.glob(
-        join(hists_base,args.mode,'baseline','aggregate.h5'))
-    
+def run_plotmill(args): 
+    config = _get_config_info(args.steering_file)
+    aggregates = [args.aggregate]
+    used_physics = config['backgrounds']['used'] + ['data']
     plots_dict = {}
     for agg_file in aggregates: 
         print 'loading {}'.format(agg_file)
@@ -134,7 +120,7 @@ def run_plotmill(args):
     plots_dict = {k:v for k,v in plots_dict.iteritems() if needed(k)}
     plotting_info = {
         'lumi_fb': config['misc']['lumi_fb'], 
-        'base_dir': config['files']['plots'], 
+        'base_dir': args.output_dir, 
         'output_ext': args.ext, 
         'used_backgrounds': config['backgrounds']['used'], 
         }
@@ -144,6 +130,20 @@ def run_plotmill(args):
     if args.scale == 'both': 
         plot.make_plots(plots_dict, plotting_info, log=True)
         
+def _get_config_info(steering_file): 
+    if not steering_file: 
+        from stop.runtypes import marks_types
+        config = {
+            'misc': { 'lumi_fb': 21 }, 
+            'backgrounds': {'used': marks_types.keys() }, 
+            }
+        return config
+    else: 
+        with open(steering_file) as steering_yml: 
+            config = yaml.load(steering_yml)
+        return config
+        
+
 
 if __name__ == '__main__': 
     run()
