@@ -18,6 +18,7 @@ class Region(object):
             'met_gev':180, 
             }, 
         'btag_config':['NOTAG','LOOSE','TIGHT'], 
+        'tagger':'CNN', 
         }
     _bit_dict = dict(bits.bits)
     _composite_bit_dict = dict(bits.composite_bits)
@@ -43,6 +44,7 @@ class Region(object):
                     self.type))
         if not 'required' in self.bits: 
             raise RegionConfigError("'required' bits should be in 'bits'")
+        self.tagger = yaml_dict.get('tagger', None)
 
     def get_yaml_dict(self): 
         """
@@ -91,7 +93,7 @@ class Region(object):
             'region_bits': self.get_region_bits(), 
             'type': self.type.upper(), 
             'hists': 'HISTMILL', 
-            'tagger': _get_tagger(self.btag_config), 
+            'tagger': _get_tagger(self.btag_config, self.tagger), 
             }
         return config_dict
 
@@ -170,7 +172,8 @@ class SuperRegion(object):
             'region_bits': reg_bits, 
             'type': reg_type.upper(), 
             'hists': 'KINEMATIC_STAT', 
-            'tagger': _get_tagger(jtags), 
+            # ACHTUNG: dont care about tagger for untagged superregions
+            'tagger': _get_tagger(jtags,None), 
             }
         return config_dict
         
@@ -209,12 +212,18 @@ class RegionConfigError(ValueError):
     def __init__(self, message): 
         super(RegionConfigError,self).__init__(message)
 
-def _get_tagger(jet_tags): 
+def _get_tagger(jet_tags, tagger): 
     """
     Figure out the tagger based on the tags used. 
     """
     jfc_tags = {j for j in jet_tags if j.startswith('JFC')}
     non_jfc = set(jet_tags) - jfc_tags - set(['NOTAG'])
+    if tagger:
+        if jfc_tags + non_jfc: 
+            raise RegionConfigError(
+                "should only specify tagger when op are given")
+        return tagger
+    
     if jfc_tags and non_jfc: 
         raise RegionConfigError(
             "can't be mixing taggers (right now), tried to use {}".format(
