@@ -1,5 +1,6 @@
 #include "RegionHistograms.hh"
 #include "HistBuilderFlags.hh"
+#include "HistBuilderConstants.hh"
 #include "Jet1DHists.hh"
 #include "Jet2DHists.hh"
 #include "TruthJetHists.hh"
@@ -24,7 +25,7 @@ RegionHistograms::RegionHistograms(const RegionConfig& config,
   m_cjet_rank(0)
 { 
   const double max_pt = 1e3*GeV; 
-  const size_t n_jets = 3; 
+  const size_t n_jets = N_JETS_TO_READ; 
 
   if (config.output_name.size() == 0) { 
     throw std::runtime_error("output histograms not named, quitting"); 

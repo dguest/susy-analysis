@@ -14,6 +14,7 @@ from stop.stack.aggregator import HistDict
 import re
 from itertools import chain, product
 
+
 def get_config(): 
     d = 'default: %(default)s'
     c = "with no argument is '%(const)s'"
@@ -22,7 +23,9 @@ def get_config():
     plotting_general.add_argument('aggregate')
     plotting_general.add_argument(
         '--ext', help='plot extensions, ' + d, default='.pdf')
-    plotting_general.add_argument('--filt')
+    plotting_general.add_argument(
+        '--filt', type=_filt_converter, 
+        help='only works on the variable (not the region)')
     plotting_general.add_argument('-o', '--output-dir', 
                                   help=d, default='plots')
 
@@ -69,6 +72,9 @@ def run():
     subs = {'mill':run_plotmill, 'tagger':run_tagger_overlay, 
             'tagone':run_tagger_one_type}
     subs[args.which](args)
+
+def _filt_converter(typed_path): 
+    return typed_path.replace('-','/')
 
 _overlay_cut = 'preselection'
 def run_tagger_overlay(args): 
