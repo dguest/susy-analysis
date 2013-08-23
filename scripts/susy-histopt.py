@@ -4,7 +4,7 @@ Top level for all fitting / workspace creation. Also serves to keep
 PyROOT crap out of the rest of the framework. 
 """
 import itertools, tempfile
-from stop.bullshit import OutputFilter, ProgressMeter
+from stop.bullshit import OutputFilter
 import os, sys, re, yaml, fnmatch
 from os.path import dirname, join, isfile
 import argparse
