@@ -34,9 +34,6 @@ def get_config():
 
     parser = subs.add_parser('mill', parents=[plotting_general])
     parser.add_argument('steering_file', nargs='?')
-    parser.add_argument(
-        '--mode', choices={'histmill','kinematic_stat'}, 
-        default='histmill', help='default: %(default)s')
     parser.add_argument('--scale', choices={'log','linear', 'both'}, 
                         default='linear', help=d)
     parser.add_argument(
@@ -50,6 +47,8 @@ def get_config():
 
     single_parser = subs.add_parser('tagone', parents=[plotting_general])
     single_parser.add_argument('-p','--physics-type', required=True)
+
+    kinematic_parser = subs.add_parser('kin', parents=[plotting_general])
 
     args = top_parser.parse_args(sys.argv[1:])
     return args
@@ -70,8 +69,17 @@ def get_signal_finder(signal_point):
 def run(): 
     args = get_config()
     subs = {'mill':run_plotmill, 'tagger':run_tagger_overlay, 
-            'tagone':run_tagger_one_type}
+            'tagone':run_tagger_one_type, 'kin':run_kinematic_plot}
     subs[args.which](args)
+
+def run_kinematic_plot(args): 
+    from stop.runtypes import marks_types
+    hists = HistDict(args.aggregate, 
+                     physics_set={k for k in marks_types}, 
+                     cut_set={'SR0'}, 
+                     )
+    for k in hists: 
+        print k
 
 def _filt_converter(typed_path): 
     return typed_path.replace('-','/')
