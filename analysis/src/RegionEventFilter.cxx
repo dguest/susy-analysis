@@ -3,13 +3,15 @@
 #include "EventObjects.hh"
 #include "JetTagRescaler.hh"
 #include "enum_converters.hh"
+#include "IJetTagFilter.hh"
 #include "Jet.hh"
 #include <stdexcept> 
 
 
 RegionEventFilter::RegionEventFilter(const RegionConfig& config, unsigned): 
   m_region_config(config), 
-  m_jet_rescaler(0)
+  m_jet_rescaler(0), 
+  m_jet_tag_filter(0)
 {
   if (config.mc_mc_jet_reweight_file.size()) { 
     m_jet_rescaler = new JetTagRescaler(config.mc_mc_jet_reweight_file); 
