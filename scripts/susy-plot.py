@@ -13,7 +13,7 @@ import glob
 from stop.stack.aggregator import HistDict
 import re
 from itertools import chain, product
-
+from collections import defaultdict
 
 def get_config(): 
     d = 'default: %(default)s'
@@ -25,30 +25,38 @@ def get_config():
         '--ext', help='plot extensions, ' + d, default='.pdf')
     plotting_general.add_argument(
         '--filt', type=_filt_converter, 
-        help='only works on the variable (not the region)')
+        help='exactly what is filtered depends on the routine')
     plotting_general.add_argument('-o', '--output-dir', 
                                   help=d, default='plots')
+    signal_point = argparse.ArgumentParser(add_help=False)
+    signal_point.add_argument(
+        '-s','--signal-point', default='stop-150-90', 
+        help="assumes <particle>-<something> type name, " + d)
 
     top_parser = argparse.ArgumentParser(description=__doc__)
     subs = top_parser.add_subparsers(dest='which')
 
-    parser = subs.add_parser('mill', parents=[plotting_general])
+    parser = subs.add_parser('mill', 
+                             parents=[plotting_general, signal_point])
     parser.add_argument('steering_file', nargs='?')
     parser.add_argument('--scale', choices={'log','linear', 'both'}, 
                         default='linear', help=d)
-    parser.add_argument(
-        '-s','--signal-point', default='stop-150-90', 
-        help="assumes <particle>-<something> type name, " + d)
 
-    overlay_parser = subs.add_parser('tagger', parents=[plotting_general])
-    overlay_parser.add_argument(
-        '-s','--signal-point', default='stop-150-90', 
-        help="assumes <particle>-<something> type name, " + d)
+    overlay_parser = subs.add_parser('tagger', 
+                                     parents=[plotting_general, signal_point])
 
     single_parser = subs.add_parser('tagone', parents=[plotting_general])
     single_parser.add_argument('-p','--physics-type', required=True)
 
-    kinematic_parser = subs.add_parser('kin', parents=[plotting_general])
+    kinematic_parser = subs.add_parser(
+        'kin', parents=[plotting_general])
+    phys_type = kinematic_parser.add_mutually_exclusive_group()
+    phys_type.add_argument('-s','--signal-point', nargs='?', 
+                           const='stop-200-125')
+    phys_type.add_argument('-b','--background', action='store_true')
+    phys_type.add_argument('-r','--s-over-b', nargs='?', 
+                           const='stop-200-125')
+    
 
     args = top_parser.parse_args(sys.argv[1:])
     return args
@@ -74,13 +82,44 @@ def run():
 
 def run_kinematic_plot(args): 
     from stop.runtypes import marks_types
+    bg_set = set(marks_types)
+    phys_set = set()
+    if args.background or args.s_over_b: 
+        phys_set |= bg_set
+
+    if args.s_over_b or args.signal_point: 
+        signal_point = args.s_over_b if args.s_over_b else args.signal_point
+        phys_set.add(signal_point)
+    else: 
+        signal_point = ''
+
+    region_set = None
+    if args.filt: 
+        region_set = { args.filt.replace('/','-') } # TODO: make less hackish
     hists = HistDict(args.aggregate, 
                      filt='kinematics', 
-                     # physics_set={k for k in marks_types}, 
-                     # cut_set={'SR0'}, 
+                     physics_set=phys_set, 
+                     cut_set=region_set, 
                      )
-    for k in hists: 
-        print k 
+    hists_by_region = defaultdict(dict)
+    for (phys, var, region), hist in hists.iteritems(): 
+        hists_by_region[region][phys,var] = hist
+    for region, reg_hists in hists_by_region.iteritems(): 
+        _plot_region_kinematics(region, reg_hists, signal_point, bg_set)
+
+def _plot_region_kinematics(region, hists, signal_point, bg_set): 
+    bg_hist = None
+    sig_hist = None
+    for (phys, var), hist in hists.iteritems(): 
+        if phys in bg_set: 
+            if not bg_hist: 
+                bg_hist = hist
+            else: 
+                bg_hist += hist
+        elif phys in signal_point: 
+            assert not sig_hist
+            sig_hist = hist
+    # WORK DO HERE
 
 def _filt_converter(typed_path): 
     return typed_path.replace('-','/')

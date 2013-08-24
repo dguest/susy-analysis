@@ -2,7 +2,7 @@ import numpy as np
 from collections import defaultdict
 import copy
 import bisect
-import weakref, warnings
+import warnings
 from h5py import Group, Dataset
 
 class Hist1d(object): 
@@ -228,6 +228,8 @@ class Axis(object):
         returns a tuple (histogram, (low, high)) where low and high 
         are the bounds of the slice taken. 
         """
+        warnings.warn('This method will be replaced by slice()', 
+                      FutureWarning, stacklevel=2)
         bin_bounds = np.linspace(self.min,self.max,self.bins + 1)
         bin_n = bisect.bisect(bin_bounds, val)
         extent = self._get_bounds(bin_bounds, bin_n)
