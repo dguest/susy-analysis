@@ -99,7 +99,7 @@ def run_tagger_overlay(args):
                          physics_set=physics_set, cut_set={_overlay_cut})
         plots_dict.update(hists)
 
-    for jetn in xrange(3): 
+    for jetn in xrange(4): 
         draw.tagger_overlay_plot_for_jet_number(
             plots_dict, jetn, args.signal_point, args.ext, args.output_dir)
 
@@ -115,7 +115,7 @@ def run_tagger_one_type(args):
                          physics_set=physics_set, cut_set={_overlay_cut})
         plots_dict.update(hists)
 
-    for jetn in xrange(3): 
+    for jetn in xrange(4): 
         draw.tagger_plot_for_jet_number(
             plots_dict, jetn, args.physics_type, args.ext, args.output_dir)
 
