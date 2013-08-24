@@ -75,11 +75,12 @@ def run():
 def run_kinematic_plot(args): 
     from stop.runtypes import marks_types
     hists = HistDict(args.aggregate, 
-                     physics_set={k for k in marks_types}, 
-                     cut_set={'SR0'}, 
+                     filt='kinematics', 
+                     # physics_set={k for k in marks_types}, 
+                     # cut_set={'SR0'}, 
                      )
     for k in hists: 
-        print k
+        print k 
 
 def _filt_converter(typed_path): 
     return typed_path.replace('-','/')

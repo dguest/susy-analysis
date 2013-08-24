@@ -9,6 +9,7 @@ from stop import stattest
 from warnings import warn
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 from os.path import join, isdir, dirname
 import os
 
@@ -18,7 +19,8 @@ class Stack(object):
     """
     def __init__(self, title, ratio=False): 
         self.title = title
-        self.fig = plt.figure(figsize=(8,6))
+        self.fig = Figure(figsize=(8,6))
+        self.canvas = FigureCanvas(self.fig)
         if not ratio:
             self.ax = self.fig.add_subplot(1,1,1)
             self.ratio = None
@@ -26,7 +28,7 @@ class Stack(object):
             grid = GridSpec(2,1, height_ratios=[3,1])
             self.ax = self.fig.add_subplot(grid[0])
             self.ratio = self.fig.add_subplot(grid[1],sharex=self.ax)
-            self.ratio.set_ylabel('Data / Sim')# y=0.98, va='top')
+            self.ratio.set_ylabel('Data / SM')# y=0.98, va='top')
             locator = MaxNLocator(5, prune='upper') 
             self.ratio.get_yaxis().set_major_locator(locator)
         self.x_vals = None
@@ -68,7 +70,7 @@ class Stack(object):
                 pass            # TODO: add check
             ylabel = self.ax.get_ylabel()
             if not ylabel: 
-                self.ax.set_ylabel(hist.y_label, y=0.98, va='top')
+                self.ax.set_ylabel(hist.y_label, y=0.98,ha='right')
             self._set_xlab(hist.x_label)
 
             fill_color = hist.color
@@ -194,12 +196,15 @@ class Stack(object):
             ymax = self.ax.get_ylim()[1]
             self.ax.set_ylim(0,ymax)
             self.ax.set_xlim(min(self.x_vals), max(self.x_vals))
-        self.fig.tight_layout()# pad=0.0, h_pad=0.0
+        self.fig.tight_layout(pad=0.3, h_pad=0.3, w_pad=0.3)
+
         if self.ratio: 
             self.ratio.set_ylim(0,self.ratio_max)
-        self.fig.savefig(name, bbox_inches='tight')
+        self.canvas.print_figure(name)
     def close(self): 
-        plt.close(self.fig)
+        # should garbage collect on it's own now
+        warn('This method is no longer needed',FutureWarning,stacklevel=2)
+        
 
 class Hist2d(object): 
     def __init__(self, imdict, xlabel, ylabel): 
@@ -227,14 +232,17 @@ class Hist2d(object):
             warn("can't plot {}, in log mode".format(name), RuntimeWarning, 
                  stacklevel=2)
             return 
-        fig = plt.figure(figsize=(8,6))
+        fig = Figure(figsize=(8,6))
+        canvas = FigureCanvas(fig)
         ax = fig.add_subplot(1,1,1)
+        divider = make_axes_locatable(ax)
+        cax = divider.append_axes("right", "5%", pad="1.5%")
         if log: 
             norm=LogNorm()
         else: 
             norm=Normalize()
         im = ax.imshow(norm=norm,**self.imdict)
-        cb_dict = {}
+        cb_dict = {'cax':cax}
         if log: 
             cb_dict['ticks'] = LogLocator(10, np.arange(0.1,1,0.1))
             cb_dict['format'] = LogFormatterMathtext(10)
@@ -244,9 +252,8 @@ class Hist2d(object):
         except ValueError: 
             print self.imdict['X'].sum()
         ax.set_xlabel(self.x_label, x=0.98, ha='right')        
-        ax.set_ylabel(self.y_label, y=0.98, va='top')
-        fig.savefig(name, bbox_inches='tight')
-        plt.close(fig)
+        ax.set_ylabel(self.y_label, y=0.98, ha='right')
+        canvas.print_figure(name, bbox_inches='tight')
 
 class PlottingError(StandardError): 
     def __init__(self, problem): 
@@ -333,7 +340,7 @@ def tagger_overlay_plot_for_jet_number(plots_dict, jetn, signal_point,
     ax.set_ylim(*y_lims)
     ax.set_xlim(*x_lims)
     ax.set_xlabel(r'$\log(P_c/P_u)$', x=0.98, ha='right', fontsize=18)
-    ax.set_ylabel(r'$\log(P_c/P_b)$', y=0.98, va='top', fontsize=18)
+    ax.set_ylabel(r'$\log(P_c/P_b)$', y=0.98, ha='right', fontsize=18)
     ax.axvline(-0.82, linestyle='--', color='red')
     ax.axhline(-1.0, linestyle='--', color='red')
 

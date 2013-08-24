@@ -175,7 +175,6 @@ class StackPlotPrinter(object):
                 stack.add_data(stack_data[id_tup])
             stack.add_legend()
             stack.save(save_name)
-            stack.close()
 
 class H2Printer(object): 
     def __init__(self, options): 
