@@ -8,6 +8,8 @@ import argparse
 import yaml 
 from stop.stack.table import make_latex_bg_table, unyamlize, make_marktable
 from stop.stack.table import LatexCutsConfig
+from stop.stack.aggregator import HistDict
+from collections import defaultdict
 
 import sys, re
 from tempfile import TemporaryFile
@@ -23,8 +25,8 @@ def get_config():
     counts.add_argument('aggregate')
     count_signal_mode = counts.add_mutually_exclusive_group()
     count_signal_mode.add_argument(
-        '-s','--signal-point', default='stop-150-90', 
-        help="assumes <particle>-<something> type name, " + d)
+        '-s','--signal-point', const='stop-150-90', nargs='?', 
+        help="assumes <particle>-<something> type name, " + c)
     count_signal_mode.add_argument('-m','--max-point', action='store_true')
     counts.add_argument('-f', '--filters', nargs='+', default=[])
     counts.add_argument('-t', '--transpose', action='store_true')
@@ -98,43 +100,40 @@ def get_regions(args):
         print line.strip()
 
 def get_counts(args): 
-    with open(args.config_file) as config: 
-        config_dict = yaml.load(config)
-        counts_file = config_dict['files']['counts']
-
-    with open(counts_file) as counts: 
-        counts_dict = yaml.load(counts)
-
-    sig_point = '' if args.max_point else args.signal_point
-    needed = get_signal_finder(sig_point)
-    filtered = {}
-    for syst, cutdict in counts_dict.iteritems(): 
-        filtered[syst] = {n:c for n, c in cutdict.iteritems() if needed(n)}
-
-    base_systematic = filtered['NONE']
-    all_systematics = set(filtered.keys()) - set(['NONE'])
-
-    out_file = TemporaryFile()
-    phys_cut_dict = unyamlize(base_systematic)
-
-    killkeys = set()
-    used_physics = set(config_dict['backgrounds']['used'] + ['data'])
-    used_physics |= set(k[0] for k in phys_cut_dict if k[0].startswith('stop'))
-    for phys, region in phys_cut_dict: 
-        if not phys in used_physics: 
-            killkeys.add( (phys, region) )
-        for filt in args.filters: 
-            if filt in region: 
-                killkeys.add( (phys,region))
+    from stop.runtypes import marks_types
+    phys_set = set(marks_types)
+    phys_set.add('data')
+    if args.signal_point:
+        phys_set.add(args.signal_point)
         
-    for key in killkeys: 
-        del phys_cut_dict[key]
+    hists = HistDict(args.aggregate, 
+                     filt='kinematic', 
+                     physics_set=phys_set, 
+                     )
+    GeV = 1000.0
+    inf = float('inf')
+    def get_count(hist): 
+        met_slice = hist['met'].slice(150*GeV,inf)
+        return float(met_slice['leadingJetPt'].slice(150*GeV,inf))
+
+    phys_cut_dict = defaultdict(dict)
+    for (phys, var, region), hist in hists.iteritems(): 
+        if var == 'kinematics': 
+            phys_cut_dict[phys, region]['normed'] = get_count(hist)
+        else: 
+            phys_cut_dict[phys, region]['wt2'] = get_count(hist)
+
+    phys_cut_dict = dict(phys_cut_dict)
+    for key in phys_cut_dict: 
+        if not 'wt2' in phys_cut_dict[key]: 
+            phys_cut_dict[key] = phys_cut_dict[key]['normed']
 
     if args.max_point: 
         update_with_max_contamination(phys_cut_dict)
 
-    build_table = make_marktable if args.transpose else make_latex_bg_table
+    build_table = make_latex_bg_table if args.transpose else make_marktable
 
+    out_file = TemporaryFile()
     build_table(phys_cut_dict, title='baseline', 
                 out_file=out_file)
 
