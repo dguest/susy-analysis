@@ -183,7 +183,9 @@ def _setup_workspace(config):
     backgrounds = [
         'ttbar',
         'Wjets',
-        'Zjets','diboson'
+        'Zjets',
+        'diboson', 
+        't', 
         ]
     systematics = [
         'jer',
@@ -231,7 +233,7 @@ def _multispaces(config):
 
 def _book_signal_point(counts, signal_point, systematics, tag_config): 
     import ROOT
-    backgrounds = ['ttbar','Wjets','Zjets','diboson']
+    backgrounds = ['ttbar','Wjets','Zjets','diboson','t']
     GeV = 1000.0
 
     met_values = xrange(150,500,20)
