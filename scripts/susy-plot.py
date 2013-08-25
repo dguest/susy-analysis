@@ -9,9 +9,10 @@ from stop.stack import table
 from tempfile import TemporaryFile
 import yaml
 import sys
+import os
 import glob
 from stop.stack.aggregator import HistDict
-from stop.stack.draw import Hist2d
+from stop.stack.draw import h2_from_hn
 import re
 from itertools import chain, product
 from collections import defaultdict
@@ -138,8 +139,7 @@ def _plot_region_kinematics(region, hists, signal_point, bg_set,
     elif bg_hist and not sig_hist: 
         the_hist = integrate(bg_hist)
         meth = bg
-    ax_names = [ax.name for ax in the_hist.axlist()]
-    the_plot = Hist2d(the_hist.project_imshow(*ax_names), *ax_names)
+    the_plot = h2_from_hn(the_hist)
     if not isdir(odir): 
         os.mkdir(odir)
         

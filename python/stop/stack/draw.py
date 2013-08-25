@@ -204,7 +204,37 @@ class Stack(object):
     def close(self): 
         # should garbage collect on it's own now
         warn('This method is no longer needed',FutureWarning,stacklevel=2)
-        
+
+def h2_from_hn(in_hist): 
+    if not len(in_hist) == 2: 
+        raise PlottingError(
+            "can't get a 2d hist from an {}d hist".format(len(in_hist)))
+
+    def new_lim_unit(ax): 
+        lims = [ax.min, ax.max]
+        if ax.units == 'MeV': 
+            return [lim / 1000.0 for lim in lims], 'GeV'
+        else: 
+            return lims, ax.units
+
+    x_name, y_name = [ax.name for ax in in_hist.axlist()]
+    x_lims, x_unit = new_lim_unit(in_hist[x_name])
+    y_lims, y_unit = new_lim_unit(in_hist[y_name])
+    array = in_hist.array[1:-1,1:-1]
+
+    extent = list(x_lims) + list(y_lims)
+    im_dict =  {
+        'X': array.T, 
+        'extent': extent, 
+        'aspect': 'auto', 
+        'interpolation':'nearest', 
+        'origin':'lower', 
+        }
+    def mklabel(base, unit): 
+        if unit: 
+            return '{} [{}]'.format(base, unit)
+        return base
+    return Hist2d(im_dict, mklabel(x_name, x_unit), mklabel(y_name, y_unit))
 
 class Hist2d(object): 
     def __init__(self, imdict, xlabel, ylabel): 
