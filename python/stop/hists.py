@@ -139,6 +139,8 @@ class Axis(object):
         return new
 
     def remove(self): 
+        warnings.warn("this will be removed, use 'del hist[ax_name]'", 
+                      FutureWarning, stacklevel=2)
         hist = self._hist
         if hist: 
             hist._reduce(self.name)
@@ -261,14 +263,15 @@ class Axis(object):
     
     def integrate(self, reverse=False, in_place=False): 
         """
-        NOTE: should replace with something that returns a new hist. 
+        Integrates this axis, returning a new hist. 
         """
-        if not in_place: 
+        if in_place: 
             warnings.warn(
-                "The default behavior of this function will change, "
-                "set 'in_place' to True to preserve", FutureWarning, 
+                "in place integration is going away", FutureWarning, 
                 stacklevel=2)
-        self._hist._integrate(self.name, reverse)
+            self._hist._integrate(self.name, reverse)
+        else: 
+            return self._hist._get_integrated(self.name, reverse)
 
 
 class HistNd(object): 
@@ -403,6 +406,15 @@ class HistNd(object):
         for ax in sorted(self._axes.values(), key=lambda x: x.number): 
             yield ax.name
 
+    def __str__(self): 
+        string = []
+        ax_format = '{n} {l}--{h} {u}, {b} {t}'
+        for ax in sorted(self._axes.values(), key=lambda x: x.number): 
+            string.append(ax_format.format(
+                    n=ax.name, l=ax.min, h=ax.max, u=ax.units, t=ax.type,
+                    b=ax.bins))
+        return 'NdHist: {}'.format('; '.join(string))
+
     @property
     def array(self): 
         """
@@ -453,6 +465,23 @@ class HistNd(object):
         self._array = a
         self.axes[ax_name]._type = 'integral'
 
+    def _get_integrated(self, ax_name, reverse=False): 
+        if self.axes[ax_name].type == 'integral': 
+            raise ArithmeticError("tried to integrate axis {} twice".format(
+                    ax_name))
+        new_hist = copy.deepcopy(self)
+        ax_number = new_hist._axes[ax_name].number
+        a = new_hist._array
+        if reverse: 
+            ax_slice = [slice(None)]*ax_number 
+            ax_slice.append(slice(None,None,-1)) 
+            ax_slice.append(Ellipsis)
+        else: 
+            ax_slice = Ellipsis
+        a = np.cumsum(a[ax_slice], axis=ax_number)[ax_slice]
+        new_hist._array = a
+        new_hist.axes[ax_name]._type = 'integral'
+        return new_hist
 
     def cut(self, axis, value, reverse=False): 
         """
