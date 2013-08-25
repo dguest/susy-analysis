@@ -4,13 +4,14 @@ Top level for mc / data stack plotting routines for the main analysis.
 """
 import argparse
 from stop.stack import plot, draw
-from os.path import isfile, join
+from os.path import isfile, join, isdir
 from stop.stack import table
 from tempfile import TemporaryFile
 import yaml
 import sys
 import glob
 from stop.stack.aggregator import HistDict
+from stop.stack.draw import Hist2d
 import re
 from itertools import chain, product
 from collections import defaultdict
@@ -50,7 +51,7 @@ def get_config():
 
     kinematic_parser = subs.add_parser(
         'kin', parents=[plotting_general])
-    phys_type = kinematic_parser.add_mutually_exclusive_group()
+    phys_type = kinematic_parser.add_mutually_exclusive_group(required=True)
     phys_type.add_argument('-s','--signal-point', nargs='?', 
                            const='stop-200-125')
     phys_type.add_argument('-b','--background', action='store_true')
@@ -105,9 +106,11 @@ def run_kinematic_plot(args):
     for (phys, var, region), hist in hists.iteritems(): 
         hists_by_region[region][phys,var] = hist
     for region, reg_hists in hists_by_region.iteritems(): 
-        _plot_region_kinematics(region, reg_hists, signal_point, bg_set)
+        _plot_region_kinematics(region, reg_hists, signal_point, bg_set, 
+                                odir=args.output_dir, ext=args.ext)
 
-def _plot_region_kinematics(region, hists, signal_point, bg_set): 
+def _plot_region_kinematics(region, hists, signal_point, bg_set, 
+                            odir='plots', ext='.pdf'): 
     bg_hist = None
     sig_hist = None
     for (phys, var), hist in hists.iteritems(): 
@@ -119,7 +122,28 @@ def _plot_region_kinematics(region, hists, signal_point, bg_set):
         elif phys in signal_point: 
             assert not sig_hist
             sig_hist = hist
-    # WORK DO HERE
+
+    def integrate(hist, reverse=True): 
+        int_hist = hist['met'].integrate(reverse=reverse)
+        return int_hist['leadingJetPt'].integrate(reverse=reverse)
+
+    if bg_hist and sig_hist: 
+        num = integrate(sig_hist)
+        denom = integrate(bg_hist)
+        the_hist = num / denom
+        meth = '{}-over-bg'.format(signal_point)
+    elif sig_hist and not bg_hist: 
+        the_hist = integrate(sig_hist)
+        meth = signal_point
+    elif bg_hist and not sig_hist: 
+        the_hist = integrate(bg_hist)
+        meth = bg
+    ax_names = [ax.name for ax in the_hist.axlist()]
+    the_plot = Hist2d(the_hist.project_imshow(*ax_names), *ax_names)
+    if not isdir(odir): 
+        os.mkdir(odir)
+        
+    the_plot.save('{}/{}-{}{}'.format(odir, meth, region,ext))
 
 def _filt_converter(typed_path): 
     return typed_path.replace('-','/')

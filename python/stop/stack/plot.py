@@ -77,7 +77,7 @@ class HistConverter(object):
                     yvar, y_axis.extent, y_axis.units)
                 imdict['extent'] = np.fromiter(chain(xext, yext),np.float)
                 subvar = '-'.join([var,yname,'vs',xname])
-                h2dict[(physics,subvar,cut)] = Hist2d(imdict, xlab, ylab)
+                h2dict[physics,subvar,cut] = Hist2d(imdict, xlab, ylab)
                 
         return h2dict
 
