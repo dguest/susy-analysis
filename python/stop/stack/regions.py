@@ -219,7 +219,7 @@ def _get_tagger(jet_tags, tagger):
     jfc_tags = {j for j in jet_tags if j.startswith('JFC')}
     non_jfc = set(jet_tags) - jfc_tags - set(['NOTAG'])
     if tagger:
-        if jfc_tags + non_jfc: 
+        if jfc_tags or non_jfc: 
             raise RegionConfigError(
                 "should only specify tagger when op are given")
         return tagger

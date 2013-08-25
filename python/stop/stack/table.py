@@ -96,7 +96,7 @@ class RegionCountsFormatter(object):
     def __init__(self, cut): 
         self.line = [cut]
         self.total_bg = 0.0
-        self.total_stats = 0
+        self.total_wt2 = 0
         self.max_counts = 0.0
         self.max_idx = None
     def _add_value(self, value, error): 
@@ -113,14 +113,14 @@ class RegionCountsFormatter(object):
             return 
 
         normed = value['normed']
-        stats = value['stats']
-        if not stats: 
+        wt2 = value['wt2']
+        if not wt2: 
             stat_err = 0.0
         else: 
-            stat_err = stats**0.5 / stats * normed
+            stat_err = wt2**0.5 
         self._add_value(normed, stat_err)
         self.total_bg += normed
-        self.total_stats += stats
+        self.total_wt2 += wt2
         if value > self.max_counts: 
             self.max_counts = value
             self.max_idx = len(self.line) - 1
@@ -131,9 +131,9 @@ class RegionCountsFormatter(object):
 
         try: 
             normed = value['normed']
-            stats = value['stats']
+            wt2 = value['wt2']
             try: 
-                stat_err = stats**0.5 / stats * normed
+                stat_err = wt2**0.5 
             except ZeroDivisionError: 
                 stat_err = 0
             self._add_value(normed, stat_err)
@@ -253,11 +253,13 @@ def make_marktable(physics_cut_dict, out_file, title=''):
             tup = (phys,cut)
             if tup in physics_cut_dict: 
                 value = physics_cut_dict[phys,cut]
-                if phys.lower() == 'data' or phys.startswith('stop'): 
-                    line_formatter.add_other(value)
-                else: 
+                try: 
                     line_formatter.add_bg_value(value)
+                    print 'adding {} {}'.format(phys,cut)
                     bg_counter[cut] += value['normed']
+                except TypeError: 
+                    line_formatter.add_other(value)
+
             else: 
                 line_formatter.add_other(None)
         textline = line_formatter.get_line(redmax=False, total=False)

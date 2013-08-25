@@ -4,16 +4,18 @@ Top level for mc / data stack plotting routines for the main analysis.
 """
 import argparse
 from stop.stack import plot, draw
-from os.path import isfile, join
+from os.path import isfile, join, isdir
 from stop.stack import table
 from tempfile import TemporaryFile
 import yaml
 import sys
+import os
 import glob
 from stop.stack.aggregator import HistDict
+from stop.stack.draw import h2_from_hn
 import re
 from itertools import chain, product
-
+from collections import defaultdict
 
 def get_config(): 
     d = 'default: %(default)s'
@@ -25,31 +27,40 @@ def get_config():
         '--ext', help='plot extensions, ' + d, default='.pdf')
     plotting_general.add_argument(
         '--filt', type=_filt_converter, 
-        help='only works on the variable (not the region)')
+        help='exactly what is filtered depends on the routine')
     plotting_general.add_argument('-o', '--output-dir', 
                                   help=d, default='plots')
+    signal_point = argparse.ArgumentParser(add_help=False)
+    signal_point.add_argument(
+        '-s','--signal-point', default='stop-150-90', 
+        help="assumes <particle>-<something> type name, " + d)
 
     top_parser = argparse.ArgumentParser(description=__doc__)
     subs = top_parser.add_subparsers(dest='which')
 
-    parser = subs.add_parser('mill', parents=[plotting_general])
+    parser = subs.add_parser('mill', 
+                             parents=[plotting_general, signal_point])
     parser.add_argument('steering_file', nargs='?')
     parser.add_argument('--scale', choices={'log','linear', 'both'}, 
                         default='linear', help=d)
-    parser.add_argument(
-        '-s','--signal-point', default='stop-150-90', 
-        help="assumes <particle>-<something> type name, " + d)
 
-    overlay_parser = subs.add_parser('tagger', parents=[plotting_general])
-    overlay_parser.add_argument(
-        '-s','--signal-point', default='stop-150-90', 
-        help="assumes <particle>-<something> type name, " + d)
+    overlay_parser = subs.add_parser('tagger', 
+                                     parents=[plotting_general, signal_point])
 
     single_parser = subs.add_parser('tagone', parents=[plotting_general])
     single_parser.add_argument('-p','--physics-type', required=True)
 
-    kinematic_parser = subs.add_parser('kin', parents=[plotting_general])
-
+    kinematic_parser = subs.add_parser(
+        'kin', parents=[plotting_general])
+    phys_type = kinematic_parser.add_mutually_exclusive_group(required=True)
+    phys_type.add_argument('-s','--signal-point', nargs='?', 
+                           const='stop-200-125')
+    phys_type.add_argument('-b','--background', action='store_true')
+    phys_type.add_argument('-r','--s-over-b', nargs='?', 
+                           const='stop-200-125')
+    phys_type.add_argument('--all', nargs='?', 
+                           const='stop-200-125')
+    
     args = top_parser.parse_args(sys.argv[1:])
     return args
 
@@ -73,6 +84,7 @@ def run():
     subs[args.which](args)
 
 def run_kinematic_plot(args): 
+<<<<<<< HEAD
     from stop.runtypes import marks_types
     hists = HistDict(args.aggregate, 
                      physics_set={k for k in marks_types}, 
@@ -80,6 +92,94 @@ def run_kinematic_plot(args):
                      )
     for k in hists: 
         print k
+=======
+    """
+    Plots S, B, S/B for values of kinematic cuts in the plane. 
+    """
+    from stop.runtypes import marks_types
+    bg_set = set(marks_types)
+    phys_set = set()
+    if args.background or args.s_over_b or args.all: 
+        phys_set |= bg_set
+
+    sp_list = filter(None, [args.s_over_b, args.signal_point, args.all])
+    if sp_list: 
+        signal_point = sp_list[0]
+        phys_set.add(signal_point)
+    else: 
+        signal_point = ''
+
+    region_set = None
+    if args.filt: 
+        region_set = { args.filt.replace('/','-') } # TODO: make less hackish
+    hists = HistDict(args.aggregate, 
+                     filt='kinematics', 
+                     physics_set=phys_set, 
+                     cut_set=region_set, 
+                     )
+    hists_by_region = defaultdict(dict)
+    for (phys, var, region), hist in hists.iteritems(): 
+        hists_by_region[region][phys,var] = hist
+    out_args = dict(odir=args.output_dir, ext=args.ext)
+    for region, reg_hists in hists_by_region.iteritems(): 
+        _plot_region_kinematics(
+            region, reg_hists, signal_point, bg_set, **out_args)
+        if args.all: 
+            print 'plotting bg'
+            _plot_region_kinematics(
+                region, reg_hists, '', bg_set, **out_args)
+            print 'plotting signal'
+            _plot_region_kinematics(
+                region, reg_hists, signal_point, set(), **out_args)
+            
+
+def _plot_region_kinematics(region, hists, signal_point, bg_set, 
+                            odir='plots', ext='.pdf'): 
+    bg_hist = None
+    sig_hist = None
+    for (phys, var), hist in hists.iteritems(): 
+        if phys in bg_set: 
+            if not bg_hist: 
+                bg_hist = hist
+            else: 
+                bg_hist += hist
+        elif phys == signal_point: 
+            if sig_hist: 
+                phy_keys = ', '.join([k[0] for k in hists])
+                raise StandardError(
+                    'tried to replace {} with {}, keys: {}'.format(
+                        signal_point, phys, phy_keys))
+            sig_hist = hist
+
+    def integrate(hist, reverse=True): 
+        int_hist = hist['met'].integrate(reverse=reverse)
+        return int_hist['leadingJetPt'].integrate(reverse=reverse)
+
+    if bg_hist and sig_hist: 
+        num = integrate(sig_hist)
+        denom = integrate(bg_hist)
+        the_hist = num / denom
+        meth = '{}-over-bg'.format(signal_point)
+        save_args = dict(log=False, vrange=(0.2, 1.1))
+        cb_label = '{} / BG'.format(signal_point)
+    elif sig_hist and not bg_hist: 
+        the_hist = integrate(sig_hist)
+        meth = signal_point
+        save_args = dict(log=True)
+        cb_label = signal_point
+    elif bg_hist and not sig_hist: 
+        the_hist = integrate(bg_hist)
+        meth = 'bg'
+        save_args = dict(log=True)
+        cb_label = 'Background'
+    the_plot = h2_from_hn(the_hist)
+    the_plot.cb_label = cb_label
+    if not isdir(odir): 
+        os.mkdir(odir)
+        
+    the_plot.save('{}/{}-{}{}'.format(odir, meth, region,ext), **save_args)
+
+>>>>>>> master
 
 def _filt_converter(typed_path): 
     return typed_path.replace('-','/')
@@ -99,7 +199,7 @@ def run_tagger_overlay(args):
                          physics_set=physics_set, cut_set={_overlay_cut})
         plots_dict.update(hists)
 
-    for jetn in xrange(3): 
+    for jetn in xrange(4): 
         draw.tagger_overlay_plot_for_jet_number(
             plots_dict, jetn, args.signal_point, args.ext, args.output_dir)
 
@@ -115,7 +215,7 @@ def run_tagger_one_type(args):
                          physics_set=physics_set, cut_set={_overlay_cut})
         plots_dict.update(hists)
 
-    for jetn in xrange(3): 
+    for jetn in xrange(4): 
         draw.tagger_plot_for_jet_number(
             plots_dict, jetn, args.physics_type, args.ext, args.output_dir)
 

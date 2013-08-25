@@ -2,7 +2,7 @@ import numpy as np
 from collections import defaultdict
 import copy
 import bisect
-import weakref, warnings
+import warnings
 from h5py import Group, Dataset
 
 class Hist1d(object): 
@@ -139,6 +139,8 @@ class Axis(object):
         return new
 
     def remove(self): 
+        warnings.warn("this will be removed, use 'del hist[ax_name]'", 
+                      FutureWarning, stacklevel=2)
         hist = self._hist
         if hist: 
             hist._reduce(self.name)
@@ -228,6 +230,8 @@ class Axis(object):
         returns a tuple (histogram, (low, high)) where low and high 
         are the bounds of the slice taken. 
         """
+        warnings.warn('This method will be replaced by slice()', 
+                      FutureWarning, stacklevel=2)
         bin_bounds = np.linspace(self.min,self.max,self.bins + 1)
         bin_n = bisect.bisect(bin_bounds, val)
         extent = self._get_bounds(bin_bounds, bin_n)
@@ -259,14 +263,15 @@ class Axis(object):
     
     def integrate(self, reverse=False, in_place=False): 
         """
-        NOTE: should replace with something that returns a new hist. 
+        Integrates this axis, returning a new hist. 
         """
-        if not in_place: 
+        if in_place: 
             warnings.warn(
-                "The default behavior of this function will change, "
-                "set 'in_place' to True to preserve", FutureWarning, 
+                "in place integration is going away", FutureWarning, 
                 stacklevel=2)
-        self._hist._integrate(self.name, reverse)
+            self._hist._integrate(self.name, reverse)
+        else: 
+            return self._hist._get_integrated(self.name, reverse)
 
 
 class HistNd(object): 
@@ -400,6 +405,18 @@ class HistNd(object):
     def __iter__(self): 
         for ax in sorted(self._axes.values(), key=lambda x: x.number): 
             yield ax.name
+    
+    def __len__(self): 
+        return len(self._axes.keys())
+
+    def __str__(self): 
+        string = []
+        ax_format = '{n} {l}--{h} {u}, {b} {t}'
+        for ax in sorted(self._axes.values(), key=lambda x: x.number): 
+            string.append(ax_format.format(
+                    n=ax.name, l=ax.min, h=ax.max, u=ax.units, t=ax.type,
+                    b=ax.bins))
+        return 'NdHist: {}'.format('; '.join(string))
 
     @property
     def array(self): 
@@ -418,26 +435,10 @@ class HistNd(object):
     def sum(self): 
         return self._array.sum()
 
-    def integrate(self, axis=None, reverse=False): 
-        warnings.warn("integrate will be made an axis method", FutureWarning, 
-                      stacklevel=2)
-        # this should be made an axis method
-        if axis is None: 
-            for axis in self._axes: 
-                self.integrate(axis, reverse)
-        else: 
-            if isinstance(axis, int): 
-                ax_number = axis
-            else: 
-                if not axis in self._axes: 
-                    raise ValueError('axis {} not defined'.format(axis))
-                ax_number = self._axes[axis].number
-
-            if self._axes[axis].type == 'integral': 
-                return None
-            self._integrate(ax_number, reverse)
-
     def _integrate(self, ax_name, reverse=False): 
+        """
+        In place integrator, should be removed
+        """
         if self.axes[ax_name].type == 'integral': 
             raise ArithmeticError("tried to integrate axis {} twice".format(
                     ax_name))
@@ -451,37 +452,23 @@ class HistNd(object):
         self._array = a
         self.axes[ax_name]._type = 'integral'
 
-
-    def cut(self, axis, value, reverse=False): 
-        """
-        cut axis at (approximately) value, return value where cut is 
-        actually made. 
-
-        The hist must be integrated and looses a dimension.
-        """
-
-        warnings.warn("this will be removed, use Axis.slice() instead", 
-                      FutureWarning, stacklevel=2)
-
-        assert not reverse
-        ax = self._axes.pop(axis)
-        assert ax.type == 'integral'
-
-        bin_bounds = np.linspace(ax.min,ax.max,ax.bins + 1)
-        bin_n = np.digitize([value], bin_bounds)[0]
-        
-        a = self._array.swapaxes(0, ax.number)
-        a = np.rollaxis(a, ax.number, 1)
-        a = a[bin_n,...] 
-        self._array = a
-        for ax_name in self._axes: 
-            if self._axes[ax_name].number > ax.number: 
-                self._axes[ax_name].number -= 1
-
-        if bin_n == 0: 
-            return float('-inf')
+    def _get_integrated(self, ax_name, reverse=False): 
+        if self.axes[ax_name].type == 'integral': 
+            raise ArithmeticError("tried to integrate axis {} twice".format(
+                    ax_name))
+        new_hist = copy.deepcopy(self)
+        ax_number = new_hist._axes[ax_name].number
+        a = new_hist._array
+        if reverse: 
+            ax_slice = [slice(None)]*ax_number 
+            ax_slice.append(slice(None,None,-1)) 
+            ax_slice.append(Ellipsis)
         else: 
-            return bin_bounds[bin_n - 1]
+            ax_slice = Ellipsis
+        a = np.cumsum(a[ax_slice], axis=ax_number)[ax_slice]
+        new_hist._array = a
+        new_hist.axes[ax_name]._type = 'integral'
+        return new_hist
         
     def _pop_axis(self, name): 
         """
@@ -551,32 +538,11 @@ class HistNd(object):
         """
         returns a dict that works with imshow
         """
-
-        victim = copy.deepcopy(self)
-        for red_ax in self.axes: 
-            if red_ax in [xaxis, yaxis]: continue
-            victim._reduce(red_ax) 
-        
-        array = victim._array[1:-1,1:-1]
-
-        x_ax = self.axes[xaxis]
-        y_ax = self.axes[yaxis]
-
-        if x_ax.number > y_ax.number: 
-            array = array.T
-
-        extent = [
-            x_ax.min, x_ax.max, 
-            y_ax.min, y_ax.max, 
-            ]
-        
-        return {
-            'X': array.T, 
-            'extent': extent, 
-            'aspect': 'auto', 
-            'interpolation':'nearest', 
-            'origin':'lower', 
-            }
+        warnings.warn(
+            "this method has been migrated to stand-alone, call that "
+            "directly >>> project_imshow(HistNd, xaxis, yaxis)", 
+            FutureWarning, stacklevel=2)
+        return project_imshow(copy.deepcopy(self), xaxis, yaxis)
     
     def max_bin_dict(self): 
         global_max = np.argmax(self._array)
@@ -584,14 +550,37 @@ class HistNd(object):
         max_bins = {}
         return {a.name: t for a,t in zip(self.axes, max_bin_tuple)}
 
-    def max_bins(self): 
-        """
-        someday this should procduce tuples of (name, extent)
-        """
-        raise NotImplementedError("you got to write this")
-
     def write_to(self, hdf_fg, name): 
         self.__to_hdf(hdf_fg, name)
+
+def project_imshow(hist, xaxis, yaxis): 
+    """
+    warning, this alters the hist
+    """
+    for red_ax in hist.axes: 
+        if red_ax in [xaxis, yaxis]: continue
+        del hist[red_ax]
+    
+    array = hist.array[1:-1,1:-1]
+
+    x_ax = hist.axes[xaxis]
+    y_ax = hist.axes[yaxis]
+
+    if x_ax.number > y_ax.number: 
+        array = array.T
+
+    extent = [
+        x_ax.min, x_ax.max, 
+        y_ax.min, y_ax.max, 
+        ]
+    
+    return {
+        'X': array.T, 
+        'extent': extent, 
+        'aspect': 'auto', 
+        'interpolation':'nearest', 
+        'origin':'lower', 
+        }
 
 class HistAdder(object): 
     """

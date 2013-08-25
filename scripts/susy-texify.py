@@ -4,15 +4,12 @@ Part of the main analysis suite of routines. This prints the counts /
 stacking steering file info to latex. 
 """
 
-_filter_help="""
-Filter counts file. This probably belongs in another script...
-"""
-
 import argparse
 import yaml 
 from stop.stack.table import make_latex_bg_table, unyamlize, make_marktable
 from stop.stack.table import LatexCutsConfig
-from stop.systematics import transfer, tex
+from stop.stack.aggregator import HistDict
+from collections import defaultdict
 
 import sys, re
 from tempfile import TemporaryFile
@@ -23,40 +20,30 @@ def get_config():
 
     parser = argparse.ArgumentParser(description=__doc__)
 
-    shared_parser = argparse.ArgumentParser(add_help=False)
-    shared_parser.add_argument('config_file', help='input yaml file')
-
     subs = parser.add_subparsers(dest='which')
-    counts = subs.add_parser('counts', parents=[shared_parser])
-    counts.add_argument('--systematics', action='store_true')
+    counts = subs.add_parser('counts')
+    counts.add_argument('aggregate')
     count_signal_mode = counts.add_mutually_exclusive_group()
     count_signal_mode.add_argument(
-        '-s','--signal-point', default='stop-150-90', 
-        help="assumes <particle>-<something> type name, " + d)
+        '-s','--signal-point', const='stop-150-90', nargs='?', 
+        help="assumes <particle>-<something> type name, " + c)
     count_signal_mode.add_argument('-m','--max-point', action='store_true')
     counts.add_argument('-f', '--filters', nargs='+', default=[])
     counts.add_argument('-t', '--transpose', action='store_true')
 
-    regions = subs.add_parser('regions', parents=[shared_parser])
-
-    transfer = subs.add_parser('transfer', parents=[shared_parser])
-    transfer.add_argument('-p','--phys-type', default='ttbar', help=d)
-    transfer.add_argument('-r','--rel-errors', action='store_true')
-    transfer.add_argument('-x','--exclude', nargs='+')
-    transfer.add_argument('-o','--only', nargs='+')
-    transfer.add_argument('--green', type=float, default=0.2, help=d)
-
-    filt_counts = subs.add_parser('filter', description=_filter_help)
-    filt_counts.add_argument('--only-systematic')
-    filt_counts.add_argument('--region-regex')
-    filt_counts.add_argument('--region-veto-regex')
-    filt_counts.add_argument('--physics-regex')
-    filt_counts.add_argument('--physics-veto-regex') 
-    filt_counts.add_argument('-i','--overwrite', action='store_true')
-    filt_counts.add_argument('counts_file')
+    regions = subs.add_parser('regions')
+    regions.add_argument('config_file', help='input yaml file')
 
     args = parser.parse_args(sys.argv[1:])
     return args
+
+def run(): 
+    args = get_config()
+    action = {
+        'counts': get_counts, 
+        'regions': get_regions, 
+        }[args.which]
+    action(args)
 
 def get_signal_finder(signal_point): 
     if signal_point: 
@@ -102,88 +89,6 @@ def update_with_max_contamination(phys_cut_dict):
         phys_cut_dict['stop-max',region] = sig_number
         phys_cut_dict['stop-name',region] = sig
 
-def run(): 
-    args = get_config()
-    action = {
-        'counts': get_counts, 
-        'regions': get_regions, 
-        'transfer': get_transfer, 
-        'filter': filter_counts, 
-        }[args.which]
-    action(args)
-
-def filter_counts(args): 
-    with open(args.counts_file) as counts_yml: 
-        counts = yaml.load(counts_yml)
-    kept = {}
-    if args.only_systematic: 
-        counts = {args.only_systematic: counts[args.only_systematic]}
-
-    region_regex = region_veto_regex = None
-    if args.region_regex: 
-        region_regex = re.compile(args.region_regex)
-    if args.region_veto_regex: 
-        region_veto_regex = re.compile(args.region_veto_regex)
-
-    physics_regex = physics_veto_regex = None
-    if args.physics_regex: 
-        physics_regex = re.compile(args.physics_regex)
-    if args.physics_veto_regex: 
-        physics_veto_regex = re.compile(args.physics_veto_regex)
-
-    for syst_name, phys_dict in counts.iteritems(): 
-        kept.setdefault(syst_name, {})
-        for phys_name, reg_dict in phys_dict.iteritems(): 
-            if physics_regex and not physics_regex.search(phys_name): 
-                continue
-            if physics_veto_regex and physics_veto_regex.search(phys_name): 
-                continue
-            kept[syst_name].setdefault(phys_name, {})
-            for reg_name, counts_dict in reg_dict.iteritems(): 
-                if region_regex and not region_regex.search(reg_name): 
-                    continue
-                if region_veto_regex and region_veto_regex.search(reg_name): 
-                    continue
-                kept[syst_name][phys_name][reg_name] = counts_dict
-
-    if args.overwrite: 
-        with open(counts_file, 'w') as counts_yml: 
-            counts_yml.write(yaml.dump(kept))
-    else: 
-        print yaml.dump(kept)
-
-def get_transfer(args): 
-    with open(args.config_file) as config_yml: 
-        config = yaml.load(config_yml)
-    counts_file = config['files']['counts']
-    with open(counts_file) as counts_yml: 
-        counts = yaml.load(counts_yml)
-    table = transfer.TransferTable(config, counts)
-    trans_factors = table.get_tf_table(args.phys_type)
-    if args.only: 
-        def filt(k): 
-            for pat in args.only: 
-                if pat in k: 
-                    return True
-            return False
-        trans_factors = {
-            k:v for k,v in trans_factors.iteritems() if filt(k)}
-
-    if not args.rel_errors: 
-        printer = tex.TransferFactorTable(trans_factors)
-        printer.green_threshold = args.green
-        out = TemporaryFile()
-        printer.write(out)
-        out.seek(0)
-        for line in out: 
-            print line.strip()
-    else: 
-        rel_print = tex.TransferFactorRelitiveErrorTable(trans_factors)
-        out = TemporaryFile()
-        rel_print.write(out)
-        out.seek(0)
-        for line in out: 
-            print line.strip()
 
 def get_regions(args): 
     cuts_config = LatexCutsConfig()
@@ -195,52 +100,42 @@ def get_regions(args):
         print line.strip()
 
 def get_counts(args): 
-    with open(args.config_file) as config: 
-        config_dict = yaml.load(config)
-        counts_file = config_dict['files']['counts']
-
-    with open(counts_file) as counts: 
-        counts_dict = yaml.load(counts)
-
-    sig_point = '' if args.max_point else args.signal_point
-    needed = get_signal_finder(sig_point)
-    filtered = {}
-    for syst, cutdict in counts_dict.iteritems(): 
-        filtered[syst] = {n:c for n, c in cutdict.iteritems() if needed(n)}
-
-    base_systematic = filtered['NONE']
-    all_systematics = set(filtered.keys()) - set(['NONE'])
-
-    out_file = TemporaryFile()
-    phys_cut_dict = unyamlize(base_systematic)
-
-    killkeys = set()
-    used_physics = set(config_dict['backgrounds']['used'] + ['data'])
-    used_physics |= set(k[0] for k in phys_cut_dict if k[0].startswith('stop'))
-    for phys, region in phys_cut_dict: 
-        if not phys in used_physics: 
-            killkeys.add( (phys, region) )
-        for filt in args.filters: 
-            if filt in region: 
-                killkeys.add( (phys,region))
+    from stop.runtypes import marks_types
+    phys_set = set(marks_types)
+    phys_set.add('data')
+    if args.signal_point:
+        phys_set.add(args.signal_point)
         
-    for key in killkeys: 
-        del phys_cut_dict[key]
+    hists = HistDict(args.aggregate, 
+                     filt='kinematic', 
+                     physics_set=phys_set, 
+                     )
+    GeV = 1000.0
+    inf = float('inf')
+    def get_count(hist): 
+        met_slice = hist['met'].slice(150*GeV,inf)
+        return float(met_slice['leadingJetPt'].slice(150*GeV,inf))
+
+    phys_cut_dict = defaultdict(dict)
+    for (phys, var, region), hist in hists.iteritems(): 
+        if var == 'kinematics': 
+            phys_cut_dict[phys, region]['normed'] = get_count(hist)
+        else: 
+            phys_cut_dict[phys, region]['wt2'] = get_count(hist)
+
+    phys_cut_dict = dict(phys_cut_dict)
+    for key in phys_cut_dict: 
+        if not 'wt2' in phys_cut_dict[key]: 
+            phys_cut_dict[key] = phys_cut_dict[key]['normed']
 
     if args.max_point: 
         update_with_max_contamination(phys_cut_dict)
 
-    build_table = make_marktable if args.transpose else make_latex_bg_table
-    
+    build_table = make_latex_bg_table if args.transpose else make_marktable
 
+    out_file = TemporaryFile()
     build_table(phys_cut_dict, title='baseline', 
                 out_file=out_file)
-
-    if args.systematics: 
-        for systematic in all_systematics: 
-            syst_dict = filtered[systematic]
-            phys_cut_dict = unyamlize(syst_dict)
-            build_table(phys_cut_dict, title=systematic, out_file=out_file)
 
     out_file.seek(0)
     for line in out_file: 
