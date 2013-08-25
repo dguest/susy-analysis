@@ -241,6 +241,7 @@ class Hist2d(object):
         self.imdict = imdict
         self.x_label = xlabel
         self.y_label = ylabel
+        self.cb_label = ''
 
     def __add__(self, other): 
         assert self.x_label == other.x_label
@@ -257,7 +258,7 @@ class Hist2d(object):
             {k:v for k,v in self.imdict.items() if k not in out_im})
         return Hist2d(out_im, self.x_label, self.y_label)
 
-    def save(self, name, log=False): 
+    def save(self, name, log=False, vrange=None): 
         if self.imdict['X'].sum() == 0.0 and log: 
             warn("can't plot {}, in log mode".format(name), RuntimeWarning, 
                  stacklevel=2)
@@ -271,6 +272,8 @@ class Hist2d(object):
             norm=LogNorm()
         else: 
             norm=Normalize()
+        if vrange: 
+            self.imdict['vmin'], self.imdict['vmax'] = vrange
         im = ax.imshow(norm=norm,**self.imdict)
         cb_dict = {'cax':cax}
         if log: 
@@ -281,8 +284,11 @@ class Hist2d(object):
             cb = plt.colorbar(im, **cb_dict)
         except ValueError: 
             print self.imdict['X'].sum()
+            raise
         ax.set_xlabel(self.x_label, x=0.98, ha='right')        
         ax.set_ylabel(self.y_label, y=0.98, ha='right')
+        if self.cb_label: 
+            cb.set_label(self.cb_label, y=0.98, ha='right')
         canvas.print_figure(name, bbox_inches='tight')
 
 class PlottingError(StandardError): 
