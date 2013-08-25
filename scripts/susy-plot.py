@@ -58,6 +58,8 @@ def get_config():
     phys_type.add_argument('-b','--background', action='store_true')
     phys_type.add_argument('-r','--s-over-b', nargs='?', 
                            const='stop-200-125')
+    phys_type.add_argument('--all', nargs='?', 
+                           const='stop-200-125')
     
 
     args = top_parser.parse_args(sys.argv[1:])
@@ -83,14 +85,18 @@ def run():
     subs[args.which](args)
 
 def run_kinematic_plot(args): 
+    """
+    Plots S, B, S/B for values of kinematic cuts in the plane. 
+    """
     from stop.runtypes import marks_types
     bg_set = set(marks_types)
     phys_set = set()
-    if args.background or args.s_over_b: 
+    if args.background or args.s_over_b or args.all: 
         phys_set |= bg_set
 
-    if args.s_over_b or args.signal_point: 
-        signal_point = args.s_over_b if args.s_over_b else args.signal_point
+    sp_list = filter(None, [args.s_over_b, args.signal_point, args.all])
+    if sp_list: 
+        signal_point = sp_list[0]
         phys_set.add(signal_point)
     else: 
         signal_point = ''
@@ -106,9 +112,18 @@ def run_kinematic_plot(args):
     hists_by_region = defaultdict(dict)
     for (phys, var, region), hist in hists.iteritems(): 
         hists_by_region[region][phys,var] = hist
+    out_args = dict(odir=args.output_dir, ext=args.ext)
     for region, reg_hists in hists_by_region.iteritems(): 
-        _plot_region_kinematics(region, reg_hists, signal_point, bg_set, 
-                                odir=args.output_dir, ext=args.ext)
+        _plot_region_kinematics(
+            region, reg_hists, signal_point, bg_set, **out_args)
+        if args.all: 
+            print 'plotting bg'
+            _plot_region_kinematics(
+                region, reg_hists, '', bg_set, **out_args)
+            print 'plotting signal'
+            _plot_region_kinematics(
+                region, reg_hists, signal_point, set(), **out_args)
+            
 
 def _plot_region_kinematics(region, hists, signal_point, bg_set, 
                             odir='plots', ext='.pdf'): 
@@ -120,8 +135,12 @@ def _plot_region_kinematics(region, hists, signal_point, bg_set,
                 bg_hist = hist
             else: 
                 bg_hist += hist
-        elif phys in signal_point: 
-            assert not sig_hist
+        elif phys == signal_point: 
+            if sig_hist: 
+                phy_keys = ', '.join([k[0] for k in hists])
+                raise StandardError(
+                    'tried to replace {} with {}, keys: {}'.format(
+                        signal_point, phys, phy_keys))
             sig_hist = hist
 
     def integrate(hist, reverse=True): 
@@ -133,17 +152,25 @@ def _plot_region_kinematics(region, hists, signal_point, bg_set,
         denom = integrate(bg_hist)
         the_hist = num / denom
         meth = '{}-over-bg'.format(signal_point)
+        save_args = dict(log=False, vrange=(0.2, 1.1))
+        cb_label = '{} / BG'.format(signal_point)
     elif sig_hist and not bg_hist: 
         the_hist = integrate(sig_hist)
         meth = signal_point
+        save_args = dict(log=True)
+        cb_label = signal_point
     elif bg_hist and not sig_hist: 
         the_hist = integrate(bg_hist)
-        meth = bg
+        meth = 'bg'
+        save_args = dict(log=True)
+        cb_label = 'Background'
     the_plot = h2_from_hn(the_hist)
+    the_plot.cb_label = cb_label
     if not isdir(odir): 
         os.mkdir(odir)
         
-    the_plot.save('{}/{}-{}{}'.format(odir, meth, region,ext))
+    the_plot.save('{}/{}-{}{}'.format(odir, meth, region,ext), **save_args)
+
 
 def _filt_converter(typed_path): 
     return typed_path.replace('-','/')
