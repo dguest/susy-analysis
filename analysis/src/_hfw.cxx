@@ -70,6 +70,8 @@ static bool safe_copy(PyObject* dict, RegionConfig& region)
   if (!copy(dict, "mc_mc_jet_reweight_file", 
 	    region.mc_mc_jet_reweight_file)) return false; 
   if (!copy(dict, "tagger", region.tagger)) return false; 
+  if (!copy(dict, "jet_tag_assignment", 
+	    region.jet_tag_assignment)) return false; 
   return true; 
 }
 
@@ -163,7 +165,27 @@ static bool safe_copy(PyObject* value, btag::Tagger& dest) {
     return true; 
   }
   else { 
-    std::string problem = "got undefined btag: " + name; 
+    std::string problem = "got undefined tagger: " + name; 
+    PyErr_SetString(PyExc_ValueError,problem.c_str()); 
+    return false; 
+  }
+}
+
+static bool safe_copy(PyObject* value, btag::Assignment& dest) { 
+  char* charname = PyString_AsString(value); 
+  if (PyErr_Occurred()) return false; 
+  std::string name(charname); 
+  using namespace btag; 
+  if (name == "PT_ORDERED") { 
+    dest = PT_ORDERED; 
+    return true; 
+  }
+  else if (name == "TAG_ORDERED") { 
+    dest = TAG_ORDERED; 
+    return true; 
+  }
+  else { 
+    std::string problem = "got undefined tagging assignment: " + name; 
     PyErr_SetString(PyExc_ValueError,problem.c_str()); 
     return false; 
   }
