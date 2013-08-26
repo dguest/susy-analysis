@@ -2,6 +2,7 @@
 #define UNORDERED_JET_TAG_FILTER_HH
 
 #include <vector> 
+#include <map>
 #include "btag_enums.hh"
 #include "systematic_defs.hh"
 #include "IJetTagFilter.hh"
@@ -18,9 +19,20 @@ public:
   virtual double jet_scalefactor(const std::vector<Jet>& jets) const; 
 private: 
   syst::Systematic m_systematic; 
-  int m_n_jets_skipped; 
-  int m_n_total_jets_required; 
-  std::vector<btag::OperatingPoint> m_ordered_tags; 
+  size_t m_n_jets_skipped; 
+  std::map<btag::OperatingPoint,size_t> m_tag_counts; 
 };
+
+namespace jetfilter { 
+  // for use with std::list::remove_if
+  class OpFilter { 
+  public: 
+    OpFilter(btag::OperatingPoint); 
+    bool operator()(const Jet&); 
+  private: 
+    btag::OperatingPoint m_op; 
+  }; 
+}
+
 
 #endif 
