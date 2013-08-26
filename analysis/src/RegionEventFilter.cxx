@@ -9,7 +9,6 @@
 #include "Jet.hh"
 #include <stdexcept> 
 
-
 RegionEventFilter::RegionEventFilter(const RegionConfig& config, unsigned): 
   m_region_config(config), 
   m_jet_rescaler(0), 
@@ -65,37 +64,16 @@ bool RegionEventFilter::pass(const EventObjects& obj) const {
     if (jets.size() > n_required_jets) return false; 
   }
 
-  const auto& jet_req = m_region_config.jet_tag_requirements; 
-  for (unsigned jet_n = 0; jet_n < jet_req.size(); jet_n++) {
-    const auto jet = jets.at(jet_n); 
-    const auto requested_tag = jet_req.at(jet_n); 
-    bool pass = jet.pass_tag(requested_tag); 
-    if (!pass) return false; 
-  }
-
+  if (! m_jet_tag_filter->pass(jets) ) return false; 
   return true; 
 
 }
 
 double RegionEventFilter::jet_scalefactor(const EventObjects& obj) const { 
   typedef std::vector<Jet> Jets; 
-  double weight = 1; 
   bool use_electron_jet = m_region_config.region_bits & reg::electron_jet; 
   const Jets jets = use_electron_jet ? obj.jets_with_eljet : obj.jets; 
-  const auto& jet_req = m_region_config.jet_tag_requirements; 
-  for (unsigned jet_n = 0; jet_n < jet_req.size(); jet_n++) {
-    const auto jet = jets.at(jet_n); 
-    const auto requested_tag = jet_req.at(jet_n); 
-    weight *= jet.get_scalefactor(requested_tag, 
-				  m_region_config.systematic);
-    if (m_jet_rescaler) { 
-      jettag::TaggingPoint rescale_op = jettag_from_btag(requested_tag); 
-      double jpt = jet.Pt(); 
-      int ftl = static_cast<int>(jet.flavor_truth_label()); 
-      weight *= m_jet_rescaler->get_sf(jpt, ftl, rescale_op); 
-    }
-    
-  }
+  double weight = m_jet_tag_filter->jet_scalefactor(jets); 
   return weight; 
 }
 
