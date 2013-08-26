@@ -107,48 +107,21 @@ static bool safe_copy(PyObject* value, btag::OperatingPoint& dest) {
   if (PyErr_Occurred()) return false; 
   std::string name(charname); 
   using namespace btag; 
-  if (name == "NOTAG") { 
-    dest = NOTAG; 
-    return true; 
-  }
-  else if (name == "LOOSE") { 
-    dest = LOOSE; 
-    return true; 
-  }
-  else if (name == "MEDIUM") { 
-    dest = MEDIUM; 
-    return true; 
-  }
-  else if (name == "TIGHT") { 
-    dest = TIGHT; 
-    return true; 
-  }
-  else if (name == "ANTILOOSE") { 
-    dest = ANTILOOSE; 
-    return true; 
-  }
 
-  else if (name == "JFC_LOOSE") { 
-    dest = JFC_LOOSE; 
-    return true; 
-  }
-  else if (name == "JFC_MEDIUM") { 
-    dest = JFC_MEDIUM; 
-    return true; 
-  }
-  else if (name == "JFC_TIGHT") { 
-    dest = JFC_TIGHT; 
-    return true; 
-  }
-  else if (name == "JFC_ANTILOOSE") { 
-    dest = JFC_ANTILOOSE; 
-    return true; 
-  }
-  else { 
-    std::string problem = "got undefined op: " + name; 
-    PyErr_SetString(PyExc_ValueError,problem.c_str()); 
-    return false; 
-  }
+  NAME_TO_DEST(NOTAG); 
+  NAME_TO_DEST(LOOSE); 
+  NAME_TO_DEST(MEDIUM); 
+  NAME_TO_DEST(TIGHT); 
+  NAME_TO_DEST(ANTILOOSE); 
+
+  NAME_TO_DEST(JFC_LOOSE); 
+  NAME_TO_DEST(JFC_MEDIUM); 
+  NAME_TO_DEST(JFC_TIGHT); 
+  NAME_TO_DEST(JFC_ANTILOOSE); 
+
+  std::string problem = "got undefined op: " + name; 
+  PyErr_SetString(PyExc_ValueError,problem.c_str()); 
+  return false; 
 }
 
 static bool safe_copy(PyObject* value, btag::Tagger& dest) { 
@@ -156,19 +129,13 @@ static bool safe_copy(PyObject* value, btag::Tagger& dest) {
   if (PyErr_Occurred()) return false; 
   std::string name(charname); 
   using namespace btag; 
-  if (name == "CNN") { 
-    dest = CNN; 
-    return true; 
-  }
-  else if (name == "JFC") { 
-    dest = JFC; 
-    return true; 
-  }
-  else { 
-    std::string problem = "got undefined tagger: " + name; 
-    PyErr_SetString(PyExc_ValueError,problem.c_str()); 
-    return false; 
-  }
+
+  NAME_TO_DEST(CNN); 
+  NAME_TO_DEST(JFC); 
+
+  std::string problem = "got undefined tagger: " + name; 
+  PyErr_SetString(PyExc_ValueError,problem.c_str()); 
+  return false; 
 }
 
 static bool safe_copy(PyObject* value, btag::Assignment& dest) { 
@@ -176,19 +143,13 @@ static bool safe_copy(PyObject* value, btag::Assignment& dest) {
   if (PyErr_Occurred()) return false; 
   std::string name(charname); 
   using namespace btag; 
-  if (name == "PT_ORDERED") { 
-    dest = PT_ORDERED; 
-    return true; 
-  }
-  else if (name == "TAG_ORDERED") { 
-    dest = TAG_ORDERED; 
-    return true; 
-  }
-  else { 
-    std::string problem = "got undefined tagging assignment: " + name; 
-    PyErr_SetString(PyExc_ValueError,problem.c_str()); 
-    return false; 
-  }
+
+  NAME_TO_DEST(PT_ORDERED); 
+  NAME_TO_DEST(TAG_ORDERED); 
+
+  std::string problem = "got undefined tagging assignment: " + name; 
+  PyErr_SetString(PyExc_ValueError,problem.c_str()); 
+  return false; 
 }
 
 
@@ -197,23 +158,14 @@ static bool safe_copy(PyObject* value, reg::Type& dest) {
   if (PyErr_Occurred()) return false; 
   std::string name(charname); 
   using namespace reg; 
-  if (name == "CONTROL") { 
-    dest = CONTROL; 
-    return true; 
-  }
-  else if (name == "SIGNAL") { 
-    dest = SIGNAL; 
-    return true; 
-  }
-  else if (name == "VALIDATION") { 
-    dest = VALIDATION; 
-    return true; 
-  }
-  else { 
-    std::string problem = "got undefined region type: " + name; 
-    PyErr_SetString(PyExc_ValueError,problem.c_str()); 
-    return false; 
-  }
+
+  NAME_TO_DEST(CONTROL); 
+  NAME_TO_DEST(SIGNAL); 
+  NAME_TO_DEST(VALIDATION); 
+
+  std::string problem = "got undefined region type: " + name; 
+  PyErr_SetString(PyExc_ValueError,problem.c_str()); 
+  return false; 
 }
 
 static bool safe_copy(PyObject* value, reg::Hists& dest) { 
@@ -221,24 +173,14 @@ static bool safe_copy(PyObject* value, reg::Hists& dest) {
   if (PyErr_Occurred()) return false; 
   std::string name(charname); 
   using namespace reg; 
-  if (name == "HISTMILL") { 
-    dest = HISTMILL; 
-    return true; 
-  }
-  else if (name == "KINEMATIC_STAT") { 
-    dest = KINEMATIC_STAT; 
-    return true; 
-  }
-  else if (name == "TAG_EFFICIENCY") { 
-    dest = TAG_EFFICIENCY; 
-    return true; 
-  }
-  else { 
-    std::string problem = "got undefined hists type: " + name; 
-    PyErr_SetString(PyExc_ValueError,problem.c_str()); 
-    return false; 
-  }
 
+  NAME_TO_DEST(HISTMILL); 
+  NAME_TO_DEST(KINEMATIC_STAT); 
+  NAME_TO_DEST(TAG_EFFICIENCY); 
+
+  std::string problem = "got undefined hists type: " + name; 
+  PyErr_SetString(PyExc_ValueError,problem.c_str()); 
+  return false; 
 }
 
 static bool safe_copy(PyObject* value, syst::Systematic& dest) { 
@@ -246,47 +188,20 @@ static bool safe_copy(PyObject* value, syst::Systematic& dest) {
   if (PyErr_Occurred()) return false; 
   std::string name(charname); 
   using namespace syst; 
-  if (name == "NONE") { 
-    dest = NONE; 
-    return true; 
-  }
-  if (name == "BUP") { 
-    dest = BUP; 
-    return true; 
-  }
-  if (name == "BDOWN") { 
-    dest = BDOWN; 
-    return true; 
-  }
-  if (name == "CUP") { 
-    dest = CUP; 
-    return true; 
-  }
-  if (name == "CDOWN") { 
-    dest = CDOWN; 
-    return true; 
-  }
-  if (name == "UUP") { 
-    dest = UUP; 
-    return true; 
-  }
-  if (name == "UDOWN") { 
-    dest = UDOWN; 
-    return true; 
-  }
-  if (name == "TUP") { 
-    dest = TUP; 
-    return true; 
-  }
-  if (name == "TDOWN") { 
-    dest = TDOWN; 
-    return true; 
-  }
-  else { 
-    std::string problem = "got undefined systematic: " + name; 
-    PyErr_SetString(PyExc_ValueError,problem.c_str()); 
-    return false; 
-  }
+  
+  NAME_TO_DEST(NONE); 
+  NAME_TO_DEST(BUP); 
+  NAME_TO_DEST(BDOWN); 
+  NAME_TO_DEST(CUP); 
+  NAME_TO_DEST(CDOWN); 
+  NAME_TO_DEST(UUP); 
+  NAME_TO_DEST(UDOWN); 
+  NAME_TO_DEST(TUP);
+  NAME_TO_DEST(TDOWN); 
+
+  std::string problem = "got undefined systematic: " + name; 
+  PyErr_SetString(PyExc_ValueError,problem.c_str()); 
+  return false; 
 }
 
 

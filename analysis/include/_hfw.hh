@@ -80,4 +80,11 @@ static bool copy(PyObject* dict, std::string key, T& dest) {
   return true; 
 }
 
+#define NAME_TO_DEST(NAME) \
+  do { if (name == #NAME) { \
+    dest = NAME; \
+    return true; \
+    }		 \
+  } while (0)
+
 #endif 
