@@ -61,7 +61,6 @@ def get_config():
     phys_type.add_argument('--all', nargs='?', 
                            const='stop-200-125')
     
-
     args = top_parser.parse_args(sys.argv[1:])
     return args
 
@@ -85,6 +84,15 @@ def run():
     subs[args.which](args)
 
 def run_kinematic_plot(args): 
+<<<<<<< HEAD
+    from stop.runtypes import marks_types
+    hists = HistDict(args.aggregate, 
+                     physics_set={k for k in marks_types}, 
+                     cut_set={'SR0'}, 
+                     )
+    for k in hists: 
+        print k
+=======
     """
     Plots S, B, S/B for values of kinematic cuts in the plane. 
     """
@@ -171,6 +179,7 @@ def _plot_region_kinematics(region, hists, signal_point, bg_set,
         
     the_plot.save('{}/{}-{}{}'.format(odir, meth, region,ext), **save_args)
 
+>>>>>>> master
 
 def _filt_converter(typed_path): 
     return typed_path.replace('-','/')

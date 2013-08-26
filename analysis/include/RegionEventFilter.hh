@@ -5,6 +5,7 @@
 
 struct EventObjects; 
 class JetTagRescaler; 
+class IJetTagFilter; 
 
 #include "RegionConfig.hh"
 
@@ -20,6 +21,7 @@ public:
 private: 
   const RegionConfig& m_region_config; 
   const JetTagRescaler* m_jet_rescaler; 
+  const IJetTagFilter* m_jet_tag_filter; 
 }; 
 
 #endif 

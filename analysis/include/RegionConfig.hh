@@ -21,6 +21,7 @@ struct RegionConfig
 {
   std::string name; 
   std::vector<btag::OperatingPoint> jet_tag_requirements; 
+  btag::Assignment jet_tag_assignment; 
   double leading_jet_pt; 
   double met;  
   ull_t required_bits; 

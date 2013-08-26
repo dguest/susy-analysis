@@ -2,6 +2,7 @@
 
 RegionConfig::RegionConfig() : 
   name(""), 
+  jet_tag_assignment(btag::PT_ORDERED), 
   leading_jet_pt(0), 
   met(0), 
   required_bits(0), 
