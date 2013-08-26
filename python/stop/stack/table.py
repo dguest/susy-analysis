@@ -144,7 +144,7 @@ class RegionCountsFormatter(object):
                 normed = value
             self.line.append(str(normed))
 
-    def get_line(self, redmax=True, total=True): 
+    def get_line(self, redmax=True, total=True, style='tex'): 
         if self.max_idx is not None and redmax: 
             self.line[self.max_idx] = r'\textcolor{{red}}{{{}}}'.format(
                 self.line[self.max_idx])
@@ -255,7 +255,6 @@ def make_marktable(physics_cut_dict, out_file, title=''):
                 value = physics_cut_dict[phys,cut]
                 try: 
                     line_formatter.add_bg_value(value)
-                    print 'adding {} {}'.format(phys,cut)
                     bg_counter[cut] += value['normed']
                 except TypeError: 
                     line_formatter.add_other(value)
