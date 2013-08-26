@@ -11,17 +11,12 @@ UnorderedJetTagFilter(const std::vector<btag::OperatingPoint>& op_points,
   m_systematic(systematic)
 { 
   for (auto itr = op_points.begin(); itr != op_points.end(); itr++){
-    if ( (*itr == btag::NOTAG) && (m_tag_counts.size() == 0) ) {
-      m_n_jets_skipped++; 
+    if ( *itr == btag::NOTAG ){
+      if (m_tag_counts.size() == 0) m_n_jets_skipped++; 
       continue; 
     }
     m_tag_counts[*itr]++; 
   }
-  if (m_tag_counts.count(btag::NOTAG)) { 
-    throw std::runtime_error
-      ("Any non-leading NOTAG operating point is ignored in TAG_ORDERED"
-       " assignment. Fix your configuration."); 
-    }
 }
 
 UnorderedJetTagFilter::~UnorderedJetTagFilter() {}

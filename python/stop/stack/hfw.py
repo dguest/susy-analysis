@@ -25,6 +25,7 @@ def stacksusy(input_file, region_list, flags=''):
         - hists: {HISTMILL, KINEMATIC_STAT, TAG_EFFICIENCY}
         - mc_mc_jet_reweight_file: path to textfile that does reweighting
         - tagger: {JFC, CNN}
+        - jet_tag_assignment: {PT_ORDERED, TAG_ORDERED}
 
     Flags: 
         v: verbose

@@ -26,10 +26,21 @@ all_cuts = [
         'name': 'joe', 
         'output_name': 'stupid.h5', 
         'type': 'CONTROL', 
-        'jet_tag_requirements': ['NOTAG','JFC_ANTILOOSE'], 
+        'jet_tag_requirements': ['JFC_LOOSE','NOTAG'], 
         'region_bits': 0x1, 
         'tagger':'JFC', 
-        'systematic':'BUP'
+        'systematic':'NONE', 
+        'jet_tag_assignment':'PT_ORDERED', 
+        }, 
+    { 
+        'name': 'frank', 
+        'output_name': 'stupid.h5', 
+        'type': 'CONTROL', 
+        'jet_tag_requirements': ['JFC_LOOSE','NOTAG'], 
+        'region_bits': 0x1, 
+        'tagger':'JFC', 
+        'systematic':'NONE', 
+        'jet_tag_assignment':'TAG_ORDERED', 
         }, 
     { 
         'name': 'bob', 
