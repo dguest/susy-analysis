@@ -5,6 +5,7 @@ namespace btag {
   enum OperatingPoint {
     NOTAG, LOOSE, MEDIUM, TIGHT, ANTILOOSE, 
     JFC_LOOSE, JFC_MEDIUM, JFC_TIGHT, JFC_ANTILOOSE}; 
+  enum Assignment { PT_ORDERED, TAG_ORDERED}; 
 }
 
 #endif

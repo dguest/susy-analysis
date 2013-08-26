@@ -4,6 +4,8 @@
 #include "JetTagRescaler.hh"
 #include "enum_converters.hh"
 #include "IJetTagFilter.hh"
+#include "OrderedJetTagFilter.hh"
+#include "UnorderedJetTagFilter.hh"
 #include "Jet.hh"
 #include <stdexcept> 
 
@@ -16,9 +18,20 @@ RegionEventFilter::RegionEventFilter(const RegionConfig& config, unsigned):
   if (config.mc_mc_jet_reweight_file.size()) { 
     m_jet_rescaler = new JetTagRescaler(config.mc_mc_jet_reweight_file); 
   }
+  switch (config.jet_tag_assignment) { 
+  case btag::PT_ORDERED: 
+    m_jet_tag_filter = new OrderedJetTagFilter(config.jet_tag_requirements,
+					       config.systematic); 
+    return; 
+  case btag::TAG_ORDERED: 
+    m_jet_tag_filter = new UnorderedJetTagFilter(config.jet_tag_requirements,
+						 config.systematic); 
+    return; 
+  }
 }
 RegionEventFilter::~RegionEventFilter() { 
   delete m_jet_rescaler; 
+  delete m_jet_tag_filter; 
 }
 
 bool RegionEventFilter::pass(const EventObjects& obj) const { 
