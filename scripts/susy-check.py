@@ -93,16 +93,19 @@ def check_susy_events_file(config):
         def listinate(dsids): 
             return ', '.join(str(i) for i in dsids)
         if not_in_susy: 
-            print '{} found in meta and not susy'.format(
+            print '{} found in AMI and not susy'.format(
                 listinate(not_in_susy))
 
         not_in_meta = datasets - meta_dsids
         if not_in_meta: 
-            print '{} found in susy and not meta'.format(
+            print '{} found in susy and not AMI'.format(
                 listinate(not_in_meta))
 
+        skim_ami_frac = float(data_skimmed) / float(data_expected)
+        skim_susy_frac = float(data_skimmed) / float(running_total)
         print 'expected from AMI: {:,}'.format(data_expected)
-        print 'skimmed: {:,}'.format(data_skimmed)
+        print 'skimmed: {:,} ({:.1%} AMI, {:.1%} SUSY)'.format(
+            data_skimmed, skim_ami_frac, skim_susy_frac)
 
 def _is_total_line(sline):
     if not sline[0].startswith('='): 
