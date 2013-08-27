@@ -52,6 +52,9 @@ public :
   std::vector<int>* mc_status; 
   std::vector<int>* mc_pdgId; 
 
+  float MET_Truth_NonInt_etx; 
+  float MET_Truth_NonInt_ety; 
+
   // --- Random Event ---
   float Eventshape_rhoKt4LC; 
 

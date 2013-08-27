@@ -204,6 +204,9 @@ void SusyBuffer::set_mc_branches(SmartChain* chain,
 
   chain->SetBranch("mc_status", &mc_status); 
   chain->SetBranch("mc_pdgId", &mc_pdgId); 
+
+  chain->SetBranch("MET_Truth_NonInt_etx", &MET_Truth_NonInt_etx); 
+  chain->SetBranch("MET_Truth_NonInt_ety", &MET_Truth_NonInt_ety);
   
   if (br & spartid) { 
     chain->SetBranch("SUSY_Spart1_pdgId", &spart1_pdgid); 
