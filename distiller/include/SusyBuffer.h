@@ -11,7 +11,7 @@
 #include <vector> 
 #include <string> 
 
-struct BranchNames 
+struct BranchSettings
 { 
   std::string trigger; 
 }; 
@@ -52,6 +52,7 @@ public :
   std::vector<int>* mc_status; 
   std::vector<int>* mc_pdgId; 
 
+  // for overlap removal in stop samples
   float MET_Truth_NonInt_etx; 
   float MET_Truth_NonInt_ety; 
 
@@ -176,9 +177,10 @@ public :
   double sharktopus; 
 
   SusyBuffer(SmartChain *tree, const unsigned use_branches, 
-	     BranchNames names );
+	     BranchSettings names );
 
 private: 
+  BranchSettings m_settings; 
   void set_mc_branches(SmartChain* chain, const unsigned br, 
 		       std::string jc); 
 };

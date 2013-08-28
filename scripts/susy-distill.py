@@ -46,27 +46,19 @@ def distill_d3pds(config):
     if not isdir(config.output_dir): 
         os.makedirs(config.output_dir)
     meta_lookup = meta.DatasetCache(config.meta)
-
     ds_key = basename(splitext(out_file)[0]).split('-')[0]
+    dataset = meta_lookup[ds_key]
+    flags, add_dict = _config_from_meta(dataset)
 
     out_path = join(config.output_dir, out_file)
-    
-    flags = ''
+
     if config.more_info: 
         flags += 'i'           # save sparticle id
     if config.all_events: 
         flags += 'e'            # disables skimming
-    if meta_lookup[ds_key].is_data: 
-        flags += 'd'
+    if 'd' in flags: 
         if config.systematic != 'NONE': 
             return 
-    elif _is_atlfast(meta_lookup[ds_key].full_name): 
-        flags += 'f'
-
-    if _needs_overlap_removal(meta_lookup[ds_key].full_name): 
-        boson_pt_max_mev = 70e3 # ACHTUNG: this will change to 40
-    else: 
-        boson_pt_max_mev = -1.0 # disables if negative
 
     if sys.stdin.isatty(): 
         flags += 'v'            # verbose
@@ -85,12 +77,27 @@ def distill_d3pds(config):
             systematic=config.systematic, 
             btag_cal_file=btag_env, cal_dir=calibration_dir, 
             cutflow='NOMINAL', 
-            boson_pt_max_mev=boson_pt_max_mev)
+            **add_dict)
 
     counts_path = splitext(out_path)[0] + '_counts.yml'
     list_counts = [list(c) for c in cut_counts]
     with open(counts_path,'w') as out_yml: 
         out_yml.write(yaml.dump(list_counts))
+
+def _config_from_meta(dataset): 
+    flags = ''
+    if dataset.is_data: 
+        flags += 'd'
+    elif _is_atlfast(dataset.full_name): 
+        flags += 'f'
+    overlap = dataset.overlap
+    add_dict = dict(
+        boson_pt_max_mev = float(overlap.get('sherpa_boson',-1.0))*1e3, 
+        truth_met_max_mev = float(overlap.get('truth_met', -1.0))*1e3, 
+        )
+    if add_dict['truth_met_max_mev'] < 0: 
+        flags += 'h'            # hack for old skims (no truth met branch)
+    return flags, add_dict
 
 def _is_atlfast(sample): 
     sim_re = re.compile('\.e[0-9]+_([as])[0-9]+_')

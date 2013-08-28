@@ -1,6 +1,3 @@
-#include <TH2.h>
-#include <TStyle.h>
-#include <TCanvas.h>
 #include <stdexcept>
 
 #include "SusyBuffer.h"
@@ -8,7 +5,7 @@
 #include "cutflag.hh"
 
 SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br, 
-		       BranchNames names)
+		       BranchSettings names)
 {
 
   using namespace cutflag; 
@@ -205,9 +202,15 @@ void SusyBuffer::set_mc_branches(SmartChain* chain,
   chain->SetBranch("mc_status", &mc_status); 
   chain->SetBranch("mc_pdgId", &mc_pdgId); 
 
-  chain->SetBranch("MET_Truth_NonInt_etx", &MET_Truth_NonInt_etx); 
-  chain->SetBranch("MET_Truth_NonInt_ety", &MET_Truth_NonInt_ety);
-  
+  if (br & old_skim) { 
+    MET_Truth_NonInt_etx = -1; 
+    MET_Truth_NonInt_ety = -1; 
+  }
+  else { 
+    chain->SetBranch("MET_Truth_NonInt_etx", &MET_Truth_NonInt_etx); 
+    chain->SetBranch("MET_Truth_NonInt_ety", &MET_Truth_NonInt_ety);
+  }
+
   if (br & spartid) { 
     chain->SetBranch("SUSY_Spart1_pdgId", &spart1_pdgid); 
     chain->SetBranch("SUSY_Spart2_pdgId", &spart2_pdgid); 

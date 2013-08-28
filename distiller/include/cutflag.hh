@@ -21,6 +21,7 @@ namespace cutflag {
 
   const unsigned spartid          = 1u << 22; 
   const unsigned truth            = 1u << 23; 
+  const unsigned old_skim         = 1u << 24; 
 
   const unsigned can_set_at_runtime = (spartid | truth); 
 

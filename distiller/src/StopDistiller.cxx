@@ -62,6 +62,9 @@ StopDistiller::StopDistiller(const std::vector<std::string>& in,
   m_btag_calibration(0), 
   m_boson_truth_filter(0)
 { 
+  if (info.truth_met_max_mev > 0 && (flags & cutflag::old_skim) ){ 
+    throw std::logic_error("truth met filter disabled for old skims"); 
+  }
   gErrorIgnoreLevel = kWarning;
   setup_flags(); 
   setup_streams(); 
@@ -341,13 +344,13 @@ void StopDistiller::setup_chain(const std::vector<std::string>& in) {
   }
   m_ct_report->add_files(in); 
 
-  BranchNames branch_names; 
-  branch_names.trigger = m_info.trigger;
+  BranchSettings branch_settings; 
+  branch_settings.trigger = m_info.trigger;
 
   // don't try to setup the buffer if the chain is empty. 
   if (m_chain->GetEntries() == 0) return; 
 
-  m_susy_buffer = new SusyBuffer(m_chain, m_flags, branch_names); 
+  m_susy_buffer = new SusyBuffer(m_chain, m_flags, branch_settings); 
 
   if (m_flags & cutflag::get_branches) { 
     std::vector<std::string> br_names = m_chain->get_all_branch_names();
