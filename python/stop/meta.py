@@ -35,6 +35,7 @@ class Dataset(object):
         self.full_name = ''
 
         self.n_corrupted_files = 0
+        self.overlap = {}
 
         # --- DEPRECATED ---
         self._bugs = set()

@@ -18,6 +18,7 @@ Badly needs a cleanup, should only have functions to:
 import os, sys
 from stop.meta import DatasetCache
 from stop.lookup.susylookup import MetaFactory
+from stop.lookup import overlap 
 import argparse, ConfigParser
 from tempfile import TemporaryFile
 
@@ -50,6 +51,8 @@ def _get_parser():
     parser.add_argument('--variations', action='store_true')
     parser.add_argument('--stop', action='store_true')
     parser.add_argument('--scharm', action='store_true')
+    parser.add_argument('-l', '--add-overlap', action='store_true', 
+                        help=find_overlap.__doc__)
 
     ami_mode = parser.add_mutually_exclusive_group()
     ami_mode.add_argument('--update-ami', action='store_true')
@@ -99,6 +102,9 @@ def run():
             mf.lookup_susy(susy)
         mf.write_meta(args.steering_file)
 
+    if args.add_overlap: 
+        find_overlap(args.steering_file)
+    
     if args.write_steering: 
         found, missing = get_ds_lists(args.steering_file)
         if missing: 
@@ -109,6 +115,21 @@ def run():
             for ds in found: 
                 st.write(ds.strip('/') + '/\n')
         return 
+
+def find_overlap(name): 
+    """
+    Adds a field to datasets where overlap removal is needed. 
+
+    Currently does the following: 
+     - Truth boson Pt for Sherpa
+     - Truth MET for stop signals
+
+    """
+    overlap_tool = overlap.OverlapMetaAdder(sherpa_boson_pt_gev=70)
+    with DatasetCache(name) as ds_cache: 
+        overlap.clear_overlap_info(ds_cache)
+        overlap_tool.add_overlap_info(ds_cache)
+        
 
 def update(name, overwrite=False): 
     from stop.lookup.ami import AmiAugmenter
