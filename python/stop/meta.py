@@ -30,20 +30,33 @@ class Dataset(object):
         self.n_expected_entries = 0
         self.sum_event_weight = 0.0
 
-        self.d3pds = []
-        self.skim_paths = {}
-
         self.physics_type = ''
         self.meta_sources = set()
         self.full_name = ''
 
-        self.bugs = set()
         self.n_corrupted_files = 0
+
+        # --- DEPRECATED ---
+        self._bugs = set()
 
         self.subset_index = 0
         self.total_subsets = 0
 
+        self.d3pds = []
+        self.skim_paths = {}
+
+    @property
+    def bugs(self): 
+        warn("trying to remove bugs field", FutureWarning, stacklevel=2)
+        return self._bugs
+    @bugs.setter
+    def bugs(self, value): 
+        warn("trying to remove bugs field", FutureWarning, stacklevel=2)
+        self._bugs = value
+
     def __add__(self, other): 
+        warn("trying to remove file info from dataset meta", FutureWarning, 
+             stacklevel=2); 
         for key in self.merge_required_match: 
             if not getattr(self, key) == getattr(other, key): 
                 raise ValueError(
@@ -73,6 +86,8 @@ class Dataset(object):
         return new
 
     def split(self, n_subsets): 
+        warn("trying to remove file info from dataset meta, this will go", 
+             FutureWarning, stacklevel=2)
         """
         Splits the dataset meta, dividing d3pds among the subsets. 
         """
@@ -162,6 +177,7 @@ class Dataset(object):
                 ]
             if any(skip_conditions): 
                 continue
+
             if isinstance(value, set):
                 yield key, list(value)
             else: 
@@ -186,6 +202,8 @@ class Dataset(object):
         return self._key()
     @property 
     def mergekey(self): 
+        warn("trying to remove merging of dataset meta", FutureWarning, 
+             stacklevel=2)
         return self._key(merge=True)
 
     def _key(self, merge=False): 
