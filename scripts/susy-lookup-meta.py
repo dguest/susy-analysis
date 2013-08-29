@@ -125,7 +125,7 @@ def find_overlap(name):
      - Truth MET for stop signals
 
     """
-    overlap_tool = overlap.OverlapMetaAdder(sherpa_boson_pt_gev=70)
+    overlap_tool = overlap.OverlapMetaAdder(sherpa_boson_pt_gev=40)
     with DatasetCache(name) as ds_cache: 
         overlap.clear_overlap_info(ds_cache)
         overlap_tool.add_overlap_info(ds_cache)
