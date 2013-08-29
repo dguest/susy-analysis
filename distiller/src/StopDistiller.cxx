@@ -15,6 +15,7 @@
 #include "EventPreselector.hh"
 #include "BtagCalibration.hh"
 #include "BosonTruthFilter.hh"
+#include "TruthMetFilter.hh"
 #include "CheckSize.hh"
 
 #include "cutflag.hh"
@@ -62,11 +63,8 @@ StopDistiller::StopDistiller(const std::vector<std::string>& in,
   m_btag_calibration(0), 
   m_boson_truth_filter(0)
 { 
-  if (info.truth_met_max_mev > 0 && (flags & cutflag::old_skim) ){ 
-    throw std::logic_error("truth met filter disabled for old skims"); 
-  }
   gErrorIgnoreLevel = kWarning;
-  setup_flags(); 
+  check_flags(); 
   setup_streams(); 
   setup_chain(in); 
   setup_susytools(); 
@@ -74,6 +72,12 @@ StopDistiller::StopDistiller(const std::vector<std::string>& in,
   setup_cutflow(info.cutflow_type); 
   if (info.boson_pt_max_mev > 0) { 
     m_boson_truth_filter = new BosonTruthFilter(info.boson_pt_max_mev); 
+  }
+  if (info.truth_met_max_mev > 0 ){
+    if (flags & cutflag::old_skim) { 
+      throw std::logic_error("truth met filter disabled for old skims"); 
+    }
+    m_truth_met_filter = new TruthMetFilter(info.truth_met_max_mev); 
   }
 }
 
@@ -97,6 +101,7 @@ StopDistiller::~StopDistiller() {
   delete m_object_counter; 
   delete m_btag_calibration; 
   delete m_boson_truth_filter; 
+  delete m_truth_met_filter; 
 }
 
 StopDistiller::Cutflow StopDistiller::run_cutflow() { 
@@ -165,6 +170,11 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
 
   if (m_boson_truth_filter) { 
     if (m_boson_truth_filter->is_over_threshold(m_susy_buffer)) { 
+      return; 
+    }
+  }
+  if (m_truth_met_filter) { 
+    if (m_truth_met_filter->is_over_threshold(m_susy_buffer)) { 
       return; 
     }
   }
@@ -307,7 +317,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
 }
 
 
-void StopDistiller::setup_flags() { 
+void StopDistiller::check_flags() { 
   if (m_flags & cutflag::is_data ) { 
     if (m_flags & cutflag::spartid) { 
       throw std::logic_error("sparticle ID and data flags cannot coexist"); 

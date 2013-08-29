@@ -20,6 +20,7 @@ class SelectedJet;
 class BtagCalibration; 
 class OutputFilter; 
 class BosonTruthFilter; 
+class TruthMetFilter; 
 
 class StopDistiller : public boost::noncopyable
 { 
@@ -33,7 +34,7 @@ public:
 private: 
   typedef std::vector<SelectedJet*> Jets; 
   void process_event(int entry_n, std::ostream&); 
-  void setup_flags(); 
+  void check_flags(); 
   void setup_streams(); 
   void setup_chain(const std::vector<std::string>& in); 
   void setup_susytools(); 
@@ -61,6 +62,7 @@ private:
   CutCounter* m_object_counter; 
   BtagCalibration* m_btag_calibration; 
   BosonTruthFilter* m_boson_truth_filter; 
+  TruthMetFilter* m_truth_met_filter; 
 }; 
 
 #endif

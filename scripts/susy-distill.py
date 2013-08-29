@@ -45,6 +45,7 @@ def distill_d3pds(config):
         return 
     if not isdir(config.output_dir): 
         os.makedirs(config.output_dir)
+
     meta_lookup = meta.DatasetCache(config.meta)
     ds_key = basename(splitext(out_file)[0]).split('-')[0]
     dataset = meta_lookup[ds_key]
