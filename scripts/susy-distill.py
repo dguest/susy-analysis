@@ -39,8 +39,6 @@ def distill_d3pds(config):
     out_file = splitext(basename(config.input_file))[0] + '.root'
 
     calibration_dir = expanduser(config.calibration)
-    btag_env = join(calibration_dir, 'BTagCalibration.env')
-    grl = join(calibration_dir, 'grl.xml')
     if not files: 
         return 
     if not isdir(config.output_dir): 
@@ -50,6 +48,12 @@ def distill_d3pds(config):
     ds_key = basename(splitext(out_file)[0]).split('-')[0]
     dataset = meta_lookup[ds_key]
     flags, add_dict = _config_from_meta(dataset)
+    add_dict.update(dict(
+            systematic=config.systematic, 
+            btag_cal_file=join(calibration_dir, 'BTagCalibration.env'), 
+            cal_dir=calibration_dir, 
+            grl=join(calibration_dir, 'grl.xml'), 
+            ))
 
     out_path = join(config.output_dir, out_file)
 
@@ -65,6 +69,7 @@ def distill_d3pds(config):
         flags += 'v'            # verbose
     else: 
         print 'running {} with flags {}'.format(config.input_file, flags)
+        _dump_settings(add_dict)
 
     if config.test: 
         cut_counts = [('test',1)]
@@ -74,9 +79,6 @@ def distill_d3pds(config):
             input_files=files, 
             flags=flags, 
             output_ntuple=out_path, 
-            grl=grl,
-            systematic=config.systematic, 
-            btag_cal_file=btag_env, cal_dir=calibration_dir, 
             cutflow='NOMINAL', 
             **add_dict)
 
@@ -84,6 +86,11 @@ def distill_d3pds(config):
     list_counts = [list(c) for c in cut_counts]
     with open(counts_path,'w') as out_yml: 
         out_yml.write(yaml.dump(list_counts))
+
+def _dump_settings(settings_dict): 
+    set_width = max(len(str(n)) for n in settings_dict)
+    for name, value in settings_dict.iteritems(): 
+        print '{n:{w}}: {v}'.format(n=name, w=set_width, v=value)
 
 def _config_from_meta(dataset): 
     flags = ''
