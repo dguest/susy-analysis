@@ -15,8 +15,8 @@ Badly needs a cleanup, should only have functions to:
 """
 
 
-import os, sys
-from stop.meta import DatasetCache
+import os, sys, re
+from stop.meta import DatasetCache, MetaFromYamlError
 from stop.lookup.susylookup import MetaFactory
 from stop.lookup import overlap 
 from stop.bullshit import FlatProgressMeter
@@ -36,8 +36,15 @@ def _get_parser():
     return parser
 
 def _add_choice_parser(subs): 
+    d = 'default: %(default)s'
     parser = subs.add_parser('choose')
     parser.add_argument('steering_file')
+    parser.add_argument('-c', '--cached')
+    parser.add_argument(
+        '-o', '--output-file', help='required if reading AMI')
+    parser.add_argument(
+        '--fullsim-bias', type=float, default=1.2, 
+        help=d)
 
 def _add_build_parser(subs): 
     d = 'default: %(default)s'
@@ -85,10 +92,64 @@ def run():
     {'build':build, 'choose':choose}[args.which](args)
 
 def choose(args): 
+    if args.cached: 
+        with open(args.cached) as yml: 
+            sets = yaml.load(yml)
+    else: 
+        if not args.output_file: 
+            raise OSError('output file required when readin AMI')
+        sets = _lookup_ami_stats(args.steering_file)
+    if args.output_file: 
+        with open(args.output_file,'w') as yml: 
+            yml.write(yaml.dump(sets))
+
+    ds_cache = DatasetCache(args.steering_file)
+    fullsim_keys, atlfast_keys = _sort_ds_fullsim_atlfast(
+        sets, get_keys=True, fullsim_bias=args.fullsim_bias)
+    
+    atlfinder = re.compile('(_a([0-9])+)+')
+    def is_atlfast(ds): 
+        if atlfinder.search(ds.full_name): 
+            return True
+        return False
+
+    alt_list = []
+    ful_list = []
+    for key in atlfast_keys: 
+        ds_name = ds_cache[key].full_name
+        if not atlfinder.search(ds_name): 
+            print 'should be atlfast: {}'.format(ds_name)
+    for key in fullsim_keys: 
+        ds_name = ds_cache[key].full_name
+        if atlfinder.search(ds_name): 
+            print 'should be fullsim: {}'.format(ds_name)
+
+
+def _sort_ds_fullsim_atlfast(sets, fullsim_bias=1.2, get_keys=False): 
+    atlfast = []
+    fullsim = []
+    for key, val in sets.iteritems(): 
+        atl_ret = key if get_keys else val['atlfast_name'] 
+        ful_ret = key if get_keys else val['fullsim_name']
+        if 'atlfast_name' in val and 'fullsim_name' not in val: 
+            atlfast.append(atl_ret)
+        elif 'fullsim_name' in val and 'atlfast_name' not in val: 
+            fullsim.append(ful_ret)
+        elif not val: 
+            print '{}, what the fuck??'.format(key)
+        else: 
+            atl_bias = float(val['atlfast_stat']) / val['fullsim_stat']
+            if atl_bias > fullsim_bias: 
+                atlfast.append(atl_ret)
+            else: 
+                fullsim.append(ful_ret)
+    return fullsim, atlfast
+
+def _lookup_ami_stats(meta_file): 
     from stop.lookup.ami import McStatsLookup
     ami = McStatsLookup('p1328', 'mc12_8TeV')
-    ds_cache = DatasetCache(args.steering_file)
-    sets = []
+    ds_cache = DatasetCache(meta_file)
+    sets = {}
     def filt(item): 
         key, ds = item
         if ds.is_data or ds.physics_type == 'signal': 
@@ -106,9 +167,11 @@ def choose(args):
         if fullsim: 
             vals['fullsim_name'] = fullsim[0]
             vals['fullsim_stat'] = fullsim[1]
-        sets.append(vals)
+        if not vals: 
+            raise ValueError("couldn't find {} in AMI".format(str(ds)))
+        sets[ds.key] = vals
 
-    print yaml.dump(sets)
+    return sets
     
 
 def build(args): 

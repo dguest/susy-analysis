@@ -188,6 +188,9 @@ class Dataset(object):
 
     def from_yml(self, yml_dict): 
         for key, value in yml_dict.items(): 
+            if not hasattr(self, key): 
+                raise MetaFromYamlError("{} isn't a member of {}".format(
+                        key, self.__name__))
             if hasattr(self,key) and isinstance(getattr(self, key), set): 
                 value = set(value)
             elif key == 'full_name': 
@@ -359,6 +362,10 @@ class MetaTextCollector(object):
             d3pd_list.remove(bad)
         n_corrupted = len(bad_d3pds)
         return n_events, total_sum_wt, n_corrupted
+
+class MetaFromYamlError(OSError): 
+    def __init__(self, error): 
+        super(MetaFromYamlError, self).__init__(error)
 
 class MissingMetaError(IOError): 
     """
