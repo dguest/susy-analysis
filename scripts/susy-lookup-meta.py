@@ -19,8 +19,10 @@ import os, sys
 from stop.meta import DatasetCache
 from stop.lookup.susylookup import MetaFactory
 from stop.lookup import overlap 
+from stop.bullshit import FlatProgressMeter
 import argparse, ConfigParser
 from tempfile import TemporaryFile
+import yaml
 
 def _get_parser(): 
     parser = argparse.ArgumentParser(
@@ -28,17 +30,20 @@ def _get_parser():
         description=__doc__, 
         epilog='Author: Dan Guest', 
         )
+    subs = parser.add_subparsers(dest='which')
+    _add_build_parser(subs)
+    _add_choice_parser(subs)
+    return parser
 
-    def_meta = 'meta.yml'
-    defaults = { 
-        'steering_file': def_meta
-        }
-    
+def _add_choice_parser(subs): 
+    parser = subs.add_parser('choose')
+    parser.add_argument('steering_file')
+
+def _add_build_parser(subs): 
     d = 'default: %(default)s'
-
-    parser.set_defaults(**defaults)
+    parser = subs.add_parser('build')
     parser.add_argument(
-        'steering_file', 
+        'steering_file', default='meta.yml', 
         help=('either a textfile of datasets'
               ' or an existing meta file ({})'.format(d)))
     parser.add_argument('--susy-lookup', help=d)
@@ -61,8 +66,7 @@ def _get_parser():
     parser.add_argument('-d','--dump', action='store_true')
     parser.add_argument(
         '--write-steering', help='rewrite steering file')
-
-    return parser
+    
 
 def get_ds_lists(cache): 
     if isinstance(cache, str): 
@@ -78,7 +82,36 @@ def get_ds_lists(cache):
 
 def run(): 
     args = _get_parser().parse_args(sys.argv[1:])
+    {'build':build, 'choose':choose}[args.which](args)
 
+def choose(args): 
+    from stop.lookup.ami import McStatsLookup
+    ami = McStatsLookup('p1328', 'mc12_8TeV')
+    ds_cache = DatasetCache(args.steering_file)
+    sets = []
+    def filt(item): 
+        key, ds = item
+        if ds.is_data or ds.physics_type == 'signal': 
+            return False
+        return True
+    ds_cache = filter(filt, ds_cache.iteritems())
+    prog_meter = FlatProgressMeter(len(ds_cache))
+    for ds_n, (ds_key, ds) in enumerate(ds_cache): 
+        prog_meter.update(ds_n)
+        atlfast, fullsim = ami.get_atlfast_fullsim(ds.id)
+        vals = {}
+        if atlfast: 
+            vals['atlfast_name'] = atlfast[0]
+            vals['atlfast_stat'] = atlfast[1]
+        if fullsim: 
+            vals['fullsim_name'] = fullsim[0]
+            vals['fullsim_stat'] = fullsim[1]
+        sets.append(vals)
+
+    print yaml.dump(sets)
+    
+
+def build(args): 
     if args.mc: 
         build_mark_file(args.steering_file)
     if args.jets: 

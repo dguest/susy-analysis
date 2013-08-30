@@ -4,6 +4,67 @@ from pyAMI.auth import AMI_CONFIG, create_auth_config
 import os, sys, re
 from stop import meta 
 
+def _filter_stream_type_tag(match_sets, stream, ntup_filter, p_tag): 
+    if len(match_sets) > 1: 
+        type_filtered = []
+        for m in match_sets: 
+            if not stream or stream in m['logicalDatasetName']:
+                type_filtered.append(m)
+        if not type_filtered: 
+            raise DatasetMatchError(
+                'stream filter {} removed all {} with {}'.format(
+                    stream, args.items(), ntup_filter))
+        match_sets = type_filtered
+
+    if len(match_sets) > 1: 
+        type_filtered = []
+        for m in match_sets: 
+            ldn = _ldn(m)
+            if ntup_filter in ldn: 
+                type_filtered.append(m)
+        if not type_filtered: 
+            raise DatasetMatchError(
+                'type filter removed all {} with {}'.format(
+                    args.items(), ntup_filter))
+        
+        match_sets = type_filtered
+
+    if len(match_sets) > 1: 
+        tagged_matches = []
+        for m in match_sets: 
+            if p_tag in m['logicalDatasetName']: 
+                tagged_matches.append(m)
+        if not tagged_matches: 
+            raise DatasetMatchError(
+                'p filter removed all {} with {}'.format(
+                    args.items(), p_tag))
+        match_sets = tagged_matches
+    return match_sets
+
+def _get_expected_counts(client, ds): 
+    if ds is None: 
+        return None
+    ldn = _ldn(ds)
+    info = query.get_dataset_info(client, ldn)
+    matched_counts = int(info.info['totalEvents'])
+    return matched_counts
+
+
+def _ldn(ddict): 
+    return ddict['logicalDatasetName']
+
+def _largest_fullsim_number(*datasets): 
+    fullsim_finder = re.compile('(_r([0-9])+)+')
+    largest = None
+    largest_number = 0
+    for ds in filter(None, datasets): 
+        ldn = _ldn(ds)
+        fullsim_number = int(fullsim_finder.search(ldn).group(2))
+        if fullsim_number > largest_number: 
+            largest = ds
+            largest_number = fullsim_number
+    return largest
+
 class AmiAugmenter(object): 
     """
     Class to wrap ami augmentation. 
@@ -17,7 +78,6 @@ class AmiAugmenter(object):
         self.outstream = sys.stdout
         self.bugstream = sys.stderr
         self.atlfinder = re.compile('(_a([0-9])+)+')
-        self.fullsim_finder = re.compile('(_r([0-9])+)+')
 
     def _setup_ami_client(self): 
         self.client = AMIClient()
@@ -37,24 +97,10 @@ class AmiAugmenter(object):
         ds_dict = {ds.key: ds for ds in datasets}
         return ds_dict
 
-    def _ldn(self, ddict): 
-        return ddict['logicalDatasetName']
 
-    def _largest_fullsim_number(self, *datasets): 
-        largest = None
-        largest_number = 0
-        for ds in datasets: 
-            ldn = self._ldn(ds)
-            fullsim_number = int(self.fullsim_finder.search(ldn).group(2))
-            if fullsim_number > largest_number: 
-                largest = ds
-        return largest
 
     def ds_from_id(self, ds_id, stream=None): 
-        if 'data' in self.origin: 
-            args = {'run':ds_id}
-        else: 
-            args = {'dataset_number':str(ds_id)}
+        args = {'dataset_number':str(ds_id)}
 
         match_sets = query.get_datasets(self.client,'%', **args)
 
@@ -62,40 +108,11 @@ class AmiAugmenter(object):
             raise DatasetMatchError('found nothing with {}'.format(
                     args.items()), match_sets)
         
-        if len(match_sets) > 1: 
-            type_filtered = []
-            for m in match_sets: 
-                if not stream or stream in m['logicalDatasetName']:
-                    type_filtered.append(m)
-            if not type_filtered: 
-                raise DatasetMatchError(
-                    'stream filter {} removed all {} with {}'.format(
-                        stream, args.items(), self.ntup_filter))
-            match_sets = type_filtered
-
-        if len(match_sets) > 1: 
-            type_filtered = []
-            for m in match_sets: 
-                ldn = self._ldn(m)
-                if self.ntup_filter in ldn: 
-                    type_filtered.append(m)
-            if not type_filtered: 
-                raise DatasetMatchError(
-                    'type filter removed all {} with {}'.format(
-                        args.items(), self.ntup_filter))
-            
-            match_sets = type_filtered
-
-        if len(match_sets) > 1: 
-            tagged_matches = []
-            for m in match_sets: 
-                if self.p_tag in m['logicalDatasetName']: 
-                    tagged_matches.append(m)
-            if not tagged_matches: 
-                raise DatasetMatchError(
-                    'p filter removed all {} with {}'.format(
-                        args.items(), self.ntup_filter))
-            match_sets = tagged_matches
+        match_sets = _filter_stream_type_tag(
+            match_sets, 
+            stream=stream, 
+            ntup_filter=self.ntup_filter, 
+            p_tag=self.p_tag)
 
         match_sets = self._atlfast_filter(match_sets)
                 
@@ -123,15 +140,14 @@ class AmiAugmenter(object):
         atlfast_ds = None
         fullsim_ds = None
         for m in match_sets: 
-            ldn = self._ldn(m)
-            if self.atlfinder.search(self._ldn(m)): 
+            ldn = _ldn(m)
+            if self.atlfinder.search(_ldn(m)): 
                 if atlfast_ds: 
                     raise DatasetMatchError('at least two atlfast', 
                                             [atlfast_ds,m])
                 atlfast_ds = m
             else: 
-                if fullsim_ds: 
-                    fullsim_ds = self._largest_fullsim_number(fullsim_ds, m)
+                fullsim_ds = _largest_fullsim_number(fullsim_ds, m)
 
         # if only one or the other exists, use that
         if atlfast_ds and not fullsim_ds: 
@@ -140,14 +156,9 @@ class AmiAugmenter(object):
             return [fullsim_ds]
 
         # otherwise we need to figure out which has more stats
-        def get_expected_counts(ds): 
-            ldn = self._ldn(ds)
-            info = query.get_dataset_info(self.client, ldn)
-            matched_counts = float(info.info['totalEvents'])
-            return matched_counts
         
-        atlfast_counts = get_expected_counts(atlfast_ds)
-        fullsim_counts = get_expected_counts(fullsim_ds)
+        atlfast_counts = _get_expected_counts(self.client, atlfast_ds)
+        fullsim_counts = _get_expected_counts(self.client, fullsim_ds)
 
         if atlfast_counts < fullsim_counts * fullsim_tolerance: 
             return [fullsim_ds]
@@ -165,11 +176,11 @@ class AmiAugmenter(object):
         primary_matches = []
         secondary_matches = []
         for match in match_sets: 
-            ldn = self._ldn(match)
+            ldn = _ldn(match)
             if ldn.endswith(self.p_tag) and self.ntup_filter in ldn: 
-                primary_matches.append(self._ldn(match))
+                primary_matches.append(_ldn(match))
             if ldn.endswith(self.backup_ptag) and self.ntup_filter in ldn: 
-                secondary_matches.append(self._ldn(match))
+                secondary_matches.append(_ldn(match))
 
         if len(primary_matches) > 1: 
             exact = [m for m in primary_matches if m == ds.full_name]
@@ -292,6 +303,62 @@ class AmiAugmenter(object):
     def _write_ami_info(self, ds, info): 
         ds.n_expected_entries = int(info.info['totalEvents'])
         ds.meta_sources.add('ami')
+
+
+class McStatsLookup(object): 
+    """
+    Class to wrap ami augmentation. 
+    """
+    def __init__(self, p_tag, origin='mc12_8TeV', backup_ptag=None): 
+        self.p_tag = p_tag
+        self.backup_ptag = backup_ptag
+        self.origin = origin
+        self.ntup_filter = 'NTUP_SUSY'
+        self._setup_ami_client()
+        self.outstream = sys.stdout
+        self.bugstream = sys.stderr
+        self.atlfinder = re.compile('(_a([0-9])+)+')
+
+    def _setup_ami_client(self): 
+        self.client = AMIClient()
+        if not os.path.exists(AMI_CONFIG):
+            create_auth_config()
+        self.client.read_config(AMI_CONFIG)
+
+
+    def get_atlfast_fullsim(self, ds_id, stream=None): 
+        args = {'dataset_number':str(ds_id)}
+
+        match_sets = query.get_datasets(self.client,'%', **args)
+
+        if not match_sets: 
+            raise DatasetMatchError('found nothing with {}'.format(
+                    args.items()), match_sets)
+
+        match_sets = _filter_stream_type_tag(
+            match_sets, 
+            stream=stream, 
+            ntup_filter=self.ntup_filter, 
+            p_tag=self.p_tag)
+
+        atlfast_ds = None
+        fullsim_ds = None
+        for m in match_sets: 
+            ldn = _ldn(m)
+            if self.atlfinder.search(_ldn(m)): 
+                if atlfast_ds: 
+                    raise DatasetMatchError('at least two atlfast', 
+                                            [atlfast_ds,m])
+                atlfast_ds = m
+            else: 
+                fullsim_ds = _largest_fullsim_number(fullsim_ds, m)
+
+        # otherwise we need to figure out which has more stats
+        atlfast_counts = _get_expected_counts(self.client, atlfast_ds)
+        fullsim_counts = _get_expected_counts(self.client, fullsim_ds)
+        atl = (_ldn(atlfast_ds), atlfast_counts) if atlfast_ds else None
+        ful = (_ldn(fullsim_ds), fullsim_counts) if fullsim_ds else None
+        return  atl, ful
 
 class DatasetMatchError(ValueError): 
     def __init__(self, info, matches=[]): 
