@@ -251,7 +251,7 @@ class DatasetCache(dict):
     """
     def __init__(self, cache_name=''): 
         self._cache = cache_name
-        self.exception_dump = 'meta-dump.yml'
+        self.exception_dump = 'META_DUMP.yml'
             
         if isinstance(cache_name, str) and isfile(cache_name): 
             if cache_name.endswith('.pkl'): 
@@ -307,7 +307,11 @@ class DatasetCache(dict):
                 out_list = [(ds.key, ds.yml_dict()) for ds in self.values()]
                 out_dict = dict(out_list)
                 cache.write(yaml.dump(out_dict))
-                    
+        else:
+            new_name = os.path.splitext(cache_name)[0] + '.yml'
+            warn("didn't recognize extension on {}, writing {}".format(
+                    cache_name, new_name), stacklevel=2)
+            self._write_to_file(new_name)
 
 class MetaTextCollector(object): 
     """
