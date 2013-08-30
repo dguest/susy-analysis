@@ -61,7 +61,8 @@ StopDistiller::StopDistiller(const std::vector<std::string>& in,
   m_out_tree(0), 
   m_cutflow(0), 
   m_btag_calibration(0), 
-  m_boson_truth_filter(0)
+  m_boson_truth_filter(0), 
+  m_truth_met_filter(0)
 { 
   gErrorIgnoreLevel = kWarning;
   check_flags(); 
