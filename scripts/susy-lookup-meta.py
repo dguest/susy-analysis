@@ -19,6 +19,7 @@ import os, sys, re
 from stop.meta import DatasetCache, MetaFromYamlError
 from stop.lookup.susylookup import MetaFactory
 from stop.lookup import overlap 
+from stop.lookup.ami import lookup_ami_stats, sort_ds_fullsim_atlfast
 from stop.bullshit import FlatProgressMeter
 import argparse, ConfigParser
 from tempfile import TemporaryFile
@@ -98,81 +99,43 @@ def choose(args):
     else: 
         if not args.output_file: 
             raise OSError('output file required when readin AMI')
-        sets = _lookup_ami_stats(args.steering_file)
+        sets = lookup_ami_stats(args.steering_file)
     if args.output_file: 
         with open(args.output_file,'w') as yml: 
             yml.write(yaml.dump(sets))
+        return 
 
     ds_cache = DatasetCache(args.steering_file)
-    fullsim_keys, atlfast_keys = _sort_ds_fullsim_atlfast(
+    fullsim_keys, atlfast_keys = sort_ds_fullsim_atlfast(
         sets, get_keys=True, fullsim_bias=args.fullsim_bias)
     
-    atlfinder = re.compile('(_a([0-9])+)+')
-    def is_atlfast(ds): 
-        if atlfinder.search(ds.full_name): 
-            return True
-        return False
+    atl_set = set(atlfast_keys)
+    ful_set = set(fullsim_keys)
+    all_set = atl_set | ful_set
+    len_name = max(len(ds_cache[d].name) for d in all_set)
+    output_tmp = '{dsid} {name:{len}} {atl:>9} {full:>9} {choice} {exp}'
+    for key in sorted(ds_cache): 
+        if not key in all_set: 
+            continue
+        ds = ds_cache[key]
+        stats = sets[key]
+        is_atl = _is_atlfast(ds)
+        should_be_atl = key in atl_set
+        choice = 'atlfast' if is_atl else 'fullsim'
+        exp = '!' if is_atl != should_be_atl else ''
+        print output_tmp.format(
+            dsid=ds.id, name=ds.name, len=len_name, 
+            atl=stats.get('atlfast_stat',None), 
+            full=stats.get('fullsim_stat',None), 
+            choice=choice, exp=exp)
+            
 
-    alt_list = []
-    ful_list = []
-    for key in atlfast_keys: 
-        ds_name = ds_cache[key].full_name
-        if not atlfinder.search(ds_name): 
-            print 'should be atlfast: {}'.format(ds_name)
-    for key in fullsim_keys: 
-        ds_name = ds_cache[key].full_name
-        if atlfinder.search(ds_name): 
-            print 'should be fullsim: {}'.format(ds_name)
-
-
-def _sort_ds_fullsim_atlfast(sets, fullsim_bias=1.2, get_keys=False): 
-    atlfast = []
-    fullsim = []
-    for key, val in sets.iteritems(): 
-        atl_ret = key if get_keys else val['atlfast_name'] 
-        ful_ret = key if get_keys else val['fullsim_name']
-        if 'atlfast_name' in val and 'fullsim_name' not in val: 
-            atlfast.append(atl_ret)
-        elif 'fullsim_name' in val and 'atlfast_name' not in val: 
-            fullsim.append(ful_ret)
-        elif not val: 
-            print '{}, what the fuck??'.format(key)
-        else: 
-            atl_bias = float(val['atlfast_stat']) / val['fullsim_stat']
-            if atl_bias > fullsim_bias: 
-                atlfast.append(atl_ret)
-            else: 
-                fullsim.append(ful_ret)
-    return fullsim, atlfast
-
-def _lookup_ami_stats(meta_file): 
-    from stop.lookup.ami import McStatsLookup
-    ami = McStatsLookup('p1328', 'mc12_8TeV')
-    ds_cache = DatasetCache(meta_file)
-    sets = {}
-    def filt(item): 
-        key, ds = item
-        if ds.is_data or ds.physics_type == 'signal': 
-            return False
+_atlfinder = re.compile('(_a([0-9])+)+')
+def _is_atlfast(ds): 
+    if _atlfinder.search(ds.full_name): 
         return True
-    ds_cache = filter(filt, ds_cache.iteritems())
-    prog_meter = FlatProgressMeter(len(ds_cache))
-    for ds_n, (ds_key, ds) in enumerate(ds_cache): 
-        prog_meter.update(ds_n)
-        atlfast, fullsim = ami.get_atlfast_fullsim(ds.id)
-        vals = {}
-        if atlfast: 
-            vals['atlfast_name'] = atlfast[0]
-            vals['atlfast_stat'] = atlfast[1]
-        if fullsim: 
-            vals['fullsim_name'] = fullsim[0]
-            vals['fullsim_stat'] = fullsim[1]
-        if not vals: 
-            raise ValueError("couldn't find {} in AMI".format(str(ds)))
-        sets[ds.key] = vals
+    return False
 
-    return sets
-    
 
 def build(args): 
     if args.mc: 
@@ -229,8 +192,8 @@ def find_overlap(name):
 
 def update(name, overwrite=False): 
     from stop.lookup.ami import AmiAugmenter
-    ami = AmiAugmenter('p1328', 'mc12_8TeV', backup_ptag='p1181')
-    ami.bugstream = TemporaryFile()
+    aug = AmiAugmenter('p1328', 'mc12_8TeV', backup_ptag='p1181')
+    aug.bugstream = TemporaryFile()
     with DatasetCache(name) as ds_cache: 
         for key, ds in ds_cache.iteritems(): 
             if not ds.is_data: 
@@ -240,88 +203,88 @@ def update(name, overwrite=False):
                     ]
                 if not all(required) or overwrite:
                     sys.stdout.write('updating {}...'.format(ds.full_name))
-                    success = ami.update_ds(ds, overwrite)
+                    success = aug.update_ds(ds, overwrite)
                     if success: 
                         sys.stdout.write('success\n')
                     else: 
                         sys.stdout.write('failed\n')
-    dumpbugs(ami)
+    dumpbugs(aug)
 
-def dumpbugs(ami, bugslog='ami-bugs.log'): 
-    if ami.bugstream.tell(): 
-        ami.bugstream.seek(0)
+def dumpbugs(aug, bugslog='ami-bugs.log'): 
+    if aug.bugstream.tell(): 
+        aug.bugstream.seek(0)
         with open(bugslog,'w') as bugs: 
-            for line in ami.bugstream: 
+            for line in aug.bugstream: 
                 bugs.write(line)
         sys.stderr.write('wrote bugs to {}\n'.format(bugslog))
 
 def build_mark_file(name): 
     from stop.lookup.ami import AmiAugmenter
     from stop.runtypes import marks_types
-    ami = AmiAugmenter('p1328', 'mc12_8TeV')
-    ami.bugstream = TemporaryFile()
+    aug = AmiAugmenter('p1328', 'mc12_8TeV')
+    aug.bugstream = TemporaryFile()
     ds_cache = DatasetCache(name)
     for phys_type, ids in marks_types.iteritems(): 
-        new_meta = ami.get_dataset_range(ids, phys_type)
+        new_meta = aug.get_dataset_range(ids, phys_type)
         ds_cache.update(new_meta)
     ds_cache.write()
-    dumpbugs(ami, 'mc-bugs.log')
+    dumpbugs(aug, 'mc-bugs.log')
 
 def build_stop_file(name): 
     from stop.lookup.ami import AmiAugmenter
     from stop.runtypes import stop_signal
-    ami = AmiAugmenter('p1328', 'mc12_8TeV')
-    ami.bugstream = TemporaryFile()
+    aug = AmiAugmenter('p1328', 'mc12_8TeV')
+    aug.bugstream = TemporaryFile()
     ds_cache = DatasetCache(name)
     for phys_type, ids in stop_signal.iteritems(): 
-        new_meta = ami.get_dataset_range(ids, phys_type)
+        new_meta = aug.get_dataset_range(ids, phys_type)
         ds_cache.update(new_meta)
     ds_cache.write()
-    dumpbugs(ami, 'stopgrid-bugs.log')
+    dumpbugs(aug, 'stopgrid-bugs.log')
 
 def build_scharm_file(name): 
     from stop.lookup.ami import AmiAugmenter
     from stop.runtypes import scharm
-    ami = AmiAugmenter('p1328', 'mc12_8TeV')
-    ami.bugstream = TemporaryFile()
+    aug = AmiAugmenter('p1328', 'mc12_8TeV')
+    aug.bugstream = TemporaryFile()
     ds_cache = DatasetCache(name)
     for phys_type, ids in scharm.iteritems(): 
-        new_meta = ami.get_dataset_range(ids, phys_type)
+        new_meta = aug.get_dataset_range(ids, phys_type)
         ds_cache.update(new_meta)
     ds_cache.write()
-    dumpbugs(ami, 'scharmgrid-bugs.log')
+    dumpbugs(aug, 'scharmgrid-bugs.log')
 
 def build_variations_file(name): 
     from stop.lookup.ami import AmiAugmenter
     from stop.runtypes import variations
-    ami = AmiAugmenter('p1328', 'mc12_8TeV')
-    ami.bugstream = TemporaryFile()
+    aug = AmiAugmenter('p1328', 'mc12_8TeV')
+    aug.bugstream = TemporaryFile()
     ds_cache = DatasetCache(name)
     for phys_type, ids in variations.iteritems(): 
-        new_meta = ami.get_dataset_range(ids, phys_type)
+        new_meta = aug.get_dataset_range(ids, phys_type)
         ds_cache.update(new_meta)
     ds_cache.write()
-    dumpbugs(ami, 'variation-bugs.log')
+    dumpbugs(aug, 'variation-bugs.log')
 
 def build_jets_file(name): 
     from stop.lookup.ami import AmiAugmenter
-    ami = AmiAugmenter('p1329', origin='data12_8TeV')
-    ami.bugstream = TemporaryFile()
+    aug = AmiAugmenter('p1329', origin='data12_8TeV')
+    aug.bugstream = TemporaryFile()
     with DatasetCache(name) as ds_cache: 
-        new_meta = ami.get_datasets_year(stream='physics_JetTauEtmiss')
+        new_meta = aug.get_datasets_year(stream='physics_JetTauEtmiss')
         ds_cache.update(new_meta)
 
-    dumpbugs(ami, 'muon-bugs.log')
+    dumpbugs(aug, 'muon-bugs.log')
 
 def build_muon_file(name): 
     from stop.lookup.ami import AmiAugmenter
-    ami = AmiAugmenter('p1329', origin='data12_8TeV')
-    ami.bugstream = TemporaryFile()
+    aug = AmiAugmenter('p1329', origin='data12_8TeV')
+    aug.bugstream = TemporaryFile()
     with DatasetCache(name) as ds_cache: 
-        mu_meta = ami.get_datasets_year(stream='physics_Muons')
+        mu_meta = aug.get_datasets_year(stream='physics_Muons')
         ds_cache.update(mu_meta)
 
-    dumpbugs(ami, 'muon-bugs.log')
+    dumpbugs(aug, 'muon-bugs.log')
 
 if __name__ == '__main__': 
    run()

@@ -2,7 +2,7 @@ from pyAMI import query
 from pyAMI.client import AMIClient
 from pyAMI.auth import AMI_CONFIG, create_auth_config
 import os, sys, re
-from stop import meta 
+from stop import meta, bullshit
 
 def _filter_stream_type_tag(match_sets, stream, ntup_filter, p_tag): 
     if len(match_sets) > 1: 
@@ -307,7 +307,8 @@ class AmiAugmenter(object):
 
 class McStatsLookup(object): 
     """
-    Class to wrap ami augmentation. 
+    Tool to look up stats in mc datasets that exist in both atlfast and 
+    fullsim. 
     """
     def __init__(self, p_tag, origin='mc12_8TeV', backup_ptag=None): 
         self.p_tag = p_tag
@@ -353,12 +354,12 @@ class McStatsLookup(object):
             else: 
                 fullsim_ds = _largest_fullsim_number(fullsim_ds, m)
 
-        # otherwise we need to figure out which has more stats
         atlfast_counts = _get_expected_counts(self.client, atlfast_ds)
         fullsim_counts = _get_expected_counts(self.client, fullsim_ds)
         atl = (_ldn(atlfast_ds), atlfast_counts) if atlfast_ds else None
         ful = (_ldn(fullsim_ds), fullsim_counts) if fullsim_ds else None
         return  atl, ful
+
 
 class DatasetMatchError(ValueError): 
     def __init__(self, info, matches=[]): 
@@ -379,3 +380,58 @@ class DatasetMatchError(ValueError):
         if len(self.matches) == 0: 
             problem += ('none')
         return problem
+
+
+# ====================== convenience functions ======================
+
+def lookup_ami_stats(meta_file): 
+    """
+    Small wrapper function on McStatsLookup
+    """
+    ami = McStatsLookup('p1328', 'mc12_8TeV')
+    ds_cache = meta.DatasetCache(meta_file)
+    sets = {}
+    def filt(item): 
+        key, ds = item
+        if ds.is_data or ds.physics_type == 'signal': 
+            return False
+        return True
+    ds_cache = filter(filt, ds_cache.iteritems())
+    prog_meter = bullshit.FlatProgressMeter(len(ds_cache))
+    for ds_n, (ds_key, ds) in enumerate(ds_cache): 
+        prog_meter.update(ds_n)
+        atlfast, fullsim = ami.get_atlfast_fullsim(ds.id)
+        vals = {}
+        if atlfast: 
+            vals['atlfast_name'] = atlfast[0]
+            vals['atlfast_stat'] = atlfast[1]
+        if fullsim: 
+            vals['fullsim_name'] = fullsim[0]
+            vals['fullsim_stat'] = fullsim[1]
+        if not vals: 
+            raise ValueError("couldn't find {} in AMI".format(str(ds)))
+        sets[ds.key] = vals
+
+    return sets
+
+def sort_ds_fullsim_atlfast(sets, fullsim_bias=1.2, get_keys=False): 
+    atlfast = []
+    fullsim = []
+    for key, val in sets.iteritems(): 
+        atl_ret = key if get_keys else val['atlfast_name'] 
+        ful_ret = key if get_keys else val['fullsim_name']
+        if 'atlfast_name' in val and 'fullsim_name' not in val: 
+            atlfast.append(atl_ret)
+        elif 'fullsim_name' in val and 'atlfast_name' not in val: 
+            fullsim.append(ful_ret)
+        elif not val: 
+            print '{}, what the fuck??'.format(key)
+        else: 
+            atl_bias = float(val['atlfast_stat']) / val['fullsim_stat']
+            if atl_bias > fullsim_bias: 
+                atlfast.append(atl_ret)
+            else: 
+                fullsim.append(ful_ret)
+    return fullsim, atlfast
+
+    
