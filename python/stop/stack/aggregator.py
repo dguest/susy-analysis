@@ -55,6 +55,11 @@ class HistDict(dict):
                 hist = infile[path]
                 self[nametup] = HistNd(hist)
 
+    def __setitem__(self, key, value): 
+        if len(key) != 3 or not all(isinstance(k,basestring) for k in key): 
+            raise TypeError("key {} isn't right for HistDict".format(key))
+        super(HistDict,self).__setitem__(key, value)
+
     def _list_paths(self, group, prefix=''): 
         paths = []
         for name, val in group.items(): 
@@ -213,8 +218,11 @@ class SampleAggregator(object):
                 continue
             
             physics_type = file_meta.physics_type
-            if not physics_type and file_meta.is_data: 
-                physics_type = 'data'
+            if not physics_type:
+                if file_meta.is_data: 
+                    physics_type = 'data'
+                else: 
+                    raise OSError('got unknown physics in {}'.format(f))
             lumi_scale = self._get_lumi_scale(file_meta)
 
             if physics_type == 'signal': 
