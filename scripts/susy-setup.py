@@ -36,7 +36,7 @@ def get_config():
     stack_args.add_argument('-o', '--output-name', 
                             default='batch/ntuple/ntuples.txt', help=d)
     stack_args.add_argument('-n','--n-outputs', type=int, default=20, help=d)
-    stack_args.add_argument('-h','--hist-dir', default='hists', help=d)
+    stack_args.add_argument('-d','--hists-dir', default='hists', help=d)
 
     hadd_args = subs.add_parser('hadd', description=setup_hadd.__doc__)
     hadd_args.add_argument('input_dirs', nargs='+')

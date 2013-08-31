@@ -109,7 +109,7 @@ void ObjectFactory::use_electron_jet(bool use) {
 void ObjectFactory
 ::set_btagging(const std::vector<btag::OperatingPoint>& tag_points){ 
   std::set<btag::OperatingPoint> tags(tag_points.begin(), tag_points.end()); 
-  for (size_t jet_n = 0; jet_n < tag_points.size(); jet_n++) { 
+  for (size_t jet_n = 0; jet_n < m_jet_buffers.size(); jet_n++) { 
     for (auto tag_iter = tags.begin(); tag_iter != tags.end(); tag_iter++) { 
       set_btag_n(jet_n, *tag_iter); 
     }
