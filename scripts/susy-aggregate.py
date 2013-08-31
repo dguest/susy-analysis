@@ -25,8 +25,10 @@ def get_config():
     parser.add_argument(
         '--mode', choices={'histmill','kinematic_stat'}, 
         default='kinematic_stat', help='default: %(default)s')
-    parser.add_argument('--fast', action='store_true', 
-                        help="don't do systematics")
+    counts = parser.add_mutually_exclusive_group()
+    counts.add_argument('--fast', action='store_true', 
+                        help="make counts, don't do systematics")
+    counts.add_argument('--all', action='store_true', help='do all counts')
     args = parser.parse_args(sys.argv[1:])
     return args
 
@@ -61,10 +63,10 @@ def run():
     count_dict = coord.aggregate(systematic=systematic,
                                  rerun=args.force_aggregation, 
                                  mode=args.mode)
-    if args.fast: 
-        count_dict = {'NONE':count_dict}
-    
-    if args.mode == 'kinematic_stat': 
+
+    if args.mode == 'kinematic_stat' and (args.fast or args.all): 
+        if args.fast: 
+            count_dict = {'NONE':count_dict}
         hierarchical_counts = table.yamlize(count_dict)
         with open(args.steering_file) as steer_yaml: 
             steering = yaml.load(steer_yaml)
