@@ -5,6 +5,7 @@ Omega setup scripts
 import argparse, sys, os
 from stop import meta, bullshit
 from os.path import basename, splitext, dirname, isdir, isfile
+import glob
 
 def run(): 
     config = get_config()
@@ -35,15 +36,16 @@ def get_config():
     stack_args.add_argument('-o', '--output-name', 
                             default='batch/ntuple/ntuples.txt', help=d)
     stack_args.add_argument('-n','--n-outputs', type=int, default=20, help=d)
+    stack_args.add_argument('-h','--hist-dir', default='hists', help=d)
 
-    stack_args = subs.add_parser('hadd', description=setup_hadd.__doc__)
-    stack_args.add_argument('input_dirs', nargs='+')
-    stack_args.add_argument('-o', '--textfile-name', 
-                            default='batch/hadddir/hadd.txt', help=d)
-    stack_args.add_argument('-s', '--script', help='build this, ' + d, 
-                            default='varzo.sh')
-    stack_args.add_argument('-d', '--hadd-dir', default='hadd-hists', 
-                            help=d)
+    hadd_args = subs.add_parser('hadd', description=setup_hadd.__doc__)
+    hadd_args.add_argument('input_dirs', nargs='+')
+    hadd_args.add_argument('-o', '--textfile-name', 
+                           default='batch/hadddir/hadd.txt', help=d)
+    hadd_args.add_argument('-s', '--script', help='build this, ' + d, 
+                           default='varzo.sh')
+    hadd_args.add_argument('-d', '--hadd-dir', default='hadd-hists', 
+                           help=d)
 
     ws_args = subs.add_parser('ws', description=setup_workspaces.__doc__)
     ws_args.add_argument('kinematic_stat_dir')
@@ -182,12 +184,25 @@ def setup_hadd(config):
         out_script.write(submit_head)
         out_script.write(run_line + '\n')
 
+def _get_meta(guess): 
+    if guess: 
+        if not isfile(guess): 
+            raise OSError('{} is not a file'.format(guess))
+    candidates = glob.glob('*meta*.yml')
+    if not candidates: 
+        raise OSError('no meta candidates found')
+    if len(candidates) > 1: 
+        raise OSError(
+            'too many meta candidates: ' + ', '.join(candidates))
+    return candidates[0]
+
 def setup_stack(config): 
     """
     Sets up textfiles and shell script to run histograming via susy-stack.
     One histogram file will be created for each input ntuple. 
     """
     all_files = config.input_ntuples
+
     subfiles = {x:[] for x in xrange(config.n_outputs)}
     for in_n, in_file in enumerate(all_files): 
         subfiles[in_n % config.n_outputs].append(in_file)
@@ -210,7 +225,8 @@ def setup_stack(config):
     def get_runline(mode): 
         line_args = { 
             'routine': 'susy-stack.py run', 
-            'run_args': '{} --mode {}'.format(config.steering, mode), 
+            'run_args': '{} --mode {} -o {}'.format(
+                config.steering, mode, config.hists_dir), 
             }
         return _submit_line.format(**line_args) + '\n'
 

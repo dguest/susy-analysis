@@ -26,10 +26,11 @@ in the split ds names.
 import argparse, sys
 import yaml
 import glob
-from os.path import join, splitext, isdir, isfile, expanduser
+from os.path import join, splitext, isdir, isfile, expanduser, dirname
 import os
 from itertools import groupby
 import errno
+from warnings import warn
 
 from stop.stack.regions import Region, condense_regions
 from stop.stack.stacker import Stacker
@@ -67,6 +68,7 @@ def get_config():
         help=d)
     run_parser.add_argument('-d','--dump-run', action='store_true', 
                             help="dump region config, don't run")
+    run_parser.add_argument('-o','--hists-dir', default='hists', help=d)
     
     hadd_parser = subs.add_parser('hadd', description=_hadd_help)
     hadd_parser.add_argument('steering_file')
@@ -80,6 +82,7 @@ def get_config():
     return parser.parse_args(sys.argv[1:])
 
 def setup_steering(config): 
+    warn('setup routine is going to be removed', FutureWarning, stacklevel=2)
     with open(config.steering_file) as meta_yml: 
         config_dict = yaml.load(meta_yml)
     ntuples = config_dict['files']['ntuples']
@@ -103,21 +106,29 @@ class SystMap(object):
     """
     Maps an ntuple path to a systematic (or list of systematics) that should 
     be applied. 
+    
+    Planning to simplify this: the systematic will just be the uppercase 
+    top level directory. 
     """
-    def __init__(self, ntuples_dict): 
+    def __init__(self, ntuples_dict={}): 
         self.scale_factor_systematics = ['NONE'] + [
             part + shift for part in 'BCUT' for shift in ['UP','DOWN']
             ]
         self.map = {v:k for k,v in ntuples_dict.iteritems()}
     def get_systematics(self, ntuple): 
         syst = None
-        for k in self.map:
-            if k in ntuple: 
-                if syst: 
-                    raise ValueError(
-                        'tried to assign both {} and {} to {}'.format(
-                            syst, self.map[k], ntuple))
-                syst = self.map[k]
+        if self.map: 
+            warn('ntuple map is going away', FutureWarning, stacklevel=2)
+            for k in self.map:
+                if k in ntuple: 
+                    if syst: 
+                        raise ValueError(
+                            'tried to assign both {} and {} to {}'.format(
+                                syst, self.map[k], ntuple))
+                    syst = self.map[k]
+        else: 
+            tld = dirname(ntuple).split('/')[-1]
+            syst = 'NONE' if tld == 'baseline' else tld.upper()
         if syst is None: 
             raise ValueError("couldn't find syst for {}".format(ntuple))
         if syst == 'NONE': 
@@ -130,10 +141,10 @@ def run_stacker(config):
     with open(config.steering_file) as steering_yml: 
         config_dict = yaml.load(steering_yml)
 
-    syst_map = SystMap(config_dict['files']['ntuples'])
+    syst_map = SystMap()
 
     regions = {k:Region(v) for k, v in config_dict['regions'].iteritems()}
-    hists_dir = config_dict['files']['hists']
+    hists_dir = config.hists_dir
     
     make_dir_if_none(hists_dir)
 
@@ -143,8 +154,9 @@ def run_stacker(config):
         with open(join(hists_dir, 'superregions.yml'), 'w') as super_yml: 
             super_yml.write(yaml.dump(super_dict))
 
-    stacker = Stacker(regions, meta_dict=config_dict['files']['meta'])
-    stacker.mc_mc_sf_file = expanduser(config_dict['files']['mcsf'])
+    stacker = Stacker(regions)
+    # meta_dict=config_dict['files'].get('meta',None)
+    #stacker.mc_mc_sf_file = expanduser(config_dict['files']['mcsf'])
     stacker.rerun = True
     stacker.make_dirs = True
     stacker.verbose = False
@@ -170,6 +182,7 @@ def run_stacker(config):
             outsubdir=outsubdir, tuple_n=tuple_n)
 
 def run_hadd(config): 
+    warn('hadd routine is going to be removed', FutureWarning, stacklevel=2)
     with open(config.steering_file) as steering: 
         steering_dict = yaml.load(steering)
 
