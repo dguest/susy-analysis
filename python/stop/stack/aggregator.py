@@ -171,7 +171,7 @@ class SampleAggregator(object):
 
 
     def _get_lumi_scale(self, file_meta): 
-        if file_meta.physics_type == 'data': 
+        if file_meta.is_data: 
             return 1.0
         else: 
             try: 

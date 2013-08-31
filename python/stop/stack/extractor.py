@@ -13,13 +13,6 @@ class RegionExtractor(object):
     def __init__(self, superregions): 
         self.superregions = superregions
 
-    def _checkcut(self, target, actual): 
-        reldiff = abs( (target - actual) / (target + actual))
-        if reldiff > self.cut_tolerance: 
-            raise ExtractionError(
-                "relative difference between target and actual cut: {}, "
-                "limited to {}".format(reldiff, self.cut_tolerance))
-
     def _get_subregion_counts(self, region, normed): 
         for axis in normed.axes.values(): 
             if not axis.type == 'integral': 
@@ -27,12 +20,10 @@ class RegionExtractor(object):
         kin = region['kinematics']
         met_cut = kin['met_gev']*1e3
         lead_cut = kin['leading_jet_gev']*1e3
+        inf = float('inf')
 
-        lslice, lext = normed.axes['leadingJetPt'].get_slice(lead_cut*1.0001)
-        self._checkcut(lead_cut, lext[0])
-        mslice, mext = lslice.axes['met'].get_slice(met_cut*1.0001)
-        self._checkcut(met_cut, mext[0])
-        return mslice
+        lslice = normed['leadingJetPt'].slice(lead_cut, inf)
+        return lslice['met'].slice(met_cut, inf)
 
     def extract_counts_file(self, h5_file_name): 
         """

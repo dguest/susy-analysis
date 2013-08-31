@@ -266,9 +266,6 @@ class Axis(object):
         Integrates this axis, returning a new hist. 
         """
         if in_place: 
-            warnings.warn(
-                "in place integration is going away", FutureWarning, 
-                stacklevel=2)
             self._hist._integrate(self.name, reverse)
         else: 
             return self._hist._get_integrated(self.name, reverse)
@@ -437,7 +434,7 @@ class HistNd(object):
 
     def _integrate(self, ax_name, reverse=False): 
         """
-        In place integrator, should be removed
+        In place integrator, should be removed or combined with below
         """
         if self.axes[ax_name].type == 'integral': 
             raise ArithmeticError("tried to integrate axis {} twice".format(
