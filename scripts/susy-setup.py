@@ -65,7 +65,7 @@ def get_config():
 def _get_fit_config(file_name, counts, sig_stem='stop'): 
     sig_pts = {k[1] for k in counts if sig_stem in k[1]}
     regions = {k[2] for k in counts}
-    bgs = {k[1] for k in counts} - sig_pts
+    bgs = {k[1] for k in counts} - sig_pts - {'data',}
     if isfile(file_name): 
         with open(file_name) as yml: 
             conf_dict = yaml.load(yml)
@@ -74,7 +74,7 @@ def _get_fit_config(file_name, counts, sig_stem='stop'):
             reg_sr = reg['signal_region']
             reg_cr = set(reg['control_regions'])
             missing_bg = reg_bg - bgs
-            if missing_bg
+            if missing_bg: 
                 raise ValueError(
                     'no background {}'.format(', '.join(missing_bg)))
             if not reg_sr in regions: 
@@ -85,13 +85,18 @@ def _get_fit_config(file_name, counts, sig_stem='stop'):
                     'no region {}'.format(', '.join(missing_cr)))
         return conf_dict
 
-    example = {'example': { 
-            'signal_region': '??', 
-            'control_regions': list(regions), 
-            'backgrounds': list(bgs), 
-            }}
+    def get_example(sr): 
+        crs = [str(r) for r in regions if not r.startswith('SR')]
+        example = { 
+            'signal_region': str(sr), 
+            'control_regions': crs, 
+            'backgrounds': [str(b) for b in bgs], 
+            }
+        return example
+    probably_sr = [str(r) for r in regions if r.startswith('SR')]
+    examples = {r:get_example(r) for r in probably_sr}
     with open(file_name,'w') as yml: 
-        yml.write(yaml.dump(example))
+        yml.write(yaml.dump(examples))
     
 
 def setup_workspaces(config): 
@@ -123,7 +128,7 @@ def setup_workspaces(config):
         the_job.write(submit_head + '\n')
         for fit_n, config_name in enumerate(fit_config): 
             submit_line = submit_tmp.format(
-                config.kinematic_stat_dir, config.config_yaml, fitn )
+                config.kinematic_stat_dir, config.config_yaml, fit_n )
             the_job.write(submit_line + '\n')
 
 def _build_fit_batch(root_dir, batch_path): 

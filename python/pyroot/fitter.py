@@ -72,13 +72,13 @@ class CountDict(dict):
             if not isfile(agg_path): 
                 raise OSError("{} not found".format(agg_path))
             with h5py.File(agg_path, 'r') as h5file: 
-               for phys, var_group in h5file.iteritems(): 
-                   for var, reg_group in var_group.iteritems():
-                       for region, hist in reg_group.iteritems(): 
-                           if var == 'kinematics': 
-                               tmp[syst, phys, region]['sum'] = HistNd(hist)
-                           elif var == 'kinematicWt2': 
-                               tmp[syst, phys, region]['wt2'] = HistNd(hist)
+                for phys, var_group in h5file.iteritems(): 
+                    for var, reg_group in var_group.iteritems():
+                        for region, hist in reg_group.iteritems(): 
+                            if var == 'kinematics': 
+                                tmp[syst, phys, region]['sum'] = HistNd(hist)
+                            elif var == 'kinematicWt2': 
+                                tmp[syst, phys, region]['wt2'] = HistNd(hist)
             self.update(tmp)
 
 inf = float('inf')

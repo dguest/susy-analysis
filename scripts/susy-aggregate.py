@@ -1,8 +1,6 @@
 #!/usr/bin/env python2.7
 """
 uses run / mc meta data and ntuples files to produce stacks. 
-
-NOTE: the stacking routine here has been superseded by susy-stack. 
 """
 
 import argparse

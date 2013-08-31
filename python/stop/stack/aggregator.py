@@ -213,6 +213,8 @@ class SampleAggregator(object):
                 continue
             
             physics_type = file_meta.physics_type
+            if not physics_type and file_meta.is_data: 
+                physics_type = 'data'
             lumi_scale = self._get_lumi_scale(file_meta)
 
             if physics_type == 'signal': 
