@@ -114,9 +114,10 @@ class Dataset(object):
 
         return self.get_effective_luminosity_fb()
     def get_effective_luminosity_fb(self): 
-        if not self.total_xsec_fb: 
-            raise ArithmeticError(
-                "no cross section can't calculate effective luminosity")
+        if not self.total_xsec_fb:
+            error = "no cross section for {}: {}".format(
+                self.key, self.full_name)
+            raise ArithmeticError(error)
 
         sum_evt_wt = self.sum_event_weight
         if not sum_evt_wt: 

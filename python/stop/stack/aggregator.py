@@ -160,19 +160,6 @@ class SampleAggregator(object):
             self.bugstream.write(
                 '{} bad files in {}\n'.format(ds.n_corrupted_files, ds.key))
             
-        if ds.bugs: 
-            intolerable_bugs = ds.bugs - self.tolerable_bugs
-            if intolerable_bugs:
-                self.bugstream.write("\nuh oh, bugs: {} in {} {}\n".format(
-                    str(intolerable_bugs), ds.key, ds.name))
-                return True
-
-            if 'ambiguous dataset' in ds.bugs: 
-                if ds.is_data: 
-                    warnings.warn('you should probably fix the ambi ds thing')
-                else: 
-                    print 'ambiguous dataset in {}, skipping'.format(ds.key)
-                    return True
         return False
 
     @property
