@@ -50,7 +50,8 @@ def run():
     multispace.add_argument(
         '-s','--signal-point', default='stop-225-150', 
         help='default: %(default)s, allows globbing, and numbering')
-    multispace.add_argument('-t','--tag-config', default='unknown')
+    multispace.add_argument('-y','--fit-config', required=True)
+    multispace.add_argument('-n','--config-number',type=int)
     
     config = parser.parse_args(sys.argv[1:])
     opts = {'ws':_setup_workspace, 'fit':_new_histfit, 'pval':_get_p_value,
@@ -227,13 +228,19 @@ def _multispaces(config):
     except ValueError: 
         signal_points = fnmatch.filter(all_sp, config.signal_point)
 
+    with open(config.fit_config) as yml: 
+        fit_configs = yaml.load(yml)
+    this_fit = list(fit_configs)[config.config_number]
+
     for sp in signal_points: 
         print 'booking signal point {}'.format(sp)
-        _book_signal_point(counts, sp, systematics, config.tag_config)
+        _book_signal_point(counts, sp, systematics, this_fit, 
+                           fit_configs[this_fit])
 
-def _book_signal_point(counts, signal_point, systematics, tag_config): 
+def _book_signal_point(counts, signal_point, systematics, 
+                       config_name, fit_config): 
     import ROOT
-    backgrounds = ['ttbar','Wjets','Zjets','diboson','t']
+    backgrounds = fit_config['backgrounds']
     GeV = 1000.0
 
     met_values = xrange(150,500,20)
@@ -244,15 +251,15 @@ def _book_signal_point(counts, signal_point, systematics, tag_config):
         # have been filed. For now just using output filters. 
         fit = Workspace(counts, systematics, backgrounds)
         fit.set_signal(signal_point)
-        for cr in ['ttbar0','Wenu0','Wmunu0','Znunu0']: 
+        for cr in fit_config['control_regions']: 
             fit.add_cr(cr, 150000.0, 150000.0)
 
-        for sr in ['SR0']: 
-            fit.add_sr(sr, met_cut=met_gev*GeV, ljpt_cut=ljpt_gev*GeV)
+        sr = fit_config['signal_region']
+        fit.add_sr(sr, met_cut=met_gev*GeV, ljpt_cut=ljpt_gev*GeV)
     
         out_dir = path_from_sr(
             met_gev=met_gev, pt_gev=ljpt_gev, signal_point=signal_point, 
-            tag_config=tag_config)
+            tag_config=config_name)
         if not os.path.isdir(out_dir): 
             os.makedirs(out_dir)
         

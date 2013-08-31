@@ -6,6 +6,7 @@ import argparse, sys, os
 from stop import meta, bullshit
 from os.path import basename, splitext, dirname, isdir, isfile
 import glob
+import yaml
 
 def run(): 
     config = get_config()
@@ -49,7 +50,7 @@ def get_config():
 
     ws_args = subs.add_parser('ws', description=setup_workspaces.__doc__)
     ws_args.add_argument('kinematic_stat_dir')
-    ws_args.add_argument('-t','--tag-config')
+    ws_args.add_argument('-c','--config-yaml', default='fits.yml', help=d)
     ws_args.add_argument('-s','--script',default='leaky-roof.sh', 
                          help=d)
 
@@ -61,6 +62,38 @@ def get_config():
 
     return parser.parse_args(sys.argv[1:])
 
+def _get_fit_config(file_name, counts, sig_stem='stop'): 
+    sig_pts = {k[1] for k in counts if sig_stem in k[1]}
+    regions = {k[2] for k in counts}
+    bgs = {k[1] for k in counts} - sig_pts
+    if isfile(file_name): 
+        with open(file_name) as yml: 
+            conf_dict = yaml.load(yml)
+        for reg in conf_dict.itervalues(): 
+            reg_bg = set(reg['backgrounds'])
+            reg_sr = reg['signal_region']
+            reg_cr = set(reg['control_regions'])
+            missing_bg = reg_bg - bgs
+            if missing_bg
+                raise ValueError(
+                    'no background {}'.format(', '.join(missing_bg)))
+            if not reg_sr in regions: 
+                raise ValueError('no signal region {}'.format(reg_sr))
+            missing_cr = reg_cr - regions
+            if missing_cr: 
+                raise ValueError(
+                    'no region {}'.format(', '.join(missing_cr)))
+        return conf_dict
+
+    example = {'example': { 
+            'signal_region': '??', 
+            'control_regions': list(regions), 
+            'backgrounds': list(bgs), 
+            }}
+    with open(file_name,'w') as yml: 
+        yml.write(yaml.dump(example))
+    
+
 def setup_workspaces(config): 
     """
     Setup jobs to build workspaces for fitting. If no tag-config is given, 
@@ -68,16 +101,13 @@ def setup_workspaces(config):
     """
     from pyroot.fitter import CountDict
     counts = CountDict(config.kinematic_stat_dir, systematics=[])
-    n_sp = len({k[1] for k in counts if 'stop' in k[1]})
+    sig_pts = {k[1] for k in counts if 'stop' in k[1]}
+    n_sp = len(sig_pts)
 
-    if not config.tag_config: 
-        try: 
-            tag_config = filter(
-                None,config.kinematic_stat_dir.split('/'))[-2]
-        except IndexError: 
-            tag_config = 'unknown'
-    else:
-        tag_config = config.tag_config
+    fit_config = _get_fit_config(config.config_yaml, counts)
+    if not fit_config: 
+        sys.exit('write example fit config ({}), exiting...'.format(
+                config.config_yaml))
 
     sub_dict = {
         'n_jobs': n_sp, 
@@ -87,11 +117,14 @@ def setup_workspaces(config):
         'walltime': '30:00', 
         }
     submit_head = _get_submit_head(**sub_dict)
-    submit_line = 'susy-histopt.py ms {} -s $(($PBS_ARRAYID-1)) -t {}'.format(
-        config.kinematic_stat_dir, tag_config)
+    submit_tmp = (
+        'susy-histopt.py ms {} -s $(($PBS_ARRAYID-1)) -y {} -n {}')
     with open(config.script,'w') as the_job: 
         the_job.write(submit_head + '\n')
-        the_job.write(submit_line + '\n')
+        for fit_n, config_name in enumerate(fit_config): 
+            submit_line = submit_tmp.format(
+                config.kinematic_stat_dir, config.config_yaml, fitn )
+            the_job.write(submit_line + '\n')
 
 def _build_fit_batch(root_dir, batch_path): 
     n_jobs = 0
