@@ -281,7 +281,9 @@ def setup_distill(config):
             ds_meta[ds_key].sum_event_weight = 0.0
             ds_meta[ds_key].n_raw_entries = 0
         collector = meta.MetaTextCollector()
-        for textfile in config.input_textfiles: 
+        prog_meter = bullshit.FlatProgressMeter(len(config.input_textfiles))
+        for file_n, textfile in enumerate(config.input_textfiles): 
+            prog_meter.update(file_n)
             ds_key = basename(splitext(textfile)[0]).split('-')[0]
             with open(textfile) as steering_file: 
                 files = [l.strip() for l in steering_file.readlines()]
