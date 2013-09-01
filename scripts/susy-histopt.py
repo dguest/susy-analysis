@@ -42,7 +42,10 @@ def run():
         '(default: %(default)s)')
     upper_lim.add_argument(
         '-n', '--ws-number', type=int, default=0, 
-        help='skip to this line in the workspaces text file')
+        help='skip to this line (or slice) in the workspaces text file')
+    upper_lim.add_argument(
+        '-m', '--n-workspaces', type=int, default=1, 
+        help='fit slice of workspaces (assumes -n is given)')
 
 
     multispace = subparsers.add_parser('ms')
@@ -116,37 +119,26 @@ def _get_p_value(config):
     print '{} -- {} -- {}'.format(
         p_val.GetCLsd1S(), p_val.GetCLsexp(), p_val.GetCLsu1S())
 
-def _angry_get_line(text_file, line_number): 
-    """
-    Not sure if this helps: I've never seen the WARNING below, although 
-    the OSError is common (was happening 1% of the time).
-    """
-    ws_name = ''
-    warn_tmp =  'WARNING: had to try getting {} line {} {} times'
-    for retry in xrange(100):
-        try: 
-            with open(text_file) as txt: 
-                workspace_name = txt.readlines()[line_number].strip()
-            if retry: 
-                warnings.warn(warn_tmp.format(
-                        text_file, line_number, retry),stacklevel=2)
-            return workspace_name
-        except IOError: 
-            time.sleep(5)
-
-    raise OSError("no text file found at {}".format(text_file))
-
 def _get_upper_limit(config): 
+    if config.workspace.endswith('.txt'): 
+        n_ws = config.n_workspaces
+        sl_number = config.ws_number
+        sl_start = sl_number * n_ws
+        sl_end = (sl_number + 1) * n_ws
+        with open(config.workspace) as txt_file: 
+            workspaces = txt_file.readlines()[sl_start:sl_end]
+    else: 
+        workspaces = [config.workspace]
+    for workspace_name in workspaces: 
+        print workspace_name.strip()
+        # _ul_from_workspace(workspace_name, config.yaml_dir)
+
+def _ul_from_workspace(workspace_name, yaml_dir): 
     import ROOT
     from pyroot import utils
     utils.load_susyfit()
     from ROOT import Util
     from ROOT import RooStats
-
-    if config.workspace.endswith('.txt'): 
-        workspace_name = _angry_get_line(config.workspace, config.ws_number)
-    else: 
-        workspace_name = config.workspace
 
     ul_calc = UpperLimitCalc()
     lower_limit, mean_limit, upper_limit = ul_calc.lim_range(workspace_name)
@@ -158,7 +150,7 @@ def _get_upper_limit(config):
         }
 
     met, pt, sp, tag = sr_from_path(workspace_name)
-    utils.make_dir_if_none(config.yaml_dir)
+    utils.make_dir_if_none(yaml_dir)
         
     bname = 'met{}_pt{}_{}_{}_fit-result.yml'.format(met, pt, sp, tag)
     yaml_dict = { 
@@ -167,7 +159,7 @@ def _get_upper_limit(config):
         'leading_jet_pt': pt, 
         'signal_point': sp, 
         'tag_config': tag} 
-    yaml_path = join(config.yaml_dir, bname)
+    yaml_path = join(yaml_dir, bname)
     with open(yaml_path,'w') as yml: 
         yml.write(yaml.dump(yaml_dict))
     

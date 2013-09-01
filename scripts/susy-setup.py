@@ -2,7 +2,7 @@
 """
 Omega setup scripts
 """
-import argparse, sys, os
+import argparse, sys, os, math
 from stop import meta, bullshit
 from os.path import basename, splitext, dirname, isdir, isfile
 import glob
@@ -58,6 +58,8 @@ def get_config():
     fit_args.add_argument('root')
     fit_args.add_argument('-t','--text-file',action='store_true', 
                           help='make steering text file')
+    fit_args.add_argument(
+        '-n','--fits-per-job', default=30, help=d, type=int)
     fit_args.add_argument('-s','--sql-db', action='store_true')
 
     return parser.parse_args(sys.argv[1:])
@@ -119,7 +121,7 @@ def setup_workspaces(config):
         'out_dir': 'output/workspace', 
         'in_dir': '.', 
         'in_ext': '.txt', 
-        'walltime': '30:00', 
+        'walltime': '1:00:00', 
         }
     submit_head = _get_submit_head(**sub_dict)
     submit_tmp = (
@@ -134,12 +136,10 @@ def setup_workspaces(config):
 def _build_fit_batch(root_dir, batch_path): 
     n_jobs = 0
     model_name = 'stop_combined_meas_model.root'
-    prog_meter = bullshit.ProgressMeter()
     with open(batch_path, 'w') as bfile: 
         for root, subdirs, files in bullshit.fast_walk(root_dir): 
             if not model_name in files: 
                 continue
-            prog_meter.get_walk_progress(root)
             n_jobs += 1
             full_path = os.path.join(root, model_name)
             bfile.write(full_path + '\n')
@@ -160,25 +160,25 @@ def setup_fit(config):
     
     batch_path = os.path.join(batch_dir, batch_file)
     if config.text_file: 
-        n_jobs = _build_fit_batch(config.root, batch_path)
+        n_fits = _build_fit_batch(config.root, batch_path)
     elif not isfile(batch_path): 
         raise OSError("no batch file found at {}".format(batch_path))
     else: 
-        n_jobs = 0
+        n_fits = 0
         with open(batch_path) as bfile: 
             for line in bfile: 
                 if line.strip(): 
-                    n_jobs += 1
+                    n_fits += 1
     sub_dict = {
-        'n_jobs': n_jobs, 
+        'n_jobs': int(math.ceil(n_fits / float(config.fits_per_job))), 
         'out_dir': 'output/fit', 
         'in_dir': batch_dir, 
         'walltime': '30:00', 
         }
     submit_head = _get_submit_head(**sub_dict)
 
-    submit_line = 'susy-histopt.py ul {} -n $(($PBS_ARRAYID-1))'.format(
-        batch_path)
+    submit_line = 'susy-histopt.py ul {} -n $(($PBS_ARRAYID-1)) -m {}'.format(
+        batch_path, config.fits_per_job)
     with open('all-the-fits.sh','w') as fits: 
         fits.write(submit_head + '\n')
         fits.write(submit_line + '\n')

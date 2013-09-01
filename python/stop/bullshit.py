@@ -31,6 +31,9 @@ def fast_walk(base_dir):
         if subdirs: 
             subdirs[:] = [subdirs[0]]
 
+    for dirs in dirs_list: 
+        dirs.sort()
+
     for dir_tup in product(*dirs_list[:-1]): 
         root = os.path.join(*dir_tup)
         yield root, [], files_list[-1]
