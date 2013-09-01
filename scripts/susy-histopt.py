@@ -130,8 +130,7 @@ def _get_upper_limit(config):
     else: 
         workspaces = [config.workspace]
     for workspace_name in workspaces: 
-        print workspace_name.strip()
-        # _ul_from_workspace(workspace_name, config.yaml_dir)
+        _ul_from_workspace(workspace_name.strip(), config.yaml_dir)
 
 def _ul_from_workspace(workspace_name, yaml_dir): 
     import ROOT
