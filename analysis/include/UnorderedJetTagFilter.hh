@@ -19,8 +19,8 @@ public:
   virtual double jet_scalefactor(const std::vector<Jet>& jets) const; 
 private: 
   syst::Systematic m_systematic; 
-  size_t m_n_jets_skipped; 
-  std::map<btag::OperatingPoint,size_t> m_tag_counts; 
+  unsigned m_n_jets_skipped; 
+  std::map<btag::OperatingPoint,unsigned> m_tag_counts; 
 };
 
 namespace jetfilter { 
