@@ -128,14 +128,17 @@ def sort_data_mc(hist1_dict):
         if physics_type == 'data': 
             if tup in stack_data: 
                 raise ValueError('doubling the data')
-            stack_data[(variable, cut)] = hist
+            stack_data[variable, cut] = hist
         elif physics_type.startswith('stop'): 
-            signals[(variable,cut)].append(hist)
+            signals[variable,cut].append(hist)
         else: 
-            lists[(variable, cut)].append(hist)
+            lists[variable, cut].append(hist)
 
     for tup in lists: 
-        lists[tup].sort()
+        try: 
+            lists[tup].sort(key=float)
+        except TypeError: 
+            pass
 
     return stack_data, lists, signals
 

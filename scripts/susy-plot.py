@@ -42,7 +42,7 @@ def get_config():
                              parents=[plotting_general, signal_point])
     parser.add_argument('steering_file', nargs='?')
     parser.add_argument('--scale', choices={'log','linear', 'both'}, 
-                        default='linear', help=d)
+                        default='log', help=d)
 
     overlay_parser = subs.add_parser('tagger', 
                                      parents=[plotting_general, signal_point])
@@ -213,6 +213,8 @@ def run_plotmill(args):
     config = _get_config_info(args.steering_file)
     aggregates = [args.aggregate]
     used_physics = config['backgrounds']['used'] + ['data']
+    if args.signal_point: 
+        used_physics.append(args.signal_point)
     plots_dict = {}
     for agg_file in aggregates: 
         print 'loading {}'.format(agg_file)
