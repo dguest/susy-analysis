@@ -26,7 +26,9 @@ def get_config():
         help='can be produced with susy-utils')
     distil_args.add_argument('-m', '--update-meta', required=True, 
                            help='update meta file with sum_wt etc')
-    distil_args.add_argument('-s', '--script', help='build this PBS script')
+    distil_args.add_argument(
+        '-s', '--script', help='build this PBS script' + d, 
+        default='sharktopus.sh')
     distil_args.add_argument('-a', '--aggressive', action='store_true')
 
     stack_args = subs.add_parser('stack', description=setup_stack.__doc__)
