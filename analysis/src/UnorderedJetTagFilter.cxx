@@ -8,7 +8,8 @@
 UnorderedJetTagFilter::
 UnorderedJetTagFilter(const std::vector<btag::OperatingPoint>& op_points, 
 		      syst::Systematic systematic): 
-  m_systematic(systematic)
+  m_systematic(systematic), 
+  m_n_jets_skipped(0)
 { 
   for (auto itr = op_points.begin(); itr != op_points.end(); itr++){
     if ( *itr == btag::NOTAG ){
