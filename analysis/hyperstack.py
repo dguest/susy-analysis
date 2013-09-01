@@ -23,7 +23,7 @@ short_cuts = [('every',every_cut)]
 
 all_cuts = [
     { 
-        'name': 'joe', 
+        'name': 'pt-order', 
         'output_name': 'stupid.h5', 
         'type': 'CONTROL', 
         'jet_tag_requirements': ['JFC_LOOSE','NOTAG'], 
@@ -33,7 +33,7 @@ all_cuts = [
         'jet_tag_assignment':'PT_ORDERED', 
         }, 
     { 
-        'name': 'frank', 
+        'name': 'tag-order', 
         'output_name': 'stupid.h5', 
         'type': 'CONTROL', 
         'jet_tag_requirements': ['JFC_LOOSE','NOTAG'], 

@@ -29,11 +29,13 @@ bool UnorderedJetTagFilter::pass(const std::vector<Jet>& jets) const {
     btag::OperatingPoint op = tag_req->first; 
     const size_t n_tags_needed = tag_req->second; 
     size_t n_tags_found = 0; 
-    for (auto jitr = untagged_jets.begin(); jitr != untagged_jets.end(); 
-	 jitr++) { 
+    for (auto jitr = untagged_jets.begin(); jitr != untagged_jets.end(); ){
       if (jitr->pass_tag(op)) {
 	n_tags_found++; 
 	jitr = untagged_jets.erase(jitr); 
+      }
+      else { 
+	jitr++; 
       }
       if (n_tags_found == n_tags_needed) break; 
     }
@@ -52,12 +54,14 @@ double UnorderedJetTagFilter
     btag::OperatingPoint op = tag_req->first; 
     const size_t n_tags_needed = tag_req->second; 
     size_t n_tags_found = 0; 
-    for (auto jitr = untagged_jets.begin(); jitr != untagged_jets.end(); 
-	 jitr++) { 
+    for (auto jitr = untagged_jets.begin(); jitr != untagged_jets.end(); ) { 
       if (jitr->pass_tag(op)) {
 	n_tags_found++; 
 	scale_factor *= jitr->get_scalefactor(op, m_systematic); 
 	jitr = untagged_jets.erase(jitr); 
+      }
+      else { 
+	jitr++; 
       }
       if (n_tags_found == n_tags_needed) break; 
     }
