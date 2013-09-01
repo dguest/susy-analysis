@@ -58,6 +58,8 @@ class HistDict(dict):
     def __setitem__(self, key, value): 
         if len(key) != 3 or not all(isinstance(k,basestring) for k in key): 
             raise TypeError("key {} isn't right for HistDict".format(key))
+        if any(len(s) == 0 for s in key): 
+            raise ValueError("zero-length strings prohibited: {}".format(key))
         super(HistDict,self).__setitem__(key, value)
 
     def _list_paths(self, group, prefix=''): 
