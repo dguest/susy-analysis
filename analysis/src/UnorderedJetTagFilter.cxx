@@ -29,7 +29,7 @@ bool UnorderedJetTagFilter::pass(const std::vector<Jet>& jets) const {
        tag_req != m_tag_counts.cend(); tag_req++) { 
     btag::OperatingPoint op = tag_req->first; 
     const size_t n_tags_needed = tag_req->second; 
-    unsigned n_tags_found = 0; 
+    size_t n_tags_found = 0; 
     for (auto jitr = untagged_jets.begin(); jitr != untagged_jets.end(); ){
       if (jitr->pass_tag(op)) {
 	n_tags_found++; 
@@ -53,8 +53,8 @@ double UnorderedJetTagFilter
   for (auto tag_req = m_tag_counts.cbegin(); 
        tag_req != m_tag_counts.cend(); tag_req++) { 
     btag::OperatingPoint op = tag_req->first; 
-    const unsigned n_tags_needed = tag_req->second; 
-    unsigned n_tags_found = 0; 
+    const size_t n_tags_needed = tag_req->second; 
+    size_t n_tags_found = 0; 
     for (auto jitr = untagged_jets.begin(); jitr != untagged_jets.end(); ) { 
       if (jitr->pass_tag(op)) {
 	n_tags_found++; 
@@ -68,7 +68,7 @@ double UnorderedJetTagFilter
     }
 
     // apply the remaining scale factors, start with highest pt
-    unsigned remaining_tags = std::min(n_tags_needed - n_tags_found, 
+    size_t remaining_tags = std::min(n_tags_needed - n_tags_found, 
 				     untagged_jets.size()); 
     for (auto jitr = untagged_jets.begin(); jitr != untagged_jets.end(); 
 	 jitr++) { 
