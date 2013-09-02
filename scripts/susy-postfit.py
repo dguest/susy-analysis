@@ -54,6 +54,9 @@ def run():
     plotter.add_argument(
         '-f', '--fom', choices={'tanh','log','nex'}, default='nex', 
         help='figure of merit, default: %(default)s')
+    plotter.add_argument(
+        '-m', '--max-points', nargs='?', const=sys.stdout, default=None, 
+        type=argparse.FileType('w'))
 
     args = parser.parse_args(sys.argv[1:])
     subroutines = {'yml':_yml_parser, 'plot':_plot, 'sum':_plot_sum_fom, 
@@ -134,6 +137,7 @@ def _plot(args):
             print 'plotting {}'.format(out_path)
             _draw_plot(array, extents, (config, sp), ax_names=ax_names, 
                        out_path=out_path, cb_range=ranges[sp])
+            
 
 # --- several figures of merit to choose from
 def _is_excluded(array): 
@@ -155,6 +159,7 @@ def _plot_sum_fom(args):
     base_ds = next(next(hdf.itervalues()).itervalues())
     extents = base_ds.attrs['extent']
     ax_names = base_ds.attrs['ax_names']
+    max_points = {}
     for config, sp_group in hdf.iteritems(): 
         counts_array = np.zeros(base_ds.shape)
         for sp, dataset in sp_group.iteritems(): 
@@ -167,6 +172,21 @@ def _plot_sum_fom(args):
         out_path = os.path.join(args.out_dir, out_file_name)
         _draw_plot(counts_array, extents, (config, args.fom), 
                    ax_names, out_path)
+        if args.max_points: 
+            reg_key = str(config)
+            max_points[reg_key] = _get_maxval(counts_array, extents, ax_names)
+    if max_points: 
+        args.max_points.write(yaml.dump(max_points))
+
+def _get_maxval(array, extents, ax_names): 
+    max_bin = np.unravel_index(np.argmax(array),array.shape)
+    extent_chunks = [extents[i:i+2] for i in xrange(0,len(extents),2)]
+    best_cuts = {}
+    ax_info = zip(max_bin, array.shape, extent_chunks, ax_names)
+    for bindex, bins, extent, name in ax_info: 
+        cutval = np.linspace(*extent, num=bins, endpoint=False)[bindex]
+        best_cuts[str(name)] = float(cutval)
+    return best_cuts
 
 
 def _get_label(label): 
