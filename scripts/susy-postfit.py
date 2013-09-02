@@ -190,7 +190,7 @@ def _get_maxval(array, extents, ax_names):
     ax_info = zip(max_bin, array.shape, extent_chunks, ax_names)
     for bindex, bins, extent, name in ax_info: 
         cutval = np.linspace(*extent, num=bins, endpoint=False)[bindex]
-        best_cuts[str(name)] = float(cutval)
+        best_cuts[str(name)] = int(cutval)
     return best_cuts
 
 
