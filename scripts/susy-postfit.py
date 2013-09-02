@@ -54,6 +54,7 @@ def run():
     plotter.add_argument(
         '-f', '--fom', choices={'tanh','log','nex'}, default='nex', 
         help='figure of merit, default: %(default)s')
+    plotter.add_argument('-g', '--gaussian-filter', type=float)
     plotter.add_argument(
         '-m', '--max-points', nargs='?', const=sys.stdout, default=None, 
         type=argparse.FileType('w'))
@@ -170,6 +171,10 @@ def _plot_sum_fom(args):
         if not os.path.isdir(args.out_dir): 
             os.mkdir(args.out_dir)
         out_path = os.path.join(args.out_dir, out_file_name)
+        if args.gaussian_filter: 
+            from scipy.ndimage.filters import gaussian_filter
+            counts_array = gaussian_filter(
+                counts_array, sigma=args.gaussian_filter)
         _draw_plot(counts_array, extents, (config, args.fom), 
                    ax_names, out_path)
         if args.max_points: 
