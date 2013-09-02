@@ -20,7 +20,8 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg as FigCanvas
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from stop.style import vdict
-from scipy.interpolate import Rbf
+from scipy.interpolate import Rbf, interp2d
+from matplotlib.mlab import griddata
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
 
@@ -103,8 +104,11 @@ class ExclusionPlane(object):
         xp, yp = np.meshgrid(xi, yi)
         delta = xp - yp
         mask = (delta < 0) | ( delta > 80.4)
+
         rbf = Rbf(x, y, z, function='linear')
         zp = rbf(xp, yp)
+        # zp = griddata(x, y, z, xp, yp)
+
         zp[mask] = 3
         extent = [xmin, max(x), ymin,max(y)]
         ct_color = next(self.color_itr)
