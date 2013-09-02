@@ -78,7 +78,7 @@ def run():
 
         out_name = os.path.join(args.out_dir, sr_name + args.plot_ext)
         ex_plane.add_config(stop_lsp_ul, sr_name)
-        # _plot_points(stop_lsp_ul, out_name)
+        _plot_points(stop_lsp_ul, out_name)
     ex_plane.save(os.path.join(args.out_dir, 'comp' + args.plot_ext))
 
 class ExclusionPlane(object): 
@@ -97,8 +97,8 @@ class ExclusionPlane(object):
         
     def add_config(self, stop_lsp_ul, label): 
         x, y, z = zip(*stop_lsp_ul)
-        xmin = 0.0
-        ymin = 0.0
+        xmin = 80
+        ymin = 50
         xi = np.linspace(xmin, max(x), 100)
         yi = np.linspace(ymin, max(y), 100)
         xp, yp = np.meshgrid(xi, yi)
@@ -134,6 +134,10 @@ def _plot_points(stop_lsp_ul, out_name):
     ax = figure.add_subplot(1,1,1)
     divider = make_axes_locatable(ax)
     cax = divider.append_axes("right", "5%", pad="1.5%")
+    ax.tick_params(labelsize=16)
+    ax.set_ylabel('$m_{\mathrm{lsp}}$ [GeV]', **vdict)
+    ax.set_xlabel('$m_{\mathrm{stop}}$ [GeV]', **hdict)
+
     x, y, z = zip(*stop_lsp_ul)
     xi = np.linspace(min(x), max(x), 100)
     yi = np.linspace(min(y), max(y), 100)
