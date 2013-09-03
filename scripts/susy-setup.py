@@ -118,8 +118,11 @@ def setup_workspaces(config):
         sys.exit('write example fit config ({}), exiting...'.format(
                 config.config_yaml))
 
+    n_fc = len(fit_config)
+    n_jobs = n_fc * n_sp
+
     sub_dict = {
-        'n_jobs': n_sp, 
+        'n_jobs': n_jobs, 
         'out_dir': 'output/workspace', 
         'in_dir': '.', 
         'in_ext': '.txt', 
@@ -127,13 +130,15 @@ def setup_workspaces(config):
         }
     submit_head = _get_submit_head(**sub_dict)
     submit_tmp = (
-        'susy-histopt.py ms {} -s $(($PBS_ARRAYID-1)) -y {} -n {}')
+        'susy-histopt.py ms {} -s $SP_NUM -y {} -n $FIT_CONFIG')
     with open(config.script,'w') as the_job: 
         the_job.write(submit_head + '\n')
-        for fit_n, config_name in enumerate(fit_config): 
-            submit_line = submit_tmp.format(
-                config.kinematic_stat_dir, config.config_yaml, fit_n )
-            the_job.write(submit_line + '\n')
+        the_job.write('JOB_NUM=$(($PBS_ARRAYID-1))\n')
+        the_job.write('FIT_CONFIG=$(($JOB_NUM / {}))\n'.format(n_sp))
+        the_job.write('SP_NUM=$(($JOB_NUM % {}))\n'.format(n_sp))
+        submit_line = submit_tmp.format(
+            config.kinematic_stat_dir, config.config_yaml)
+        the_job.write(submit_line + '\n')
 
 def _build_fit_batch(root_dir, batch_path): 
     n_jobs = 0
