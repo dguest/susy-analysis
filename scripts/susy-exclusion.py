@@ -91,7 +91,7 @@ class ExclusionPlane(object):
         self.ax.tick_params(labelsize=16)
         self.ax.set_ylabel('$m_{\mathrm{lsp}}$ [GeV]', **vdict)
         self.ax.set_xlabel('$m_{\mathrm{stop}}$ [GeV]', **hdict)
-        self.color_itr = iter('rgbm')
+        self.color_itr = iter(list('rgbmc') + ['orange'])
         self._proxy_contour = []
         self.lw = 3
         self._pts = None
@@ -124,11 +124,11 @@ class ExclusionPlane(object):
             self._proxy_contour.insert(0,(self._pts, 'signal points'))
 
     def _add_labels(self): 
-        self.ax.text(0.1, 0.6, 
-                     '$\int\ \mathcal{L}\ dt\ =\ 20.3\ \mathrm{fb}^{-1}$',
-                     transform=self.ax.transAxes, size=24)
-        self.ax.text(0.1, 0.5, 
+        self.ax.text(0.7, 0.3, 
                      '$\sqrt{s}\ =\ 8\ \mathrm{TeV}$',
+                     transform=self.ax.transAxes, size=24)
+        self.ax.text(0.6, 0.2, 
+                     '$\int\ \mathcal{L}\ dt\ =\ 20.3\ \mathrm{fb}^{-1}$',
                      transform=self.ax.transAxes, size=24)
         self.ax.text(0.7, 0.1, 'ATLAS', style='italic', weight='bold', 
                      horizontalalignment='right', 
