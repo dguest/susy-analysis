@@ -24,13 +24,14 @@ from scipy.interpolate import Rbf, interp2d
 from matplotlib.mlab import griddata
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
+from matplotlib.font_manager import FontProperties
 
 def get_args(): 
     d = 'default: %(default)s'
     pl_parent = argparse.ArgumentParser(add_help=False)
     pl_parent.add_argument(
-        '-e','--plot-ext', help='output extension', choices={'.pdf','.png'}, 
-        default='.pdf')
+        '-e','--plot-ext', help='output extension', 
+        choices={'.pdf','.png','.eps'}, default='.pdf')
     pl_parent.add_argument('-o','--out-dir', default='exclusion')
 
     parser = argparse.ArgumentParser(description=__doc__, parents=[pl_parent])
@@ -77,8 +78,9 @@ def run():
             stop_lsp_ul.append( (mstop, mlsp, upper_limit) )
 
         out_name = os.path.join(args.out_dir, sr_name + args.plot_ext)
-        ex_plane.add_config(stop_lsp_ul, sr_name)
-        _plot_points(stop_lsp_ul, out_name)
+        contour_name = sr_cuts.get('fancy_name',sr_name)
+        ex_plane.add_config(stop_lsp_ul, contour_name)
+        # _plot_points(stop_lsp_ul, out_name)
     ex_plane.save(os.path.join(args.out_dir, 'comp' + args.plot_ext))
 
 class ExclusionPlane(object): 
@@ -118,12 +120,30 @@ class ExclusionPlane(object):
         self._proxy_contour.append(
             ( Line2D((0,0),(0,1), **draw_opts), str(label)) )
         if not self._pts: 
-            self._pts = self.ax.plot(x,y,'.k')
+            self._pts, = self.ax.plot(x,y,'.k')
+            self._proxy_contour.insert(0,(self._pts, 'signal points'))
+
+    def _add_labels(self): 
+        self.ax.text(0.1, 0.6, 
+                     '$\int\ \mathcal{L}\ dt\ =\ 20.3\ \mathrm{fb}^{-1}$',
+                     transform=self.ax.transAxes, size=24)
+        self.ax.text(0.1, 0.5, 
+                     '$\sqrt{s}\ =\ 8\ \mathrm{TeV}$',
+                     transform=self.ax.transAxes, size=24)
+        self.ax.text(0.7, 0.1, 'ATLAS', style='italic', weight='bold', 
+                     horizontalalignment='right', 
+                     transform=self.ax.transAxes, size=24)
+        self.ax.text(0.7, 0.1, ' INTERNAL', style='italic', 
+                     horizontalalignment='left', 
+                     transform=self.ax.transAxes, size=24)
 
     def save(self, name): 
-        self.ax.legend(
+        leg = self.ax.legend(
             *zip(*self._proxy_contour), fontsize='xx-large', 
-             loc='upper left', framealpha=0.0)
+             loc='upper left', framealpha=0.0, numpoints=1)
+        # may be able to use these to positon lables
+        # (x1, y1),(x2,y2) = leg.get_bbox_to_anchor().get_points()
+        self._add_labels()
         make_dir_if_none(dirname(name))
         self.canvas.print_figure(name, bbox_inches='tight')
         
