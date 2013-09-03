@@ -123,9 +123,7 @@ def run_kinematic_plot(args):
             _plot_region_kinematics(
                 region, reg_hists, signal_point, set(), **out_args)
             
-
-def _plot_region_kinematics(region, hists, signal_point, bg_set, 
-                            odir='plots', ext='.pdf'): 
+def _get_hists(hists, signal_point, bg_set): 
     bg_hist = None
     sig_hist = None
     for (phys, var), hist in hists.iteritems(): 
@@ -141,6 +139,12 @@ def _plot_region_kinematics(region, hists, signal_point, bg_set,
                     'tried to replace {} with {}, keys: {}'.format(
                         signal_point, phys, phy_keys))
             sig_hist = hist
+    return sig_hist, bg_hist
+
+def _plot_region_kinematics(region, hists, signal_point, bg_set, 
+                            odir='plots', ext='.pdf'): 
+
+    sig_hist, bg_hist = _get_hists(hists, signal_point, bg_set)
 
     def integrate(hist, reverse=True): 
         int_hist = hist['met'].integrate(reverse=reverse)
@@ -151,7 +155,7 @@ def _plot_region_kinematics(region, hists, signal_point, bg_set,
         denom = integrate(bg_hist)
         the_hist = num / denom
         meth = '{}-over-bg'.format(signal_point)
-        save_args = dict(log=False, vrange=(0.2, 1.1))
+        save_args = dict(log=False, vrange=(0.0, 0.4))
         cb_label = '{} / BG'.format(signal_point)
     elif sig_hist and not bg_hist: 
         the_hist = integrate(sig_hist)
@@ -165,10 +169,22 @@ def _plot_region_kinematics(region, hists, signal_point, bg_set,
         cb_label = 'Background'
     the_plot = h2_from_hn(the_hist)
     the_plot.cb_label = cb_label
+
+
     if not isdir(odir): 
         os.mkdir(odir)
         
     the_plot.save('{}/{}-{}{}'.format(odir, meth, region,ext), **save_args)
+
+    if bg_hist and sig_hist: 
+        s = integrate(sig_hist)
+        b = integrate(bg_hist)
+        s_over_sqrt_b =  s /(s + b)**0.5
+        sosb_plot = h2_from_hn(s_over_sqrt_b)
+        sosb_plot.cb_label = '$s / \sqrt{s + b}$'
+        sosb_plot.save(
+            '{}/{}-over-sqrt-b-{}{}'.format(odir, signal_point,region,ext), 
+            log=False)
 
 def _filt_converter(typed_path): 
     return typed_path.replace('-','/')
