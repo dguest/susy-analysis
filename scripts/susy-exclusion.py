@@ -1,7 +1,10 @@
 #!/usr/bin/env python2.7
 """
 Top level for routines to draw excluded contour. Cuts used are defined in 
-yaml_cuts. To make fancy names for regions, use the 'fancy_name' key.
+yaml_cuts. To make fancy names for regions, use the 'fancy_name' key. 
+
+Colors can be given in draw_style, which will also make dashes 
+if a '-' appears. 
 """
 
 import argparse
@@ -34,7 +37,9 @@ def get_args():
         choices={'.pdf','.png','.eps', '.txt'}, default='.pdf')
     pl_parent.add_argument('-o','--out-dir', default='exclusion')
 
-    parser = argparse.ArgumentParser(description=__doc__, parents=[pl_parent])
+    parser = argparse.ArgumentParser(
+        description=__doc__, parents=[pl_parent], 
+        formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('hdf_input')
     parser.add_argument('yaml_cuts')
     parser.add_argument('-t','--threshold', default=1.0, type=float, help=d)
@@ -84,7 +89,8 @@ def run():
 
         out_name = os.path.join(args.out_dir, sr_name + args.plot_ext)
         contour_name = signal_region.get('fancy_name',sr_name)
-        ex_plane.add_config(stop_lsp_ul, contour_name)
+        style = signal_region.get('draw_style', None)
+        ex_plane.add_config(stop_lsp_ul, contour_name, style)
         # _plot_points(stop_lsp_ul, out_name)
 
     ex_plane.save(os.path.join(args.out_dir, 'comp' + args.plot_ext))
@@ -96,7 +102,7 @@ class ExcludedList(object):
         def make_signame(mstop, mlsp): 
             return '{}-{}-{}'.format(signal_prefix, mstop, mlsp)
         self.make_signame = make_signame
-    def add_config(self, stop_lsp_ul, label): 
+    def add_config(self, stop_lsp_ul, label, style=None): 
         for x, y, z in stop_lsp_ul: 
             if z < self._threshold: 
                 self._excluded.add(self.make_signame(x,y))
@@ -113,14 +119,26 @@ class ExclusionPlane(object):
         self.ax.tick_params(labelsize=16)
         self.ax.set_ylabel('$m_{\mathrm{lsp}}$ [GeV]', **vdict)
         self.ax.set_xlabel('$m_{\mathrm{stop}}$ [GeV]', **hdict)
-        self.color_itr = iter(list('rgbmc') + ['orange'])
+        self.colors = list('rgbmc') + ['orange']
+        self.used_colors = set()
         self._proxy_contour = []
         self.lw = 3
         self._pts = None
         self._threshold = threshold
         
-        
-    def add_config(self, stop_lsp_ul, label): 
+    def _get_style(self, style_string): 
+        if not style_string: 
+            for color in self.colors: 
+                if not color in self.used_colors: 
+                    self.used_colors.add(color)
+                    return color, 'solid'
+
+        line_style = 'dashed' if '-' in style_string else 'solid'
+        the_color = style_string.replace('-','')
+        self.used_colors.add(the_color)
+        return the_color, line_style
+
+    def add_config(self, stop_lsp_ul, label, style=None): 
         """
         Expects a list of (mass stop, mass lsp, upper limit) tuples. 
         """
@@ -140,10 +158,11 @@ class ExclusionPlane(object):
 
         zp[mask] = 3
         extent = [xmin, xmax, ymin, ymax]
-        ct_color = next(self.color_itr)
-        draw_opts = dict(color=ct_color, linewidth=self.lw)
-        ct = self.ax.contour(xp, yp, zp, [self._threshold], 
-                             colors=ct_color, linewidths=self.lw )
+        ct_color, ct_style = self._get_style(style)
+        draw_opts = dict(color=ct_color, linewidth=self.lw, linestyle=ct_style)
+        ct = self.ax.contour(
+            xp, yp, zp, [self._threshold], 
+            colors=ct_color, linewidths=self.lw, linestyles=ct_style )
         self._proxy_contour.append(
             ( Line2D((0,0),(0,1), **draw_opts), str(label)) )
         if not self._pts: 
