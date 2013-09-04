@@ -160,7 +160,7 @@ def _plot_sum_fom(args):
     base_ds = next(next(hdf.itervalues()).itervalues())
     extents = base_ds.attrs['extent']
     ax_names = base_ds.attrs['ax_names']
-    max_points = {}
+    max_points = []
     for config, sp_group in hdf.iteritems(): 
         counts_array = np.zeros(base_ds.shape)
         for sp, dataset in sp_group.iteritems(): 
@@ -178,8 +178,9 @@ def _plot_sum_fom(args):
         _draw_plot(counts_array, extents, (config, args.fom), 
                    ax_names, out_path)
         if args.max_points: 
-            reg_key = str(config)
-            max_points[reg_key] = _get_maxval(counts_array, extents, ax_names)
+            max_dict = _get_maxval(counts_array, extents, ax_names)
+            max_dict['region_key'] = str(config)
+            max_points.append(max_dict)
     if max_points: 
         args.max_points.write(yaml.dump(max_points))
 

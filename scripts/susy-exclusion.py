@@ -1,7 +1,7 @@
 #!/usr/bin/env python2.7
-
 """
-Top level for routines to draw excluded contour. 
+Top level for routines to draw excluded contour. Cuts used are defined in 
+yaml_cuts. To make fancy names for regions, use the 'fancy_name' key.
 """
 
 import argparse
@@ -67,18 +67,19 @@ def run():
     args = get_args()
     hdf = h5py.File(args.hdf_input)
     with open(args.yaml_cuts) as cuts_yml: 
-        cuts_dict = yaml.load(cuts_yml)
+        signal_regions = yaml.load(cuts_yml)
     ex_plane = ExclusionPlane()
-    for sr_name, sp_group in hdf.iteritems(): 
+    for signal_region in signal_regions: 
+        sr_name = signal_region['region_key']
+        sp_group = hdf[sr_name]
         stop_lsp_ul = []
-        sr_cuts = cuts_dict[sr_name]
         for sp_name, plane in sp_group.iteritems(): 
             part, mstop, mlsp = _get_part_mstop_mlsp(sp_name)
-            upper_limit = _value_from_plane(plane, sr_cuts)
+            upper_limit = _value_from_plane(plane, signal_region)
             stop_lsp_ul.append( (mstop, mlsp, upper_limit) )
 
         out_name = os.path.join(args.out_dir, sr_name + args.plot_ext)
-        contour_name = sr_cuts.get('fancy_name',sr_name)
+        contour_name = signal_region.get('fancy_name',sr_name)
         ex_plane.add_config(stop_lsp_ul, contour_name)
         # _plot_points(stop_lsp_ul, out_name)
     ex_plane.save(os.path.join(args.out_dir, 'comp' + args.plot_ext))
@@ -98,6 +99,9 @@ class ExclusionPlane(object):
         
         
     def add_config(self, stop_lsp_ul, label): 
+        """
+        Expects a list of (mass stop, mass lsp, upper limit) tuples. 
+        """
         x, y, z = zip(*stop_lsp_ul)
         xmin = 80
         ymin = 50
