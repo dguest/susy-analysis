@@ -4,18 +4,11 @@ Top level for mc / data stack plotting routines for the main analysis.
 """
 import argparse
 from stop.stack import plot, draw
-from os.path import isfile, join, isdir
-from stop.stack import table
-from tempfile import TemporaryFile
 import yaml
 import sys
-import os
-import glob
 from stop.stack.aggregator import HistDict
-from stop.stack.draw import h2_from_hn
+from stop.stack.kinplt import run_kinematic_plot
 import re
-from itertools import chain, product
-from collections import defaultdict
 
 def get_config(): 
     d = 'default: %(default)s'
@@ -83,108 +76,6 @@ def run():
             'tagone':run_tagger_one_type, 'kin':run_kinematic_plot}
     subs[args.which](args)
 
-def run_kinematic_plot(args): 
-    """
-    Plots S, B, S/B for values of kinematic cuts in the plane. 
-    """
-    from stop.runtypes import marks_types
-    bg_set = set(marks_types)
-    phys_set = set()
-    if args.background or args.s_over_b or args.all: 
-        phys_set |= bg_set
-
-    sp_list = filter(None, [args.s_over_b, args.signal_point, args.all])
-    if sp_list: 
-        signal_point = sp_list[0]
-        phys_set.add(signal_point)
-    else: 
-        signal_point = ''
-
-    region_set = None
-    if args.filt: 
-        region_set = { args.filt.replace('/','-') } # TODO: make less hackish
-    hists = HistDict(args.aggregate, 
-                     filt='kinematics', 
-                     physics_set=phys_set, 
-                     cut_set=region_set, 
-                     )
-    hists_by_region = defaultdict(dict)
-    for (phys, var, region), hist in hists.iteritems(): 
-        hists_by_region[region][phys,var] = hist
-    out_args = dict(odir=args.output_dir, ext=args.ext)
-    for region, reg_hists in hists_by_region.iteritems(): 
-        _plot_region_kinematics(
-            region, reg_hists, signal_point, bg_set, **out_args)
-        if args.all: 
-            print 'plotting bg'
-            _plot_region_kinematics(
-                region, reg_hists, '', bg_set, **out_args)
-            print 'plotting signal'
-            _plot_region_kinematics(
-                region, reg_hists, signal_point, set(), **out_args)
-            
-def _get_hists(hists, signal_point, bg_set): 
-    bg_hist = None
-    sig_hist = None
-    for (phys, var), hist in hists.iteritems(): 
-        if phys in bg_set: 
-            if not bg_hist: 
-                bg_hist = hist
-            else: 
-                bg_hist += hist
-        elif phys == signal_point: 
-            if sig_hist: 
-                phy_keys = ', '.join([k[0] for k in hists])
-                raise StandardError(
-                    'tried to replace {} with {}, keys: {}'.format(
-                        signal_point, phys, phy_keys))
-            sig_hist = hist
-    return sig_hist, bg_hist
-
-def _plot_region_kinematics(region, hists, signal_point, bg_set, 
-                            odir='plots', ext='.pdf'): 
-
-    sig_hist, bg_hist = _get_hists(hists, signal_point, bg_set)
-
-    def integrate(hist, reverse=True): 
-        int_hist = hist['met'].integrate(reverse=reverse)
-        return int_hist['leadingJetPt'].integrate(reverse=reverse)
-
-    if bg_hist and sig_hist: 
-        num = integrate(sig_hist)
-        denom = integrate(bg_hist)
-        the_hist = num / denom
-        meth = '{}-over-bg'.format(signal_point)
-        save_args = dict(log=False, vrange=(0.0, 0.4))
-        cb_label = '{} / BG'.format(signal_point)
-    elif sig_hist and not bg_hist: 
-        the_hist = integrate(sig_hist)
-        meth = signal_point
-        save_args = dict(log=True)
-        cb_label = signal_point
-    elif bg_hist and not sig_hist: 
-        the_hist = integrate(bg_hist)
-        meth = 'bg'
-        save_args = dict(log=True)
-        cb_label = 'Background'
-    the_plot = h2_from_hn(the_hist)
-    the_plot.cb_label = cb_label
-
-
-    if not isdir(odir): 
-        os.mkdir(odir)
-        
-    the_plot.save('{}/{}-{}{}'.format(odir, meth, region,ext), **save_args)
-
-    if bg_hist and sig_hist: 
-        s = integrate(sig_hist)
-        b = integrate(bg_hist)
-        s_over_sqrt_b =  s /(s + b)**0.5
-        sosb_plot = h2_from_hn(s_over_sqrt_b)
-        sosb_plot.cb_label = '$s / \sqrt{s + b}$'
-        sosb_plot.save(
-            '{}/{}-over-sqrt-b-{}{}'.format(odir, signal_point,region,ext), 
-            log=False)
 
 def _filt_converter(typed_path): 
     return typed_path.replace('-','/')
