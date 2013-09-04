@@ -58,6 +58,8 @@ def run():
     plotter.add_argument(
         '-m', '--max-points', nargs='?', const=sys.stdout, default=None, 
         type=argparse.FileType('w'))
+    plotter.add_argument(
+        '-x', '--exclude-pts', help='file listing excluded points')
 
     args = parser.parse_args(sys.argv[1:])
     subroutines = {'yml':_yml_parser, 'plot':_plot, 'sum':_plot_sum_fom, 
@@ -161,9 +163,15 @@ def _plot_sum_fom(args):
     extents = base_ds.attrs['extent']
     ax_names = base_ds.attrs['ax_names']
     max_points = []
+    ex_pts = set()
+    if args.exclude_pts: 
+        with open(args.exclude_pts) as pts_file: 
+            ex_pts = set(p.strip() for p in pts_file.readlines())
     for config, sp_group in hdf.iteritems(): 
         counts_array = np.zeros(base_ds.shape)
         for sp, dataset in sp_group.iteritems(): 
+            if sp in ex_pts: 
+                continue
             array = np.array(dataset)
             counts_array += fom_func(array)
         

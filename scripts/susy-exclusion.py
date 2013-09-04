@@ -31,12 +31,13 @@ def get_args():
     pl_parent = argparse.ArgumentParser(add_help=False)
     pl_parent.add_argument(
         '-e','--plot-ext', help='output extension', 
-        choices={'.pdf','.png','.eps'}, default='.pdf')
+        choices={'.pdf','.png','.eps', '.txt'}, default='.pdf')
     pl_parent.add_argument('-o','--out-dir', default='exclusion')
 
     parser = argparse.ArgumentParser(description=__doc__, parents=[pl_parent])
     parser.add_argument('hdf_input')
     parser.add_argument('yaml_cuts')
+    parser.add_argument('-t','--threshold', default=1.0, type=float, help=d)
     return parser.parse_args(sys.argv[1:])
 
 def _get_part_mstop_mlsp(string): 
@@ -68,7 +69,10 @@ def run():
     hdf = h5py.File(args.hdf_input)
     with open(args.yaml_cuts) as cuts_yml: 
         signal_regions = yaml.load(cuts_yml)
-    ex_plane = ExclusionPlane()
+    if args.plot_ext == '.txt': 
+        ex_plane = ExcludedList(args.threshold)
+    else: 
+        ex_plane = ExclusionPlane(args.threshold) 
     for signal_region in signal_regions: 
         sr_name = signal_region['region_key']
         sp_group = hdf[sr_name]
@@ -82,10 +86,27 @@ def run():
         contour_name = signal_region.get('fancy_name',sr_name)
         ex_plane.add_config(stop_lsp_ul, contour_name)
         # _plot_points(stop_lsp_ul, out_name)
+
     ex_plane.save(os.path.join(args.out_dir, 'comp' + args.plot_ext))
 
+class ExcludedList(object): 
+    def __init__(self, threshold=1.0, signal_prefix='stop'): 
+        self._threshold = threshold
+        self._excluded = set()
+        def make_signame(mstop, mlsp): 
+            return '{}-{}-{}'.format(signal_prefix, mstop, mlsp)
+        self.make_signame = make_signame
+    def add_config(self, stop_lsp_ul, label): 
+        for x, y, z in stop_lsp_ul: 
+            if z < self._threshold: 
+                self._excluded.add(self.make_signame(x,y))
+    def save(self, name): 
+        make_dir_if_none(dirname(name))
+        with open(name,'w') as output: 
+            output.write('\n'.join(self._excluded) + '\n')
+
 class ExclusionPlane(object): 
-    def __init__(self): 
+    def __init__(self, threshold=1.0): 
         self.figure = Figure(figsize=(9,8))
         self.canvas = FigCanvas(self.figure)
         self.ax = self.figure.add_subplot(1,1,1)
@@ -96,6 +117,7 @@ class ExclusionPlane(object):
         self._proxy_contour = []
         self.lw = 3
         self._pts = None
+        self._threshold = threshold
         
         
     def add_config(self, stop_lsp_ul, label): 
@@ -103,10 +125,11 @@ class ExclusionPlane(object):
         Expects a list of (mass stop, mass lsp, upper limit) tuples. 
         """
         x, y, z = zip(*stop_lsp_ul)
-        xmin = 80
-        ymin = 50
-        xi = np.linspace(xmin, max(x), 100)
-        yi = np.linspace(ymin, max(y), 100)
+        xmin, xmax = 80, max(x)
+        ymin, ymax = 50, max(y)
+        xpts = 100
+        xi = np.linspace(xmin, xmax, xpts)
+        yi = np.linspace(ymin, xmax, xpts * (ymax - ymin) // (xmax - xmin))
         xp, yp = np.meshgrid(xi, yi)
         delta = xp - yp
         mask = (delta < 0) | ( delta > 80.4)
@@ -116,10 +139,10 @@ class ExclusionPlane(object):
         # zp = griddata(x, y, z, xp, yp)
 
         zp[mask] = 3
-        extent = [xmin, max(x), ymin,max(y)]
+        extent = [xmin, xmax, ymin, ymax]
         ct_color = next(self.color_itr)
         draw_opts = dict(color=ct_color, linewidth=self.lw)
-        ct = self.ax.contour(xp, yp, zp, [1.0], 
+        ct = self.ax.contour(xp, yp, zp, [self._threshold], 
                              colors=ct_color, linewidths=self.lw )
         self._proxy_contour.append(
             ( Line2D((0,0),(0,1), **draw_opts), str(label)) )
