@@ -11,8 +11,9 @@ from stop.stack.table import LatexCutsConfig, FrameWrap, TalkWrap
 from stop.stack.aggregator import HistDict
 from collections import defaultdict
 
-import sys, re
+import sys, re, os
 from tempfile import TemporaryFile
+import subprocess
 
 def get_config(): 
     d = 'default: %(default)s'
@@ -27,15 +28,18 @@ def get_config():
     counts.add_argument('cuts_file', nargs='?', help='SR cuts file')
     count_signal_mode = counts.add_mutually_exclusive_group()
     count_signal_mode.add_argument(
-        '-s','--signal-point', const='stop-150-90', nargs='?', 
+        '-s','--signal-points', nargs='*', default=None, 
         help="assumes <particle>-<something> type name, " + c)
     count_signal_mode.add_argument('-m','--max-point', action='store_true')
     counts.add_argument('-f', '--filters', nargs='+', default=[])
+    counts.add_argument('-o','--out-dir', default='tex', help=d)
 
     regions = subs.add_parser('regions')
     regions.add_argument('config_file', help='input yaml file')
 
     args = parser.parse_args(sys.argv[1:])
+    if args.signal_points is None: 
+        args.signal_points = ['stop-200-170']
     return args
 
 def run(): 
@@ -117,8 +121,8 @@ def get_counts(args):
     for config in all_configs.values(): 
         phys_set |= set(config['backgrounds'])
 
-    if args.signal_point:
-        phys_set.add(args.signal_point)
+    for point in args.signal_points: 
+        phys_set.add(point)
 
     cuts = None
     if args.cuts_file: 
@@ -135,22 +139,36 @@ def get_counts(args):
         for config_name, config in all_configs.iteritems(): 
             sr_cuts = cuts.get(config_name,None)
             make_table(hists, config_name, config, args.max_point, out_file, 
-                       cuts=sr_cuts)
+                       cuts=sr_cuts, signal_points=args.signal_points)
     out_file.seek(0)
-    for line in out_file: 
-        print line.strip()
+    _compile_file(out_file, args.out_dir)
+
+def _compile_file(out_file, save_dir='tex'): 
+    if not os.path.isdir(save_dir): 
+        os.mkdir(save_dir)
+    with open('{}/talk.tex'.format(save_dir),'w') as tex: 
+        for line in out_file: 
+            tex.write(line)
+
+    texer = subprocess.Popen([
+            'pdflatex',
+            '-interaction=nonstopmode','-halt-on-error',
+            'talk.tex'], cwd=save_dir, stdout=subprocess.PIPE)
+    stdout, stderr = texer.communicate()
+    for line in stdout.split('\n'): 
+        if 'Fatal' in line: 
+            sys.stderr.write(line + '\n')
 
 def make_table(hists, config_name, config, max_point=False, out_file=None,
-               cuts=None): 
+               cuts=None, signal_points=[]): 
     GeV = 1000.0
     inf = float('inf')
-    def get_count(hist, met=150, ljpt=150): 
-        met_slice = hist['met'].slice(met*GeV,inf)
-        return float(met_slice['leadingJetPt'].slice(ljpt*GeV,inf))
 
     phys_cut_dict = defaultdict(dict)
     physics_set = set(config['backgrounds']) 
     physics_set.add('data')
+    for point in signal_points: 
+        physics_set.add(point)
     region_set = set(config['control_regions'])
     if cuts: 
         region_set.add(config['signal_region'])
