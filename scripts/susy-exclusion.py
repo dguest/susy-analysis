@@ -35,7 +35,9 @@ def get_args():
     pl_parent.add_argument(
         '-e','--plot-ext', help='output extension', 
         choices={'.pdf','.png','.eps', '.txt'}, default='.pdf')
-    pl_parent.add_argument('-r','--aspect-ratio', type=float, default=8.0/9)
+    pl_parent.add_argument(
+        '-r','--aspect-ratio', type=float, default=0.64, 
+        help=d + " tobi's magic ratio")
     pl_parent.add_argument('-o','--out-dir', default='exclusion')
     pl_parent.add_argument('-n','--out-name', default='comb')
 
