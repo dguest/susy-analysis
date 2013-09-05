@@ -208,6 +208,38 @@ def make_latex_bg_table(physics_cut_dict, out_file=Temp(), title=''):
     out_file.write(r'\end{tabular}' + '\n')
     return out_file
 
+_file_begin="""
+\documentclass{beamer}
+\useoutertheme{infolines}
+\setbeamertemplate{navigation symbols}{}
+
+\\title{Selected Plots}
+\\author[dguest]{Dan Guest}
+\institute[Yale]{Yale University}
+\\begin{document}
+"""
+
+class TalkWrap(object): 
+    def __init__(self, out_file): 
+        self.out_file = out_file
+    def __enter__(self): 
+        self.out_file.write(_file_begin)
+    def __exit__(self, exc, exc_type, traceback): 
+        self.out_file.write('\end{document}\n')
+
+class FrameWrap(object): 
+    def __init__(self, out_file): 
+        self.out_file = out_file
+    def __enter__(self): 
+        self.out_file.write('\\begin{frame}\n')
+        self.out_file.write('\\begin{tiny}\n')
+        self.out_file.write('\\begin{center}\n')
+    def __exit__(self, exc, exc_type, traceback): 
+        self.out_file.write('\end{center}\n')
+        self.out_file.write('\end{tiny}\n')
+        self.out_file.write('\end{frame}\n') 
+    
+
 def make_marktable(physics_cut_dict, out_file, title=''): 
     """
     Makes table with columns named by region, rows named by physics type. 
