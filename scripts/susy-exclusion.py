@@ -36,8 +36,10 @@ def get_args():
         '-e','--plot-ext', help='output extension', 
         choices={'.pdf','.png','.eps', '.txt'}, default='.pdf')
     pl_parent.add_argument(
-        '-r','--aspect-ratio', type=float, default=0.64, 
-        help=d + " tobi's magic ratio")
+        '-r','--aspect-ratio', nargs='?', type=float, default=8.0/9.0,
+        const=0.64, 
+        help=("defaults to %(default).2f, "
+              "const value is %(const).2f"))
     pl_parent.add_argument('-o','--out-dir', default='exclusion')
     pl_parent.add_argument('-n','--out-name', default='comb')
 
@@ -126,6 +128,7 @@ class ExclusionPlane(object):
         self.figure = Figure(figsize=(width,height))
         self.canvas = FigCanvas(self.figure)
         self.ax = self.figure.add_subplot(1,1,1)
+        self.ax.grid(True)
         self.ax.tick_params(labelsize=16)
         self.ax.set_ylabel('$m_{\mathrm{lsp}}$ [GeV]', **vdict)
         self.ax.set_xlabel('$m_{\mathrm{stop}}$ [GeV]', **hdict)
