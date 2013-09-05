@@ -35,7 +35,9 @@ def get_args():
     pl_parent.add_argument(
         '-e','--plot-ext', help='output extension', 
         choices={'.pdf','.png','.eps', '.txt'}, default='.pdf')
+    pl_parent.add_argument('-r','--aspect-ratio', type=float, default=8.0/9)
     pl_parent.add_argument('-o','--out-dir', default='exclusion')
+    pl_parent.add_argument('-n','--out-name', default='comb')
 
     parser = argparse.ArgumentParser(
         description=__doc__, parents=[pl_parent], 
@@ -72,12 +74,16 @@ def _bin_from_cut(cutval, extent, n_bins):
 def run(): 
     args = get_args()
     hdf = h5py.File(args.hdf_input)
+    plot_args = dict(
+        threshold=args.threshold, 
+        aspect_ratio=args.aspect_ratio, 
+        signal_prefix='stop')
     with open(args.yaml_cuts) as cuts_yml: 
         signal_regions = yaml.load(cuts_yml)
     if args.plot_ext == '.txt': 
-        ex_plane = ExcludedList(args.threshold)
+        ex_plane = ExcludedList(**plot_args)
     else: 
-        ex_plane = ExclusionPlane(args.threshold) 
+        ex_plane = ExclusionPlane(**plot_args)
     for signal_region in signal_regions: 
         sr_name = signal_region['region_key']
         sp_group = hdf[sr_name]
@@ -93,14 +99,14 @@ def run():
         ex_plane.add_config(stop_lsp_ul, contour_name, style)
         # _plot_points(stop_lsp_ul, out_name)
 
-    ex_plane.save(os.path.join(args.out_dir, 'comp' + args.plot_ext))
+    ex_plane.save(os.path.join(args.out_dir, args.out_name + args.plot_ext))
 
 class ExcludedList(object): 
-    def __init__(self, threshold=1.0, signal_prefix='stop'): 
+    def __init__(self, threshold, **argv): 
         self._threshold = threshold
         self._excluded = set()
         def make_signame(mstop, mlsp): 
-            return '{}-{}-{}'.format(signal_prefix, mstop, mlsp)
+            return '{}-{}-{}'.format(argv['signal_prefix'], mstop, mlsp)
         self.make_signame = make_signame
     def add_config(self, stop_lsp_ul, label, style=None): 
         for x, y, z in stop_lsp_ul: 
@@ -112,8 +118,10 @@ class ExcludedList(object):
             output.write('\n'.join(self._excluded) + '\n')
 
 class ExclusionPlane(object): 
-    def __init__(self, threshold=1.0): 
-        self.figure = Figure(figsize=(9,8))
+    def __init__(self, threshold=1.0, **argv): 
+        width = 9.0
+        height = width*argv.get('aspect_ratio',8.0/width)
+        self.figure = Figure(figsize=(width,height))
         self.canvas = FigCanvas(self.figure)
         self.ax = self.figure.add_subplot(1,1,1)
         self.ax.tick_params(labelsize=16)
