@@ -42,7 +42,7 @@ def get_config():
 
     single_parser = subs.add_parser('tagone', parents=[plotting_general])
     single_parser.add_argument('-p','--physics-type', required=True)
-
+    
     kinematic_parser = subs.add_parser(
         'kin', parents=[plotting_general])
     phys_type = kinematic_parser.add_mutually_exclusive_group(required=True)
@@ -53,6 +53,7 @@ def get_config():
                            const='stop-200-125')
     phys_type.add_argument('--all', nargs='?', 
                            const='stop-200-125')
+    kinematic_parser.add_argument('--sys-factor', type=float, default=0)
     
     args = top_parser.parse_args(sys.argv[1:])
     return args

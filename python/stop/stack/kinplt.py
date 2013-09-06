@@ -32,7 +32,8 @@ def run_kinematic_plot(args):
     hists_by_region = defaultdict(dict)
     for (phys, var, region), hist in hists.iteritems(): 
         hists_by_region[region][phys,var] = hist
-    out_args = dict(odir=args.output_dir, ext=args.ext)
+    out_args = dict(odir=args.output_dir, ext=args.ext, 
+                    sys_factor=args.sys_factor)
     preselection_hists = _get_preselection(hists_by_region)
     for region, reg_hists in hists_by_region.iteritems(): 
         _plot_region_kinematics(
@@ -45,9 +46,11 @@ def run_kinematic_plot(args):
             _plot_region_kinematics(
                 region, reg_hists, signal_point, set(), **out_args)
         if preselection_hists: 
+            no_sysfactor = {
+                a:v for a, v in out_args.iteritems() if a != 'sys_factor'}
             _plot_preselection(
                 region, reg_hists, preselection_hists, 
-                signal_point, **out_args)
+                signal_point, **no_sysfactor)
 
 def _get_preselection(hists_by_region): 
     preselection_reg = [r for r in hists_by_region if 'preselection' in r]
@@ -94,7 +97,7 @@ def _get_hists(hists, signal_point, bg_set=set()):
     return sig_hist, bg_hist
 
 def _plot_region_kinematics(region, hists, signal_point, bg_set, 
-                            odir='plots', ext='.pdf'): 
+                            odir='plots', ext='.pdf', sys_factor=0.0): 
 
     sig_hist, bg_hist = _get_hists(hists, signal_point, bg_set)
 
@@ -128,14 +131,15 @@ def _plot_region_kinematics(region, hists, signal_point, bg_set,
         
     the_plot.save('{}/{}-{}{}'.format(odir, meth, region,ext), **save_args)
 
-    sys_factor = 0.3
     if bg_hist and sig_hist: 
         s = integrate(sig_hist)
         b = integrate(bg_hist)
         s_over_sqrt_b =  s /(s + b + (sys_factor * b)**2 )**0.5
         sosb_plot = h2_from_hn(s_over_sqrt_b)
-        cb_tmp = '{} $s / \sqrt{{s + b + ({:.2}b)^2}}$'
-        sosb_plot.cb_label = cb_tmp.format(signal_point, sys_factor)
+        cb_tmp = '{} $s / \sqrt{{s + b}}$'
+        if sys_factor: 
+            cb_tmp = '{} $s / \sqrt{{s + b + ({f:.2}b)^2}}$'
+        sosb_plot.cb_label = cb_tmp.format(signal_point, f=sys_factor)
         sosb_plot.save(
             '{}/{}-over-sqrt-b-{}{}'.format(odir, signal_point,region,ext), 
             log=False)
