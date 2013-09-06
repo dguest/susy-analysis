@@ -23,8 +23,7 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg as FigCanvas
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from stop.style import vdict
-from scipy.interpolate import Rbf, interp2d
-from matplotlib.mlab import griddata
+from scipy.interpolate import LinearNDInterpolator
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
 from matplotlib.font_manager import FontProperties
@@ -49,6 +48,7 @@ def get_args():
     parser.add_argument('hdf_input')
     parser.add_argument('yaml_cuts')
     parser.add_argument('-t','--threshold', default=1.0, type=float, help=d)
+    parser.add_argument('--heat', action='store_true')
     return parser.parse_args(sys.argv[1:])
 
 def _get_part_mstop_mlsp(string): 
@@ -101,7 +101,8 @@ def run():
         contour_name = signal_region.get('fancy_name',sr_name)
         style = signal_region.get('draw_style', None)
         ex_plane.add_config(stop_lsp_ul, contour_name, style)
-        # _plot_points(stop_lsp_ul, out_name)
+        if args.heat: 
+            _plot_points(stop_lsp_ul, out_name)
 
     ex_plane.save(os.path.join(args.out_dir, args.out_name + args.plot_ext))
 
@@ -155,9 +156,14 @@ class ExclusionPlane(object):
         """
         Expects a list of (mass stop, mass lsp, upper limit) tuples. 
         """
-        x, y, z = zip(*stop_lsp_ul)
-        xmin, xmax = 80, max(x)
-        ymin, ymax = 50, max(y)
+        low_x = 80
+        low_y = 50
+        slu = np.array(stop_lsp_ul)
+        low_dummy = self._threshold*0.99
+        add_pts = np.array([(5,0, low_dummy),(75, 0, low_dummy)])
+        x, y, z = np.vstack((slu, add_pts)).T
+        xmin, xmax = low_x, max(x)
+        ymin, ymax = low_y, max(y)
         xpts = 100
         xi = np.linspace(xmin, xmax, xpts)
         yi = np.linspace(ymin, xmax, xpts * (ymax - ymin) // (xmax - xmin))
@@ -165,11 +171,12 @@ class ExclusionPlane(object):
         delta = xp - yp
         mask = (delta < 0) | ( delta > 80.4)
 
-        rbf = Rbf(x, y, z, function='linear')
-        zp = rbf(xp, yp)
-        # zp = griddata(x, y, z, xp, yp)
+        pts = np.dstack((x,y)).squeeze()
+        lin = LinearNDInterpolator(pts, z)
+        interp_points = np.dstack((xp.flatten(), yp.flatten())).squeeze()
+        zp = lin(interp_points).reshape(xp.shape)
 
-        zp[mask] = 3
+        zp[np.isnan(zp)] = self._threshold*1.001
         extent = [xmin, xmax, ymin, ymax]
         ct_color, ct_style = self._get_style(style)
         draw_opts = dict(color=ct_color, linewidth=self.lw, linestyle=ct_style)
@@ -179,7 +186,8 @@ class ExclusionPlane(object):
         self._proxy_contour.append(
             ( Line2D((0,0),(0,1), **draw_opts), str(label)) )
         if not self._pts: 
-            self._pts, = self.ax.plot(x,y,'.k')
+            inpts = (x > xmin) & (y > ymin)
+            self._pts, = self.ax.plot(x[inpts],y[inpts],'.k')
             self._proxy_contour.insert(0,(self._pts, 'signal points'))
 
     def _add_labels(self): 
@@ -223,9 +231,14 @@ def _plot_points(stop_lsp_ul, out_name):
     xp, yp = np.meshgrid(xi, yi)
     delta = xp - yp
     mask = (delta < 0) | ( delta > 80.4)
-    rbf = Rbf(x, y, z, function='linear')
-    zp = rbf(xp, yp)
-    zp[mask] = 3
+    # rbf = Rbf(x, y, z, function='linear')
+    # zp = rbf(xp, yp)
+    pts = np.dstack((x,y))[0]
+    lin = LinearNDInterpolator(pts, z)
+    interp_points = np.dstack((xp.flatten(), yp.flatten()))[0]
+    zp = lin(interp_points).reshape(xp.shape)
+    # zp = griddata(x, y, z, xp, yp)
+    # zp[mask] = 3
     extent = [min(x), max(x), min(y),max(y)]
     im = ax.imshow(zp, vmin=0.0, vmax=2.0, origin='lower',
                    extent=extent)
