@@ -96,18 +96,18 @@ def _get_hists(hists, signal_point, bg_set=set()):
             sig_hist = hist
     return sig_hist, bg_hist
 
+def _integrate(hist, reverse=True): 
+    int_hist = hist['met'].integrate(reverse=reverse)
+    return int_hist['leadingJetPt'].integrate(reverse=reverse)
+
 def _plot_region_kinematics(region, hists, signal_point, bg_set, 
                             odir='plots', ext='.pdf', sys_factor=0.0): 
 
     sig_hist, bg_hist = _get_hists(hists, signal_point, bg_set)
 
-    def integrate(hist, reverse=True): 
-        int_hist = hist['met'].integrate(reverse=reverse)
-        return int_hist['leadingJetPt'].integrate(reverse=reverse)
-
     if bg_hist and sig_hist: 
-        num = integrate(sig_hist)
-        denom = integrate(bg_hist)
+        num = _integrate(sig_hist)
+        denom = _integrate(bg_hist)
         the_hist = num / denom
         meth = '{}-over-bg'.format(signal_point)
         save_args = dict(log=False, vrange=(0.0, 0.4))
@@ -132,14 +132,19 @@ def _plot_region_kinematics(region, hists, signal_point, bg_set,
     the_plot.save('{}/{}-{}{}'.format(odir, meth, region,ext), **save_args)
 
     if bg_hist and sig_hist: 
-        s = integrate(sig_hist)
-        b = integrate(bg_hist)
-        s_over_sqrt_b =  s /(s + b + (sys_factor * b)**2 )**0.5
-        sosb_plot = h2_from_hn(s_over_sqrt_b)
-        cb_tmp = '{} $s / \sqrt{{s + b}}$'
-        if sys_factor: 
-            cb_tmp = '{} $s / \sqrt{{s + b + ({f:.2}b)^2}}$'
-        sosb_plot.cb_label = cb_tmp.format(signal_point, f=sys_factor)
+        sosb_plot = _get_s_over_sqrt_b(sig_hist, bg_hist, sys_factor, 
+                                       signal_point)
         sosb_plot.save(
             '{}/{}-over-sqrt-b-{}{}'.format(odir, signal_point,region,ext), 
             log=False)
+
+def _get_s_over_sqrt_b(sig_hist, bg_hist, sys_factor, signal_point): 
+    s = _integrate(sig_hist)
+    b = _integrate(bg_hist)
+    s_over_sqrt_b =  s /(s + b + (sys_factor * b)**2 )**0.5
+    sosb_plot = h2_from_hn(s_over_sqrt_b)
+    cb_tmp = '{} $s / \sqrt{{s + b}}$'
+    if sys_factor: 
+        cb_tmp = '{} $s / \sqrt{{s + b + ({f:.2}b)^2}}$'
+    sosb_plot.cb_label = cb_tmp.format(signal_point, f=sys_factor)
+    return sosb_plot
