@@ -46,6 +46,7 @@ def run():
                               parents=[pl_parent])
     plotter.add_argument('hdf_file')
     plotter.add_argument('-o', '--out-dir', default='plots')
+    plotter.add_argument('-f', '--fix-range', action='store_true')
 
     plotter = subs.add_parser('sum', description=_plot_sum_fom.__doc__, 
                               parents=[pl_parent])
@@ -129,7 +130,7 @@ def _plot(args):
             extents = dataset.attrs['extent']
             ax_names = dataset.attrs['ax_names']
 
-            if not sp in ranges: 
+            if not sp in ranges and args.fix_range: 
                 ranges[sp] = (array.min(), array.max())
             
             out_file_name = '{}-{}-plane{}'.format(
@@ -139,7 +140,7 @@ def _plot(args):
             out_path = os.path.join(args.out_dir, out_file_name)
             print 'plotting {}'.format(out_path)
             _draw_plot(array, extents, (config, sp), ax_names=ax_names, 
-                       out_path=out_path, cb_range=ranges[sp])
+                       out_path=out_path, cb_range=ranges.get(sp,None))
             
 
 # --- several figures of merit to choose from
