@@ -54,6 +54,7 @@ def get_config():
     phys_type.add_argument('--all', nargs='?', 
                            const='stop-200-125')
     kinematic_parser.add_argument('--sys-factor', type=float, default=0)
+    kinematic_parser.add_argument('-z', '--fix-z-range', action='store_true')
     
     args = top_parser.parse_args(sys.argv[1:])
     return args

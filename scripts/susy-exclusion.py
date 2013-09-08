@@ -197,10 +197,10 @@ class ExclusionPlane(object):
         self.ax.text(0.6, 0.2, 
                      '$\int\ \mathcal{L}\ dt\ =\ 20.3\ \mathrm{fb}^{-1}$',
                      transform=self.ax.transAxes, size=24)
-        self.ax.text(0.7, 0.1, 'ATLAS', style='italic', weight='bold', 
+        self.ax.text(0.7, 0.05, 'ATLAS', style='italic', weight='bold', 
                      horizontalalignment='right', 
                      transform=self.ax.transAxes, size=24)
-        self.ax.text(0.7, 0.1, ' INTERNAL', style='italic', 
+        self.ax.text(0.7, 0.05, ' INTERNAL', style='italic', 
                      horizontalalignment='left', 
                      transform=self.ax.transAxes, size=24)
 

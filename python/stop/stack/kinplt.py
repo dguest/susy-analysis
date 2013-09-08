@@ -34,6 +34,8 @@ def run_kinematic_plot(args):
         hists_by_region[region][phys,var] = hist
     out_args = dict(odir=args.output_dir, ext=args.ext, 
                     sys_factor=args.sys_factor)
+    if args.fix_z_range: 
+        out_args['z_range'] = True
     preselection_hists = _get_preselection(hists_by_region)
     for region, reg_hists in hists_by_region.iteritems(): 
         _plot_region_kinematics(
@@ -101,7 +103,8 @@ def _integrate(hist, reverse=True):
     return int_hist['leadingJetPt'].integrate(reverse=reverse)
 
 def _plot_region_kinematics(region, hists, signal_point, bg_set, 
-                            odir='plots', ext='.pdf', sys_factor=0.0): 
+                            odir='plots', ext='.pdf', sys_factor=0.0, 
+                            z_range=False): 
 
     sig_hist, bg_hist = _get_hists(hists, signal_point, bg_set)
 
@@ -110,7 +113,9 @@ def _plot_region_kinematics(region, hists, signal_point, bg_set,
         denom = _integrate(bg_hist)
         the_hist = num / denom
         meth = '{}-over-bg'.format(signal_point)
-        save_args = dict(log=False, vrange=(0.0, 0.4))
+        save_args = dict(log=False)
+        if z_range: 
+            save_args['vrange'] = (0.0, 0.3)
         cb_label = '{} / BG'.format(signal_point)
     elif sig_hist and not bg_hist: 
         the_hist = integrate(sig_hist)
@@ -125,7 +130,6 @@ def _plot_region_kinematics(region, hists, signal_point, bg_set,
     the_plot = h2_from_hn(the_hist)
     the_plot.cb_label = cb_label
 
-
     if not isdir(odir): 
         os.mkdir(odir)
         
@@ -134,9 +138,15 @@ def _plot_region_kinematics(region, hists, signal_point, bg_set,
     if bg_hist and sig_hist: 
         sosb_plot = _get_s_over_sqrt_b(sig_hist, bg_hist, sys_factor, 
                                        signal_point)
+        if z_range: 
+            save_args['vrange'] = (0.0, 12.0)
+        out_tmp = '{}/{}-over-sqrt-b-{}{}'
+        if sys_factor: 
+            out_tmp = '{}/{}-over-sqrt-b-{}-sys-{s}{}'
         sosb_plot.save(
-            '{}/{}-over-sqrt-b-{}{}'.format(odir, signal_point,region,ext), 
-            log=False)
+            out_tmp.format(odir, signal_point,region,ext, 
+                           s=int(sys_factor*100)), 
+            **save_args)
 
 def _get_s_over_sqrt_b(sig_hist, bg_hist, sys_factor, signal_point): 
     s = _integrate(sig_hist)
