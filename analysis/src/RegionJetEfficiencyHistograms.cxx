@@ -121,7 +121,7 @@ void RegionJetEfficiencyHistograms::fill(const EventObjects& objects) {
   for (auto jitr = jets.cbegin(); jitr != jets.cend(); jitr++){
     auto hist_itr = m_jet_pt_hists.find(jitr->flavor_truth_label()); 
     if (hist_itr == m_jet_pt_hists.end()) { 
-      throw std::logic_error("unknown jet flavor label in "__FILE__); 
+      throw std::logic_error("unknown jet flavor label in " __FILE__); 
     }
     hist_itr->second->fill(*jitr, event_weight); 
   }

@@ -43,7 +43,7 @@ PY_LIB   +=   $(shell $(PY_CONFIG) --libs)
 
 
 # --- set compiler and flags (roll c options and include paths together)
-CXX          := g++44
+CXX          := g++
 ifdef CXX_LOCAL
 CXX          := $(CXX_LOCAL)
 endif

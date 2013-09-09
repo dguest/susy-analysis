@@ -45,7 +45,7 @@ void JetTagRescaler::init(std::istream& in_file)
     std::pair<double, double> cor_err(correction, error); 
     if (m_op_map[tagging_pt][flavor_truth_label][pt_high * 1e3].first != 0.0){
       throw std::runtime_error("tried to redefine scalefactor "
-			       "(in "__FILE__")"); 
+			       "(in " __FILE__")"); 
     }
       
     m_op_map[tagging_pt][flavor_truth_label][pt_high * 1e3] = cor_err; 
@@ -74,14 +74,14 @@ std::pair<double, double> JetTagRescaler
     if (m_return_dummy) { 
       return m_dummy_value; 
     }
-    throw std::logic_error("can't find operating point in "__FILE__); 
+    throw std::logic_error("can't find operating point in " __FILE__); 
   }
   TruthMap::const_iterator pt_map = flavor_map->second.find(truth_label); 
   if (pt_map == flavor_map->second.end() ) {
     if (m_return_dummy) { 
       return m_dummy_value; 
     }
-    throw std::runtime_error("can't find flavor in "__FILE__); 
+    throw std::runtime_error("can't find flavor in " __FILE__); 
   }
 
   double min_pt = pt_map->second.begin()->first; 
@@ -99,7 +99,7 @@ std::pair<double, double> JetTagRescaler
     if (m_return_dummy) { 
       return m_dummy_value; 
     }
-    throw std::runtime_error("can't find pt bin in "__FILE__); 
+    throw std::runtime_error("can't find pt bin in " __FILE__); 
   }
   return sf_err->second; 
 }
@@ -135,6 +135,6 @@ jettag::TaggingPoint JetTagRescaler::tp_from_str(std::string op) {
   }
   else { 
     throw std::runtime_error("not sure what to do with OP " + op + 
-			     " in "__FILE__); 
+			     " in " __FILE__); 
   }
 }

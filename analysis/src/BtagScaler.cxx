@@ -49,7 +49,7 @@ double BtagScaler::get_scalefactor(unsigned jet_mask, Flavor flavor,
   case TDOWN: 
     return flavor == Flavor::TAU ? base + err_down: base; 
   default: 
-    throw std::logic_error("got unknown systematic in "__FILE__); 
+    throw std::logic_error("got unknown systematic in " __FILE__); 
   }
 }
 

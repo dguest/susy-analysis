@@ -47,7 +47,7 @@ double Jet::flavor_weight(Flavor flav, btag::Tagger tagger) const {
     case Flavor::CHARM:  return m_pc; 
     case Flavor::LIGHT:  return m_pu; 
     default: { 
-      throw std::invalid_argument("non-implemented flavor in "__FILE__); 
+      throw std::invalid_argument("non-implemented flavor in " __FILE__); 
     }
     }
   }
@@ -57,11 +57,11 @@ double Jet::flavor_weight(Flavor flav, btag::Tagger tagger) const {
     case Flavor::CHARM:  return m_jfc_pc; 
     case Flavor::LIGHT:  return m_jfc_pu; 
     default: { 
-      throw std::invalid_argument("non-implemented flavor in "__FILE__); 
+      throw std::invalid_argument("non-implemented flavor in " __FILE__); 
     }
     }
   }
-  throw std::invalid_argument("non-implemented tagger in "__FILE__); 
+  throw std::invalid_argument("non-implemented tagger in " __FILE__); 
 }
 Flavor Jet::flavor_truth_label() const { 
   if (m_ioflags & ioflag::no_truth) { 

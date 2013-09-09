@@ -46,7 +46,7 @@ namespace btag {
     case JFC_MEDIUM: return "_jfc_medium_";
     case JFC_TIGHT:  return "_jfc_tight_";
     case JFC_ANTILOOSE: return joiner(JFC_LOOSE); 
-    case NOTAG: throw std::logic_error("we don't set no tag (in "__FILE__")"); 
+    case NOTAG: throw std::logic_error("we don't set no tag (in " __FILE__")"); 
     default: throw std::logic_error("asked for string for undefined tagger"); 
     }
   }

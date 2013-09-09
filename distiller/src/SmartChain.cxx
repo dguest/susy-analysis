@@ -67,7 +67,7 @@ void SmartChain::SetBranchAddressPrivate(std::string name, void* branch,
       std::string prob = (boost::format("missing branch: %s") % name).str();
       throw std::runtime_error(prob);
     }
-    default: throw std::logic_error("unknown action in "__FILE__); 
+    default: throw std::logic_error("unknown action in " __FILE__); 
     }
   }
   int return_code = TChain::SetBranchAddress(name.c_str(), branch); 

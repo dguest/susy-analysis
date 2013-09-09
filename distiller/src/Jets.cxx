@@ -82,7 +82,7 @@ double SelectedJet::jvf() const {
 }
 double SelectedJet::flavor_weight(btag::Flavor flavor, 
 				  btag::Tagger tag) const { 
-  const std::string err = "flavor fallthrough in "__FILE__; 
+  const std::string err = "flavor fallthrough in " __FILE__; 
   if (tag == btag::CNN) { 
     switch (flavor) { 
     case btag::B: return m_cnn_b; 
@@ -103,7 +103,7 @@ double SelectedJet::flavor_weight(btag::Flavor flavor,
     }
     }
   }
-  throw std::logic_error("tag fallthrough in "__FILE__);
+  throw std::logic_error("tag fallthrough in " __FILE__);
 }
 int SelectedJet::flavor_truth_label() const { 
   assert(m_flavor_truth_label != -1); 

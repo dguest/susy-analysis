@@ -35,7 +35,7 @@ bool BosonTruthFilter::is_over_threshold(const SusyBuffer* buffer) {
 	l2.SetPtEtaPhiM(pt,eta, phi, m);
 	foundSecond = true;
       } else {
-	throw std::runtime_error("found more than 2 leptons (in "__FILE__")");
+	throw std::runtime_error("found more than 2 leptons (in " __FILE__ ")");
       }
     }
   }
