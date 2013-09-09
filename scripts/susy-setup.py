@@ -55,6 +55,8 @@ def get_config():
     ws_args.add_argument('-c','--config-yaml', default='fits.yml', help=d)
     ws_args.add_argument('-s','--script',default='leaky-roof.sh', 
                          help=d)
+    ws_args.add_argument(
+        '-n','--n-kin-subjobs', default=3, type=int, help=d)
 
     fit_args = subs.add_parser('fit', description=setup_fit.__doc__)
     fit_args.add_argument('root')
@@ -119,25 +121,22 @@ def setup_workspaces(config):
                 config.config_yaml))
 
     n_fc = len(fit_config)
-    n_jobs = n_fc * n_sp
+    n_jobs = n_fc * n_sp * config.n_kin_subjobs
 
     sub_dict = {
         'n_jobs': n_jobs, 
         'out_dir': 'output/workspace', 
         'in_dir': '.', 
         'in_ext': '.txt', 
-        'walltime': '1:00:00', 
+        'walltime': '0:30:00', 
         }
     submit_head = _get_submit_head(**sub_dict)
     submit_tmp = (
-        'susy-histopt.py ms {} -s $SP_NUM -y {} -n $FIT_CONFIG')
+        'susy-histopt.py ms {} -y {} -n $(($PBS_ARRAYID-1)) -t {}')
     with open(config.script,'w') as the_job: 
         the_job.write(submit_head + '\n')
-        the_job.write('JOB_NUM=$(($PBS_ARRAYID-1))\n')
-        the_job.write('FIT_CONFIG=$(($JOB_NUM / {}))\n'.format(n_sp))
-        the_job.write('SP_NUM=$(($JOB_NUM % {}))\n'.format(n_sp))
         submit_line = submit_tmp.format(
-            config.kinematic_stat_dir, config.config_yaml)
+            config.kinematic_stat_dir, config.config_yaml, n_jobs)
         the_job.write(submit_line + '\n')
 
 def _build_fit_batch(root_dir, batch_path): 

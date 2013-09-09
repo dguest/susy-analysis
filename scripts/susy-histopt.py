@@ -18,9 +18,6 @@ def run():
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest='which')
 
-    ws = subparsers.add_parser('ws')
-    ws.add_argument('kinematic_stat_dir')
-
     fit = subparsers.add_parser('fit')
     fit.add_argument('workspace')
     fit.add_argument('-l','--upper-limit',action='store_true')
@@ -50,14 +47,12 @@ def run():
 
     multispace = subparsers.add_parser('ms')
     multispace.add_argument('kinematic_stat_dir')
-    multispace.add_argument(
-        '-s','--signal-point', default='stop-225-150', 
-        help='default: %(default)s, allows globbing, and numbering')
     multispace.add_argument('-y','--fit-config', required=True)
-    multispace.add_argument('-n','--config-number',type=int)
+    multispace.add_argument('-n','--job-number',type=int)
+    multispace.add_argument('-t','--total-jobs',type=int)
     
     config = parser.parse_args(sys.argv[1:])
-    opts = {'ws':_setup_workspace, 'fit':_new_histfit, 'pval':_get_p_value,
+    opts = {'fit':_new_histfit, 'pval':_get_p_value,
             'ul':_get_upper_limit, 'ms':_multispaces}
     opts[config.which](config)
 
@@ -170,38 +165,6 @@ def _fit_and_plot(name, draw_before=False, draw_after=False,
         name, 'ana_name', draw_before, draw_after, plot_corr_matrix, 
         plot_components, plot_nll, minos)
                   
-
-def _setup_workspace(config): 
-    backgrounds = [
-        'ttbar',
-        'Wjets',
-        'Zjets',
-        'diboson', 
-        't', 
-        ]
-    systematics = [
-        'jer',
-        'jes',
-        'b','c','u',
-        ]
-    counts = CountDict(config.kinematic_stat_dir, systematics=systematics)
-
-    GeV = 1000.0
-
-    import ROOT
-    with OutputFilter(): 
-        hf = ROOT.RooStats.HistFactory
-
-    fit = Workspace(counts, systematics, backgrounds)
-    fit.set_signal('stop-225-150')
-    for cr in ['ttbar0','Wenu0','Wmunu0','Znunu0']: 
-        fit.add_cr(cr, 150000.0, 150000.0)
-
-    for sr in ['SR0']: 
-        fit.add_sr(sr, 410*GeV, 270*GeV)
-    
-    fit.save_workspace('results')
-
 def _multispaces(config): 
     # hardcoded for now, consider freeing up
     systematics = [
@@ -214,29 +177,40 @@ def _multispaces(config):
 
     counts = CountDict(config.kinematic_stat_dir, systematics=systematics)
     all_sp = sorted({k[1] for k in counts if 'stop' in k[1]})
-    try: 
-        signal_points = [all_sp[int(config.signal_point)]]
-    except ValueError: 
-        signal_points = fnmatch.filter(all_sp, config.signal_point)
 
     with open(config.fit_config) as yml: 
         fit_configs = yaml.load(yml)
-    this_fit = list(fit_configs)[config.config_number]
 
-    for sp in signal_points: 
-        print 'booking signal point {}'.format(sp)
-        _book_signal_point(counts, sp, systematics, this_fit, 
-                           fit_configs[this_fit])
+    # get indices from the total and other parameters
+    total_jobs = config.total_jobs
+    job_number = config.job_number
+    sp_index = job_number % len(all_sp)
+    sp_remain = job_number // len(all_sp)
+    fit_index = sp_remain % len(fit_configs)
+    fit_remain = sp_remain // len(fit_configs)
+    n_kin_subjobs = total_jobs // len(all_sp) // len(fit_configs)
+    assert n_kin_subjobs > 0
+
+    signal_point = all_sp[sp_index]
+    this_fit = list(fit_configs)[fit_index]
+
+    print 'booking signal point {}'.format(signal_point)
+    _book_signal_point(counts, signal_point, systematics, this_fit, 
+                       fit_configs[this_fit], n_kin_subjobs, fit_remain)
 
 def _book_signal_point(counts, signal_point, systematics, 
-                       config_name, fit_config): 
+                       config_name, fit_config, n_kin_subjobs, selected_job): 
+    assert selected_job < n_kin_subjobs
     import ROOT
     backgrounds = fit_config['backgrounds']
     GeV = 1000.0
 
     met_values = xrange(150,500,20)
     ljpt_values = xrange(150,500,20)
-    for met_gev, ljpt_gev in itertools.product(met_values, ljpt_values): 
+    kin_iter = enumerate(itertools.product(met_values, ljpt_values))
+    for jobn, (met_gev, ljpt_gev) in kin_iter: 
+        if jobn % n_kin_subjobs != selected_job: 
+            continue
         print 'building met {:.0f}, ljpt {:.0f}'.format(met_gev, ljpt_gev)
         # TODO: this leaks memory like crazy, not sure why but bug reports
         # have been filed. For now just using output filters. 
