@@ -151,8 +151,8 @@ StopDistiller::Cutflow StopDistiller::run_cutflow() {
     cutflow_vec.push_back(std::make_pair("read_errors",n_error)); 
   }
   auto obj_counts = m_object_counter->get_ordered_cuts(); 
-  for (auto cut = obj_counts.begin(); cut != obj_counts.end(); cut++) { 
-    cutflow_vec.push_back(*cut); 
+  for (auto cut: obj_counts) {
+    cutflow_vec.push_back(cut); 
   }
   if (m_boson_truth_filter) { 
     int n_lt_2_lepton = m_boson_truth_filter->get_n_lt_2_lepton_events(); 
@@ -350,8 +350,8 @@ void StopDistiller::setup_chain(const std::vector<std::string>& in) {
     throw std::runtime_error("I need files to run!"); 
   }
 
-  for (auto file_itr = in.begin(); file_itr != in.end(); file_itr++) { 
-     m_chain->add(file_itr->c_str(),-1); 
+  for (auto file_itr: in){
+    m_chain->add(file_itr.c_str(),-1); 
   }
   m_ct_report->add_files(in); 
 
@@ -366,9 +366,8 @@ void StopDistiller::setup_chain(const std::vector<std::string>& in) {
   if (m_flags & cutflag::get_branches) { 
     std::vector<std::string> br_names = m_chain->get_all_branch_names();
     ofstream branch_save("all-set-branches.txt"); 
-    for (std::vector<std::string>::const_iterator itr = br_names.begin(); 
-	 itr != br_names.end(); itr++) { 
-      branch_save << *itr << std::endl;
+    for (auto itr: br_names){
+      branch_save << itr << std::endl;
     }
     branch_save.close(); 
   }

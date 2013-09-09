@@ -95,9 +95,8 @@ int HistBuilder::build() {
       if (m_factory->hfor_type() == hfor::KILL) continue; 
     }
     const EventObjects objects(m_factory, m_build_flags); 
-    for (auto itr = m_histograms.begin(); 
-	 itr != m_histograms.end(); itr++){
-      itr->second->fill(objects); 
+    for (auto itr: m_histograms){
+      itr.second->fill(objects); 
     }
 
   }
@@ -110,12 +109,10 @@ int HistBuilder::build() {
 
 void HistBuilder::save() const { 
 
-  for (auto itr = m_out_file_map.begin(); 
-       itr != m_out_file_map.end(); itr++) { 
-    H5::H5File file(itr->first, H5F_ACC_TRUNC); 
-    for (auto hist_itr = itr->second.begin(); hist_itr != itr->second.end(); 
-	 hist_itr++) { 
-      (*hist_itr)->write_to(file); 
+  for (auto itr: m_out_file_map) { 
+    H5::H5File file(itr.first, H5F_ACC_TRUNC); 
+    for (auto hist_itr: itr.second){
+      hist_itr->write_to(file); 
     }
   }
 }
