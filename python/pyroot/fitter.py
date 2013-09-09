@@ -161,9 +161,8 @@ class Workspace(object):
             background.SetValue(base_count)
             stat_error = cutfunc(self.counts['baseline',bg,sr]['wt2'])**0.5
             background.GetHisto().SetBinError(1,stat_error)
-            fixed_norm = bg in self.fixed_backgrounds
-            background.AddNormFactor('mu_{}'.format(bg), 1,0,10, fixed_norm)
-            # background.AddNormFactor('Lumi', 1,0,10)
+            if not bg in self.fixed_backgrounds: 
+                background.AddNormFactor('mu_{}'.format(bg), 1,0,10)
 
             for syst in self.systematics:
                 if syst in {'jes', 'u','c','b','t'}: 
