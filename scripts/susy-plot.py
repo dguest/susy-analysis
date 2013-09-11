@@ -177,7 +177,7 @@ def _plot_config(config, hists, cuts, sig_pt, save_name, max_val):
         for reg_n, cr in enumerate(control_regions,1): 
             y_vals[reg_n] = get_count(hists[sig_pt, variable, cr], cr_cuts)
         bar = ax.bar(ind, y_vals, width, color='black', fill=False, 
-                     linestyle='dashed')
+                     linestyle='dashed', linewidth=2)
         leg_entries.append( (bar[0], sig_pt))
     
     d_vals = np.zeros(n - 1)
