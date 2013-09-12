@@ -37,14 +37,16 @@ def plot_counts(args):
         if not config_name in cuts: 
             continue
         sr_cuts = cuts[config_name]
+        save_dir = 'reg-counts'
         if args.which == 'counts': 
-            save_dir = 'reg-counts'
             plot_func = _plot_config
+            prefix = 'counts-'
         elif args.which == 'comp': 
-            save_dir = 'reg-comp'
             plot_func = _plot_comp
+            prefix = 'comp-'
         make_dir_if_none(save_dir)
-        save_name = os.path.join(save_dir, config_name + args.ext)
+        file_name = prefix + config_name + args.ext
+        save_name = os.path.join(save_dir, file_name)
         plot_func(config, hists, sr_cuts, args.signal_point, save_name, 
                   args.max_val)
 
@@ -183,6 +185,7 @@ def _plot_config(config, hists, cuts, sig_pt, save_name, max_val):
     ax.set_xticks(ind + width/2)
     ax.set_xticklabels([signal_region] + control_regions)
     ax.set_ylabel('$n$ events')
+    ax.yaxis.grid(True, 'both')
     if max_val: 
         ax.set_ylim(0, max_val)
     leg = ax.legend(*zip(*reversed(leg_entries)), 
