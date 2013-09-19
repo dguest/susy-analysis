@@ -112,10 +112,23 @@ def _plot_comp(config, hists, cuts, sig_pt, save_name, max_val):
         bar = ax.bar(ind, y_vals, width, color='black', fill=False, 
                      linestyle='dashed', linewidth=2)
         leg_entries.append( (bar[0], sig_pt))
+    d_vals = np.zeros(n - 1)
+    d_vals_raw = np.zeros(n - 1)
+    d_x = np.arange(1,n)
+    for reg_n, cr in enumerate(control_regions): 
+        dval = get_count(hists['data',variable,cr], cr_cuts)
+        d_vals[reg_n] = dval / region_sums[reg_n + 1]
+        d_vals_raw[reg_n] = dval
+    low, high = poisson_interval(d_vals_raw)
+    y_errors = [
+        (high - d_vals_raw) / region_sums[1:], 
+        (d_vals_raw - low) / region_sums[1:]
+        ]
+    ax.errorbar(d_x + width/2, d_vals, fmt='ok', xerr=width/2, yerr=y_errors)
 
     ax.set_xticks(ind + width/2)
     ax.set_xticklabels([signal_region] + control_regions)
-    ax.set_ylim(0, 1)
+    ax.set_ylim(0, max(d_vals.max()*1.1, 1.1))
     ax.set_ylabel('events / total SM bg')
     leg = ax.legend(*zip(*reversed(leg_entries)), 
                      loc='upper right', framealpha=0.8)
