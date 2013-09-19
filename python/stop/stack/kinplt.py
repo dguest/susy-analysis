@@ -118,12 +118,12 @@ def _plot_region_kinematics(region, hists, signal_point, bg_set,
             save_args['vrange'] = (0.0, 0.3)
         cb_label = '{} / BG'.format(signal_point)
     elif sig_hist and not bg_hist: 
-        the_hist = integrate(sig_hist)
+        the_hist = _integrate(sig_hist)
         meth = signal_point
         save_args = dict(log=True)
         cb_label = signal_point
     elif bg_hist and not sig_hist: 
-        the_hist = integrate(bg_hist)
+        the_hist = _integrate(bg_hist)
         meth = 'bg'
         save_args = dict(log=True)
         cb_label = 'Background'
