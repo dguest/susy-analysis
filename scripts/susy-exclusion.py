@@ -41,6 +41,7 @@ def get_args():
               "const value is %(const).2f"))
     pl_parent.add_argument('-o','--out-dir', default='exclusion')
     pl_parent.add_argument('-n','--out-name', default='comb')
+    pl_parent.add_argument('-p','--pr-crap', action='store_true')
 
     parser = argparse.ArgumentParser(
         description=__doc__, parents=[pl_parent], 
@@ -104,6 +105,8 @@ def run():
         if args.heat: 
             _plot_points(stop_lsp_ul, out_name)
 
+    if args.pr_crap: 
+        ex_plane.add_labels()
     ex_plane.save(os.path.join(args.out_dir, args.out_name + args.plot_ext))
 
 class ExcludedList(object): 
@@ -190,7 +193,7 @@ class ExclusionPlane(object):
             self._pts, = self.ax.plot(x[inpts],y[inpts],'.k')
             self._proxy_contour.insert(0,(self._pts, 'signal points'))
 
-    def _add_labels(self): 
+    def add_labels(self): 
         self.ax.text(0.7, 0.3, 
                      '$\sqrt{s}\ =\ 8\ \mathrm{TeV}$',
                      transform=self.ax.transAxes, size=24)
@@ -210,7 +213,6 @@ class ExclusionPlane(object):
              loc='upper left', framealpha=0.0, numpoints=1)
         # may be able to use these to positon lables
         # (x1, y1),(x2,y2) = leg.get_bbox_to_anchor().get_points()
-        self._add_labels()
         make_dir_if_none(dirname(name))
         self.canvas.print_figure(name, bbox_inches='tight')
         
