@@ -13,7 +13,7 @@ def _filter_stream_type_tag(match_sets, stream, ntup_filter, p_tag):
         if not type_filtered: 
             raise DatasetMatchError(
                 'stream filter {} removed all {} with {}'.format(
-                    stream, args.items(), ntup_filter))
+                    stream, match_sets, ntup_filter))
         match_sets = type_filtered
 
     if len(match_sets) > 1: 
@@ -25,7 +25,7 @@ def _filter_stream_type_tag(match_sets, stream, ntup_filter, p_tag):
         if not type_filtered: 
             raise DatasetMatchError(
                 'type filter removed all {} with {}'.format(
-                    args.items(), ntup_filter))
+                    match_sets, ntup_filter))
         
         match_sets = type_filtered
 
@@ -37,7 +37,7 @@ def _filter_stream_type_tag(match_sets, stream, ntup_filter, p_tag):
         if not tagged_matches: 
             raise DatasetMatchError(
                 'p filter removed all {} with {}'.format(
-                    args.items(), p_tag))
+                    match_sets, p_tag))
         match_sets = tagged_matches
     return match_sets
 

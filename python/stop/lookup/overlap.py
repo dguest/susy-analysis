@@ -33,7 +33,7 @@ def _get_met_cuts_by_key(cut_key_list):
         yield key, met
 
 def _get_mq_mn_met(full_ds_name): 
-    met_filt_rex = re.compile('LSP_t([0-9]+)_n([0-9]+)_MET([0-9]+)')
+    met_filt_rex = re.compile('_t?([0-9]+)_n?([0-9]+)_MET([0-9]+)')
     inclusive_rex = re.compile('directCC_([0-9]+)_([0-9]+)')
     met_match = met_filt_rex.search(full_ds_name)
     inclusive_match = inclusive_rex.search(full_ds_name)

@@ -43,7 +43,8 @@ stop_signal = {
 }
 
 scharm = {
-    'squark-signal': DsRange( (162000,162349)), 
+    # 'squark-signal': DsRange( (162000,162349)), 
+    'scharm-signal': DsRange( (183424,183474)), 
     }
 
 variations = { 

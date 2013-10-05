@@ -73,7 +73,7 @@ def _add_build_parser(subs):
 
     parser.add_argument('-d','--dump', action='store_true')
     parser.add_argument(
-        '--write-steering', help='rewrite steering file')
+        '-s', '--write-steering', help='rewrite steering file')
     
 
 def get_ds_lists(cache): 
@@ -181,7 +181,7 @@ def find_overlap(name):
 
     Currently does the following: 
      - Truth boson Pt for Sherpa
-     - Truth MET for stop signals
+     - Truth MET (assuming _<mass>_<mass>_MET<met> form for ds name)
 
     """
     overlap_tool = overlap.OverlapMetaAdder(sherpa_boson_pt_gev=40)
@@ -245,7 +245,7 @@ def build_stop_file(name):
 def build_scharm_file(name): 
     from stop.lookup.ami import AmiAugmenter
     from stop.runtypes import scharm
-    aug = AmiAugmenter('p1328', 'mc12_8TeV')
+    aug = AmiAugmenter('p1512', 'mc12_8TeV')
     aug.bugstream = TemporaryFile()
     ds_cache = DatasetCache(name)
     for phys_type, ids in scharm.iteritems(): 
