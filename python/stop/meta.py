@@ -262,10 +262,13 @@ class DatasetCache(dict):
                 with open(cache_name) as cache: 
                     cached_dict = cPickle.load(cache)
                 super(DatasetCache, self).__init__(cached_dict)
-            if cache_name.endswith('.yml'): 
+            elif cache_name.endswith('.yml'): 
                 with open(cache_name) as cache: 
                     yml_dict = yaml.load(cache)
                 self._from_yml(yml_dict)
+            else: 
+                raise OSError('extension not recognized: {}'.format(
+                        cache_name))
 
     def _from_yml(self, yml_dict): 
         for ds_key, yml_ds in yml_dict.iteritems(): 
