@@ -289,40 +289,49 @@ namespace {
       flavor_truth_label = buffer.jet_flavor_truth_label->at(iJet); 
     }
     
-    return def.FillJet
-      (iJet, 
-       buffer.jet_pt                 ->at(iJet), 
-       buffer.jet_eta                ->at(iJet), 
-       buffer.jet_phi                ->at(iJet),
-       buffer.jet_E                  ->at(iJet), 
-       buffer.jet_constscale_eta        ->at(iJet), 
-       buffer.jet_constscale_phi        ->at(iJet), 
-       buffer.jet_constscale_E        ->at(iJet), 
-       buffer.jet_constscale_m        ->at(iJet),
-       buffer.jet_ActiveAreaPx->at(iJet), 
-       buffer.jet_ActiveAreaPy->at(iJet), 
-       buffer.jet_ActiveAreaPz->at(iJet), 
-       buffer.jet_ActiveAreaE->at(iJet), 
-       buffer.Eventshape_rhoKt4LC, 
-       buffer.jet_emfrac             ->at(iJet), 
-       buffer.jet_hecf               ->at(iJet),
-       buffer.jet_LArQuality         ->at(iJet), 
-       buffer.jet_HECQuality         ->at(iJet), 
-       buffer.jet_AverageLArQF       ->at(iJet), 
-       buffer.jet_Timing             ->at(iJet), 
-       buffer.jet_sumPtTrk           ->at(iJet), 
-       buffer.jet_fracSamplingMax    ->at(iJet),
-       buffer.jet_SamplingMax        ->at(iJet), 
-       buffer.jet_NegativeE          ->at(iJet), 
-       flavor_truth_label, 
-       buffer.averageIntPerXing,
-       buffer.vx_nTracks,             
-       buffer.RunNumber, 
-       flags & cutflag::is_data, 
-       JET_PT_CUT, 	
-       JET_ETA_CUT,	
-       JetID::VeryLooseBad,
-       get_susytools_systematic(info.systematic));
+    def.FillJet(
+      iJet, 
+      buffer.jet_pt                 ->at(iJet), 
+      buffer.jet_eta                ->at(iJet), 
+      buffer.jet_phi                ->at(iJet),
+      buffer.jet_E                  ->at(iJet), 
+      buffer.jet_constscale_eta        ->at(iJet), 
+      buffer.jet_constscale_phi        ->at(iJet), 
+      buffer.jet_constscale_E        ->at(iJet), 
+      buffer.jet_constscale_m        ->at(iJet),
+      buffer.jet_ActiveAreaPx->at(iJet), 
+      buffer.jet_ActiveAreaPy->at(iJet), 
+      buffer.jet_ActiveAreaPz->at(iJet), 
+      buffer.jet_ActiveAreaE->at(iJet), 
+      buffer.Eventshape_rhoKt4LC, 
+      buffer.averageIntPerXing,
+      buffer.vx_nTracks); 
+
+    def.ApplyJetSystematics(
+      iJet, 
+      buffer.jet_constscale_eta        ->at(iJet), 
+      flavor_truth_label, 
+      buffer.averageIntPerXing,
+      buffer.vx_nTracks, 
+      get_susytools_systematic(info.systematic)); 
+
+    return def.IsGoodJet(
+      iJet, 
+      buffer.jet_constscale_eta        ->at(iJet), 
+      buffer.jet_emfrac             ->at(iJet), 
+      buffer.jet_hecf               ->at(iJet),
+      buffer.jet_LArQuality         ->at(iJet), 
+      buffer.jet_HECQuality         ->at(iJet), 
+      buffer.jet_AverageLArQF       ->at(iJet), 
+      buffer.jet_Timing             ->at(iJet), 
+      buffer.jet_sumPtTrk           ->at(iJet), 
+      buffer.jet_fracSamplingMax    ->at(iJet),
+      buffer.jet_SamplingMax        ->at(iJet), 
+      buffer.jet_NegativeE          ->at(iJet), 
+      buffer.RunNumber, 
+      JET_PT_CUT, 	
+      JET_ETA_CUT,	
+      JetID::VeryLooseBad);
     
   }
 

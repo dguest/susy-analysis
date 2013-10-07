@@ -155,7 +155,9 @@ bool check_if_electron(int iEl,
 
   bool pass_el = def.FillElectron
     (iEl,
-     buffer.RunNumber,
+     // buffer.RunNumber,
+     buffer.el_eta                   ->at(iEl), 
+     buffer.el_phi                   ->at(iEl), 
      buffer.el_cl_eta                ->at(iEl),
      buffer.el_cl_phi                ->at(iEl),
      buffer.el_cl_E                  ->at(iEl),
@@ -168,7 +170,7 @@ bool check_if_electron(int iEl,
      buffer.el_nSCTHits              ->at(iEl),
      buffer.el_MET_Egamma10NoTau_wet->at(iEl).at(0), 
      // buffer.el_MET_Egamma10NoTau_wet ->at(iEl),
-     flags & cutflag::is_data, 
+     // flags & cutflag::is_data, 
      ELECTRON_ET_CUT,			// et cut
      ELECTRON_ETA_CUT
      );
@@ -207,7 +209,7 @@ bool check_if_muon(int iMu,
      buffer.mu_staco_pt                           ->at(iMu),
      buffer.mu_staco_eta                          ->at(iMu),
      buffer.mu_staco_phi                          ->at(iMu),
-     buffer.mu_staco_E                            ->at(iMu),
+     // buffer.mu_staco_E                            ->at(iMu),
      buffer.mu_staco_me_qoverp_exPV               ->at(iMu),
      buffer.mu_staco_id_qoverp_exPV               ->at(iMu),
      buffer.mu_staco_me_theta_exPV                ->at(iMu),
@@ -227,10 +229,10 @@ bool check_if_muon(int iMu,
      buffer.mu_staco_nSCTHoles                    ->at(iMu),
      buffer.mu_staco_nTRTHits                     ->at(iMu),
      buffer.mu_staco_nTRTOutliers                 ->at(iMu),
-     flags & cutflag::is_data, 
+     // flags & cutflag::is_data, 
      MUON_PT_CUT, 
      MUON_ETA_CUT);
-
+  // NOTE: no muon systematics can be applied right now
 
 }
 

@@ -273,8 +273,7 @@ TVector2 get_met(const SusyBuffer& buffer,
   }
   
   TVector2 met = def.GetMET
-    (buffer.jet_pt, 
-     buffer.jet_MET_Egamma10NoTau_wet,
+    (buffer.jet_MET_Egamma10NoTau_wet,
      buffer.jet_MET_Egamma10NoTau_wpx,
      buffer.jet_MET_Egamma10NoTau_wpy,
      buffer.jet_MET_Egamma10NoTau_statusWord,
@@ -296,7 +295,8 @@ TVector2 get_met(const SusyBuffer& buffer,
      buffer.mu_staco_ms_qoverp, 
      buffer.mu_staco_ms_theta, 
      buffer.mu_staco_ms_phi, 
-     buffer.mu_staco_charge,
+     buffer.mu_staco_charge, 
+     buffer.mu_staco_energyLossPar,
      buffer.averageIntPerXing); 
      
   return met; 

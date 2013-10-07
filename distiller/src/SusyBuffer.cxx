@@ -78,6 +78,8 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br,
 
  
   fChain->SetBranch("el_n", &el_n); 
+  fChain->SetBranch("el_eta", &el_eta); 
+  fChain->SetBranch("el_phi", &el_phi); 
   fChain->SetBranch("el_author", &el_author); 
   fChain->SetBranch("el_OQ", &el_OQ); 
   fChain->SetBranch("el_mediumPP", &el_mediumPP); 
@@ -122,6 +124,7 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br,
   fChain->SetBranch("mu_staco_nPixelDeadSensors", &mu_staco_nPixelDeadSensors); 
   fChain->SetBranch("mu_staco_nSCTDeadSensors", &mu_staco_nSCTDeadSensors); 
   fChain->SetBranch("mu_staco_expectBLayerHit", &mu_staco_expectBLayerHit); 
+  fChain->SetBranch("mu_staco_energyLossPar", &mu_staco_energyLossPar); 
 
   fChain->SetBranch(jc + "_n", &jet_n); 
   fChain->SetBranch(jc + "_pt", &jet_pt); 

@@ -4,14 +4,14 @@ USE_LIBS="
  SUSYTools GoodRunsLists\
  ApplyJetResolutionSmearing ApplyJetCalibration CalibrationDataInterface\
  egammaAnalysisUtils\
- egammaEvent JetResolution JetSelectorTools JetUncertainties\
+ egammaEvent JetResolution JetUncertainties\
  MissingETUtility MuonEfficiencyCorrections MuonMomentumCorrections\
- ObjectSelectorCore PileupReweighting ReweightUtils\
- TrigRootAnalysis TauCorrections\
+ PileupReweighting ReweightUtils\
+ TrigRootAnalysis TauCorrections TauCorrUncert\
  TrigMuonEfficiency ElectronEfficiencyCorrection PATCore TileTripReader"
 
 USE_HEADER="SUSYTools MissingETUtility egammaAnalysisUtils GoodRunsLists\
- CalibrationDataInterface"
+ CalibrationDataInterface TauCorrUncert"
 
 
 if [[ $1 == '-l' ]]

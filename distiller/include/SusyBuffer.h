@@ -85,6 +85,8 @@ public :
   
   vector<float>   *jet_jvtxf; 
   int             el_n;
+  vector<float>   *el_eta; 
+  vector<float>   *el_phi; 
   vector<int>     *el_author;
   vector<unsigned int> *el_OQ;
   // vector<unsigned int> *el_OQRecalc;
@@ -130,6 +132,7 @@ public :
   vector<int>     *mu_staco_nPixelDeadSensors;
   vector<int>     *mu_staco_nSCTDeadSensors;
   vector<int>     *mu_staco_expectBLayerHit;
+  vector<float>   *mu_staco_energyLossPar; 
 
   // Jet Stuff
   int           jet_n;
