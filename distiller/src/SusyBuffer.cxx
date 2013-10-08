@@ -145,7 +145,13 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br,
   fChain->SetBranch(jc + "_HECQuality", &jet_HECQuality); 
   fChain->SetBranch(jc + "_AverageLArQF", &jet_AverageLArQF); 
   fChain->SetBranch(jc + "_Timing", &jet_Timing); 
-  fChain->SetBranch(jc + "_sumPtTrk", &jet_sumPtTrk); 
+  try { 
+    fChain->SetBranch(jc + "_sumPtTrk", &jet_sumPtTrk); 
+    fChain->fake_set(jc + "_sumPtTrk_pv0_500MeV"); // may need later
+  } catch (const MissingBranchError& err) { 
+    fChain->SetBranch(jc + "_sumPtTrk_pv0_500MeV", &jet_sumPtTrk); 
+  }
+  
   fChain->SetBranch(jc +"_fracSamplingMax", &jet_fracSamplingMax); 
   fChain->SetBranch(jc + "_SamplingMax", &jet_SamplingMax); 
   fChain->SetBranch(jc + "_NegativeE", &jet_NegativeE); 
@@ -182,6 +188,17 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br,
   if (br & unleash_sharktopus){  
     fChain->SetBranch("sharktopus",&sharktopus); 
   }
+
+  fChain->SetBranch("trk_pt", &trk_pt); 
+  fChain->SetBranch("trk_eta", &trk_eta); 
+  fChain->SetBranch("trk_d0_wrtPV", &trk_d0_wrtPV); 
+  fChain->SetBranch("trk_z0_wrtPV", &trk_z0_wrtPV); 
+  fChain->SetBranch("trk_ndof", &trk_ndof); 
+  fChain->SetBranch("trk_chi2", &trk_chi2); 
+  fChain->SetBranch("trk_nPixHits", &trk_nPixHits); 
+  fChain->SetBranch("trk_nSCTHits", &trk_nSCTHits); 
+  fChain->SetBranch("trk_cone40_ptmin3gev_hitschi_nTrackIso", 
+		    &trk_cone40_ptmin3gev_hitschi_nTrackIso); 
 
 }
 

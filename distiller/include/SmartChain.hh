@@ -5,10 +5,11 @@
 #include <string> 
 #include <vector> 
 #include <set> 
+#include <stdexcept>
 #include "typedefs.hh"
 
 namespace chain { 
-  enum MissingBranchAction {THROW, NULL_POINTER}; 
+  enum MissingBranchAction {THROW, NULL_POINTER, NULL_NO_RECORD}; 
 }
 
 class SmartChain: public TChain { 
@@ -20,7 +21,7 @@ public:
   template<typename T, typename Z>
   void SetBranch(T name, Z branch, 
 		 chain::MissingBranchAction = chain::THROW); 
-
+  void fake_set(const std::string&); 
   std::vector<std::string> get_all_branch_names() const; 
   std::string get_current_file() const; 
 private: 
@@ -29,11 +30,19 @@ private:
 			       chain::MissingBranchAction action); 
   void throw_bad_branch(std::string name) const; 
   std::string get_files_string() const; 
+  void check_for_dup(const std::string& branch_name) const; 
   std::string m_tree_name; 
   Strings m_set_branches; 
   std::set<std::string> m_set_branch_set; 
+  std::set<std::string> m_fake_branches; 
   Strings m_files; 
   int m_last_tree; 		// to trigger branch check 
+}; 
+
+class MissingBranchError: public std::runtime_error 
+{
+public: 
+  MissingBranchError(const std::string& what_arg); 
 }; 
 
 // -------- implementation -----

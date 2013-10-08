@@ -33,10 +33,10 @@ int SmartChain::GetEntry(long long int entry_n, int getall) {
   gErrorIgnoreLevel = old_error_level; 
   int this_tree_n = GetTreeNumber(); 
   if (this_tree_n != m_last_tree) { 
-    for (Strings::const_iterator br_itr = m_set_branches.begin(); 
-	 br_itr != m_set_branches.end(); br_itr++) { 
-      if (!GetBranch(br_itr->c_str())) { 
-	throw_bad_branch(*br_itr); 
+    for (auto br_itr: m_set_branches) { 
+      if (m_fake_branches.count(br_itr)) continue; 
+      if (!GetBranch(br_itr.c_str())) { 
+	throw_bad_branch(br_itr); 
       }
     }
     m_last_tree = this_tree_n; 
@@ -54,6 +54,9 @@ std::string SmartChain::get_current_file() const {
 
 void SmartChain::SetBranchAddressPrivate(std::string name, void* branch, 
 					 chain::MissingBranchAction action) { 
+  check_for_dup(name); 
+  m_set_branch_set.insert(name); 
+  m_set_branches.push_back(name);
 
   unsigned branches_found = 0; 
   SetBranchStatus(name.c_str(), 1, &branches_found); 
@@ -63,9 +66,15 @@ void SmartChain::SetBranchAddressPrivate(std::string name, void* branch,
       SetBranchStatus(name.c_str(), 0, &branches_found); 
       return; 
     }
+    case chain::NULL_NO_RECORD: {
+      SetBranchStatus(name.c_str(), 0, &branches_found); 
+      m_set_branches.pop_back(); 
+      m_set_branch_set.erase(name); 
+      return; 
+    }
     case chain::THROW: {
       std::string prob = (boost::format("missing branch: %s") % name).str();
-      throw std::runtime_error(prob);
+      throw MissingBranchError(prob);
     }
     default: throw std::logic_error("unknown action in " __FILE__); 
     }
@@ -80,16 +89,16 @@ void SmartChain::SetBranchAddressPrivate(std::string name, void* branch,
     throw_bad_branch(name); 
   }
 
-  m_set_branches.push_back(name);
-
-  if (m_set_branch_set.count(name)) { 
-    std::string err = (boost::format("setting branch address: %s is already"
-				     " set in %s") % name % GetName()).str(); 
-    throw std::runtime_error(err); 
-  }
-  m_set_branch_set.insert(name); 
 }
 
+void SmartChain::fake_set(const std::string& name){ 
+  check_for_dup(name); 
+  m_set_branch_set.insert(name); 
+  m_set_branches.push_back(name);
+  m_fake_branches.insert(name); 
+}
+
+// ================ private functions ====================
 
 void SmartChain::throw_bad_branch(std::string name) const { 
   std::string issue = (boost::format("can't find branch %s, ") % name).str(); 
@@ -107,4 +116,19 @@ std::string SmartChain::get_files_string() const {
     if (*itr != *m_files.rbegin()) issue.append(", "); 
   }
   return issue; 
+}
+
+void SmartChain::check_for_dup(const std::string& name) const { 
+  if (m_set_branch_set.count(name)) { 
+    std::string err = (
+      boost::format("setting branch address: %s is already"
+		    " set in %s") % name % GetName()).str(); 
+    throw std::runtime_error(err); 
+  }
+}
+
+
+MissingBranchError::MissingBranchError(const std::string& what_arg): 
+  std::runtime_error(what_arg)
+{
 }
