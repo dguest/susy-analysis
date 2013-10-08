@@ -5,13 +5,17 @@ import sys, glob, os
 
 flags = 'vbgzf'
 configs = ['NOMINAL']
-if sys.argv[1] == 'all': 
-    files = sys.argv[2:]
-    configs = ['NOMINAL','ELECTRON_CR','MUON_CR']
-elif 'data' in sys.argv[1]: 
-    files = sys.argv[2:]
-    flags += 'd'
-
+files = []
+if len(sys.argv) > 1: 
+    if sys.argv[1] == 'all': 
+        files = sys.argv[2:]
+        configs = ['NOMINAL','ELECTRON_CR','MUON_CR']
+    elif 'data' in sys.argv[1]: 
+        files = sys.argv[2:]
+        flags += 'd'
+    else: 
+        files = sys.argv[1:]
+    
 if not files: 
     files = glob.glob('stop-files/*.root*')
 

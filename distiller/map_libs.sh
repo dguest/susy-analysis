@@ -7,7 +7,7 @@ USE_LIBS="
  egammaEvent JetResolution JetUncertainties\
  MissingETUtility MuonEfficiencyCorrections MuonMomentumCorrections\
  PileupReweighting ReweightUtils\
- TrigRootAnalysis TauCorrections TauCorrUncert\
+ TauCorrUncert\
  TrigMuonEfficiency ElectronEfficiencyCorrection PATCore TileTripReader"
 
 USE_HEADER="SUSYTools MissingETUtility egammaAnalysisUtils GoodRunsLists\
