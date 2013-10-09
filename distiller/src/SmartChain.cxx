@@ -64,6 +64,7 @@ void SmartChain::SetBranchAddressPrivate(std::string name, void* branch,
     switch (action) { 
     case chain::NULL_POINTER: {
       SetBranchStatus(name.c_str(), 0, &branches_found); 
+      m_fake_branches.insert(name); 
       return; 
     }
     case chain::NULL_NO_RECORD: {
