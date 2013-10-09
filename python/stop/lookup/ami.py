@@ -100,7 +100,7 @@ class AmiAugmenter(object):
 
 
     def ds_from_id(self, ds_id, stream=None): 
-        if stream.startswith('physics'): 
+        if stream and stream.startswith('physics'): 
             args = {'run':str(ds_id)}
         else: 
             args = {'dataset_number':str(ds_id)}
