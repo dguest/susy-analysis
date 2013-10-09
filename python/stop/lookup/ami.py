@@ -100,7 +100,10 @@ class AmiAugmenter(object):
 
 
     def ds_from_id(self, ds_id, stream=None): 
-        args = {'dataset_number':str(ds_id)}
+        if stream.startswith('physics'): 
+            args = {'run':str(ds_id)}
+        else: 
+            args = {'dataset_number':str(ds_id)}
 
         match_sets = query.get_datasets(self.client,'%', **args)
 
