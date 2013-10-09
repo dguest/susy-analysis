@@ -188,6 +188,7 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br,
 
   fChain->SetBranch("trk_pt", &trk_pt); 
   fChain->SetBranch("trk_eta", &trk_eta); 
+  fChain->SetBranch("trk_phi_wrtPV", &trk_phi_wrtPV); 
   fChain->SetBranch("trk_d0_wrtPV", &trk_d0_wrtPV); 
   fChain->SetBranch("trk_z0_wrtPV", &trk_z0_wrtPV); 
   fChain->SetBranch("trk_ndof", &trk_ndof); 

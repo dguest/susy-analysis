@@ -173,6 +173,7 @@ public :
   // track branches for single track veto
   std::vector<float>* trk_pt; 
   std::vector<float>* trk_eta; 
+  std::vector<float>* trk_phi_wrtPV; 
   std::vector<float>* trk_d0_wrtPV; 
   std::vector<float>* trk_z0_wrtPV; 
   std::vector<int>* trk_ndof; 
