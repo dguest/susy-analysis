@@ -204,6 +204,7 @@ void SusyBuffer::set_mc_branches(SmartChain* chain,
 				 std::string jc)
 {
   using namespace cutflag; 
+  chain->SetBranch("mc_channel_number", &mc_channel_number); 
   chain->SetBranch(jc + "_flavor_truth_label", 
 		     &jet_flavor_truth_label); 
   chain->SetBranch("mc_event_weight", &mc_event_weight); 

@@ -32,6 +32,7 @@ public :
   unsigned        coreFlags; 
 
   //  --- truth info ---
+  unsigned int mc_channel_number; 
   int hfor_type; 
   int spart1_pdgid; 
   int spart2_pdgid; 
