@@ -102,7 +102,6 @@ public :
   std::vector<int>     *el_nPixHits;
   std::vector<int>     *el_nSCTHits;
   int           mu_staco_n;
-  std::vector<float>   *mu_staco_E;
   std::vector<float>   *mu_staco_pt;
   std::vector<float>   *mu_staco_eta;
   std::vector<float>   *mu_staco_phi;
@@ -119,7 +118,6 @@ public :
   std::vector<float>   *mu_staco_ms_theta;
   std::vector<float>   *mu_staco_ms_qoverp;
   std::vector<float>   *mu_staco_id_theta;
-  std::vector<int>     *mu_staco_nBLHits;
   std::vector<int>     *mu_staco_nPixHits;
   std::vector<int>     *mu_staco_nSCTHits;
   std::vector<int>     *mu_staco_nTRTHits;
@@ -128,7 +126,6 @@ public :
   std::vector<int>     *mu_staco_nTRTOutliers;
   std::vector<int>     *mu_staco_nPixelDeadSensors;
   std::vector<int>     *mu_staco_nSCTDeadSensors;
-  std::vector<int>     *mu_staco_expectBLayerHit;
   std::vector<float>   *mu_staco_energyLossPar; 
 
   // Jet Stuff

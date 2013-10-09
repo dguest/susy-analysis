@@ -97,7 +97,6 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br,
   fChain->SetBranch("el_nPixHits", &el_nPixHits); 
   fChain->SetBranch("el_nSCTHits", &el_nSCTHits); 
   fChain->SetBranch("mu_staco_n", &mu_staco_n); 
-  fChain->SetBranch("mu_staco_E", &mu_staco_E); 
   fChain->SetBranch("mu_staco_pt", &mu_staco_pt); 
   fChain->SetBranch("mu_staco_eta", &mu_staco_eta); 
   fChain->SetBranch("mu_staco_phi", &mu_staco_phi); 
@@ -114,7 +113,6 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br,
   fChain->SetBranch("mu_staco_ms_theta", &mu_staco_ms_theta); 
   fChain->SetBranch("mu_staco_ms_qoverp", &mu_staco_ms_qoverp); 
   fChain->SetBranch("mu_staco_id_theta", &mu_staco_id_theta); 
-  fChain->SetBranch("mu_staco_nBLHits", &mu_staco_nBLHits); 
   fChain->SetBranch("mu_staco_nPixHits", &mu_staco_nPixHits); 
   fChain->SetBranch("mu_staco_nSCTHits", &mu_staco_nSCTHits); 
   fChain->SetBranch("mu_staco_nTRTHits", &mu_staco_nTRTHits); 
@@ -123,7 +121,6 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br,
   fChain->SetBranch("mu_staco_nTRTOutliers", &mu_staco_nTRTOutliers); 
   fChain->SetBranch("mu_staco_nPixelDeadSensors", &mu_staco_nPixelDeadSensors); 
   fChain->SetBranch("mu_staco_nSCTDeadSensors", &mu_staco_nSCTDeadSensors); 
-  fChain->SetBranch("mu_staco_expectBLayerHit", &mu_staco_expectBLayerHit); 
   fChain->SetBranch("mu_staco_energyLossPar", &mu_staco_energyLossPar); 
 
   fChain->SetBranch(jc + "_n", &jet_n); 
@@ -225,8 +222,9 @@ void SusyBuffer::set_mc_branches(SmartChain* chain,
   if (br & old_skim) { 
     MET_Truth_NonInt_etx = -1; 
     MET_Truth_NonInt_ety = -1; 
-  }
-  else { 
+    chain->fake_set("MET_Truth_NonInt_etx");
+    chain->fake_set("MET_Truth_NonInt_ety");
+  } else { 
     chain->SetBranch("MET_Truth_NonInt_etx", &MET_Truth_NonInt_etx); 
     chain->SetBranch("MET_Truth_NonInt_ety", &MET_Truth_NonInt_ety);
   }
@@ -234,6 +232,9 @@ void SusyBuffer::set_mc_branches(SmartChain* chain,
   if (br & spartid) { 
     chain->SetBranch("SUSY_Spart1_pdgId", &spart1_pdgid); 
     chain->SetBranch("SUSY_Spart2_pdgId", &spart2_pdgid); 
+  } else { 
+    chain->fake_set("SUSY_Spart1_pdgId"); 
+    chain->fake_set("SUSY_Spart2_pdgId"); 
   }
 }
 
