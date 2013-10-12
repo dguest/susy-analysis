@@ -21,6 +21,9 @@ class BtagCalibration;
 class OutputFilter; 
 class BosonTruthFilter; 
 class TruthMetFilter; 
+namespace Root { 
+  class TPileupReweighting; 
+}
 
 class StopDistiller : public boost::noncopyable
 { 
@@ -40,6 +43,8 @@ private:
   void setup_susytools(); 
   void setup_outputs(); 
   void setup_cutflow(CutflowType config); 
+
+  float pileup_weight(); 
 
   void print_progress(int entry_n, std::ostream&); 
   RunInfo m_info; 
@@ -63,6 +68,8 @@ private:
   BtagCalibration* m_btag_calibration; 
   BosonTruthFilter* m_boson_truth_filter; 
   TruthMetFilter* m_truth_met_filter; 
+
+  Root::TPileupReweighting* m_prw; 
 }; 
 
 #endif

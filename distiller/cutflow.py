@@ -4,6 +4,7 @@ from stop.distiller import cutflow
 import sys, glob, os
 
 flags = 'vbgzf'
+# flags += 'u'                    # generate pu reweighting file
 configs = ['NOMINAL']
 files = []
 if len(sys.argv) > 1: 
@@ -28,6 +29,8 @@ for config in configs:
         btag_cal_file='~/calibration/BTagCalibration.env', 
         cal_dir='~/calibration', 
         systematic='NONE', 
-        cutflow=config)
+        cutflow=config, 
+        pu_config='~/calibration/pu_config.prw.root', 
+        pu_lumicalc='~/calibration/pu_lumicalc.root')
     for key, value in values: 
         print '{:20}: {}'.format(key, value)

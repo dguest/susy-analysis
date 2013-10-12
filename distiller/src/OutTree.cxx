@@ -44,6 +44,7 @@ namespace outtree {
     m_tree->Branch("htx", &htx); 
 
     if ( flags & cutflag::truth) { 
+      m_tree->Branch("pileup_weight", &pileup_weight); 
       m_tree->Branch("hfor_type", &hfor_type); 
       m_tree->Branch("leading_cjet_pos", &leading_cjet_pos); 
       m_tree->Branch("subleading_cjet_pos", &subleading_cjet_pos); 
@@ -90,6 +91,7 @@ namespace outtree {
     event_number = 0; 
 
     htx = 0; 
+    pileup_weight = -1; 
 
     leading_cjet_pos = -1; 
     subleading_cjet_pos = -1; 

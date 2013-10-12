@@ -14,6 +14,8 @@ struct RunInfo {
   std::string btag_cal_file; 
   double boson_pt_max_mev; 
   double truth_met_max_mev; 
+  std::string pu_config; 
+  std::string pu_lumicalc; 
   RunInfo(); 
 }; 
 

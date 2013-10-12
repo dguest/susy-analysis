@@ -11,7 +11,7 @@ USE_LIBS="
  TrigMuonEfficiency ElectronEfficiencyCorrection PATCore TileTripReader"
 
 USE_HEADER="SUSYTools MissingETUtility egammaAnalysisUtils GoodRunsLists\
- CalibrationDataInterface TauCorrUncert"
+ CalibrationDataInterface TauCorrUncert PileupReweighting"
 
 
 if [[ $1 == '-l' ]]

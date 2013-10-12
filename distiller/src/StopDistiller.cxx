@@ -39,6 +39,7 @@
 #include <stdexcept> 
 #include "SUSYTools/SUSYObjDef.h"
 #include "SUSYTools/FakeMetEstimator.h"
+#include "PileupReweighting/TPileupReweighting.h"
 
 #include <boost/format.hpp>
 
@@ -62,7 +63,8 @@ StopDistiller::StopDistiller(const std::vector<std::string>& in,
   m_cutflow(0), 
   m_btag_calibration(0), 
   m_boson_truth_filter(0), 
-  m_truth_met_filter(0)
+  m_truth_met_filter(0), 
+  m_prw(0)
 { 
   gErrorIgnoreLevel = kWarning;
   check_flags(); 
@@ -103,6 +105,10 @@ StopDistiller::~StopDistiller() {
   delete m_btag_calibration; 
   delete m_boson_truth_filter; 
   delete m_truth_met_filter; 
+  if (m_flags & cutflag::generate_pileup && m_prw) { 
+    m_prw->WriteToFile(m_info.pu_config); 
+  }
+  delete m_prw; 
 }
 
 StopDistiller::Cutflow StopDistiller::run_cutflow() { 
@@ -180,8 +186,10 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
     }
   }
 
+
   m_def->Reset(); 
   m_out_tree->clear_buffer(); 
+  m_out_tree->pileup_weight = pileup_weight(); 
   ull_t pass_bits = 0; 
     
   EventJets all_jets(*m_susy_buffer, *m_def, m_flags, m_info); 
@@ -396,7 +404,19 @@ void StopDistiller::setup_susytools() {
   m_btag_calibration = new BtagCalibration(m_info.btag_cal_file, 
 					   m_info.btag_cal_dir); 
 
-
+  if (m_flags & cutflag::truth && m_info.pu_config.size() > 0) { 
+    m_prw = new Root::TPileupReweighting("PileupReweighting"); 
+    m_prw->DisableWarnings( !(m_flags & cutflag::debug_susy)); 
+    if (m_flags & cutflag::generate_pileup) { 
+      m_prw->UsePeriodConfig("MC12a"); 
+    } else { 
+      m_prw->AddConfigFile(m_info.pu_config); 
+      m_prw->AddLumiCalcFile(m_info.pu_lumicalc); 
+      m_prw->MergeMCRunNumbers(195847,195848); 
+      m_prw->SetUnrepresentedDataAction(2); 
+    }
+    m_prw->Initialize(); 
+  }
   dup2(output_dup, fileno(stdout)); 
   close(output_dup); 
 }
@@ -476,6 +496,22 @@ void StopDistiller::setup_cutflow(CutflowType cutflow) {
     return; 
   }
   }
+}
+
+float StopDistiller::pileup_weight() { 
+  if (!m_prw) return 1.0; 
+  const SusyBuffer* b = m_susy_buffer; 
+  if (m_flags & cutflag::generate_pileup) { 
+    m_prw->Fill(
+      b->RunNumber, b->mc_channel_number, 
+      b->mcevt_weight->at(0).at(0), 
+      b->averageIntPerXing); 
+    return 1.0; 
+  } else { 
+    return m_prw->GetCombinedWeight(
+      b->RunNumber,b->mc_channel_number,b->averageIntPerXing);
+  }
+
 }
 
 

@@ -92,6 +92,7 @@ static unsigned get_flags(const char* flags_str)
   if (strchr(flags_str,'m')) flags |= cutflag::mv3; 
   if (strchr(flags_str,'p')) flags |= cutflag::use_low_pt_jets; 
   if (strchr(flags_str,'r')) flags |= cutflag::save_ratios; 
+  if (strchr(flags_str,'u')) flags |= cutflag::generate_pileup; 
   if (strchr(flags_str,'v')) flags |= cutflag::verbose; 
   if (strchr(flags_str,'z')) flags |= cutflag::maximum_compression; 
   return flags; 
@@ -133,6 +134,12 @@ static bool fill_run_info(PyObject* dict, RunInfo* info) {
     }
     else if (ckey == "truth_met_max_mev") { 
       if (!safe_copy(value, info->truth_met_max_mev)) return false; 
+    }
+    else if (ckey == "pu_config") { 
+      if (!safe_copy(value, info->pu_config)) return false; 
+    }
+    else if (ckey == "pu_lumicalc") { 
+      if (!safe_copy(value, info->pu_lumicalc)) return false; 
     }
     else { 
       std::string err = "got unknown string in distiller info dict: " + ckey; 

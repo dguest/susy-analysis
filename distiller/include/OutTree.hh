@@ -112,6 +112,7 @@ namespace outtree {
     int spart2_pdgid; 
 
     double htx; 
+    float pileup_weight; 
 
     outtree::Jet leading_jet_uncensored; 
     outtree::Jet electron_jet; 
