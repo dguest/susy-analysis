@@ -311,6 +311,9 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
 
   m_out_tree->event_number = m_susy_buffer->EventNumber; 
 
+  copy_id_vec_to_box(control_electrons, m_out_tree->el_sf); 
+  copy_id_vec_to_box(control_muons, m_out_tree->mu_sf); 
+
   // save electron jet
   if (control_electrons.size() == 1) { 
     auto control_el = control_electrons.at(0); 

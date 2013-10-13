@@ -18,12 +18,16 @@ public:
   double rel_isolation() const; 
   int index() const; 
   float charge() const; 
+  float id_sf() const; 
+  float id_sf_err() const; 
 private: 
   bool m_pass_susy; 
   bool m_is_signal; 
   double m_rel_isolation; 
   int m_index; 
   float m_charge; 
+  float m_id_sf; 
+  float m_id_sf_unct; 
 }; 
 
 class EventElectrons: public std::vector<Electron*> 
@@ -50,11 +54,15 @@ public:
   double isolation() const; 
   int index() const; 
   float charge() const; 
+  float id_sf() const; 
+  float id_sf_err() const; 
 private: 
   bool m_pass_susy; 
   double m_isolation; 
   int m_index; 
-  float m_charge; 
+  float m_charge;
+  float m_id_sf; 
+  float m_id_sf_unct; 
 }; 
 
 class EventMuons: public std::vector<Muon*>

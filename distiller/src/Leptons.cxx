@@ -47,6 +47,25 @@ Electron::Electron(const EventElectrons* container, int index) {
   m_rel_isolation = buffer->el_ptcone20->at(index) / Pt(); 
   m_charge = buffer->el_charge->at(index); 
 
+  m_id_sf = def->GetSignalElecSF(
+    buffer->el_cl_eta->at(index), 
+    Pt(), 
+    true,			// recoSF
+    false, 			// idSF
+    false, 			// triggerSF
+    buffer->RunNumber, 
+    SystErr::NONE); 
+
+  // bit of a hack to pull out the uncertainty
+  m_id_sf_unct = def->GetSignalElecSF(
+    buffer->el_cl_eta->at(index), 
+    Pt(), 
+    true,			// recoSF
+    false, 			// idSF
+    false, 			// triggerSF
+    buffer->RunNumber, 
+    SystErr::EEFFUP) - m_id_sf; 
+
 }
 bool Electron::pass_susy() const { 
   return m_pass_susy; 
@@ -59,6 +78,12 @@ double Electron::rel_isolation() const {
 }
 float Electron::charge() const { 
   return m_charge; 
+}
+float Electron::id_sf() const { 
+  return m_id_sf; 
+}
+float Electron::id_sf_err() const { 
+  return m_id_sf_unct; 
 }
 
 EventElectrons::EventElectrons(const SusyBuffer& buffer, SUSYObjDef& def, 
@@ -104,6 +129,12 @@ Muon::Muon(const EventMuons* container, int index):
   SetPxPyPzE(tlv.Px(), tlv.Py(), tlv.Pz(), tlv.E()); 
   m_isolation = buffer->mu_staco_ptcone20->at(index); 
   m_charge = buffer->mu_staco_charge->at(index); 
+
+  if (m_pass_susy) { 
+    m_id_sf = def->GetSignalMuonSF(index, SystErr::NONE); 
+    m_id_sf_unct = def->GetSignalMuonSF(index, SystErr::MEFFUP) - m_id_sf; 
+  }
+
 }
 bool Muon::pass_susy() const { 
   return m_pass_susy; 
@@ -116,6 +147,12 @@ int Muon::index() const {
 }
 float Muon::charge() const { 
   return m_charge; 
+}
+float Muon::id_sf() const { 
+  return m_id_sf; 
+}
+float Muon::id_sf_err() const { 
+  return m_id_sf_unct; 
 }
 
 EventMuons::EventMuons(const SusyBuffer& buffer, SUSYObjDef& def, 

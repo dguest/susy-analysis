@@ -82,6 +82,15 @@ namespace outtree {
     SFVector m_cnn_loose; 
   }; 
 
+  struct SFBox 
+  {
+    float nominal; 
+    float up; 
+    float down; 
+    void set_branches(TTree*, std::string prefix); 
+    void clear(); 
+  }; 
+
   class OutTree : public boost::noncopyable
   {
   public: 
@@ -113,6 +122,8 @@ namespace outtree {
 
     double htx; 
     float pileup_weight; 
+    SFBox el_sf; 
+    SFBox mu_sf; 
 
     outtree::Jet leading_jet_uncensored; 
     outtree::Jet electron_jet; 

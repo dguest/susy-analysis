@@ -12,6 +12,17 @@
 
 namespace outtree { 
 
+  void SFBox::set_branches(TTree* tree, std::string prefix) { 
+    tree->Branch((prefix + "sf").c_str(), &nominal); 
+    tree->Branch((prefix + "sf_up").c_str(), &up); 
+    tree->Branch((prefix + "sf_down").c_str(), &down); 
+  }
+  void SFBox::clear() { 
+    nominal = -1; 
+    up = -1; 
+    down = -1; 
+  }
+
   OutTree::OutTree(std::string file, std::string tree, const unsigned flags, 
 		   int n_jets): 
     m_file(0), 
@@ -54,6 +65,8 @@ namespace outtree {
 	m_tree->Branch("spart1_pdgid", &spart1_pdgid); 
 	m_tree->Branch("spart2_pdgid", &spart2_pdgid); 
       }
+      el_sf.set_branches(m_tree, "el_"); 
+      mu_sf.set_branches(m_tree, "mu_"); 
     }
 
     for (int i = 0; i < n_jets; i++) { 
@@ -105,6 +118,8 @@ namespace outtree {
     }
     leading_jet_uncensored.clear(); 
     electron_jet.clear(); 
+    el_sf.clear(); 
+    mu_sf.clear(); 
   }
 
 
