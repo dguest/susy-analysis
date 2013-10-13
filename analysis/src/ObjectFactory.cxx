@@ -205,6 +205,7 @@ float ObjectFactory::pileup_weight() const
   else return m_pileup_weight; 
 }
 
+// TODO: make a SF class, where this is a method. 
 float ObjectFactory::lepton_sf(Lepton lept, syst::Systematic sys) const { 
   BoxSyst box_syst; 
   switch (sys) { 

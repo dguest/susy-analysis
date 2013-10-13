@@ -7,7 +7,9 @@ namespace {
   Jets remove_electron_jets(Jets); 
 }
 
-
+// TODO: make a pointer to ObjectFactory live in here, clean up 
+// the the direct copying. 
+// OR, make ObjectFactory own a ScaleFactors class, keep a pointer to that.
 EventObjects::EventObjects(const ObjectFactory* factory, unsigned build_flags): 
   met(factory->met()), 
   mu_met(factory->mu_met()), 
