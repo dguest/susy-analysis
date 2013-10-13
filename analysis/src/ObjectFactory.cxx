@@ -31,6 +31,27 @@ JetBuffer::~JetBuffer() {
   }
 }
 
+size_t SFBox::set_tree(TTree* tree, const std::string& prefix) 
+{ 
+  std::string nom_name = prefix;
+  std::string up_name = prefix + "_up"; 
+  std::string down_name = prefix + "_down"; 
+  size_t errors = 0; 
+  errors += std::abs(tree->SetBranchAddress(nom_name.c_str(), &m_nominal)); 
+  errors += std::abs(tree->SetBranchAddress(up_name.c_str(), &m_up)); 
+  errors += std::abs(tree->SetBranchAddress(down_name.c_str(), &m_down)); 
+  return errors; 
+}
+float SFBox::get_sf(BoxSyst systematic) const{ 
+  switch (systematic) { 
+  case BoxSyst::NONE: return m_nominal; 
+  case BoxSyst::UP: return m_up; 
+  case BoxSyst::DOWN: return m_down; 
+  default: 
+    throw std::logic_error("unknown systematic in " __FILE__); 
+  }
+}
+
 ObjectFactory::ObjectFactory(std::string root_file, int n_jets) : 
   m_electron_jet_buffer(0), 
   m_hfor_type(-1), 
@@ -68,6 +89,9 @@ ObjectFactory::ObjectFactory(std::string root_file, int n_jets) :
 				       &m_subleading_cjet_pos); 
     errors += m_tree->SetBranchAddress("mc_event_weight", 
 				       &m_mc_event_weight); 
+    errors += m_tree->SetBranchAddress("pileup_weight", &m_pileup_weight); 
+    m_el_sf.set_tree(m_tree, "el_sf"); 
+    m_mu_sf.set_tree(m_tree, "mu_sf"); 
   }
   else { 
     m_ioflags |= ioflag::no_truth; 
@@ -173,6 +197,34 @@ double ObjectFactory::event_weight() const
   }
   return m_mc_event_weight; 
 }
+float ObjectFactory::pileup_weight() const 
+{
+  if (m_ioflags & ioflag::no_truth) { 
+    return 1.0; 
+  }
+  else return m_pileup_weight; 
+}
+
+float ObjectFactory::lepton_sf(Lepton lept, syst::Systematic sys) const { 
+  BoxSyst box_syst; 
+  switch (sys) { 
+  case syst::ELUP: 
+  case syst::MUUP:
+    box_syst = BoxSyst::UP; 
+    break; 
+  case syst::ELDOWN: 
+  case syst::MUDOWN: 
+    box_syst = BoxSyst::DOWN; 
+  default: box_syst = BoxSyst::NONE; 
+  }
+  switch (lept){ 
+  case Lepton::ELECTRON: return m_el_sf.get_sf(box_syst); 
+  case Lepton::MUON: return m_mu_sf.get_sf(box_syst); 
+  default: 
+    throw std::logic_error("unknown lepton in " __FILE__); 
+  }
+}
+
 
 hfor::JetType ObjectFactory::hfor_type() const { 
   if (m_ioflags & ioflag::no_truth) { 

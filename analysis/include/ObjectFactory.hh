@@ -23,6 +23,9 @@ namespace ioflag {
   // const unsigned use_electron_jet = 1u << 2; 
 }
 
+enum class BoxSyst { NONE, UP, DOWN}; 
+enum class Lepton { ELECTRON, MUON}; 
+
 struct JetBuffer
 { 
   double pt; 
@@ -45,6 +48,20 @@ struct JetBuffer
   ~JetBuffer(); 
 };
 
+class SFBox
+{
+public: 
+  SFBox() = default; 
+  SFBox(const SFBox&) = delete; 
+  SFBox& operator=(const SFBox&) = delete; 
+  size_t set_tree(TTree* tree, const std::string& prefix); 
+  float get_sf(BoxSyst) const; 
+private: 
+  float m_nominal; 
+  float m_up; 
+  float m_down; 
+}; 
+
 class ObjectFactory
 {
 public: 
@@ -66,6 +83,8 @@ public:
   hfor::JetType hfor_type() const; 
   double htx() const; 
   double event_weight() const; 
+  float pileup_weight() const; 
+  float lepton_sf(Lepton, syst::Systematic) const; 
 private: 
   void set_btag_n(size_t jet_n, btag::OperatingPoint); 
   void set_btag(JetBuffer*, btag::OperatingPoint, std::string branch_name); 
@@ -89,6 +108,9 @@ private:
 
   double m_htx; 
   float m_mc_event_weight; 
+  float m_pileup_weight; 
+  SFBox m_el_sf; 
+  SFBox m_mu_sf; 
   
   unsigned m_ioflags; 
 }; 
