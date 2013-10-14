@@ -3,6 +3,7 @@
 #include "BtagScaler.hh"
 #include "BtagBuffer.hh"
 #include "BtagConfig.hh"
+#include "EventScalefactors.hh"
 
 #include <string> 
 #include <vector> 
@@ -31,33 +32,14 @@ JetBuffer::~JetBuffer() {
   }
 }
 
-size_t SFBox::set_tree(TTree* tree, const std::string& prefix) 
-{ 
-  std::string nom_name = prefix;
-  std::string up_name = prefix + "_up"; 
-  std::string down_name = prefix + "_down"; 
-  size_t errors = 0; 
-  errors += std::abs(tree->SetBranchAddress(nom_name.c_str(), &m_nominal)); 
-  errors += std::abs(tree->SetBranchAddress(up_name.c_str(), &m_up)); 
-  errors += std::abs(tree->SetBranchAddress(down_name.c_str(), &m_down)); 
-  return errors; 
-}
-float SFBox::get_sf(BoxSyst systematic) const{ 
-  switch (systematic) { 
-  case BoxSyst::NONE: return m_nominal; 
-  case BoxSyst::UP: return m_up; 
-  case BoxSyst::DOWN: return m_down; 
-  default: 
-    throw std::logic_error("unknown systematic in " __FILE__); 
-  }
-}
 
 ObjectFactory::ObjectFactory(std::string root_file, int n_jets) : 
   m_electron_jet_buffer(0), 
   m_hfor_type(-1), 
   m_leading_cjet_pos(-1), 
   m_subleading_cjet_pos(-1), 
-  m_ioflags(0)
+  m_ioflags(0), 
+  m_evt_sf(0)
 
 {
   m_file = new TFile(root_file.c_str()); 
@@ -90,8 +72,7 @@ ObjectFactory::ObjectFactory(std::string root_file, int n_jets) :
     errors += m_tree->SetBranchAddress("mc_event_weight", 
 				       &m_mc_event_weight); 
     errors += m_tree->SetBranchAddress("pileup_weight", &m_pileup_weight); 
-    m_el_sf.set_tree(m_tree, "el_sf"); 
-    m_mu_sf.set_tree(m_tree, "mu_sf"); 
+    m_evt_sf = new EventScalefactors(m_tree); 
   }
   else { 
     m_ioflags |= ioflag::no_truth; 
@@ -116,6 +97,9 @@ ObjectFactory::~ObjectFactory()
     *itr = 0; 
   }
   delete m_file; 
+  delete m_evt_sf; 
+  m_file = 0; 
+  m_evt_sf = 0; 
 }
 
 void ObjectFactory::use_electron_jet(bool use) { 
@@ -195,37 +179,12 @@ double ObjectFactory::event_weight() const
   if (m_ioflags & ioflag::no_truth) { 
     return 1.0; 
   }
-  return m_mc_event_weight; 
-}
-float ObjectFactory::pileup_weight() const 
-{
-  if (m_ioflags & ioflag::no_truth) { 
-    return 1.0; 
-  }
-  else return m_pileup_weight; 
+  return m_mc_event_weight * m_pileup_weight; 
 }
 
-// TODO: make a SF class, where this is a method. 
-float ObjectFactory::lepton_sf(Lepton lept, syst::Systematic sys) const { 
-  BoxSyst box_syst; 
-  switch (sys) { 
-  case syst::ELUP: 
-  case syst::MUUP:
-    box_syst = BoxSyst::UP; 
-    break; 
-  case syst::ELDOWN: 
-  case syst::MUDOWN: 
-    box_syst = BoxSyst::DOWN; 
-  default: box_syst = BoxSyst::NONE; 
-  }
-  switch (lept){ 
-  case Lepton::ELECTRON: return m_el_sf.get_sf(box_syst); 
-  case Lepton::MUON: return m_mu_sf.get_sf(box_syst); 
-  default: 
-    throw std::logic_error("unknown lepton in " __FILE__); 
-  }
+EventScalefactors* ObjectFactory::event_scalefactors() const { 
+  return m_evt_sf; 
 }
-
 
 hfor::JetType ObjectFactory::hfor_type() const { 
   if (m_ioflags & ioflag::no_truth) { 

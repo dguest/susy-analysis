@@ -75,6 +75,7 @@ GEN_OBJ     += OrderedJetTagFilter.o UnorderedJetTagFilter.o
 GEN_OBJ     += RegionJetEfficiencyHistograms.o
 GEN_OBJ     += common_functions.o enum_converters.o
 GEN_OBJ     += BtagScaler.o BtagBuffer.o
+GEN_OBJ     += EventScalefactors.o
 EXE_OBJ     := $(GEN_OBJ) $(TOBJ) unit-test.o
 PYLIB_OBJ   := $(GEN_OBJ) $(TOBJ)
 

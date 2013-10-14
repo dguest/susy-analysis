@@ -8,6 +8,7 @@
 #include "systematic_defs.hh"
 #include "typedefs.hh"
 #include "btag_enums.hh"
+#include "EventScaleEnums.hh"
 
 class Jet; 
 class TTree;
@@ -16,15 +17,14 @@ class TVector2;
 class BtagScaler; 
 class BtagBuffer; 
 class TLorentzVector; 
+class SFBox; 
+class EventScalefactors; 
 
 namespace ioflag {
   const unsigned no_flavor = 1u << 0; 
   const unsigned no_truth  = 1u << 1; 
   // const unsigned use_electron_jet = 1u << 2; 
 }
-
-enum class BoxSyst { NONE, UP, DOWN}; 
-enum class Lepton { ELECTRON, MUON}; 
 
 struct JetBuffer
 { 
@@ -48,20 +48,6 @@ struct JetBuffer
   ~JetBuffer(); 
 };
 
-class SFBox
-{
-public: 
-  SFBox() = default; 
-  SFBox(const SFBox&) = delete; 
-  SFBox& operator=(const SFBox&) = delete; 
-  size_t set_tree(TTree* tree, const std::string& prefix); 
-  float get_sf(BoxSyst) const; 
-private: 
-  float m_nominal; 
-  float m_up; 
-  float m_down; 
-}; 
-
 class ObjectFactory
 {
 public: 
@@ -83,8 +69,7 @@ public:
   hfor::JetType hfor_type() const; 
   double htx() const; 
   double event_weight() const; 
-  float pileup_weight() const; 
-  float lepton_sf(Lepton, syst::Systematic) const; 
+  EventScalefactors* event_scalefactors() const; 
 private: 
   void set_btag_n(size_t jet_n, btag::OperatingPoint); 
   void set_btag(JetBuffer*, btag::OperatingPoint, std::string branch_name); 
@@ -109,10 +94,10 @@ private:
   double m_htx; 
   float m_mc_event_weight; 
   float m_pileup_weight; 
-  SFBox m_el_sf; 
-  SFBox m_mu_sf; 
-  
+
   unsigned m_ioflags; 
+  EventScalefactors* m_evt_sf; 
+  
 }; 
 
 bool has_higher_pt(const Jet&, const Jet&); 

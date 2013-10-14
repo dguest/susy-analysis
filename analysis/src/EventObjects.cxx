@@ -19,11 +19,13 @@ EventObjects::EventObjects(const ObjectFactory* factory, unsigned build_flags):
   leading_cjet_pos(0), 
   subleading_cjet_pos(0), 
   n_signal_jets(factory->n_good()), 
-  jets_with_eljet(factory->jets())
+  jets_with_eljet(factory->jets()), 
+  event_scalefactors(0)
 { 
   if ( !(build_flags & buildflag::is_data)) { 
     leading_cjet_pos = factory->leading_cjet_pos(); 
     subleading_cjet_pos = factory->subleading_cjet_pos(); 
+    event_scalefactors = factory->event_scalefactors(); 
   }
   jets = remove_electron_jets(jets_with_eljet); 
 }

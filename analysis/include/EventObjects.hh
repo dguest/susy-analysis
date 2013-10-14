@@ -11,6 +11,7 @@
 #include "typedefs.hh"
 
 class ObjectFactory; 
+class EventScalefactors; 
 
 struct EventObjects
 {
@@ -24,6 +25,7 @@ struct EventObjects
   int n_signal_jets; 
   std::vector<Jet> jets; 
   std::vector<Jet> jets_with_eljet; 
+  EventScalefactors* event_scalefactors; 
   EventObjects(const ObjectFactory*, unsigned build_flags); 
 }; 
 
