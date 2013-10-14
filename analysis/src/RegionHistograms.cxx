@@ -106,6 +106,7 @@ void RegionHistograms::fill(const EventObjects& obj) {
     double jet_sf = m_event_filter.jet_scalefactor(obj); 
     m_jet_scalefactor->fill(jet_sf, weight); 
     weight *= jet_sf; 
+    weight *= m_event_filter.lepton_scalefactor(obj); 
   }
   const bool do_mu_met = m_region_config.region_bits & reg::mu_met; 
   const TVector2 met = do_mu_met ? obj.mu_met: obj.met; 

@@ -18,6 +18,7 @@ public:
   RegionEventFilter& operator=(const RegionEventFilter&) = delete; 
   bool pass(const EventObjects& objects) const; 
   double jet_scalefactor(const EventObjects& objects) const; 
+  float lepton_scalefactor(const EventObjects& objects) const; 
 private: 
   const RegionConfig& m_region_config; 
   const JetTagRescaler* m_jet_rescaler; 

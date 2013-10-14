@@ -6,6 +6,7 @@
 #include "IJetTagFilter.hh"
 #include "OrderedJetTagFilter.hh"
 #include "UnorderedJetTagFilter.hh"
+#include "EventScalefactors.hh"
 #include "Jet.hh"
 #include <stdexcept> 
 
@@ -77,3 +78,13 @@ double RegionEventFilter::jet_scalefactor(const EventObjects& obj) const {
   return weight; 
 }
 
+float RegionEventFilter::lepton_scalefactor(const EventObjects& obj) const {
+  float weight = 1.0; 
+  if (obj.event_scalefactors) { 
+    weight *= obj.event_scalefactors->lepton_sf(
+      EventSyst::ELECTRON, m_region_config.systematic); 
+    weight *= obj.event_scalefactors->lepton_sf(
+      EventSyst::MUON, m_region_config.systematic); 
+  }
+  return weight; 
+}

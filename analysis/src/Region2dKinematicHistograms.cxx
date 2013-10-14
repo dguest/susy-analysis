@@ -68,6 +68,7 @@ void Region2dKinematicHistograms::fill(const EventObjects& obj) {
 
   if (! (m_build_flags & buildflag::is_data)) { 
     weight *= m_event_filter.jet_scalefactor(obj); 
+    weight *= m_event_filter.lepton_scalefactor(obj); 
   }
   bool do_mu_met = m_region_config.region_bits & reg::mu_met; 
   const TVector2 met = do_mu_met ? obj.mu_met : obj.met; 
