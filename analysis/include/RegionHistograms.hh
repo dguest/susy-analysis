@@ -50,6 +50,7 @@ private:
 
   Histogram* m_cjet_rank; 
   Histogram* m_jet_scalefactor; 
+  Histogram* m_lepton_scalefactor; 
   Jet1DHists* m_jet1_no_jet_scalefactor; 
 
   std::vector<TruthJetHists*> m_jet_truth_hists; 

@@ -51,6 +51,7 @@ RegionHistograms::RegionHistograms(const RegionConfig& config,
   if (!(flags & buildflag::is_data)) { 
     add_cjet_rank(); 
     m_jet_scalefactor = new Histogram(N_BINS, 0.0, 2.0); 
+    m_lepton_scalefactor = new Histogram(N_BINS, 0.9, 1.1); 
   }
 
   if (flags & buildflag::fill_truth) { 
@@ -87,6 +88,7 @@ RegionHistograms::~RegionHistograms() {
     m_jet_truth_hists.at(iii) = 0; 
   }
   delete m_jet_scalefactor; 
+  delete m_lepton_scalefactor; 
 }
 
 void RegionHistograms::fill(const EventObjects& obj) { 
@@ -104,9 +106,10 @@ void RegionHistograms::fill(const EventObjects& obj) {
 
   if (! (m_build_flags & buildflag::is_data)) { 
     double jet_sf = m_event_filter.jet_scalefactor(obj); 
+    float lepton_sf = m_event_filter.lepton_scalefactor(obj); 
     m_jet_scalefactor->fill(jet_sf, weight); 
-    weight *= jet_sf; 
-    weight *= m_event_filter.lepton_scalefactor(obj); 
+    m_lepton_scalefactor->fill(lepton_sf, weight); 
+    weight *= jet_sf * lepton_sf; 
   }
   const bool do_mu_met = m_region_config.region_bits & reg::mu_met; 
   const TVector2 met = do_mu_met ? obj.mu_met: obj.met; 
@@ -174,6 +177,7 @@ void RegionHistograms::write_to(H5::CommonFG& file) const {
   if (!(m_build_flags & buildflag::is_data)) { 
     m_cjet_rank->write_to(region, "cjetRank"); 
     m_jet_scalefactor->write_to(region, "jetScalefactor"); 
+    m_lepton_scalefactor->write_to(region, "leptonScalefactor"); 
   }
 
   if (m_jet_truth_hists.size()) { 
