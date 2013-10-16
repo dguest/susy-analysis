@@ -7,7 +7,7 @@ import argparse
 import sys, os
 from os.path import isfile, isdir
 from os.path import join, splitext, basename, expanduser
-from stop import meta
+from stop import meta, bullshit
 import re
 import yaml
 
@@ -29,6 +29,7 @@ def _get_config():
     parser.add_argument('-i', '--more-info', action='store_true')
     parser.add_argument('-e', '--all-events', action='store_true')
     parser.add_argument('--test', action='store_true')
+    parser.add_argument('-p', '--build-prw', action='store_true')
     return parser.parse_args(sys.argv[1:])
 
 
@@ -36,26 +37,26 @@ def distill_d3pds(config):
 
     with open(config.input_file) as d3pd_file: 
         files = [l.strip() for l in d3pd_file.readlines()]
-    out_file = splitext(basename(config.input_file))[0] + '.root'
-
-    calibration_dir = expanduser(config.calibration)
     if not files: 
         return 
-    if not isdir(config.output_dir): 
-        os.makedirs(config.output_dir)
+
+    out_file = splitext(basename(config.input_file))[0] + '.root'
+    bullshit.make_dir_if_none(config.output_dir)
 
     meta_lookup = meta.DatasetCache(config.meta)
     ds_key = basename(splitext(out_file)[0]).split('-')[0]
     dataset = meta_lookup[ds_key]
     flags, add_dict = _config_from_meta(dataset)
-    add_dict.update(dict(
-            systematic=config.systematic, 
-            btag_cal_file=join(calibration_dir, 'BTagCalibration.env'), 
-            cal_dir=calibration_dir, 
-            grl=join(calibration_dir, 'grl.xml'), 
-            ))
+    add_dict['systematic'] = config.systematic
 
+    add_dict.update(_get_cal_paths_dict(config))
     out_path = join(config.output_dir, out_file)
+    if config.build_prw: 
+        prw_dir = 'pileup-reweighting'
+        bullshit.make_dir_if_none(prw_dir)
+        prw_file = join(prw_dir, '{}.prw{}'.format(*splitext(out_file)))
+        flags += 'u'            # turn on pu file generation 
+        add_dict['pu_config'] = prw_file
 
     if config.more_info: 
         flags += 'i'           # save sparticle id
@@ -86,6 +87,25 @@ def distill_d3pds(config):
     list_counts = [list(c) for c in cut_counts]
     with open(counts_path,'w') as out_yml: 
         out_yml.write(yaml.dump(list_counts))
+
+def _get_cal_paths_dict(config): 
+    calibration_dir = expanduser(config.calibration)
+    call_paths = dict(
+        btag_cal_file=join(calibration_dir, 'BTagCalibration.env'), 
+        cal_dir=calibration_dir, 
+        grl=join(calibration_dir, 'grl.xml'), 
+        pu_lumicalc=join(calibration_dir, 'pu_lumicalc.root')
+        )
+    if config.build_prw: 
+        call_paths['pu_config'] = join(
+            calibration_dir, 'pu_config.prw.root'), 
+
+    for entry, cal_file in call_paths.iteritems(): 
+        if not isfile(cal_file): 
+            raise OSError("can't find '{}' at {}".format(entry, cal_file))
+
+    call_paths['calibration_dir'] = calibration_dir
+    return call_paths
 
 def _dump_settings(settings_dict): 
     set_width = max(len(str(n)) for n in settings_dict)
@@ -120,17 +140,6 @@ def _is_atlfast(sample):
     else: 
         raise ValueError(
             "not sure what kind of sample '{}' is".format(sample))
-
-def _needs_overlap_removal(sample): 
-    overlaping_sherpa_finder = re.compile('MassiveCBPt0_')
-    sherpa_pt_range_finder = re.compile('Pt[0-9]+_[0-9]+')
-    if overlaping_sherpa_finder.search(sample): 
-        if sherpa_pt_range_finder.search(sample): 
-            raise IOError( 
-                "can't determine if {} needs pt overlap removal".format(
-                    sample))
-        return True
-    return False
 
 def _is_data(sample): 
     return sample.startswith('data')

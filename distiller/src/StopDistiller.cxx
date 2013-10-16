@@ -189,7 +189,6 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
 
   m_def->Reset(); 
   m_out_tree->clear_buffer(); 
-  m_out_tree->pileup_weight = pileup_weight(); 
   ull_t pass_bits = 0; 
     
   EventJets all_jets(*m_susy_buffer, *m_def, m_flags, m_info); 
@@ -308,6 +307,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   m_out_tree->met_phi = met.Phi(); 
   m_out_tree->mu_met = mu_met.Mod(); 
   m_out_tree->mu_met_phi = mu_met.Phi(); 
+  m_out_tree->pileup_weight = pileup_weight(); 
 
   m_out_tree->event_number = m_susy_buffer->EventNumber; 
 
