@@ -24,11 +24,12 @@ def get_config():
     distil_args.add_argument(
         'input_textfiles', nargs='+', 
         help='can be produced with susy-utils')
-    distil_args.add_argument('-m', '--update-meta', required=True, 
+    distil_args.add_argument('-m', '--update-meta', 
                            help='update meta file with sum_wt etc')
     distil_args.add_argument(
         '-s', '--script', help='build this PBS script' + d, 
         default='sharktopus.sh')
+    distil_args.add_argument('-p', '--build-prw', action='store_true')
     distil_args.add_argument('-a', '--aggressive', action='store_true')
 
     stack_args = subs.add_parser('stack', description=setup_stack.__doc__)
@@ -301,7 +302,8 @@ def setup_distill(config):
     if config.script: 
         _write_distill_config(script_name=config.script, 
                               meta_name=config.update_meta, 
-                              input_files=config.input_textfiles)
+                              input_files=config.input_textfiles, 
+                              build_prw=config.build_prw)
 
 
 def _dirify(systematic_name): 
@@ -310,7 +312,7 @@ def _dirify(systematic_name):
     return systematic_name.lower()
 
 def _write_distill_config(script_name, meta_name, input_files, 
-                          systematic='all'): 
+                          systematic='all', build_prw=False): 
     in_dir = dirname(input_files[0])
     sub_dict = {
         'n_jobs': len(input_files), 
@@ -333,6 +335,8 @@ def _write_distill_config(script_name, meta_name, input_files,
                 meta_name, 
                 '-s {}'.format(syst), 
                 '-o whiskey/{}'.format(_dirify(syst))]
+            if build_prw: 
+                run_args.append('-p')
             line_args = { 
                 'routine': 'susy-distill.py', 
                 'run_args': ' '.join(run_args), 
