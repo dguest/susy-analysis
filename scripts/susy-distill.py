@@ -92,19 +92,18 @@ def _get_cal_paths_dict(config):
     calibration_dir = expanduser(config.calibration)
     call_paths = dict(
         btag_cal_file=join(calibration_dir, 'BTagCalibration.env'), 
-        cal_dir=calibration_dir, 
         grl=join(calibration_dir, 'grl.xml'), 
         pu_lumicalc=join(calibration_dir, 'pu_lumicalc.root')
         )
-    if config.build_prw: 
+    if not config.build_prw: 
         call_paths['pu_config'] = join(
-            calibration_dir, 'pu_config.prw.root'), 
+            calibration_dir, 'pu_config.prw.root')
 
     for entry, cal_file in call_paths.iteritems(): 
         if not isfile(cal_file): 
             raise OSError("can't find '{}' at {}".format(entry, cal_file))
 
-    call_paths['calibration_dir'] = calibration_dir
+    call_paths['cal_dir'] = calibration_dir
     return call_paths
 
 def _dump_settings(settings_dict): 
