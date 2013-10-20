@@ -61,18 +61,21 @@ RegionHistograms::RegionHistograms(const RegionConfig& config,
     }
   }
 
+  for (size_t tag_n = 0; tag_n < config.jet_tag_requirements.size(); tag_n++){
+    m_tagged_jet_hists.push_back(
+      new Jet1DHists(max_pt, flags, config.tagger));
+    if (! (flags & buildflag::is_data) ) { 
+      m_tagged_jet_truth_hists.push_back(
+	new TruthJetHists(max_pt, flags, config.tagger)); 
+    }
+  }
+
 }
 
 RegionHistograms::~RegionHistograms() { 
   delete m_jet1_no_jet_scalefactor; 
-  for (size_t iii = 0; iii < m_jet_hists.size(); iii++) { 
-    delete m_jet_hists.at(iii); 
-    m_jet_hists.at(iii) = 0; 
-  }
-  for (auto hitr: m_jet_2hists) { 
-    delete hitr; 
-    hitr = 0; 
-  }
+  for (auto hitr: m_jet_hists) delete hitr; 
+  for (auto hitr: m_jet_2hists) delete hitr; 
 
   delete m_met; 
   delete m_alt_met; 
@@ -83,18 +86,17 @@ RegionHistograms::~RegionHistograms() {
   delete m_htx; 
 
   delete m_cjet_rank; 
-  for (size_t iii = 0; iii < m_jet_truth_hists.size(); iii++) { 
-    delete m_jet_truth_hists.at(iii); 
-    m_jet_truth_hists.at(iii) = 0; 
-  }
+  for (auto hitr: m_jet_truth_hists) delete hitr; 
   delete m_jet_scalefactor; 
   delete m_lepton_scalefactor; 
+  for (auto hitr: m_tagged_jet_hists) delete hitr; 
+  for (auto hitr: m_tagged_jet_truth_hists) delete hitr; 
 }
 
 void RegionHistograms::fill(const EventObjects& obj) { 
   typedef std::vector<Jet> Jets; 
 
-  double weight = obj.weight; 
+  double base_weight = obj.weight; 
   bool use_electron_jet = m_region_config.region_bits & reg::electron_jet; 
   const Jets jets = use_electron_jet ? obj.jets_with_eljet : obj.jets; 
 
@@ -110,10 +112,16 @@ void RegionHistograms::fill(const EventObjects& obj) {
   if (! (m_build_flags & buildflag::is_data)) { 
     double jet_sf = m_event_filter.jet_scalefactor(tagged_jets); 
     float lepton_sf = m_event_filter.lepton_scalefactor(obj); 
-    m_jet_scalefactor->fill(jet_sf, weight); 
-    m_lepton_scalefactor->fill(lepton_sf, weight); 
-    weight *= jet_sf * lepton_sf; 
+    m_jet_scalefactor->fill(jet_sf, base_weight); 
+    m_lepton_scalefactor->fill(lepton_sf, base_weight); 
+    base_weight *= jet_sf * lepton_sf; 
   }
+  const auto weight = base_weight; 
+
+  // --- filling hists from here (no more weight calc or filtering) ---
+
+  fill_tagged_hists(tagged_jets, weight); 
+
   const bool do_mu_met = m_region_config.region_bits & reg::mu_met; 
   const TVector2 met = do_mu_met ? obj.mu_met: obj.met; 
   const TVector2 alt_met = do_mu_met ? obj.met: obj.mu_met; 
@@ -144,12 +152,8 @@ void RegionHistograms::fill(const EventObjects& obj) {
   m_htx->fill(obj.htx,  weight); 
     
   m_n_good_jets->fill(obj.n_signal_jets,  weight); 
-  if (m_cjet_rank) { 
-    std::vector<int> ranks = {
-      obj.leading_cjet_pos, obj.subleading_cjet_pos}; 
-    std::vector<double> franks(ranks.begin(), ranks.end()); 
-    m_cjet_rank->fill(franks,  weight); 
-  }
+  if (m_cjet_rank) fill_cjet_rank(obj, weight); 
+
   unsigned n_jets_truth = std::min(jets.size(), m_jet_truth_hists.size()); 
   for (size_t jet_n = 0; jet_n < n_jets_truth; jet_n++) { 
     m_jet_truth_hists.at(jet_n)->fill(jets.at(jet_n),  weight); 
@@ -183,13 +187,23 @@ void RegionHistograms::write_to(H5::CommonFG& file) const {
     m_lepton_scalefactor->write_to(region, "leptonScalefactor"); 
   }
 
-  if (m_jet_truth_hists.size()) { 
+  if (m_jet_truth_hists.size() || m_tagged_jet_truth_hists.size()) { 
     Group truth(region.createGroup("truth")); 
     for (size_t iii = 0; iii < m_jet_truth_hists.size(); iii++) { 
       std::string jet_name = (boost::format("jet%i") % iii).str(); 
       Group jet(truth.createGroup(jet_name)); 
       m_jet_truth_hists.at(iii)->write_to(jet); 
     }
+    for (size_t jn = 0; jn < m_tagged_jet_truth_hists.size(); jn++) { 
+      std::string jet_name = (boost::format("taggedJet%i") % jn).str(); 
+      Group jet(truth.createGroup(jet_name)); 
+      m_tagged_jet_truth_hists.at(jn)->write_to(jet); 
+    }
+  }
+  for (size_t jn = 0; jn < m_tagged_jet_hists.size(); jn++) { 
+    std::string jet_name = (boost::format("taggedJet%i") % jn).str(); 
+    Group jet(region.createGroup(jet_name)); 
+    m_tagged_jet_hists.at(jn)->write_to(jet); 
   }
 }
 
@@ -216,4 +230,21 @@ void RegionHistograms::add_cjet_rank() {
   subleading.high = 5.5; 
   std::vector<Axis> axes = {leading, subleading}; 
   m_cjet_rank = new Histogram(axes); 
+}
+
+void RegionHistograms::fill_cjet_rank(const EventObjects& obj, double w) { 
+  std::vector<int> ranks = {
+    obj.leading_cjet_pos, obj.subleading_cjet_pos}; 
+  std::vector<double> franks(ranks.begin(), ranks.end()); 
+  m_cjet_rank->fill(franks, w); 
+}
+
+void RegionHistograms::fill_tagged_hists(
+  const std::vector<Jet>& jets, double weight) { 
+  size_t n_jets = std::min(jets.size(), m_tagged_jet_hists.size()); 
+  for (size_t jn = 0; jn < n_jets; jn++) { 
+    const Jet& jet = jets.at(jn); 
+    m_tagged_jet_hists.at(jn)->fill(jet, weight); 
+    m_tagged_jet_truth_hists.at(jn)->fill(jet, weight); 
+  }
 }

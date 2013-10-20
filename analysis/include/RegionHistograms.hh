@@ -33,6 +33,8 @@ public:
   void write_to(std::string file_name = "") const; 
 private: 
   void add_cjet_rank(); 
+  void fill_cjet_rank(const EventObjects&, double weight); 
+  void fill_tagged_hists(const std::vector<Jet>& tagged_jet, double weight); 
   const RegionConfig m_region_config; 
   const RegionEventFilter m_event_filter; 
   const unsigned m_build_flags; 
@@ -54,6 +56,9 @@ private:
   Jet1DHists* m_jet1_no_jet_scalefactor; 
 
   std::vector<TruthJetHists*> m_jet_truth_hists; 
+
+  std::vector<Jet1DHists*> m_tagged_jet_hists; 
+  std::vector<TruthJetHists*> m_tagged_jet_truth_hists; 
 }; 
 
 #endif 
