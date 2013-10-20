@@ -65,16 +65,22 @@ bool RegionEventFilter::pass(const EventObjects& obj) const {
     if (jets.size() > n_required_jets) return false; 
   }
 
-  if (! m_jet_tag_filter->pass(jets) ) return false; 
   return true; 
 
 }
 
-double RegionEventFilter::jet_scalefactor(const EventObjects& obj) const { 
-  typedef std::vector<Jet> Jets; 
-  bool use_electron_jet = m_region_config.region_bits & reg::electron_jet; 
-  const Jets jets = use_electron_jet ? obj.jets_with_eljet : obj.jets; 
-  double weight = m_jet_tag_filter->jet_scalefactor(jets); 
+std::vector<Jet> RegionEventFilter::tagged_jets(const std::vector<Jet>& jets) 
+  const { 
+  return m_jet_tag_filter->tagged_jets(jets); 
+}
+
+
+double RegionEventFilter::jet_scalefactor(const std::vector<Jet>& jets) 
+  const { 
+  double weight = 1.0; 
+  for (auto jet: jets) { 
+    weight *= jet.get_scalefactor(jet.get_tag(), m_region_config.systematic);
+  }
   return weight; 
 }
 

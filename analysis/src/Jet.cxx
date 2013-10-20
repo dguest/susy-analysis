@@ -18,7 +18,9 @@ Jet::Jet(const JetBuffer* basis, unsigned flags):
   m_jfc_pu(basis->jfc_u), 
   m_met_dphi(0), 
   m_ioflags(flags), 
-  m_buffer(basis)
+  m_buffer(basis), 
+  m_el_jet(false), 
+  m_tag(btag::NOTAG)
 {
   SetPtEtaPhiM(basis->pt, basis->eta, basis->phi, 0); 
   switch (basis->flavor_truth_label) { 
@@ -37,6 +39,15 @@ void Jet::set_mu_met(const TVector2& met) {
   TLorentzVector met_4vec(met.X(), met.Y(), 0, 1); 
   m_mu_met_dphi = met_4vec.DeltaPhi(*this); 
 }
+
+void Jet::set_tag(btag::OperatingPoint op) { 
+  m_tag = op; 
+}; 
+btag::OperatingPoint Jet::get_tag() const {
+  return m_tag; 
+}; 
+
+
 double Jet::met_dphi() const {return m_met_dphi; }
 double Jet::mu_met_dphi() const {return m_mu_met_dphi; }
 double Jet::flavor_weight(Flavor flav, btag::Tagger tagger) const { 

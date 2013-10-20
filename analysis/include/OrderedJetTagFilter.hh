@@ -14,8 +14,7 @@ public:
   OrderedJetTagFilter(const OrderedJetTagFilter&) = delete; 
   OrderedJetTagFilter& operator=(const OrderedJetTagFilter&) = delete; 
   ~OrderedJetTagFilter(); 
-  virtual bool pass(const std::vector<Jet>& jets) const; 
-  virtual double jet_scalefactor(const std::vector<Jet>& jets) const; 
+  virtual std::vector<Jet> tagged_jets(const std::vector<Jet>& jets) const; 
 private: 
   std::vector<btag::OperatingPoint> m_ordered_tags; 
   syst::Systematic m_systematic; 

@@ -7,8 +7,7 @@ class Jet;
 class IJetTagFilter
 {
 public: 
-  virtual bool pass(const std::vector<Jet>& jets) const = 0; 
-  virtual double jet_scalefactor(const std::vector<Jet>& jets) const = 0; 
+  virtual std::vector<Jet> tagged_jets(const std::vector<Jet>&) const = 0; 
   virtual ~IJetTagFilter(){}; 
 };
 

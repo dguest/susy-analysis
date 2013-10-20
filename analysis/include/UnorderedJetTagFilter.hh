@@ -16,8 +16,7 @@ public:
   UnorderedJetTagFilter(const UnorderedJetTagFilter&) = delete; 
   UnorderedJetTagFilter& operator=(const UnorderedJetTagFilter&) = delete; 
   ~UnorderedJetTagFilter(); 
-  virtual bool pass(const std::vector<Jet>& jets) const; 
-  virtual double jet_scalefactor(const std::vector<Jet>& jets) const; 
+  virtual std::vector<Jet> tagged_jets(const std::vector<Jet>& jets) const; 
 private: 
   syst::Systematic m_systematic; 
   size_t m_n_jets_skipped; 

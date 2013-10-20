@@ -16,6 +16,8 @@ public:
   Jet(const JetBuffer* basis, unsigned flags = 0); 
   void set_event_met(const TVector2& met); 
   void set_mu_met(const TVector2& mu_met); 
+  void set_tag(btag::OperatingPoint); 
+  btag::OperatingPoint get_tag() const; 
   double met_dphi() const; 
   double mu_met_dphi() const; 
   void set_event_flags(ull_t); 
@@ -40,6 +42,7 @@ private:
   unsigned m_ioflags; 
   const JetBuffer* m_buffer; 
   bool m_el_jet; 
+  btag::OperatingPoint m_tag; 
 }; 
 
 #endif

@@ -65,9 +65,12 @@ void Region2dKinematicHistograms::fill(const EventObjects& obj) {
   const Jets jets = use_electron_jet ? obj.jets_with_eljet : obj.jets; 
 
   if (!m_event_filter.pass(obj)) return; 
+  const std::vector<Jet> tagged_jets = m_event_filter.tagged_jets(jets); 
+  bool needs_tags = m_region_config.jet_tag_requirements.size() > 0; 
+  if (tagged_jets.size() == 0 && needs_tags) return; 
 
   if (! (m_build_flags & buildflag::is_data)) { 
-    weight *= m_event_filter.jet_scalefactor(obj); 
+    weight *= m_event_filter.jet_scalefactor(tagged_jets); 
     weight *= m_event_filter.lepton_scalefactor(obj); 
   }
   bool do_mu_met = m_region_config.region_bits & reg::mu_met; 

@@ -6,6 +6,9 @@
 struct EventObjects; 
 class JetTagRescaler; 
 class IJetTagFilter; 
+class Jet; 
+
+#include <vector> 
 
 #include "RegionConfig.hh"
 
@@ -17,7 +20,8 @@ public:
   RegionEventFilter(const RegionEventFilter&) = delete; 
   RegionEventFilter& operator=(const RegionEventFilter&) = delete; 
   bool pass(const EventObjects& objects) const; 
-  double jet_scalefactor(const EventObjects& objects) const; 
+  double jet_scalefactor(const std::vector<Jet>& jets) const; 
+  std::vector<Jet> tagged_jets(const std::vector<Jet>& jets) const; 
   float lepton_scalefactor(const EventObjects& objects) const; 
 private: 
   const RegionConfig& m_region_config; 

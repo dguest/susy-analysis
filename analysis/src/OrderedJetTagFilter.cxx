@@ -13,28 +13,23 @@ OrderedJetTagFilter(const std::vector<btag::OperatingPoint>& op_points,
 
 OrderedJetTagFilter::~OrderedJetTagFilter() {}
 
-bool OrderedJetTagFilter::pass(const std::vector<Jet>& jets) const { 
+std::vector<Jet> OrderedJetTagFilter::tagged_jets(
+  const std::vector<Jet>& jets) const { 
+  std::vector<Jet> tagged; 
   const auto& jet_req = m_ordered_tags; 
   for (unsigned jet_n = 0; jet_n < jet_req.size(); jet_n++) {
     const auto jet = jets.at(jet_n); 
     const auto requested_tag = jet_req.at(jet_n); 
     bool pass = jet.pass_tag(requested_tag); 
-    if (!pass) return false; 
+    if (pass) { 
+      auto tagged_jet = jet; 
+      tagged_jet.set_tag(requested_tag); 
+      tagged.push_back(tagged_jet); 
+    } else { 
+      // return empty vector if tagging fails
+      return std::vector<Jet>(); 
+    }
   }
-
-  return true; 
+  return tagged; 
 }
 
-double OrderedJetTagFilter
-::jet_scalefactor(const std::vector<Jet>& jets) const {
-  typedef std::vector<Jet> Jets; 
-  double weight = 1; 
-  const auto& jet_req = m_ordered_tags; 
-  for (unsigned jet_n = 0; jet_n < jet_req.size(); jet_n++) {
-    const auto jet = jets.at(jet_n); 
-    const auto requested_tag = jet_req.at(jet_n); 
-    weight *= jet.get_scalefactor(requested_tag, m_systematic); 
-
-  }
-  return weight; 
-}

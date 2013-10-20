@@ -69,9 +69,9 @@ RegionHistograms::~RegionHistograms() {
     delete m_jet_hists.at(iii); 
     m_jet_hists.at(iii) = 0; 
   }
-  for (auto hitr = m_jet_2hists.begin(); hitr != m_jet_2hists.end(); hitr++){
-    delete *hitr; 
-    *hitr = 0; 
+  for (auto hitr: m_jet_2hists) { 
+    delete hitr; 
+    hitr = 0; 
   }
 
   delete m_met; 
@@ -99,13 +99,16 @@ void RegionHistograms::fill(const EventObjects& obj) {
   const Jets jets = use_electron_jet ? obj.jets_with_eljet : obj.jets; 
 
   if (!m_event_filter.pass(obj)) return; 
-  
+  const std::vector<Jet> tagged_jets = m_event_filter.tagged_jets(jets); 
+  bool needs_tags = m_region_config.jet_tag_requirements.size() > 0; 
+  if (tagged_jets.size() == 0 && needs_tags) return; 
+
   if (jets.size() > 1){ 
     m_jet1_no_jet_scalefactor->fill(jets.at(1)); 
   }
 
   if (! (m_build_flags & buildflag::is_data)) { 
-    double jet_sf = m_event_filter.jet_scalefactor(obj); 
+    double jet_sf = m_event_filter.jet_scalefactor(tagged_jets); 
     float lepton_sf = m_event_filter.lepton_scalefactor(obj); 
     m_jet_scalefactor->fill(jet_sf, weight); 
     m_lepton_scalefactor->fill(lepton_sf, weight); 

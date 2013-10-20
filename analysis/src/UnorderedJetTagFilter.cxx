@@ -22,17 +22,27 @@ UnorderedJetTagFilter(const std::vector<btag::OperatingPoint>& op_points,
 
 UnorderedJetTagFilter::~UnorderedJetTagFilter() {}
 
-bool UnorderedJetTagFilter::pass(const std::vector<Jet>& jets) const { 
-  if (m_n_jets_skipped > jets.size()) return false; 
-  std::list<Jet> untagged_jets(jets.begin() + m_n_jets_skipped, jets.end()); 
-  for (auto tag_req = m_tag_counts.cbegin(); 
-       tag_req != m_tag_counts.cend(); tag_req++) { 
-    btag::OperatingPoint op = tag_req->first; 
-    const size_t n_tags_needed = tag_req->second; 
+std::vector<Jet> UnorderedJetTagFilter::tagged_jets(
+  const std::vector<Jet>& jets) const { 
+  std::vector<Jet> tagged; 
+  if (m_n_jets_skipped > jets.size()) return tagged; 
+  std::list<Jet> untagged_jets(jets.begin(), jets.end()); 
+  for (size_t jn = 0; jn < m_n_jets_skipped; jn++) { 
+    untagged_jets.front().set_tag(btag::NOTAG); 
+    tagged.push_back(untagged_jets.front()); 
+    untagged_jets.pop_front(); 
+  }
+  for (auto tag_req: m_tag_counts) { 
+    btag::OperatingPoint op = tag_req.first; 
+    const size_t n_tags_needed = tag_req.second; 
     size_t n_tags_found = 0; 
-    for (auto jitr = untagged_jets.begin(); jitr != untagged_jets.end(); ){
+    auto jitr = untagged_jets.begin(); 
+    while (jitr != untagged_jets.end()){
       if (jitr->pass_tag(op)) {
 	n_tags_found++; 
+	auto tagged_jet = *jitr; 
+	tagged_jet.set_tag(op); 
+	tagged.push_back(tagged_jet); 
 	jitr = untagged_jets.erase(jitr); 
       }
       else { 
@@ -40,47 +50,11 @@ bool UnorderedJetTagFilter::pass(const std::vector<Jet>& jets) const {
       }
       if (n_tags_found == n_tags_needed) break; 
     }
-    if (n_tags_found < n_tags_needed) return false; 
+    // return empty vector if required tags aren't found 
+    if (n_tags_found < n_tags_needed) return std::vector<Jet>(); 
   }
-  return true; 
-}
+  return tagged; 
 
-double UnorderedJetTagFilter
-::jet_scalefactor(const std::vector<Jet>& jets) const {
-  double scale_factor = 1.0; 
-  if (m_n_jets_skipped > jets.size()) return scale_factor; 
-  std::list<Jet> untagged_jets(jets.begin() + m_n_jets_skipped, jets.end()); 
-  for (auto tag_req = m_tag_counts.cbegin(); 
-       tag_req != m_tag_counts.cend(); tag_req++) { 
-    btag::OperatingPoint op = tag_req->first; 
-    const size_t n_tags_needed = tag_req->second; 
-    size_t n_tags_found = 0; 
-    for (auto jitr = untagged_jets.begin(); jitr != untagged_jets.end(); ) { 
-      if (jitr->pass_tag(op)) {
-	n_tags_found++; 
-	scale_factor *= jitr->get_scalefactor(op, m_systematic); 
-	jitr = untagged_jets.erase(jitr); 
-      }
-      else { 
-	jitr++; 
-      }
-      if (n_tags_found == n_tags_needed) break; 
-    }
-
-    // apply the remaining scale factors, start with highest pt
-    size_t remaining_tags = std::min(n_tags_needed - n_tags_found, 
-				     untagged_jets.size()); 
-    for (auto jitr = untagged_jets.begin(); jitr != untagged_jets.end(); 
-	 jitr++) { 
-      if (remaining_tags > 0) { 
-	remaining_tags--; 
-	scale_factor *= jitr->get_scalefactor(op, m_systematic); 
-	jitr = untagged_jets.erase(jitr); 
-      }
-      else break; 
-    }
-  }
-  return scale_factor; 
 }
 
 namespace jetfilter { 
