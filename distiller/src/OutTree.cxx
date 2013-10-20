@@ -129,9 +129,9 @@ namespace outtree {
       m_file->WriteTObject(m_tree); 
       delete m_file; 
     }
-    for (auto itr = jets.begin(); itr != jets.end(); itr++) { 
-      delete *itr; 
-      *itr = 0; 
+    for (auto itr: jets) { 
+      delete itr; 
+      itr = 0; 
     }
     m_file = 0; 
   }

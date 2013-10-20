@@ -41,7 +41,6 @@ def distill_d3pds(config):
         return 
 
     out_file = splitext(basename(config.input_file))[0] + '.root'
-    bullshit.make_dir_if_none(config.output_dir)
 
     meta_lookup = meta.DatasetCache(config.meta)
     ds_key = basename(splitext(out_file)[0]).split('-')[0]
@@ -57,13 +56,16 @@ def distill_d3pds(config):
         prw_file = join(prw_dir, '{}.prw{}'.format(*splitext(out_file)))
         flags += 'u'            # turn on pu file generation 
         add_dict['pu_config'] = prw_file
-
+        out_path = ''           # disable output trees
+    else: 
+        bullshit.make_dir_if_none(config.output_dir)
+        
     if config.more_info: 
         flags += 'i'           # save sparticle id
     if config.all_events: 
         flags += 'e'            # disables skimming
     if 'd' in flags: 
-        if config.systematic != 'NONE': 
+        if config.systematic != 'NONE' or config.build_prw: 
             return 
 
     if sys.stdin.isatty(): 
@@ -83,10 +85,11 @@ def distill_d3pds(config):
             cutflow='NOMINAL', 
             **add_dict)
 
-    counts_path = splitext(out_path)[0] + '_counts.yml'
-    list_counts = [list(c) for c in cut_counts]
-    with open(counts_path,'w') as out_yml: 
-        out_yml.write(yaml.dump(list_counts))
+    if out_path: 
+        counts_path = splitext(out_path)[0] + '_counts.yml'
+        list_counts = [list(c) for c in cut_counts]
+        with open(counts_path,'w') as out_yml: 
+            out_yml.write(yaml.dump(list_counts))
 
 def _get_cal_paths_dict(config): 
     calibration_dir = expanduser(config.calibration)
