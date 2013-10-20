@@ -4,7 +4,7 @@ from stop.distiller import cutflow
 import sys, glob, os
 
 flags = 'vbgzf'
-# flags += 'u'                    # generate pu reweighting file
+flags += 'u'                    # generate pu reweighting file
 configs = ['NOMINAL']
 files = []
 if len(sys.argv) > 1: 

@@ -74,12 +74,15 @@ void SmartChain::SetBranchAddressPrivate(std::string name, void* branch,
       return; 
     }
     case chain::THROW: {
-      std::string prob = (boost::format("missing branch: %s") % name).str();
-      throw MissingBranchError(prob);
+      // mark this branch as "fake" (don't set in the future)
+      m_fake_branches.insert(name); 
+      throw_bad_branch(name); 
     }
     default: throw std::logic_error("unknown action in " __FILE__); 
     }
   }
+
+  // other checks (not sure if they are needed, who knows what root does)
   int return_code = TChain::SetBranchAddress(name.c_str(), branch); 
   if (return_code != 0 && return_code != 5 ){ 
     std::string issue = (boost::format("can not set %s , return code %i") % 
@@ -105,7 +108,7 @@ void SmartChain::throw_bad_branch(std::string name) const {
   std::string issue = (boost::format("can't find branch %s, ") % name).str(); 
   std::string file = GetFile()->GetName(); 
   issue.append("bad file: " + file); 
-  throw std::runtime_error(issue); 
+  throw MissingBranchError(issue); 
 
 }
 
