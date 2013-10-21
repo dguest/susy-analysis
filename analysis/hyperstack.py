@@ -49,7 +49,7 @@ all_cuts = [
         'jet_tag_requirements': ['NOTAG','JFC_LOOSE'], 
         'hists': 'KINEMATIC_STAT', 
         'tagger':'JFC', 
-        'systematic':'BUP'
+        'systematic':'NONE'
         }, 
     { 
         'name': 'boball', 
@@ -58,7 +58,7 @@ all_cuts = [
         'jet_tag_requirements': ['NOTAG','JFC_LOOSE'], 
         'hists': 'HISTMILL', 
         'tagger':'JFC', 
-        'systematic':'BUP'
+        'systematic':'NONE'
         }, 
     ]
 
@@ -73,4 +73,4 @@ added_cuts = dict(
     # j3_anti_u   = -0.5, 
     )
 
-hfw.stacksusy(sys.argv[1], all_cuts, flags='v')
+hfw.stacksusy(sys.argv[1], all_cuts, flags='vd')

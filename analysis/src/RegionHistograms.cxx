@@ -23,7 +23,8 @@ RegionHistograms::RegionHistograms(const RegionConfig& config,
   m_build_flags(flags), 
 
   m_cjet_rank(0), 
-  m_jet_scalefactor(0)
+  m_jet_scalefactor(0), 
+  m_lepton_scalefactor(0)
 { 
   const double max_pt = 1e3*GeV; 
   const size_t n_jets = N_JETS_TO_READ; 
@@ -101,9 +102,11 @@ void RegionHistograms::fill(const EventObjects& obj) {
   const Jets jets = use_electron_jet ? obj.jets_with_eljet : obj.jets; 
 
   if (!m_event_filter.pass(obj)) return; 
+  printf("%i\n", __LINE__); 
   const std::vector<Jet> tagged_jets = m_event_filter.tagged_jets(jets); 
   bool needs_tags = m_region_config.jet_tag_requirements.size() > 0; 
   if (tagged_jets.size() == 0 && needs_tags) return; 
+  printf("%i\n", __LINE__); 
 
   if (jets.size() > 1){ 
     m_jet1_no_jet_scalefactor->fill(jets.at(1)); 
@@ -116,11 +119,15 @@ void RegionHistograms::fill(const EventObjects& obj) {
     m_lepton_scalefactor->fill(lepton_sf, base_weight); 
     base_weight *= jet_sf * lepton_sf; 
   }
+  printf("%i\n", __LINE__); 
+
   const auto weight = base_weight; 
 
   // --- filling hists from here (no more weight calc or filtering) ---
 
+  printf("%i\n", __LINE__); 
   fill_tagged_hists(tagged_jets, weight); 
+  printf("%i\n", __LINE__); 
 
   const bool do_mu_met = m_region_config.region_bits & reg::mu_met; 
   const TVector2 met = do_mu_met ? obj.mu_met: obj.met; 
@@ -153,11 +160,13 @@ void RegionHistograms::fill(const EventObjects& obj) {
     
   m_n_good_jets->fill(obj.n_signal_jets,  weight); 
   if (m_cjet_rank) fill_cjet_rank(obj, weight); 
+  printf("%i\n", __LINE__); 
 
   unsigned n_jets_truth = std::min(jets.size(), m_jet_truth_hists.size()); 
   for (size_t jet_n = 0; jet_n < n_jets_truth; jet_n++) { 
     m_jet_truth_hists.at(jet_n)->fill(jets.at(jet_n),  weight); 
   }
+  printf("%i\n", __LINE__); 
 
 }
 
@@ -245,6 +254,8 @@ void RegionHistograms::fill_tagged_hists(
   for (size_t jn = 0; jn < n_jets; jn++) { 
     const Jet& jet = jets.at(jn); 
     m_tagged_jet_hists.at(jn)->fill(jet, weight); 
-    m_tagged_jet_truth_hists.at(jn)->fill(jet, weight); 
+    if (! (m_build_flags & buildflag::is_data) ) { 
+      m_tagged_jet_truth_hists.at(jn)->fill(jet, weight); 
+    }
   }
 }
