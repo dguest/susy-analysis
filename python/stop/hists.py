@@ -628,6 +628,34 @@ class HistAdder(object):
                         type(subgroup), key))
         return merged
 
+    def _fast_merge(self, hist_dict, new_hists, weight): 
+        """
+        circumvents lots of error checking and array copying used in the
+        normal merge. 
+        """
+        for key in hist_dict:
+            subgroup = hist_dict[key]
+            if not key in new_hists: 
+                raise HistAddError(
+                    "node {} not found in new hists".format(key))
+            if isinstance(subgroup, dict): 
+                self._fast_merge(hist_dict[key], new_hists[key], weight)
+            elif isinstance(subgroup, HistNd): 
+                if not isinstance(new_hists[key], Dataset): 
+                    raise HistAddError(
+                        "tried to merge non-dataset {}".format(key))
+                # proper treating of weighted hists
+                if weight is None: 
+                    new_arr = np.array(new_hists[key])
+                elif self.wt2_ext and key.endswith(self.wt2_ext): 
+                    new_arr = np.array(new_hists[key]) * weight**2
+                else: 
+                    new_arr = np.array(new_hists[key])*weight
+                hist_dict[key].array += new_arr
+            else: 
+                raise HistAddError('not sure what to do with {}, {}'.format(
+                        type(subgroup), key))
+
     def _write(self, hists, group): 
         for key, hist in hists.iteritems(): 
             if isinstance(hist, dict): 
@@ -638,6 +666,8 @@ class HistAdder(object):
 
     def add(self, group, weight=1.0): 
         self.hists = self._merge(self.hists, group, weight)
+    def fast_add(self, group, weight=None): 
+        self._fast_merge(self.hists, group, weight)
 
     def write_to(self, group): 
         self._write(self.hists, group)

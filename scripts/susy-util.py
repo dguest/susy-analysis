@@ -92,6 +92,9 @@ def get_config():
         help='multiple hadds, splits input by dir and hists at \'-\'')
     hist_add.add_argument('--norm', help=(
             'normalize using this meta file (scales to 1 fb^-1)'))
+    hist_add.add_argument(
+        '-f','--fast-recursive', action='store_true', 
+        help='recursive hadd, disable some checks')
 
     # group stuff
     group = subs.add_parser('group', description=_group_help)
@@ -196,6 +199,9 @@ def hadd(config):
     if config.recursive: 
         _recursive_hadd(config)
         return 
+    elif config.fast_recursive: 
+        _recursive_hadd(config, fast=True); 
+        return 
     good_files = _get_good_files(config.input_hists)
     if config.dash_hadd: 
         if config.norm: 
@@ -226,7 +232,7 @@ def _get_good_files(input_hists):
                 len(good_files), len(input_hists)))
     return good_files
 
-def _recursive_hadd(config): 
+def _recursive_hadd(config, fast=False): 
     if not all(isdir(x) for x in config.input_hists): 
         raise OSError("recursive hadd requires input_hists to be dir")
     all_walk = chain(*(os.walk(x) for x in config.input_hists))
@@ -241,9 +247,9 @@ def _recursive_hadd(config):
                 "output directory {} already exists, "
                 " refusing overwrite".format(out_path))
         os.makedirs(out_path)
-        _dash_hadd(good_files, out_path)
+        _dash_hadd(good_files, out_path, fast=fast)
 
-def _dash_hadd(good_files, output): 
+def _dash_hadd(good_files, output, fast=False): 
     def key_from_name(fname): 
         return splitext(basename(fname))[0].split('-')[0]
     if not isdir(output): 
@@ -259,7 +265,7 @@ def _dash_hadd(good_files, output):
             raise IOError(
                 "file {} can't be created, missing subfiles: {}".format(
                     out_path, subfiles_str))
-        _hadd(file_group, out_path)
+        _hadd(file_group, out_path, fast=fast)
     
 
 def _get_missing_subfiles(file_group): 
@@ -285,16 +291,21 @@ def _get_missing_subfiles(file_group):
             return set(xrange(1, total + 1)) - numbers
         return []
 
-def _hadd(good_files, output, weights_dict={}):
+def _hadd(good_files, output, weights_dict={}, fast=False):
     with h5py.File(good_files[0]) as base_h5:
         weight = weights_dict.get(good_files[0],1.0)
         hadder = HistAdder(base_h5, weight=weight, wt2_ext='Wt2')
     for add_file in good_files[1:]: 
         if not isfile(add_file): 
             raise IOError("{} doesn't exist".format(add_file))
-        weight = weights_dict.get(add_file, 1.0)
-        with h5py.File(add_file) as add_h5: 
-            hadder.add(add_h5, weight=weight)
+        if fast: 
+            weight = weights_dict.get(add_file, None)
+            with h5py.File(add_file) as add_h5: 
+                hadder.fast_add(add_h5, weight=weight)
+        else: 
+            weight = weights_dict.get(add_file, 1.0)
+            with h5py.File(add_file) as add_h5: 
+                hadder.add(add_h5, weight=weight)
     if output: 
         with h5py.File(output,'w') as out_file: 
             hadder.write_to(out_file)
