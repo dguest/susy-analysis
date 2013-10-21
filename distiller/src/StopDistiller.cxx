@@ -415,7 +415,9 @@ void StopDistiller::setup_susytools() {
     if (m_flags & cutflag::generate_pileup) { 
       m_prw->UsePeriodConfig("MC12a"); 
     } else { 
+      m_prw->SetDefaultChannel(0); // this is what Brett does
       m_prw->AddConfigFile(m_info.pu_config); 
+      m_prw->SetDataScaleFactors(1/1.11); // What Brett, Jan do
       m_prw->AddLumiCalcFile(m_info.pu_lumicalc); 
       m_prw->MergeMCRunNumbers(195847,195848); 
       m_prw->SetUnrepresentedDataAction(2); 
