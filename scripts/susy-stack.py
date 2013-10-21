@@ -16,17 +16,10 @@ named for batch submission.
 NOTE: should remove this, or move to susy-setup. 
 """
 
-_hadd_help="""
-Adds the hists of datasets that were fragmented in distillation. 
-
-NOTE: will require updating if we move to including the total number of ds
-in the split ds names. 
-"""
-
 import argparse, sys
 import yaml
 import glob
-from os.path import join, splitext, isdir, isfile, expanduser, dirname
+from os.path import join, splitext, expanduser
 import os
 from itertools import groupby
 import errno
@@ -37,13 +30,13 @@ from stop.stack.stacker import Stacker
 from stop.bullshit import make_dir_if_none
 import h5py
 from stop.hists import HistAdder
+from stop.sysdef import get_systematics
 
 def run(): 
     config = get_config()
     subs = {
         'setup': setup_steering, 
-        'run': run_stacker, 
-        'hadd': run_hadd}
+        'run': run_stacker}
     subs[config.which](config)
 
 def get_config(): 
@@ -70,15 +63,6 @@ def get_config():
                             help="dump region config, don't run")
     run_parser.add_argument('-o','--hists-dir', default='hists', help=d)
     
-    hadd_parser = subs.add_parser('hadd', description=_hadd_help)
-    hadd_parser.add_argument('steering_file')
-    hadd_parser.add_argument('-c', '--clean', action='store_true', 
-                             help='remove partial files after adding')
-    hadd_parser.add_argument('-v','--verbose', action='store_true')
-    hadd_parser.add_argument(
-        '--systematic', help='only hadd this systematic', default='*')
-    hadd_parser.add_argument(
-        '--method', help='only hadd this method', default='*')
     return parser.parse_args(sys.argv[1:])
 
 def setup_steering(config): 
@@ -102,46 +86,10 @@ def setup_steering(config):
         with open(config.output_file,'w') as out_file: 
             out_file.writelines('\n'.join(all_files) + '\n')
 
-class SystMap(object): 
-    """
-    Maps an ntuple path to a systematic (or list of systematics) that should 
-    be applied. 
-    
-    Planning to simplify this: the systematic will just be the uppercase 
-    top level directory. 
-    """
-    def __init__(self, ntuples_dict={}): 
-        self.scale_factor_systematics = ['NONE'] + [
-            part + shift for part in 'BCUT' for shift in ['UP','DOWN']
-            ]
-        self.map = {v:k for k,v in ntuples_dict.iteritems()}
-    def get_systematics(self, ntuple): 
-        syst = None
-        if self.map: 
-            warn('ntuple map is going away', FutureWarning, stacklevel=2)
-            for k in self.map:
-                if k in ntuple: 
-                    if syst: 
-                        raise ValueError(
-                            'tried to assign both {} and {} to {}'.format(
-                                syst, self.map[k], ntuple))
-                    syst = self.map[k]
-        else: 
-            tld = dirname(ntuple).split('/')[-1]
-            syst = 'NONE' if tld == 'baseline' else tld.upper()
-        if syst is None: 
-            raise ValueError("couldn't find syst for {}".format(ntuple))
-        if syst == 'NONE': 
-            return self.scale_factor_systematics
-        else: 
-            return [syst]
-
 
 def run_stacker(config): 
     with open(config.steering_file) as steering_yml: 
         config_dict = yaml.load(steering_yml)
-
-    syst_map = SystMap()
 
     regions = {k:Region(v) for k, v in config_dict['regions'].iteritems()}
     hists_dir = config.hists_dir
@@ -169,7 +117,7 @@ def run_stacker(config):
     stacker.total_ntuples = len(ntuples)
 
     for tuple_n, ntuple in enumerate(ntuples): 
-        systematics = syst_map.get_systematics(ntuple)
+        systematics = get_systematics(ntuple)
         outsubdir = None
         if len(systematics) == 1: 
             outsubdir = systematics[0].lower()
@@ -180,46 +128,6 @@ def run_stacker(config):
         stacker.run_multisys(
             ntuple, hists_dir, systematics, 
             outsubdir=outsubdir, tuple_n=tuple_n)
-
-def run_hadd(config): 
-    warn('hadd routine is going to be removed', FutureWarning, stacklevel=2)
-    with open(config.steering_file) as steering: 
-        steering_dict = yaml.load(steering)
-
-    hist_dir = steering_dict['files']['hists']
-    method_dir = config.method
-    syst_dir = config.systematic
-    all_files = glob.glob(join(hist_dir, method_dir, syst_dir, '*-*.h5'))
-
-    def stub_finder(file_name): 
-        master_stub, part, ext = file_name.rpartition('-')
-        try: 
-            int(splitext(ext)[0])
-        except ValueError: 
-            raise ValueError("{} doesn't parse in hadd".format(file_name))
-        return master_stub
-
-    for stub, in_itr in groupby(sorted(all_files), stub_finder): 
-        in_files = list(in_itr)
-        out_name = '{}.h5'.format(stub)
-        if config.verbose: 
-            print 'hadding {}'.format(out_name)
-        _hadd(in_files, out_name)
-        if config.clean: 
-            for old_in in in_files: 
-                os.remove(old_in)
-
-def _hadd(good_files, output):
-    with h5py.File(good_files[0]) as base_h5: 
-        hadder = HistAdder(base_h5)
-    for add_file in good_files[1:]: 
-        if not isfile(add_file): 
-            raise IOError("{} doesn't exist".format(add_file))
-        with h5py.File(add_file) as add_h5: 
-            hadder.add(add_h5)
-
-    with h5py.File(output,'w') as out_file: 
-        hadder.write_to(out_file)
 
 
 if __name__ == '__main__': 

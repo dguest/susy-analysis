@@ -50,7 +50,7 @@ def distill_d3pds(config):
 
     add_dict.update(_get_cal_paths_dict(config))
     out_path = join(config.output_dir, out_file)
-    if config.build_prw: 
+    if config.build_prw:        # not sure we'll ever use this
         prw_dir = 'pileup-reweighting'
         bullshit.make_dir_if_none(prw_dir)
         prw_file = join(prw_dir, '{}.prw{}'.format(*splitext(out_file)))
