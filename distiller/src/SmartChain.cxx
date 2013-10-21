@@ -14,7 +14,13 @@ SmartChain::SmartChain(std::string tree_name):
 
 int SmartChain::add(std::string file_name, long long nentries) { 
   m_files.push_back(file_name); 
+
+  // ignore "who the fuck cares" streamer errors when opening files
+  int old_error_level = gErrorIgnoreLevel; 
+  gErrorIgnoreLevel = kFatal; 
   TFile file(file_name.c_str()); 
+  gErrorIgnoreLevel = old_error_level; 
+
   if (!file.IsOpen() || file.IsZombie()) { 
     throw std::runtime_error("bad file: " + file_name); 
   }
