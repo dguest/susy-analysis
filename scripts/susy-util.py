@@ -93,8 +93,8 @@ def get_config():
     hist_add.add_argument('--norm', help=(
             'normalize using this meta file (scales to 1 fb^-1)'))
     hist_add.add_argument(
-        '-f','--fast-recursive', action='store_true', 
-        help='recursive hadd, disable some checks')
+        '-f','--fast', action='store_true', 
+        help='disable some checks')
 
     # group stuff
     group = subs.add_parser('group', description=_group_help)
@@ -199,14 +199,11 @@ def hadd(config):
     if config.recursive: 
         _recursive_hadd(config)
         return 
-    elif config.fast_recursive: 
-        _recursive_hadd(config, fast=True); 
-        return 
     good_files = _get_good_files(config.input_hists)
     if config.dash_hadd: 
         if config.norm: 
             raise ValueError('normalization not allowed for dash-hadd')
-        _dash_hadd(good_files, config.output)
+        _dash_hadd(good_files, config.output, fast=config.fast)
     else: 
         weights_dict = {}
         if config.norm: 
@@ -215,7 +212,7 @@ def hadd(config):
                 file_key = basename(splitext(in_file)[0])
                 eff_lumi = lookup[file_key].get_effective_luminosity_fb()
                 weights_dict[in_file] = 1.0/eff_lumi
-        _hadd(good_files, config.output, weights_dict)
+        _hadd(good_files, config.output, weights_dict, fast=config.fast)
 
 def _get_good_files(input_hists): 
     good_files = []
@@ -232,7 +229,7 @@ def _get_good_files(input_hists):
                 len(good_files), len(input_hists)))
     return good_files
 
-def _recursive_hadd(config, fast=False): 
+def _recursive_hadd(config): 
     if not all(isdir(x) for x in config.input_hists): 
         raise OSError("recursive hadd requires input_hists to be dir")
     all_walk = chain(*(os.walk(x) for x in config.input_hists))
@@ -247,7 +244,7 @@ def _recursive_hadd(config, fast=False):
                 "output directory {} already exists, "
                 " refusing overwrite".format(out_path))
         os.makedirs(out_path)
-        _dash_hadd(good_files, out_path, fast=fast)
+        _dash_hadd(good_files, out_path, fast=config.fast)
 
 def _dash_hadd(good_files, output, fast=False): 
     def key_from_name(fname): 

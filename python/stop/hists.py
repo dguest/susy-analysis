@@ -354,12 +354,32 @@ class HistNd(object):
                 raise ValueError("tried to add non-equal hists")
 
     def __add__(self, other): 
-        self.__check_consistency(other)
         new = HistNd()
         new._axes = copy.deepcopy(self._axes)
         new._update_axes()
-        new._array = self._array + other._array
+        if isinstance(other, type(self)): 
+            self.__check_consistency(other)
+            new._array = self._array + other._array
+        else: 
+            new._array = other + self._array 
         return new
+
+    # # ACHTUNG: __radd__ causes problems with ndarrays by allowing ndarrays
+    # # to build ndarrays of hists (or something...)
+    # def __radd__(self, other): 
+    #     print other
+    #     return self.__add__(other)
+
+    def __iadd__(self, other): 
+        """
+        This is (mildly) faster than the heterogeneous add method above.
+        """
+        if isinstance(other, type(self)): 
+            self.__check_consistency(other)
+            self._array += other._array
+        else: 
+            self._array += other
+        return self
 
     def __mul__(self, value): 
         new = HistNd()
@@ -633,7 +653,8 @@ class HistAdder(object):
         circumvents lots of error checking and array copying used in the
         normal merge. 
         """
-        for key in hist_dict:
+        keys = hist_dict.keys()
+        for key in keys:
             subgroup = hist_dict[key]
             if not key in new_hists: 
                 raise HistAddError(
@@ -651,7 +672,8 @@ class HistAdder(object):
                     new_arr = np.array(new_hists[key]) * weight**2
                 else: 
                     new_arr = np.array(new_hists[key])*weight
-                hist_dict[key].array += new_arr
+
+                hist_dict[key] += new_arr
             else: 
                 raise HistAddError('not sure what to do with {}, {}'.format(
                         type(subgroup), key))
