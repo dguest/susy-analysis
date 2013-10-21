@@ -44,7 +44,7 @@ private:
   void setup_outputs(); 
   void setup_cutflow(CutflowType config); 
 
-  float pileup_weight(); 
+  float get_pileup_weight(); 
 
   void print_progress(int entry_n, std::ostream&); 
   RunInfo m_info; 

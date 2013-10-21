@@ -175,6 +175,8 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   }
   m_chain->GetEntry(evt_n); 
 
+  const float pileup_weight = get_pileup_weight(); 
+
   if (m_boson_truth_filter) { 
     if (m_boson_truth_filter->is_over_threshold(m_susy_buffer)) { 
       return; 
@@ -307,7 +309,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   m_out_tree->met_phi = met.Phi(); 
   m_out_tree->mu_met = mu_met.Mod(); 
   m_out_tree->mu_met_phi = mu_met.Phi(); 
-  m_out_tree->pileup_weight = pileup_weight(); 
+  m_out_tree->pileup_weight = pileup_weight; 
 
   m_out_tree->event_number = m_susy_buffer->EventNumber; 
 
@@ -501,18 +503,24 @@ void StopDistiller::setup_cutflow(CutflowType cutflow) {
   }
 }
 
-float StopDistiller::pileup_weight() { 
+float StopDistiller::get_pileup_weight() { 
   if (!m_prw) return 1.0; 
   const SusyBuffer* b = m_susy_buffer; 
+
+  // apply hack from Will Butt's twiki: 
+  // https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/ExtendedPileupReweighting#Recipe_A_MC12a_Pileup_Reweightin
+  // sets some values from 1 to 0
+  bool need_hack = b->lbn==1 && int(b->averageIntPerXing+0.5)==1; 
+  float avx = need_hack ? 0.0 : b->averageIntPerXing;
+
   if (m_flags & cutflag::generate_pileup) { 
     m_prw->Fill(
       b->RunNumber, b->mc_channel_number, 
-      b->mcevt_weight->at(0).at(0), 
-      b->averageIntPerXing); 
+      b->mcevt_weight->at(0).at(0), avx); 
     return 1.0; 
   } else { 
     return m_prw->GetCombinedWeight(
-      b->RunNumber,b->mc_channel_number,b->averageIntPerXing);
+      b->RunNumber,b->mc_channel_number,avx);
   }
 
 }
