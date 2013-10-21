@@ -25,8 +25,9 @@ class Coordinator(object):
         'NONE','JESUP', 'JESDOWN', 'JER', 
         ]
     scale_factor_systematics = ['NONE'] 
+    shift_sf = list('BCUT') + ['EL','MU']
     scale_factor_systematics += [
-        part + shift for part in 'BCUT' for shift in ['UP','DOWN']
+        part + shift for part in shift_sf for shift in ['UP','DOWN']
         ]
     aggregate_hist_name = 'aggregate.h5'
     super_region_meta_name = 'superregions.yml'
