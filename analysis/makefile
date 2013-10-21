@@ -25,7 +25,8 @@ vpath %.h    $(INC)
 
 # --- load in root config
 ROOTCFLAGS    := $(shell root-config --cflags)
-ROOTLIBS      := $(shell root-config --libs)
+ROOTLIBS      := -L$(shell root-config --libdir)
+ROOTLIBS      += -lCore -lTree -lPhysics -lRIO
 ROOTLDFLAGS   := $(shell root-config --ldflags)
 
 # and py config
