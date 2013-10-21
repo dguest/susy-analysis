@@ -652,6 +652,11 @@ class HistAdder(object):
         """
         circumvents lots of error checking and array copying used in the
         normal merge. 
+
+        Basic benchmarking: 
+         - fast merge:   8.025s
+         - normal merge: 21.071s
+         - speedup of 2.6
         """
         keys = hist_dict.keys()
         for key in keys:
