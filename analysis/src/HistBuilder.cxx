@@ -91,7 +91,7 @@ int HistBuilder::build() {
 
     m_factory->entry(entry); 
     
-    if (m_build_flags & buildflag::fill_truth) { 
+    if (! (m_build_flags & buildflag::is_data)) { 
       if (m_factory->hfor_type() == hfor::KILL) continue; 
     }
     const EventObjects objects(m_factory, m_build_flags); 
