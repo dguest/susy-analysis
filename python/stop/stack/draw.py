@@ -188,10 +188,13 @@ class Stack(object):
         all_legs = chain(self._proxy_legs,reversed(self._bg_proxy_legs))
         proxies = zip(*all_legs)
         legend = self.ax.legend(*proxies, numpoints=1)
-        legend.get_frame().set_linewidth(0)
-        legend.get_frame().set_alpha(0)
+        if legend: 
+            legend.get_frame().set_linewidth(0)
+            legend.get_frame().set_alpha(0)
             
     def save(self, name):
+        if self.x_vals is None: 
+            return 
         if self.ax.get_yscale() != 'log': 
             ymax = self.ax.get_ylim()[1]
             self.ax.set_ylim(0,ymax)

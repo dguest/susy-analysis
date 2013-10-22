@@ -142,7 +142,8 @@ def run_plotmill(args):
     plots_dict = {}
     for agg_file in aggregates: 
         print 'loading {}'.format(agg_file)
-        hists = HistDict(agg_file,args.filt, physics_set=used_physics)
+        hists = HistDict(agg_file,args.filt, physics_set=used_physics, 
+                         var_blacklist={'truth'})
         plots_dict.update(hists)
             
     needed = get_signal_finder(args.signal_point)

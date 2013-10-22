@@ -35,7 +35,7 @@ class HistDict(dict):
         - all middle dirs are the variable name
     """
     def __init__(self, file_name='', filt=None, physics_set=None, 
-                 cut_set=None): 
+                 cut_set=None, var_blacklist=None): 
         if not file_name: 
             return None
         with h5py.File(file_name) as infile: 
@@ -46,6 +46,8 @@ class HistDict(dict):
                 spl = path.split('/')
                 physics = spl[1]
                 if physics_set and physics not in physics_set: 
+                    continue
+                if var_blacklist and set(spl[2:-1]) & var_blacklist: 
                     continue
                 variable = '/'.join(spl[2:-1])
                 cut = spl[-1]
