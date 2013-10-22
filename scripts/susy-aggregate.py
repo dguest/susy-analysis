@@ -1,6 +1,12 @@
 #!/usr/bin/env python2.7
 """
-uses run / mc meta data and ntuples files to produce stacks. 
+uses run / mc meta data and ntuples files to produce stacks.
+
+When running in kinematic_stat mode, --fast or --all results in a yaml file.
+
+Could use some refactoring: 
+ - one routine should produce an aggregated histogram file. 
+ - another routine should make the yaml counts files. 
 """
 
 import argparse
@@ -17,7 +23,9 @@ def get_config():
     d = 'default: %(default)s'
     c = "with no argument is '%(const)s'"
 
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(
+        description=__doc__, 
+        formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('steering_file', help="created if it doesn't exist")
     parser.add_argument('-f','--force-aggregation', action='store_true')
     parser.add_argument(
@@ -25,9 +33,9 @@ def get_config():
         default='kinematic_stat', help='default: %(default)s')
     counts = parser.add_mutually_exclusive_group()
     counts.add_argument('--fast', action='store_true', 
-                        help="make counts text file, don't do systematics")
+                        help="don't do systematics")
     counts.add_argument('--all', action='store_true', 
-                        help='make counts text file, do all systematics')
+                        help='make counts text file with all systematics')
     args = parser.parse_args(sys.argv[1:])
     return args
 
