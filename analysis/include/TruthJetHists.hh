@@ -6,16 +6,18 @@ namespace H5 {
   class CommonFG; 
 }
 class Jet1DHists;
+class RegionConfig; 
 
 #include <string> 
 #include <boost/noncopyable.hpp>
 #include "typedefs.hh"
 #include "btag_enums.hh"
+#include "systematic_defs.hh"
 
 class TruthJetHists: public boost::noncopyable
 {
 public: 
-  TruthJetHists(double max_pt, const unsigned flags, btag::Tagger); 
+  TruthJetHists(double max_pt, const unsigned flags, const RegionConfig&); 
   ~TruthJetHists(); 
   void write_to(H5::CommonFG&); 
   void fill(const Jet&, double weight = 1.0); 

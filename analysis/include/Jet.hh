@@ -6,6 +6,7 @@
 #include "TLorentzVector.h"
 #include "typedefs.hh"
 #include "Flavor.hh"
+#include <unordered_map>
 
 struct JetBuffer; 
 class TVector2; 
@@ -14,12 +15,12 @@ class Jet: public TLorentzVector
 {
 public: 
   Jet(const JetBuffer* basis, unsigned flags = 0); 
-  void set_event_met(const TVector2& met); 
-  void set_mu_met(const TVector2& mu_met); 
+  void set_event_met(const TVector2& met, syst::Systematic); 
+  void set_mu_met(const TVector2& mu_met, syst::Systematic); 
   void set_tag(btag::OperatingPoint); 
   btag::OperatingPoint get_tag() const; 
-  double met_dphi() const; 
-  double mu_met_dphi() const; 
+  double met_dphi(syst::Systematic ) const; 
+  double mu_met_dphi(syst::Systematic ) const; 
   void set_event_flags(ull_t); 
   double flavor_weight(Flavor, btag::Tagger) const; 
   Flavor flavor_truth_label() const; 
@@ -36,8 +37,8 @@ private:
   double m_jfc_pc; 
   double m_jfc_pu; 
   Flavor m_truth_label; 
-  double m_met_dphi; 
-  double m_mu_met_dphi; 
+  std::unordered_map<int, double> m_met_dphi; 
+  std::unordered_map<int, double> m_mu_met_dphi; 
 
   unsigned m_ioflags; 
   const JetBuffer* m_buffer; 

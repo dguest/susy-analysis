@@ -16,7 +16,6 @@ Jet::Jet(const JetBuffer* basis, unsigned flags):
   m_jfc_pb(basis->jfc_b), 
   m_jfc_pc(basis->jfc_c), 
   m_jfc_pu(basis->jfc_u), 
-  m_met_dphi(0), 
   m_ioflags(flags), 
   m_buffer(basis), 
   m_el_jet(false), 
@@ -31,13 +30,13 @@ Jet::Jet(const JetBuffer* basis, unsigned flags):
   default: m_truth_label = Flavor::NONE; break; 
   }
 }
-void Jet::set_event_met(const TVector2& met) { 
+void Jet::set_event_met(const TVector2& met, syst::Systematic sy) { 
   TLorentzVector met_4vec(met.X(), met.Y(), 0, 1); 
-  m_met_dphi = met_4vec.DeltaPhi(*this); 
+  m_met_dphi[sy] = met_4vec.DeltaPhi(*this); 
 }
-void Jet::set_mu_met(const TVector2& met) { 
+void Jet::set_mu_met(const TVector2& met, syst::Systematic sy) { 
   TLorentzVector met_4vec(met.X(), met.Y(), 0, 1); 
-  m_mu_met_dphi = met_4vec.DeltaPhi(*this); 
+  m_mu_met_dphi[sy] = met_4vec.DeltaPhi(*this); 
 }
 
 void Jet::set_tag(btag::OperatingPoint op) { 
@@ -48,8 +47,12 @@ btag::OperatingPoint Jet::get_tag() const {
 }; 
 
 
-double Jet::met_dphi() const {return m_met_dphi; }
-double Jet::mu_met_dphi() const {return m_mu_met_dphi; }
+double Jet::met_dphi(syst::Systematic sy) const {
+  return m_met_dphi.at(sy); 
+}
+double Jet::mu_met_dphi(syst::Systematic sy) const {
+  return m_mu_met_dphi.at(sy); 
+}
 double Jet::flavor_weight(Flavor flav, btag::Tagger tagger) const { 
   req_flavor(); 
   if (tagger == btag::CNN) { 

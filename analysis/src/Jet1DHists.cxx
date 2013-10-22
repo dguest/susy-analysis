@@ -2,6 +2,7 @@
 #include "Jet.hh"
 #include "Histogram.hh"
 #include "HistBuilderFlags.hh"
+#include "RegionConfig.hh"
 #include "Flavor.hh"
 #include "H5Cpp.h"
 
@@ -10,8 +11,10 @@
 #include <stdexcept>
 #include <sstream>
 
-Jet1DHists::Jet1DHists(double max_pt, const unsigned flags, btag::Tagger tag): 
-  m_tagger(tag), 
+Jet1DHists::Jet1DHists(double max_pt, const unsigned flags, 
+		       const RegionConfig& config): 
+  m_tagger(config.tagger), 
+  m_systematic(config.systematic), 
   m_truth_label(0)
 { 
   m_pt = new Histogram(100, 0, max_pt, "MeV"); 
@@ -77,8 +80,8 @@ void Jet1DHists::fill(const Jet& jet, double w) {
       pb << " " << pc << " " << pu; 
     throw std::range_error(str.str()); 
   }
-  m_met_dphi->fill(std::abs(jet.met_dphi()),  w);
-  m_mu_met_dphi->fill(std::abs(jet.mu_met_dphi()), w); 
+  m_met_dphi->fill(std::abs(jet.met_dphi(m_systematic)),  w);
+  m_mu_met_dphi->fill(std::abs(jet.mu_met_dphi(m_systematic)), w); 
 
   if (m_truth_label) { 
     int label = static_cast<int>(jet.flavor_truth_label()); 

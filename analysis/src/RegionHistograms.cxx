@@ -36,9 +36,9 @@ RegionHistograms::RegionHistograms(const RegionConfig& config,
     throw std::runtime_error("no name for region, quitting"); 
   }
 
-  m_jet1_no_jet_scalefactor = new Jet1DHists(max_pt, flags, config.tagger); 
+  m_jet1_no_jet_scalefactor = new Jet1DHists(max_pt, flags, config); 
   for (size_t jet_n = 0; jet_n < n_jets; jet_n++) { 
-    m_jet_hists.push_back(new Jet1DHists(max_pt, flags, config.tagger)); 
+    m_jet_hists.push_back(new Jet1DHists(max_pt, flags, config)); 
     m_jet_2hists.push_back(new Jet2DHists(flags, config.tagger)); 
   }
   m_met = new Histogram(N_BINS, 0.0, max_pt, "MeV"); 
@@ -58,16 +58,16 @@ RegionHistograms::RegionHistograms(const RegionConfig& config,
   if (flags & buildflag::fill_truth) { 
     for (size_t jet_n = 0; jet_n < n_jets; jet_n++) { 
       m_jet_truth_hists.push_back
-	(new TruthJetHists(max_pt, flags, config.tagger)); 
+	(new TruthJetHists(max_pt, flags, config)); 
     }
   }
 
   for (size_t tag_n = 0; tag_n < config.jet_tag_requirements.size(); tag_n++){
     m_tagged_jet_hists.push_back(
-      new Jet1DHists(max_pt, flags, config.tagger));
+      new Jet1DHists(max_pt, flags, config));
     if (! (flags & buildflag::is_data) ) { 
       m_tagged_jet_truth_hists.push_back(
-	new TruthJetHists(max_pt, flags, config.tagger)); 
+	new TruthJetHists(max_pt, flags, config)); 
     }
   }
 
@@ -125,8 +125,9 @@ void RegionHistograms::fill(const EventObjects& obj) {
   fill_tagged_hists(tagged_jets, weight); 
 
   const bool do_mu_met = m_region_config.region_bits & reg::mu_met; 
-  const TVector2 met = do_mu_met ? obj.mu_met: obj.met; 
-  const TVector2 alt_met = do_mu_met ? obj.met: obj.mu_met; 
+  const MetFlavors& mets = obj.met.get_syst(m_region_config.systematic); 
+  const TVector2 met = do_mu_met ? mets.muon: mets.bare; 
+  const TVector2 alt_met = do_mu_met ? mets.bare: mets.muon; 
   const TLorentzVector met4(met.Px(), met.Py(), 0, 0); 
 
   m_met->fill(met.Mod(),  weight); 

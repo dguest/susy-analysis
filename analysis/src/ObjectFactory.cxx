@@ -4,6 +4,7 @@
 #include "BtagBuffer.hh"
 #include "BtagConfig.hh"
 #include "EventScalefactors.hh"
+// #include "met_systematics.hh"
 
 #include <string> 
 #include <vector> 
@@ -32,6 +33,15 @@ JetBuffer::~JetBuffer() {
   }
 }
 
+MetBuffer::MetBuffer(TTree* tree, const std::string& prefix) { 
+  int errors = 0; 
+  errors += std::abs(
+    tree->SetBranchAddress((prefix + "met").c_str(), &met)); 
+  errors += std::abs(
+    tree->SetBranchAddress((prefix + "met_phi").c_str(), &met_phi)); 
+  if (errors) throw std::logic_error("unknown met prefix: " + prefix); 
+}
+
 
 ObjectFactory::ObjectFactory(std::string root_file, int n_jets) : 
   m_electron_jet_buffer(0), 
@@ -51,10 +61,12 @@ ObjectFactory::ObjectFactory(std::string root_file, int n_jets) :
     throw std::runtime_error("evt_tree could not be found"); 
   }
   int errors = 0; 
-  errors += m_tree->SetBranchAddress("met",&m_met); 
-  errors += m_tree->SetBranchAddress("met_phi",&m_met_phi); 
-  errors += m_tree->SetBranchAddress("mu_met",&m_mu_met); 
-  errors += m_tree->SetBranchAddress("mu_met_phi",&m_mu_met_phi); 
+  m_met.emplace(syst::NONE, new MetBuffer(m_tree, "")); 
+  m_mu_met.emplace(syst::NONE, new MetBuffer(m_tree, "mu_")); 
+  // errors += m_tree->SetBranchAddress("met",&m_met); 
+  // errors += m_tree->SetBranchAddress("met_phi",&m_met_phi); 
+  // errors += m_tree->SetBranchAddress("mu_met",&m_mu_met); 
+  // errors += m_tree->SetBranchAddress("mu_met_phi",&m_mu_met_phi); 
   errors += m_tree->SetBranchAddress("pass_bits",&m_bits); 
   errors += m_tree->SetBranchAddress("min_jetmet_dphi", &m_dphi); 
   errors += m_tree->SetBranchAddress("n_good_jets", &m_n_good); 
@@ -64,6 +76,10 @@ ObjectFactory::ObjectFactory(std::string root_file, int n_jets) :
 		    m_tree->GetBranch("leading_cjet_pos") && 
 		    m_tree->GetBranch("subleading_cjet_pos") ); 
   if (has_truth) {
+    m_met.emplace(syst::METUP, new MetBuffer(m_tree, "stup_")); 
+    m_met.emplace(syst::METDOWN, new MetBuffer(m_tree, "stdown_")); 
+    m_mu_met.emplace(syst::METUP, new MetBuffer(m_tree, "stup_mu_")); 
+    m_mu_met.emplace(syst::METDOWN, new MetBuffer(m_tree, "stdown_mu_")); 
     errors += m_tree->SetBranchAddress("hfor_type", &m_hfor_type); 
     errors += m_tree->SetBranchAddress("leading_cjet_pos", 
 				     &m_leading_cjet_pos); 
@@ -92,14 +108,22 @@ ObjectFactory::ObjectFactory(std::string root_file, int n_jets) :
 
 ObjectFactory::~ObjectFactory() 
 {
-  for (auto itr = m_jet_buffers.begin(); itr != m_jet_buffers.end(); itr++) { 
-    delete *itr; 
-    *itr = 0; 
+  for (auto itr: m_jet_buffers) {
+    delete itr; 
+    itr = 0; 
   }
   delete m_file; 
   delete m_evt_sf; 
   m_file = 0; 
   m_evt_sf = 0; 
+  for (auto itr: m_met) { 
+    delete itr.second; 
+    itr.second = 0; 
+  }
+  for (auto itr: m_mu_met) { 
+    delete itr.second; 
+    itr.second = 0; 
+  }
 }
 
 void ObjectFactory::use_electron_jet(bool use) { 
@@ -137,6 +161,12 @@ void ObjectFactory::entry(int n) {
 }
 
 std::vector<Jet> ObjectFactory::jets() const { 
+  bool is_data = (m_ioflags & ioflag::no_truth); 
+  std::vector<syst::Systematic> met_systs = {syst::NONE}; 
+  if (!is_data) { 
+    met_systs.insert(met_systs.end(),{syst::METUP, syst::METDOWN});
+  }
+
   std::vector<Jet> jets_out; 
   for (auto itr = m_jet_buffers.begin(); itr != m_jet_buffers.end(); itr++) { 
     if ((*itr)->pt <= 0) { 
@@ -144,27 +174,43 @@ std::vector<Jet> ObjectFactory::jets() const {
     }
     jets_out.push_back(Jet(*itr,m_ioflags)); 
     Jet& jet = *jets_out.rbegin(); 
-    jet.set_event_met(met()); 
-    jet.set_mu_met(mu_met()); 
+    for (auto sys: met_systs) { 
+      jet.set_event_met(met(sys), sys); 
+      jet.set_mu_met(mu_met(sys), sys); 
+    }
   }
   if (m_electron_jet_buffer) { 
     if (m_electron_jet_buffer->pt > 0) { 
       jets_out.push_back(Jet(m_electron_jet_buffer, m_ioflags)); 
-      jets_out.rbegin()->set_event_met(met()); 
+      for (auto sys: met_systs) { 
+	jets_out.rbegin()->set_event_met(met(sys), sys); 
+	jets_out.rbegin()->set_mu_met(met(sys), sys); 
+      }
       std::sort(jets_out.begin(), jets_out.end(), has_higher_pt); 
     }
   }
+
   return jets_out; 
 }
 
-TVector2 ObjectFactory::met()   const  { 
+syst::Systematic ObjectFactory::met_sys(syst::Systematic sys) const { 
+  switch (sys) { 
+  case syst::METUP: 		// fall through 
+  case syst::METDOWN: return sys; 
+  default: return syst::NONE; 
+  }
+}; 
+
+TVector2 ObjectFactory::met(syst::Systematic sy) const  { 
+  const MetBuffer& buf = *m_met.at(met_sys(sy)); 
   TVector2 met; 
-  met.SetMagPhi(m_met, m_met_phi); 
+  met.SetMagPhi(buf.met, buf.met_phi); 
   return met; 
 }
-TVector2 ObjectFactory::mu_met()   const  { 
+TVector2 ObjectFactory::mu_met(syst::Systematic sy) const  { 
+  const MetBuffer& buf = *m_mu_met.at(met_sys(sy)); 
   TVector2 mu_met; 
-  mu_met.SetMagPhi(m_mu_met, m_mu_met_phi); 
+  mu_met.SetMagPhi(buf.met, buf.met_phi); 
   return mu_met; 
 }
 ull_t ObjectFactory::bits() const  { return m_bits; }

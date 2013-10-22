@@ -74,7 +74,8 @@ void Region2dKinematicHistograms::fill(const EventObjects& obj) {
     weight *= m_event_filter.lepton_scalefactor(obj); 
   }
   bool do_mu_met = m_region_config.region_bits & reg::mu_met; 
-  const TVector2 met = do_mu_met ? obj.mu_met : obj.met; 
+  const MetFlavors& mets = obj.met.get_syst(m_region_config.systematic); 
+  const TVector2 met = do_mu_met ? mets.muon: mets.bare; 
 
   assert(jets.size() > 0); 
   const std::vector<double> ptmet = {jets.at(0).Pt(), met.Mod()}; 

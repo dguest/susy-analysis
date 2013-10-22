@@ -5,7 +5,7 @@
 #include "Flavor.hh"
 
 TruthJetHists::TruthJetHists(double max_pt, const unsigned flags, 
-			     btag::Tagger tag) { 
+			     const RegionConfig& tag) { 
   m_bottom = new Jet1DHists(max_pt, flags, tag); 
   m_charm  = new Jet1DHists(max_pt, flags, tag); 
   m_light  = new Jet1DHists(max_pt, flags, tag); 

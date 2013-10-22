@@ -1,18 +1,48 @@
 #include "EventObjects.hh"
 #include "HistBuilderFlags.hh"
 #include "ObjectFactory.hh"
+#include "systematic_defs.hh"
+#include <stdexcept>
 
 namespace { 
   typedef std::vector<Jet> Jets; 
   Jets remove_electron_jets(Jets); 
 }
 
-// TODO: make a pointer to ObjectFactory live in here, clean up 
-// the the direct copying. 
-// OR, make ObjectFactory own a ScaleFactors class, keep a pointer to that.
-EventObjects::EventObjects(const ObjectFactory* factory, unsigned build_flags): 
-  met(factory->met()), 
-  mu_met(factory->mu_met()), 
+MetFlavors::MetFlavors(const ObjectFactory* obj, syst::Systematic syst): 
+  bare(obj->met(syst)), 
+  muon(obj->mu_met(syst))
+{
+}
+
+MetSystematics::MetSystematics(const ObjectFactory* obj, bool is_data): 
+  m_nominal(obj, syst::NONE), 
+  m_up(0), 
+  m_down(0)
+{
+  if (!is_data) { 
+    m_up = new MetFlavors(obj, syst::METUP);
+    m_down = new MetFlavors(obj, syst::METDOWN); 
+  }
+}
+MetSystematics::~MetSystematics() { 
+  delete m_up; 
+  delete m_down; 
+}
+const MetFlavors& MetSystematics::get_syst(syst::Systematic syst) const { 
+  if ( (syst == syst::METUP || syst == syst::METDOWN) && !m_up) { 
+    throw std::logic_error("problem in " __FILE__); 
+  }
+  switch (syst) { 
+  case syst::METUP: return *m_up; 
+  case syst::METDOWN: return *m_down; 
+  default: return m_nominal; 
+  }
+}
+
+EventObjects::EventObjects(const ObjectFactory* factory, 
+			   unsigned build_flags): 
+  met(factory, build_flags & buildflag::is_data), 
   weight(factory->event_weight()), 
   event_mask(factory->bits()), 
   htx(factory->htx()), 

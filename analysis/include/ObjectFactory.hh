@@ -4,6 +4,7 @@
 #include <string> 
 #include <vector> 
 #include <map>
+#include <unordered_map>
 #include "HforTypeDef.hh"
 #include "systematic_defs.hh"
 #include "typedefs.hh"
@@ -48,6 +49,15 @@ struct JetBuffer
   ~JetBuffer(); 
 };
 
+struct MetBuffer 
+{
+  double met; 
+  double met_phi; 
+  MetBuffer(TTree* tree, const std::string& prefix); 
+  MetBuffer(const MetBuffer&) = delete; 
+  MetBuffer& operator=(const MetBuffer&) = delete; 
+}; 
+
 class ObjectFactory
 {
 public: 
@@ -58,8 +68,8 @@ public:
   int entries() const; 
   void entry(int); 
   std::vector<Jet> jets() const; 
-  TVector2 met() const; 
-  TVector2 mu_met() const; 
+  TVector2 met(syst::Systematic) const; 
+  TVector2 mu_met(syst::Systematic) const; 
   ull_t bits() const; 
   double dphi() const; 
   int n_good() const; 
@@ -74,14 +84,17 @@ private:
   void set_btag_n(size_t jet_n, btag::OperatingPoint); 
   void set_btag(JetBuffer*, btag::OperatingPoint, std::string branch_name); 
   void set_buffer(JetBuffer* buffer, std::string base_name); 
+  syst::Systematic met_sys(syst::Systematic) const; 
   TTree* m_tree; 
   TFile* m_file; 
   std::vector<JetBuffer*> m_jet_buffers; 
   JetBuffer* m_electron_jet_buffer; 
-  double m_met; 
-  double m_met_phi; 
-  double m_mu_met; 
-  double m_mu_met_phi; 
+  std::unordered_map<int, MetBuffer*> m_met; 
+  std::unordered_map<int, MetBuffer*> m_mu_met; 
+  // double m_met; 
+  // double m_met_phi; 
+  // double m_mu_met; 
+  // double m_mu_met_phi; 
   ull_t m_bits; 
   double m_dphi; 
   int m_n_good; 

@@ -9,14 +9,36 @@
 #include "Jet.hh"
 #include <vector> 
 #include "typedefs.hh"
+#include "systematic_defs.hh"
 
 class ObjectFactory; 
 class EventScalefactors; 
 
+struct MetFlavors
+{
+  TVector2 bare; 
+  TVector2 muon; 
+  MetFlavors(const ObjectFactory*, syst::Systematic); 
+}; 
+
+// TODO: replace this thing with an unordered_map or some other simple thing
+class MetSystematics
+{
+public: 
+  MetSystematics(const ObjectFactory*, bool is_data); 
+  ~MetSystematics(); 
+  MetSystematics(const MetSystematics&) = delete; 
+  MetSystematics& operator=(const MetSystematics&) = delete; 
+  const MetFlavors& get_syst(syst::Systematic) const; 
+private: 
+  const MetFlavors m_nominal; 
+  const MetFlavors* m_up; 
+  const MetFlavors* m_down; 
+};
+
 struct EventObjects
 {
-  TVector2 met; 
-  TVector2 mu_met; 
+  const MetSystematics met; 
   double weight; 
   ull_t event_mask; 
   double htx; 

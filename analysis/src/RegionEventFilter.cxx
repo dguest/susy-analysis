@@ -46,7 +46,8 @@ bool RegionEventFilter::pass(const EventObjects& obj) const {
   }
 
   bool do_mu_met = m_region_config.region_bits & reg::mu_met; 
-  const TVector2& met = do_mu_met ? obj.mu_met : obj.met; 
+  const MetFlavors& mets = obj.met.get_syst(m_region_config.systematic); 
+  const TVector2& met = do_mu_met ? mets.muon: mets.bare; 
   if (met.Mod() < m_region_config.met) { 
     return false; 
   }
