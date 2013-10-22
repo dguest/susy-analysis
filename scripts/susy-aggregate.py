@@ -25,8 +25,9 @@ def get_config():
         default='kinematic_stat', help='default: %(default)s')
     counts = parser.add_mutually_exclusive_group()
     counts.add_argument('--fast', action='store_true', 
-                        help="make counts, don't do systematics")
-    counts.add_argument('--all', action='store_true', help='do all counts')
+                        help="make counts text file, don't do systematics")
+    counts.add_argument('--all', action='store_true', 
+                        help='make counts text file, do all systematics')
     args = parser.parse_args(sys.argv[1:])
     return args
 
