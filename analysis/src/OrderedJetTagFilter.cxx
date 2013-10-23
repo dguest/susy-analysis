@@ -17,6 +17,7 @@ std::vector<Jet> OrderedJetTagFilter::tagged_jets(
   const std::vector<Jet>& jets) const { 
   std::vector<Jet> tagged; 
   const auto& jet_req = m_ordered_tags; 
+  if (jet_req.size() > jets.size()) return tagged; 
   for (unsigned jet_n = 0; jet_n < jet_req.size(); jet_n++) {
     const auto jet = jets.at(jet_n); 
     const auto requested_tag = jet_req.at(jet_n); 
