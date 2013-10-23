@@ -7,6 +7,7 @@
 #include "OutputFilter.hh"
 #include "Jets.hh"
 #include "Leptons.hh"
+#include "Met.hh"
 #include "constants.hh"
 #include "RunInfo.hh"
 #include "BitmapCutflow.hh"
@@ -263,8 +264,8 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   const int n_leading = std::min(signal_jets.size(), N_SR_JETS); 
   Jets leading_jets(signal_jets.begin(), signal_jets.begin() + n_leading); 
 
-  const auto met = get_met(*m_susy_buffer, *m_def, m_info, susy_muon_idx); 
-  const auto mu_met = get_mumet(met, control_muons); 
+  const Mets mets(*m_susy_buffer, *m_def, susy_muon_idx, 
+		  sum_muon_pt(control_muons));
 
   // ---- must calibrate signal jets for b-tagging ----
   calibrate_jets(signal_jets, m_btag_calibration); 
@@ -278,7 +279,8 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   if (signal_jets.size() >= N_SR_JETS) pass_bits |= pass::n_jet; 
 
   m_out_tree->htx = get_htx(signal_jets, N_SR_JETS); 
-  m_out_tree->min_jetmet_dphi = get_min_jetmet_dphi(leading_jets, met); 
+  m_out_tree->min_jetmet_dphi = get_min_jetmet_dphi(
+    leading_jets, mets.nominal); 
   if (m_out_tree->min_jetmet_dphi > MIN_DPHI_JET_MET) { 
     pass_bits |= pass::dphi_jetmet_min; 
   }
@@ -295,8 +297,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   if (veto_electrons.size() == 0) pass_bits |= pass::electron_veto; 
   if (veto_muons.size() == 0) pass_bits |= pass::muon_veto; 
 
-  pass_bits |= met_bits(met); 
-  if (mu_met.Mod() > FILTER_MET) pass_bits |= pass::mu_met; 
+  pass_bits |= met_bits(mets); 
 
   if ( m_flags & cutflag::truth ) { 
     fill_cjet_truth(*m_out_tree, signal_jets); 
@@ -305,10 +306,14 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
 
   m_cutflow->fill(pass_bits); 
   m_out_tree->pass_bits = pass_bits; 
-  m_out_tree->met = met.Mod(); 
-  m_out_tree->met_phi = met.Phi(); 
-  m_out_tree->mu_met = mu_met.Mod(); 
-  m_out_tree->mu_met_phi = mu_met.Phi(); 
+
+  m_out_tree->met_nom.set_met(mets.nominal); 
+  m_out_tree->met_mu.set_met(mets.muon); 
+  m_out_tree->met_nom_up.set_met(mets.nominal_up); 
+  m_out_tree->met_mu_up.set_met(mets.muon_up); 
+  m_out_tree->met_nom_down.set_met(mets.nominal_down); 
+  m_out_tree->met_mu_down.set_met(mets.muon_down); 
+
   m_out_tree->pileup_weight = pileup_weight; 
 
   m_out_tree->event_number = m_susy_buffer->EventNumber; 

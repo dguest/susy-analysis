@@ -3,6 +3,7 @@
 
 #include "TFile.h"
 #include "TTree.h"
+#include "TVector2.h"
 
 #include <string> 
 #include <boost/format.hpp>
@@ -21,6 +22,19 @@ namespace outtree {
     nominal = -1; 
     up = -1; 
     down = -1; 
+  }
+
+  void MetBlock::set_branches(TTree* tree, const std::string& prefix) { 
+    tree->Branch((prefix + "met").c_str(), &m_met); 
+    tree->Branch((prefix + "met_phi").c_str(), &m_met_phi); 
+  }
+  void MetBlock::set_met(const TVector2& met) {
+    m_met = met.Mod(); 
+    m_met_phi = met.Phi(); 
+  }
+  void MetBlock::clear() { 
+    m_met = -1; 
+    m_met_phi = -10; 
   }
 
   OutTree::OutTree(std::string file, std::string tree, const unsigned flags, 
@@ -42,10 +56,8 @@ namespace outtree {
   void OutTree::init(const unsigned flags, int n_jets) 
   { 
     m_tree->Branch("pass_bits", &pass_bits ); 
-    m_tree->Branch("met", &met); 
-    m_tree->Branch("met_phi", &met_phi); 
-    m_tree->Branch("mu_met", &mu_met); 
-    m_tree->Branch("mu_met_phi", &mu_met_phi); 
+    met_nom.set_branches(m_tree, ""); 
+    met_mu.set_branches(m_tree, "mu_"); 
     m_tree->Branch("min_jetmet_dphi" , &min_jetmet_dphi); 
     m_tree->Branch("n_susy_jets", &n_susy_jets); 
     m_tree->Branch("n_good_jets", &n_good_jets); 
@@ -55,6 +67,10 @@ namespace outtree {
     m_tree->Branch("htx", &htx); 
 
     if ( flags & cutflag::truth) { 
+      met_nom_up.set_branches(m_tree, "stup_"); 
+      met_mu_up.set_branches(m_tree, "stup_mu_"); 
+      met_nom_down.set_branches(m_tree, "stdown_"); 
+      met_mu_down.set_branches(m_tree, "stdown_mu_"); 
       m_tree->Branch("pileup_weight", &pileup_weight); 
       m_tree->Branch("hfor_type", &hfor_type); 
       m_tree->Branch("leading_cjet_pos", &leading_cjet_pos); 
@@ -91,10 +107,12 @@ namespace outtree {
 
   void OutTree::clear_buffer() { 
     pass_bits = 0; 
-    met = -1; 
-    met_phi = -10; 
-    mu_met = -1; 
-    mu_met_phi = -10; 
+    met_nom.clear(); 
+    met_mu.clear(); 
+    met_nom_up.clear(); 
+    met_mu_up.clear(); 
+    met_nom_down.clear(); 
+    met_mu_down.clear(); 
     min_jetmet_dphi = -1; 
     sum_jetmet_dphi = -1; 
     n_susy_jets = -1; 

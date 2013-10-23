@@ -8,8 +8,32 @@
 
 class TFile; 
 class TTree; 
+class TVector2; 
 
 namespace outtree { 
+
+  struct SFBox 
+  {
+    float nominal; 
+    float up; 
+    float down; 
+    void set_branches(TTree*, std::string prefix); 
+    void clear(); 
+  }; 
+
+  class MetBlock
+  {
+  public: 
+    MetBlock() = default; 
+    MetBlock(const MetBlock&) = delete; 
+    MetBlock& operator=(const MetBlock&) = delete; 
+    void set_branches(TTree* out_tree, const std::string& prefix); 
+    void set_met(const TVector2& met); 
+    void clear(); 
+  private: 
+    double m_met; 
+    double m_met_phi;
+  }; 
 
   class ScaleFactor : public boost::noncopyable
   {
@@ -82,14 +106,6 @@ namespace outtree {
     SFVector m_cnn_loose; 
   }; 
 
-  struct SFBox 
-  {
-    float nominal; 
-    float up; 
-    float down; 
-    void set_branches(TTree*, std::string prefix); 
-    void clear(); 
-  }; 
 
   class OutTree : public boost::noncopyable
   {
@@ -101,10 +117,14 @@ namespace outtree {
     void clear_buffer(); 
   
     ull_t pass_bits; 
-    double met; 
-    double met_phi; 
-    double mu_met; 
-    double mu_met_phi; 
+
+    MetBlock met_nom; 
+    MetBlock met_mu; 
+    MetBlock met_nom_up; 
+    MetBlock met_mu_up; 
+    MetBlock met_nom_down; 
+    MetBlock met_mu_down; 
+
     double min_jetmet_dphi; 
     double sum_jetmet_dphi; 
     int n_susy_jets; 

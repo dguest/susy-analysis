@@ -17,6 +17,7 @@ class BtagCalibration;
 class TLorentzVector; 
 class Muon; 
 class Electron; 
+class Mets; 
 
 // #include "TChain.h"
 #include <vector> 
@@ -46,7 +47,7 @@ ull_t control_lepton_bits(const std::vector<Electron*>&,
 ull_t z_control_bits(const std::vector<Electron*>&, 
 		     const std::vector<Muon*>&); 
 ull_t signal_jet_bits(const std::vector<SelectedJet*>& signal_jets); 
-ull_t met_bits(const TVector2& met); 
+ull_t met_bits(const Mets& met); 
 
 template<typename T> 
 bool has_os_zmass_pair(const std::vector<T*>&); 
@@ -59,6 +60,8 @@ void fill_event_truth(outtree::OutTree& out_tree, const SusyBuffer& buffer,
 
 float get_min_jetmet_dphi(const std::vector<SelectedJet*>&, 
 			  const TVector2& ); 
+
+TVector2 sum_muon_pt(const std::vector<Muon*>& muons); 
 
 double get_htx(const std::vector<SelectedJet*>&, const size_t x);
 
@@ -73,10 +76,6 @@ std::vector<T*> filter_susy(const std::vector<T*>&);
 
 bool pass_mainz_ctag(const SelectedJet* jet); 
 
-TVector2 get_met(const SusyBuffer& buffer, 
-		 SUSYObjDef& def, 
-		 const RunInfo&, const std::vector<int>& muon_idx );
-TVector2 get_mumet(const TVector2& met, const std::vector<Muon*> muons); 
 
 bool has_lower_pt(const TLorentzVector*, const TLorentzVector*); 
 bool has_higher_pt(const TLorentzVector*, const TLorentzVector*); 

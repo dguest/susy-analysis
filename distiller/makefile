@@ -68,7 +68,7 @@ DEPFLAGS    = -M -MP -MT $(BIN)/$*.o -MT $(DEP)/$*.d $(DEPINCLUDE) $(PY_FLAGS)
 # ---- define objects
 TOBJ        := SusyBuffer.o
 T_DICTS     := $(TOBJ:.o=Dict.o)
-GEN_OBJ     := distill_tools.o Jets.o Leptons.o 
+GEN_OBJ     := distill_tools.o Jets.o Leptons.o Met.o
 GEN_OBJ     += OutTree.o OutputFilter.o BitmapCutflow.o 
 GEN_OBJ     += object_selection.o
 GEN_OBJ     += BosonTruthFilter.o TruthMetFilter.o
