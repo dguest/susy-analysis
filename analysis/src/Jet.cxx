@@ -68,9 +68,11 @@ btag::OperatingPoint Jet::get_tag() const {
 
 
 double Jet::met_dphi(syst::Systematic sy) const {
+  if (!m_met_dphi.count(sy)) return m_met_dphi.at(syst::NONE); 
   return m_met_dphi.at(sy); 
 }
 double Jet::mu_met_dphi(syst::Systematic sy) const {
+  if (!m_mu_met_dphi.count(sy)) return m_mu_met_dphi.at(syst::NONE); 
   return m_mu_met_dphi.at(sy); 
 }
 double Jet::flavor_weight(Flavor flav, btag::Tagger tagger) const { 

@@ -193,25 +193,19 @@ std::vector<Jet> ObjectFactory::jets() const {
   return jets_out; 
 }
 
-syst::Systematic ObjectFactory::met_sys(syst::Systematic sys) const { 
-  switch (sys) { 
-  case syst::METUP: 		// fall through 
-  case syst::METDOWN: return sys; 
-  default: return syst::NONE; 
-  }
-}; 
-
 TVector2 ObjectFactory::met(syst::Systematic sy) const  { 
-  const MetBuffer& buf = *m_met.at(met_sys(sy)); 
+  if (!m_met.count(sy)) sy = syst::NONE; 
+  const MetBuffer& buf = *m_met.at(sy); 
   TVector2 met; 
   met.SetMagPhi(buf.met, buf.met_phi); 
   return met; 
 }
 TVector2 ObjectFactory::mu_met(syst::Systematic sy) const  { 
-  const MetBuffer& buf = *m_mu_met.at(met_sys(sy)); 
-  TVector2 mu_met; 
-  mu_met.SetMagPhi(buf.met, buf.met_phi); 
-  return mu_met; 
+  if (!m_mu_met.count(sy)) sy = syst::NONE; 
+  const MetBuffer& buf = *m_mu_met.at(sy); 
+  TVector2 met; 
+  met.SetMagPhi(buf.met, buf.met_phi); 
+  return met; 
 }
 ull_t ObjectFactory::bits() const  { return m_bits; }
 double ObjectFactory::dphi()  const  { return m_dphi; }

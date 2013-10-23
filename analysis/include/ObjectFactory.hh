@@ -84,7 +84,6 @@ private:
   void set_btag_n(size_t jet_n, btag::OperatingPoint); 
   void set_btag(JetBuffer*, btag::OperatingPoint, std::string branch_name); 
   void set_buffer(JetBuffer* buffer, std::string base_name); 
-  syst::Systematic met_sys(syst::Systematic) const; 
   TTree* m_tree; 
   TFile* m_file; 
   std::vector<JetBuffer*> m_jet_buffers; 
