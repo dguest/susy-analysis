@@ -9,6 +9,7 @@ import sys
 from stop.stack.aggregator import HistDict
 from stop.stack.kinplt import run_kinematic_plot
 from stop.stack.countplt import plot_counts
+from stop.stack.truthplt import plot_truth
 from stop.bullshit import make_dir_if_none
 import re
 import os
@@ -70,6 +71,12 @@ def get_config():
     sr_comp.add_argument('fits_file')
     sr_comp.add_argument('cuts_file')
     sr_comp.add_argument('--max-val', type=float)
+
+    truth = subs.add_parser('truth', parents=[signal_point])
+    truth.add_argument('histmill_file')
+    truth.add_argument('-b','--include-background', action='store_true')
+    truth.add_argument('--ext', default='.pdf')
+    truth.add_argument('-r','--region', default='SR-mll')
     
     args = top_parser.parse_args(sys.argv[1:])
     return args
@@ -91,8 +98,9 @@ def run():
     args = get_config()
     subs = {'mill':run_plotmill, 'tagger':run_tagger_overlay, 
             'tagone':run_tagger_one_type, 'kin':run_kinematic_plot, 
-            'counts':plot_counts, 'comp':plot_counts}
+            'counts':plot_counts, 'comp':plot_counts, 'truth':plot_truth}
     subs[args.which](args)
+
 
 def _filt_converter(typed_path): 
     return typed_path.replace('-','/')
