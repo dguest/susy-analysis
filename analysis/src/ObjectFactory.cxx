@@ -63,10 +63,7 @@ ObjectFactory::ObjectFactory(std::string root_file, int n_jets) :
   int errors = 0; 
   m_met.emplace(syst::NONE, new MetBuffer(m_tree, "")); 
   m_mu_met.emplace(syst::NONE, new MetBuffer(m_tree, "mu_")); 
-  // errors += m_tree->SetBranchAddress("met",&m_met); 
-  // errors += m_tree->SetBranchAddress("met_phi",&m_met_phi); 
-  // errors += m_tree->SetBranchAddress("mu_met",&m_mu_met); 
-  // errors += m_tree->SetBranchAddress("mu_met_phi",&m_mu_met_phi); 
+
   errors += m_tree->SetBranchAddress("pass_bits",&m_bits); 
   errors += m_tree->SetBranchAddress("min_jetmet_dphi", &m_dphi); 
   errors += m_tree->SetBranchAddress("n_good_jets", &m_n_good); 

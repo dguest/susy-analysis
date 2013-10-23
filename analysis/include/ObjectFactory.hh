@@ -88,12 +88,10 @@ private:
   TFile* m_file; 
   std::vector<JetBuffer*> m_jet_buffers; 
   JetBuffer* m_electron_jet_buffer; 
+
   std::unordered_map<int, MetBuffer*> m_met; 
   std::unordered_map<int, MetBuffer*> m_mu_met; 
-  // double m_met; 
-  // double m_met_phi; 
-  // double m_mu_met; 
-  // double m_mu_met_phi; 
+
   ull_t m_bits; 
   double m_dphi; 
   int m_n_good; 
