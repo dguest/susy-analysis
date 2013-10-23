@@ -9,7 +9,12 @@
 #include "TVector2.h"
 #include "Flavor.hh"
 
+namespace { 
+  const int RANK_ERROR_CODE = -10; 
+}
+
 Jet::Jet(const JetBuffer* basis, unsigned flags): 
+  m_rank(RANK_ERROR_CODE), 
   m_pb(basis->cnn_b), 
   m_pc(basis->cnn_c), 
   m_pu(basis->cnn_u), 
@@ -42,6 +47,21 @@ void Jet::set_mu_met(const TVector2& met, syst::Systematic sy) {
 void Jet::set_tag(btag::OperatingPoint op) { 
   m_tag = op; 
 }; 
+
+void Jet::set_rank(int rank) { 
+  if (rank == RANK_ERROR_CODE) { 
+    throw std::logic_error("-1 rank is an error code"); 
+  }
+  m_rank = rank; 
+}
+
+int Jet::get_rank() const { 
+  if (m_rank == RANK_ERROR_CODE) { 
+    throw std::logic_error("ask for rank of unranked jet"); 
+  }
+  return m_rank; 
+}
+
 btag::OperatingPoint Jet::get_tag() const {
   return m_tag; 
 }; 

@@ -18,6 +18,8 @@ public:
   void set_event_met(const TVector2& met, syst::Systematic); 
   void set_mu_met(const TVector2& mu_met, syst::Systematic); 
   void set_tag(btag::OperatingPoint); 
+  void set_rank(int rank);
+  int get_rank() const; 
   btag::OperatingPoint get_tag() const; 
   double met_dphi(syst::Systematic ) const; 
   double mu_met_dphi(syst::Systematic ) const; 
@@ -30,6 +32,7 @@ public:
   bool is_electron_jet() const; 
 private: 
   void req_flavor() const; 	// throws rumtime_error if no flavor
+  int m_rank; 
   double m_pb; 
   double m_pc; 
   double m_pu; 
@@ -37,6 +40,7 @@ private:
   double m_jfc_pc; 
   double m_jfc_pu; 
   Flavor m_truth_label; 
+  // many different met variables exist
   std::unordered_map<int, double> m_met_dphi; 
   std::unordered_map<int, double> m_mu_met_dphi; 
 

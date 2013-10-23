@@ -58,6 +58,14 @@ EventObjects::EventObjects(const ObjectFactory* factory,
     event_scalefactors = factory->event_scalefactors(); 
   }
   jets = remove_electron_jets(jets_with_eljet); 
+  for (size_t rank = 0; rank < jets.size(); rank++) { 
+    jets.at(rank).set_rank(rank); 
+  }
+  for (size_t rank = 0; rank < jets_with_eljet.size(); rank++) { 
+    jets.at(rank).set_rank(rank); 
+  }
+
+
 }
 
 namespace { 

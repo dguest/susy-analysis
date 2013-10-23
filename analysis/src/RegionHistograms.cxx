@@ -71,6 +71,9 @@ RegionHistograms::RegionHistograms(const RegionConfig& config,
     }
   }
 
+  m_jet_rank_vs_tag = new Histogram(
+    { {"tagNumber", 5, -0.5, 4.5}, 
+      {"jetRank", 5, -0.5, 4.5} }); 
 }
 
 RegionHistograms::~RegionHistograms() { 
@@ -92,6 +95,7 @@ RegionHistograms::~RegionHistograms() {
   delete m_lepton_scalefactor; 
   for (auto hitr: m_tagged_jet_hists) delete hitr; 
   for (auto hitr: m_tagged_jet_truth_hists) delete hitr; 
+  delete m_jet_rank_vs_tag; 
 }
 
 void RegionHistograms::fill(const EventObjects& obj) { 
@@ -208,6 +212,7 @@ void RegionHistograms::write_to(H5::CommonFG& file) const {
     Group jet(region.createGroup(jet_name)); 
     m_tagged_jet_hists.at(jn)->write_to(jet); 
   }
+  m_jet_rank_vs_tag->write_to(region, "jetRankVsTag"); 
 }
 
 void RegionHistograms::write_to(std::string file_name) const { 
@@ -251,5 +256,10 @@ void RegionHistograms::fill_tagged_hists(
     if (! (m_build_flags & buildflag::is_data) ) { 
       m_tagged_jet_truth_hists.at(jn)->fill(jet, weight); 
     }
+  }
+  const size_t n_tagged_jets = jets.size(); 
+  for (size_t jn = 0; jn < n_tagged_jets; jn++) { 
+    const Jet& jet = jets.at(jn); 
+    m_jet_rank_vs_tag->fill({double(jet.get_rank()), double(jn)}, weight); 
   }
 }

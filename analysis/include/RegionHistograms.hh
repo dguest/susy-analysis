@@ -59,6 +59,7 @@ private:
 
   std::vector<Jet1DHists*> m_tagged_jet_hists; 
   std::vector<TruthJetHists*> m_tagged_jet_truth_hists; 
+  Histogram* m_jet_rank_vs_tag; 
 }; 
 
 #endif 
