@@ -8,6 +8,9 @@ SRC          := src
 INC          := include
 DICT         := dict
 
+# --- HACKS ----
+CXXFLAG_HACKS := -Wno-literal-suffix #hdf5 header sets this off
+
 # --- external dirs 
 -include local.mk		# may be used to locate HDF and other libs
 
@@ -38,10 +41,9 @@ PY_LIB   +=   $(shell $(PY_CONFIG) --libs)
 
 
 # --- set compiler and flags (roll c options and include paths together)
-ifdef CXX_LOCAL
-CXX          := $(CXX_LOCAL)
-endif
+CXX          := g++
 CXXFLAGS     := -O2 -Wall -fPIC -I$(INC) -I$(ND_HIST_INC) -g -std=c++0x
+CXXFLAGS     += ${CXXFLAG_HACKS}
 LIBS         := -L$(ND_HIST_LIB) -Wl,-rpath,$(ND_HIST_LIB) -lndhist
 LDFLAGS      := -Wl,-no-undefined
 

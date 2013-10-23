@@ -70,7 +70,6 @@ void HistBuilder::add_region(const RegionConfig& region){
 
 int HistBuilder::build() { 
 
-  typedef std::vector<Jet> Jets; 
   const int n_entries = m_factory->entries(); 
   const int one_percent = n_entries / 100; 
 
