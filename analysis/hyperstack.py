@@ -24,7 +24,7 @@ short_cuts = [('every',every_cut)]
 all_cuts = [
     { 
         'name': 'pt-order', 
-        'output_name': 'stupid.h5', 
+        'output_name': 'histmill.h5', 
         'type': 'CONTROL', 
         'jet_tag_requirements': ['JFC_MEDIUM','JFC_LOOSE'], 
         'region_bits': 0x0, 
@@ -34,12 +34,22 @@ all_cuts = [
         }, 
     { 
         'name': 'tag-order', 
-        'output_name': 'stupid.h5', 
+        'output_name': 'histmill.h5', 
         'type': 'CONTROL', 
         'jet_tag_requirements': ['JFC_MEDIUM','JFC_LOOSE'], 
         'region_bits': 0x0, 
         'tagger':'JFC', 
         'systematic':'NONE', 
+        'jet_tag_assignment':'TAG_ORDERED', 
+        }, 
+    {
+        'name': 'tag-order-metup', 
+        'output_name': 'histmill.h5', 
+        'type': 'CONTROL', 
+        'jet_tag_requirements': ['JFC_MEDIUM','JFC_LOOSE'], 
+        'region_bits': 0x0, 
+        'tagger':'JFC', 
+        'systematic':'METUP', 
         'jet_tag_assignment':'TAG_ORDERED', 
         }, 
     { 
@@ -73,4 +83,4 @@ added_cuts = dict(
     # j3_anti_u   = -0.5, 
     )
 
-hfw.stacksusy(sys.argv[1], all_cuts, flags='vd')
+hfw.stacksusy(sys.argv[1], all_cuts, flags='v')
