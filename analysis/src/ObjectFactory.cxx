@@ -44,6 +44,7 @@ MetBuffer::MetBuffer(TTree* tree, const std::string& prefix) {
 
 
 ObjectFactory::ObjectFactory(std::string root_file, int n_jets) : 
+  m_file(0), 
   m_electron_jet_buffer(0), 
   m_hfor_type(-1), 
   m_leading_cjet_pos(-1), 
@@ -109,6 +110,9 @@ ObjectFactory::~ObjectFactory()
     delete itr; 
     itr = 0; 
   }
+  if (m_file) { 
+    m_file->Close("R"); 
+  }
   delete m_file; 
   delete m_evt_sf; 
   m_file = 0; 
@@ -121,6 +125,7 @@ ObjectFactory::~ObjectFactory()
     delete itr.second; 
     itr.second = 0; 
   }
+  delete m_electron_jet_buffer; 
 }
 
 void ObjectFactory::use_electron_jet(bool use) { 
