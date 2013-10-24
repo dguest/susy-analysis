@@ -82,16 +82,23 @@ GEN_OBJ     += EventScalefactors.o
 EXE_OBJ     := $(GEN_OBJ) $(TOBJ) unit-test.o
 PYLIB_OBJ   := $(GEN_OBJ) $(TOBJ)
 
+STAND_ALONE_OBJ     := $(GEN_OBJ) $(TOBJ) stand-alone.o
+
 PY_OBJ       := _hfw.o
 PY_LIB       := ../python/stop/stack/_hfw.so
 
+
 ALLOBJ       := $(GEN_OBJ) $(PY_OBJ) $(TOBJ) unit-test.o
 
-ALLOUTPUT    := $(PY_LIB) unit-test
+ALLOUTPUT    := $(PY_LIB) unit-test stand-alone
 
 all: $(ALLOUTPUT) 
 
 unit-test: $(EXE_OBJ:%=$(BIN)/%)
+	@echo "linking $^ --> $@"
+	@$(CXX) -o $@ $^ $(LIBS) $(LDFLAGS)
+
+stand-alone: $(STAND_ALONE_OBJ:%=$(BIN)/%)
 	@echo "linking $^ --> $@"
 	@$(CXX) -o $@ $^ $(LIBS) $(LDFLAGS)
 

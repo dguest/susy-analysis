@@ -2,3 +2,4 @@
 *.h5
 /test.py
 unit-test
+/stand-alone
