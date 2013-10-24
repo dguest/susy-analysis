@@ -110,6 +110,7 @@ ObjectFactory::~ObjectFactory()
     delete itr; 
     itr = 0; 
   }
+  delete m_tree; 
   if (m_file) { 
     m_file->Close("R"); 
   }
