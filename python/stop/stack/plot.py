@@ -16,9 +16,9 @@ def make_plots(plots_dict, misc_info, log=False):
         hist1_dict.update(converter.h1dict_from_histn(tup, histn=hist))
         hist2_dict.update(converter.h2dict_from_histn(tup, histn=hist))
 
-    printer = StackPlotPrinter(misc_info)
-    printer.log = log
-    printer.print_plots(*sort_data_mc(hist1_dict))
+    # printer = StackPlotPrinter(misc_info)
+    # printer.log = log
+    # printer.print_plots(*sort_data_mc(hist1_dict))
     h2print = H2Printer(misc_info)
     h2print.log = log
     h2print.print_plots(*sort_data_mc(hist2_dict))
@@ -77,7 +77,9 @@ class HistConverter(object):
                     yvar, y_axis.extent, y_axis.units)
                 imdict['extent'] = np.fromiter(chain(xext, yext),np.float)
                 subvar = '-'.join([var,yname,'vs',xname])
-                h2dict[physics,subvar,cut] = Hist2d(imdict, xlab, ylab)
+                hist2 = Hist2d(imdict, xlab, ylab)
+                hist2.title = physics # <- bit of a monkey patch, should fix
+                h2dict[physics,subvar,cut] = hist2
                 
         return h2dict
 
@@ -195,16 +197,25 @@ class H2Printer(object):
                     variable.replace('/','-'), cut.replace('_','-'), 
                     '{}'])
             save_base = join(self.plot_dir, stack_name) + self.ext
-            if self.verbose: 
-                print 'making {}'.format(save_base)
-            data_name = save_base.format('data')
             if id_tup in data: 
+                data_name = save_base.format('data')
+                if self.verbose: 
+                    print 'making {}'.format(data_name)
                 data[id_tup].save(data_name)
-            sig_name = save_base.format('signal')
+            if id_tup in signal: 
+                for hist in signal[id_tup]: 
+                    # NOTE: the name is monkey patched in above.. 
+                    # should fix this 
+                    sig_name = save_base.format(hist.title)
+                    if self.verbose: 
+                        print 'making {}'.format(sig_name)
+                    hist.save(sig_name)
             mc_name = save_base.format('bg')
             if id_tup in mc: 
                 mclist = mc[id_tup]
                 bg_total = sum(mclist[1:], mclist[0])
+                if self.verbose: 
+                    print 'making {}'.format(mc_name)
                 bg_total.save(mc_name, log=self.log)
 
         
