@@ -132,7 +132,6 @@ class Coordinator(object):
                 variables=variables,
             )
             aggregator.lumi_fb = self._config_dict['misc']['lumi_fb']
-            aggregator.signals = 'all'
             aggregator.bugstream = tempfile.TemporaryFile()
             aggregator.out_prepend = 'systamatic: {} '.format(systematic)
             aggregator.aggregate()

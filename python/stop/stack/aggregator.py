@@ -6,6 +6,7 @@ import warnings
 import sys
 import re
 from collections import Counter
+import numpy as np
 
 def _get_objects(h5_cont): 
     objects = {}
@@ -98,14 +99,8 @@ class SampleAggregator(object):
         self.variables = variables
         self.filter_meta = meta.DatasetCache(meta_path)
         self.lumi_fb = 20.661
-        self.signals = [        # todo, probably change this to 'all'
-            dict(stop_mass_gev=200, lsp_mass_gev=180), 
-            ]
         self.signal_prestring = 'stop'
         self._plots_dict = HistDict()
-        self.tolerable_bugs = set([
-                'ambiguous dataset', 
-                ])
         self.outstream = sys.stdout
         self.bugstream = sys.stderr
         self._check_variables(variables)
@@ -128,8 +123,6 @@ class SampleAggregator(object):
         """
         this is slightly hackish, but does the right thing by renaming the 
         physics type. 
-        
-        The 'all' option for self.signals is even more hackish...
         """
         old_finder = re.compile('directCC_([0-9]+)_([0-9]+)')
         met_finder = finder = re.compile(
@@ -147,17 +140,25 @@ class SampleAggregator(object):
         if len(found) == 3: 
             generator_info['met_filter_gev'] = found[0][2]
 
-        basic_keys = ['stop_mass_gev', 'lsp_mass_gev']
-        basic_generator_info = {k:generator_info[k] for k in basic_keys}
-        for sig in self.signals: 
-            if self.signals == 'all' or sig == basic_generator_info: 
-                if 'met_filter_gev' in generator_info: 
-                    namestring = self.signal_name_template_met_filter
-                else: 
-                    namestring = self.signal_name_template
-                return namestring.format(self.signal_prestring,
-                                         **generator_info)
+        namestring = self.signal_name_template
+        return namestring.format(self.signal_prestring,
+                                 **generator_info)
         return None
+
+    def _get_physics_type(self, file_meta): 
+        physics_type = file_meta.physics_type
+        if not physics_type:
+            if file_meta.is_data: 
+                physics_type = 'data'
+            else: 
+                raise OSError('got unknown physics in {}'.format(f))
+
+        if physics_type == 'signal': 
+            physics_type = self._get_matched_signame(file_meta)
+        if not physics_type: 
+            raise OSError("couldn't classify {}".format(
+                    file_meta.full_name))
+        return physics_type
 
     def _check_for_bugs(self, ds): 
         if not ds.total_xsec_fb and not ds.is_data: 
@@ -220,19 +221,16 @@ class SampleAggregator(object):
             file_meta = self.filter_meta[meta_name]
             if self._check_for_bugs(file_meta): 
                 continue
-            
-            physics_type = file_meta.physics_type
-            if not physics_type:
-                if file_meta.is_data: 
-                    physics_type = 'data'
-                else: 
-                    raise OSError('got unknown physics in {}'.format(f))
-            lumi_scale = self._get_lumi_scale(file_meta)
 
-            if physics_type == 'signal': 
-                physics_type = self._get_matched_signame(file_meta)
-                if not physics_type: 
-                    continue
+            lumi_scale = self._get_lumi_scale(file_meta)
+            def scale_hist(variable, hist): 
+                if variable.endswith('Wt2'): 
+                    hist *= lumi_scale**2.0
+                else: 
+                    hist *= lumi_scale
+                return hist
+
+            physics_type = self._get_physics_type(file_meta)
     
             with h5py.File(f) as hfile: 
                 for cut_name, vargroup in hfile.iteritems(): 
@@ -242,16 +240,19 @@ class SampleAggregator(object):
                         variables = self.variables
                     for variable in variables:
                         h5hist = vargroup[variable]
-                        hist = HistNd(h5hist)
-                        if variable.endswith('Wt2'): 
-                            hist *= lumi_scale**2.0
-                        else: 
-                            hist *= lumi_scale
                         idx_tuple = (physics_type, variable, cut_name)
-                        if not idx_tuple in plots_dict: 
-                            plots_dict[idx_tuple] = hist
-                        else: 
+                        if idx_tuple in plots_dict: 
+                            # if this hist already exists we only need the 
+                            # numpy array 
+                            hist = np.array(h5hist)
+                            hist = scale_hist(variable, hist)
                             plots_dict[idx_tuple] += hist
+                        else: 
+                            # if this plot doesn't exist, we need the full
+                            # HistNd discription
+                            hist = HistNd(h5hist) 
+                            hist = scale_hist(variable, hist)
+                            plots_dict[idx_tuple] = hist
 
         if self.outstream and self.outstream.isatty(): 
             self.outstream.write('\n')
