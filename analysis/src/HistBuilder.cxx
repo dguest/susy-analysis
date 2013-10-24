@@ -97,7 +97,6 @@ int HistBuilder::build() {
     for (auto itr: m_histograms){
       itr.second->fill(objects); 
     }
-
   }
   outstream << "\n";
   outstream.flush(); 
