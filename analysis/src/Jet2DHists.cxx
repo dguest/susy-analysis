@@ -38,9 +38,8 @@ void Jet2DHists::fill(const Jet& jet, double weight) {
   double pb = jet.flavor_weight(Flavor::BOTTOM, m_tagger); 
   double pc = jet.flavor_weight(Flavor::CHARM, m_tagger); 
   double pu = jet.flavor_weight(Flavor::LIGHT, m_tagger); 
-  std::vector<double> wt_vector = {log(pc / pu), log(pc / pb)}; 
   try { 
-    m_anti_b_vs_anti_light->fill(wt_vector); 
+    m_anti_b_vs_anti_light->fill({log(pc / pu), log(pc / pb)}, weight); 
   }
   catch (std::range_error& r) { 
     std::stringstream str; 

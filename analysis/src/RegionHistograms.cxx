@@ -250,16 +250,17 @@ void RegionHistograms::fill_cjet_rank(const EventObjects& obj, double w) {
 void RegionHistograms::fill_tagged_hists(
   const std::vector<Jet>& jets, double weight) { 
   size_t n_jets = std::min(jets.size(), m_tagged_jet_hists.size()); 
-  for (size_t jn = 0; jn < n_jets; jn++) { 
-    const Jet& jet = jets.at(jn); 
-    m_tagged_jet_hists.at(jn)->fill(jet, weight); 
+  for (size_t tag_num = 0; tag_num < n_jets; tag_num++) { 
+    const Jet& jet = jets.at(tag_num); 
+    m_tagged_jet_hists.at(tag_num)->fill(jet, weight); 
     if (! (m_build_flags & buildflag::is_data) ) { 
-      m_tagged_jet_truth_hists.at(jn)->fill(jet, weight); 
+      m_tagged_jet_truth_hists.at(tag_num)->fill(jet, weight); 
     }
   }
   const size_t n_tagged_jets = jets.size(); 
-  for (size_t jn = 0; jn < n_tagged_jets; jn++) { 
-    const Jet& jet = jets.at(jn); 
-    m_jet_rank_vs_tag->fill({double(jet.get_rank()), double(jn)}, weight); 
+  for (size_t tag_num = 0; tag_num < n_tagged_jets; tag_num++) { 
+    const Jet& jet = jets.at(tag_num); 
+    m_jet_rank_vs_tag->fill(
+      {double(tag_num), double(jet.get_rank())}, weight); 
   }
 }
