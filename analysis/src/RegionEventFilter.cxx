@@ -8,6 +8,7 @@
 #include "UnorderedJetTagFilter.hh"
 #include "EventScalefactors.hh"
 #include "Jet.hh"
+#include "constants_stopcuts.hh"
 #include <stdexcept> 
 
 RegionEventFilter::RegionEventFilter(const RegionConfig& config, unsigned): 
@@ -64,6 +65,14 @@ bool RegionEventFilter::pass(const EventObjects& obj) const {
   if (jets.size() < n_required_jets) return false; 
   if (reg::no_extra_jets & m_region_config.region_bits) { 
     if (jets.size() > n_required_jets) return false; 
+  }
+
+  size_t n_check = std::min(jets.size(), DPHI_JET_MET_NJET); 
+  for (size_t jet_n = 0; jet_n < n_check; jet_n++) { 
+    const auto& jet = jets.at(jet_n); 
+    if (std::abs(jet.Vect().XYvector().DeltaPhi(met)) < MIN_DPHI_JET_MET){
+      return false; 
+    }
   }
 
   return true; 
