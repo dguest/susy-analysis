@@ -7,6 +7,8 @@ from collections import defaultdict, Counter
 import warnings
 import sqlite3
 
+_up_down_syst = {'jes', 'u','c','b','t', 'el', 'mu', 'met'}
+
 def path_from_sr(met_gev, pt_gev, signal_point, tag_config='conf', 
             top='workspaces'): 
     path_tmp = '{top}/{tag}/met{met:.0f}/pt{pt:.0f}/{sp}'
@@ -165,7 +167,7 @@ class Workspace(object):
                 background.AddNormFactor('mu_{}'.format(bg), 1,0,10)
 
             for syst in self.systematics:
-                if syst in {'jes', 'u','c','b','t'}: 
+                if syst in _up_down_syst: 
                     sup_normed = cutfunc(
                         self.counts[syst + 'up',bg,sr]['sum'])
                     sdn_normed = cutfunc(
