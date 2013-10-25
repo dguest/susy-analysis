@@ -1,6 +1,6 @@
 #include "Region2dKinematicHistograms.hh"
 #include "HistBuilderFlags.hh"
-#include "PhysicalConstants.hh"
+#include "constants_physical.hh"
 #include "Histogram.hh"
 #include "typedefs.hh"
 #include "RegionConfig.hh"
