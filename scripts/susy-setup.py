@@ -57,7 +57,7 @@ def get_config():
     ws_args.add_argument('-s','--script',default='leaky-roof.sh', 
                          help=d)
     ws_args.add_argument(
-        '-n','--n-kin-subjobs', default=3, type=int, help=d)
+        '-n','--n-kin-subjobs', default=5, type=int, help=d)
 
     fit_args = subs.add_parser('fit', description=setup_fit.__doc__)
     fit_args.add_argument('root')

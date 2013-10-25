@@ -7,6 +7,15 @@ from os.path import basename, isfile, isdir, join, splitext
 import glob, os, tempfile, sys
 import warnings
 
+
+def _get_systematics(base): 
+    systs = [d.upper() for d in os.listdir(base) if isdir(join(base,d))]
+    try: 
+        systs.remove('BASELINE')
+        return systs
+    except ValueError as err: 
+        raise ValueError('{} : {} in {}'.format(err, systs, base))
+
 class Coordinator(object): 
     """
     Constructed with a file-like object. Fills out the steering file, then
@@ -109,8 +118,10 @@ class Coordinator(object):
     def aggregate(self, systematic='NONE', rerun=False, variables='all', 
                   mode='histmill'): 
         if systematic == 'all': 
-            all_syst = set(self.distiller_systematics + 
-                           self.scale_factor_systematics)
+            all_syst = _get_systematics(
+                join(self._config_dict['files']['hadd-hists'], mode))
+            # all_syst = set(self.distiller_systematics + 
+            #                self.scale_factor_systematics)
             syst_dict = {}
             for syst in all_syst: 
                 syst_dict[syst] = self.aggregate(systematic=syst, 

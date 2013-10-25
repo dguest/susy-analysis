@@ -173,6 +173,9 @@ def _multispaces(config):
         'b',
         'c',
         'u',
+        'el', 
+        'mu', 
+        'met', 
         ]
 
     counts = CountDict(config.kinematic_stat_dir, systematics=systematics)
