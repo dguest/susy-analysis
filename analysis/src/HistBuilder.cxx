@@ -86,6 +86,7 @@ int HistBuilder::build() {
       outstream << boost::format("\r%i of %i (%.1f%%) processed") % 
 	entry % n_entries % ( entry / one_percent); 
       outstream.flush(); 
+      if (m_build_flags & buildflag::short_run && entry) break; 
     }
 
     m_factory->entry(entry); 
