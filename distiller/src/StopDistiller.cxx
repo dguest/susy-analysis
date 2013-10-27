@@ -313,6 +313,8 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   m_out_tree->met_mu_up.set_met(mets.muon_up); 
   m_out_tree->met_nom_down.set_met(mets.nominal_down); 
   m_out_tree->met_mu_down.set_met(mets.muon_down); 
+  m_out_tree->met_nom_res.set_met(mets.nominal_res); 
+  m_out_tree->met_mu_res.set_met(mets.muon_res); 
 
   m_out_tree->pileup_weight = pileup_weight; 
 

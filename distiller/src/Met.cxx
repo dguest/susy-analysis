@@ -23,6 +23,8 @@ Mets::Mets(const SusyBuffer& buffer, SUSYObjDef& def,
   muon_up = nominal_up + sum_muons; 
   nominal_down = get_met(buffer, def, mudex, SystErr::SCALESTDOWN); 
   muon_down = nominal_down + sum_muons; 
+  nominal_res = get_met(buffer, def, mudex, SystErr::RESOST); 
+  muon_res = nominal_res + sum_muons; 
 }
 
 namespace { 

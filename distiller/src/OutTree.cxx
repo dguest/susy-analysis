@@ -71,6 +71,8 @@ namespace outtree {
       met_mu_up.set_branches(m_tree, "stup_mu_"); 
       met_nom_down.set_branches(m_tree, "stdown_"); 
       met_mu_down.set_branches(m_tree, "stdown_mu_"); 
+      met_nom_res.set_branches(m_tree, "stres_"); 
+      met_mu_res.set_branches(m_tree, "stres_mu_"); 
       m_tree->Branch("pileup_weight", &pileup_weight); 
       m_tree->Branch("hfor_type", &hfor_type); 
       m_tree->Branch("leading_cjet_pos", &leading_cjet_pos); 

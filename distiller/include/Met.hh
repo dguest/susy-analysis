@@ -21,6 +21,8 @@ struct Mets
   TVector2 muon_up; 
   TVector2 nominal_down; 
   TVector2 muon_down; 
+  TVector2 nominal_res; 
+  TVector2 muon_res; 
 }; 
 
 
