@@ -14,6 +14,7 @@ BtagCalibration::BtagCalibration(std::string clb_file,
   if (clb_file.size() && file_path.size()) { 
     m_cnn = new CDI("JetFitterCOMBCharm", clb_file, file_path); 
   }
+  bool success = true; 
   m_ops[CNN_LOOSE] = "-1_0_0_0"; 
   m_ops[CNN_MEDIUM] = "-1_0_-0_82"; 
   m_ops[CNN_TIGHT] = "-1_0_1_0"; 
@@ -46,6 +47,12 @@ BtagCalibration::BtagCalibration(std::string clb_file,
   m_anti_b_cuts[JFC_MEDIUM] = -0.9;
   m_anti_b_cuts[JFC_TIGHT]  = -0.9;
 
+  for (auto flav: {B, C, U, T} ) { 
+    for (auto op: m_ops) { 
+      set_indices(flav, op.first); 
+    }
+  }
+
 }
 
 BtagCalibration::~BtagCalibration() { 
@@ -59,10 +66,11 @@ BtagCalibration::pass_factor(double pt, double eta,
 			      btag::OperatingPoint tagger, 
 			      btag::Uncertainty uncert) const { 
   CalVars vars = get_vars(pt, eta); 
-  std::string op = get_op(tagger); 
-  std::string label = get_label(flavor); 
+  // std::string op = get_op(tagger); 
+  // std::string label = get_label(flavor); 
+  unsigned sf_index = get_sf_index(flavor, tagger); 
   Analysis::Uncertainty unct = get_unct(uncert); 
-  return get_cdi(tagger)->getScaleFactor(vars, label, op, unct);
+  return get_cdi(tagger)->getScaleFactor(vars, sf_index, unct);
 }
 BtagCalibration::CalResult 
 BtagCalibration::fail_factor(double pt, double eta, 
@@ -70,10 +78,13 @@ BtagCalibration::fail_factor(double pt, double eta,
 			     btag::OperatingPoint tagger, 
 			     btag::Uncertainty uncert) const { 
   CalVars vars = get_vars(pt, eta); 
-  std::string op = get_op(tagger); 
-  std::string label = get_label(flavor); 
+  // std::string op = get_op(tagger); 
+  // std::string label = get_label(flavor); 
+  unsigned sf_index = get_sf_index(flavor, tagger); 
+  unsigned eff_index = get_eff_index(flavor, tagger); 
   Analysis::Uncertainty unct = get_unct(uncert); 
-  return get_cdi(tagger)->getInefficiencyScaleFactor(vars, label, op, unct);
+  return get_cdi(tagger)->getInefficiencyScaleFactor(
+    vars, sf_index, eff_index, unct);
 }
 
 BtagCalibration::CalResult
@@ -159,6 +170,34 @@ std::string BtagCalibration::get_label(btag::Flavor flavor) const {
     assert(false); 
   }
 }
+
+unsigned BtagCalibration::get_sf_index(
+  btag::Flavor flav, btag::OperatingPoint op) const { 
+  auto key = std::make_pair<int, int>(flav, op); 
+  return m_flav_op_sf_index.at(key); 
+}
+unsigned BtagCalibration::get_eff_index(
+  btag::Flavor flav, btag::OperatingPoint op) const { 
+  auto key = std::make_pair<int, int>(flav, op); 
+  return m_flav_op_eff_index.at(key); 
+}
+
+void BtagCalibration::set_indices(btag::Flavor flav, btag::OperatingPoint op) 
+{ 
+  Tagger tagger = tagger_from_op(op); 
+  const std::string& label = get_label(flav); 
+  std::pair<int, int> ind_key(flav, op); 
+  bool ok_sf = m_interfaces.at(tagger)->retrieveCalibrationIndex(
+    label, m_ops.at(op), m_jet_author, true, m_flav_op_sf_index[ind_key]); 
+  bool ok_eff = m_interfaces.at(tagger)->retrieveCalibrationIndex(
+    label, m_ops.at(op), m_jet_author, false, m_flav_op_eff_index[ind_key]); 
+  if (!ok_eff || !ok_sf) { 
+    std::string problem = "problem setting op " + m_ops.at(op) + " " + 
+      get_label(flav); 
+    throw std::runtime_error(problem); 
+  }
+}
+
 
 Analysis::Uncertainty get_unct(btag::Uncertainty u) { 
   using namespace Analysis; 
