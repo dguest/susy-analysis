@@ -76,8 +76,10 @@ ObjectFactory::ObjectFactory(std::string root_file, int n_jets) :
   if (has_truth) {
     m_met.emplace(syst::METUP, new MetBuffer(m_tree, "stup_")); 
     m_met.emplace(syst::METDOWN, new MetBuffer(m_tree, "stdown_")); 
+    m_met.emplace(syst::METRES, new MetBuffer(m_tree, "stres_")); 
     m_mu_met.emplace(syst::METUP, new MetBuffer(m_tree, "stup_mu_")); 
     m_mu_met.emplace(syst::METDOWN, new MetBuffer(m_tree, "stdown_mu_")); 
+    m_mu_met.emplace(syst::METRES, new MetBuffer(m_tree, "stres_mu_")); 
     errors += m_tree->SetBranchAddress("hfor_type", &m_hfor_type); 
     errors += m_tree->SetBranchAddress("leading_cjet_pos", 
 				     &m_leading_cjet_pos); 
@@ -167,7 +169,8 @@ std::vector<Jet> ObjectFactory::jets() const {
   bool is_data = (m_ioflags & ioflag::no_truth); 
   std::vector<syst::Systematic> met_systs = {syst::NONE}; 
   if (!is_data) { 
-    met_systs.insert(met_systs.end(),{syst::METUP, syst::METDOWN});
+    met_systs.insert(
+      met_systs.end(),{syst::METUP, syst::METDOWN, syst::METRES});
   }
 
   std::vector<Jet> jets_out; 

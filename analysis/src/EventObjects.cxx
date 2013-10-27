@@ -23,19 +23,24 @@ MetSystematics::MetSystematics(const ObjectFactory* obj, bool is_data):
   if (!is_data) { 
     m_up = new MetFlavors(obj, syst::METUP);
     m_down = new MetFlavors(obj, syst::METDOWN); 
+    m_res = new MetFlavors(obj, syst::METRES); 
   }
 }
 MetSystematics::~MetSystematics() { 
   delete m_up; 
   delete m_down; 
+  delete m_res; 
 }
 const MetFlavors& MetSystematics::get_syst(syst::Systematic syst) const { 
-  if ( (syst == syst::METUP || syst == syst::METDOWN) && !m_up) { 
+  if ( (syst == syst::METUP || 
+	syst == syst::METDOWN || 
+	syst == syst::METRES ) && !m_up) { 
     throw std::logic_error("problem in " __FILE__); 
   }
   switch (syst) { 
   case syst::METUP: return *m_up; 
   case syst::METDOWN: return *m_down; 
+  case syst::METRES: return *m_res; 
   default: return m_nominal; 
   }
 }

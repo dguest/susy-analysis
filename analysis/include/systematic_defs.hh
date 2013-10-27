@@ -4,7 +4,7 @@ namespace syst
 { 
   enum Systematic { 
     NONE, BUP, BDOWN, CUP, CDOWN, UUP, UDOWN, TUP, TDOWN, ELUP, ELDOWN, 
-    MUUP, MUDOWN, METUP, METDOWN
+    MUUP, MUDOWN, METUP, METDOWN, METRES
   }; 
 }; 
 

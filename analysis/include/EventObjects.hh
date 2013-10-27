@@ -8,6 +8,7 @@
 #include "TVector2.h"
 #include "Jet.hh"
 #include <vector> 
+// #include <unordered_map>
 #include "typedefs.hh"
 #include "systematic_defs.hh"
 
@@ -34,6 +35,7 @@ private:
   const MetFlavors m_nominal; 
   const MetFlavors* m_up; 
   const MetFlavors* m_down; 
+  const MetFlavors* m_res; 
 };
 
 struct EventObjects

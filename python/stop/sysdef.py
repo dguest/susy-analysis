@@ -1,7 +1,7 @@
 from os.path import dirname
 
 _shift_sf = list('BCUT') + ['EL','MU','MET']
-scale_factor_systematics = ['NONE'] 
+scale_factor_systematics = ['NONE', 'METRES'] 
 scale_factor_systematics += [
     part + shift for part in _shift_sf for shift in ['UP','DOWN']
     ]
