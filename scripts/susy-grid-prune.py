@@ -14,7 +14,10 @@ from distutils.spawn import find_executable
 from ConfigParser import SafeConfigParser
 
 def _get_ptag(ds_name): 
-    return re.compile('_p([0-9]{3,5})').findall(ds_name)[-1]
+    try: 
+        return re.compile('_p([0-9]{3,5})').findall(ds_name)[-1]
+    except IndexError: 
+        return None
 
 def _strip_front(ds_name): 
     if not any(ds_name.startswith(x) for x in ['data','mc']): 
@@ -415,32 +418,30 @@ if __name__ == '__main__':
     output_container_list = open(args.out_name,'w')
     out_log = open(args.full_log,'w')
     tarball = 'jobtar.tar'
-    if not args.mono:
-        reporter = Reporter(len(datasets), out_log)
-        reporter.start()
-        def submit(ds): 
-            return submit_ds(ds, args.debug, version, 
-                             used_vars=used_vars, 
-                             out_talk=reporter.queue, 
-                             in_tar=tarball, 
-                             maxgb=args.ngb, 
-                             blacklist=args.blacklist)
 
+    reporter = Reporter(len(datasets), out_log)
+    reporter.start()
+    def submit(ds): 
+        return submit_ds(ds, args.debug, version, 
+                         used_vars=used_vars, 
+                         out_talk=reporter.queue, 
+                         in_tar=tarball, 
+                         maxgb=args.ngb, 
+                         blacklist=args.blacklist)
+
+    if not args.mono: 
         pool = Pool(10)
-        with LocalSkimmer(used_vars, cuts, tarball=tarball, chain=chain_name): 
-            out_tuples = pool.map_async(submit, datasets).get(999999)
-        reporter.close()
-        output_datasets = [ds for ds, out, err in out_tuples]
-        for ds in output_datasets: 
-            output_container_list.write(ds + '\n')
-                          
+        def map_func(sub, dss): 
+            return pool.map_async(sub, dss).get(999999)
     else: 
-            
-        for ds in datasets: 
-            with LocalSkimmer(used_vars, cuts, tarball=tarball, 
-                              chain=chain_name): 
-                out_ds = submit_ds(ds, args.debug, version)
-            output_container_list.write(out_ds + '\n')
+        map_func = map    
+    with LocalSkimmer(used_vars,cuts,tarball=tarball,chain=chain_name): 
+        out_tuples = map_func(submit, datasets)
+    reporter.close()
+    output_datasets = [ds for ds, out, err in out_tuples]
+    for ds in output_datasets: 
+        output_container_list.write(ds + '\n')
+                          
 
     # record version if things worked
     with open(args.config,'w') as cfg: 
