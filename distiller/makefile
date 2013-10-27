@@ -62,6 +62,7 @@ PY_LDFLAGS += -shared
 DEP        := $(BIN)
 DEPINCLUDE := -I$(INC) $(SUSY_INC:%=-I%) -I$(shell root-config --incdir)
 DEPFLAGS    = -M -MP -MT $(BIN)/$*.o -MT $(DEP)/$*.d $(DEPINCLUDE) $(PY_FLAGS)
+DEPFLAGS   += -std=c++11
 
 # ---- define objects
 TOBJ        := SusyBuffer.o
