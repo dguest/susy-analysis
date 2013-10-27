@@ -50,13 +50,14 @@ scharm = {
 variations = { 
     # truth level... maybe not for now
     # 'ttbar_scale': DsRange( (174763, 174766)), 
-    'ttbar_parton_shower': [105860], 
+    'ttbar_parton_shower_jimmy': [105860], 
+    'ttbar_parton_shower_pythia': [105861], 
     'ttbar_isr_fsr_more': [117209], 
     'ttbar_isr_fsr_less': [117210], 
     'ttbar_mcnlo': [105200], 
-    'ttbar_alpgen': DsRange((164440,164443), (164450, 164453)) + [
-        116108, 116109], 
+    # 'ttbar_alpgen': DsRange((164440,164443), (164450, 164453)) + [
+    #     116108, 116109], 
     'ttbar_sherpa': DsRange((117800, 117809)), 
-    'ttbar_powheg_pythia':[117050], 
+    # 'ttbar_powheg_pythia':[117050], 
     }
     
