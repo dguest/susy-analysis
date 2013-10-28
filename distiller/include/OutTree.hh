@@ -144,6 +144,7 @@ namespace outtree {
 
     double htx; 
     float pileup_weight; 
+    float boson_pt_weight; 
     SFBox el_sf; 
     SFBox mu_sf; 
 

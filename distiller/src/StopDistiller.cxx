@@ -17,6 +17,7 @@
 #include "BtagCalibration.hh"
 #include "BosonTruthFilter.hh"
 #include "TruthMetFilter.hh"
+#include "BosonPtReweighter.hh"
 #include "CheckSize.hh"
 
 #include "cutflag.hh"
@@ -65,6 +66,7 @@ StopDistiller::StopDistiller(const std::vector<std::string>& in,
   m_btag_calibration(0), 
   m_boson_truth_filter(0), 
   m_truth_met_filter(0), 
+  m_boson_pt_reweighter(0), 
   m_prw(0)
 { 
   gErrorIgnoreLevel = kWarning;
@@ -82,6 +84,9 @@ StopDistiller::StopDistiller(const std::vector<std::string>& in,
       throw std::logic_error("truth met filter disabled for old skims"); 
     }
     m_truth_met_filter = new TruthMetFilter(info.truth_met_max_mev); 
+  }
+  if (flags & cutflag::boson_pt_reweight) { 
+    m_boson_pt_reweighter = new BosonPtReweighter(); 
   }
 }
 
@@ -106,6 +111,7 @@ StopDistiller::~StopDistiller() {
   delete m_btag_calibration; 
   delete m_boson_truth_filter; 
   delete m_truth_met_filter; 
+  delete m_boson_pt_reweighter; 
   if (m_flags & cutflag::generate_pileup && m_prw) { 
     m_prw->WriteToFile(m_info.pu_config); 
   }
@@ -310,6 +316,10 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   m_out_tree->met_mu_res.set_met(mets.muon_res); 
 
   m_out_tree->pileup_weight = pileup_weight; 
+  if (m_boson_pt_reweighter) {
+    m_out_tree->boson_pt_weight = m_boson_pt_reweighter->get_boson_weight(
+      m_susy_buffer); 
+  }
 
   m_out_tree->event_number = m_susy_buffer->EventNumber; 
 

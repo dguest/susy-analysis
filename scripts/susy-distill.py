@@ -125,8 +125,8 @@ def _config_from_meta(dataset):
         boson_pt_max_mev = float(overlap.get('sherpa_boson',-1.0))*1e3, 
         truth_met_max_mev = float(overlap.get('truth_met', -1.0))*1e3, 
         )
-    if add_dict['truth_met_max_mev'] < 0: 
-        flags += 'h'            # hack for old skims (no truth met branch)
+    if _is_sherpa_ew(dataset): 
+        flags += 'p'            # do boson pt reweighting
     return flags, add_dict
 
 def _is_atlfast(sample): 
@@ -142,6 +142,16 @@ def _is_atlfast(sample):
     else: 
         raise ValueError(
             "not sure what kind of sample '{}' is".format(sample))
+
+def _is_sherpa_ew(dataset): 
+    ew_re = re.compile('\.[Ss]herpa_.*(W(e|mu|tau)nu|Z(e|mu|tau|nu){2})')
+    ew_matched = ew_re.search(dataset.full_name): 
+    type_matched = dataset.physics_type in {'Wjets','Zjets'}
+    if bool(ew_matched) == type_matched: 
+        raise ValueError(
+            "can't make sense of physics type {} with name {}".format(
+                dataset.physics_type, dataset.full_name))
+    return bool(ew_matched)
 
 def _is_data(sample): 
     return sample.startswith('data')

@@ -83,6 +83,9 @@ namespace outtree {
 	m_tree->Branch("spart1_pdgid", &spart1_pdgid); 
 	m_tree->Branch("spart2_pdgid", &spart2_pdgid); 
       }
+      if (flags & cutflag::boson_pt_reweight) { 
+	m_tree->Branch("boson_pt_weight", &boson_pt_weight); 
+      }
       el_sf.set_branches(m_tree, "el_"); 
       mu_sf.set_branches(m_tree, "mu_"); 
     }
@@ -130,6 +133,7 @@ namespace outtree {
     subleading_cjet_pos = -1; 
     n_cjet = 0; 
     mc_event_weight = 0; 
+    boson_pt_weight = -1; 
     spart1_pdgid = 0; 
     spart2_pdgid = 0; 
 

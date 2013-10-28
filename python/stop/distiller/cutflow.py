@@ -31,7 +31,7 @@ def cutflow(input_files, flags, grl='', output_ntuple='',
         i: get sparticle id (requires truth)
         j: vector output
         m: save mv3 weights
-        p: use low pt jets
+        p: boson pt reweighting (for sherpa)
         r: save c-tag ratios
         u: generate pileup mc config file
         v: verbose
