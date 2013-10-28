@@ -189,7 +189,6 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
     }
   }
 
-
   m_def->Reset(); 
   m_out_tree->clear_buffer(); 
   ull_t pass_bits = 0; 
@@ -202,8 +201,8 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
 
   // --- preselection 
 
-  pass_bits |= m_event_preselector->get_preselection_flags(*m_susy_buffer, 
-							   *m_def); 
+  pass_bits |= m_event_preselector->get_preselection_flags(
+    *m_susy_buffer, *m_def); 
 
   // --- object selection 
 

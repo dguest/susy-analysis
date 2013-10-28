@@ -68,6 +68,7 @@ DEPFLAGS   += -std=c++11
 TOBJ        := SusyBuffer.o
 T_DICTS     := $(TOBJ:.o=Dict.o)
 GEN_OBJ     := distill_tools.o Jets.o Leptons.o Met.o
+GEN_OBJ     += boson_truth_tools.o
 GEN_OBJ     += OutTree.o OutputFilter.o BitmapCutflow.o 
 GEN_OBJ     += object_selection.o
 GEN_OBJ     += BosonTruthFilter.o TruthMetFilter.o
