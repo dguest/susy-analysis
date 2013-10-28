@@ -87,8 +87,7 @@ namespace object {
       bool signal_pt = jet.Pt() > SIGNAL_JET_PT_CUT; 
       bool tag_eta = fabs(jet.Eta()) < JET_TAGGING_ETA_LIM; 
       bool jvf = (jet.jvf() > JET_JVF_CUT) || jet.Pt() > JET_PT_IGNORE_JVF; 
-      bool first_jet = (jet_itr == *jets.cbegin()); 
-      if (signal_pt && (tag_eta || first_jet) && jvf ) { 
+      if (signal_pt && tag_eta && jvf ) { 
 	out.push_back(jet_itr); 
       }
     }

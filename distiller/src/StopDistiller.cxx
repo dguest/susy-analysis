@@ -198,13 +198,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   EventElectrons all_electrons(*m_susy_buffer, *m_def, m_flags, m_info); 
   EventMuons all_muons(*m_susy_buffer, *m_def, m_flags, m_info); 
 
-  auto preselected_electrons = filter_susy(all_electrons); 
-  auto preselected_muons = filter_susy(all_muons); 
-  
   auto& ob_counts = *m_object_counter; 
-
-  ob_counts["preselected_el"] += preselected_electrons.size(); 
-  ob_counts["preselected_mu"] += preselected_muons.size(); 
 
   // --- preselection 
 
@@ -219,44 +213,44 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
     all_jets.at(0)->set_flavor_tag(m_btag_calibration); 
     copy_jet_info(all_jets.at(0), m_out_tree->leading_jet_uncensored); 
   }
-    
+
   auto preselected_jets = object::preselection_jets(all_jets); 
+  auto preselected_electrons = filter_susy(all_electrons); 
+  auto preselected_muons = filter_susy(all_muons); 
+
   ob_counts["preselected_jets"] += preselected_jets.size(); 
+  ob_counts["preselected_el"] += preselected_electrons.size(); 
+  ob_counts["preselected_mu"] += preselected_muons.size(); 
 
   // need to get susy muon indices before overlap
   std::vector<int> susy_muon_idx = get_indices(preselected_muons); 
 
-  preselected_jets = remove_overlaping(preselected_electrons, 
-				       preselected_jets, 
-				       REMOVE_JET_CONE); 
+  // --- overlap removal ---
+  preselected_jets = remove_overlaping(
+    preselected_electrons, preselected_jets, REMOVE_JET_CONE); 
+  preselected_electrons = remove_overlaping(
+    preselected_jets, preselected_electrons, REMOVE_EL_CONE); 
+  preselected_muons = remove_overlaping(
+    preselected_jets, preselected_muons, REMOVE_MU_CONE); 
 
-  auto veto_jets = object::veto_jets(preselected_jets); 
-  ob_counts["veto_jets"] += veto_jets.size(); 
-
-  const auto good_jets = object::remove_bad_jets(preselected_jets); 
-  preselected_electrons = remove_overlaping(good_jets, 
-					    preselected_electrons, 
-					    REMOVE_EL_CONE); 
-  preselected_muons = remove_overlaping(good_jets, 
-					preselected_muons, 
-					REMOVE_MU_CONE); 
-
-  ob_counts["after_overlap_jets"] += good_jets.size(); 
+  ob_counts["after_overlap_jets"] += preselected_jets.size(); 
   ob_counts["after_overlap_el"] += preselected_electrons.size(); 
   ob_counts["after_overlap_mu"] += preselected_muons.size(); 
 
+  const auto veto_jets = object::veto_jets(preselected_jets); 
   const auto veto_electrons = object::veto_electrons(preselected_electrons); 
   const auto veto_muons = object::veto_muons(preselected_muons); 
 
+  ob_counts["veto_jets"] += veto_jets.size(); 
   ob_counts["veto_el"] += veto_electrons.size(); 
   ob_counts["veto_mu"] += veto_muons.size(); 
 
+  const auto good_jets = object::remove_bad_jets(preselected_jets); 
   auto signal_jets = object::signal_jets(good_jets); 
-  ob_counts["signal_jets"] += signal_jets.size(); 
-
   const auto control_electrons = object::control_electrons(veto_electrons); 
   const auto control_muons = object::control_muons(veto_muons); 
 
+  ob_counts["signal_jets"] += signal_jets.size(); 
   ob_counts["control_el"] += control_electrons.size(); 
   ob_counts["control_mu"] += control_muons.size(); 
 
