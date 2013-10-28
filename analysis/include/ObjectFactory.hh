@@ -22,9 +22,9 @@ class SFBox;
 class EventScalefactors; 
 
 namespace ioflag {
-  const unsigned no_flavor = 1u << 0; 
-  const unsigned no_truth  = 1u << 1; 
-  // const unsigned use_electron_jet = 1u << 2; 
+  const unsigned no_flavor            = 1u << 0; 
+  const unsigned no_truth             = 1u << 1; 
+  const unsigned has_boson_pt_weight  = 1u << 2; 
 }
 
 struct JetBuffer
@@ -104,6 +104,7 @@ private:
   double m_htx; 
   float m_mc_event_weight; 
   float m_pileup_weight; 
+  float m_boson_pt_weight; 
 
   unsigned m_ioflags; 
   EventScalefactors* m_evt_sf; 

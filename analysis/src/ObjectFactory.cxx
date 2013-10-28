@@ -49,6 +49,9 @@ ObjectFactory::ObjectFactory(std::string root_file, int n_jets) :
   m_hfor_type(-1), 
   m_leading_cjet_pos(-1), 
   m_subleading_cjet_pos(-1), 
+  m_mc_event_weight(0.0/0.0), 
+  m_pileup_weight(0.0/0.0), 
+  m_boson_pt_weight(0.0/0.0), 
   m_ioflags(0), 
   m_evt_sf(0)
 
@@ -103,6 +106,10 @@ ObjectFactory::ObjectFactory(std::string root_file, int n_jets) :
     std::string base_name = (boost::format("jet%i_") % i).str(); 
     m_jet_buffers.push_back(new JetBuffer); 
     set_buffer(*m_jet_buffers.rbegin(), base_name); 
+  }
+  if (m_tree->GetBranch("boson_pt_weight")) { 
+    m_tree->SetBranchAddress("boson_pt_weight", &m_boson_pt_weight); 
+    m_ioflags |= ioflag::has_boson_pt_weight; 
   }
 } 
 
@@ -225,7 +232,9 @@ double ObjectFactory::event_weight() const
   if (m_ioflags & ioflag::no_truth) { 
     return 1.0; 
   }
-  return m_mc_event_weight * m_pileup_weight; 
+  float base = m_mc_event_weight * m_pileup_weight; 
+  if (m_ioflags & ioflag::has_boson_pt_weight) base *= m_boson_pt_weight; 
+  return base; 
 }
 
 EventScalefactors* ObjectFactory::event_scalefactors() const { 
