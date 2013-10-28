@@ -51,11 +51,12 @@ int run() {
   }
   builder.build(); 
   builder.save(); 
-
+  return 0; 
 }
 
 int main(int narg, char* argv[]) { 
   for (int iii = 0; iii < 3; iii++) { 
     run(); 
   }
+  return 0; 
 }

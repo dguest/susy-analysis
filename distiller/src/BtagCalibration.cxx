@@ -172,7 +172,6 @@ std::string BtagCalibration::get_label(btag::Flavor flavor) const {
 
 void BtagCalibration::set_indices(btag::Flavor flav, btag::OperatingPoint op) 
 { 
-  btag::Tagger tagger = tagger_from_op(op); 
   const std::string& label = get_label(flav); 
   FOPIndex ind_key(flav, op); 
   bool ok_sf = m_interfaces.at(op)->retrieveCalibrationIndex(
