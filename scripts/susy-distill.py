@@ -145,12 +145,16 @@ def _is_atlfast(sample):
 
 def _is_sherpa_ew(dataset): 
     ew_re = re.compile('\.[Ss]herpa_.*(W(e|mu|tau)nu|Z(e|mu|tau|nu){2})')
-    ew_matched = ew_re.search(dataset.full_name): 
-    type_matched = dataset.physics_type in {'Wjets','Zjets'}
-    if bool(ew_matched) == type_matched: 
-        raise ValueError(
-            "can't make sense of physics type {} with name {}".format(
-                dataset.physics_type, dataset.full_name))
+    ew_matched = ew_re.search(dataset.full_name)
+    pt = dataset.physics_type
+    type_matched = bool(pt) and pt in {'Wjets','Zjets'}
+    if bool(ew_matched) != type_matched: 
+        prob = (
+            "can't make sense of physics type '{}' with name '{}', "
+            "ew match = {}, type match = {}").format(
+            dataset.physics_type, dataset.full_name, bool(ew_matched), 
+            type_matched)
+        raise ValueError(prob)
     return bool(ew_matched)
 
 def _is_data(sample): 
