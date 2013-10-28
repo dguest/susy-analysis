@@ -4,7 +4,6 @@
 #include <boost/noncopyable.hpp>
 #include <string> 
 #include <map>
-#include <unordered_map>
 #include "btag_defs.hh"
 
 class BaselineJet; 
@@ -54,8 +53,6 @@ private:
   CDI* get_cdi(btag::OperatingPoint) const; 
   CalVars get_vars(double pt, double eta) const; 
   std::string get_label(btag::Flavor) const; 
-  unsigned get_sf_index(btag::Flavor, btag::OperatingPoint) const; 
-  unsigned get_eff_index(btag::Flavor, btag::OperatingPoint) const; 
   void set_indices(btag::Flavor, btag::OperatingPoint); 
   CDI* m_cnn; 
   Interfaces m_interfaces; 
@@ -63,8 +60,9 @@ private:
   std::string m_jet_author; 
   CutValue m_anti_u_cuts; 
   CutValue m_anti_b_cuts; 
-  std::unordered_map<std::pair<int,int>, unsigned> m_flav_op_eff_index; 
-  std::unordered_map<std::pair<int,int>, unsigned> m_flav_op_sf_index; 
+  typedef std::pair<btag::Flavor,btag::OperatingPoint> FOPIndex; 
+  std::map<FOPIndex, unsigned> m_flav_op_eff_index; 
+  std::map<FOPIndex, unsigned> m_flav_op_sf_index; 
 }; 
 
 namespace btag { 
