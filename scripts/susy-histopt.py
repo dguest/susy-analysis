@@ -10,6 +10,7 @@ from os.path import dirname, join, isfile
 import argparse
 from pyroot.fitter import CountDict, Workspace, UpperLimitCalc
 from pyroot.fitter import sr_from_path, path_from_sr, insert_sql
+from pyroot.fitter import get_systematics
 import linecache
 import time
 import warnings
@@ -166,17 +167,8 @@ def _fit_and_plot(name, draw_before=False, draw_after=False,
         plot_components, plot_nll, minos)
                   
 def _multispaces(config): 
-    # hardcoded for now, consider freeing up
-    systematics = [
-        'jer',
-        'jes',
-        'b',
-        'c',
-        'u',
-        'el', 
-        'mu', 
-        'met', 
-        ]
+
+    systematics = get_systematics(config.kinematic_stat_dir)
 
     counts = CountDict(config.kinematic_stat_dir, systematics=systematics)
     all_sp = sorted({k[1] for k in counts if 'stop' in k[1]})

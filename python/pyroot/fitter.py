@@ -45,11 +45,28 @@ def insert_sql(met_gev, pt_gev, signal_point, tag_config, upper_limits,
         conn.execute(
             "insert into upperlimits values ({})".format(valstr), ins_tup)
 
+def _chop_ud(word): 
+    for chop in ['up','down']: 
+        if word.endswith(chop): 
+            return word[:-len(chop)]
+    return word
+
+def get_systematics(base_dir): 
+    systs = []
+    for d in os.listdir(base_dir): 
+        if isdir(join(base_dir,d)): 
+            systs.append(_chop_ud(d))
+    return sorted(set(systs) - {'baseline'})
+            
+
 class CountDict(dict): 
     """
     Stores as (syst, physics, region)
     """
     def __init__(self, kin_dir, systematics='all'): 
+
+        if systematics == 'all': 
+            systematics = _get_systematics(kin_dir)
 
         def has_systematic(syst): 
             if syst in systematics + ['baseline']: 
