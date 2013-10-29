@@ -69,7 +69,7 @@ StopDistiller::StopDistiller(const std::vector<std::string>& in,
   m_boson_pt_reweighter(0), 
   m_prw(0)
 { 
-  gErrorIgnoreLevel = kWarning;
+  gErrorIgnoreLevel = kError;
   check_flags(); 
   setup_streams(); 
   setup_chain(in); 
@@ -403,9 +403,7 @@ void StopDistiller::setup_susytools() {
   std::string out_file = "/dev/null"; 
   if (m_flags & cutflag::debug_susy) { 
     out_file = m_susy_dbg_file; 
-  }
-  else { 
-    gErrorIgnoreLevel = kError;
+    gErrorIgnoreLevel = kWarning;
   }
   int output_dup = dup(fileno(stdout)); 
   freopen(out_file.c_str(), "w", stdout); 
