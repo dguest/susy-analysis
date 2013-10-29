@@ -18,7 +18,8 @@ MetFlavors::MetFlavors(const ObjectFactory* obj, syst::Systematic syst):
 MetSystematics::MetSystematics(const ObjectFactory* obj, bool is_data): 
   m_nominal(obj, syst::NONE), 
   m_up(0), 
-  m_down(0)
+  m_down(0), 
+  m_res(0)
 {
   if (!is_data) { 
     m_up = new MetFlavors(obj, syst::METUP);
