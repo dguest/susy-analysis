@@ -31,6 +31,8 @@ class Mets;
 #include "DistillerConstants.hh"
 
 
+TVector2 get_boson_child_pt(const std::vector<Electron*>&, 
+			    const std::vector<Muon*>&); 
 
 void copy_jet_info(const SelectedJet* , outtree::Jet&); 
 void copy_scale_factor(const SelectedJet*, outtree::ScaleFactor&, 
@@ -51,6 +53,9 @@ ull_t met_bits(const Mets& met);
 
 template<typename T> 
 bool has_os_zmass_pair(const std::vector<T*>&); 
+
+template<typename T>
+bool are_os_zmass(const T&, const T&); 
 
 void fill_cjet_truth(outtree::OutTree& out_tree, 
 		     const std::vector<SelectedJet*>& jets); 
@@ -150,14 +155,22 @@ bool has_os_zmass_pair(const std::vector<T*>& lep) {
   size_t n_lep = lep.size(); 
   for (size_t iii = 0; iii < n_lep; iii++) { 
     for (size_t jjj = iii + 1; jjj < n_lep; jjj++) { 
-      float ch_prod = lep.at(jjj)->charge() * lep.at(iii)->charge(); 
-      float mass = (*lep.at(jjj) + *lep.at(iii)).Mag(); 
-      bool os = (ch_prod > -1.5 && ch_prod < -0.5); 
-      bool zmass = (std::fabs(mass - Z_MASS) < Z_MASS_WINDOW); 
-      if (os && zmass) return true; 
+      const T& lep1 = *lep.at(jjj); 
+      const T& lep2 = *lep.at(iii); 
+      if (are_os_zmass(lep1, lep2)) return true; 
     }
   }
   return false; 
+}
+
+template<typename T> 
+bool are_os_zmass(const T& lep1, const T& lep2) { 
+  float ch_prod = lep1.charge() * lep2.charge(); 
+  float mass = (lep1 + lep2).Mag(); 
+  bool os = (ch_prod > -1.5 && ch_prod < -0.5); 
+  bool zmass = (std::fabs(mass - Z_MASS) < Z_MASS_WINDOW); 
+  return os && zmass; 
+  
 }
 
 #endif 

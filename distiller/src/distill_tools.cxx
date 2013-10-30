@@ -28,6 +28,28 @@
 #include <boost/format.hpp>
 #include <boost/scoped_ptr.hpp>
 
+TVector2 get_boson_child_pt(const std::vector<Electron*>& el, 
+			    const std::vector<Muon*>& mu) { 
+  const size_t n_muons = mu.size(); 
+  for (size_t mu_n = 0; mu_n < n_muons; mu_n++) { 
+    for (size_t mu_n2 = mu_n + 1; mu_n2 < n_muons; mu_n2++) { 
+      const auto& mu1 = *mu.at(mu_n); 
+      const auto& mu2 = *mu.at(mu_n2); 
+      if (are_os_zmass(mu1, mu2)) { 
+	return (mu1 + mu2).Vect().XYvector(); 
+      }
+    }
+  }
+  if (mu.size() == 1) { 
+    return mu.at(0)->Vect().XYvector(); 
+  }
+  if (el.size() == 1) { 
+    return el.at(0)->Vect().XYvector(); 
+  }
+  return TVector2(); 
+}
+
+
 //_________________________________________________________________
 // jet utility 
 void copy_jet_info(const SelectedJet* in, outtree::Jet& jet)
@@ -257,39 +279,5 @@ void calibrate_jets(std::vector<SelectedJet*> jets,
     (*jitr)->set_flavor_tag(cal); 
   }
 }
-
-//____________________________________________________________________
-// io functions 
-
-
-
-//______________________________________________________________________
-// object check functions 
-  
-  
-
-
-//___________________________________________________________________
-// selected jet  
-  
-
-//________________________________________________________________
-// main function (for quick checks)
-
-
-
-//______________________________________________________________
-// smart chain
-
-
-//_____________________________________________________________________
-//            cut counter
-
-
-
-/////////////////////////////////////////////////////////////////////
-//////////////           obsolete?         /////////////////////////
-/////////////////////////////////////////////////////////////////////
-
 
 

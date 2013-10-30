@@ -53,11 +53,11 @@ all_cuts = [
         'jet_tag_assignment':'TAG_ORDERED', 
         }, 
     { 
-        'name': 'bob', 
-        'output_name': 'stupider.h5', 
+        'name': 'bosons', 
+        'output_name': 'bosons.h5', 
         'type': 'CONTROL', 
-        'jet_tag_requirements': ['NOTAG','JFC_LOOSE'], 
-        'hists': 'KINEMATIC_STAT', 
+        'jet_tag_requirements': ['NOTAG','NOTAG','NOTAG'], 
+        'hists': 'BOSON_PT', 
         'tagger':'JFC', 
         'systematic':'NONE'
         }, 

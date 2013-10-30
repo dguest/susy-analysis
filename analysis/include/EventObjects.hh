@@ -50,8 +50,9 @@ struct EventObjects
   std::vector<Jet> jets; 
   std::vector<Jet> jets_with_eljet; 
   EventScalefactors* event_scalefactors; 
-  float boson_pt; 
+  float true_boson_pt; 
   float marks_boson_pt_weight; 
+  TVector2 boson_child; 
   EventObjects(const ObjectFactory*, unsigned build_flags); 
 }; 
 

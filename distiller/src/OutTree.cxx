@@ -108,6 +108,8 @@ namespace outtree {
       leading_jet_uncensored.set_branches(m_tree, "leading_jet_uncensored_", 
 					  flags); 
     }
+    m_tree->Branch("boson_child_pt", &boson_child_pt); 
+    m_tree->Branch("boson_child_phi", &boson_child_phi); 
 
   }
 
@@ -146,6 +148,8 @@ namespace outtree {
     electron_jet.clear(); 
     el_sf.clear(); 
     mu_sf.clear(); 
+    boson_child_pt = -1; 
+    boson_child_phi = -10; 
   }
 
 

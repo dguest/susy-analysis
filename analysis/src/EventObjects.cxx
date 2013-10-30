@@ -57,8 +57,9 @@ EventObjects::EventObjects(const ObjectFactory* factory,
   n_signal_jets(factory->n_signal_jets()), 
   jets_with_eljet(factory->jets()), 
   event_scalefactors(0), 
-  boson_pt(factory->boson_pt()), 
-  marks_boson_pt_weight(factory->marks_boson_pt_weight())
+  true_boson_pt(factory->boson_pt()), 
+  marks_boson_pt_weight(factory->marks_boson_pt_weight()), 
+  boson_child(factory->boson_child())
 { 
   if ( !(build_flags & buildflag::is_data)) { 
     leading_cjet_pos = factory->leading_cjet_pos(); 
@@ -72,7 +73,6 @@ EventObjects::EventObjects(const ObjectFactory* factory,
   for (size_t rank = 0; rank < jets_with_eljet.size(); rank++) { 
     jets_with_eljet.at(rank).set_rank(rank); 
   }
-
 
 }
 

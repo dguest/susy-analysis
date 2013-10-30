@@ -6,6 +6,9 @@
 #include "H5Cpp.h"
 #include "Histogram.hh"
 
+// TODO: should add lepton counts to the skim instead
+#include "distiller/EventBits.hh"
+
 namespace { 
   const float MAX_PT = 1e6; 
   const float N_BINS = 100; 
@@ -40,6 +43,14 @@ RegionBosonPtHistograms::~RegionBosonPtHistograms() {
 void RegionBosonPtHistograms::fill(const EventObjects& obj) {
   typedef std::vector<Jet> Jets; 
 
+  // slightly hackish... depends on both stored bits and the current ones
+  bool one_muon =     obj.event_mask & pass::control_muon; 
+  bool one_electron = obj.event_mask & pass::control_electron; 
+  bool z_muons =      obj.event_mask & pass::os_zmass_mu_pair; 
+
+  int n_cr_passed = one_muon + one_electron + z_muons; 
+  if ( n_cr_passed != 1) return; 
+  
   if (!m_event_filter->pass(obj)) return; 
   bool do_mu_met = m_region_config->region_bits & reg::mu_met; 
 
@@ -47,17 +58,28 @@ void RegionBosonPtHistograms::fill(const EventObjects& obj) {
   const TVector2 met = do_mu_met ? mets.muon: mets.bare; 
 
   double weight = obj.weight; 
-  bool use_electron_jet = m_region_config->region_bits & reg::electron_jet; 
-  const Jets jets = use_electron_jet ? obj.jets_with_eljet : obj.jets; 
-
   if (! (m_build_flags & buildflag::is_data)) { 
+    // no jet jet SF are needed, since we're not tagging
     weight *= m_event_filter->lepton_scalefactor(obj); 
   }
 
-  TVector2 reco_boson = met; 
+  const double reco_boson_pt = (met + obj.boson_child).Mod(); 
+  m_boson_pt->fill(reco_boson_pt, weight); 
+  if (m_boson_truth_pt) { 
+    m_boson_truth_pt->fill(obj.true_boson_pt, weight); 
+    m_reco_vs_truth_pt->fill({obj.true_boson_pt, reco_boson_pt}, weight); 
+  }
 
 }
-void RegionBosonPtHistograms::write_to(H5::CommonFG&) const {}
+void RegionBosonPtHistograms::write_to(H5::CommonFG& file) const {
+  using namespace H5; 
+  Group region(file.createGroup(m_region_config->name)); 
+  m_boson_pt->write_to(region, "recoBosonPt"); 
+  if (m_boson_truth_pt) { 
+    m_boson_truth_pt->write_to(region, "truthBosonPt"); 
+    m_reco_vs_truth_pt->write_to(region, "bosonResponse"); 
+  }
+}
 
 
 

@@ -81,6 +81,7 @@ public:
   double event_weight() const; 
   float marks_boson_pt_weight() const; 
   float boson_pt() const; 
+  TVector2 boson_child() const; 
   EventScalefactors* event_scalefactors() const; 
 private: 
   void set_btag_n(size_t jet_n, btag::OperatingPoint); 
@@ -108,6 +109,9 @@ private:
   float m_pileup_weight; 
   float m_boson_pt_weight; 
   float m_boson_pt; 
+
+  float m_boson_child_pt; 
+  float m_boson_child_phi; 
 
   unsigned m_ioflags; 
   EventScalefactors* m_evt_sf; 

@@ -99,10 +99,6 @@ ObjectFactory::ObjectFactory(std::string root_file, int n_jets) :
   }
 
   errors += m_tree->SetBranchAddress("htx", &m_htx); 
-  if (errors) { 
-    throw std::runtime_error
-      ((boost::format("%i branch setting errors") % errors).str()); 
-  }
   for (int i = 0; i < n_jets; i++) { 
     std::string base_name = (boost::format("jet%i_") % i).str(); 
     m_jet_buffers.push_back(new JetBuffer); 
@@ -112,6 +108,14 @@ ObjectFactory::ObjectFactory(std::string root_file, int n_jets) :
     m_tree->SetBranchAddress("boson_pt_weight", &m_boson_pt_weight); 
     m_tree->SetBranchAddress("boson_pt", &m_boson_pt); 
     m_ioflags |= ioflag::has_boson_pt_weight; 
+  }
+  errors += std::abs(m_tree->SetBranchAddress(
+		       "boson_child_pt", &m_boson_child_pt)); 
+  errors += std::abs(m_tree->SetBranchAddress(
+		       "boson_child_phi", &m_boson_child_phi)); 
+  if (errors) { 
+    throw std::runtime_error
+      ((boost::format("%i branch setting errors") % errors).str()); 
   }
 } 
 
@@ -229,6 +233,14 @@ int ObjectFactory::n_susy()   const  { return m_n_susy; }
 int ObjectFactory::leading_cjet_pos() const {return m_leading_cjet_pos;}
 int ObjectFactory::subleading_cjet_pos() const {return m_subleading_cjet_pos;}
 double ObjectFactory::htx() const {return m_htx;}
+double ObjectFactory::event_weight() const 
+{
+  if (m_ioflags & ioflag::no_truth) { 
+    return 1.0; 
+  }
+  float base = m_mc_event_weight * m_pileup_weight; 
+  return base; 
+}
 float ObjectFactory::marks_boson_pt_weight() const {
   if (!(m_ioflags & ioflag::has_boson_pt_weight) ) { 
     return 1.0; 
@@ -241,13 +253,13 @@ float ObjectFactory::boson_pt() const {
   }
   return m_boson_pt; 
 }
-double ObjectFactory::event_weight() const 
-{
-  if (m_ioflags & ioflag::no_truth) { 
-    return 1.0; 
+TVector2 ObjectFactory::boson_child() const { 
+  if (m_boson_child_pt < 0.0) { 
+    return TVector2(); 
   }
-  float base = m_mc_event_weight * m_pileup_weight; 
-  return base; 
+  TVector2 vec; 
+  vec.SetMagPhi(m_boson_child_pt, m_boson_child_phi); 
+  return vec; 
 }
 
 EventScalefactors* ObjectFactory::event_scalefactors() const { 

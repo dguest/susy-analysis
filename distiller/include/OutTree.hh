@@ -152,6 +152,9 @@ namespace outtree {
     outtree::Jet leading_jet_uncensored; 
     outtree::Jet electron_jet; 
 
+    float boson_child_pt; 
+    float boson_child_phi; 
+
     std::vector<outtree::Jet*> jets; 
   private:
     void init(const unsigned flags = 0, int n_jets = 3); 
