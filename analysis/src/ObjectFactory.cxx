@@ -229,13 +229,24 @@ int ObjectFactory::n_susy()   const  { return m_n_susy; }
 int ObjectFactory::leading_cjet_pos() const {return m_leading_cjet_pos;}
 int ObjectFactory::subleading_cjet_pos() const {return m_subleading_cjet_pos;}
 double ObjectFactory::htx() const {return m_htx;}
+float ObjectFactory::marks_boson_pt_weight() const {
+  if (!(m_ioflags & ioflag::has_boson_pt_weight) ) { 
+    return 1.0; 
+  }
+  return m_boson_pt_weight; 
+}
+float ObjectFactory::boson_pt() const { 
+  if (!(m_ioflags & ioflag::has_boson_pt_weight) ) { 
+    return -1.0; 
+  }
+  return m_boson_pt; 
+}
 double ObjectFactory::event_weight() const 
 {
   if (m_ioflags & ioflag::no_truth) { 
     return 1.0; 
   }
   float base = m_mc_event_weight * m_pileup_weight; 
-  if (m_ioflags & ioflag::has_boson_pt_weight) base *= m_boson_pt_weight; 
   return base; 
 }
 

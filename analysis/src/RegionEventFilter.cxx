@@ -46,6 +46,7 @@ bool RegionEventFilter::pass(const EventObjects& obj) const {
     return false; 
   }
 
+  // --- check met ---
   bool do_mu_met = m_region_config.region_bits & reg::mu_met; 
   const MetFlavors& mets = obj.met.get_syst(m_region_config.systematic); 
   const TVector2& met = do_mu_met ? mets.muon: mets.bare; 
@@ -53,6 +54,7 @@ bool RegionEventFilter::pass(const EventObjects& obj) const {
     return false; 
   }
 
+  // --- check leading jet pt ---
   bool use_electron_jet = m_region_config.region_bits & reg::electron_jet; 
   const Jets jets = use_electron_jet ? obj.jets_with_eljet : obj.jets; 
   if (m_region_config.leading_jet_pt > 0.0) { 
@@ -61,12 +63,14 @@ bool RegionEventFilter::pass(const EventObjects& obj) const {
     }
   }
 
+  // --- check number of tagged jets (must have at least this many) ---
   unsigned n_required_jets = m_region_config.jet_tag_requirements.size(); 
   if (jets.size() < n_required_jets) return false; 
   if (reg::no_extra_jets & m_region_config.region_bits) { 
     if (jets.size() > n_required_jets) return false; 
   }
 
+  // --- check dphi(jet, met) ---
   size_t n_check = std::min(jets.size(), DPHI_JET_MET_NJET); 
   for (size_t jet_n = 0; jet_n < n_check; jet_n++) { 
     const auto& jet = jets.at(jet_n); 

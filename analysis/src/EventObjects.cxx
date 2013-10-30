@@ -56,7 +56,9 @@ EventObjects::EventObjects(const ObjectFactory* factory,
   subleading_cjet_pos(0), 
   n_signal_jets(factory->n_signal_jets()), 
   jets_with_eljet(factory->jets()), 
-  event_scalefactors(0)
+  event_scalefactors(0), 
+  boson_pt(factory->boson_pt()), 
+  marks_boson_pt_weight(factory->marks_boson_pt_weight())
 { 
   if ( !(build_flags & buildflag::is_data)) { 
     leading_cjet_pos = factory->leading_cjet_pos(); 

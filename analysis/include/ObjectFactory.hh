@@ -79,6 +79,8 @@ public:
   hfor::JetType hfor_type() const; 
   double htx() const; 
   double event_weight() const; 
+  float marks_boson_pt_weight() const; 
+  float boson_pt() const; 
   EventScalefactors* event_scalefactors() const; 
 private: 
   void set_btag_n(size_t jet_n, btag::OperatingPoint); 

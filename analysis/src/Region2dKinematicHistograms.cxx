@@ -72,6 +72,7 @@ void Region2dKinematicHistograms::fill(const EventObjects& obj) {
   if (! (m_build_flags & buildflag::is_data)) { 
     weight *= m_event_filter.jet_scalefactor(tagged_jets); 
     weight *= m_event_filter.lepton_scalefactor(obj); 
+    weight *= obj.marks_boson_pt_weight; 
   }
   bool do_mu_met = m_region_config.region_bits & reg::mu_met; 
   const MetFlavors& mets = obj.met.get_syst(m_region_config.systematic); 
