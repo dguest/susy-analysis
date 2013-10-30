@@ -70,7 +70,7 @@ ObjectFactory::ObjectFactory(std::string root_file, int n_jets) :
 
   errors += m_tree->SetBranchAddress("pass_bits",&m_bits); 
   errors += m_tree->SetBranchAddress("min_jetmet_dphi", &m_dphi); 
-  errors += m_tree->SetBranchAddress("n_good_jets", &m_n_good); 
+  errors += m_tree->SetBranchAddress("n_signal_jets", &m_n_signal); 
   errors += m_tree->SetBranchAddress("n_susy_jets", &m_n_susy); 
 
   bool has_truth = (m_tree->GetBranch("hfor_type") && 
@@ -222,7 +222,7 @@ TVector2 ObjectFactory::mu_met(syst::Systematic sy) const  {
 }
 ull_t ObjectFactory::bits() const  { return m_bits; }
 double ObjectFactory::dphi()  const  { return m_dphi; }
-int ObjectFactory::n_good()   const  { return m_n_good; }
+int ObjectFactory::n_signal_jets()   const  { return m_n_signal; }
 int ObjectFactory::n_susy()   const  { return m_n_susy; }
 int ObjectFactory::leading_cjet_pos() const {return m_leading_cjet_pos;}
 int ObjectFactory::subleading_cjet_pos() const {return m_subleading_cjet_pos;}

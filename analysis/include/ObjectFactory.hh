@@ -72,7 +72,7 @@ public:
   TVector2 mu_met(syst::Systematic) const; 
   ull_t bits() const; 
   double dphi() const; 
-  int n_good() const; 
+  int n_signal_jets() const; 
   int n_susy() const; 
   int leading_cjet_pos() const; 
   int subleading_cjet_pos() const; 
@@ -94,7 +94,7 @@ private:
 
   ull_t m_bits; 
   double m_dphi; 
-  int m_n_good; 
+  int m_n_signal; 
   int m_n_susy; 
   int m_hfor_type; 
   

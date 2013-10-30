@@ -60,7 +60,7 @@ namespace outtree {
     met_mu.set_branches(m_tree, "mu_"); 
     m_tree->Branch("min_jetmet_dphi" , &min_jetmet_dphi); 
     m_tree->Branch("n_susy_jets", &n_susy_jets); 
-    m_tree->Branch("n_good_jets", &n_good_jets); 
+    m_tree->Branch("n_signal_jets", &n_good_jets); 
 
     m_tree->Branch("event_number", &event_number); 
 

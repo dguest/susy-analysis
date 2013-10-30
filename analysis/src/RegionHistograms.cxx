@@ -45,7 +45,7 @@ RegionHistograms::RegionHistograms(const RegionConfig& config,
   m_alt_met = new Histogram(N_BINS, 0.0, max_pt, "MeV"); 
   m_min_dphi = new Histogram(N_BINS, 0.0, 3.2); 
   m_mttop = new Histogram(N_BINS, 0.0, max_pt, "MeV"); 
-  m_n_good_jets = new Histogram(11, -0.5, 10.5); 
+  m_n_signal_jets = new Histogram(11, -0.5, 10.5); 
 
   m_htx = new Histogram(N_BINS, 0.0, max_pt, "MeV"); 
 
@@ -85,7 +85,7 @@ RegionHistograms::~RegionHistograms() {
   delete m_alt_met; 
   delete m_min_dphi; 
   delete m_mttop; 
-  delete m_n_good_jets; 
+  delete m_n_signal_jets; 
 
   delete m_htx; 
 
@@ -158,7 +158,7 @@ void RegionHistograms::fill(const EventObjects& obj) {
 
   m_htx->fill(obj.htx,  weight); 
     
-  m_n_good_jets->fill(obj.n_signal_jets,  weight); 
+  m_n_signal_jets->fill(obj.n_signal_jets,  weight); 
   if (m_cjet_rank) fill_cjet_rank(obj, weight); 
 
   unsigned n_jets_truth = std::min(jets.size(), m_jet_truth_hists.size()); 
@@ -185,7 +185,7 @@ void RegionHistograms::write_to(H5::CommonFG& file) const {
   m_alt_met->write_to(region, "altMet");
   m_min_dphi->write_to(region, "minDphi"); 
   m_mttop->write_to(region, "mttop"); 
-  m_n_good_jets->write_to(region, "nGoodJets"); 
+  m_n_signal_jets->write_to(region, "nSignalJets"); 
   m_htx->write_to(region, "htx"); 
 
   if (!(m_build_flags & buildflag::is_data)) { 

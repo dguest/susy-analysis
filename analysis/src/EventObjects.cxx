@@ -54,7 +54,7 @@ EventObjects::EventObjects(const ObjectFactory* factory,
   htx(factory->htx()), 
   leading_cjet_pos(0), 
   subleading_cjet_pos(0), 
-  n_signal_jets(factory->n_good()), 
+  n_signal_jets(factory->n_signal_jets()), 
   jets_with_eljet(factory->jets()), 
   event_scalefactors(0)
 { 

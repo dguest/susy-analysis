@@ -46,7 +46,7 @@ private:
   Histogram* m_alt_met; 
   Histogram* m_min_dphi; 
   Histogram* m_mttop; 
-  Histogram* m_n_good_jets; 
+  Histogram* m_n_signal_jets; 
 
   Histogram* m_htx; 
 
