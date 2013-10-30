@@ -10,6 +10,7 @@ class BosonPtReweighter
 {
 public: 
   float get_boson_weight(const SusyBuffer*); 
+  float get_boson_pt(const SusyBuffer*); 
 }; 
 
 #endif 

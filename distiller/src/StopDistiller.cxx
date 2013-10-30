@@ -319,6 +319,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   if (m_boson_pt_reweighter) {
     m_out_tree->boson_pt_weight = m_boson_pt_reweighter->get_boson_weight(
       m_susy_buffer); 
+    m_out_tree->boson_pt = m_boson_pt_reweighter->get_boson_pt(m_susy_buffer); 
   }
 
   m_out_tree->event_number = m_susy_buffer->EventNumber; 

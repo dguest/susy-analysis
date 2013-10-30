@@ -85,6 +85,7 @@ namespace outtree {
       }
       if (flags & cutflag::boson_pt_reweight) { 
 	m_tree->Branch("boson_pt_weight", &boson_pt_weight); 
+	m_tree->Branch("boson_pt", &boson_pt); 
       }
       el_sf.set_branches(m_tree, "el_"); 
       mu_sf.set_branches(m_tree, "mu_"); 
@@ -134,6 +135,7 @@ namespace outtree {
     n_cjet = 0; 
     mc_event_weight = 0; 
     boson_pt_weight = -1; 
+    boson_pt = -1; 
     spart1_pdgid = 0; 
     spart2_pdgid = 0; 
 
