@@ -9,7 +9,7 @@
 
 namespace reg { 
   enum Type { CONTROL, SIGNAL, VALIDATION }; 
-  enum Hists { HISTMILL, KINEMATIC_STAT, TAG_EFFICIENCY }; 
+  enum Hists { HISTMILL, KINEMATIC_STAT, TAG_EFFICIENCY, BOSON_PT }; 
   // region event filter flags
   const unsigned no_extra_jets = 1u << 0; 
   const unsigned throw_for_fun = 1u << 1; 

@@ -76,6 +76,7 @@ GEN_OBJ     += Region2dKinematicHistograms.o
 GEN_OBJ     += RegionEventFilter.o 
 GEN_OBJ     += OrderedJetTagFilter.o UnorderedJetTagFilter.o
 GEN_OBJ     += RegionJetEfficiencyHistograms.o
+GEN_OBJ     += RegionBosonPtHistograms.o
 GEN_OBJ     += common_functions.o enum_converters.o
 GEN_OBJ     += BtagScaler.o BtagBuffer.o
 GEN_OBJ     += EventScalefactors.o

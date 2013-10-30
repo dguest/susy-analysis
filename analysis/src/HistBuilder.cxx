@@ -7,6 +7,7 @@
 #include "IRegionHistograms.hh"
 #include "Region2dKinematicHistograms.hh"
 #include "RegionJetEfficiencyHistograms.hh"
+#include "RegionBosonPtHistograms.hh"
 #include "constants_physical.hh"
 #include "common_functions.hh"
 #include "H5Cpp.h"
@@ -136,6 +137,11 @@ void HistBuilder::add_histogram(const RegionConfig& region) {
 		 new RegionJetEfficiencyHistograms(region, m_build_flags)));
     using namespace btag; 
     m_factory->set_btagging({NOTAG, LOOSE, MEDIUM, ANTILOOSE}); 
+    return; 
+  case BOSON_PT: 
+    m_histograms.push_back(
+      make_pair(
+	region.name, new RegionBosonPtHistograms(region, m_build_flags))); 
     return; 
   default: {
     throw std::logic_error("unknown hist type for region " + region.name); 
