@@ -63,7 +63,11 @@ void RegionBosonPtHistograms::fill(const EventObjects& obj) {
     weight *= m_event_filter->lepton_scalefactor(obj); 
   }
 
-  const double reco_boson_pt = (met + obj.boson_child).Mod(); 
+  TVector2 reco_boson_p2 = obj.boson_child; 
+  if (one_electron || one_muon) { 
+    reco_boson_p2 += met; 
+  }
+  const double reco_boson_pt = reco_boson_p2.Mod(); 
   m_boson_pt->fill(reco_boson_pt, weight); 
   if (m_boson_truth_pt) { 
     m_boson_truth_pt->fill(obj.true_boson_pt, weight); 
