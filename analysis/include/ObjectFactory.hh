@@ -105,6 +105,7 @@ private:
   float m_mc_event_weight; 
   float m_pileup_weight; 
   float m_boson_pt_weight; 
+  float m_boson_pt; 
 
   unsigned m_ioflags; 
   EventScalefactors* m_evt_sf; 

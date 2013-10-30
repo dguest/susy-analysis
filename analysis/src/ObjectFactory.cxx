@@ -52,6 +52,7 @@ ObjectFactory::ObjectFactory(std::string root_file, int n_jets) :
   m_mc_event_weight(0.0/0.0), 
   m_pileup_weight(0.0/0.0), 
   m_boson_pt_weight(0.0/0.0), 
+  m_boson_pt(0.0/0.0), 
   m_ioflags(0), 
   m_evt_sf(0)
 
@@ -109,6 +110,7 @@ ObjectFactory::ObjectFactory(std::string root_file, int n_jets) :
   }
   if (m_tree->GetBranch("boson_pt_weight")) { 
     m_tree->SetBranchAddress("boson_pt_weight", &m_boson_pt_weight); 
+    m_tree->SetBranchAddress("boson_pt", &m_boson_pt); 
     m_ioflags |= ioflag::has_boson_pt_weight; 
   }
 } 
