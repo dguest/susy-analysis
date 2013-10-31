@@ -41,7 +41,6 @@ RegionBosonPtHistograms::~RegionBosonPtHistograms() {
 
 }
 void RegionBosonPtHistograms::fill(const EventObjects& obj) {
-  typedef std::vector<Jet> Jets; 
 
   // slightly hackish... depends on both stored bits and the current ones
   bool one_muon =     obj.event_mask & pass::control_muon; 
