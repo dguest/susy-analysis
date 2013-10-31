@@ -10,6 +10,7 @@
 namespace reg { 
   enum Type { CONTROL, SIGNAL, VALIDATION }; 
   enum Hists { HISTMILL, KINEMATIC_STAT, TAG_EFFICIENCY, BOSON_PT }; 
+  enum BosonPtCorrection {NO_PT_CORRECTION, MARKS}; 
   // region event filter flags
   const unsigned no_extra_jets = 1u << 0; 
   const unsigned throw_for_fun = 1u << 1; 
@@ -33,6 +34,7 @@ struct RegionConfig
   reg::Hists hists; 
   std::string mc_mc_jet_reweight_file; 
   btag::Tagger tagger; 
+  reg::BosonPtCorrection boson_pt_correction; 
   RegionConfig(); 
 };
 

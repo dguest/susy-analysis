@@ -48,6 +48,8 @@ class Region(object):
         self.tagger = yaml_dict.get('tagger', None)
         self.jet_tag_assignment = yaml_dict.get(
             'jet_tag_assignment','PT_ORDERED')
+        self.boson_pt_correction = yaml_dict.get(
+            'boson_pt_correction', 'MARKS')
 
     def get_yaml_dict(self): 
         """
@@ -97,7 +99,8 @@ class Region(object):
             'type': self.type.upper(), 
             'hists': 'HISTMILL', 
             'tagger': _get_tagger(self.btag_config, self.tagger), 
-            'jet_tag_assignment': self.jet_tag_assignment
+            'jet_tag_assignment': self.jet_tag_assignment, 
+            'boson_pt_correction': self.boson_pt_correction, 
             }
         return config_dict
 
@@ -165,7 +168,8 @@ class SuperRegion(object):
         return output
         
     def get_config_dict(self): 
-        req, veto, jtags, reg_type, reg_bits, jet_tag_ass = self.tuple
+        (req, veto, jtags, reg_type, reg_bits, jet_tag_ass, 
+         boson_pt_correction ) = self.tuple
         lower_bounds = self.kinematic_lower_bounds
         config_dict = {
             'jet_tag_requirements': list(jtags), 
@@ -178,7 +182,8 @@ class SuperRegion(object):
             'hists': 'KINEMATIC_STAT', 
             # ACHTUNG: dont care about tagger for untagged superregions
             'tagger': _get_tagger(jtags,None), 
-            'jet_tag_assignment': jet_tag_ass
+            'jet_tag_assignment': jet_tag_ass, 
+            'boson_pt_correction': boson_pt_correction
             }
         return config_dict
         
@@ -211,7 +216,7 @@ def superregion_tuple(region):
     region_bits = region.get_region_bits()
     jet_tags = tuple(region.btag_config)
     return (req_bits, veto_bits, jet_tags, region.type, region_bits, 
-            region.jet_tag_assignment)
+            region.jet_tag_assignment, region.boson_pt_correction)
         
     
 class RegionConfigError(ValueError): 

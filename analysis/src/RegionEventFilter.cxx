@@ -108,3 +108,13 @@ float RegionEventFilter::lepton_scalefactor(const EventObjects& obj) const {
   }
   return weight; 
 }
+
+float RegionEventFilter::boson_scalefactor(const EventObjects& obj) const { 
+  if (m_region_config.boson_pt_correction == reg::NO_PT_CORRECTION) { 
+    return 1.0; 
+  }
+  if (m_region_config.boson_pt_correction == reg::MARKS) { 
+    return obj.marks_boson_pt_weight; 
+  }
+  throw std::invalid_argument("unknown boson pt correction"); 
+}

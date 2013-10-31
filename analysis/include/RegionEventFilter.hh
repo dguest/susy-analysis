@@ -23,6 +23,7 @@ public:
   double jet_scalefactor(const std::vector<Jet>& jets) const; 
   std::vector<Jet> tagged_jets(const std::vector<Jet>& jets) const; 
   float lepton_scalefactor(const EventObjects& objects) const; 
+  float boson_scalefactor(const EventObjects& objects) const; 
 private: 
   const RegionConfig& m_region_config; 
   const JetTagRescaler* m_jet_rescaler; 

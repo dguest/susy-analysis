@@ -62,6 +62,16 @@ all_cuts = [
         'systematic':'NONE'
         }, 
     { 
+        'name': 'bosons-rw', 
+        'output_name': 'bosons.h5', 
+        'type': 'CONTROL', 
+        'jet_tag_requirements': ['NOTAG','NOTAG','NOTAG'], 
+        'hists': 'BOSON_PT', 
+        'tagger':'JFC', 
+        'systematic':'NONE', 
+        'boson_pt_correction': 'MARKS', 
+        }, 
+    { 
         'name': 'boball', 
         'output_name': 'stupider.h5', 
         'type': 'CONTROL', 

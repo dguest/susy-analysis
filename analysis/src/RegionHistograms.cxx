@@ -119,7 +119,8 @@ void RegionHistograms::fill(const EventObjects& obj) {
     float lepton_sf = m_event_filter.lepton_scalefactor(obj); 
     m_jet_scalefactor->fill(jet_sf, base_weight); 
     m_lepton_scalefactor->fill(lepton_sf, base_weight); 
-    base_weight *= jet_sf * lepton_sf * obj.marks_boson_pt_weight; 
+    float boson_sf = m_event_filter.boson_scalefactor(obj); 
+    base_weight *= jet_sf * lepton_sf * boson_sf; 
   }
 
   const auto weight = base_weight; 

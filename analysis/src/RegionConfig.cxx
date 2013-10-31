@@ -13,6 +13,7 @@ RegionConfig::RegionConfig() :
   type(reg::SIGNAL), 		// will be blinded by default
   hists(reg::HISTMILL), 
   mc_mc_jet_reweight_file(""), 
-  tagger(btag::CNN)
+  tagger(btag::CNN), 
+  boson_pt_correction(reg::NO_PT_CORRECTION)
 {
 }

@@ -71,6 +71,8 @@ static bool safe_copy(PyObject* dict, RegionConfig& region)
   if (!copy(dict, "tagger", region.tagger)) return false; 
   if (!copy(dict, "jet_tag_assignment", 
 	    region.jet_tag_assignment)) return false; 
+  if (!copy(dict, "boson_pt_correction", 
+	    region.boson_pt_correction)) return false; 
   return true; 
 }
 
@@ -211,6 +213,17 @@ static bool safe_copy(PyObject* value, syst::Systematic& dest) {
   return false; 
 }
 
+static bool safe_copy(PyObject* value, reg::BosonPtCorrection& dest) {
+  char* charname = PyString_AsString(value); 
+  if (PyErr_Occurred()) return false; 
+  std::string name(charname); 
+  using namespace reg; 
+  NAME_TO_DEST(MARKS); 
+  NAME_TO_DEST(NO_PT_CORRECTION); 
+  std::string problem = "got undefined boson correction: " + name; 
+  PyErr_SetString(PyExc_ValueError,problem.c_str()); 
+  return false; 
+}
 
 static PyMethodDef methods[] = {
   {"_stacksusy", py_analysis_alg<HistBuilder>, METH_VARARGS, 

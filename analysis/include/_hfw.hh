@@ -33,6 +33,7 @@ static bool safe_copy(PyObject* value, btag::OperatingPoint& dest);
 static bool safe_copy(PyObject* value, syst::Systematic& dest); 
 static bool safe_copy(PyObject* value, reg::Type& dest); 
 static bool safe_copy(PyObject* value, reg::Hists& dest); 
+static bool safe_copy(PyObject* value, reg::BosonPtCorrection& dest); 
 
 
 // --- implementation ---

@@ -61,6 +61,7 @@ void RegionBosonPtHistograms::fill(const EventObjects& obj) {
   if (! (m_build_flags & buildflag::is_data)) { 
     // no jet jet SF are needed, since we're not tagging
     weight *= m_event_filter->lepton_scalefactor(obj); 
+    weight *= m_event_filter->boson_scalefactor(obj); 
   }
 
   TVector2 reco_boson_p2 = obj.boson_child; 
