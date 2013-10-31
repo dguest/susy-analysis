@@ -319,6 +319,7 @@ def _write_distill_config(script_name, meta_name, input_files,
         'out_dir': 'output/distill', 
         'in_dir': in_dir, 
         'in_ext': '.txt', 
+        'walltime': '00:03:00:00'
         }
 
     if systematic == 'all': 
