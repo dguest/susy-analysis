@@ -3,6 +3,6 @@
 
 class SusyBuffer; 
 
-float get_boson_pt(const SusyBuffer* buffer); 
+float get_boson_truth_pt(const SusyBuffer* buffer); 
 
 #endif 

@@ -7,7 +7,7 @@
 #include "TLorentzVector.h"
 
 
-float get_boson_pt(const SusyBuffer* buffer) { 
+float get_boson_truth_pt(const SusyBuffer* buffer) { 
 
   assert(buffer->mc_status); 
   int mc_n = buffer->mc_n; 

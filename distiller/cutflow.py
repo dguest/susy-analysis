@@ -4,7 +4,7 @@ from stop.distiller import cutflow
 import sys, glob, os
 
 flags = 'vbgzf'
-flags += 'u'                    # generate pu reweighting file
+# flags += 'u'                    # generate pu reweighting file
 configs = ['NOMINAL']
 files = []
 if len(sys.argv) > 1: 
@@ -14,6 +14,9 @@ if len(sys.argv) > 1:
     elif 'data' in sys.argv[1]: 
         files = sys.argv[2:]
         flags += 'd'
+    elif 'sherpa' in sys.argv[1]: 
+        files = sys.argv[2:]
+        flags += 'p'            # boson pt reweight
     else: 
         files = sys.argv[1:]
     

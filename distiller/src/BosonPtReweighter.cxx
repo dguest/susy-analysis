@@ -23,10 +23,10 @@ namespace {
 }
 
 float BosonPtReweighter::get_boson_weight(const SusyBuffer* buff) { 
-  float pt_gev = get_boson_pt(buff) / 1e3; 
+  float pt_gev = get_boson_truth_pt(buff) / 1e3; 
   return ReweightWZ(pt_gev); 
 }
 
 float BosonPtReweighter::get_boson_pt(const SusyBuffer* buffer) { 
-  return get_boson_pt(buffer); 
+  return get_boson_truth_pt(buffer); 
 }

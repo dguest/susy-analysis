@@ -12,7 +12,7 @@ BosonTruthFilter::BosonTruthFilter(double threshold_mev):
 {
 }
 bool BosonTruthFilter::is_over_threshold(const SusyBuffer* buffer) { 
-  float pt = get_boson_pt(buffer); 
+  float pt = get_boson_truth_pt(buffer); 
   if (pt > m_threshold_mev) { 
     return true; 
   }
