@@ -46,6 +46,7 @@ class Region(object):
         if not 'required' in self.bits: 
             raise RegionConfigError("'required' bits should be in 'bits'")
         self.tagger = yaml_dict.get('tagger', None)
+        self.hists = yaml_dict.get('hists', 'HISTMILL')
         self.jet_tag_assignment = yaml_dict.get(
             'jet_tag_assignment','PT_ORDERED')
         self.boson_pt_correction = yaml_dict.get(
@@ -97,7 +98,7 @@ class Region(object):
             'veto_bits': self.get_antibits(), 
             'region_bits': self.get_region_bits(), 
             'type': self.type.upper(), 
-            'hists': 'HISTMILL', 
+            'hists': self.hists.upper(), 
             'tagger': _get_tagger(self.btag_config, self.tagger), 
             'jet_tag_assignment': self.jet_tag_assignment, 
             'boson_pt_correction': self.boson_pt_correction, 
