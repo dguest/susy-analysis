@@ -25,9 +25,11 @@ def _strip_front(ds_name):
     return ds_name
 
 def submit_ds(ds_name, debug=False, version=0, used_vars='used_vars.txt', 
-              out_talk=None, in_tar=None, maxgb=False, blacklist=[]): 
+              out_talk=None, in_tar=None, maxgb=False, blacklist=[], 
+              user=None): 
 
-    user = os.path.expandvars('$USER')
+    if not user: 
+        user = os.path.expandvars('$USER')
     preskim_name = _strip_front(ds_name)
     output_base = '.'.join(preskim_name.split('.')[:3])
     rev_number = _get_ptag(ds_name)
@@ -117,11 +119,12 @@ out_file.WriteTObject(out_collection)
 class LocalSkimmer(object): 
     script_name = 'skimmer.py'
     def __init__(self, vars_file, all_the_cuts='', tarball=None, 
-                 chain='susy'): 
+                 chain='susy', user=None): 
         self.all_the_cuts = all_the_cuts
         self.vars_file = vars_file
         self.tarball = tarball
         self.chain = chain
+        self.user = user
     def __enter__(self): 
         if os.path.isfile(self.script_name): 
             os.remove(self.script_name)
@@ -137,7 +140,10 @@ class LocalSkimmer(object):
                     branches_file=self.vars_file))
         return self
     def tar(self): 
-        user = os.path.expandvars('$USER')
+        if self.user: 
+            user = self.user
+        else: 
+            user = os.path.expandvars('$USER')
         input_args = [
             '--exec="echo"', 
             '--outDS=user.{}.nothing/'.format(user),
@@ -183,6 +189,9 @@ def get_config(config_name, varlist_name):
         config.add_section('cuts')
         config.set('cuts', 'met_low', '70000')
         config.set('cuts','mark_skim', 'true')
+    if not config.has_section('local'): 
+        config.add_section('local')
+        config.set('local','user',os.path.expandvars('$USER'))
     return config
 
 def get_cuts_and_vars(cuts_dict): 
@@ -404,6 +413,7 @@ if __name__ == '__main__':
     if args.increment_version: 
         version += 1
         config.set('version','version',str(version))
+    user = config.get('local','user')
 
     used_vars = args.variable_list
     if not used_vars: 
@@ -427,7 +437,8 @@ if __name__ == '__main__':
                          out_talk=reporter.queue, 
                          in_tar=tarball, 
                          maxgb=args.ngb, 
-                         blacklist=args.blacklist)
+                         blacklist=args.blacklist, 
+                         user=user)
 
     if not args.mono: 
         pool = Pool(10)
@@ -435,7 +446,8 @@ if __name__ == '__main__':
             return pool.map_async(sub, dss).get(999999)
     else: 
         map_func = map    
-    with LocalSkimmer(used_vars,cuts,tarball=tarball,chain=chain_name): 
+    with LocalSkimmer(used_vars,cuts,tarball=tarball,chain=chain_name, 
+                      user=user): 
         out_tuples = map_func(submit, datasets)
     reporter.close()
     output_datasets = [ds for ds, out, err in out_tuples]
