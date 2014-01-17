@@ -1,50 +1,50 @@
-import copy
-class DsRange(object): 
-    def __init__(self, *range_tuples): 
-        self.range_tuples = range_tuples
-        self.ds_list = []
-    def __add__(self, other): 
-        all_tuples = list(self.range_tuples)  
-        ds_list = copy.deepcopy(self.ds_list)
-        if isinstance(other,list): 
-            ds_list += other
-        else: 
-            all_tuples += list(other.range_tuples)
 
-        new = DsRange(*all_tuples)
-        new.ds_list = ds_list
-        return new
-    def __radd__(self, other): 
-        return self.__add__(other)
-    def __iter__(self): 
-        for rt in self.range_tuples: 
-            low, high = rt
-            for v in xrange(low, high+1): 
-                yield v
-        for v in self.ds_list: 
-            yield v
-
-marks_types = { 
-    'ttbar': [117050], 
-    'Wjets': DsRange( 
-        (167740,167748), 
-        (167761,167796), 
-        (180534,180542) ), 
-    'Zjets': DsRange( 
-        (167749,167760), 
-        (167797,167844), 
-        (180543,180551) ), 
-    't': DsRange( (110140,110143) ) + [110101,110119], 
-    'diboson': [143065] + DsRange( (157814,157819)), 
-    }
-
-stop_signal = {
-    'signal': DsRange( (157851, 157908) , (176270, 176320) )
-}
+wills_samples = dict(
+    ttbar_samples = [117050],  #117050 or 105861    
+    singleTop_samples = [110101, 110119, 110140], 
+    top_samples = ttbar_samples + singleTop_samples , 
+    Wjets_samples = (
+        range(167740,167748+1) + 
+        range(167761,167796+1) + 
+        range(180534,180542+1) ), 
+    WjetsB_samples = (
+        range(167740,167748+1,3) + 
+        range(167761,167796+1,3) + 
+        range(180534,180542+1,3) ), 
+    WjetsC_samples = (
+        range(167741,167748+1,3) + 
+        range(167762,167796+1,3) + 
+        range(180535,180542+1,3) ), 
+    WjetsL_samples = (
+        range(167742,167748+1,3) +
+        range(167763,167796+1,3) + 
+        range(180536,180542+1,3) ), 
+    Zjets_samples = (
+        range(167749,167760+1) + 
+        range(167797,167844+1) + 
+        range(180543,180551+1) ), 
+    ZjetsB_samples = (
+        range(167749,167760+1,3) + 
+        range(167797,167844+1,3) + 
+        range(180543,180551+1,3) ), 
+    ZjetsC_samples = (
+        range(167750,167760+1,3) + 
+        range(167798,167844+1,3) + 
+        range(180544,180551+1,3) ), 
+    ZjetsL_samples = (
+        range(167751,167760+1,3) + 
+        range(167799,167844+1,3) + 
+        range(180545,180551+1,3) ), 
+    QCD_samples  = range(147910,147917+1), 
+    diboson_samples = (
+        [177997,177999,179974,179975] + 
+        range(183585,183592+1) + 
+        range(183734,183739+1)), 
+    ttbarV_samples = [119353, 119355] + range(174830,174833+1), 
+    )
 
 scharm = {
-    # 'squark-signal': DsRange( (162000,162349)), 
-    'scharm-signal': DsRange( (183424,183474)), 
+    'scharm-signal': range(183424,183474+1), 
     }
 
 variations = { 
@@ -57,7 +57,7 @@ variations = {
     'ttbar_mcnlo': [105200], 
     # 'ttbar_alpgen': DsRange((164440,164443), (164450, 164453)) + [
     #     116108, 116109], 
-    'ttbar_sherpa': DsRange((117800, 117809)), 
+    'ttbar_sherpa': range(117800, 117809+1), 
     # 'ttbar_powheg_pythia':[117050], 
     }
     
