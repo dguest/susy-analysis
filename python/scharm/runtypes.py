@@ -1,8 +1,10 @@
+_ttbar_samples = [117050]  #117050 or 105861    
+_singleTop_samples = [110101, 110119, 110140]
 
 wills_samples = dict(
-    ttbar_samples = [117050],  #117050 or 105861    
-    singleTop_samples = [110101, 110119, 110140], 
-    top_samples = ttbar_samples + singleTop_samples , 
+    ttbar_samples = _ttbar_samples, 
+    singleTop_samples = _singleTop_samples, 
+    top_samples = _ttbar_samples + _singleTop_samples , 
     Wjets_samples = (
         range(167740,167748+1) + 
         range(167761,167796+1) + 
