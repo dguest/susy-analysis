@@ -8,14 +8,7 @@ SRC          := src
 INC          := include
 DICT         := dict
 
-# --- external dirs 
--include local.mk		# should define ROOTCORE_ROOT
-
-ifndef ROOTCORE_312_ROOT
-$(error "couldn't find ROOTCORE_312_ROOT, is it defined in local.mk?")
-endif
-ROOTCORE_ROOT := $(ROOTCORE_312_ROOT)
-SUSY_INC      := $(shell ./map_libs.sh -i $(ROOTCORE_ROOT))
+SUSY_INC      := $(shell ./map_libs.sh -i)
 
 #  set search path
 vpath %.o    $(BIN)
@@ -46,7 +39,7 @@ PY_LIB   +=   $(shell $(PY_CONFIG) --libs)
 CXX          := g++
 CXXFLAGS     := -O2 -Wall -fPIC -I$(INC) $(SUSY_INC:%=-I%) -g -std=c++11
 LDFLAGS      := -Wl,-no-undefined
-LIBS         := $(shell ./map_libs.sh -l $(ROOTCORE_ROOT))
+LIBS         := $(shell ./map_libs.sh -l)
 
 # rootstuff 
 CXXFLAGS     += $(ROOTCFLAGS)
@@ -80,11 +73,11 @@ EXE_OBJ     := $(GEN_OBJ) $(T_DICTS) $(TOBJ)
 PYLIB_OBJ   := $(GEN_OBJ) $(T_DICTS) $(TOBJ)
 
 PY_OBJ       := _distiller.o
-BITDEFS      := ../python/stop/bits.yml
+BITDEFS      := ../python/scharm/bits.yml
 
 ALLOBJ       := $(GEN_OBJ) $(PY_OBJ)
 
-PY_OUT_PATH  := ../python/stop/distiller/$(PY_OBJ:.o=.so)
+PY_OUT_PATH  := ../python/scharm/distiller/$(PY_OBJ:.o=.so)
 ALLOUTPUT    := $(PY_OUT_PATH) unit-test
 ALLOUTPUT    += $(BITDEFS)
 
