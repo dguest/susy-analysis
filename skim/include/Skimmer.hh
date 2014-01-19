@@ -18,11 +18,13 @@ private:
   Skimmer(const Skimmer&) {}
   Skimmer& operator=(const Skimmer&) { return *this; }
   
+  const char* pfx(const std::string& word); 
   TTree* copyChain(TFile&); 
-  void addMCVairablesTo(TTree*); 
+  void addMCVairablesTo(TTree*, TFile* = 0); 
 
   TChain* m_chain; 
   std::vector<std::string> m_variables; 
+  std::string m_skimmed_var_prefix; 
 }; 
 
 

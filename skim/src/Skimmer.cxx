@@ -1,13 +1,17 @@
 #include "Skimmer.hh"
-#include "SusyBuffer.hh"
+#include "SusyBuffer.h"
 
 #include "TChain.h"
 #include "TFile.h"
 #include "TError.h"
+#include "TParameter.h"
 
 #include <set>
 
-Skimmer::Skimmer(const std::vector<std::string>& vars) { 
+Skimmer::Skimmer(const std::vector<std::string>& vars): 
+  m_chain(0), 
+  m_skimmed_var_prefix("skimmed_")
+{ 
   m_chain = new TChain("susy","susy"); 
   
   std::set<std::string> ps_vars; 
@@ -41,8 +45,14 @@ void Skimmer::makeSkim(const std::string& out_file_name) {
   TTree* out_tree = copyChain(output_file); 
   printf("computing varaibles\n"); 
   output_file.cd(); 
-  addMCVairablesTo(out_tree); 
+  addMCVairablesTo(out_tree, &output_file); 
   out_tree->Write(); 
+}
+
+// ----- private ----
+
+const char* Skimmer::pfx(const std::string& word) { 
+  return (m_skimmed_var_prefix + word).c_str(); 
 }
 
 // copy all the m_variables to the output_file
@@ -65,18 +75,24 @@ TTree* Skimmer::copyChain(TFile& output_file) {
 }
 
 
-void Skimmer::addMCVairablesTo(TTree* output_tree) { 
+void Skimmer::addMCVairablesTo(TTree* output_tree, TFile* file) { 
   m_chain->SetBranchStatus("*", 0);
-  SusyBuffer buffer(*m_chain); 
-  double mc_event_weight; 
-  TBranch* mcevt_wt_branch = output_tree->Branch(
-    "skimmed_mcevt_weight", &mc_event_weight); 
+  SusyBuffer buffer(*m_chain, std::vector<std::string>()); 
+  double event_wt = 0; 
+  TBranch* wt_branch = output_tree->Branch(pfx("mcevt_weight"), &event_wt); 
 
+  double total_event_weight = 0; 
   const int n_entries = m_chain->GetEntries(); 
   for (int entry_n = 0; entry_n < n_entries; entry_n++) { 
     m_chain->GetEntry(entry_n); 
-    mc_event_weight = buffer.mcevt_weight->at(0).at(0); 
-    mcevt_wt_branch->Fill(); 
+    event_wt = buffer.mcevt_weight->at(0).at(0); 
+    total_event_weight += event_wt; 
+    wt_branch->Fill(); 
+  }
+  if (file) { 
+    TParameter<double> skim_total(pfx("total_event_weight"), 
+				  total_event_weight); 
+    file->WriteTObject(&skim_total); 
   }
 
 }

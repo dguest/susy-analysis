@@ -46,11 +46,11 @@ DEPFLAGS    = -M -MP -MT $(BIN)/$*.o -MT $(DEP)/$*.d $(DEPINCLUDE)
 # ---- define objects
 TOBJ        := SusyBuffer.o 
 T_DICTS     := $(TOBJ:.o=Dict.o)
-GEN_OBJ     := Skimmer.o
+GEN_OBJ     := Skimmer.o TreeBranch.o misc_func.o
 EXE_OBJ     := run-skim.o
 
 ALLDEPOBJ   := $(TOBJ) $(EXE_OBJ) $(GEN_OBJ)
-ALLOBJ      := $(ALLDEPOBJ) $(TDICTS)
+ALLOBJ      := $(ALLDEPOBJ) $(T_DICTS)
 
 OUTPUT    := run-skim
 
