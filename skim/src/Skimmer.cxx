@@ -4,6 +4,7 @@
 #include "TChain.h"
 #include "TFile.h"
 #include "TError.h"
+#include "TROOT.h"  
 #include "TParameter.h"
 
 #include <set>
@@ -12,6 +13,8 @@ Skimmer::Skimmer(const std::vector<std::string>& vars):
   m_chain(0), 
   m_skimmed_var_prefix("skimmed_")
 { 
+  gROOT->ProcessLine("#include <vector>");
+
   m_chain = new TChain("susy","susy"); 
   
   std::set<std::string> ps_vars; 
@@ -41,8 +44,8 @@ void Skimmer::addFile(const std::string& file_name) {
 void Skimmer::makeSkim(const std::string& out_file_name) { 
 
   TFile output_file(out_file_name.c_str(), "recreate"); 
-  printf("adding variables\n"); 
-  TTree* out_tree = copyChain(output_file); 
+  printf("make chain\n"); 
+  TTree* out_tree = new TTree("susy","susy"); 
   printf("computing varaibles\n"); 
   output_file.cd(); 
   addMCVairablesTo(out_tree, &output_file); 
@@ -53,6 +56,30 @@ void Skimmer::makeSkim(const std::string& out_file_name) {
 
 const char* Skimmer::pfx(const std::string& word) { 
   return (m_skimmed_var_prefix + word).c_str(); 
+}
+
+
+
+void Skimmer::addMCVairablesTo(TTree* output_tree, TFile* file) { 
+  m_chain->SetBranchStatus("*", 0);
+  SusyBuffer buffer(*m_chain, m_variables); 
+  double event_wt = 0; 
+  TBranch* wt_branch = output_tree->Branch(pfx("mcevt_weight"), &event_wt); 
+
+  double total_event_weight = 0; 
+  const int n_entries = m_chain->GetEntries(); 
+  for (int entry_n = 0; entry_n < n_entries; entry_n++) { 
+    m_chain->GetEntry(entry_n); 
+    event_wt = buffer.mcevt_weight->at(0).at(0); 
+    total_event_weight += event_wt; 
+    wt_branch->Fill(); 
+  }
+  if (file) { 
+    TParameter<double> skim_total(pfx("total_event_weight"), 
+				  total_event_weight); 
+    file->WriteTObject(&skim_total); 
+  }
+
 }
 
 // copy all the m_variables to the output_file
@@ -72,27 +99,4 @@ TTree* Skimmer::copyChain(TFile& output_file) {
   TTree* out_tree = m_chain->CloneTree(); 
   gErrorIgnoreLevel = old_error_level; 
   return out_tree; 
-}
-
-
-void Skimmer::addMCVairablesTo(TTree* output_tree, TFile* file) { 
-  m_chain->SetBranchStatus("*", 0);
-  SusyBuffer buffer(*m_chain, std::vector<std::string>()); 
-  double event_wt = 0; 
-  TBranch* wt_branch = output_tree->Branch(pfx("mcevt_weight"), &event_wt); 
-
-  double total_event_weight = 0; 
-  const int n_entries = m_chain->GetEntries(); 
-  for (int entry_n = 0; entry_n < n_entries; entry_n++) { 
-    m_chain->GetEntry(entry_n); 
-    event_wt = buffer.mcevt_weight->at(0).at(0); 
-    total_event_weight += event_wt; 
-    wt_branch->Fill(); 
-  }
-  if (file) { 
-    TParameter<double> skim_total(pfx("total_event_weight"), 
-				  total_event_weight); 
-    file->WriteTObject(&skim_total); 
-  }
-
 }

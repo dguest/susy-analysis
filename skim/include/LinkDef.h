@@ -12,6 +12,7 @@
 #pragma link C++ class std::vector<std::vector<long> >+;
 #pragma link C++ class std::vector<std::vector<unsigned long> >+;
 #pragma link C++ class std::vector<std::vector<float> >+;
+#pragma link C++ class vector<vector<float> >+;
 #pragma link C++ class std::vector<std::vector<double> >+;
 #pragma link C++ class std::vector<std::string>+;
 #pragma link C++ class std::vector<std::vector<std::string> >+;

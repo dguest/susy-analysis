@@ -63,11 +63,11 @@ $(OUTPUT): $(ALLOBJ:%=$(BIN)/%)
 # --------------------------------------------------
 
 # root dictionary generation 
-$(DICT)/%Dict.cxx: %.h LinkDef.hh
+$(DICT)/%Dict.cxx: %.h LinkDef.h
 	@echo making dict $@
 	@mkdir -p $(DICT)
 	@rm -f $(DICT)/$*Dict.h $(DICT)/$*Dict.cxx 
-	@rootcint $@ -c $(INC)/$*.h	
+	@rootcint -f $@ -c $(INC)/$*.h	
 	@sed -i 's,#include "$(INC)/\(.*\)",#include "\1",g' $(DICT)/$*Dict.h
 
 $(BIN)/%Dict.o: $(DICT)/%Dict.cxx 
