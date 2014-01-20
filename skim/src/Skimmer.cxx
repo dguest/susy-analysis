@@ -1,5 +1,6 @@
 #include "Skimmer.hh"
 #include "SusyBuffer.hh"
+#include "boson_truth_tools.hh"
 
 #include "TChain.h"
 #include "TFile.h"
@@ -59,22 +60,41 @@ void Skimmer::copyVariablesTo(TTree* output_tree, TFile* file) {
   m_chain->SetBranchStatus("*", 0);
   SusyBuffer buffer(*m_chain, m_variables); 
   buffer.setPassThrough(*output_tree); 
-  double event_wt = 0; 
-  output_tree->Branch(pfx("mcevt_weight"), &event_wt); 
 
+  double event_wt = 0; 
+  float boson_pt = -1.0; 
+  if (buffer.hasMc()) {
+    output_tree->Branch(pfx("mcevt_weight"), &event_wt); 
+    output_tree->Branch(pfx("boson_pt"), &boson_pt); 
+  }
+  
   double total_event_weight = 0; 
+  bool has_bosons = buffer.hasMc(); 
+  
   const int n_entries = m_chain->GetEntries(); 
   for (int entry_n = 0; entry_n < n_entries; entry_n++) { 
     m_chain->GetEntry(entry_n); 
-    // buffer.printSizes(); 
-    event_wt = buffer.mcevt_weight->at(0).at(0); 
-    total_event_weight += event_wt; 
+
+    if (buffer.hasMc()) { 
+      if (has_bosons) { 
+	try {
+	  boson_pt = get_boson_truth_pt(buffer); 
+	} catch (BosonError& err) { 
+	  has_bosons = false; 
+	}
+      }
+      event_wt = buffer.mcevt_weight->at(0).at(0); 
+      total_event_weight += event_wt; 
+    }
     output_tree->Fill(); 
   }
   if (file) { 
-    TParameter<double> skim_total(pfx("total_event_weight"), 
-				  total_event_weight); 
-    file->WriteTObject(&skim_total); 
+    TParameter<double> skim_total("total_event_weight", total_event_weight); 
+    TParameter<bool> bosons_found("bosons_found", has_bosons);
+    if (buffer.hasMc()) { 
+      file->WriteTObject(&skim_total); 
+      file->WriteTObject(&bosons_found); 
+    }
   }
 
 }

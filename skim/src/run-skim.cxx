@@ -22,4 +22,5 @@ int main(int narg, char* argv[]) {
     skim.addFile(argv[nn]); 
   }
   skim.makeSkim("skim-output.root"); 
+  return 0; 
 }

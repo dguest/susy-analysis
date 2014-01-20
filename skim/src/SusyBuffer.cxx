@@ -14,18 +14,32 @@ namespace {
 }
 
 SusyBuffer::SusyBuffer(TChain& chain, 
-		       const std::vector<std::string>& variables) { 
-
-  mcevt_weight = 0; 
-  set(chain, "mcevt_weight", &mcevt_weight); 
+		       const std::vector<std::string>& variables): 
+  m_has_mc(true)
+{ 
+  try {
+    set(chain, "mcevt_weight", &mcevt_weight); 
+  } catch (MissingBranchError& e) { 
+    m_has_mc = false; 
+  }
+  if (m_has_mc) { 
+    set(chain, "mc_n", &mc_n); 
+    set(chain, "mc_pt", &mc_pt); 
+    set(chain, "mc_eta", &mc_eta); 
+    set(chain, "mc_phi", &mc_phi); 
+    set(chain, "mc_m", &mc_m); 
+    set(chain, "mc_status", &mc_status); 
+    set(chain, "mc_pdgId", &mc_pdgId); 
+  }
   for (std::vector<std::string>::const_iterator itr = variables.begin(); 
        itr != variables.end(); itr++) { 
     if (m_set_inputs.count(*itr) ) { 
-      throw std::logic_error("branch " + *itr + "can't be passed "
-			     "through, it's already in use"); 
+      printf("branch %s can't be passed through, it's already in use\n", 
+	     itr->c_str()); 
+    } else {
+      m_tree_branches.insert(
+	std::make_pair(*itr,getBranchBuffer(chain, *itr))); 
     }
-    m_tree_branches.insert(
-      std::make_pair(*itr,getBranchBuffer(chain, *itr))); 
   }
 }
 
@@ -47,9 +61,20 @@ void SusyBuffer::setPassThrough(TTree& target) const {
   }
 }
 
-void SusyBuffer::set(TChain& chain, const std::string& name, void* val) { 
-  m_set_inputs.insert(name); 
+bool SusyBuffer::hasMc() const { 
+  return m_has_mc; 
+}
+
+template<typename T> 
+void SusyBuffer::set(TChain& chain, const std::string& name, T ptr) { 
+  *ptr = 0; 
+  setInternal(chain, name, ptr); 
+}
+
+void SusyBuffer::setInternal(TChain& chain, const std::string& name, 
+			     void* val) { 
   setOrThrow(chain, name, val); 
+  m_set_inputs.insert(name); 
 }
 
 
@@ -92,5 +117,7 @@ namespace {
     throw std::logic_error("can't pass branch type " + branch_type); 
     return 0; 
   }
+
+
 }
 
