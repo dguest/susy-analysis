@@ -16,6 +16,7 @@ class SusyBuffer {
 public: 
   SusyBuffer(TChain&, const std::vector<std::string>&); 
   ~SusyBuffer(); 
+  std::set<std::string> getExposedInputs() const; 
   void setPassThrough(TTree&) const; 
   bool hasMc() const; 
 
@@ -40,5 +41,14 @@ private:
   bool m_has_mc; 
 }; 
 
+class VariableTranscriptionError: public std::logic_error
+{
+public: 
+  VariableTranscriptionError(const std::string& what, 
+			     const std::string& var);
+  ~VariableTranscriptionError() throw () {} 
+private: 
+  std::string m_variable; 
+};
 
 #endif

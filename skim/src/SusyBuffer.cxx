@@ -34,8 +34,7 @@ SusyBuffer::SusyBuffer(TChain& chain,
   for (std::vector<std::string>::const_iterator itr = variables.begin(); 
        itr != variables.end(); itr++) { 
     if (m_set_inputs.count(*itr) ) { 
-      printf("branch %s can't be passed through, it's already in use\n", 
-	     itr->c_str()); 
+      throw VariableTranscriptionError("in use by " __FILE__, *itr);
     } else {
       m_tree_branches.insert(
 	std::make_pair(*itr,getBranchBuffer(chain, *itr))); 
@@ -50,6 +49,10 @@ SusyBuffer::~SusyBuffer() {
        itr++) { 
     delete itr->second; 
   }
+}
+
+std::set<std::string> SusyBuffer::getExposedInputs() const { 
+  return m_set_inputs; 
 }
 
 void SusyBuffer::setPassThrough(TTree& target) const { 
@@ -119,5 +122,15 @@ namespace {
   }
 
 
+}
+
+
+VariableTranscriptionError
+::VariableTranscriptionError(const std::string& what, 
+			     const std::string& var): 
+  std::logic_error(what + " (variable: " + var + " )"), 
+  m_variable(var) 
+{
+  
 }
 

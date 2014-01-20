@@ -12,22 +12,10 @@
 
 Skimmer::Skimmer(const std::vector<std::string>& vars): 
   m_chain(0), 
+  m_variables(vars), 
   m_skimmed_var_prefix("skimmed_")
 { 
   m_chain = new TChain("susy","susy"); 
-  
-  std::set<std::string> ps_vars; 
-  ps_vars.insert("mcevt_weight"); 
-  
-  for (std::vector<std::string>::const_iterator itr = vars.begin(); 
-       itr != vars.end(); itr++) {
-    if (ps_vars.count(*itr)) { 
-      printf("%s is used in skim computation, won't include in output\n", 
-	     itr->c_str()); 
-    } else { 
-      m_variables.push_back(*itr); 
-    }
-  }
 }
 
 Skimmer::~Skimmer() { 
@@ -35,8 +23,8 @@ Skimmer::~Skimmer() {
   delete m_chain; 
 }
 
-void Skimmer::addFile(const std::string& file_name) { 
-  
+void Skimmer::addFile(const std::string& file_name) 
+{ 
   m_chain->Add(file_name.c_str()); 
 }
 
@@ -46,7 +34,13 @@ void Skimmer::makeSkim(const std::string& out_file_name) {
   TTree* out_tree = new TTree("susy","susy"); 
   printf("computing varaibles\n"); 
   output_file.cd(); 
+
+  // this block to shut root up before running the copy 
+  int old_error_level = gErrorIgnoreLevel; 
+  gErrorIgnoreLevel = kFatal; 
   copyVariablesTo(out_tree, &output_file); 
+  gErrorIgnoreLevel = old_error_level; 
+
   out_tree->Write(); 
 }
 
