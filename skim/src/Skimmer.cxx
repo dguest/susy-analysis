@@ -10,6 +10,10 @@
 
 #include <set>
 
+namespace { 
+  void dumpMissing(const SusyBuffer& buffer); 
+}
+
 Skimmer::Skimmer(const std::vector<std::string>& vars): 
   m_chain(0), 
   m_variables(vars), 
@@ -90,6 +94,18 @@ void Skimmer::copyVariablesTo(TTree* output_tree, TFile* file) {
       file->WriteTObject(&bosons_found); 
     }
   }
+  dumpMissing(buffer); 
 
 }
 
+namespace { 
+  void dumpMissing(const SusyBuffer& buffer) { 
+
+    std::set<std::string> missing = buffer.getMissingBranches(); 
+    if (missing.size() > 0) puts("======= missing branches ======="); 
+    for (std::set<std::string>::const_iterator itr = missing.begin(); 
+	 itr != missing.end(); itr++ ) { 
+      puts(itr->c_str()); 
+    }
+  }
+}

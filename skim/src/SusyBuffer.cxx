@@ -38,6 +38,10 @@ SusyBuffer::SusyBuffer(TChain& chain,
     } else {
       m_tree_branches.insert(
 	std::make_pair(*itr,getBranchBuffer(chain, *itr))); 
+      if (!m_tree_branches.find(*itr)->second) { 
+	m_tree_branches.erase(*itr); 
+	m_missing_inputs.insert(*itr); 
+      }
     }
   }
 }
@@ -55,12 +59,14 @@ std::set<std::string> SusyBuffer::getExposedInputs() const {
   return m_set_inputs; 
 }
 
+std::set<std::string> SusyBuffer::getMissingBranches() const { 
+  return m_missing_inputs; 
+}
+
 void SusyBuffer::setPassThrough(TTree& target) const { 
   for (std::map<std::string, ITreeBranch*>::const_iterator 
 	 itr = m_tree_branches.begin(); itr != m_tree_branches.end(); itr++){
-    if (itr->second) { 
-      itr->second->addToTree(target); 
-    }
+    itr->second->addToTree(target); 
   }
 }
 

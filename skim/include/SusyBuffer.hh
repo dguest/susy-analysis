@@ -17,6 +17,7 @@ public:
   SusyBuffer(TChain&, const std::vector<std::string>&); 
   ~SusyBuffer(); 
   std::set<std::string> getExposedInputs() const; 
+  std::set<std::string> getMissingBranches() const; 
   void setPassThrough(TTree&) const; 
   bool hasMc() const; 
 
@@ -38,6 +39,7 @@ private:
   void setInternal(TChain& chain, const std::string& name, void* dest); 
   std::map<std::string, ITreeBranch*> m_tree_branches; 
   std::set<std::string> m_set_inputs; 
+  std::set<std::string> m_missing_inputs; 
   bool m_has_mc; 
 }; 
 
