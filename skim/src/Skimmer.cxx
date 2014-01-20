@@ -68,36 +68,32 @@ void Skimmer::copyVariablesTo(TTree* output_tree, TFile* file) {
     output_tree->Branch(pfx("mcevt_weight"), &event_wt); 
     output_tree->Branch(pfx("boson_pt"), &boson_pt); 
   }
-  
-  double total_event_weight = 0; 
-  bool has_bosons = buffer.hasMc(); 
+
+  SummaryParameters summary(buffer.hasMc()); 
   
   const int n_entries = m_chain->GetEntries(); 
+  summary.total_events = n_entries; 
   for (int entry_n = 0; entry_n < n_entries; entry_n++) { 
     m_chain->GetEntry(entry_n); 
 
-    if (buffer.hasMc()) { 
-      if (has_bosons) { 
+    if (summary.has_mc) { 
+      if (summary.has_bosons) { 
 	try {
 	  boson_pt = get_boson_truth_pt(buffer); 
 	} catch (BosonError& err) { 
-	  has_bosons = false; 
+	  summary.has_bosons = false; 
 	}
       }
       event_wt = buffer.mcevt_weight->at(0).at(0); 
-      total_event_weight += event_wt; 
+      summary.total_event_weight += event_wt; 
     }
     if (hasTriggerRequirements(buffer)) { 
+      summary.skimmed_events++; 
       output_tree->Fill(); 
     }
   }
   if (file) { 
-    TParameter<double> skim_total("total_event_weight", total_event_weight); 
-    TParameter<bool> bosons_found("bosons_found", has_bosons);
-    if (buffer.hasMc()) { 
-      file->WriteTObject(&skim_total); 
-      file->WriteTObject(&bosons_found); 
-    }
+    summary.writeTo(*file); 
   }
   dumpMissing(buffer); 
 
@@ -128,5 +124,27 @@ namespace {
 	 itr != missing.end(); itr++ ) { 
       puts(itr->c_str()); 
     }
+  }
+}
+
+SummaryParameters::SummaryParameters(bool has_mc) : 
+  total_event_weight(0), 
+  total_events(0), 
+  skimmed_events(0), 
+  has_bosons(has_mc), 
+  has_mc(has_mc)
+{ 
+}
+
+void SummaryParameters::writeTo(TFile& file) const { 
+  TParameter<long long> events("total_events", total_events); 
+  TParameter<long long> skimmed("skimmed_events", skimmed_events); 
+  file.WriteTObject(&events); 
+  file.WriteTObject(&skimmed); 
+  if (has_mc) { 
+    TParameter<double> skim_total("total_event_weight", total_event_weight); 
+    TParameter<bool> bosons_found("bosons_found", has_bosons);
+    file.WriteTObject(&skim_total); 
+    file.WriteTObject(&bosons_found); 
   }
 }

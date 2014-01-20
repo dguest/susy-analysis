@@ -9,6 +9,16 @@ class TTree;
 class TFile; 
 class SusyBuffer;
 
+struct SummaryParameters { 
+  double total_event_weight; 
+  long long total_events; 
+  long long skimmed_events; 
+  bool has_bosons; 
+  const bool has_mc; 
+  SummaryParameters(bool has_mc); 
+  void writeTo(TFile&) const; 
+}; 
+
 class Skimmer { 
 public: 
   Skimmer(const std::vector<std::string>& vars); 
