@@ -13,16 +13,7 @@ from multiprocessing import Pool, Process, Queue
 from distutils.spawn import find_executable
 from ConfigParser import SafeConfigParser
 
-def _get_ptag(ds_name): 
-    try: 
-        return re.compile('_p([0-9]{3,5})').findall(ds_name)[-1]
-    except IndexError: 
-        return None
-
-def _strip_front(ds_name): 
-    if not any(ds_name.startswith(x) for x in ['data','mc']): 
-        return _strip_front('.'.join(ds_name.split('.')[1:]))
-    return ds_name
+# --- main submit function ---
 
 def submit_ds(ds_name, debug=False, version=0, branches='branches.txt', 
               out_talk=None, in_tar=None, maxgb=False, blacklist=[], 
@@ -67,6 +58,19 @@ def submit_ds(ds_name, debug=False, version=0, branches='branches.txt',
         out_talk.put(head_line + err + out + '\n')
     return out_ds, out, err
 
+def _get_ptag(ds_name): 
+    try: 
+        return re.compile('_p([0-9]{3,5})').findall(ds_name)[-1]
+    except IndexError: 
+        return None
+
+def _strip_front(ds_name): 
+    if not any(ds_name.startswith(x) for x in ['data','mc']): 
+        return _strip_front('.'.join(ds_name.split('.')[1:]))
+    return ds_name
+
+# --- helper classes ---
+
 class LocalSkimmer(object): 
     def __init__(self, branches, tarball=None, script_dir='skim-stuff'): 
         self.vars_file = branches
@@ -79,17 +83,19 @@ class LocalSkimmer(object):
         if self.tarball: 
             self.tar()
         self.current_files = set(os.listdir('.'))
+
     def link(self, clean=True): 
         path_to_skim = os.path.join(os.path.dirname(__file__),'..','skim')
         abs_path = os.path.abspath(path_to_skim)
-        os.symlink(abs_path, self.script_dir)
         if clean:
             try: 
                 run_args = dict(cwd=abs_path, shell=True, stdout=PIPE)
                 Popen(['make clean'], **run_args).communicate()
             except OSError as err: 
                 print str(err)
-        return self
+        shutil.copytree(abs_path, self.script_dir, 
+                        ignore=shutil.ignore_patterns('*.root'))
+
     def tar(self): 
         user = os.path.expandvars('$USER')
         input_args = [
@@ -108,7 +114,7 @@ class LocalSkimmer(object):
                 'failure creating tarball for grid submit: {}'.format(err))
         
     def __exit__(self, ex_type, ex_val, trace): 
-        os.remove(self.script_dir)
+        shutil.rmtree(self.script_dir)
         if self.tarball: 
             os.remove(self.tarball)
     
@@ -120,15 +126,6 @@ class LocalSkimmer(object):
             else: 
                 os.remove(f)
         
-def get_config(config_name): 
-    config = SafeConfigParser()
-    config.read([config_name])
-
-    if not config.has_section('version'): 
-        config.add_section('version')
-        config.set('version','version','0')
-    return config
-
 class Reporter(Process): 
     """
     Prints output from a queue which it owns. The queue should be given to 
@@ -217,6 +214,17 @@ class Reporter(Process):
         self.queue.close()
         self.join()
 
+# --- various configuration ---
+
+def _get_config(config_name): 
+    config = SafeConfigParser()
+    config.read([config_name])
+
+    if not config.has_section('version'): 
+        config.add_section('version')
+        config.set('version','version','0')
+    return config
+
 def _get_args(): 
     parser = argparse.ArgumentParser(description=__doc__)
 
@@ -256,10 +264,12 @@ def _get_datasets(ds_list_name):
             datasets.append(ds_name.strip())
     return datasets
 
+# --- the main executable ---
+
 if __name__ == '__main__': 
 
     args = _get_args()
-    config = get_config(args.config)
+    config = _get_config(args.config)
     if not os.path.isfile(args.config): 
         print 'writing config'
         with open(args.config,'w') as cfg: 
@@ -306,11 +316,6 @@ if __name__ == '__main__':
     output_datasets = [ds for ds, out, err in out_tuples]
     for ds in output_datasets: 
         output_container_list.write(ds + '\n')
-                          
-
-    # record version if things worked
-    with open(args.config,'w') as cfg: 
-        config.write(cfg)
 
 
 
