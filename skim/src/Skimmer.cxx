@@ -13,8 +13,6 @@ Skimmer::Skimmer(const std::vector<std::string>& vars):
   m_chain(0), 
   m_skimmed_var_prefix("skimmed_")
 { 
-  gROOT->ProcessLine("#include <vector>");
-
   m_chain = new TChain("susy","susy"); 
   
   std::set<std::string> ps_vars; 
@@ -44,11 +42,10 @@ void Skimmer::addFile(const std::string& file_name) {
 void Skimmer::makeSkim(const std::string& out_file_name) { 
 
   TFile output_file(out_file_name.c_str(), "recreate"); 
-  printf("make chain\n"); 
   TTree* out_tree = new TTree("susy","susy"); 
   printf("computing varaibles\n"); 
   output_file.cd(); 
-  addMCVairablesTo(out_tree, &output_file); 
+  copyVariablesTo(out_tree, &output_file); 
   out_tree->Write(); 
 }
 
@@ -58,21 +55,21 @@ const char* Skimmer::pfx(const std::string& word) {
   return (m_skimmed_var_prefix + word).c_str(); 
 }
 
-
-
-void Skimmer::addMCVairablesTo(TTree* output_tree, TFile* file) { 
+void Skimmer::copyVariablesTo(TTree* output_tree, TFile* file) { 
   m_chain->SetBranchStatus("*", 0);
   SusyBuffer buffer(*m_chain, m_variables); 
+  buffer.setPassThrough(*output_tree); 
   double event_wt = 0; 
-  TBranch* wt_branch = output_tree->Branch(pfx("mcevt_weight"), &event_wt); 
+  output_tree->Branch(pfx("mcevt_weight"), &event_wt); 
 
   double total_event_weight = 0; 
   const int n_entries = m_chain->GetEntries(); 
   for (int entry_n = 0; entry_n < n_entries; entry_n++) { 
     m_chain->GetEntry(entry_n); 
+    // buffer.printSizes(); 
     event_wt = buffer.mcevt_weight->at(0).at(0); 
     total_event_weight += event_wt; 
-    wt_branch->Fill(); 
+    output_tree->Fill(); 
   }
   if (file) { 
     TParameter<double> skim_total(pfx("total_event_weight"), 
@@ -82,21 +79,3 @@ void Skimmer::addMCVairablesTo(TTree* output_tree, TFile* file) {
 
 }
 
-// copy all the m_variables to the output_file
-TTree* Skimmer::copyChain(TFile& output_file) { 
-  m_chain->SetBranchStatus("*", 0);
-  for (std::vector<std::string>::const_iterator itr = m_variables.begin(); 
-       itr != m_variables.end(); itr++) { 
-    unsigned branches_found = 0; 
-    m_chain->SetBranchStatus(itr->c_str(), 1, &branches_found);
-    if (branches_found != 1) { 
-      printf("%s not found...\n", itr->c_str()); 
-    }
-  }
-
-  int old_error_level = gErrorIgnoreLevel; 
-  gErrorIgnoreLevel = kFatal; 
-  TTree* out_tree = m_chain->CloneTree(); 
-  gErrorIgnoreLevel = old_error_level; 
-  return out_tree; 
-}

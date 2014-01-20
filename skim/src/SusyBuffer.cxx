@@ -34,9 +34,25 @@ SusyBuffer::~SusyBuffer() {
   }
 }
 
+void SusyBuffer::setPassThrough(TTree& target) const { 
+  for (std::map<std::string, ITreeBranch*>::const_iterator 
+	 itr = m_tree_branches.begin(); itr != m_tree_branches.end(); itr++){
+    if (itr->second) { 
+      itr->second->addToTree(target); 
+    }
+  }
+}
+
+// macros to use in getBranchBuffer below
 #define TRY_BRANCH_TYPE(TYPE) \
   do { if (branch_type == #TYPE) {			\
       return new TreeBranch<TYPE> (chain, name);	\
+    }							\
+  } while (0)
+
+#define TRY_BRANCH_V_TYPE(TYPE) \
+  do { if (branch_type == #TYPE) {			\
+      return new TreeBranch<TYPE*> (chain, name);	\
     }							\
   } while (0)
 
@@ -45,7 +61,7 @@ namespace {
   ITreeBranch* getBranchBuffer(TChain& chain, const std::string& name) { 
     TLeaf* leaf = chain.GetLeaf(name.c_str()); 
     if (!leaf) { 
-      throw MissingBranchError("can't find " + name); 
+      return 0; 
     }
     std::string branch_type = leaf->GetTypeName(); 
 
@@ -54,16 +70,16 @@ namespace {
     TRY_BRANCH_TYPE(UInt_t); 
     TRY_BRANCH_TYPE(Bool_t); 
     TRY_BRANCH_TYPE(Int_t); 
-    TRY_BRANCH_TYPE(vector<int>); 
-    TRY_BRANCH_TYPE(vector<unsigned int>); 
-    TRY_BRANCH_TYPE(vector<float>); 
-    TRY_BRANCH_TYPE(vector<double>); 
-    TRY_BRANCH_TYPE(vector<vector<int> >); 
-    TRY_BRANCH_TYPE(vector<vector<unsigned int> >); 
-    TRY_BRANCH_TYPE(vector<vector<float> >); 
-    TRY_BRANCH_TYPE(vector<vector<double> >); 
+    TRY_BRANCH_V_TYPE(vector<int>); 
+    TRY_BRANCH_V_TYPE(vector<unsigned int>); 
+    TRY_BRANCH_V_TYPE(vector<float>); 
+    TRY_BRANCH_V_TYPE(vector<double>); 
+    TRY_BRANCH_V_TYPE(vector<vector<int> >); 
+    TRY_BRANCH_V_TYPE(vector<vector<unsigned int> >); 
+    TRY_BRANCH_V_TYPE(vector<vector<float> >); 
+    TRY_BRANCH_V_TYPE(vector<vector<double> >); 
     
-    printf("name: %s, type %s\n", name.c_str(), branch_type.c_str()); 
+    throw std::logic_error("can't pass branch type " + branch_type); 
     return 0; 
   }
 }

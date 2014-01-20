@@ -1,17 +1,11 @@
 #ifndef TREE_BRANCH_HH
 #define TREE_BRANCH_HH
 
+#include "ITreeBranch.hh"
 #include "misc_func.hh"
 
-// class TTree; 
 #include "TTree.h"
 #include <string>
-
-class ITreeBranch { 
-public: 
-  virtual ~ITreeBranch() {}
-  virtual void addToTree(TTree&) = 0; 
-}; 
 
 template<typename T>
 class TreeBranch: public ITreeBranch { 
@@ -21,6 +15,7 @@ public:
 private: 
   std::string m_branch_name; 
   T m_value; 
+  std::string m_branch_class; 
 }; 
 
 // implementation 
@@ -31,12 +26,16 @@ TreeBranch<T>::TreeBranch(TTree& in_tree, const std::string& branch_name):
   m_value(0)
 { 
   setOrThrow(in_tree, branch_name, &m_value); 
+  m_branch_class = in_tree.FindBranch(branch_name.c_str())->GetClassName();
 }
 
 template<typename T>
 void TreeBranch<T>::addToTree(TTree& tree) { 
-  tree.Branch(m_branch_name.c_str(), &m_value); 
+  if (m_branch_class.size() > 0){ 
+    tree.Branch(m_branch_name.c_str(), m_branch_class.c_str(), &m_value); 
+  } else { 
+    tree.Branch(m_branch_name.c_str(), &m_value); 
+  }
 }
-
 
 #endif 

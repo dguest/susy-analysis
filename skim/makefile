@@ -46,7 +46,7 @@ DEPFLAGS    = -M -MP -MT $(BIN)/$*.o -MT $(DEP)/$*.d $(DEPINCLUDE)
 # ---- define objects
 TOBJ        := RooDummy.o
 T_DICTS     := $(TOBJ:.o=Dict.o)
-GEN_OBJ     := Skimmer.o TreeBranch.o misc_func.o SusyBuffer.o 
+GEN_OBJ     := Skimmer.o TreeBranch.o misc_func.o SusyBuffer.o
 EXE_OBJ     := run-skim.o
 
 ALLDEPOBJ   := $(TOBJ) $(EXE_OBJ) $(GEN_OBJ)

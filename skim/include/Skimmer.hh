@@ -7,6 +7,7 @@
 class TChain; 
 class TTree; 
 class TFile; 
+class SusyBuffer;
 
 class Skimmer { 
 public: 
@@ -19,8 +20,7 @@ private:
   Skimmer& operator=(const Skimmer&) { return *this; }
   
   const char* pfx(const std::string& word); 
-  TTree* copyChain(TFile&); 
-  void addMCVairablesTo(TTree*, TFile* = 0); 
+  void copyVariablesTo(TTree*, TFile* = 0);
 
   TChain* m_chain; 
   std::vector<std::string> m_variables; 
