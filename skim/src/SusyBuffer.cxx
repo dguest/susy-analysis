@@ -17,9 +17,13 @@ SusyBuffer::SusyBuffer(TChain& chain,
 		       const std::vector<std::string>& variables) { 
 
   mcevt_weight = 0; 
-  setOrThrow(chain, "mcevt_weight", &mcevt_weight); 
+  set(chain, "mcevt_weight", &mcevt_weight); 
   for (std::vector<std::string>::const_iterator itr = variables.begin(); 
        itr != variables.end(); itr++) { 
+    if (m_set_inputs.count(*itr) ) { 
+      throw std::logic_error("branch " + *itr + "can't be passed "
+			     "through, it's already in use"); 
+    }
     m_tree_branches.insert(
       std::make_pair(*itr,getBranchBuffer(chain, *itr))); 
   }
@@ -42,6 +46,12 @@ void SusyBuffer::setPassThrough(TTree& target) const {
     }
   }
 }
+
+void SusyBuffer::set(TChain& chain, const std::string& name, void* val) { 
+  m_set_inputs.insert(name); 
+  setOrThrow(chain, name, val); 
+}
+
 
 // macros to use in getBranchBuffer below
 #define TRY_BRANCH_TYPE(TYPE) \
