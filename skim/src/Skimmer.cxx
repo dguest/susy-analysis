@@ -11,6 +11,7 @@
 #include <set>
 
 namespace { 
+  
   void dumpMissing(const SusyBuffer& buffer); 
 }
 

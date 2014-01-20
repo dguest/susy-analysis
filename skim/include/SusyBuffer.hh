@@ -33,14 +33,31 @@ public:
   std::vector<int>* mc_status; 
   std::vector<int>* mc_pdgId; 
 
+  // skimming triggers
+  bool xe80_tclcw_tight; 	// from stop -> charm search (not sure why..)
+  bool xe80T_tclcw_loose; 	// missing the first few bunch trains
+  bool xe80_tclcw_loose; 	// missing in the beginning of year
+  bool EF_mu18_tight_mu8_EFFS; 	// for Z cr?
+  bool EF_mu24i_tight; 		// isolated muon
+  bool EF_mu36_tight;          	// generic muon
+
 private: 
+  // generic branch setters
   template<typename T> 
-  void set(TChain& chain, const std::string& name, T ptr); 
+  void set(TChain& chain, const std::string& name, T ptr, bool save = false); 
   void setInternal(TChain& chain, const std::string& name, void* dest); 
+
+  // specific branch setters (call the above functions)
+  void setMcBranches(TChain& chain); 
+  void setTriggerBranches(TChain& chain); 
+
+  // assorted private data
   std::map<std::string, ITreeBranch*> m_tree_branches; 
+  const std::set<std::string> m_requested_inputs; 
   std::set<std::string> m_set_inputs; 
   std::set<std::string> m_missing_inputs; 
   bool m_has_mc; 
+  bool m_has_xe80_tclcw_tight; 
 }; 
 
 class VariableTranscriptionError: public std::logic_error

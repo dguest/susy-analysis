@@ -15,27 +15,16 @@ namespace {
 
 SusyBuffer::SusyBuffer(TChain& chain, 
 		       const std::vector<std::string>& variables): 
-  m_has_mc(true)
+  m_requested_inputs(variables.begin(), variables.end()), 
+  m_has_mc(true), 
+  m_has_xe80_tclcw_tight(true)
 { 
-  try {
-    set(chain, "mcevt_weight", &mcevt_weight); 
-  } catch (MissingBranchError& e) { 
-    m_has_mc = false; 
-  }
-  if (m_has_mc) { 
-    set(chain, "mc_n", &mc_n); 
-    set(chain, "mc_pt", &mc_pt); 
-    set(chain, "mc_eta", &mc_eta); 
-    set(chain, "mc_phi", &mc_phi); 
-    set(chain, "mc_m", &mc_m); 
-    set(chain, "mc_status", &mc_status); 
-    set(chain, "mc_pdgId", &mc_pdgId); 
-  }
+  setMcBranches(chain); 
+  setTriggerBranches(chain); 
+
   for (std::vector<std::string>::const_iterator itr = variables.begin(); 
        itr != variables.end(); itr++) { 
-    if (m_set_inputs.count(*itr) ) { 
-      throw VariableTranscriptionError("in use by " __FILE__, *itr);
-    } else {
+    if (!m_set_inputs.count(*itr) ) { 
       m_tree_branches.insert(
 	std::make_pair(*itr,getBranchBuffer(chain, *itr))); 
       if (!m_tree_branches.find(*itr)->second) { 
@@ -74,16 +63,52 @@ bool SusyBuffer::hasMc() const {
   return m_has_mc; 
 }
 
+// ========== private stuff ==========
+
+// generic branch setting functions
 template<typename T> 
-void SusyBuffer::set(TChain& chain, const std::string& name, T ptr) { 
+void SusyBuffer::set(TChain& ch, const std::string& name, T ptr, bool save)
+{ 
   *ptr = 0; 
-  setInternal(chain, name, ptr); 
+  setInternal(ch, name, ptr); 
+  if (save || m_requested_inputs.count(name)) { 
+    std::string br_class = ch.FindBranch(name.c_str())->GetClassName();
+    m_tree_branches.insert(
+      std::make_pair(name, new TreeBranch<T>(ptr, name, br_class))); 
+  }
 }
 
 void SusyBuffer::setInternal(TChain& chain, const std::string& name, 
 			     void* val) { 
   setOrThrow(chain, name, val); 
   m_set_inputs.insert(name); 
+}
+
+// specific branch setting functions
+void SusyBuffer::setMcBranches(TChain& chain) { 
+  try {
+    set(chain, "mcevt_weight", &mcevt_weight); 
+  } catch (MissingBranchError& e) { 
+    m_has_mc = false; 
+  }
+  if (m_has_mc) { 
+    set(chain, "mc_n", &mc_n); 
+    set(chain, "mc_pt", &mc_pt); 
+    set(chain, "mc_eta", &mc_eta); 
+    set(chain, "mc_phi", &mc_phi); 
+    set(chain, "mc_m", &mc_m); 
+    set(chain, "mc_status", &mc_status); 
+    set(chain, "mc_pdgId", &mc_pdgId); 
+  }
+}
+
+void SusyBuffer::setTriggerBranches(TChain& chain) { 
+  try { 
+    set(chain, "xe80_tclcw_tight", &xe80_tclcw_tight, true); 
+  } catch (MissingBranchError& err) { 
+    m_has_xe80_tclcw_tight = false; 
+    xe80_tclcw_tight = false; 
+  }
 }
 
 
@@ -110,10 +135,11 @@ namespace {
     std::string branch_type = leaf->GetTypeName(); 
 
     using namespace std; 
-    TRY_BRANCH_TYPE(Float_t); 
-    TRY_BRANCH_TYPE(UInt_t); 
-    TRY_BRANCH_TYPE(Bool_t); 
-    TRY_BRANCH_TYPE(Int_t); 
+    TRY_BRANCH_V_TYPE(Float_t); 
+    TRY_BRANCH_V_TYPE(UInt_t); 
+    TRY_BRANCH_V_TYPE(Bool_t); 
+    TRY_BRANCH_V_TYPE(Int_t); 
+
     TRY_BRANCH_V_TYPE(vector<int>); 
     TRY_BRANCH_V_TYPE(vector<unsigned int>); 
     TRY_BRANCH_V_TYPE(vector<float>); 
