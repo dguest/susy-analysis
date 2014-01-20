@@ -44,9 +44,9 @@ DEPINCLUDE := -I$(INC) -I$(shell root-config --incdir)
 DEPFLAGS    = -M -MP -MT $(BIN)/$*.o -MT $(DEP)/$*.d $(DEPINCLUDE)
 
 # ---- define objects
-TOBJ        := SusyBuffer.o 
+TOBJ        := RooDummy.o
 T_DICTS     := $(TOBJ:.o=Dict.o)
-GEN_OBJ     := Skimmer.o TreeBranch.o misc_func.o
+GEN_OBJ     := Skimmer.o TreeBranch.o misc_func.o SusyBuffer.o 
 EXE_OBJ     := run-skim.o
 
 ALLDEPOBJ   := $(TOBJ) $(EXE_OBJ) $(GEN_OBJ)
@@ -68,7 +68,7 @@ $(DICT)/%Dict.cxx: %.h $(LINKDEF)
 	@echo making dict $@
 	@mkdir -p $(DICT)
 	@rm -f $(DICT)/$*Dict.h $(DICT)/$*Dict.cxx 
-	@rootcint $@ -c $(INC)/$*.h $(INC)/$(LINKDEF) 2> /dev/null
+	@rootcint $@ -c $(INC)/$*.h $(INC)/$(LINKDEF) 
 	@sed -i 's,#include "$(INC)/\(.*\)",#include "\1",g' $(DICT)/$*Dict.h
 
 $(BIN)/%Dict.o: $(DICT)/%Dict.cxx 

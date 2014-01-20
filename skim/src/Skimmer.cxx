@@ -1,5 +1,5 @@
 #include "Skimmer.hh"
-#include "SusyBuffer.h"
+#include "SusyBuffer.hh"
 
 #include "TChain.h"
 #include "TFile.h"

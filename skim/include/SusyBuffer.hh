@@ -15,21 +15,9 @@ public:
   SusyBuffer(TChain&, const std::vector<std::string>&); 
   ~SusyBuffer(); 
   std::vector<std::vector<double> >* mcevt_weight; 
-  std::vector<std::vector<float> >* dummy; 
 private: 
   std::map<std::string, ITreeBranch*> m_tree_branches; 
 }; 
 
-// #include "TChain.h"
-// #include "TreeBranch.hh"
-
-// namespace {
-//   using namespace std;
-//   class Dummy {
-//     vector<vector<float> > vfloat; 
-//     TChain chain; 
-//     TreeBranch<vector<vector<float> > > bf; 
-//   }; 
-// }
 
 #endif

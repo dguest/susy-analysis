@@ -1,4 +1,4 @@
-#include "SusyBuffer.h"
+#include "SusyBuffer.hh"
 #include "misc_func.hh"		// setOrThrow
 #include "TreeBranch.hh"
 
