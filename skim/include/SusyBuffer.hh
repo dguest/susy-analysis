@@ -37,9 +37,16 @@ public:
   bool xe80_tclcw_tight; 	// from stop -> charm search (not sure why..)
   bool xe80T_tclcw_loose; 	// missing the first few bunch trains
   bool xe80_tclcw_loose; 	// missing in the beginning of year
-  bool EF_mu18_tight_mu8_EFFS; 	// for Z cr?
-  bool EF_mu24i_tight; 		// isolated muon
-  bool EF_mu36_tight;          	// generic muon
+  bool mu18_tight_mu8_EFFS; 	// for Z cr?
+  bool mu24i_tight; 		// isolated muon
+  bool mu36_tight;          	// generic muon
+
+  // met (we check to make sure there's also met in skimmed events which 
+  // fire the met trigger)
+  float met_etx; 
+  float met_ety; 
+  float met_muon_etx; 
+  float met_muon_ety; 
 
 private: 
   // generic branch setters
@@ -50,11 +57,12 @@ private:
   // specific branch setters (call the above functions)
   void setMcBranches(TChain& chain); 
   void setTriggerBranches(TChain& chain); 
+  void setMetBranches(TChain& chain); 
 
   // assorted private data
   std::map<std::string, ITreeBranch*> m_tree_branches; 
-  const std::set<std::string> m_requested_inputs; 
-  std::set<std::string> m_set_inputs; 
+  const std::set<std::string> m_requested_passthrough; 
+  std::set<std::string> m_exposed_inputs; 
   std::set<std::string> m_missing_inputs; 
   bool m_has_mc; 
   bool m_has_xe80_tclcw_tight; 

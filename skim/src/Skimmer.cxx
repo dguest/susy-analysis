@@ -1,6 +1,7 @@
 #include "Skimmer.hh"
 #include "SusyBuffer.hh"
 #include "boson_truth_tools.hh"
+#include "constants_skim.hh"
 
 #include "TChain.h"
 #include "TFile.h"
@@ -9,9 +10,10 @@
 #include "TParameter.h"
 
 #include <set>
+#include <cmath>
 
 namespace { 
-  
+  bool hasTriggerRequirements(const SusyBuffer&); 
   void dumpMissing(const SusyBuffer& buffer); 
 }
 
@@ -85,7 +87,9 @@ void Skimmer::copyVariablesTo(TTree* output_tree, TFile* file) {
       event_wt = buffer.mcevt_weight->at(0).at(0); 
       total_event_weight += event_wt; 
     }
-    output_tree->Fill(); 
+    if (hasTriggerRequirements(buffer)) { 
+      output_tree->Fill(); 
+    }
   }
   if (file) { 
     TParameter<double> skim_total("total_event_weight", total_event_weight); 
@@ -100,6 +104,22 @@ void Skimmer::copyVariablesTo(TTree* output_tree, TFile* file) {
 }
 
 namespace { 
+  bool hasTriggerRequirements(const SusyBuffer& buf) { 
+    if (buf.mu18_tight_mu8_EFFS || buf.mu24i_tight || buf.mu36_tight) { 
+      return true; 
+    }
+    if (buf.xe80_tclcw_tight || 
+	buf.xe80T_tclcw_loose || 
+	buf.xe80_tclcw_loose) { 
+      float mx2 = std::pow(buf.met_etx - buf.met_muon_etx,2); 
+      float my2 = std::pow(buf.met_ety - buf.met_muon_ety,2); 
+      float threshold = skim::MET_REQUIREMENT; 
+      if (mx2 + my2 > threshold*threshold) { 
+	return true; 
+      }
+    }
+    return false; 
+  }
   void dumpMissing(const SusyBuffer& buffer) { 
 
     std::set<std::string> missing = buffer.getMissingBranches(); 

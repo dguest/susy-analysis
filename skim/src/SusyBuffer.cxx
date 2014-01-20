@@ -15,7 +15,7 @@ namespace {
 
 SusyBuffer::SusyBuffer(TChain& chain, 
 		       const std::vector<std::string>& variables): 
-  m_requested_inputs(variables.begin(), variables.end()), 
+  m_requested_passthrough(variables.begin(), variables.end()), 
   m_has_mc(true), 
   m_has_xe80_tclcw_tight(true)
 { 
@@ -24,7 +24,7 @@ SusyBuffer::SusyBuffer(TChain& chain,
 
   for (std::vector<std::string>::const_iterator itr = variables.begin(); 
        itr != variables.end(); itr++) { 
-    if (!m_set_inputs.count(*itr) ) { 
+    if (!m_exposed_inputs.count(*itr) ) { 
       m_tree_branches.insert(
 	std::make_pair(*itr,getBranchBuffer(chain, *itr))); 
       if (!m_tree_branches.find(*itr)->second) { 
@@ -45,7 +45,7 @@ SusyBuffer::~SusyBuffer() {
 }
 
 std::set<std::string> SusyBuffer::getExposedInputs() const { 
-  return m_set_inputs; 
+  return m_exposed_inputs; 
 }
 
 std::set<std::string> SusyBuffer::getMissingBranches() const { 
@@ -71,7 +71,7 @@ void SusyBuffer::set(TChain& ch, const std::string& name, T ptr, bool save)
 { 
   *ptr = 0; 
   setInternal(ch, name, ptr); 
-  if (save || m_requested_inputs.count(name)) { 
+  if (save || m_requested_passthrough.count(name)) { 
     std::string br_class = ch.FindBranch(name.c_str())->GetClassName();
     m_tree_branches.insert(
       std::make_pair(name, new TreeBranch<T>(ptr, name, br_class))); 
@@ -81,7 +81,7 @@ void SusyBuffer::set(TChain& ch, const std::string& name, T ptr, bool save)
 void SusyBuffer::setInternal(TChain& chain, const std::string& name, 
 			     void* val) { 
   setOrThrow(chain, name, val); 
-  m_set_inputs.insert(name); 
+  m_exposed_inputs.insert(name); 
 }
 
 // specific branch setting functions
@@ -104,13 +104,24 @@ void SusyBuffer::setMcBranches(TChain& chain) {
 
 void SusyBuffer::setTriggerBranches(TChain& chain) { 
   try { 
-    set(chain, "xe80_tclcw_tight", &xe80_tclcw_tight, true); 
+    set(chain, "EF_xe80_tclcw_loose", &xe80_tclcw_tight, true); 
   } catch (MissingBranchError& err) { 
     m_has_xe80_tclcw_tight = false; 
     xe80_tclcw_tight = false; 
   }
+  set(chain, "EF_xe80T_tclcw_loose", &xe80T_tclcw_loose, true); 
+  set(chain, "EF_xe80_tclcw_tight", &xe80_tclcw_tight, true); 
+  set(chain, "EF_mu18_tight_mu8_EFFS", &mu18_tight_mu8_EFFS, true); 
+  set(chain, "EF_mu24i_tight", &mu24i_tight, true); 
+  set(chain, "EF_mu36_tight", &mu36_tight, true); 
 }
 
+void SusyBuffer::setMetBranches(TChain& chain) { 
+  set(chain, "MET_Egamma10NoTau_RefFinal_etx", &met_etx); 
+  set(chain, "MET_Egamma10NoTau_RefFinal_ety", &met_ety); 
+  set(chain, "MET_Egamma10NoTau_Muon_Total_Staco_etx", &met_muon_etx); 
+  set(chain, "MET_Egamma10NoTau_Muon_Total_Staco_ety", &met_muon_ety); 
+}
 
 // macros to use in getBranchBuffer below
 #define TRY_BRANCH_TYPE(TYPE) \
