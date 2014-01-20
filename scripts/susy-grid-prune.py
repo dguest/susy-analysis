@@ -35,7 +35,8 @@ def submit_ds(ds_name, debug=False, version=0, branches='branches.txt',
     out_ds = 'user.{user}.{in_ds}.skim_p{rev}_v{version}/'.format(
         user=user, in_ds=output_base, version=version, rev=rev_number)
 
-    bstring = 'cd {sd}; make; cd ..; ln {sd}/run-skim'.format(sd=skim_dir)
+    bstring = 'cd {sd}; make clean; make; cd ..; ln {sd}/run-skim'.format(
+        sd=skim_dir)
     run_string = 'run-skim %IN'
 
     input_args = [
@@ -78,10 +79,16 @@ class LocalSkimmer(object):
         if self.tarball: 
             self.tar()
         self.current_files = set(os.listdir('.'))
-    def link(self): 
-        path_to_skim = os.path.join(__file__,'..','skim')
+    def link(self, clean=True): 
+        path_to_skim = os.path.join(os.path.dirname(__file__),'..','skim')
         abs_path = os.path.abspath(path_to_skim)
         os.symlink(abs_path, self.script_dir)
+        if clean:
+            try: 
+                run_args = dict(cwd=abs_path, shell=True, stdout=PIPE)
+                Popen(['make clean'], **run_args).communicate()
+            except OSError as err: 
+                print str(err)
         return self
     def tar(self): 
         user = os.path.expandvars('$USER')
@@ -101,7 +108,7 @@ class LocalSkimmer(object):
                 'failure creating tarball for grid submit: {}'.format(err))
         
     def __exit__(self, ex_type, ex_val, trace): 
-        os.remove(self.script_name)
+        os.remove(self.script_dir)
         if self.tarball: 
             os.remove(self.tarball)
     
@@ -113,23 +120,13 @@ class LocalSkimmer(object):
             else: 
                 os.remove(f)
         
-def get_config(config_name, varlist_name): 
-    if not varlist_name: 
-        varlist_name = 'branches.txt'
+def get_config(config_name): 
     config = SafeConfigParser()
     config.read([config_name])
 
     if not config.has_section('version'): 
         config.add_section('version')
         config.set('version','version','0')
-    if not config.has_section('variables'): 
-        config.add_section('variables')
-        config.set('variables','varlist', varlist_name)
-        config.set('variables','chain','susy')
-    if not config.has_section('cuts'): 
-        config.add_section('cuts')
-        config.set('cuts', 'met_low', '70000')
-        config.set('cuts','mark_skim', 'true')
     return config
 
 class Reporter(Process): 
@@ -241,7 +238,7 @@ def _get_args():
         '-g', '--ngb', nargs='?', const='MAX', 
         help='number of gb per job (with no arg: %(const)s )')
     parser.add_argument('--blacklist', nargs='*', default=[])
-    parser.add_argument('--get-slimmer', action='store_true')
+    parser.add_argument('--get-skimmer', action='store_true')
     parser.add_argument('--debug', action='store_true')
     return parser.parse_args()
 
@@ -262,23 +259,24 @@ def _get_datasets(ds_list_name):
 if __name__ == '__main__': 
 
     args = _get_args()
-    config = get_config(args.config, args.variable_list)
+    config = get_config(args.config)
     if not os.path.isfile(args.config): 
         print 'writing config'
         with open(args.config,'w') as cfg: 
             config.write(cfg)
         sys.exit('wrote config, exiting')
 
-    if args.get_slimmer: 
-        LocalSkimmer(branches).write()
+    version = config.get('version', 'version')
+    tarball = 'jobtar.tar'
+    branches = 'branches.txt'
+
+    if args.get_skimmer: 
+        LocalSkimmer(branches).link()
         sys.exit('got skimmer, exiting...')
 
     if not find_executable('prun'): 
         raise OSError("prun isn't defined, you need to set it up")
 
-    version = config.getint('version', 'version')
-    tarball = 'jobtar.tar'
-    branches = 'branches.txt'
     if not os.path.isfile(branches): 
         sys.exit('you need {}!'.format(branches))
 
@@ -289,7 +287,7 @@ if __name__ == '__main__':
     reporter = Reporter(len(datasets), out_log)
     reporter.start()
     def submit(ds): 
-        return submit_ds(ds, args.debug, version, 
+        return submit_ds(ds, debug=args.debug, version=version, 
                          branches=branches, 
                          out_talk=reporter.queue, 
                          in_tar=tarball, 
