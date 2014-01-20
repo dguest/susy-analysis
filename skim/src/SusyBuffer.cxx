@@ -53,6 +53,7 @@ namespace {
     TRY_BRANCH_TYPE(Float_t); 
     TRY_BRANCH_TYPE(UInt_t); 
     TRY_BRANCH_TYPE(Bool_t); 
+    TRY_BRANCH_TYPE(Int_t); 
     TRY_BRANCH_TYPE(vector<int>); 
     TRY_BRANCH_TYPE(vector<unsigned int>); 
     TRY_BRANCH_TYPE(vector<float>); 
