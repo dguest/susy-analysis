@@ -3,11 +3,15 @@
 
 #include <vector> 
 #include <string> 
+#include <iostream>
 
 void setOrThrow(TTree& chain, const std::string& name, void* variable) { 
-  unsigned branches_found = 0; 
+  unsigned int branches_found = 0; 
   chain.SetBranchStatus(name.c_str(), 1, &branches_found);
-  if (branches_found != 1) { 
+  if (branches_found != 1) {
+    throw MissingBranchError("can't set branch: " + name); 
+  }
+  if (!chain.FindBranch(name.c_str())) {
     throw MissingBranchError("can't find branch: " + name); 
   }
   chain.SetBranchAddress(name.c_str(), variable); 

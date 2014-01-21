@@ -36,7 +36,7 @@ void Skimmer::addFile(const std::string& file_name)
   if (!file.IsOpen() || file.IsZombie()) { 
     throw std::runtime_error("bad file: " + file_name); 
   }
-  m_chain->Add(file_name.c_str()); 
+  m_chain->Add(file_name.c_str(), -1); 
 }
 
 void Skimmer::makeSkim(const std::string& out_file_name) { 

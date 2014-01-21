@@ -4,6 +4,7 @@
 #include <string>
 #include <fstream>
 #include <stdexcept>
+#include <sstream>
 
 // thin wrapper for the Skimmer class
 int main(int narg, char* argv[]) { 
@@ -19,7 +20,11 @@ int main(int narg, char* argv[]) {
   }
   Skimmer skim(variables); 
   for (int nn = 1; nn < narg; nn++) { 
-    skim.addFile(argv[nn]); 
+    std::stringstream full_arg(std::string(argv[nn])); 
+    std::string file_name; 
+    while (std::getline(full_arg, file_name, ',')) { 
+      skim.addFile(file_name); 
+    }
   }
   skim.makeSkim("skim-output.root"); 
   return 0; 
