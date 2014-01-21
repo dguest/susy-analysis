@@ -16,11 +16,11 @@ Badly needs a cleanup, should only have functions to:
 
 
 import os, sys, re
-from stop.meta import DatasetCache, MetaFromYamlError
-from stop.lookup.susylookup import MetaFactory
-from stop.lookup import overlap 
-from stop.lookup.ami import lookup_ami_stats, sort_ds_fullsim_atlfast
-from stop.bullshit import FlatProgressMeter
+from scharm.meta import DatasetCache, MetaFromYamlError
+from scharm.lookup.susylookup import MetaFactory
+from scharm.lookup import overlap 
+from scharm.lookup.ami import lookup_ami_stats, sort_ds_fullsim_atlfast
+from scharm.bullshit import FlatProgressMeter
 import argparse, ConfigParser
 from tempfile import TemporaryFile
 import yaml
@@ -56,7 +56,7 @@ def _add_build_parser(subs):
               ' or an existing meta file ({})'.format(d)))
     parser.add_argument('--susy-lookup', help=d)
     parser.add_argument('-m','--mc', action='store_true', 
-                            help='generate fresh mc file from mark\'s ds')
+                        help='generate fresh mc file from Will\'s ds')
     parser.add_argument('--jets', action='store_true', 
                         help='generate fresh data list')
     parser.add_argument('--muons', action='store_true', 
@@ -139,7 +139,7 @@ def _is_atlfast(ds):
 
 def build(args): 
     if args.mc: 
-        build_mark_file(args.steering_file)
+        build_will_file(args.steering_file)
     if args.jets: 
         build_jets_file(args.steering_file)
     if args.muons: 
@@ -218,21 +218,25 @@ def dumpbugs(aug, bugslog='ami-bugs.log'):
                 bugs.write(line)
         sys.stderr.write('wrote bugs to {}\n'.format(bugslog))
 
-def build_mark_file(name): 
-    from stop.lookup.ami import AmiAugmenter
-    from stop.runtypes import marks_types
+def build_will_file(name): 
+    from scharm.lookup.ami import AmiAugmenter
+    from scharm.runtypes import wills_samples
+    do_not_use = {'top_samples','Wjets_samples','Zjets_samples'}
+    wills_types = [
+        (k.split('_')[0], v) for k,v in wills_samples.items() 
+        if k not in do_not_use]
     aug = AmiAugmenter('p1328', 'mc12_8TeV')
     aug.bugstream = TemporaryFile()
     ds_cache = DatasetCache(name)
-    for phys_type, ids in marks_types.iteritems(): 
+    for phys_type, ids in wills_types: 
         new_meta = aug.get_dataset_range(ids, phys_type)
         ds_cache.update(new_meta)
     ds_cache.write()
     dumpbugs(aug, 'mc-bugs.log')
 
 def build_stop_file(name): 
-    from stop.lookup.ami import AmiAugmenter
-    from stop.runtypes import stop_signal
+    from scharm.lookup.ami import AmiAugmenter
+    from scharm.runtypes import stop_signal
     aug = AmiAugmenter('p1328', 'mc12_8TeV')
     aug.bugstream = TemporaryFile()
     ds_cache = DatasetCache(name)
@@ -243,8 +247,8 @@ def build_stop_file(name):
     dumpbugs(aug, 'stopgrid-bugs.log')
 
 def build_scharm_file(name): 
-    from stop.lookup.ami import AmiAugmenter
-    from stop.runtypes import scharm
+    from scharm.lookup.ami import AmiAugmenter
+    from scharm.runtypes import scharm
     aug = AmiAugmenter('p1512', 'mc12_8TeV')
     aug.bugstream = TemporaryFile()
     ds_cache = DatasetCache(name)
@@ -255,8 +259,8 @@ def build_scharm_file(name):
     dumpbugs(aug, 'scharmgrid-bugs.log')
 
 def build_variations_file(name): 
-    from stop.lookup.ami import AmiAugmenter
-    from stop.runtypes import variations
+    from scharm.lookup.ami import AmiAugmenter
+    from scharm.runtypes import variations
     aug = AmiAugmenter('p1328', 'mc12_8TeV')
     aug.bugstream = TemporaryFile()
     ds_cache = DatasetCache(name)
@@ -267,7 +271,7 @@ def build_variations_file(name):
     dumpbugs(aug, 'variation-bugs.log')
 
 def build_jets_file(name): 
-    from stop.lookup.ami import AmiAugmenter
+    from scharm.lookup.ami import AmiAugmenter
     aug = AmiAugmenter('p1329', origin='data12_8TeV')
     aug.bugstream = TemporaryFile()
     with DatasetCache(name) as ds_cache: 
@@ -277,7 +281,7 @@ def build_jets_file(name):
     dumpbugs(aug, 'muon-bugs.log')
 
 def build_muon_file(name): 
-    from stop.lookup.ami import AmiAugmenter
+    from scharm.lookup.ami import AmiAugmenter
     aug = AmiAugmenter('p1329', origin='data12_8TeV')
     aug.bugstream = TemporaryFile()
     with DatasetCache(name) as ds_cache: 

@@ -1,5 +1,5 @@
 import re
-from stop.meta import DatasetCache
+from scharm.meta import DatasetCache
 from warnings import warn
 
 class MetaFactory(object): 
