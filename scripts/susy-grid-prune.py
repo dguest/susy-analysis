@@ -84,7 +84,7 @@ class LocalSkimmer(object):
             self.tar()
         self.current_files = set(os.listdir('.'))
 
-    def link(self, clean=True): 
+    def link(self, clean=False): 
         path_to_skim = os.path.join(os.path.dirname(__file__),'..','skim')
         abs_path = os.path.abspath(path_to_skim)
         if clean:
@@ -93,8 +93,9 @@ class LocalSkimmer(object):
                 Popen(['make clean'], **run_args).communicate()
             except OSError as err: 
                 print str(err)
-        shutil.copytree(abs_path, self.script_dir, 
-                        ignore=shutil.ignore_patterns('*.root'))
+        ignore = shutil.ignore_patterns(
+            '*.root','*.txt','bin','dict','run-skim')
+        shutil.copytree(abs_path, self.script_dir, ignore=ignore)
 
     def tar(self): 
         user = os.path.expandvars('$USER')
