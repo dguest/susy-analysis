@@ -20,7 +20,7 @@ int main(int narg, char* argv[]) {
   }
   Skimmer skim(variables); 
   for (int nn = 1; nn < narg; nn++) { 
-    std::stringstream full_arg(std::string(argv[nn])); 
+    std::stringstream full_arg(argv[nn]); 
     std::string file_name; 
     while (std::getline(full_arg, file_name, ',')) { 
       skim.addFile(file_name); 
