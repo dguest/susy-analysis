@@ -32,6 +32,10 @@ Skimmer::~Skimmer() {
 
 void Skimmer::addFile(const std::string& file_name) 
 { 
+  TFile file(file_name.c_str()); 
+  if (!file.IsOpen() || file.IsZombie()) { 
+    throw std::runtime_error("bad file: " + file_name); 
+  }
   m_chain->Add(file_name.c_str()); 
 }
 
