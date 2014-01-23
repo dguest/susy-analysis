@@ -28,7 +28,7 @@ ROOTLDFLAGS   := $(shell root-config --ldflags)
 
 
 # --- set compiler and flags (roll c options and include paths together)
-CXXFLAGS     := -O2 -Wall -fPIC -I$(INC) -g 
+CXXFLAGS     := -O2 -Wall -fPIC -I$(INC) -g -std=c++11
 COMPILER_NAME := $(notdir ${CXX})
 ifeq ($(COMPILER_NAME), g++)
   LDFLAGS      := -Wl,-no-undefined

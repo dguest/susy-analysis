@@ -73,7 +73,6 @@ class VariableTranscriptionError: public std::logic_error
 public: 
   VariableTranscriptionError(const std::string& what, 
 			     const std::string& var);
-  ~VariableTranscriptionError() throw () {} 
 private: 
   std::string m_variable; 
 };

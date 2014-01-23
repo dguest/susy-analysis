@@ -48,7 +48,7 @@ void Skimmer::makeSkim(const std::string& out_file_name) {
 
   // this block to shut root up before running the copy 
   int old_error_level = gErrorIgnoreLevel; 
-  gErrorIgnoreLevel = kFatal; 
+  // gErrorIgnoreLevel = kFatal; 
   copyVariablesTo(out_tree, &output_file); 
   gErrorIgnoreLevel = old_error_level; 
 
@@ -58,7 +58,7 @@ void Skimmer::makeSkim(const std::string& out_file_name) {
 // ----- private ----
 
 bool Skimmer::isGoodFile(const std::string& file_name) { 
-  std::auto_ptr<TFile> file(TFile::Open(file_name.c_str())); 
+  std::unique_ptr<TFile> file(TFile::Open(file_name.c_str())); 
   if (!file->IsOpen() || file->IsZombie()) { 
     return false; 
   }
@@ -122,8 +122,8 @@ namespace {
 	buf.xe80_tclcw_loose) { 
       float mx2 = std::pow(buf.met_etx - buf.met_muon_etx,2); 
       float my2 = std::pow(buf.met_ety - buf.met_muon_ety,2); 
-      float threshold = skim::MET_REQUIREMENT; 
-      if (mx2 + my2 > threshold*threshold) { 
+      constexpr float th2 = std::pow(skim::MET_REQUIREMENT,2); 
+      if (mx2 + my2 > th2) { 
 	return true; 
       }
     }
@@ -133,9 +133,8 @@ namespace {
 
     std::set<std::string> missing = buffer.getMissingBranches(); 
     if (missing.size() > 0) puts("======= missing branches ======="); 
-    for (std::set<std::string>::const_iterator itr = missing.begin(); 
-	 itr != missing.end(); itr++ ) { 
-      puts(itr->c_str()); 
+    for (const auto itr: missing) { 
+      puts(itr.c_str()); 
     }
   }
 }

@@ -22,25 +22,21 @@ SusyBuffer::SusyBuffer(TChain& chain,
   setMcBranches(chain); 
   setTriggerBranches(chain); 
 
-  for (std::vector<std::string>::const_iterator itr = variables.begin(); 
-       itr != variables.end(); itr++) { 
-    if (!m_exposed_inputs.count(*itr) ) { 
+  for (const auto itr: variables) { 
+    if (!m_exposed_inputs.count(itr) ) { 
       m_tree_branches.insert(
-	std::make_pair(*itr,getBranchBuffer(chain, *itr))); 
-      if (!m_tree_branches.find(*itr)->second) { 
-	m_tree_branches.erase(*itr); 
-	m_missing_inputs.insert(*itr); 
+	std::make_pair(itr,getBranchBuffer(chain, itr))); 
+      if (!m_tree_branches.find(itr)->second) { 
+	m_tree_branches.erase(itr); 
+	m_missing_inputs.insert(itr); 
       }
     }
   }
 }
 
 SusyBuffer::~SusyBuffer() { 
-  for (std::map<std::string, ITreeBranch*>::iterator 
-	 itr = m_tree_branches.begin(); 
-       itr != m_tree_branches.end(); 
-       itr++) { 
-    delete itr->second; 
+  for (auto itr: m_tree_branches) { 
+    delete itr.second; 
   }
 }
 
@@ -53,9 +49,8 @@ std::set<std::string> SusyBuffer::getMissingBranches() const {
 }
 
 void SusyBuffer::setPassThrough(TTree& target) const { 
-  for (std::map<std::string, ITreeBranch*>::const_iterator 
-	 itr = m_tree_branches.begin(); itr != m_tree_branches.end(); itr++){
-    itr->second->addToTree(target); 
+  for (const auto itr: m_tree_branches) { 
+    itr.second->addToTree(target); 
   }
 }
 
@@ -154,7 +149,8 @@ namespace {
     TRY_BRANCH_TYPE(vector<vector<float> >); 
     TRY_BRANCH_TYPE(vector<vector<double> >); 
     
-    throw std::logic_error("can't pass branch type " + branch_type); 
+    throw std::domain_error("branch type " + branch_type + 
+			    " is not defined in " __FILE__); 
     return 0; 
   }
 
