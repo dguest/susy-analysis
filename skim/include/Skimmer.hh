@@ -28,7 +28,8 @@ public:
 private: 
   Skimmer(const Skimmer&) {}
   Skimmer& operator=(const Skimmer&) { return *this; }
-  
+
+  bool isGoodFile(const std::string& file_name); 
   const char* pfx(const std::string& word); 
   void copyVariablesTo(TTree*, TFile* = 0);
 

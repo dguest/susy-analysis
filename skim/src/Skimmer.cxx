@@ -11,6 +11,7 @@
 
 #include <set>
 #include <cmath>
+#include <memory>
 
 namespace { 
   bool hasTriggerRequirements(const SusyBuffer&); 
@@ -32,8 +33,7 @@ Skimmer::~Skimmer() {
 
 void Skimmer::addFile(const std::string& file_name) 
 { 
-  TFile file(file_name.c_str()); 
-  if (!file.IsOpen() || file.IsZombie()) { 
+  if (!isGoodFile(file_name)) { 
     throw std::runtime_error("bad file: " + file_name); 
   }
   m_chain->Add(file_name.c_str(), -1); 
@@ -56,6 +56,14 @@ void Skimmer::makeSkim(const std::string& out_file_name) {
 }
 
 // ----- private ----
+
+bool Skimmer::isGoodFile(const std::string& file_name) { 
+  std::auto_ptr<TFile> file(TFile::Open(file_name.c_str())); 
+  if (!file->IsOpen() || file->IsZombie()) { 
+    return false; 
+  }
+  return true; 
+}
 
 const char* Skimmer::pfx(const std::string& word) { 
   return (m_skimmed_var_prefix + word).c_str(); 
