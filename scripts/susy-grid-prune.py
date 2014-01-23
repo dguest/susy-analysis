@@ -37,8 +37,7 @@ def submit_ds(ds_name, debug=False, version=0, branches='branches.txt',
         '--outputs=skim-output.root', 
         '--excludeFile=*.tar,*.log,*.sh,*.out,*.root',
         '--extFile={}'.format(branches), 
-        '--rootVer=5.34/07', 
-        '--cmtConfig=x86_64-slc5-gcc43-opt', 
+        '--cmtConfig=x86_64-slc6-gcc47-opt', 
         ]
     if blacklist: 
         input_args.append('--excludedSite={}'.format(','.join(blacklist)))
