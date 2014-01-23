@@ -2,7 +2,7 @@ from pyAMI import query
 from pyAMI.client import AMIClient
 from pyAMI.auth import AMI_CONFIG, create_auth_config
 import os, sys, re
-from stop import meta, bullshit
+from scharm import meta, bullshit
 
 def _filter_stream_type_tag(match_sets, stream, ntup_filter, p_tag): 
     if len(match_sets) > 1: 
