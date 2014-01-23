@@ -108,6 +108,7 @@ void Skimmer::copyVariablesTo(TTree* output_tree, TFile* file) {
     summary.writeTo(*file); 
   }
   dumpMissing(buffer); 
+  output_tree->ResetBranchAddresses(); 
 
 }
 

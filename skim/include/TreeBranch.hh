@@ -44,7 +44,7 @@ TreeBranch<T>::TreeBranch(T in_value, const std::string& branch_name,
 template<typename T>
 void TreeBranch<T>::addToTree(TTree& tree) { 
   if (m_branch_class.size() > 0){ 
-    tree.Branch(m_branch_name.c_str(), m_branch_class.c_str(), &m_value); 
+    tree.Branch(m_branch_name.c_str(), m_branch_class.c_str(), m_value); 
   } else { 
     tree.Branch(m_branch_name.c_str(), m_value); 
   }
