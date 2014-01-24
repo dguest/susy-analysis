@@ -12,8 +12,8 @@ def _filter_stream_type_tag(match_sets, stream, ntup_filter, p_tag):
                 type_filtered.append(m)
         if not type_filtered: 
             raise DatasetMatchError(
-                'stream filter {} removed all {} with {}'.format(
-                    stream, match_sets, ntup_filter))
+                'stream filter {} removed all with {}'.format(
+                    stream, ntup_filter))
         match_sets = type_filtered
 
     if len(match_sets) > 1: 
@@ -97,15 +97,14 @@ class AmiAugmenter(object):
         ds_dict = {ds.key: ds for ds in datasets}
         return ds_dict
 
-
-
     def ds_from_id(self, ds_id, stream=None): 
         if stream and stream.startswith('physics'): 
             args = {'run':str(ds_id)}
         else: 
             args = {'dataset_number':str(ds_id)}
 
-        match_sets = query.get_datasets(self.client,'%', **args)
+        qstr = '%'.join([self.origin, str(ds_id), stream or ''])
+        match_sets = query.get_datasets(self.client,qstr, **args)
 
         if not match_sets: 
             raise DatasetMatchError('found nothing with {}'.format(
@@ -240,6 +239,7 @@ class AmiAugmenter(object):
                     raise
                 else: 
                     self.outstream.write('nothing\n')
+                    self.bugstream.write(str(err) + '\n')
                     continue
             self.outstream.write('found: {}\n'.format(ds.full_name))
             datasets[ds.key] = ds

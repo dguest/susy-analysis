@@ -276,17 +276,17 @@ def build_variations_file(name):
 
 def build_jets_file(name): 
     from scharm.lookup.ami import AmiAugmenter
-    aug = AmiAugmenter('p1512', origin='data12_8TeV')
+    aug = AmiAugmenter('p1542', origin='data12_8TeV')
     aug.bugstream = TemporaryFile()
     with DatasetCache(name) as ds_cache: 
         new_meta = aug.get_datasets_year(stream='physics_JetTauEtmiss')
         ds_cache.update(new_meta)
 
-    dumpbugs(aug, 'muon-bugs.log')
+    dumpbugs(aug, 'jet-bugs.log')
 
 def build_muon_file(name): 
     from scharm.lookup.ami import AmiAugmenter
-    aug = AmiAugmenter('p1512', origin='data12_8TeV')
+    aug = AmiAugmenter('p1542', origin='data12_8TeV')
     aug.bugstream = TemporaryFile()
     with DatasetCache(name) as ds_cache: 
         mu_meta = aug.get_datasets_year(stream='physics_Muons')
@@ -296,7 +296,7 @@ def build_muon_file(name):
 
 def build_egamma_file(name): 
     from scharm.lookup.ami import AmiAugmenter
-    aug = AmiAugmenter('p1512', origin='data12_8TeV')
+    aug = AmiAugmenter('p1542', origin='data12_8TeV')
     aug.bugstream = TemporaryFile()
     with DatasetCache(name) as ds_cache: 
         meta = aug.get_datasets_year(stream='physics_Egamma')
