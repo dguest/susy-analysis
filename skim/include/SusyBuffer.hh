@@ -12,6 +12,27 @@ class TTree;
 #include <string> 
 #include <stdexcept>
 
+struct Triggers { 
+  bool EF_xe80_tclcw_tight; 	// from stop -> charm search (not sure why..)
+  bool EF_xe80T_tclcw_loose; 	// missing the first few bunch trains
+  bool EF_xe80_tclcw_loose; 	// missing in the beginning of year
+
+  bool EF_e24vhi_medium1; 
+  bool EF_e60_medium1; 
+  bool EF_2e12Tvh_loose1; 
+
+  bool EF_mu18_tight_mu8_EFFS; 	// for Z cr?
+  bool EF_mu24i_tight; 		// isolated muon
+  bool EF_mu36_tight;          	// generic muon
+}; 
+
+struct Met { 
+  float etx; 
+  float ety; 
+  float muon_etx; 
+  float muon_ety; 
+}; 
+
 class SusyBuffer { 
 public: 
   SusyBuffer(TChain&, const std::vector<std::string>&); 
@@ -34,19 +55,11 @@ public:
   std::vector<int>* mc_pdgId; 
 
   // skimming triggers
-  bool xe80_tclcw_tight; 	// from stop -> charm search (not sure why..)
-  bool xe80T_tclcw_loose; 	// missing the first few bunch trains
-  bool xe80_tclcw_loose; 	// missing in the beginning of year
-  bool mu18_tight_mu8_EFFS; 	// for Z cr?
-  bool mu24i_tight; 		// isolated muon
-  bool mu36_tight;          	// generic muon
+  Triggers triggers; 
 
   // met (we check to make sure there's also met in skimmed events which 
   // fire the met trigger)
-  float met_etx; 
-  float met_ety; 
-  float met_muon_etx; 
-  float met_muon_ety; 
+  Met met; 
 
 private: 
   // generic branch setters

@@ -98,24 +98,30 @@ void SusyBuffer::setMcBranches(TChain& chain) {
 }
 
 void SusyBuffer::setTriggerBranches(TChain& chain) { 
+  Triggers& tr = triggers; 
   try { 
-    set(chain, "EF_xe80_tclcw_loose", &xe80_tclcw_tight, true); 
+    set(chain, "EF_xe80_tclcw_loose", &tr.EF_xe80_tclcw_tight, true); 
   } catch (MissingBranchError& err) { 
     m_has_xe80_tclcw_tight = false; 
-    xe80_tclcw_tight = false; 
+    tr.EF_xe80_tclcw_tight = false; 
   }
-  set(chain, "EF_xe80T_tclcw_loose", &xe80T_tclcw_loose, true); 
-  set(chain, "EF_xe80_tclcw_tight", &xe80_tclcw_tight, true); 
-  set(chain, "EF_mu18_tight_mu8_EFFS", &mu18_tight_mu8_EFFS, true); 
-  set(chain, "EF_mu24i_tight", &mu24i_tight, true); 
-  set(chain, "EF_mu36_tight", &mu36_tight, true); 
+  set(chain, "EF_xe80T_tclcw_loose",   &tr.EF_xe80T_tclcw_loose, true); 
+  set(chain, "EF_xe80_tclcw_tight",    &tr.EF_xe80_tclcw_tight, true); 
+
+  set(chain, "EF_e24vhi_medium1", &tr.EF_e24vhi_medium1, true); 
+  set(chain, "EF_e60_medium1"   , &tr.EF_e60_medium1, true);    
+  set(chain, "EF_2e12Tvh_loose1", &tr.EF_2e12Tvh_loose1, true); 
+
+  set(chain, "EF_mu18_tight_mu8_EFFS", &tr.EF_mu18_tight_mu8_EFFS, true); 
+  set(chain, "EF_mu24i_tight",         &tr.EF_mu24i_tight, true); 
+  set(chain, "EF_mu36_tight",          &tr.EF_mu36_tight, true); 
 }
 
 void SusyBuffer::setMetBranches(TChain& chain) { 
-  set(chain, "MET_Egamma10NoTau_RefFinal_etx", &met_etx); 
-  set(chain, "MET_Egamma10NoTau_RefFinal_ety", &met_ety); 
-  set(chain, "MET_Egamma10NoTau_Muon_Total_Staco_etx", &met_muon_etx); 
-  set(chain, "MET_Egamma10NoTau_Muon_Total_Staco_ety", &met_muon_ety); 
+  set(chain, "MET_Egamma10NoTau_RefFinal_etx", &met.etx); 
+  set(chain, "MET_Egamma10NoTau_RefFinal_ety", &met.ety); 
+  set(chain, "MET_Egamma10NoTau_Muon_Total_Staco_etx", &met.muon_etx); 
+  set(chain, "MET_Egamma10NoTau_Muon_Total_Staco_ety", &met.muon_ety); 
 }
 
 // macro to use in getBranchBuffer below

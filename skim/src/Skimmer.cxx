@@ -14,7 +14,7 @@
 #include <memory>
 
 namespace { 
-  bool hasTriggerRequirements(const SusyBuffer&); 
+  bool hasTriggerRequirements(const Triggers&, const Met&); 
   void dumpMissing(const SusyBuffer& buffer); 
 }
 
@@ -99,7 +99,7 @@ void Skimmer::copyVariablesTo(TTree* output_tree, TFile* file) {
       event_wt = buffer.mcevt_weight->at(0).at(0); 
       summary.total_event_weight += event_wt; 
     }
-    if (hasTriggerRequirements(buffer)) { 
+    if (hasTriggerRequirements(buffer.triggers, buffer.met)) { 
       summary.skimmed_events++; 
       output_tree->Fill(); 
     }
@@ -113,16 +113,21 @@ void Skimmer::copyVariablesTo(TTree* output_tree, TFile* file) {
 }
 
 namespace { 
-  bool hasTriggerRequirements(const SusyBuffer& buf) { 
-    if (buf.mu18_tight_mu8_EFFS || buf.mu24i_tight || buf.mu36_tight) { 
+  bool hasTriggerRequirements(const Triggers& tr, const Met& met) { 
+    if (tr.EF_mu18_tight_mu8_EFFS || 
+	tr.EF_mu24i_tight || 
+	tr.EF_mu36_tight ||
+	tr.EF_e24vhi_medium1 ||
+	tr.EF_e60_medium1 ||
+	tr.EF_2e12Tvh_loose1) { 
       return true; 
     }
     constexpr float threshold2 = std::pow(skim::MET_REQUIREMENT,2); 
-    float met_x2 = std::pow(buf.met_etx - buf.met_muon_etx,2); 
-    float met_y2 = std::pow(buf.met_ety - buf.met_muon_ety,2); 
-    if (buf.xe80_tclcw_tight || 
-	buf.xe80T_tclcw_loose || 
-	buf.xe80_tclcw_loose) { 
+    float met_x2 = std::pow(met.etx - met.muon_etx,2); 
+    float met_y2 = std::pow(met.ety - met.muon_ety,2); 
+    if (tr.EF_xe80_tclcw_tight || 
+	tr.EF_xe80T_tclcw_loose || 
+	tr.EF_xe80_tclcw_loose) { 
       if (met_x2 + met_y2 > threshold2) { 
 	return true; 
       }
