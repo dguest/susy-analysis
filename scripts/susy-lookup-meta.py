@@ -61,6 +61,8 @@ def _add_build_parser(subs):
                         help='generate fresh data list')
     parser.add_argument('--muons', action='store_true', 
                         help='generate fresh data list')
+    parser.add_argument('--egamma', action='store_true', 
+                        help='generate fresh data list')
     parser.add_argument('--variations', action='store_true')
     parser.add_argument('--stop', action='store_true')
     parser.add_argument('--scharm', action='store_true')
@@ -144,6 +146,8 @@ def build(args):
         build_jets_file(args.steering_file)
     if args.muons: 
         build_muon_file(args.steering_file)
+    if args.egamma: 
+        build_egamma_file(args.steering_file)
     if args.variations: 
         build_variations_file(args.steering_file)
     if args.scharm: 
@@ -261,7 +265,7 @@ def build_scharm_file(name):
 def build_variations_file(name): 
     from scharm.lookup.ami import AmiAugmenter
     from scharm.runtypes import variations
-    aug = AmiAugmenter('p1328', 'mc12_8TeV')
+    aug = AmiAugmenter('p1512', 'mc12_8TeV')
     aug.bugstream = TemporaryFile()
     ds_cache = DatasetCache(name)
     for phys_type, ids in variations.iteritems(): 
@@ -272,7 +276,7 @@ def build_variations_file(name):
 
 def build_jets_file(name): 
     from scharm.lookup.ami import AmiAugmenter
-    aug = AmiAugmenter('p1329', origin='data12_8TeV')
+    aug = AmiAugmenter('p1512', origin='data12_8TeV')
     aug.bugstream = TemporaryFile()
     with DatasetCache(name) as ds_cache: 
         new_meta = aug.get_datasets_year(stream='physics_JetTauEtmiss')
@@ -282,13 +286,24 @@ def build_jets_file(name):
 
 def build_muon_file(name): 
     from scharm.lookup.ami import AmiAugmenter
-    aug = AmiAugmenter('p1329', origin='data12_8TeV')
+    aug = AmiAugmenter('p1512', origin='data12_8TeV')
     aug.bugstream = TemporaryFile()
     with DatasetCache(name) as ds_cache: 
         mu_meta = aug.get_datasets_year(stream='physics_Muons')
         ds_cache.update(mu_meta)
 
     dumpbugs(aug, 'muon-bugs.log')
+
+def build_egamma_file(name): 
+    from scharm.lookup.ami import AmiAugmenter
+    aug = AmiAugmenter('p1512', origin='data12_8TeV')
+    aug.bugstream = TemporaryFile()
+    with DatasetCache(name) as ds_cache: 
+        meta = aug.get_datasets_year(stream='physics_Egamma')
+        ds_cache.update(meta)
+
+    dumpbugs(aug, 'egamma-bugs.log')
+
 
 if __name__ == '__main__': 
    run()
