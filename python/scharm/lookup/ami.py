@@ -2,6 +2,7 @@ from pyAMI import query
 from pyAMI.client import AMIClient
 from pyAMI.auth import AMI_CONFIG, create_auth_config
 import os, sys, re
+from collections import defaultdict
 from scharm import meta, bullshit
 
 def _filter_stream_type_tag(match_sets, stream, ntup_filter, p_tag): 
@@ -53,18 +54,6 @@ def _get_expected_counts(client, ds):
 def _ldn(ddict): 
     return ddict['logicalDatasetName']
 
-def _largest_fullsim_number(*datasets): 
-    fullsim_finder = re.compile('(_r([0-9])+)+')
-    largest = None
-    largest_number = 0
-    for ds in filter(None, datasets): 
-        ldn = _ldn(ds)
-        fullsim_number = int(fullsim_finder.search(ldn).group(2))
-        if fullsim_number > largest_number: 
-            largest = ds
-            largest_number = fullsim_number
-    return largest
-
 class AmiAugmenter(object): 
     """
     Class to wrap ami augmentation. 
@@ -86,15 +75,26 @@ class AmiAugmenter(object):
         self.client.read_config(AMI_CONFIG)
 
     def get_dataset_range(self, ds_range, physics_type=None): 
-        datasets = []
+        ds_dict = {}
         for num in ds_range: 
             self.outstream.write('looking up {}, category {}\n'.format(
                     num, physics_type))
-            ds = self.ds_from_id(num)
-            if physics_type: 
-                ds.physics_type = physics_type
-            datasets.append(ds)
-        ds_dict = {ds.key: ds for ds in datasets}
+            for ds in self.ds_from_id(num): 
+                if physics_type: 
+                    ds.physics_type = physics_type
+
+                if ds.key in ds_dict: 
+                    old = ds_dict[ds.key]
+                    largest_ds = _filter_for_largest_tags(ds, old)
+                    if len(largest_ds) == 1: 
+                        ds_dict[ds.key] = largest_ds[0]
+                    else: 
+                        raise DatasetOverwriteError(
+                            "tried to overwrite {}, {} with {}".format(
+                                ds.key, ds.full_name, 
+                                ds_dict[ds.key].full_name))
+                else: 
+                    ds_dict[ds.key] = ds
         return ds_dict
 
     def ds_from_id(self, ds_id, stream=None): 
@@ -116,57 +116,19 @@ class AmiAugmenter(object):
             ntup_filter=self.ntup_filter, 
             p_tag=self.p_tag)
 
-        match_sets = self._atlfast_filter(match_sets)
-                
         if len(match_sets) == 0:
             raise DatasetMatchError('problem matching {} with {}'.format(
                     args.items(), self.p_tag), match_sets)
 
-        # TODO: look into how to call update_ds here to remove duplicate code
-        ldn = match_sets[0]['logicalDatasetName']
-        info = query.get_dataset_info(self.client, ldn)
-        ds = meta.Dataset()
-        ds.origin = self.origin
-        ds.id = int(ds_id)
-        ds.name = ldn.split('.')[2]
-        ds.full_name = ldn
-        self._write_ami_info(ds, info)
-        if not ds.is_data: 
-            self._write_mc_ami_info(ds, info)
-            ds.physics_type = 'data'
-        return ds
-
-    def _atlfast_filter(self, match_sets, fullsim_tolerance=1.2): 
-        if len(match_sets) == 1: 
-            return match_sets
-        atlfast_ds = None
-        fullsim_ds = None
-        for m in match_sets: 
-            ldn = _ldn(m)
-            if self.atlfinder.search(_ldn(m)): 
-                if atlfast_ds: 
-                    raise DatasetMatchError('at least two atlfast', 
-                                            [atlfast_ds,m])
-                atlfast_ds = m
-            else: 
-                fullsim_ds = _largest_fullsim_number(fullsim_ds, m)
-
-        # if only one or the other exists, use that
-        if atlfast_ds and not fullsim_ds: 
-            return [atlfast_ds]
-        elif fullsim_ds and not atlfast_ds: 
-            return [fullsim_ds]
-
-        # otherwise we need to figure out which has more stats
-        
-        atlfast_counts = _get_expected_counts(self.client, atlfast_ds)
-        fullsim_counts = _get_expected_counts(self.client, fullsim_ds)
-
-        if atlfast_counts < fullsim_counts * fullsim_tolerance: 
-            return [fullsim_ds]
-        else: 
-            return [atlfast_ds]
-            
+        for match in match_sets: 
+            ldn = match['logicalDatasetName']
+            info = query.get_dataset_info(self.client, ldn)
+            ds = meta.Dataset(ldn)
+            self._write_ami_info(ds, info)
+            if not ds.is_data: 
+                self._write_mc_ami_info(ds, info)
+                ds.physics_type = 'data'
+            yield ds
 
     def update_ds(self, ds, overwrite=True): 
         if ds.is_data: 
@@ -233,7 +195,7 @@ class AmiAugmenter(object):
             self.outstream.write(
                 'looking for {} of {} {}...'.format(run_n, n_runs, run))
             try: 
-                ds = self.ds_from_id(run, stream)
+                ds = next(iter(self.ds_from_id(run, stream)))
             except DatasetMatchError as err: 
                 if err.matches: 
                     raise
@@ -355,7 +317,7 @@ class McStatsLookup(object):
                                             [atlfast_ds,m])
                 atlfast_ds = m
             else: 
-                fullsim_ds = _largest_fullsim_number(fullsim_ds, m)
+                fullsim_ds = _largest_fullsim_filter(fullsim_ds, m)[0]
 
         atlfast_counts = _get_expected_counts(self.client, atlfast_ds)
         fullsim_counts = _get_expected_counts(self.client, fullsim_ds)
@@ -363,6 +325,38 @@ class McStatsLookup(object):
         ful = (_ldn(fullsim_ds), fullsim_counts) if fullsim_ds else None
         return  atl, ful
 
+# ===== filtering functions ======
+# for when I don't know what ds to take...
+def _largest_s_tag_filter(*datasets): 
+    stag_finder = re.compile('_s([0-9]+)')
+    stags = defaultdict(list)
+    def get_stag(ds): 
+        return int(stag_finder.search(ds.full_name).group(1))
+    for ds in datasets: 
+        stags[get_stag(ds)].append(ds)
+    return sorted(stags.iteritems(), reverse=True)[0][1]
+
+def _largest_fullsim_filter(*datasets): 
+    fullsim_finder = re.compile('(_r([0-9])+)+')
+    largest = []
+    largest_number = 0
+    for ds in filter(None, datasets): 
+        ldn = ds.full_name
+        fullsim_number = int(fullsim_finder.search(ldn).group(2))
+        if fullsim_number > largest_number: 
+            largest = [ds]
+            largest_number = fullsim_number
+        elif fullsim_number == largest_number: 
+            largest.append(ds)
+    return largest
+
+def _filter_for_largest_tags(*datasets): 
+    ds_list = datasets
+    filters = [_largest_s_tag_filter, _largest_s_tag_filter]
+    for filt in filters: 
+        ds_list = filt(*ds_list)
+    return ds_list
+    
 
 class DatasetMatchError(ValueError): 
     def __init__(self, info, matches=[]): 
@@ -384,6 +378,9 @@ class DatasetMatchError(ValueError):
             problem += ('none')
         return problem
 
+class DatasetOverwriteError(ValueError): 
+    def __init__(self, what): 
+        super(DatasetOverwriteError, self).__init__(what)
 
 # ====================== convenience functions ======================
 
