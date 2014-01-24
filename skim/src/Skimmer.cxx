@@ -117,13 +117,13 @@ namespace {
     if (buf.mu18_tight_mu8_EFFS || buf.mu24i_tight || buf.mu36_tight) { 
       return true; 
     }
+    constexpr float threshold2 = std::pow(skim::MET_REQUIREMENT,2); 
+    float met_x2 = std::pow(buf.met_etx - buf.met_muon_etx,2); 
+    float met_y2 = std::pow(buf.met_ety - buf.met_muon_ety,2); 
     if (buf.xe80_tclcw_tight || 
 	buf.xe80T_tclcw_loose || 
 	buf.xe80_tclcw_loose) { 
-      float mx2 = std::pow(buf.met_etx - buf.met_muon_etx,2); 
-      float my2 = std::pow(buf.met_ety - buf.met_muon_ety,2); 
-      constexpr float th2 = std::pow(skim::MET_REQUIREMENT,2); 
-      if (mx2 + my2 > th2) { 
+      if (met_x2 + met_y2 > threshold2) { 
 	return true; 
       }
     }
