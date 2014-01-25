@@ -15,7 +15,7 @@ def _filter_by_ldn(match_sets, *strings):
                 filtered.append(ds)
         if not filtered: 
             raise DatasetMatchError(
-                '{} removed all matches'.format(string), match_sets)
+                '{} in LDN removed all matches'.format(string), match_sets)
         match_sets = filtered
 
     return match_sets
@@ -91,12 +91,8 @@ class AmiAugmenter(object):
         match_sets = _filter_by_ldn(
             match_sets, stream, self.ntup_filter, self.p_tag)
 
-        if len(match_sets) == 0:
-            raise DatasetMatchError('problem matching {} with {}'.format(
-                    args.items(), self.p_tag), match_sets)
-
         for match in match_sets: 
-            ldn = match['logicalDatasetName']
+            ldn = _ldn(match)
             info = query.get_dataset_info(self.client, ldn)
             ds = meta.Dataset(ldn)
             self._write_ami_info(ds, info)
@@ -173,7 +169,9 @@ class AmiAugmenter(object):
                 ds = next(iter(self.ds_from_id(run, stream)))
             except DatasetMatchError as err: 
                 if err.matches: 
-                    raise
+                    self.outstream.write('none in stream\n')
+                    self.bugstream.write(str(err) + '\n')
+                    continue
                 else: 
                     self.outstream.write('nothing\n')
                     self.bugstream.write(str(err) + '\n')
@@ -309,7 +307,7 @@ def _largest_s_tag_filter(*datasets):
     return sorted(stags.iteritems(), reverse=True)[0][1]
 
 def _largest_fullsim_filter(*datasets): 
-    fullsim_finder = re.compile('(_r([0-9])+)+')
+    fullsim_finder = re.compile('(_r([0-9]+))+')
     largest = []
     largest_number = 0
     for ds in filter(None, datasets): 
@@ -346,8 +344,6 @@ class DatasetMatchError(ValueError):
             except TypeError: 
                 st = str(match)
             problem += ('\n\t' + st)
-        if len(self.matches) == 0: 
-            problem += ('none')
         return problem
 
 class DatasetOverwriteError(ValueError): 

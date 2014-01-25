@@ -16,7 +16,7 @@ class Dataset(object):
     """
     Container for dataset info. 
     """
-    atlfinder = re.compile('(_a([0-9])+)+')
+    atlfinder = re.compile('(_a([0-9]+))+')
     merge_required_match = [
         'origin','id','name','tags','kfactor','filteff', 
         'n_expected_entries', 'physics_type', 'total_subsets', 
