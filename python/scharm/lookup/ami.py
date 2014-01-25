@@ -5,41 +5,19 @@ import os, sys, re
 from collections import defaultdict
 from scharm import meta, bullshit
 
-def _filter_stream_type_tag(match_sets, stream, ntup_filter, p_tag): 
-    if len(match_sets) > 1: 
-        type_filtered = []
-        for m in match_sets: 
-            if not stream or stream in m['logicalDatasetName']:
-                type_filtered.append(m)
-        if not type_filtered: 
+def _filter_by_ldn(match_sets, *strings): 
+    for string in strings: 
+        filtered = []
+        if len(match_sets) == 1: 
+            return match_sets
+        for ds in match_sets: 
+            if string in ds['logicalDatasetName']:
+                filtered.append(ds)
+        if not filtered: 
             raise DatasetMatchError(
-                'stream filter {} removed all with {}'.format(
-                    stream, ntup_filter))
-        match_sets = type_filtered
+                '{} removed all matches'.format(string), match_sets)
+        match_sets = filtered
 
-    if len(match_sets) > 1: 
-        type_filtered = []
-        for m in match_sets: 
-            ldn = _ldn(m)
-            if ntup_filter in ldn: 
-                type_filtered.append(m)
-        if not type_filtered: 
-            raise DatasetMatchError(
-                'type filter removed all {} with {}'.format(
-                    match_sets, ntup_filter))
-        
-        match_sets = type_filtered
-
-    if len(match_sets) > 1: 
-        tagged_matches = []
-        for m in match_sets: 
-            if p_tag in m['logicalDatasetName']: 
-                tagged_matches.append(m)
-        if not tagged_matches: 
-            raise DatasetMatchError(
-                'p filter removed all {} with {}'.format(
-                    match_sets, p_tag))
-        match_sets = tagged_matches
     return match_sets
 
 def _get_expected_counts(client, ds): 
@@ -107,14 +85,11 @@ class AmiAugmenter(object):
         match_sets = query.get_datasets(self.client,qstr, **args)
 
         if not match_sets: 
-            raise DatasetMatchError('found nothing with {}'.format(
-                    args.items()), match_sets)
+            raise DatasetMatchError('found nothing with {}'.format(qstr), 
+                                    match_sets)
         
-        match_sets = _filter_stream_type_tag(
-            match_sets, 
-            stream=stream, 
-            ntup_filter=self.ntup_filter, 
-            p_tag=self.p_tag)
+        match_sets = _filter_by_ldn(
+            match_sets, stream, self.ntup_filter, self.p_tag)
 
         if len(match_sets) == 0:
             raise DatasetMatchError('problem matching {} with {}'.format(
@@ -301,11 +276,8 @@ class McStatsLookup(object):
             raise DatasetMatchError('found nothing with {}'.format(
                     args.items()), match_sets)
 
-        match_sets = _filter_stream_type_tag(
-            match_sets, 
-            stream=stream, 
-            ntup_filter=self.ntup_filter, 
-            p_tag=self.p_tag)
+        match_sets = _filter_by_ldn(
+            match_sets, stream, self.ntup_filter, self.p_tag)
 
         atlfast_ds = None
         fullsim_ds = None
