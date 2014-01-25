@@ -44,7 +44,6 @@ class AmiAugmenter(object):
         self._setup_ami_client()
         self.outstream = sys.stdout
         self.bugstream = sys.stderr
-        self.atlfinder = re.compile('(_a([0-9])+)+')
 
     def _setup_ami_client(self): 
         self.client = AMIClient()
