@@ -142,6 +142,24 @@ namespace {
       puts(itr.c_str()); 
     }
   }
+  bool hasWillsTriggers(const Triggers& tr, const Met& met) { 
+    if (
+      tr.EF_xe80T_tclcw_loose ||
+      tr.EF_xe80_tclcw_loose || 
+      tr.EF_xe80T_tclcw || 	
+      tr.EF_xe80_tclcw_tight || 
+      tr.EF_e24vhi_medium1 || 
+      tr.EF_2e12Tvh_loose1 || 
+      tr.EF_mu18_tight_mu8_EFFS || 
+      tr.EF_mu24i_tight || 
+      tr.EF_e60_medium1 ||
+      tr.EF_mu36_tight ||
+      false) { 	// false here just to make above lines consistent 
+      return true; 
+    }
+    return false; 
+  }
+
 }
 
 SummaryParameters::SummaryParameters(bool has_mc) : 
