@@ -16,6 +16,7 @@ struct Triggers {
   bool EF_xe80_tclcw_tight; 	// from stop -> charm search (not sure why..)
   bool EF_xe80T_tclcw_loose; 	// missing the first few bunch trains
   bool EF_xe80_tclcw_loose; 	// missing in the beginning of year
+  bool EF_xe80T_tclcw; // not sure if we need this
 
   bool EF_e24vhi_medium1; 
   bool EF_e60_medium1; 

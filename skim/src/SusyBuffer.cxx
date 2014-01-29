@@ -107,6 +107,7 @@ void SusyBuffer::setTriggerBranches(TChain& chain) {
   }
   set(chain, "EF_xe80T_tclcw_loose",   &tr.EF_xe80T_tclcw_loose, true); 
   set(chain, "EF_xe80_tclcw_tight",    &tr.EF_xe80_tclcw_tight, true); 
+  set(chain, "EF_xe80T_tclcw",         &tr.EF_xe80T_tclcw, true); 
 
   set(chain, "EF_e24vhi_medium1", &tr.EF_e24vhi_medium1, true); 
   set(chain, "EF_e60_medium1"   , &tr.EF_e60_medium1, true);    

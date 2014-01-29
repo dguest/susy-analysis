@@ -146,7 +146,7 @@ namespace {
     if (
       tr.EF_xe80T_tclcw_loose ||
       tr.EF_xe80_tclcw_loose || 
-      tr.EF_xe80T_tclcw || 	
+      tr.EF_xe80T_tclcw || // not sure if needed
       tr.EF_xe80_tclcw_tight || 
       tr.EF_e24vhi_medium1 || 
       tr.EF_2e12Tvh_loose1 || 
