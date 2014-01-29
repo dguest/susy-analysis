@@ -16,14 +16,16 @@
 namespace { 
   bool hasTriggerRequirements(const Triggers&, const Met&); 
   void dumpMissing(const SusyBuffer& buffer); 
+  bool entriesInTree(const std::string& file, const std::string& = ""); 
 }
 
 Skimmer::Skimmer(const std::vector<std::string>& vars): 
   m_chain(0), 
   m_variables(vars), 
-  m_skimmed_var_prefix("skimmed_")
+  m_skimmed_var_prefix("skimmed_"), 
+  m_chain_name("susy")
 { 
-  m_chain = new TChain("susy","susy"); 
+  m_chain = new TChain(m_chain_name.c_str(), m_chain_name.c_str()); 
 }
 
 Skimmer::~Skimmer() { 
@@ -33,8 +35,9 @@ Skimmer::~Skimmer() {
 
 void Skimmer::addFile(const std::string& file_name) 
 { 
-  if (!isGoodFile(file_name)) { 
-    throw std::runtime_error("bad file: " + file_name); 
+  if (!entriesInTree(file_name, m_chain_name)) { 
+    printf("empty tree in %s, skipping...", file_name.c_str()); 
+    return; 
   }
   m_chain->Add(file_name.c_str(), -1); 
 }
@@ -49,21 +52,17 @@ void Skimmer::makeSkim(const std::string& out_file_name) {
   // this block to shut root up before running the copy 
   int old_error_level = gErrorIgnoreLevel; 
   // gErrorIgnoreLevel = kFatal; 
-  copyVariablesTo(out_tree, &output_file); 
+  if (m_chain->GetEntries() == 0) { 
+    puts("chain is empty, nothing to skim"); 
+  } else { 
+    copyVariablesTo(out_tree, &output_file); 
+  }
   gErrorIgnoreLevel = old_error_level; 
 
   out_tree->Write(); 
 }
 
 // ----- private ----
-
-bool Skimmer::isGoodFile(const std::string& file_name) { 
-  std::unique_ptr<TFile> file(TFile::Open(file_name.c_str())); 
-  if (!file->IsOpen() || file->IsZombie()) { 
-    return false; 
-  }
-  return true; 
-}
 
 const char* Skimmer::pfx(const std::string& word) { 
   return (m_skimmed_var_prefix + word).c_str(); 
@@ -113,6 +112,22 @@ void Skimmer::copyVariablesTo(TTree* output_tree, TFile* file) {
 }
 
 namespace { 
+  bool entriesInTree(const std::string& fname, const std::string& tree) { 
+    std::unique_ptr<TFile> file(TFile::Open(fname.c_str())); 
+    if (!file->IsOpen() || file->IsZombie()) { 
+      throw std::runtime_error("bad file: " + fname); 
+    }
+    if (tree.size() > 0) { 
+      TTree* the_tree = dynamic_cast<TTree*>(file->Get(tree.c_str())); 
+      if (!the_tree) { 
+	throw std::runtime_error("missing tree " + tree + " in " + fname); 
+      } else if (the_tree->GetEntries() == 0) { 
+	return false; 
+      }
+    }
+    return true; 
+  }
+
   bool hasTriggerRequirements(const Triggers& tr, const Met& met) { 
     if (tr.EF_mu18_tight_mu8_EFFS || 
 	tr.EF_mu24i_tight || 

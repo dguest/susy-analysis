@@ -36,6 +36,7 @@ private:
   TChain* m_chain; 
   std::vector<std::string> m_variables; 
   std::string m_skimmed_var_prefix; 
+  std::string m_chain_name; 
 }; 
 
 
