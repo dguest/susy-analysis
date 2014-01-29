@@ -1,14 +1,22 @@
 from os.path import isfile
-import os
+import os, re
 import cPickle
 import yaml
 import copy
 from warnings import warn
 
+# 's' is for fullsim, 'a' for atlfast
+stream_schema = { 
+    'm':'Muon', 
+    'e':'Egamma', 
+    'j':'JetTauEtmiss'
+}
+
 class Dataset(object): 
     """
     Container for dataset info. 
     """
+    atlfinder = re.compile('(_a([0-9]+))+')
     merge_required_match = [
         'origin','id','name','tags','kfactor','filteff', 
         'n_expected_entries', 'physics_type', 'total_subsets', 
@@ -17,11 +25,19 @@ class Dataset(object):
         'total_xsec_fb', 'full_name', 
         ]
     
-    def __init__(self): 
+    def __init__(self, full_name=''): 
         self.origin = ''
         self.id = 0
         self.name = ''
         self.tags = ''
+        self.full_name = full_name
+        if full_name: 
+            origin, dsid, name, pstp, fmt, tags = full_name.split('.')
+            self.origin = origin
+            self.id = int(dsid)
+            self.name = name
+            self.tags = tags.strip('/')
+
         self.kfactor = 0
         self.filteff = 0
 
@@ -32,10 +48,11 @@ class Dataset(object):
 
         self.physics_type = ''
         self.meta_sources = set()
-        self.full_name = ''
 
         self.n_corrupted_files = 0
         self.overlap = {}
+
+        self._cached_key = None
 
         # --- DEPRECATED ---
         self._bugs = set()
@@ -176,6 +193,7 @@ class Dataset(object):
                 key == 'full_unchecked_name', 
                 self.full_name and key in build_from_full_name, 
                 key in ['subset_index','total_subsets'], 
+                key.startswith('_'), 
                 ]
             if any(skip_conditions): 
                 continue
@@ -204,31 +222,36 @@ class Dataset(object):
 
     @property
     def key(self): 
-        return self._key()
+        if not self._cached_key:
+            self._cached_key = self._key()
+        return self._cached_key
     @property 
     def mergekey(self): 
         warn("trying to remove merging of dataset meta", FutureWarning, 
              stacklevel=2)
         return self._key(merge=True)
 
+    def _get_char(self): 
+        if self.origin.startswith('mc'): 
+            if self.atlfinder.search(self.tags): 
+                return 'a'
+            return 's'
+        elif self.origin.startswith('data'): 
+            char = 'd'
+            for ch, stream in stream_schema.items(): 
+                if stream in self.name: 
+                    return ch
+            warn('not sure which stream {} comes from'.format(self.id))
+            return 'd'
+        else: 
+            warn("not sure if ds with id {} is mc or data".format(self.id))
+            return 'q'
+
     def _key(self, merge=False): 
         """
         should be used to identify datasets in the dict
         """
-        if self.origin.startswith('mc'): 
-            char = 's'
-        elif self.origin.startswith('data'): 
-            if 'Muon' in self.name: 
-                char = 'm'
-            elif 'JetTauEtmiss' in self.name: 
-                char = 'd'
-            else: 
-                warn('not sure which stream {} comes from'
-                     ' assume jet'.format(self.id))
-                char = 'd'
-        else: 
-            warn("not sure if ds with id {} is mc or data".format(self.id))
-            char = 'q'
+        char = self._get_char()
         ds_id = self.id
         if isinstance(ds_id, str): 
             ds_id = ds_id[0].upper() + ds_id[1:]
