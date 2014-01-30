@@ -21,7 +21,7 @@ vpath %Dict.cxx $(DICT)
 ROOTCFLAGS    := $(shell root-config --cflags)
 ROOTLIBS      := $(shell root-config --libs)
 ROOTLDFLAGS   := $(shell root-config --ldflags)
-# ROOTLIBS      += -lTreePlayer   #don't know why this isn't loaded by default
+ROOTLIBS      += -lTreePlayer   #required to read trees properly (?)
 # ROOTLIBS      += -lTMVA         #don't know why this isn't loaded by default
 # ROOTLIBS      += -lXMLParser    #don't know why this isn't loaded by default
 # ROOTLIBS      += -lEG           #for TParticle

@@ -14,5 +14,10 @@ public:
   MissingBranchError(const std::string&); 
 }; 
 
+class TolerableDataError: public std::runtime_error
+{
+public: 
+  TolerableDataError(const std::string&); 
+}; 
 
 #endif

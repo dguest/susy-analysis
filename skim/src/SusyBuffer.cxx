@@ -11,6 +11,8 @@
 
 namespace {
   ITreeBranch* getBranchBuffer(TChain&, const std::string& name); 
+  // warning: works by setting the status of all trigger branches to 0
+  bool allTriggersMising(TChain&); 
 }
 
 SusyBuffer::SusyBuffer(TChain& chain, 
@@ -19,6 +21,12 @@ SusyBuffer::SusyBuffer(TChain& chain,
   m_has_mc(true), 
   m_has_xe80_tclcw_tight(true)
 { 
+  if (chain.GetEntries() == 0) { 
+    throw TolerableDataError("chain is empty, nothing to skim"); 
+  }
+  if (allTriggersMising(chain)) { 
+    throw TolerableDataError("all triggers missing from chain"); 
+  }
   setMcBranches(chain); 
   setTriggerBranches(chain); 
 
@@ -161,7 +169,22 @@ namespace {
     return 0; 
   }
 
+  bool allTriggersMising(TChain& chain) { 
+    unsigned int total_found = 0; 
+    for (auto itr: {"EF_xe80*", "EF_mu*", "EF_el*"} ) { 
 
+      // this line doesn't make any sense, but somehow it makes 
+      // the SetBranchStatus call below do what it's supposed to. 
+      // No idea why this works. 
+      chain.GetBranch(itr); 
+
+      unsigned int found = 0; 
+      chain.SetBranchStatus(itr, 0, &found); 
+      if (found) return false; 
+      total_found += found; 
+    }
+    return true; 
+  }
 }
 
 

@@ -2,6 +2,7 @@
 #include "SusyBuffer.hh"
 #include "boson_truth_tools.hh"
 #include "constants_skim.hh"
+#include "misc_func.hh" // TolerableDataError
 
 #include "TChain.h"
 #include "TFile.h"
@@ -52,10 +53,10 @@ void Skimmer::makeSkim(const std::string& out_file_name) {
   // this block to shut root up before running the copy 
   int old_error_level = gErrorIgnoreLevel; 
   // gErrorIgnoreLevel = kFatal; 
-  if (m_chain->GetEntries() == 0) { 
-    puts("chain is empty, nothing to skim"); 
-  } else { 
+  try { 
     copyVariablesTo(out_tree, &output_file); 
+  } catch (TolerableDataError& err) { 
+    printf("Tolerable error: %s\n",err.what()); 
   }
   gErrorIgnoreLevel = old_error_level; 
 
@@ -114,6 +115,7 @@ void Skimmer::copyVariablesTo(TTree* output_tree, TFile* file) {
 namespace { 
   bool entriesInTree(const std::string& fname, const std::string& tree) { 
     std::unique_ptr<TFile> file(TFile::Open(fname.c_str())); 
+    if (!file) throw std::runtime_error("no file: " + fname);
     if (!file->IsOpen() || file->IsZombie()) { 
       throw std::runtime_error("bad file: " + fname); 
     }
