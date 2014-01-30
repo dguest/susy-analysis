@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3.3
 """
 Top level for routines to draw excluded contour. Cuts used are defined in 
 yaml_cuts. To make fancy names for regions, use the 'fancy_name' key. 
@@ -15,14 +15,13 @@ import numpy as np
 import bisect
 from os.path import dirname
 
-from stop.bullshit import make_dir_if_none
-from stop.style import vdict, hdict
+from scharm3.bullshit import make_dir_if_none
+from scharm3.style import vdict, hdict
 
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigCanvas
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from stop.style import vdict
 from scipy.interpolate import LinearNDInterpolator
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
@@ -62,10 +61,10 @@ def _get_part_mstop_mlsp(string):
 def _value_from_plane(plane, sr_cuts): 
     extents = plane.attrs['extent']
     ax_names = plane.attrs['ax_names']
-    ext_chunks = [extents[i:i+2] for i in xrange(0, len(extents), 2)]
+    ext_chunks = [extents[i:i+2] for i in range(0, len(extents), 2)]
     index = []
     for name, extent, n_bins in zip(ax_names, ext_chunks, plane.shape): 
-        cut_val = sr_cuts[name]
+        cut_val = sr_cuts[name.decode()]
         index.append(_bin_from_cut(cut_val, extent, n_bins))
     return plane[tuple(index)]
 
@@ -93,7 +92,7 @@ def run():
         sr_name = signal_region['region_key']
         sp_group = hdf[sr_name]
         stop_lsp_ul = []
-        for sp_name, plane in sp_group.iteritems(): 
+        for sp_name, plane in sp_group.items(): 
             part, mstop, mlsp = _get_part_mstop_mlsp(sp_name)
             upper_limit = _value_from_plane(plane, signal_region)
             stop_lsp_ul.append( (mstop, mlsp, upper_limit) )
