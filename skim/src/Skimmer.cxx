@@ -36,7 +36,7 @@ Skimmer::~Skimmer() {
 void Skimmer::addFile(const std::string& file_name) 
 { 
   if (!entriesInTree(file_name, m_chain_name)) { 
-    printf("empty tree in %s, skipping...", file_name.c_str()); 
+    printf("empty tree in %s, skipping...\n", file_name.c_str()); 
     return; 
   }
   m_chain->Add(file_name.c_str(), -1); 
@@ -46,7 +46,7 @@ void Skimmer::makeSkim(const std::string& out_file_name) {
 
   TFile output_file(out_file_name.c_str(), "recreate"); 
   TTree* out_tree = new TTree("susy","susy"); 
-  printf("computing varaibles\n"); 
+  printf("making skim %s\n", out_file_name.c_str()); 
   output_file.cd(); 
 
   // this block to shut root up before running the copy 
