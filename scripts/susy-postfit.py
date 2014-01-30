@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3.3
 
 """
 Top level for post-fit routines. At the moment not sure if this includes 
@@ -10,10 +10,10 @@ import time
 import sys, os
 import yaml
 import itertools
-from stop.postfit import split_to_planes, numpy_plane_from_dict
+from scharm3.postfit import split_to_planes, numpy_plane_from_dict
 import h5py
 import numpy as np
-from stop.bullshit import FlatProgressMeter
+from scharm3.bullshit import FlatProgressMeter
 
 def _load_plotters(): 
     from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
@@ -91,7 +91,7 @@ def _aggregate(config):
         save_h5(all_points, config.output_file)
 
 def _yml_parser(args): 
-    print 'loading yaml file (slow)'
+    print('loading yaml file (slow)')
     with open(args.yaml_file) as yml: 
         point_list = yaml.load(yml)
     if not args.out_file: 
@@ -124,8 +124,8 @@ def _plot(args):
     """
     hdf = h5py.File(args.hdf_file)
     ranges = {}
-    for config, sp_group in hdf.iteritems(): 
-        for sp, dataset in sp_group.iteritems(): 
+    for config, sp_group in hdf.items(): 
+        for sp, dataset in sp_group.items(): 
             array = np.array(dataset)
             extents = dataset.attrs['extent']
             ax_names = dataset.attrs['ax_names']
@@ -138,7 +138,7 @@ def _plot(args):
             if not os.path.isdir(args.out_dir): 
                 os.mkdir(args.out_dir)
             out_path = os.path.join(args.out_dir, out_file_name)
-            print 'plotting {}'.format(out_path)
+            print('plotting {}'.format(out_path))
             _draw_plot(array, extents, (config, sp), ax_names=ax_names, 
                        out_path=out_path, cb_range=ranges.get(sp,None))
             
@@ -160,7 +160,7 @@ def _plot_sum_fom(args):
     """
     fom_func = _fom_funcs[args.fom]
     hdf = h5py.File(args.hdf_file)
-    base_ds = next(next(hdf.itervalues()).itervalues())
+    base_ds = next(iter(next(iter(hdf.values())).values()))
     extents = base_ds.attrs['extent']
     ax_names = base_ds.attrs['ax_names']
     max_points = []
@@ -168,9 +168,9 @@ def _plot_sum_fom(args):
     if args.exclude_pts: 
         with open(args.exclude_pts) as pts_file: 
             ex_pts = set(p.strip() for p in pts_file.readlines())
-    for config, sp_group in hdf.iteritems(): 
+    for config, sp_group in hdf.items(): 
         counts_array = np.zeros(base_ds.shape)
-        for sp, dataset in sp_group.iteritems(): 
+        for sp, dataset in sp_group.items(): 
             if sp in ex_pts: 
                 continue
             array = np.array(dataset)
@@ -195,7 +195,7 @@ def _plot_sum_fom(args):
 
 def _get_maxval(array, extents, ax_names): 
     max_bin = np.unravel_index(np.argmax(array),array.shape)
-    extent_chunks = [extents[i:i+2] for i in xrange(0,len(extents),2)]
+    extent_chunks = [extents[i:i+2] for i in range(0,len(extents),2)]
     best_cuts = {}
     ax_info = zip(max_bin, array.shape, extent_chunks, ax_names)
     for bindex, bins, extent, name in ax_info: 
