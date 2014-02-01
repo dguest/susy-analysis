@@ -1,5 +1,4 @@
 #include "CheckSize.hh"
-#include <boost/format.hpp>
 #include <stdexcept>
 
 EventReadError::EventReadError(std::string msg) throw(): 
@@ -7,10 +6,11 @@ EventReadError::EventReadError(std::string msg) throw():
 {
 } 
 
-void CHECK::throw_size(std::string formattable, int expected, int actual){
+void CHECK::throw_size(const std::string& br_name, int expected, int actual){
   if (expected != actual){ 
-    std::string err = (boost::format(formattable) % expected % 
-		       actual).str();	
+    std::string err = "branch " + br_name + " has wrong number of entries,"
+      " expected " + std::to_string(expected) + ", found " + 
+      std::to_string(actual);
     throw EventReadError(err); 
   }
 }

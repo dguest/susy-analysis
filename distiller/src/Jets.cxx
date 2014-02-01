@@ -11,8 +11,8 @@
 
 #include <cassert> 
 #include <stdexcept>
-#include <boost/format.hpp>
 #include <csignal>
+#include <string>
 
 namespace {
   bool has_min_pt(int iJet, const SusyBuffer& buffer, float pt); 
@@ -137,8 +137,8 @@ void SelectedJet::set_flavor_tag(const BtagCalibration* cal){
   case 5: flavor = btag::B; break; 
   case 15: flavor = btag::T; break;
   default: 
-    std::string err = (boost::format("unknown pdgid: %i") % 
-		       m_flavor_truth_label).str(); 
+    std::string err = "unknown pdgid: " + std::to_string(
+      m_flavor_truth_label);
     throw std::runtime_error(err); 
   }
   set_flavor_tag(flavor, btag::CNN_TIGHT, cal); 

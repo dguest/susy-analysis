@@ -4,7 +4,6 @@
 #include <string> 
 #include <vector> 
 #include "typedefs.hh"
-#include <boost/noncopyable.hpp>
 
 class TFile; 
 class TTree; 
@@ -35,9 +34,12 @@ namespace outtree {
     double m_met_phi;
   }; 
 
-  class ScaleFactor : public boost::noncopyable
+  class ScaleFactor 
   {
   public:
+    ScaleFactor(); 
+    ScaleFactor(ScaleFactor&) = delete; 
+    ScaleFactor& operator=(ScaleFactor&) = delete; 
     double scale_factor; 
     double scale_factor_err; 
   private: 
@@ -46,9 +48,12 @@ namespace outtree {
     void clear(); 
   }; 
 
-  class SFVector: public boost::noncopyable 
+  class SFVector
   {
   public: 
+    SFVector(); 
+    SFVector(SFVector&) = delete; 
+    SFVector& operator=(SFVector&) = delete; 
     void set_branches(TTree*, std::string prefix, unsigned flags); 
     void fill(const ScaleFactor& ); 
     void clear(); 
@@ -57,9 +62,12 @@ namespace outtree {
     std::vector<double> m_scale_factor_err; 
   }; 
 
-  class Jet : public boost::noncopyable
+  class Jet 
   {
   public: 
+    Jet(); 
+    Jet(Jet&) = delete; 
+    Jet& operator=(Jet&) = delete; 
     double pt; 
     double eta; 
     double phi; 
@@ -87,9 +95,12 @@ namespace outtree {
     void clear(); 
   }; 
 
-  class JetVector: public boost::noncopyable
+  class JetVector
   {
   public: 
+    JetVector(); 
+    JetVector(JetVector&) = delete; 
+    JetVector& operator=(JetVector&) = delete; 
     void set_branches(TTree*, std::string prefix, unsigned flags); 
     void fill(const std::vector<outtree::Jet*>&); 
   private: 
@@ -107,12 +118,14 @@ namespace outtree {
   }; 
 
 
-  class OutTree : public boost::noncopyable
+  class OutTree 
   {
   public: 
     OutTree(std::string file, std::string tree = "evt_tree", 
 	    const unsigned flags = 0, int n_jets = 3); 
     ~OutTree(); 
+    OutTree(OutTree&) = delete; 
+    OutTree operator=(OutTree&) = delete; 
     void fill(); 
     void clear_buffer(); 
   

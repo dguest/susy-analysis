@@ -1,7 +1,6 @@
 #ifndef BTAG_CALIBRATION_HH
 #define BTAG_CALIBRATION_HH
 
-#include <boost/noncopyable.hpp>
 #include <string> 
 #include <map>
 #include "btag_defs.hh"
@@ -21,12 +20,14 @@ struct JetTagFactorInputs {
   btag::Flavor flavor; 
 };
 
-class BtagCalibration : boost::noncopyable 
+class BtagCalibration 
 {
 public: 
   typedef std::pair<double, double> CalResult; 
   BtagCalibration(std::string calibration_file, std::string file_path); 
   ~BtagCalibration(); 
+  BtagCalibration(BtagCalibration&) = delete; 
+  BtagCalibration& operator=(BtagCalibration&) = delete; 
   CalResult applied_factor(const JetTagFactorInputs& jet_tf_inputs,  
 			   btag::OperatingPoint tagger, 
 			   btag::Uncertainty = btag::Total) const; 

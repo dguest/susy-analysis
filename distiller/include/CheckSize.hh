@@ -5,8 +5,7 @@
 #include <stdexcept>
 
 #define CHECK_SIZE(BRANCH, SIZE)\
-  CHECK::throw_size("branch " #BRANCH " has wrong number"		\
-	     " of entries, expected %i, found %i", SIZE, BRANCH->size())
+  CHECK::throw_size(#BRANCH, SIZE, BRANCH->size())
 
 
 class EventReadError : public std::runtime_error
@@ -20,7 +19,7 @@ public:
 }; 
 
 namespace CHECK { 
-  void throw_size(std::string formattable_err, int expected, int actual); 
+  void throw_size(const std::string& br_name, int expected, int actual); 
 }
 
 

@@ -1,6 +1,5 @@
 #ifndef STOP_DISTILLER_HH
 #define STOP_DISTILLER_HH
-#include <boost/noncopyable.hpp>
 #include <vector> 
 #include <string>
 #include "RunInfo.hh"		// could we remove this struct?  
@@ -26,7 +25,7 @@ namespace Root {
   class TPileupReweighting; 
 }
 
-class StopDistiller : public boost::noncopyable
+class StopDistiller
 { 
 public: 
   typedef std::vector<std::pair<std::string, int> > Cutflow; 
@@ -34,6 +33,8 @@ public:
 		const RunInfo& info, unsigned flags, 
 		std::string out); 
   ~StopDistiller(); 
+  StopDistiller(StopDistiller&) = delete;
+  StopDistiller& operator=(StopDistiller&) = delete; 
   Cutflow run_cutflow();
 private: 
   typedef std::vector<SelectedJet*> Jets; 

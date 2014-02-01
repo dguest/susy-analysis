@@ -43,8 +43,6 @@
 #include "SUSYTools/FakeMetEstimator.h"
 #include "PileupReweighting/TPileupReweighting.h"
 
-#include <boost/format.hpp>
-
 
 StopDistiller::StopDistiller(const std::vector<std::string>& in, 
 			     const RunInfo& info, unsigned flags, 
@@ -140,10 +138,8 @@ StopDistiller::Cutflow StopDistiller::run_cutflow() {
       n_error++; 
     }
     catch (std::logic_error& e) { 
-      std::string err_tpl = "logic error in %s, event %i: %s"; 
-      std::string err = (boost::format(err_tpl) % 
-			 m_chain->get_current_file() % 
-			 evt_n % e.what()).str();
+      std::string err = "logic error in " + m_chain->get_current_file() + 
+	", event " + std::to_string(evt_n) + ": " + e.what(); 
       throw std::logic_error(err); 
     }
   }
@@ -548,8 +544,9 @@ float StopDistiller::get_pileup_weight() {
 void StopDistiller::print_progress(int entry_n, std::ostream& stream) { 
   if (m_one_percent) { 
     if (( entry_n % m_one_percent == 0) || entry_n == m_n_entries - 1 ) { 
-      stream << boost::format("\r%i of %i (%.1f%%) processed") % 
-	(entry_n + 1) % m_n_entries % ( (entry_n + 1) / m_one_percent); 
+      std::string msg = "\r" + std::to_string(entry_n + 1) + " of " + 
+	std::to_string(m_n_entries) + 
+	" (" + std::to_string((entry_n + 1) / m_one_percent) + "%) processed";
       stream.flush(); 
     }
   }

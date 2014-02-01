@@ -6,7 +6,6 @@
 #include "TVector2.h"
 
 #include <string> 
-#include <boost/format.hpp>
 
 //_______________________________________________________________
 // OutTree
@@ -93,7 +92,7 @@ namespace outtree {
 
     for (int i = 0; i < n_jets; i++) { 
       jets.push_back(new Jet); 
-      std::string jetname = (boost::format("jet%i_") % i).str(); 
+      std::string jetname = "jet" + std::to_string(i) + "_";
       if (! (flags & cutflag::vector_output)) { 
 	(*jets.rbegin())->set_branches(m_tree, jetname, flags); 
       }
@@ -174,6 +173,9 @@ namespace outtree {
     }
   }
 
+  Jet::Jet() { 
+    
+  }
 
   void Jet::set_branches(TTree* tree, std::string prefix, 
 			 unsigned flags) 
@@ -228,6 +230,8 @@ namespace outtree {
     cnn_loose.clear(); 
   }
 
+  ScaleFactor::ScaleFactor() {}
+
   void ScaleFactor::set_branches(TTree* tree, std::string prefix, 
 				 unsigned flags)
   {
@@ -238,6 +242,8 @@ namespace outtree {
     scale_factor = -1; 
     scale_factor_err = -1; 
   }
+
+  SFVector::SFVector() {}
 
   void SFVector::set_branches(TTree* tree, std::string prefix, 
 			      unsigned flags) { 
@@ -252,6 +258,8 @@ namespace outtree {
     m_scale_factor.clear(); 
     m_scale_factor_err.clear(); 
   }
+
+  JetVector::JetVector() { }
 
   void JetVector::set_branches(TTree* tree, std::string prefix, 
 			       unsigned flags) { 

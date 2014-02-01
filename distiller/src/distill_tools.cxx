@@ -25,9 +25,6 @@
 #include <math.h>
 #include <stdexcept> 
 
-#include <boost/format.hpp>
-#include <boost/scoped_ptr.hpp>
-
 TVector2 get_boson_child_pt(const std::vector<Electron*>& el, 
 			    const std::vector<Muon*>& mu) { 
   const size_t n_muons = mu.size(); 
