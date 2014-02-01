@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.7
 
-from stop.distiller import cutflow
+from scharm.distiller import cutflow
 import sys, glob, os
 
 flags = 'vbgzf'

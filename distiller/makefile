@@ -91,7 +91,7 @@ unit-test: $(EXE_OBJ:%=$(BIN)/%)
 	@$(CXX) -o $@ $^ $(LIBS) $(LDFLAGS)
 
 $(PY_OUT_PATH): $(PYLIB_OBJ:%=$(BIN)/%) $(PY_OBJ:%=$(BIN)/%)
-	@mkdir -p python/susy
+	@mkdir -p $(dirname $@)
 	@echo "linking $^ --> $@"
 	@$(CXX) -o $@ $^ $(LIBS) $(PY_LDFLAGS)
 $(BITDEFS): EventBits.hh
