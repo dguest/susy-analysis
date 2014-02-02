@@ -348,7 +348,8 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   }
 
   // save boson decay products
-  TVector2 boson_decay = get_boson_child_pt(control_electrons, control_muons); 
+  TVector2 boson_decay = get_boson_child_pt(
+    control_electrons, control_muons); 
   if (boson_decay.Mod() > 0.001) { 
     m_out_tree->boson_child_pt = boson_decay.Mod(); 
     m_out_tree->boson_child_phi = boson_decay.Phi(); 

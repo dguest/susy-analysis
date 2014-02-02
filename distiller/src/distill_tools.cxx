@@ -56,25 +56,25 @@ void copy_jet_info(const SelectedJet* in, outtree::Jet& jet)
   jet.pt = in->Pt(); 
   jet.eta = in->Eta(); 
   jet.phi = in->Phi(); 
-  jet.cnn_b = in->flavor_weight(btag::B, btag::CNN); 
-  jet.cnn_c = in->flavor_weight(btag::C, btag::CNN); 
-  jet.cnn_u = in->flavor_weight(btag::U, btag::CNN); 
+  // jet.cnn_b = in->flavor_weight(btag::B, btag::CNN); 
+  // jet.cnn_c = in->flavor_weight(btag::C, btag::CNN); 
+  // jet.cnn_u = in->flavor_weight(btag::U, btag::CNN); 
   jet.jfc_b = in->flavor_weight(btag::B, btag::JFC); 
   jet.jfc_c = in->flavor_weight(btag::C, btag::JFC); 
   jet.jfc_u = in->flavor_weight(btag::U, btag::JFC); 
   if (in->has_truth()) { 
     jet.flavor_truth_label = in->flavor_truth_label(); 
-    copy_scale_factor(in, jet.cnn_tight,  btag::CNN_TIGHT); 
-    copy_scale_factor(in, jet.cnn_medium, btag::CNN_MEDIUM); 
-    copy_scale_factor(in, jet.cnn_loose,  btag::CNN_LOOSE); 
-    copy_scale_factor(in, jet.jfc_tight,  btag::JFC_TIGHT); 
+    // copy_scale_factor(in, jet.cnn_tight,  btag::CNN_TIGHT); 
+    // copy_scale_factor(in, jet.cnn_medium, btag::CNN_MEDIUM); 
+    // copy_scale_factor(in, jet.cnn_loose,  btag::CNN_LOOSE); 
+    // copy_scale_factor(in, jet.jfc_tight,  btag::JFC_TIGHT); 
     copy_scale_factor(in, jet.jfc_medium, btag::JFC_MEDIUM); 
     copy_scale_factor(in, jet.jfc_loose,  btag::JFC_LOOSE); 
   }
-  jet.cnn_log_cu = log( in->flavor_weight(btag::C, btag::CNN) / 
-			in->flavor_weight(btag::U, btag::CNN)); 
-  jet.cnn_log_cb = log( in->flavor_weight(btag::C, btag::CNN) / 
-			in->flavor_weight(btag::B, btag::CNN)); 
+  // jet.cnn_log_cu = log( in->flavor_weight(btag::C, btag::CNN) / 
+  // 			in->flavor_weight(btag::U, btag::CNN)); 
+  // jet.cnn_log_cb = log( in->flavor_weight(btag::C, btag::CNN) / 
+  // 			in->flavor_weight(btag::B, btag::CNN)); 
   jet.jet_bits = in->bits(); 
 }
 

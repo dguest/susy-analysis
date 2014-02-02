@@ -47,6 +47,11 @@ namespace pass {
   const ull_t cutflow_met        = 1ULL <<  38; 
   const ull_t cutflow_tag_1      = 1ULL <<  39; 
   const ull_t cutflow_tag_2      = 1ULL <<  40; 
+
+  // more trigger
+  const ull_t met_trigger        = 1ULL << 41; 
+  const ull_t mu_trigger         = 1ULL << 42; 
+  const ull_t el_trigger         = 1ULL << 43; 
   
 }
 

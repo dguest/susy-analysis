@@ -11,6 +11,25 @@ class TVector2;
 
 namespace outtree { 
 
+  class EvtBools 
+  {
+  public: 
+    void set_branches(TTree*); 
+    void set_from_bits(ull_t); 
+  private: 
+    bool grl; 
+    bool met_trigger;
+    bool mu_trigger; 
+    bool el_trigger;
+    bool electron_veto; 
+    bool muon_veto; 
+
+    bool control_muon; 
+    bool control_electron; 
+    bool os_zmass_el_pair; 
+    bool os_zmass_mu_pair; 
+  }; 
+
   struct SFBox 
   {
     float nominal; 
@@ -72,20 +91,20 @@ namespace outtree {
     double eta; 
     double phi; 
     int flavor_truth_label; 
-    double cnn_b; 
-    double cnn_c; 
-    double cnn_u; 
+    // double cnn_b; 
+    // double cnn_c; 
+    // double cnn_u; 
     double jfc_b; 
     double jfc_c; 
     double jfc_u; 
-    double cnn_log_cu; 
-    double cnn_log_cb; 
+    // double cnn_log_cu; 
+    // double cnn_log_cb; 
     unsigned jet_bits; 
 
-    ScaleFactor cnn_tight; 
-    ScaleFactor cnn_medium; 
-    ScaleFactor cnn_loose; 
-    ScaleFactor jfc_tight; 
+    // ScaleFactor cnn_tight; 
+    // ScaleFactor cnn_medium; 
+    // ScaleFactor cnn_loose; 
+    // ScaleFactor jfc_tight; 
     ScaleFactor jfc_medium; 
     ScaleFactor jfc_loose; 
 
@@ -172,6 +191,7 @@ namespace outtree {
     std::vector<outtree::Jet*> jets; 
   private:
     void init(const unsigned flags = 0, int n_jets = 3); 
+    EvtBools m_evt_bools; 
     TFile* m_file; 
     TTree* m_tree; 
     outtree::JetVector m_jet_vector; 

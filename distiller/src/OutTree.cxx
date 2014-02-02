@@ -1,5 +1,6 @@
 #include "OutTree.hh"
 #include "cutflag.hh"
+#include "EventBits.hh"
 
 #include "TFile.h"
 #include "TTree.h"
@@ -110,6 +111,7 @@ namespace outtree {
     }
     m_tree->Branch("boson_child_pt", &boson_child_pt); 
     m_tree->Branch("boson_child_phi", &boson_child_phi); 
+    m_evt_bools.set_branches(m_tree); 
 
   }
 
@@ -168,6 +170,7 @@ namespace outtree {
 
   void OutTree::fill() 
   {
+    m_evt_bools.set_from_bits(pass_bits); 
     m_jet_vector.fill(jets); 
     if (m_tree) { 
       m_tree->Fill(); 
@@ -192,18 +195,18 @@ namespace outtree {
     if ( flags & cutflag::truth) { 
       tree->Branch((prefix + "flavor_truth_label").c_str(), 
 		   &flavor_truth_label); 
-      cnn_tight.set_branches(tree, prefix + "cnn_tight_", flags); 
-      cnn_medium.set_branches(tree, prefix + "cnn_medium_", flags); 
-      cnn_loose.set_branches(tree, prefix + "cnn_loose_", flags); 
+      // cnn_tight.set_branches(tree, prefix + "cnn_tight_", flags); 
+      // cnn_medium.set_branches(tree, prefix + "cnn_medium_", flags); 
+      // cnn_loose.set_branches(tree, prefix + "cnn_loose_", flags); 
 
-      jfc_tight.set_branches(tree,  prefix + "jfc_tight_", flags); 
+      // jfc_tight.set_branches(tree,  prefix + "jfc_tight_", flags); 
       jfc_medium.set_branches(tree, prefix + "jfc_medium_", flags); 
       jfc_loose.set_branches(tree,  prefix + "jfc_loose_", flags); 
     }
 
-    tree->Branch((prefix + "cnn_b").c_str(), &cnn_b); 
-    tree->Branch((prefix + "cnn_c").c_str(), &cnn_c); 
-    tree->Branch((prefix + "cnn_u").c_str(), &cnn_u); 
+    // tree->Branch((prefix + "cnn_b").c_str(), &cnn_b); 
+    // tree->Branch((prefix + "cnn_c").c_str(), &cnn_c); 
+    // tree->Branch((prefix + "cnn_u").c_str(), &cnn_u); 
     tree->Branch((prefix + "jfc_b").c_str(), &jfc_b); 
     tree->Branch((prefix + "jfc_c").c_str(), &jfc_c); 
     tree->Branch((prefix + "jfc_u").c_str(), &jfc_u); 
@@ -211,8 +214,9 @@ namespace outtree {
     tree->Branch((prefix + "bits").c_str(), &jet_bits); 
 
     if (flags & cutflag::save_ratios) { 
-      tree->Branch((prefix + "cnn_log_cb").c_str(), &cnn_log_cb); 
-      tree->Branch((prefix + "cnn_log_cu").c_str(), &cnn_log_cu); 
+      throw std::logic_error("not saving tagger ratios any more..."); 
+      // tree->Branch((prefix + "cnn_log_cb").c_str(), &cnn_log_cb); 
+      // tree->Branch((prefix + "cnn_log_cu").c_str(), &cnn_log_cu); 
     }
   }
 
@@ -222,18 +226,18 @@ namespace outtree {
     eta = -10; 
     phi = -10; 
     flavor_truth_label = -1; 
-    cnn_b = -1; 
-    cnn_c = -1; 
-    cnn_u = -1; 
+    // cnn_b = -1; 
+    // cnn_c = -1; 
+    // cnn_u = -1; 
     jfc_b = -1; 
     jfc_c = -1; 
     jfc_u = -1; 
-    cnn_log_cu = -1000; 
-    cnn_log_cb = -1000; 
+    // cnn_log_cu = -1000; 
+    // cnn_log_cb = -1000; 
     jet_bits = 0; 
 
-    cnn_medium.clear(); 
-    cnn_loose.clear(); 
+    jfc_medium.clear(); 
+    jfc_loose.clear(); 
   }
 
   ScaleFactor::ScaleFactor() {}
@@ -304,14 +308,47 @@ namespace outtree {
       m_eta.push_back(jet->eta); 
       m_phi.push_back(jet->phi); 
       m_flavor_truth_label.push_back(jet->flavor_truth_label); 
-      m_cnn_u.push_back(jet->cnn_u); 
-      m_cnn_c.push_back(jet->cnn_c); 
-      m_cnn_b.push_back(jet->cnn_b); 
+      // m_cnn_u.push_back(jet->cnn_u); 
+      // m_cnn_c.push_back(jet->cnn_c); 
+      // m_cnn_b.push_back(jet->cnn_b); 
       m_jet_bits.push_back(jet->jet_bits); 
-      m_cnn_tight.fill(jet->cnn_tight); 
-      m_cnn_medium.fill(jet->cnn_medium); 
-      m_cnn_loose.fill(jet->cnn_loose); 
+      // m_cnn_tight.fill(jet->cnn_tight); 
+      // m_cnn_medium.fill(jet->cnn_medium); 
+      // m_cnn_loose.fill(jet->cnn_loose); 
     }
+  }
+
+#define MAKE_PASS_BRANCH(branch) \
+  tree->Branch("pass_" #branch, &branch)
+
+  void EvtBools::set_branches(TTree* tree) { 
+    MAKE_PASS_BRANCH(grl); 
+    MAKE_PASS_BRANCH(met_trigger); 
+    MAKE_PASS_BRANCH(mu_trigger); 
+    MAKE_PASS_BRANCH(el_trigger); 
+    MAKE_PASS_BRANCH(electron_veto); 
+    MAKE_PASS_BRANCH(muon_veto); 
+    MAKE_PASS_BRANCH(control_muon); 
+    MAKE_PASS_BRANCH(control_electron); 
+    MAKE_PASS_BRANCH(os_zmass_el_pair); 
+    MAKE_PASS_BRANCH(os_zmass_mu_pair); 
+  }
+
+
+#define SET_FROM_BIT(BIT)	  \
+  BIT = pass::BIT & bits
+
+  void EvtBools::set_from_bits(ull_t bits) { 
+    SET_FROM_BIT(grl); 
+    SET_FROM_BIT(met_trigger); 
+    SET_FROM_BIT(mu_trigger); 
+    SET_FROM_BIT(el_trigger); 
+    SET_FROM_BIT(electron_veto); 
+    SET_FROM_BIT(muon_veto); 
+    SET_FROM_BIT(control_muon); 
+    SET_FROM_BIT(control_electron); 
+    SET_FROM_BIT(os_zmass_el_pair); 
+    SET_FROM_BIT(os_zmass_mu_pair); 
   }
 
 }; 
