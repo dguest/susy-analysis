@@ -16,6 +16,7 @@
 
 namespace { 
   bool hasTriggerRequirements(const Triggers&, const Met&); 
+  bool hasWillsTriggers(const Triggers& tr, const Met& met); 
   void dumpMissing(const SusyBuffer& buffer); 
   bool entriesInTree(const std::string& file, const std::string& = ""); 
 }
@@ -99,7 +100,7 @@ void Skimmer::copyVariablesTo(TTree* output_tree, TFile* file) {
       event_wt = buffer.mcevt_weight->at(0).at(0); 
       summary.total_event_weight += event_wt; 
     }
-    if (hasTriggerRequirements(buffer.triggers, buffer.met)) { 
+    if (hasWillsTriggers(buffer.triggers, buffer.met)) { 
       summary.skimmed_events++; 
       output_tree->Fill(); 
     }
