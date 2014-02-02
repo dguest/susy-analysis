@@ -9,9 +9,9 @@ class TFile;
 class TVector2; 
 struct RunInfo; 
 namespace outtree { 
-  class OutTree; 
-  class Jet; 
-  class ScaleFactor; 
+  class OutTree; 		// TODO: remove this
+  // class Jet; 
+  // class ScaleFactor; 
 }; 
 class BtagCalibration; 
 class TLorentzVector; 
@@ -31,27 +31,8 @@ class SkimReport;
 #include "typedefs.hh"
 #include "constants_distiller.hh"
 
-// ---- copy functions ----
-void copy_jet_info(const SelectedJet* , outtree::Jet&); 
-
-void copy_scale_factor(const SelectedJet*, outtree::ScaleFactor&, 
-		       btag::OperatingPoint); 
-
-template<typename T, typename B>
-void copy_id_vec_to_box(const T& vec, B& box); 
-
-void copy_leading_jet_info(const std::vector<SelectedJet*>& signal_jets, 
-			   outtree::OutTree& out_tree); 
-
-void copy_cjet_truth(outtree::OutTree& out_tree, 
-		     const std::vector<SelectedJet*>& jets); 
-
-void copy_event_truth(outtree::OutTree& out_tree, const SusyBuffer& buffer, 
-		      unsigned branches); 
-
-void copy_met(outtree::OutTree& out, const Mets& mets); 
-
 // ---- cutflow functions ----
+// TODO: move these into a new file, they depend on a bunch of crap
 ull_t control_lepton_bits(const std::vector<Electron*>&, 
 			  const std::vector<Muon*>&);
 
@@ -62,7 +43,7 @@ ull_t signal_jet_bits(const std::vector<SelectedJet*>& signal_jets);
 
 ull_t met_bits(const Mets& met); 
 
-
+// --- utility functions
 
 TVector2 get_boson_child_pt(const std::vector<Electron*>&, 
 			    const std::vector<Muon*>&); 
@@ -96,26 +77,10 @@ void set_bit(std::vector<SelectedJet*>& jets, unsigned bit);
 
 void calibrate_jets(std::vector<SelectedJet*> jets, const BtagCalibration*); 
 
+// TODO: remove this
 void add_skim_report(const SkimReport& report, outtree::OutTree&); 
 
-
 // ---- templates -----
-
-template<typename T, typename B>
-void copy_id_vec_to_box(const T& vec, B& box) { 
-  float nominal = 1.0; 
-  float up = 1.0; 
-  float down = 1.0; 
-  for (auto itr: vec) { 
-    nominal *= itr->id_sf(); 
-    up *= itr->id_sf() + itr->id_sf_err(); 
-    down *= itr->id_sf() - itr->id_sf_err(); 
-  }
-  box.nominal = nominal; 
-  box.up = up; 
-  box.down = down; 
-}
-
 
 template<typename M, typename A>
 A remove_overlaping(const M& mask, A altered, const float delta_r) { 

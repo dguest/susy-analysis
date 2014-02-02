@@ -1,5 +1,6 @@
 #include "StopDistiller.hh"
 #include "distill_tools.hh"
+#include "copy_functions.hh"
 #include "object_selection.hh"
 
 #include "SusyBuffer.h"

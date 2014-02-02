@@ -63,7 +63,7 @@ T_DICTS     := $(TOBJ:.o=Dict.o)
 GEN_OBJ     := distill_tools.o Jets.o Leptons.o Met.o
 GEN_OBJ     += boson_truth_tools.o BosonPtReweighter.o
 GEN_OBJ     += OutTree.o OutputFilter.o BitmapCutflow.o 
-GEN_OBJ     += object_selection.o
+GEN_OBJ     += object_selection.o copy_functions.o
 GEN_OBJ     += BosonTruthFilter.o TruthMetFilter.o
 GEN_OBJ     += SmartChain.o SkimReport.o 
 GEN_OBJ     += EventPreselector.o StopDistiller.o CheckSize.o
