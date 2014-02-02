@@ -17,10 +17,6 @@ bool OutputFilter::should_save_event(const ull_t event_mask) {
   const ull_t signal_selection = preselection | pass::met | pass::n_jet; 
   if ( (signal_selection & event_mask) == signal_selection) return true; 
 
-  // -- 2 jet region (electron jets aren't counted for n_jet) -- 
-  const ull_t dopplejet_sel = preselection | pass::met | pass::dopplejet; 
-  if ( (dopplejet_sel & event_mask) == dopplejet_sel) return true;
-
   // -- W mu control region 
   const ull_t wmunu_sel = preselection | pass::mu_met | pass::control_muon; 
   if ( (wmunu_sel & event_mask) == wmunu_sel) return true; 

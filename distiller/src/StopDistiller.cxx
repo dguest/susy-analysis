@@ -280,10 +280,8 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   m_out_tree->counts.n_veto_muons = veto_muons.size(); 
   m_out_tree->counts.n_control_electrons = control_electrons.size(); 
   m_out_tree->counts.n_control_muons = control_muons.size(); 
-  pass_bits |= signal_jet_bits(signal_jets); 
 
-  if (signal_jets.size() == 2) pass_bits |= pass::dopplejet; 
-  if (signal_jets.size() >= N_SR_JETS) pass_bits |= pass::n_jet; 
+  pass_bits |= signal_jet_bits(signal_jets); 
 
   m_out_tree->htx = get_htx(signal_jets, N_SR_JETS); 
   m_out_tree->min_jetmet_dphi = get_min_jetmet_dphi(
@@ -308,14 +306,14 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   pass_bits |= met_bits(mets); 
 
   if ( m_flags & cutflag::truth ) { 
-    fill_cjet_truth(*m_out_tree, signal_jets); 
-    fill_event_truth(*m_out_tree, *m_susy_buffer, m_flags); 
+    copy_cjet_truth(*m_out_tree, signal_jets); 
+    copy_event_truth(*m_out_tree, *m_susy_buffer, m_flags); 
   }
 
   m_cutflow->fill(pass_bits); 
   m_out_tree->pass_bits = pass_bits; 
 
-  fill_met(*m_out_tree, mets); 
+  copy_met(*m_out_tree, mets); 
 
   m_out_tree->pileup_weight = pileup_weight; 
   if (m_boson_pt_reweighter) {

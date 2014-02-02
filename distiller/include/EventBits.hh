@@ -19,8 +19,8 @@ namespace pass {
   const ull_t dphi_jetmet_min    = 1ULL <<  9; 
   const ull_t electron_veto      = 1ULL << 10; 
   const ull_t muon_veto          = 1ULL << 11; 
-  const ull_t ctag_mainz         = 1ULL << 12; 
-  const ull_t dopplejet          = 1ULL << 13; 
+  // const ull_t ctag_mainz         = 1ULL << 12; 
+  // const ull_t dopplejet          = 1ULL << 13; 
 
   // requirements for control regions
   const ull_t control_muon       = 1ULL << 15; 

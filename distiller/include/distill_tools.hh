@@ -31,40 +31,41 @@ class SkimReport;
 #include "typedefs.hh"
 #include "constants_distiller.hh"
 
-
-TVector2 get_boson_child_pt(const std::vector<Electron*>&, 
-			    const std::vector<Muon*>&); 
-
+// ---- copy functions ----
 void copy_jet_info(const SelectedJet* , outtree::Jet&); 
+
 void copy_scale_factor(const SelectedJet*, outtree::ScaleFactor&, 
 		       btag::OperatingPoint); 
+
 template<typename T, typename B>
 void copy_id_vec_to_box(const T& vec, B& box); 
-
 
 void copy_leading_jet_info(const std::vector<SelectedJet*>& signal_jets, 
 			   outtree::OutTree& out_tree); 
 
-ull_t control_lepton_bits(const std::vector<Electron*>&, 
-			  const std::vector<Muon*>&);
-ull_t z_control_bits(const std::vector<Electron*>&, 
-		     const std::vector<Muon*>&); 
-ull_t signal_jet_bits(const std::vector<SelectedJet*>& signal_jets); 
-ull_t met_bits(const Mets& met); 
-
-template<typename T> 
-bool has_os_zmass_pair(const std::vector<T*>&); 
-
-template<typename T>
-bool are_os_zmass(const T&, const T&); 
-
-void fill_cjet_truth(outtree::OutTree& out_tree, 
+void copy_cjet_truth(outtree::OutTree& out_tree, 
 		     const std::vector<SelectedJet*>& jets); 
 
-void fill_event_truth(outtree::OutTree& out_tree, const SusyBuffer& buffer, 
+void copy_event_truth(outtree::OutTree& out_tree, const SusyBuffer& buffer, 
 		      unsigned branches); 
 
-void fill_met(outtree::OutTree& out, const Mets& mets); 
+void copy_met(outtree::OutTree& out, const Mets& mets); 
+
+// ---- cutflow functions ----
+ull_t control_lepton_bits(const std::vector<Electron*>&, 
+			  const std::vector<Muon*>&);
+
+ull_t z_control_bits(const std::vector<Electron*>&, 
+		     const std::vector<Muon*>&); 
+
+ull_t signal_jet_bits(const std::vector<SelectedJet*>& signal_jets); 
+
+ull_t met_bits(const Mets& met); 
+
+
+
+TVector2 get_boson_child_pt(const std::vector<Electron*>&, 
+			    const std::vector<Muon*>&); 
 
 float get_min_jetmet_dphi(const std::vector<SelectedJet*>&, 
 			  const TVector2& ); 
@@ -72,6 +73,12 @@ float get_min_jetmet_dphi(const std::vector<SelectedJet*>&,
 TVector2 sum_muon_pt(const std::vector<Muon*>& muons); 
 
 double get_htx(const std::vector<SelectedJet*>&, const size_t x);
+
+template<typename T> 
+bool has_os_zmass_pair(const std::vector<T*>&); 
+
+template<typename T>
+bool are_os_zmass(const T&, const T&); 
 
 template<typename M, typename A>
 A remove_overlaping(const M& mask, A altered, const float delta_r); 
@@ -82,9 +89,6 @@ std::vector<int> get_indices(const T&);
 template<typename T>
 std::vector<T*> filter_susy(const std::vector<T*>&); 
 
-bool pass_mainz_ctag(const SelectedJet* jet); 
-
-
 bool has_lower_pt(const TLorentzVector*, const TLorentzVector*); 
 bool has_higher_pt(const TLorentzVector*, const TLorentzVector*); 
 
@@ -93,8 +97,6 @@ void set_bit(std::vector<SelectedJet*>& jets, unsigned bit);
 void calibrate_jets(std::vector<SelectedJet*> jets, const BtagCalibration*); 
 
 void add_skim_report(const SkimReport& report, outtree::OutTree&); 
-
-// --- io things ----
 
 
 // ---- templates -----
