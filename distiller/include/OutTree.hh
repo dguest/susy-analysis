@@ -155,7 +155,6 @@ namespace outtree {
     SFBox el_sf; 
     SFBox mu_sf; 
 
-    outtree::Jet leading_jet_uncensored; 
     outtree::Jet electron_jet; 
 
     float boson_child_pt; 

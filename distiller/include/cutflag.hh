@@ -7,7 +7,7 @@ namespace cutflag {
   const unsigned save_all_events  = 1u << 2;  
   const unsigned boson_pt_reweight= 1u << 3; 
   const unsigned debug_susy       = 1u << 4; 
-  const unsigned raw_evt_info     = 1u << 5; 
+  // const unsigned raw_evt_info     = 1u << 5; 
   const unsigned get_branches     = 1u << 6; 
   // const unsigned save_ratios      = 1u << 7; 
   // const unsigned vector_output    = 1u << 8; 

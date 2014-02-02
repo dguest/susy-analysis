@@ -222,11 +222,6 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
 
   std::sort(all_jets.begin(),all_jets.end(),has_higher_pt); 
 
-  if (all_jets.size()) { 
-    all_jets.at(0)->set_flavor_tag(m_btag_calibration); 
-    copy_jet_info(all_jets.at(0), m_out_tree->leading_jet_uncensored); 
-  }
-
   auto preselected_jets = object::preselection_jets(all_jets); 
   auto preselected_electrons = filter_susy(all_electrons); 
   auto preselected_muons = filter_susy(all_muons); 
