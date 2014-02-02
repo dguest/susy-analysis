@@ -45,5 +45,6 @@ std::pair<size_t,size_t> test_overlap_removal() {
 
 int main(int narg, char* argv[]) { 
   auto se = test_overlap_removal(); 
-  printf("overlap test: %i survived, %i expected\n", se.first, se.second); 
+  printf("overlap test: %i survived, %i expected\n", 
+	 static_cast<int>(se.first), static_cast<int>(se.second)); 
 }
