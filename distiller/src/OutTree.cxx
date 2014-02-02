@@ -8,6 +8,7 @@
 #include "TParameter.h"
 
 #include <string> 
+#include <stdexcept>
 
 //_______________________________________________________________
 // OutTree
