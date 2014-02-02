@@ -79,20 +79,6 @@ namespace outtree {
     void clear(); 
   }; 
 
-  class SFVector
-  {
-  public: 
-    SFVector(); 
-    SFVector(SFVector&) = delete; 
-    SFVector& operator=(SFVector&) = delete; 
-    void set_branches(TTree*, std::string prefix, unsigned flags); 
-    void fill(const ScaleFactor& ); 
-    void clear(); 
-  private: 
-    std::vector<double> m_scale_factor; 
-    std::vector<double> m_scale_factor_err; 
-  }; 
-
   class Jet 
   {
   public: 
@@ -125,29 +111,6 @@ namespace outtree {
     void set_branches(TTree*, std::string prefix, unsigned flags); 
     void clear(); 
   }; 
-
-  class JetVector
-  {
-  public: 
-    JetVector(); 
-    JetVector(JetVector&) = delete; 
-    JetVector& operator=(JetVector&) = delete; 
-    void set_branches(TTree*, std::string prefix, unsigned flags); 
-    void fill(const std::vector<outtree::Jet*>&); 
-  private: 
-    std::vector<double> m_pt; 
-    std::vector<double> m_eta; 
-    std::vector<double> m_phi; 
-    std::vector<int> m_flavor_truth_label; 
-    std::vector<double> m_cnn_b; 
-    std::vector<double> m_cnn_c; 
-    std::vector<double> m_cnn_u; 
-    std::vector<unsigned> m_jet_bits; 
-    SFVector m_cnn_tight; 
-    SFVector m_cnn_medium; 
-    SFVector m_cnn_loose; 
-  }; 
-
 
   class OutTree 
   {
@@ -206,7 +169,6 @@ namespace outtree {
     EvtBools m_evt_bools; 
     TFile* m_file; 
     TTree* m_tree; 
-    outtree::JetVector m_jet_vector; 
   }; 
 
 }; 
