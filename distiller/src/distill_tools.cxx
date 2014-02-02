@@ -3,7 +3,6 @@
 #include "SusyBuffer.h"
 #include "OutTree.hh"
 #include "Jets.hh"
-#include "JetConstants.hh"
 #include "Leptons.hh"
 #include "Met.hh"
 #include "constants.hh"
