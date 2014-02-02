@@ -148,6 +148,7 @@ namespace outtree {
     void fill(); 
     void clear_buffer(); 
     void add_double_parameter(const std::string& name, double val); 
+    void add_ll_parameter(const std::string& name, long long val); 
   
     ull_t pass_bits; 
 

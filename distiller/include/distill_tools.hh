@@ -18,6 +18,7 @@ class TLorentzVector;
 class Muon; 
 class Electron; 
 class Mets; 
+class SkimReport; 
 
 // #include "TChain.h"
 #include <vector> 
@@ -88,6 +89,8 @@ bool has_higher_pt(const TLorentzVector*, const TLorentzVector*);
 void set_bit(std::vector<SelectedJet*>& jets, unsigned bit); 
 
 void calibrate_jets(std::vector<SelectedJet*> jets, const BtagCalibration*); 
+
+void add_skim_report(const SkimReport& report, outtree::OutTree&); 
 
 // --- io things ----
 

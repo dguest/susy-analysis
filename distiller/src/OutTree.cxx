@@ -181,6 +181,10 @@ namespace outtree {
     TParameter<double> par(name.c_str(), val); 
     m_file->WriteTObject(&par); 
   }
+  void OutTree::add_ll_parameter(const std::string& name, long long val) { 
+    TParameter<long long> par(name.c_str(), val); 
+    m_file->WriteTObject(&par); 
+  }
 
   Jet::Jet() { 
     

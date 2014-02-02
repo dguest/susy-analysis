@@ -151,11 +151,7 @@ StopDistiller::Cutflow StopDistiller::run_cutflow() {
     close(output_dup); 
   }
 
-  if (!m_skim_report->is_data()) {
-    m_out_tree->add_double_parameter(
-      "total_event_weight", m_skim_report->sum_evt_weight()); 
-  }
-
+  add_skim_report(*m_skim_report, *m_out_tree); 
   return get_cutflow_vec(n_error); 
 }
 
