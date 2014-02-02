@@ -3,7 +3,7 @@
 #include "RunInfo.hh"
 #include "cutflag.hh"
 #include "constants.hh"
-#include "LeptonConstants.hh"
+#include "constants_lepton.hh"
 #include "CheckSize.hh"
 
 #include <cassert>
