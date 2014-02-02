@@ -50,7 +50,7 @@ namespace object {
     for (auto jet_itr: jets){
       auto& jet = *jet_itr; 
       bool is_low_pt = jet.Pt() < JET_PT_CUT; 
-      bool is_good_eta = std::fabs(jet.Eta()) < PRESELECTION_JET_ETA; 
+      bool is_good_eta = std::abs(jet.Eta()) < PRESELECTION_JET_ETA; 
       if (!is_low_pt && is_good_eta) { 
 	out.push_back(jet_itr); 
       }

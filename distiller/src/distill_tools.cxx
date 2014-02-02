@@ -96,7 +96,7 @@ void copy_leading_jet_info(const std::vector<SelectedJet*>& signal_jets,
   for (size_t jet_n = 0; jet_n < maxjets; jet_n++) { 
     copy_jet_info(signal_jets.at(jet_n), *out_tree.jets.at(jet_n)); 
   }
-  out_tree.n_good_jets = signal_jets.size(); 
+  out_tree.counts.n_signal_jets = signal_jets.size(); 
 }
 
 ull_t control_lepton_bits(const std::vector<Electron*>& el, 
@@ -112,6 +112,8 @@ ull_t control_lepton_bits(const std::vector<Electron*>& el,
 ull_t z_control_bits(const std::vector<Electron*>& el, 
 		     const std::vector<Muon*>& mu) { 
   ull_t pass_bits = 0; 
+  // both of these true if _any_ leptons are in the z mass window
+  // (windown defined as a constant)
   if (has_os_zmass_pair(el)) pass_bits |= pass::os_zmass_el_pair; 
   if (has_os_zmass_pair(mu)) pass_bits |= pass::os_zmass_mu_pair; 
   return pass_bits; 
@@ -144,6 +146,17 @@ void fill_event_truth(outtree::OutTree& out_tree, const SusyBuffer& buffer,
   out_tree.mc_event_weight = buffer.mcevt_weight->at(0).at(0); 
 }
 
+void fill_met(outtree::OutTree& out, const Mets& mets) { 
+  out.met_nom.set_met(mets.nominal); 
+  out.met_mu.set_met(mets.muon); 
+  out.met_nom_up.set_met(mets.nominal_up); 
+  out.met_mu_up.set_met(mets.muon_up); 
+  out.met_nom_down.set_met(mets.nominal_down); 
+  out.met_mu_down.set_met(mets.muon_down); 
+  out.met_nom_res.set_met(mets.nominal_res); 
+  out.met_mu_res.set_met(mets.muon_res); 
+}
+
 void fill_cjet_truth(outtree::OutTree& out_tree, 
 		     const std::vector<SelectedJet*>& jets)
 {
@@ -162,9 +175,9 @@ void fill_cjet_truth(outtree::OutTree& out_tree,
       n_cjet++; 
     } // end charm check
   } // end jet loop
-  out_tree.leading_cjet_pos = leading_pos; 
-  out_tree.subleading_cjet_pos = subleading_pos; 
-  out_tree.n_cjet = n_cjet; 
+  out_tree.truth_leading_cjet_pos = leading_pos; 
+  out_tree.truth_subleading_cjet_pos = subleading_pos; 
+  out_tree.truth_n_cjet = n_cjet; 
 }
 
 //___________________________________________________________

@@ -64,6 +64,8 @@ void fill_cjet_truth(outtree::OutTree& out_tree,
 void fill_event_truth(outtree::OutTree& out_tree, const SusyBuffer& buffer, 
 		      unsigned branches); 
 
+void fill_met(outtree::OutTree& out, const Mets& mets); 
+
 float get_min_jetmet_dphi(const std::vector<SelectedJet*>&, 
 			  const TVector2& ); 
 

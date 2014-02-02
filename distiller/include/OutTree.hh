@@ -21,14 +21,26 @@ namespace outtree {
     bool met_trigger;
     bool mu_trigger; 
     bool el_trigger;
-    bool electron_veto; 
-    bool muon_veto; 
+    // bool electron_veto; 
+    // bool muon_veto; 
 
-    bool control_muon; 
-    bool control_electron; 
+    // bool control_muon; 
+    // bool control_electron; 
     bool os_zmass_el_pair; 
     bool os_zmass_mu_pair; 
   }; 
+
+  struct ObjectCounts
+  {
+    void set_branches(TTree*); 
+    void clear(); 
+    int n_preselected_jets; 
+    int n_signal_jets; 
+    int n_veto_electrons; 
+    int n_veto_muons; 
+    int n_control_electrons; 
+    int n_control_muons; 
+  };
 
   struct SFBox 
   {
@@ -151,6 +163,7 @@ namespace outtree {
     void add_ll_parameter(const std::string& name, long long val); 
   
     ull_t pass_bits; 
+    ObjectCounts counts; 
 
     MetBlock met_nom; 
     MetBlock met_mu; 
@@ -163,23 +176,19 @@ namespace outtree {
 
     double min_jetmet_dphi; 
     double sum_jetmet_dphi; 
-    int n_susy_jets; 
-    int n_good_jets; 
 
     int hfor_type; 
     unsigned event_number; 
 
-    int leading_cjet_pos; 
-    int subleading_cjet_pos; 
-    int n_cjet; 
+    int truth_leading_cjet_pos; 
+    int truth_subleading_cjet_pos; 
+    int truth_n_cjet; 
     float mc_event_weight; 
     int spart1_pdgid; 
     int spart2_pdgid; 
 
     double htx; 
     float pileup_weight; 
-    float boson_pt_weight; 
-    float boson_pt; 
     SFBox el_sf; 
     SFBox mu_sf; 
 
@@ -188,6 +197,8 @@ namespace outtree {
 
     float boson_child_pt; 
     float boson_child_phi; 
+    float truth_boson_pt_weight;     
+    float truth_boson_pt; 
 
     std::vector<outtree::Jet*> jets; 
   private:

@@ -279,8 +279,13 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   // ----- object selection is done now, from here is filling outputs ---
 
   if (veto_jets.size() == 0) pass_bits |= pass::jet_clean; 
+  m_out_tree->counts.n_preselected_jets = preselected_jets.size(); 
+  m_out_tree->counts.n_signal_jets = signal_jets.size(); 
+  m_out_tree->counts.n_veto_electrons = veto_electrons.size(); 
+  m_out_tree->counts.n_veto_muons = veto_muons.size(); 
+  m_out_tree->counts.n_control_electrons = control_electrons.size(); 
+  m_out_tree->counts.n_control_muons = control_muons.size(); 
   pass_bits |= signal_jet_bits(signal_jets); 
-  m_out_tree->n_susy_jets = good_jets.size(); 
 
   if (signal_jets.size() == 2) pass_bits |= pass::dopplejet; 
   if (signal_jets.size() >= N_SR_JETS) pass_bits |= pass::n_jet; 
@@ -299,6 +304,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   }
 
   pass_bits |= control_lepton_bits(control_electrons, control_muons); 
+  // get zmass pair bits (true if _any_ leptons are in the z window)
   pass_bits |= z_control_bits(preselected_electrons, preselected_muons); 
 
   if (veto_electrons.size() == 0) pass_bits |= pass::electron_veto; 
@@ -314,20 +320,14 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   m_cutflow->fill(pass_bits); 
   m_out_tree->pass_bits = pass_bits; 
 
-  m_out_tree->met_nom.set_met(mets.nominal); 
-  m_out_tree->met_mu.set_met(mets.muon); 
-  m_out_tree->met_nom_up.set_met(mets.nominal_up); 
-  m_out_tree->met_mu_up.set_met(mets.muon_up); 
-  m_out_tree->met_nom_down.set_met(mets.nominal_down); 
-  m_out_tree->met_mu_down.set_met(mets.muon_down); 
-  m_out_tree->met_nom_res.set_met(mets.nominal_res); 
-  m_out_tree->met_mu_res.set_met(mets.muon_res); 
+  fill_met(*m_out_tree, mets); 
 
   m_out_tree->pileup_weight = pileup_weight; 
   if (m_boson_pt_reweighter) {
-    m_out_tree->boson_pt_weight = m_boson_pt_reweighter->get_boson_weight(
-      m_susy_buffer); 
-    m_out_tree->boson_pt = m_boson_pt_reweighter->get_boson_pt(m_susy_buffer); 
+    m_out_tree->truth_boson_pt_weight = m_boson_pt_reweighter->
+      get_boson_weight(m_susy_buffer); 
+    m_out_tree->truth_boson_pt = m_boson_pt_reweighter->
+      get_boson_pt(m_susy_buffer); 
   }
 
   m_out_tree->event_number = m_susy_buffer->EventNumber; 

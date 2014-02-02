@@ -13,7 +13,12 @@
 //_______________________________________________________________
 // OutTree
 
+#define MAKE_BRANCH(tree, branch) \
+  tree->Branch(#branch, &branch)
+
 namespace outtree { 
+
+  // -------------- SFBox -----------------
 
   void SFBox::set_branches(TTree* tree, std::string prefix) { 
     tree->Branch((prefix + "sf").c_str(), &nominal); 
@@ -25,6 +30,8 @@ namespace outtree {
     up = -1; 
     down = -1; 
   }
+
+  // ---------------------- MetBlock ---------------
 
   void MetBlock::set_branches(TTree* tree, const std::string& prefix) { 
     tree->Branch((prefix + "met").c_str(), &m_met); 
@@ -38,6 +45,8 @@ namespace outtree {
     m_met = -1; 
     m_met_phi = -10; 
   }
+
+  // ----------------- OutTree ---------------------
 
   OutTree::OutTree(std::string file, std::string tree, const unsigned flags, 
 		   int n_jets): 
@@ -58,11 +67,11 @@ namespace outtree {
   void OutTree::init(const unsigned flags, int n_jets) 
   { 
     m_tree->Branch("pass_bits", &pass_bits ); 
+    counts.set_branches(m_tree); 
+
     met_nom.set_branches(m_tree, ""); 
     met_mu.set_branches(m_tree, "mu_"); 
     m_tree->Branch("min_jetmet_dphi" , &min_jetmet_dphi); 
-    m_tree->Branch("n_susy_jets", &n_susy_jets); 
-    m_tree->Branch("n_signal_jets", &n_good_jets); 
 
     m_tree->Branch("event_number", &event_number); 
 
@@ -77,17 +86,17 @@ namespace outtree {
       met_mu_res.set_branches(m_tree, "stres_mu_"); 
       m_tree->Branch("pileup_weight", &pileup_weight); 
       m_tree->Branch("hfor_type", &hfor_type); 
-      m_tree->Branch("leading_cjet_pos", &leading_cjet_pos); 
-      m_tree->Branch("subleading_cjet_pos", &subleading_cjet_pos); 
-      m_tree->Branch("n_cjet", &n_cjet); 
+      MAKE_BRANCH(m_tree, truth_leading_cjet_pos);
+      MAKE_BRANCH(m_tree, truth_subleading_cjet_pos); 
+      MAKE_BRANCH(m_tree, truth_n_cjet); 
       m_tree->Branch("mc_event_weight", &mc_event_weight); 
       if (flags & cutflag::spartid) { 
 	m_tree->Branch("spart1_pdgid", &spart1_pdgid); 
 	m_tree->Branch("spart2_pdgid", &spart2_pdgid); 
       }
       if (flags & cutflag::boson_pt_reweight) { 
-	m_tree->Branch("boson_pt_weight", &boson_pt_weight); 
-	m_tree->Branch("boson_pt", &boson_pt); 
+	MAKE_BRANCH(m_tree, truth_boson_pt_weight); 
+	MAKE_BRANCH(m_tree, truth_boson_pt); 
       }
       el_sf.set_branches(m_tree, "el_"); 
       mu_sf.set_branches(m_tree, "mu_"); 
@@ -118,6 +127,8 @@ namespace outtree {
 
   void OutTree::clear_buffer() { 
     pass_bits = 0; 
+    counts.clear(); 
+
     met_nom.clear(); 
     met_mu.clear(); 
     met_nom_up.clear(); 
@@ -126,8 +137,6 @@ namespace outtree {
     met_mu_down.clear(); 
     min_jetmet_dphi = -1; 
     sum_jetmet_dphi = -1; 
-    n_susy_jets = -1; 
-    n_good_jets = -1; 
 
     hfor_type = -2; 
     event_number = 0; 
@@ -135,12 +144,12 @@ namespace outtree {
     htx = 0; 
     pileup_weight = -1; 
 
-    leading_cjet_pos = -1; 
-    subleading_cjet_pos = -1; 
-    n_cjet = 0; 
+    truth_leading_cjet_pos = -1; 
+    truth_subleading_cjet_pos = -1; 
+    truth_n_cjet = 0; 
     mc_event_weight = 0; 
-    boson_pt_weight = -1; 
-    boson_pt = -1; 
+    truth_boson_pt_weight = -1; 
+    truth_boson_pt = -1; 
     spart1_pdgid = 0; 
     spart2_pdgid = 0; 
 
@@ -186,6 +195,8 @@ namespace outtree {
     TParameter<long long> par(name.c_str(), val); 
     m_file->WriteTObject(&par); 
   }
+
+  // ----------------- Jet -------------------
 
   Jet::Jet() { 
     
@@ -245,6 +256,8 @@ namespace outtree {
     jfc_loose.clear(); 
   }
 
+  // ----------------------- ScaleFactor -----------------
+
   ScaleFactor::ScaleFactor() {}
 
   void ScaleFactor::set_branches(TTree* tree, std::string prefix, 
@@ -257,6 +270,8 @@ namespace outtree {
     scale_factor = -1; 
     scale_factor_err = -1; 
   }
+
+  // ------------- SFVector --------------------------
 
   SFVector::SFVector() {}
 
@@ -273,6 +288,9 @@ namespace outtree {
     m_scale_factor.clear(); 
     m_scale_factor_err.clear(); 
   }
+
+  // ------------ jet vector ----------------
+  // remove? 
 
   JetVector::JetVector() { }
 
@@ -323,6 +341,8 @@ namespace outtree {
     }
   }
 
+  // ----------------- EvtBools -----------------------
+
 #define MAKE_PASS_BRANCH(branch) \
   tree->Branch("pass_" #branch, &branch)
 
@@ -331,14 +351,14 @@ namespace outtree {
     MAKE_PASS_BRANCH(met_trigger); 
     MAKE_PASS_BRANCH(mu_trigger); 
     MAKE_PASS_BRANCH(el_trigger); 
-    MAKE_PASS_BRANCH(electron_veto); 
-    MAKE_PASS_BRANCH(muon_veto); 
-    MAKE_PASS_BRANCH(control_muon); 
-    MAKE_PASS_BRANCH(control_electron); 
+    // MAKE_PASS_BRANCH(electron_veto); 
+    // MAKE_PASS_BRANCH(muon_veto); 
+    // MAKE_PASS_BRANCH(control_muon); 
+    // MAKE_PASS_BRANCH(control_electron); 
     MAKE_PASS_BRANCH(os_zmass_el_pair); 
     MAKE_PASS_BRANCH(os_zmass_mu_pair); 
   }
-
+#undef MAKE_PASS_BRANCH
 
 #define SET_FROM_BIT(BIT)	  \
   BIT = pass::BIT & bits
@@ -348,12 +368,36 @@ namespace outtree {
     SET_FROM_BIT(met_trigger); 
     SET_FROM_BIT(mu_trigger); 
     SET_FROM_BIT(el_trigger); 
-    SET_FROM_BIT(electron_veto); 
-    SET_FROM_BIT(muon_veto); 
-    SET_FROM_BIT(control_muon); 
-    SET_FROM_BIT(control_electron); 
+    // SET_FROM_BIT(electron_veto); 
+    // SET_FROM_BIT(muon_veto); 
+    // SET_FROM_BIT(control_muon); 
+    // SET_FROM_BIT(control_electron); 
     SET_FROM_BIT(os_zmass_el_pair); 
     SET_FROM_BIT(os_zmass_mu_pair); 
   }
+#undef SET_FROM_BIT
+
+  // ---- object counts ----
+
+  void ObjectCounts::set_branches(TTree* tree) { 
+    MAKE_BRANCH(tree, n_preselected_jets); 
+    MAKE_BRANCH(tree, n_signal_jets); 
+    MAKE_BRANCH(tree, n_veto_electrons); 
+    MAKE_BRANCH(tree, n_veto_muons); 
+    MAKE_BRANCH(tree, n_control_electrons); 
+    MAKE_BRANCH(tree, n_control_muons); 
+  }
+
+  void ObjectCounts::clear() { 
+    n_preselected_jets = -1; 
+    n_signal_jets = -1; 
+    n_veto_electrons = -1; 
+    n_veto_muons = -1; 
+    n_control_electrons = -1; 
+    n_control_muons = -1; 
+  }
+
+
+#undef MAKE_BRANCH
 
 }; 
