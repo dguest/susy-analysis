@@ -91,7 +91,7 @@ static unsigned get_flags(const char* flags_str)
   if (strchr(flags_str,'j')) flags |= cutflag::vector_output; 
   if (strchr(flags_str,'m')) flags |= cutflag::mv3; 
   if (strchr(flags_str,'p')) flags |= cutflag::boson_pt_reweight; 
-  if (strchr(flags_str,'r')) flags |= cutflag::save_ratios; 
+  // if (strchr(flags_str,'r')) flags |= cutflag::save_ratios; 
   if (strchr(flags_str,'u')) flags |= cutflag::generate_pileup; 
   if (strchr(flags_str,'v')) flags |= cutflag::verbose; 
   if (strchr(flags_str,'z')) flags |= cutflag::maximum_compression; 

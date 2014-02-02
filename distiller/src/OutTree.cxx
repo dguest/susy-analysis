@@ -66,16 +66,15 @@ namespace outtree {
 
   void OutTree::init(const unsigned flags, int n_jets) 
   { 
-    m_tree->Branch("pass_bits", &pass_bits ); 
+    MAKE_BRANCH(m_tree, pass_bits); 
     counts.set_branches(m_tree); 
 
     met_nom.set_branches(m_tree, ""); 
     met_mu.set_branches(m_tree, "mu_"); 
-    m_tree->Branch("min_jetmet_dphi" , &min_jetmet_dphi); 
 
-    m_tree->Branch("event_number", &event_number); 
-
-    m_tree->Branch("htx", &htx); 
+    MAKE_BRANCH(m_tree, min_jetmet_dphi); 
+    MAKE_BRANCH(m_tree, event_number); 
+    MAKE_BRANCH(m_tree, htx); 
 
     if ( flags & cutflag::truth) { 
       met_nom_up.set_branches(m_tree, "stup_"); 
@@ -84,15 +83,15 @@ namespace outtree {
       met_mu_down.set_branches(m_tree, "stdown_mu_"); 
       met_nom_res.set_branches(m_tree, "stres_"); 
       met_mu_res.set_branches(m_tree, "stres_mu_"); 
-      m_tree->Branch("pileup_weight", &pileup_weight); 
-      m_tree->Branch("hfor_type", &hfor_type); 
+      MAKE_BRANCH(m_tree, pileup_weight); 
+      MAKE_BRANCH(m_tree, hfor_type); 
       MAKE_BRANCH(m_tree, truth_leading_cjet_pos);
       MAKE_BRANCH(m_tree, truth_subleading_cjet_pos); 
       MAKE_BRANCH(m_tree, truth_n_cjet); 
-      m_tree->Branch("mc_event_weight", &mc_event_weight); 
+      MAKE_BRANCH(m_tree, mc_event_weight); 
       if (flags & cutflag::spartid) { 
-	m_tree->Branch("spart1_pdgid", &spart1_pdgid); 
-	m_tree->Branch("spart2_pdgid", &spart2_pdgid); 
+	MAKE_BRANCH(m_tree, spart1_pdgid); 
+	MAKE_BRANCH(m_tree, spart2_pdgid); 
       }
       if (flags & cutflag::boson_pt_reweight) { 
 	MAKE_BRANCH(m_tree, truth_boson_pt_weight); 
@@ -211,29 +210,15 @@ namespace outtree {
     if ( flags & cutflag::truth) { 
       tree->Branch((prefix + "flavor_truth_label").c_str(), 
 		   &flavor_truth_label); 
-      // cnn_tight.set_branches(tree, prefix + "cnn_tight_", flags); 
-      // cnn_medium.set_branches(tree, prefix + "cnn_medium_", flags); 
-      // cnn_loose.set_branches(tree, prefix + "cnn_loose_", flags); 
-
-      // jfc_tight.set_branches(tree,  prefix + "jfc_tight_", flags); 
       jfc_medium.set_branches(tree, prefix + "jfc_medium_", flags); 
       jfc_loose.set_branches(tree,  prefix + "jfc_loose_", flags); 
     }
 
-    // tree->Branch((prefix + "cnn_b").c_str(), &cnn_b); 
-    // tree->Branch((prefix + "cnn_c").c_str(), &cnn_c); 
-    // tree->Branch((prefix + "cnn_u").c_str(), &cnn_u); 
     tree->Branch((prefix + "jfc_b").c_str(), &jfc_b); 
     tree->Branch((prefix + "jfc_c").c_str(), &jfc_c); 
     tree->Branch((prefix + "jfc_u").c_str(), &jfc_u); 
 
-    tree->Branch((prefix + "bits").c_str(), &jet_bits); 
-
-    if (flags & cutflag::save_ratios) { 
-      throw std::logic_error("not saving tagger ratios any more..."); 
-      // tree->Branch((prefix + "cnn_log_cb").c_str(), &cnn_log_cb); 
-      // tree->Branch((prefix + "cnn_log_cu").c_str(), &cnn_log_cu); 
-    }
+    // tree->Branch((prefix + "bits").c_str(), &jet_bits); 
   }
 
   void Jet::clear() 
@@ -242,14 +227,9 @@ namespace outtree {
     eta = -10; 
     phi = -10; 
     flavor_truth_label = -1; 
-    // cnn_b = -1; 
-    // cnn_c = -1; 
-    // cnn_u = -1; 
     jfc_b = -1; 
     jfc_c = -1; 
     jfc_u = -1; 
-    // cnn_log_cu = -1000; 
-    // cnn_log_cb = -1000; 
     jet_bits = 0; 
 
     jfc_medium.clear(); 
