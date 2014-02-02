@@ -118,8 +118,8 @@ namespace outtree {
       leading_jet_uncensored.set_branches(m_tree, "leading_jet_uncensored_", 
 					  flags); 
     }
-    m_tree->Branch("boson_child_pt", &boson_child_pt); 
-    m_tree->Branch("boson_child_phi", &boson_child_phi); 
+    MAKE_BRANCH(m_tree, boson_child_pt); 
+    MAKE_BRANCH(m_tree, boson_child_phi); 
     m_evt_bools.set_branches(m_tree); 
 
   }
@@ -180,7 +180,7 @@ namespace outtree {
   void OutTree::fill() 
   {
     m_evt_bools.set_from_bits(pass_bits); 
-    m_jet_vector.fill(jets); 
+    // m_jet_vector.fill(jets); 
     if (m_tree) { 
       m_tree->Fill(); 
     }
