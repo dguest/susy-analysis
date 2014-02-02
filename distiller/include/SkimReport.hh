@@ -4,21 +4,25 @@
 #include <string>
 #include <vector> 
 
-class CollectionTreeReport
+class SkimReport
 {
 public: 
-  CollectionTreeReport(std::string tree_name = "CollectionTree"); 
-  void add_files(std::vector<std::string>); 
+  SkimReport(); 
+  void add_files(const std::vector<std::string>&); 
   int total_entries() const; 
   int total_errors() const; 
   int total_files() const; 
+  int empty_files() const; 
+  bool is_data() const; 
+  double sum_evt_weight() const; 
 private: 
-  typedef std::vector<std::string>::const_iterator StrItr; 
-  int get_entries_in_file(std::string); 
-  std::string m_tree_name; 
+  void increment_with_file(const std::string&); 
+  bool m_is_data; 
+  double m_sum_evt_weight; 
   int m_total_entries; 
   int m_n_errors; 
   int m_n_files; 
+  int m_n_empty; 
 }; 
 
 #endif 

@@ -4,6 +4,7 @@
 #include "TFile.h"
 #include "TTree.h"
 #include "TVector2.h"
+#include "TParameter.h"
 
 #include <string> 
 
@@ -171,6 +172,11 @@ namespace outtree {
     if (m_tree) { 
       m_tree->Fill(); 
     }
+  }
+
+  void OutTree::add_double_parameter(const std::string& name, double val) { 
+    TParameter<double> par(name.c_str(), val); 
+    m_file->WriteTObject(&par); 
   }
 
   Jet::Jet() { 

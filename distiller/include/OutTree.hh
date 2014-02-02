@@ -128,6 +128,7 @@ namespace outtree {
     OutTree operator=(OutTree&) = delete; 
     void fill(); 
     void clear_buffer(); 
+    void add_double_parameter(const std::string& name, double val); 
   
     ull_t pass_bits; 
 

@@ -6,7 +6,7 @@
 #include "typedefs.hh"
 
 class SmartChain; 
-class CollectionTreeReport; 
+class SkimReport; 
 class SusyBuffer; 
 class SUSYObjDef; 
 class EventPreselector; 
@@ -47,6 +47,7 @@ private:
   void setup_cutflow(CutflowType config); 
 
   float get_pileup_weight(); 
+  std::vector<std::pair<std::string, int> > get_cutflow_vec(int errs) const; 
 
   void print_progress(int entry_n, std::ostream&); 
   RunInfo m_info; 
@@ -60,7 +61,7 @@ private:
   std::ofstream* m_null_file; 
   std::streambuf* m_debug_buffer; 
   SmartChain* m_chain; 
-  CollectionTreeReport* m_ct_report; 
+  SkimReport* m_skim_report; 
   SusyBuffer* m_susy_buffer; 
   SUSYObjDef* m_def; 
   EventPreselector* m_event_preselector; 

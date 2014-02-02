@@ -12,7 +12,7 @@
 #include "RunInfo.hh"
 #include "BitmapCutflow.hh"
 #include "SmartChain.hh"
-#include "CollectionTreeReport.hh"
+#include "SkimReport.hh"
 #include "EventPreselector.hh"
 #include "BtagCalibration.hh"
 #include "BosonTruthFilter.hh"
@@ -55,7 +55,7 @@ StopDistiller::StopDistiller(const std::vector<std::string>& in,
   m_norm_dbg_file(0), 
   m_null_file(new std::ofstream("/dev/null")), 
   m_chain(0), 
-  m_ct_report(0), 
+  m_skim_report(0), 
   m_susy_buffer(0), 
   m_def(0), 
   m_event_preselector(0), 
@@ -95,7 +95,7 @@ StopDistiller::~StopDistiller() {
   }
   delete m_null_file; 
   delete m_chain; 
-  delete m_ct_report; 
+  delete m_skim_report; 
   delete m_susy_buffer; 
   if (m_def) { 
     m_def->finalize(); 
@@ -151,13 +151,29 @@ StopDistiller::Cutflow StopDistiller::run_cutflow() {
     close(output_dup); 
   }
 
+  if (!m_skim_report->is_data()) {
+    m_out_tree->add_double_parameter(
+      "total_event_weight", m_skim_report->sum_evt_weight()); 
+  }
+
+  return get_cutflow_vec(n_error); 
+}
+
+std::vector<std::pair<std::string, int> > StopDistiller::get_cutflow_vec(
+  int n_error) const {
+
   typedef std::pair<std::string, int> Cut; 
   Cut total_events(std::make_pair("total_events", 
-				  m_ct_report->total_entries()));
+				  m_skim_report->total_entries()));
   std::vector<Cut> cutflow_vec = m_cutflow->get(); 
   cutflow_vec.insert(cutflow_vec.begin(),total_events); 
   if (n_error) { 
     cutflow_vec.push_back(std::make_pair("read_errors",n_error)); 
+  }
+  int n_empty_files = m_skim_report->empty_files(); 
+  if (n_empty_files) { 
+    cutflow_vec.push_back(
+      std::make_pair("files_no_summary", n_empty_files)); 
   }
   auto obj_counts = m_object_counter->get_ordered_cuts(); 
   for (auto cut: obj_counts) {
@@ -372,7 +388,7 @@ void StopDistiller::setup_streams() {
 
 void StopDistiller::setup_chain(const std::vector<std::string>& in) { 
   m_chain = new SmartChain("susy"); 
-  m_ct_report = new CollectionTreeReport("CollectionTree"); 
+  m_skim_report = new SkimReport(); 
 
   if (in.size() == 0) { 
     throw std::runtime_error("I need files to run!"); 
@@ -381,7 +397,7 @@ void StopDistiller::setup_chain(const std::vector<std::string>& in) {
   for (auto file_itr: in){
     m_chain->add(file_itr.c_str(),-1); 
   }
-  m_ct_report->add_files(in); 
+  m_skim_report->add_files(in); 
 
   BranchSettings branch_settings; 
   branch_settings.trigger = m_info.trigger;

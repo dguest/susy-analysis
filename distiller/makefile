@@ -65,7 +65,7 @@ GEN_OBJ     += boson_truth_tools.o BosonPtReweighter.o
 GEN_OBJ     += OutTree.o OutputFilter.o BitmapCutflow.o 
 GEN_OBJ     += object_selection.o
 GEN_OBJ     += BosonTruthFilter.o TruthMetFilter.o
-GEN_OBJ     += SmartChain.o CollectionTreeReport.o 
+GEN_OBJ     += SmartChain.o SkimReport.o 
 GEN_OBJ     += EventPreselector.o StopDistiller.o CheckSize.o
 GEN_OBJ     += BtagCalibration.o Grl.o RunInfo.o
 GEN_OBJ     += unit_tests.o
@@ -91,7 +91,6 @@ unit-test: $(EXE_OBJ:%=$(BIN)/%)
 	@$(CXX) -o $@ $^ $(LIBS) $(LDFLAGS)
 
 $(PY_OUT_PATH): $(PYLIB_OBJ:%=$(BIN)/%) $(PY_OBJ:%=$(BIN)/%)
-	@mkdir -p $(dirname $@)
 	@echo "linking $^ --> $@"
 	@$(CXX) -o $@ $^ $(LIBS) $(PY_LDFLAGS)
 $(BITDEFS): EventBits.hh
