@@ -1,18 +1,12 @@
 #ifndef DISTILL_TOOLS_HH
 #define DISTILL_TOOLS_HH
 
-class SusyBuffer; 
 class SUSYObjDef; 
 class FakeMetEstimator;
 class SelectedJet;
 class TFile; 
 class TVector2; 
 struct RunInfo; 
-namespace outtree { 
-  class OutTree; 		// TODO: remove this
-  // class Jet; 
-  // class ScaleFactor; 
-}; 
 class BtagCalibration; 
 class TLorentzVector; 
 class Muon; 
@@ -77,8 +71,6 @@ void set_bit(std::vector<SelectedJet*>& jets, unsigned bit);
 
 void calibrate_jets(std::vector<SelectedJet*> jets, const BtagCalibration*); 
 
-// TODO: remove this
-void add_skim_report(const SkimReport& report, outtree::OutTree&); 
 
 // ---- templates -----
 

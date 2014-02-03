@@ -3,7 +3,6 @@
 #include "Jets.hh"
 #include "Met.hh"
 #include "btag_defs.hh"
-#include "SusyBuffer.h"		// try to remove, see below
 #include "cutflag.hh"
 
 #include <cassert>
@@ -46,19 +45,6 @@ void copy_leading_jet_info(const std::vector<SelectedJet*>& signal_jets,
   out_tree.counts.n_signal_jets = signal_jets.size(); 
 }
 
-// TODO: move this out of here, the SusyBuffer dependence is annoying. 
-void copy_event_truth(outtree::OutTree& out_tree, const SusyBuffer& buffer, 
-		      unsigned flags) { 
-  out_tree.hfor_type = buffer.hfor_type; 
-  if (flags & cutflag::spartid) { 
-    out_tree.spart1_pdgid = buffer.spart1_pdgid; 
-    out_tree.spart2_pdgid = buffer.spart2_pdgid; 
-  } 
-  // currently there is a bug in mc_event_weight, we have to use 
-  // mcevt_weight[0][0] instead
-  //out_tree.mc_event_weight = buffer.mc_event_weight; 
-  out_tree.mc_event_weight = buffer.mcevt_weight->at(0).at(0); 
-}
 
 void copy_met(outtree::OutTree& out, const Mets& mets) { 
   out.met_nom.set_met(mets.nominal); 

@@ -1,12 +1,10 @@
 #include "distill_tools.hh"
 #include "constants_cutflow.hh"
-#include "OutTree.hh"
 #include "Jets.hh"
 #include "Leptons.hh"
 #include "Met.hh"
 #include "constants.hh"
 #include "RunInfo.hh"
-#include "SkimReport.hh"
 
 #include "cutflag.hh"
 #include "EventBits.hh"
@@ -172,11 +170,3 @@ void calibrate_jets(std::vector<SelectedJet*> jets,
   }
 }
 
-void add_skim_report(const SkimReport& report, outtree::OutTree& tree) { 
-  tree.add_ll_parameter("total_events", report.total_entries()); 
-  if (!report.is_data()) {
-    tree.add_double_parameter(
-      "total_event_weight", report.sum_evt_weight()); 
-  }
-
-}

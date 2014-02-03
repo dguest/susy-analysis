@@ -8,7 +8,6 @@ namespace outtree {
 }; 
 class SelectedJet; 
 class Mets; 
-class SusyBuffer; 		// should remove (big dependence)
 
 #include "btag_defs.hh"
 #include <vector> 
@@ -27,9 +26,6 @@ void copy_leading_jet_info(const std::vector<SelectedJet*>& signal_jets,
 
 void copy_cjet_truth(outtree::OutTree& out_tree, 
 		     const std::vector<SelectedJet*>& jets); 
-
-void copy_event_truth(outtree::OutTree& out_tree, const SusyBuffer& buffer, 
-		      unsigned branches); 
 
 void copy_met(outtree::OutTree& out, const Mets& mets); 
 
