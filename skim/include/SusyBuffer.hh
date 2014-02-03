@@ -42,6 +42,7 @@ public:
   std::set<std::string> getMissingBranches() const; 
   void setPassThrough(TTree&) const; 
   bool hasMc() const; 
+  void dump() const; 
 
   // we can cut this branch down to one entry per event
   std::vector<std::vector<double> >* mcevt_weight; 
@@ -65,7 +66,7 @@ public:
 private: 
   // generic branch setters
   template<typename T> 
-  void set(TChain& chain, const std::string& name, T ptr, bool save = false); 
+  void set(TChain& chain, const std::string& name, T* ptr, bool save = false); 
   void setInternal(TChain& chain, const std::string& name, void* dest); 
 
   // specific branch setters (call the above functions)

@@ -7,24 +7,89 @@
 #include "TTree.h"
 #include <string>
 
-// TreeBranch gets set directly from the input chain
+// --- flat branch for pointers to simple types ---
+
 template<typename T>
-class TreeBranch: public ITreeBranch { 
+class FlatBranch: public ITreeBranch { 
 public: 
-  TreeBranch(TTree& in_tree, const std::string& branch_name); 
-  TreeBranch(T in_value, const std::string& branch_name, 
+  FlatBranch(T in_ptr, const std::string& branch_name); 
+  void addToTree(TTree& tree); 
+  void dump() const; 
+private: 
+  std::string m_branch_name; 
+  T m_value; 
+}; 
+
+template<typename T>
+FlatBranch<T>::FlatBranch(T in_value, const std::string& branch_name) : 
+  m_branch_name(branch_name), 
+  m_value(in_value)
+{ 
+}
+
+template<typename T>
+void FlatBranch<T>::addToTree(TTree& tree) { 
+  tree.Branch(m_branch_name.c_str(), m_value); 
+}
+
+template<typename T>
+void FlatBranch<T>::dump() const { 
+  puts("NADA"); 
+}
+
+// --- owner branch type for simple types passed through ---
+
+template<typename T>
+class FlatOwnedBranch: public ITreeBranch { 
+public: 
+  FlatOwnedBranch(TTree& in_tree, const std::string& branch_name); 
+  void addToTree(TTree& tree); 
+  void dump() const; 
+private: 
+  std::string m_branch_name; 
+  T m_value; 
+}; 
+
+template<typename T>
+FlatOwnedBranch<T>::FlatOwnedBranch(TTree& in_tree, 
+				    const std::string& branch_name): 
+  m_branch_name(branch_name),
+  m_value(0)
+{ 
+  setOrThrow(in_tree, branch_name, &m_value); 
+}
+
+template<typename T>
+void FlatOwnedBranch<T>::addToTree(TTree& tree) { 
+  printf("adding flat branch %s to tree\n", m_branch_name.c_str()); 
+  tree.Branch(m_branch_name.c_str(), &m_value); 
+}
+
+template<typename T>
+void FlatOwnedBranch<T>::dump() const { 
+  puts("NADA"); 
+}
+
+
+
+
+// obj branch for more complicated objects
+template<typename T>
+class ObjBranch: public ITreeBranch { 
+public: 
+  ObjBranch(TTree& in_tree, const std::string& branch_name); 
+  ObjBranch(T in_value, const std::string& branch_name, 
 	     const std::string& branch_class = ""); 
   void addToTree(TTree& tree); 
+  void dump() const; 
 private: 
   std::string m_branch_name; 
   T m_value; 
   std::string m_branch_class; 
 }; 
 
-// implementation 
-
 template<typename T>
-TreeBranch<T>::TreeBranch(TTree& in_tree, const std::string& branch_name): 
+ObjBranch<T>::ObjBranch(TTree& in_tree, const std::string& branch_name): 
   m_branch_name(branch_name),
   m_value(0)
 { 
@@ -33,8 +98,8 @@ TreeBranch<T>::TreeBranch(TTree& in_tree, const std::string& branch_name):
 }
 
 template<typename T>
-TreeBranch<T>::TreeBranch(T in_value, const std::string& branch_name, 
-			  const std::string& branch_class) : 
+ObjBranch<T>::ObjBranch(T in_value, const std::string& branch_name, 
+			const std::string& branch_class) : 
   m_branch_name(branch_name), 
   m_value(in_value), 
   m_branch_class(branch_class)
@@ -42,12 +107,14 @@ TreeBranch<T>::TreeBranch(T in_value, const std::string& branch_name,
 }
 
 template<typename T>
-void TreeBranch<T>::addToTree(TTree& tree) { 
-  if (m_branch_class.size() > 0){ 
-    tree.Branch(m_branch_name.c_str(), m_branch_class.c_str(), m_value); 
-  } else { 
-    tree.Branch(m_branch_name.c_str(), m_value); 
-  }
+void ObjBranch<T>::addToTree(TTree& tree) { 
+  tree.Branch(m_branch_name.c_str(), m_branch_class.c_str(), m_value); 
 }
+
+template<typename T>
+void ObjBranch<T>::dump() const { 
+  puts("object"); 
+}
+
 
 #endif 

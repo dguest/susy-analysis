@@ -7,6 +7,7 @@ class ITreeBranch {
 public: 
   virtual ~ITreeBranch() {}
   virtual void addToTree(TTree&) = 0; 
+  virtual void dump() const = 0; 
 }; 
 
 
