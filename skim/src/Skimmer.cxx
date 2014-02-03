@@ -88,10 +88,8 @@ void Skimmer::copyVariablesTo(TTree* output_tree, TFile* file) {
   summary.total_events = n_entries; 
   for (int entry_n = 0; entry_n < n_entries; entry_n++) { 
     m_chain->GetEntry(entry_n); 
+
     if (entry_n > 0) break; 
-
-    buffer.dump(); 
-
 
     if (summary.has_mc) { 
       if (summary.has_bosons) { 

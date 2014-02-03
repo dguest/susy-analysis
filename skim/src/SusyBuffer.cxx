@@ -84,13 +84,12 @@ void SusyBuffer::set(TChain& ch, const std::string& name, T* ptr, bool save)
   setInternal(ch, name, ptr); 
   if (save || m_requested_passthrough.count(name)) { 
     std::string br_class = ch.FindBranch(name.c_str())->GetClassName();
-    printf("setting %s, class %s\n", name.c_str(), br_class.c_str()); 
     if (br_class.size() > 0) { 
       m_tree_branches.insert(
-	std::make_pair(name, new ObjBranch<T*>(ptr, name, br_class))); 
+	std::make_pair(name, new ObjBranch<T>(ptr, name, br_class))); 
     } else { 
       m_tree_branches.insert(
-	std::make_pair(name, new FlatBranch<T*>(ptr, name))); 
+	std::make_pair(name, new FlatBranch<T>(ptr, name))); 
     }
   }
 }
@@ -150,7 +149,7 @@ void SusyBuffer::setMetBranches(TChain& chain) {
 // macro to use in getBranchBuffer below
 #define TRY_BRANCH_TYPE(TYPE) \
   do { if (branch_type == #TYPE) {			\
-      return new ObjBranch<TYPE*> (chain, name);	\
+      return new ObjBranch<TYPE> (chain, name);	\
     }							\
   } while (0)
 
@@ -169,7 +168,6 @@ namespace {
       return 0; 
     }
     std::string branch_type = leaf->GetTypeName(); 
-    printf("setting branch %s, type %s\n", name.c_str(), branch_type.c_str()); 
 
     using namespace std; 
     TRY_FLAT_TYPE(Float_t); 

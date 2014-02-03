@@ -12,18 +12,18 @@
 template<typename T>
 class FlatBranch: public ITreeBranch { 
 public: 
-  FlatBranch(T in_ptr, const std::string& branch_name); 
+  FlatBranch(T* in_ptr, const std::string& branch_name); 
   void addToTree(TTree& tree); 
   void dump() const; 
 private: 
   std::string m_branch_name; 
-  T m_value; 
+  T* m_value; 
 }; 
 
 template<typename T>
-FlatBranch<T>::FlatBranch(T in_value, const std::string& branch_name) : 
+FlatBranch<T>::FlatBranch(T* in_ptr, const std::string& branch_name) : 
   m_branch_name(branch_name), 
-  m_value(in_value)
+  m_value(in_ptr)
 { 
 }
 
@@ -61,7 +61,6 @@ FlatOwnedBranch<T>::FlatOwnedBranch(TTree& in_tree,
 
 template<typename T>
 void FlatOwnedBranch<T>::addToTree(TTree& tree) { 
-  printf("adding flat branch %s to tree\n", m_branch_name.c_str()); 
   tree.Branch(m_branch_name.c_str(), &m_value); 
 }
 
@@ -78,13 +77,13 @@ template<typename T>
 class ObjBranch: public ITreeBranch { 
 public: 
   ObjBranch(TTree& in_tree, const std::string& branch_name); 
-  ObjBranch(T in_value, const std::string& branch_name, 
+  ObjBranch(T* in_ptr, const std::string& branch_name, 
 	     const std::string& branch_class = ""); 
   void addToTree(TTree& tree); 
   void dump() const; 
 private: 
   std::string m_branch_name; 
-  T m_value; 
+  T* m_value; 
   std::string m_branch_class; 
 }; 
 
@@ -98,10 +97,10 @@ ObjBranch<T>::ObjBranch(TTree& in_tree, const std::string& branch_name):
 }
 
 template<typename T>
-ObjBranch<T>::ObjBranch(T in_value, const std::string& branch_name, 
+ObjBranch<T>::ObjBranch(T* in_ptr, const std::string& branch_name, 
 			const std::string& branch_class) : 
   m_branch_name(branch_name), 
-  m_value(in_value), 
+  m_value(in_ptr), 
   m_branch_class(branch_class)
 { 
 }
