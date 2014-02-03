@@ -58,7 +58,6 @@ def cutflow(input_files, flags, grl='', output_ntuple='',
                 
     input_dict = { 
         'grl': grl, 
-        'trigger': 'EF_xe80_tclcw_tight', 
         'btag_cal_dir':cal_dir, 
         'btag_cal_file':btag_cal_file, 
         'systematic':systematic, 

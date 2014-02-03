@@ -201,7 +201,8 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   const float pileup_weight = get_pileup_weight(); 
 
   if (m_boson_truth_filter) { 
-    if (m_boson_truth_filter->is_over_threshold(m_susy_buffer)) { 
+    if (m_boson_truth_filter->is_over_threshold(
+	  m_susy_buffer->mc_particles)) { 
       return; 
     }
   }
@@ -326,9 +327,9 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   m_out_tree->pileup_weight = pileup_weight; 
   if (m_boson_pt_reweighter) {
     m_out_tree->truth_boson_pt_weight = m_boson_pt_reweighter->
-      get_boson_weight(m_susy_buffer); 
+      get_boson_weight(m_susy_buffer->mc_particles); 
     m_out_tree->truth_boson_pt = m_boson_pt_reweighter->
-      get_boson_pt(m_susy_buffer); 
+      get_boson_pt(m_susy_buffer->mc_particles); 
   }
 
   m_out_tree->event_number = m_susy_buffer->EventNumber; 
@@ -397,13 +398,10 @@ void StopDistiller::setup_chain(const std::vector<std::string>& in) {
   }
   m_skim_report->add_files(in); 
 
-  BranchSettings branch_settings; 
-  branch_settings.trigger = m_info.trigger;
-
   // don't try to setup the buffer if the chain is empty. 
   if (m_chain->GetEntries() == 0) return; 
 
-  m_susy_buffer = new SusyBuffer(m_chain, m_flags, branch_settings); 
+  m_susy_buffer = new SusyBuffer(m_chain, m_flags); 
 
   if (m_flags & cutflag::get_branches) { 
     std::vector<std::string> br_names = m_chain->get_all_branch_names();
@@ -471,7 +469,7 @@ void StopDistiller::setup_cutflow(CutflowType cutflow) {
   switch (cutflow) { 
   case CutflowType::NOMINAL: { 
     m_cutflow->add("GRL"                   , pass::grl            );  
-    m_cutflow->add(m_info.trigger          , pass::trigger        );
+    m_cutflow->add("trigger"          , pass::trigger        );
     m_cutflow->add("primary_vertex"        , pass::vxp_gt_4trk    );
     m_cutflow->add("lar_error"        , pass::lar_error          );
     m_cutflow->add("tile_error"        , pass::tile_error          );
@@ -493,7 +491,7 @@ void StopDistiller::setup_cutflow(CutflowType cutflow) {
   case CutflowType::NONE: return; 
   case CutflowType::ELECTRON_CR: { 
     m_cutflow->add("GRL"                   , pass::grl            );  
-    m_cutflow->add(m_info.trigger          , pass::trigger        );
+    m_cutflow->add("trigger"          , pass::trigger        );
     m_cutflow->add("primary_vertex"        , pass::vxp_gt_4trk    );
     m_cutflow->add("lar_error"        , pass::lar_error          );
     m_cutflow->add("tile_error"        , pass::tile_error          );
@@ -512,7 +510,7 @@ void StopDistiller::setup_cutflow(CutflowType cutflow) {
   }
   case CutflowType::MUON_CR: { 
     m_cutflow->add("GRL"                   , pass::grl            );  
-    m_cutflow->add(m_info.trigger          , pass::trigger        );
+    m_cutflow->add("trigger"          , pass::trigger        );
     m_cutflow->add("primary_vertex"        , pass::vxp_gt_4trk    );
     m_cutflow->add("lar_error"        , pass::lar_error          );
     m_cutflow->add("tile_error"        , pass::tile_error          );

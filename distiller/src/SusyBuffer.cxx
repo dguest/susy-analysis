@@ -2,10 +2,10 @@
 
 #include "SusyBuffer.h"
 #include "SmartChain.hh"
+#include "McParticleBuffer.hh"
 #include "cutflag.hh"
 
-SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br, 
-		       BranchSettings names)
+SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br)
 {
 
   using namespace cutflag; 
@@ -18,8 +18,20 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br,
   fChain->SetBranch("EventNumber", &EventNumber); 
   fChain->SetBranch("lbn", &lbn); 
 
-  fChain->SetBranch(names.trigger, &trigger); 
-  fChain->SetBranch("EF_mu24i_tight", &mu_trigger); 
+  // --- trigger branches ----
+  // met
+  fChain->SetBranch("EF_xe80_tclcw_tight", &xe80_tclcw_tight); 
+  fChain->SetBranch("EF_xe80T_tclcw_loose", &xe80T_tclcw_loose); 
+  fChain->SetBranch("EF_xe80_tclcw_loose", &xe80_tclcw_loose); 
+  // muon
+  fChain->SetBranch("EF_mu18_tight_mu8_EFFS", &EF_mu18_tight_mu8_EFFS); 
+  fChain->SetBranch("EF_mu24i_tight" 	    , &EF_mu24i_tight);         
+  fChain->SetBranch("EF_mu36_tight"         , &EF_mu36_tight);
+  // electron 
+  fChain->SetBranch("EF_2e12Tvh_loose1", &EF_2e12Tvh_loose1); 
+  fChain->SetBranch("EF_e24vhi_medium1", &EF_e24vhi_medium1); 
+  fChain->SetBranch("EF_e60_medium1", &EF_e60_medium1); 
+
   fChain->SetBranch("coreFlags", &coreFlags); 
   
   fChain->SetBranch("top_hfor_type", &hfor_type); 
@@ -72,9 +84,6 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br,
 		    &MET_Egamma10NoTau_RefGamma_ety);   
   fChain->SetBranch("MET_Egamma10NoTau_RefGamma_sumet",
 		    &MET_Egamma10NoTau_RefGamma_sumet);
-
-  fChain->SetBranch("MET_RefFinal_etx", &MET_RefFinal_etx); 
-  fChain->SetBranch("MET_RefFinal_ety", &MET_RefFinal_ety); 
 
  
   fChain->SetBranch("el_n", &el_n); 
@@ -212,14 +221,8 @@ void SusyBuffer::set_mc_branches(SmartChain* chain,
 
   // we can't use the mc_event_weight with sherpa tag 
   chain->SetBranch("mcevt_weight", &mcevt_weight); 
-  chain->SetBranch("mc_n", &mc_n); 
-  chain->SetBranch("mc_pt", &mc_pt); 
-  chain->SetBranch("mc_eta", &mc_eta); 
-  chain->SetBranch("mc_phi", &mc_phi); 
-  chain->SetBranch("mc_m", &mc_m); 
 
-  chain->SetBranch("mc_status", &mc_status); 
-  chain->SetBranch("mc_pdgId", &mc_pdgId); 
+  mc_particles.set_branches(chain); 
 
   chain->SetBranch("MET_Truth_NonInt_etx", &MET_Truth_NonInt_etx); 
   chain->SetBranch("MET_Truth_NonInt_ety", &MET_Truth_NonInt_ety);

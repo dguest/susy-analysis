@@ -114,9 +114,6 @@ static bool fill_run_info(PyObject* dict, RunInfo* info) {
     if (ckey == "grl") { 
       if (!safe_copy(value, info->grl)) return false; 
     }
-    else if (ckey == "trigger") { 
-      if (!safe_copy(value, info->trigger)) return false; 
-    }
     else if (ckey == "btag_cal_dir") { 
       if (!safe_copy(value, info->btag_cal_dir)) return false; 
     }

@@ -9,7 +9,6 @@ struct RunInfo {
   systematic::Systematic systematic; 
   CutflowType cutflow_type; 
   std::string grl; 
-  std::string trigger; 
   std::string btag_cal_dir; 
   std::string btag_cal_file; 
   double boson_pt_max_mev; 

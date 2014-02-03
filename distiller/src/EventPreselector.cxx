@@ -23,7 +23,16 @@ EventPreselector::~EventPreselector() {
 ull_t EventPreselector::get_preselection_flags(const SusyBuffer& buffer, 
 					       SUSYObjDef& def) { 
   ull_t pass_bits = 0; 
-  if(buffer.trigger)    pass_bits |= pass::trigger; 
+
+  if (buffer.xe80_tclcw_tight || 
+      buffer.xe80T_tclcw_loose || 
+      buffer.xe80_tclcw_loose || 
+      buffer.EF_mu18_tight_mu8_EFFS || 
+      buffer.EF_mu24i_tight || 
+      buffer.EF_mu36_tight ||          
+      buffer.EF_2e12Tvh_loose1 ||
+      buffer.EF_e24vhi_medium1 ||
+      buffer.EF_e60_medium1) pass_bits |= pass::trigger; 
 
   if ( m_flags & cutflag::is_data ) { 
     if(buffer.larError != 2)  pass_bits |= pass::lar_error; 

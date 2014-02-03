@@ -10,11 +10,7 @@
 
 #include <vector> 
 #include <string> 
-
-struct BranchSettings
-{ 
-  std::string trigger; 
-}; 
+#include "McParticleBuffer.hh"
 
 
 class SmartChain; 
@@ -24,8 +20,18 @@ public :
   unsigned int RunNumber; 
   unsigned int EventNumber; 
   unsigned lbn; 
-  bool          trigger; 
-  bool          mu_trigger; 
+
+  // --- trigger branches ---
+  bool          xe80_tclcw_tight; 
+  bool          xe80T_tclcw_loose; 
+  bool          xe80_tclcw_loose; 
+  bool      EF_mu18_tight_mu8_EFFS; 
+  bool      EF_mu24i_tight; 
+  bool      EF_mu36_tight;          
+  bool EF_2e12Tvh_loose1;
+  bool EF_e24vhi_medium1;
+  bool EF_e60_medium1;
+
   float         averageIntPerXing;
   unsigned        larError;
   unsigned        tileError;
@@ -42,13 +48,7 @@ public :
   std::vector<std::vector<double> >* mcevt_weight; 
 
   // needed for boson filter
-  int mc_n; 
-  std::vector<float>* mc_pt; 
-  std::vector<float>* mc_eta; 
-  std::vector<float>* mc_phi; 
-  std::vector<float>* mc_m; 
-  std::vector<int>* mc_status; 
-  std::vector<int>* mc_pdgId; 
+  McParticleBuffer mc_particles; 
 
   // for overlap removal in stop samples
   float MET_Truth_NonInt_etx; 
@@ -77,9 +77,6 @@ public :
   float MET_Egamma10NoTau_RefGamma_etx;
   float MET_Egamma10NoTau_RefGamma_ety;
   float MET_Egamma10NoTau_RefGamma_sumet;
-
-  float MET_RefFinal_etx; 
-  float MET_RefFinal_ety; 
   
   std::vector<float>   *jet_jvtxf; 
   int             el_n;
@@ -185,11 +182,9 @@ public :
 
   double sharktopus; 
 
-  SusyBuffer(SmartChain *tree, const unsigned use_branches, 
-	     BranchSettings names );
+  SusyBuffer(SmartChain *tree, const unsigned use_branches);
 
 private: 
-  BranchSettings m_settings; 
   void set_mc_branches(SmartChain* chain, const unsigned br, 
 		       std::string jc); 
 };

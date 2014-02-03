@@ -1,6 +1,6 @@
 #include "BosonPtReweighter.hh"
 #include "boson_truth_tools.hh"
-#include "SusyBuffer.h"
+#include "McParticleBuffer.hh"
 
 namespace { 
 
@@ -22,11 +22,11 @@ namespace {
   }
 }
 
-float BosonPtReweighter::get_boson_weight(const SusyBuffer* buff) { 
+float BosonPtReweighter::get_boson_weight(const McParticleBuffer& buff) { 
   float pt_gev = get_boson_truth_pt(buff) / 1e3; 
   return ReweightWZ(pt_gev); 
 }
 
-float BosonPtReweighter::get_boson_pt(const SusyBuffer* buffer) { 
+float BosonPtReweighter::get_boson_pt(const McParticleBuffer& buffer) { 
   return get_boson_truth_pt(buffer); 
 }
