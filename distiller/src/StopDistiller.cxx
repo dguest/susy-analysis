@@ -543,7 +543,7 @@ float StopDistiller::get_pileup_weight() {
   if (m_flags & cutflag::generate_pileup) { 
     m_prw->Fill(
       b->RunNumber, b->mc_channel_number, 
-      b->mcevt_weight->at(0).at(0), avx); 
+      b->mc_event_weight, avx); 
     return 1.0; 
   } else { 
     return m_prw->GetCombinedWeight(
@@ -582,9 +582,6 @@ namespace {
       out_tree.spart1_pdgid = buffer.spart1_pdgid; 
       out_tree.spart2_pdgid = buffer.spart2_pdgid; 
     } 
-    // currently there is a bug in mc_event_weight, we have to use 
-    // mcevt_weight[0][0] instead
-    //out_tree.mc_event_weight = buffer.mc_event_weight; 
-    out_tree.mc_event_weight = buffer.mcevt_weight->at(0).at(0); 
+    out_tree.mc_event_weight = buffer.mc_event_weight; 
   }
 }

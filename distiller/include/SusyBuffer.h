@@ -44,9 +44,6 @@ public :
   int spart2_pdgid; 
   float mc_event_weight; 
 
-  // hack for sherpa bug
-  std::vector<std::vector<double> >* mcevt_weight; 
-
   // needed for boson filter
   McParticleBuffer mc_particles; 
 
@@ -94,7 +91,7 @@ public :
   std::vector<float>   *el_cl_E;
   std::vector<float>   *el_cl_eta;
   std::vector<float>   *el_cl_phi;
-  std::vector<float>   *el_cl_pt;
+  // std::vector<float>   *el_cl_pt;
   std::vector<float>   *el_trackphi;
   std::vector<float>   *el_tracketa;
   std::vector<int>     *el_nPixHits;
@@ -177,8 +174,6 @@ public :
   std::vector<float>* trk_chi2; 
   std::vector<int>* trk_nPixHits; 
   std::vector<int>* trk_nSCTHits; 
-  std::vector<float>* trk_cone40_ptmin3gev_hitschi_nTrackIso; 
-
 
   double sharktopus; 
 

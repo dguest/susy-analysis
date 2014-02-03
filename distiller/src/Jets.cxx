@@ -221,7 +221,6 @@ EventJets::EventJets(const SusyBuffer& buffer, SUSYObjDef& def,
 { 
 
   assert(buffer.jet_pt); 
-  assert(buffer.el_cl_pt); 
   assert(buffer.el_cl_eta); 
   assert(buffer.el_cl_phi); 
   assert(buffer.el_cl_E); 

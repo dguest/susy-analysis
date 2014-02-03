@@ -100,7 +100,7 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br)
   fChain->SetBranch("el_cl_E", &el_cl_E); 
   fChain->SetBranch("el_cl_eta", &el_cl_eta); 
   fChain->SetBranch("el_cl_phi", &el_cl_phi); 
-  fChain->SetBranch("el_cl_pt", &el_cl_pt); 
+  // fChain->SetBranch("el_cl_pt", &el_cl_pt); 
   fChain->SetBranch("el_trackphi", &el_trackphi); 
   fChain->SetBranch("el_tracketa", &el_tracketa); 
   fChain->SetBranch("el_nPixHits", &el_nPixHits); 
@@ -204,8 +204,6 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br)
   fChain->SetBranch("trk_chi2", &trk_chi2); 
   fChain->SetBranch("trk_nPixHits", &trk_nPixHits); 
   fChain->SetBranch("trk_nSCTHits", &trk_nSCTHits); 
-  fChain->SetBranch("trk_cone40_ptmin3gev_hitschi_nTrackIso", 
-		    &trk_cone40_ptmin3gev_hitschi_nTrackIso); 
 
 }
 
@@ -217,10 +215,14 @@ void SusyBuffer::set_mc_branches(SmartChain* chain,
   chain->SetBranch("mc_channel_number", &mc_channel_number); 
   chain->SetBranch(jc + "_flavor_truth_label", 
 		     &jet_flavor_truth_label); 
-  chain->SetBranch("mc_event_weight", &mc_event_weight); 
-
-  // we can't use the mc_event_weight with sherpa tag 
-  chain->SetBranch("mcevt_weight", &mcevt_weight); 
+  try { 
+    // in the skims we make this branch from mcevt_weight. 
+    chain->SetBranch("skimmed_mcevt_weight", &mc_event_weight); 
+  } catch (MissingBranchError& err) { 
+    // for testing this branch is probably fine (never figured out whether
+    // the supposed bug was fixed)
+    chain->SetBranch("mc_event_weight", &mc_event_weight); 
+  }
 
   mc_particles.set_branches(chain); 
 
