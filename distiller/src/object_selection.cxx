@@ -3,8 +3,11 @@
 #include "constants_jet.hh"
 #include "Jets.hh"
 #include "Leptons.hh"
+#include "constants_lepton.hh"
 #include <cassert> 
 #include <vector> 
+
+// TODO: move leptons into leptons, jets into jets? 
 
 namespace object { 
   Electrons veto_electrons(const Electrons& preselected_electrons) { 
@@ -49,8 +52,8 @@ namespace object {
     Jets out; 
     for (auto jet_itr: jets){
       auto& jet = *jet_itr; 
-      bool is_low_pt = jet.Pt() < JET_PT_CUT; 
-      bool is_good_eta = std::abs(jet.Eta()) < PRESELECTION_JET_ETA; 
+      bool is_low_pt = jet.Pt() < jet::PRESELECTION_PT; 
+      bool is_good_eta = std::abs(jet.Eta()) < jet::PRESELECTION_ETA; 
       if (!is_low_pt && is_good_eta) { 
 	out.push_back(jet_itr); 
       }
@@ -69,7 +72,7 @@ namespace object {
     return out; 
   }
 
-  Jets veto_jets(const Jets& jets) { 
+  Jets bad_jets(const Jets& jets) { 
     Jets out; 
     for (auto jet_itr: jets){
       auto& jet = *jet_itr; 
@@ -84,12 +87,20 @@ namespace object {
     Jets out; 
     for (auto jet_itr: jets){
       const SelectedJet& jet = *jet_itr; 
-      bool signal_pt = jet.Pt() > SIGNAL_JET_PT_CUT; 
-      bool tag_eta = fabs(jet.Eta()) < JET_TAGGING_ETA_LIM; 
-      bool jvf = (jet.jvf() > JET_JVF_CUT) || jet.Pt() > JET_PT_IGNORE_JVF; 
-      if (signal_pt && tag_eta && jvf ) { 
+      const float abs_eta = std::abs(jet.Eta()); 
+      bool signal_pt = jet.Pt() > jet::SIGNAL_PT_CUT; 
+      bool ok_eta = abs_eta < jet::SIGNAL_ETA_CUT; 
+
+      bool no_tracks = jet.jvf() < -0.5; 
+      bool ok_jvf_frac = jet.jvf() > jet::JVF_CUT; 
+      bool ignore_jvf = (jet.Pt() > jet::PT_IGNORE_JVF || 
+			 abs_eta > jet::ETA_IGNORE_JFV); 
+
+      bool ok_jvf = (ok_jvf_frac || ignore_jvf || no_tracks); 
+      if (signal_pt && ok_eta && ok_jvf ) { 
 	out.push_back(jet_itr); 
       }
+      // bool tag_eta = fabs(jet.Eta()) < jet::TAGGING_ETA_LIM; 
     }
     return out; 
   }

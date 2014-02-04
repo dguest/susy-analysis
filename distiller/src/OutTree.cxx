@@ -255,8 +255,9 @@ namespace outtree {
     // MAKE_PASS_BRANCH(control_electron); 
     MAKE_PASS_BRANCH(os_zmass_el_pair); 
     MAKE_PASS_BRANCH(os_zmass_mu_pair); 
+    MAKE_PASS_BRANCH(bad_tile_stmet); 
+    MAKE_PASS_BRANCH(bad_tile_mumet); 
   }
-#undef MAKE_PASS_BRANCH
 
 #define SET_FROM_BIT(BIT)	  \
   BIT = pass::BIT & bits

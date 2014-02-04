@@ -19,8 +19,6 @@ namespace pass {
   const ull_t dphi_jetmet_min    = 1ULL <<  9; 
   const ull_t electron_veto      = 1ULL << 10; 
   const ull_t muon_veto          = 1ULL << 11; 
-  // const ull_t ctag_mainz         = 1ULL << 12; 
-  // const ull_t dopplejet          = 1ULL << 13; 
 
   // requirements for control regions
   const ull_t control_muon       = 1ULL << 15; 
@@ -31,12 +29,17 @@ namespace pass {
 
   // must be set in the Analysis routines
   const ull_t mttop              = 1ULL << 21; 
-  // const ull_t j2_anti_u_opt      = 1ULL << 23; 
-  // const ull_t j3_anti_b_opt      = 1ULL << 24; 
-  // const ull_t j3_anti_u_opt      = 1ULL << 25; 
 
   // late addition control region 
   const ull_t mu_met             = 1ULL << 22; 
+
+  // bad tile veto
+  const ull_t bad_tile_stmet       = 1ULL << 23; 
+  const ull_t bad_tile_mumet       = 1ULL << 24; 
+  // const ull_t bad_tile_stmet_up    = 1ULL << 25; 
+  // const ull_t bad_tile_mumet_up    = 1ULL << 26; 
+  // const ull_t bad_tile_stmet_down  = 1ULL << 27; 
+  // const ull_t bad_tile_mumet_down  = 1ULL << 28; 
 
   // late additons to event cleaning 
   const ull_t tile_error         = 1ULL <<  35; 

@@ -17,11 +17,9 @@ class SelectedJet: public TLorentzVector {
 public: 
   typedef std::pair<double, double> CalResult; 
   SelectedJet(const EventJets* container, int jet_index); 
-  double combNN_btag() const; 
   int index() const;
-  double jfitcomb_cu(const SusyBuffer& buffer, int jet_index) const;
-  double jfitcomb_cb(const SusyBuffer& buffer, int jet_index) const;
   double jvf() const; 
+  bool bad_tile(const TVector2& met) const;
   void set_bit(unsigned, bool set_to = true); 
   unsigned bits() const; 
   double flavor_weight(btag::Flavor, btag::Tagger) const; 
@@ -42,6 +40,7 @@ private:
   double m_jfc_b; 
   double m_jfc_c; 
   double m_jfc_u; 
+  float m_bch_corr; 
   int m_jet_index;
   float m_jvf; //jet_jvtxf
   unsigned m_bits; 

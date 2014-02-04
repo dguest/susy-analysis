@@ -137,6 +137,7 @@ public :
   std::vector<float>   *jet_ActiveAreaPy; 
   std::vector<float>   *jet_ActiveAreaPz; 
   std::vector<float>   *jet_ActiveAreaE; 
+  std::vector<float>   *jet_BCH_CORR_JET; 
   // Event Shape is defined above
   std::vector<float>   *jet_emfrac;
   std::vector<float>   *jet_hecf;

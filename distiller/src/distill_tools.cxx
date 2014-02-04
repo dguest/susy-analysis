@@ -88,6 +88,16 @@ ull_t met_bits(const Mets& mets){
   return pass_bits; 
 }
 
+ull_t bad_tile_bits(const Mets& mets, const std::vector<SelectedJet*> jets) { 
+  ull_t bits = pass::bad_tile_stmet | pass::bad_tile_mumet; 
+  
+  for (auto jet: jets) { 
+    if (jet->bad_tile(mets.nominal)) bits |=~ pass::bad_tile_stmet; 
+    if (jet->bad_tile(mets.muon)) bits |=~ pass::bad_tile_stmet; 
+  }
+  return bits; 
+}
+
 //____________________________________________________________
 // utility functions 
 

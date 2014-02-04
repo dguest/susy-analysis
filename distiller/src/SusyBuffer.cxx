@@ -145,6 +145,7 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br)
   fChain->SetBranch(jc + "_ActiveAreaPy",   &jet_ActiveAreaPy); 
   fChain->SetBranch(jc + "_ActiveAreaPz",   &jet_ActiveAreaPz); 
   fChain->SetBranch(jc + "_ActiveAreaE",   &jet_ActiveAreaE); 
+  fChain->SetBranch(jc + "_BCH_CORR_JET",  &jet_BCH_CORR_JET); 
   fChain->SetBranch(jc + "_emfrac", &jet_emfrac); 
   fChain->SetBranch(jc + "_hecf", &jet_hecf); 
   fChain->SetBranch(jc + "_LArQuality", &jet_LArQuality); 

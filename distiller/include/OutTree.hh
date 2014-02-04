@@ -28,6 +28,8 @@ namespace outtree {
     // bool control_electron; 
     bool os_zmass_el_pair; 
     bool os_zmass_mu_pair; 
+    bool bad_tile_stmet; 
+    bool bad_tile_mumet; 
   }; 
 
   struct ObjectCounts

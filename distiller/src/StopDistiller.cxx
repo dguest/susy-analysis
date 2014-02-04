@@ -253,7 +253,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   ob_counts["after_overlap_el"] += preselected_electrons.size(); 
   ob_counts["after_overlap_mu"] += preselected_muons.size(); 
 
-  const auto veto_jets = object::veto_jets(preselected_jets); 
+  const auto veto_jets = object::bad_jets(preselected_jets); 
   const auto veto_electrons = object::veto_electrons(preselected_electrons); 
   const auto veto_muons = object::veto_muons(preselected_muons); 
 
@@ -305,6 +305,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   }
 
   pass_bits |= control_lepton_bits(control_electrons, control_muons); 
+
   // get zmass pair bits (true if _any_ leptons are in the z window)
   pass_bits |= z_control_bits(preselected_electrons, preselected_muons); 
 
@@ -312,11 +313,14 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   if (veto_muons.size() == 0) pass_bits |= pass::muon_veto; 
 
   pass_bits |= met_bits(mets); 
+  pass_bits |= bad_tile_bits(mets, preselected_jets); 
 
   if ( m_flags & cutflag::truth ) { 
     copy_cjet_truth(*m_out_tree, signal_jets); 
     copy_event_truth(*m_out_tree, *m_susy_buffer, m_flags); 
   }
+
+  // --- bit filling ends here ---
 
   m_cutflow->fill(pass_bits); 
   m_out_tree->pass_bits = pass_bits; 
@@ -351,7 +355,6 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
     m_out_tree->boson_child_pt = boson_decay.Mod(); 
     m_out_tree->boson_child_phi = boson_decay.Phi(); 
   }
-
 
   if (m_output_filter->should_save_event(pass_bits)) { 
     m_out_tree->fill(); 
@@ -468,17 +471,18 @@ void StopDistiller::setup_cutflow(CutflowType cutflow) {
   switch (cutflow) { 
   case CutflowType::NOMINAL: { 
     m_cutflow->add("GRL"                   , pass::grl            );  
-    m_cutflow->add("trigger"          , pass::trigger        );
+    m_cutflow->add("trigger"          , pass::met_trigger        );
     m_cutflow->add("primary_vertex"        , pass::vxp_gt_4trk    );
     m_cutflow->add("lar_error"        , pass::lar_error          );
-    m_cutflow->add("tile_error"        , pass::tile_error          );
     m_cutflow->add("core"        , pass::core          );
+    // m_cutflow->add("event_cleaning"        , event_clean          );
+    m_cutflow->add("bad_jet_veto"          , pass::jet_clean      );
     m_cutflow->add("tile_trip"        , pass::tile_trip          );
-    m_cutflow->add("event_cleaning"        , event_clean          );
+    m_cutflow->add("tile_error"        , pass::tile_error          );
+    m_cutflow->add("bad_tile"          , pass::bad_tile_stmet      ); 
     m_cutflow->add("electron_veto"           , pass::electron_veto    );
     m_cutflow->add("muon_veto"           , pass::muon_veto    );
     m_cutflow->add("lepton_veto"           ,       lepton_veto    );
-    m_cutflow->add("bad_jet_veto"          , pass::jet_clean      );
     m_cutflow->add("n_jet_geq_3"           , pass::n_jet          );
     m_cutflow->add("dphi_jetmet_min"       , pass::dphi_jetmet_min);
     m_cutflow->add("met_280"               , pass::cutflow_met    );

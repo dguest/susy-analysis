@@ -37,6 +37,8 @@ ull_t signal_jet_bits(const std::vector<SelectedJet*>& signal_jets);
 
 ull_t met_bits(const Mets& met); 
 
+ull_t bad_tile_bits(const Mets& mets, const std::vector<SelectedJet*> jets); 
+
 // --- utility functions
 
 TVector2 get_boson_child_pt(const std::vector<Electron*>&, 

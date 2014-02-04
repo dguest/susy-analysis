@@ -16,7 +16,7 @@ namespace object {
   Muons veto_muons(const Muons&); 
   Muons control_muons(const Muons&); 
   Jets preselection_jets(const Jets&); 
-  Jets veto_jets(const Jets&); 
+  Jets bad_jets(const Jets&); 
   Jets signal_jets(const Jets&); 
   Jets remove_bad_jets(const Jets&); 
 

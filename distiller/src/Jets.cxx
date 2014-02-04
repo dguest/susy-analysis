@@ -50,6 +50,9 @@ SelectedJet::SelectedJet(const EventJets* parent, int jet_index):
   m_jfc_b = buffer.jet_flavor_component_jfitc_pb->at(jet_index); 
   m_jfc_c = buffer.jet_flavor_component_jfitc_pc->at(jet_index); 
   m_jfc_u = buffer.jet_flavor_component_jfitc_pu->at(jet_index); 
+
+  m_bch_corr = buffer.jet_BCH_CORR_JET->at(jet_index); 
+
   if ( parent->m_flags & cutflag::truth) { 
     m_flavor_truth_label = buffer.jet_flavor_truth_label->at(jet_index); 
   }
@@ -58,20 +61,6 @@ SelectedJet::SelectedJet(const EventJets* parent, int jet_index):
   }
 
 }
-  
-double SelectedJet::combNN_btag() const { 
-  return log(m_cnn_b / m_cnn_u); 
-}
-  
-double SelectedJet::jfitcomb_cu(const SusyBuffer& buffer, 
-				int jet_index) const {
-  return m_cnn_u;
-}
-
-double SelectedJet::jfitcomb_cb(const SusyBuffer& buffer, 
-				int jet_index) const {
-  return m_cnn_b; 
-}
  
 int SelectedJet::index() const{
   return m_jet_index;
@@ -79,6 +68,15 @@ int SelectedJet::index() const{
 
 double SelectedJet::jvf() const { 
   return m_jvf; 
+}
+bool SelectedJet::bad_tile(const TVector2& met) const { 
+  float dphi = met.DeltaPhi(Vect().XYvector()); 
+  if (Pt() > jet::BAD_TILE_JET_PT_MIN && 
+      m_bch_corr > jet::BAD_TILE_BCH_CORR_MIN && 
+      std::abs(dphi) < jet::BAD_TILE_MET_DPHI_MAX) { 
+    return true; 
+  }
+  return false; 
 }
 double SelectedJet::flavor_weight(btag::Flavor flavor, 
 				  btag::Tagger tag) const { 
@@ -234,9 +232,9 @@ void EventJets::fill(const SusyBuffer& buffer, SUSYObjDef& def,
   const int n_jets = buffer.jet_n; 
   for (int jet_n = 0; jet_n < n_jets; jet_n++){ 
 
-    if (!has_min_pt(jet_n, buffer, UNCALIBRATED_JET_PT_MIN)) {
-      m_jets_under_uncalibrated_min++; 
-    } 
+    // if (!has_min_pt(jet_n, buffer, jet::UNCALIBRATED_PT_MIN)) {
+    //   m_jets_under_uncalibrated_min++; 
+    // } 
 
     bool is_jet = fill_jet(jet_n, buffer, def, flags, info); 
 
@@ -260,10 +258,10 @@ EventJets::~EventJets() {
   }
 }
 
-void EventJets::dump_debug(std::ostream& stream) { 
-  stream << "n jets under " << UNCALIBRATED_JET_PT_MIN << ": " 
-	 << m_jets_under_uncalibrated_min; 
-}
+// void EventJets::dump_debug(std::ostream& stream) { 
+//   stream << "n jets under " << jet::UNCALIBRATED_PT_MIN << ": " 
+// 	 << m_jets_under_uncalibrated_min; 
+// }
 
 namespace { 
   // forward dec for systematic translation
@@ -328,8 +326,8 @@ namespace {
       buffer.jet_SamplingMax        ->at(iJet), 
       buffer.jet_NegativeE          ->at(iJet), 
       buffer.RunNumber, 
-      JET_PT_CUT, 	
-      JET_ETA_CUT,	
+      jet::SUSYTOOLS_PT_CUT, 	
+      jet::SUSYTOOLS_ETA_CUT,	
       JetID::VeryLooseBad);
     
   }
