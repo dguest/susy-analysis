@@ -141,13 +141,12 @@ StopDistiller::Cutflow StopDistiller::run_cutflow() {
   for (int evt_n = 0; evt_n < m_n_entries; evt_n++) { 
     try { 
       process_event(evt_n, debug_stream); 
-    }
-    catch (EventReadError& e) { 
+    } catch (EventReadError& e) { 
       n_error++; 
     }
     catch (std::logic_error& e) { 
       std::string err = "logic error in " + m_chain->get_current_file() + 
-	", event " + std::to_string(evt_n) + ": " + e.what(); 
+    	", event " + std::to_string(evt_n) + ": " + e.what(); 
       throw std::logic_error(err); 
     }
   }
