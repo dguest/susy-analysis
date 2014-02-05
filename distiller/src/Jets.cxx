@@ -224,6 +224,9 @@ bool SelectedJet::pass_anti_u(btag::OperatingPoint t) const {
 bool SelectedJet::pass_anti_b(btag::OperatingPoint t) const { 
   return m_bits & get_tagger_bit(btag::B, t); 
 }
+bool SelectedJet::in_tag_eta() const { 
+  return std::abs(Eta()) < jet::TAGGING_ETA_LIM; 
+}
 
 EventJets::EventJets(const SusyBuffer& buffer, SUSYObjDef& def, 
 		     unsigned flags, const RunInfo& info): 

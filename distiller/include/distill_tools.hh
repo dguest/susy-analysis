@@ -25,7 +25,7 @@ TVector2 get_boson_child_pt(const std::vector<Electron*>&,
 			    const std::vector<Muon*>&); 
 
 float get_min_jetmet_dphi(const std::vector<SelectedJet*>&, 
-			  const TVector2& ); 
+			  const TVector2& , size_t njet); 
 
 TVector2 sum_muon_pt(const std::vector<Muon*>& muons); 
 

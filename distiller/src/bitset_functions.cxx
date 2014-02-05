@@ -34,7 +34,8 @@ ull_t signal_jet_bits(const std::vector<SelectedJet*>& jets) {
   const int n_jets = std::min(jets.size(), N_SR_JETS); 
   for (auto itr = jets.begin(); itr != jets.begin() + n_jets; itr++) { 
     const auto jet = **itr; 
-    if ((jet.bits() & medium) == medium) n_tags++; 
+    bool med_tagged = ((jet.bits() & medium) == medium); 
+    if (med_tagged && jet.in_tag_eta()) n_tags++; 
   }
   if (n_tags >= 1) pass_bits |= pass::tagged; 
   if (n_tags >= 2) pass_bits |= pass::double_tagged; 

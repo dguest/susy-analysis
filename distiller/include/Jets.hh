@@ -32,6 +32,7 @@ public:
   CalResult scale_factor(btag::OperatingPoint) const; 
   bool pass_anti_u(btag::OperatingPoint) const; 
   bool pass_anti_b(btag::OperatingPoint) const; 
+  bool in_tag_eta() const; 
 private: 
   void unset_bit(unsigned); 
   void set_flavor_tag(btag::Flavor, btag::OperatingPoint, 

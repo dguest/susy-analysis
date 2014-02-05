@@ -46,13 +46,14 @@ TVector2 get_boson_child_pt(const std::vector<Electron*>& el,
 }
 
 float get_min_jetmet_dphi(const std::vector<SelectedJet*>& jets, 
-			  const TVector2& met){ 
+			  const TVector2& met, size_t n_jets){ 
   typedef std::vector<SelectedJet*> JVec; 
   typedef JVec::const_iterator JItr; 
   TLorentzVector mector; 
   mector.SetPtEtaPhiE(1,0,met.Phi(),1); 
   float min_dphi = M_PI; 
-  for(JItr itr = jets.begin(); itr != jets.end(); itr++){
+  size_t lastj = std::min(n_jets, jets.size()); 
+  for(JItr itr = jets.begin(); itr != jets.begin() + lastj; itr++){
     float deltaphi = fabs(mector.DeltaPhi(**itr)); 
     min_dphi = std::min(deltaphi, min_dphi); 
   }

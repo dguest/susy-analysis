@@ -280,7 +280,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   const double energy_weighted_time = get_energy_weighted_time(
     signal_jets, ENERGY_WEIGHTED_TIME_NJET); 
   const double min_jetmet_dphi = get_min_jetmet_dphi(
-    signal_jets, mets.nominal);
+    signal_jets, mets.nominal, DPHI_JET_MET_NJET);
   const double mass_eff = mets.nominal.Mod() + scalar_sum_pt(leading_jets); 
   const double met_eff = mets.nominal.Mod() / mass_eff; 
 
@@ -313,7 +313,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
 
   if (pass_chf_check(signal_jets)) pass_bits |= pass::jet_chf; 
 
-  if (min_jetmet_dphi > MIN_DPHI_JET_MET) { 
+  if (min_jetmet_dphi > DPHI_JET_MET_MIN) { 
     pass_bits |= pass::dphi_jetmet_min; 
   }
   if (met_eff > MET_EFF_MIN) pass_bits |= pass::met_eff; 

@@ -7,7 +7,10 @@
 #include <cstddef>
 #include "constants.hh"
 
-const static float MIN_DPHI_JET_MET = 0.4; 
+const static float DPHI_JET_MET_MIN = 0.4; 
+const static float DPHI_JET_MET_NJET = 3; 
+
+// overlap removal stuff (should be pretty standard)
 const static float REMOVE_JET_CONE = 0.2; 
 const static float REMOVE_EL_CONE = 0.4; 
 const static float REMOVE_MU_CONE = 0.4; 
