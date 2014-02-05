@@ -167,9 +167,6 @@ public :
   std::vector<float>     *jet_flavor_component_jfitc_pu;
   std::vector<float>     *jet_flavor_component_jfitc_pb;
   std::vector<float>     *jet_flavor_component_jfitc_pc;
-  std::vector<float>     *jet_flavor_weight_MV3_bVSu;
-  std::vector<float>     *jet_flavor_weight_MV3_bVSc;
-  std::vector<float>     *jet_flavor_weight_MV3_cVSu;
 
   // track branches for single track veto
   std::vector<float>* trk_pt; 
