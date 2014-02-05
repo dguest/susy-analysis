@@ -34,6 +34,17 @@ double get_htx(const std::vector<SelectedJet*>&, const size_t x);
 double get_energy_weighted_time(const std::vector<SelectedJet*>&, 
 				size_t n_jets); 
 
+// m_ct functions
+double get_m_ct(const TLorentzVector& v1, const TLorentzVector& v2); 
+
+double get_mctcorr(const TLorentzVector& v1, const TLorentzVector& v2, 
+		   const TVector2& vmet);
+
+double get_mt(const std::vector<Electron*>& , const std::vector<Muon*>& , 
+	      const TVector2& ); 
+
+double get_mll(const std::vector<Electron*>& , const std::vector<Muon*>&); 
+
 bool pass_chf_check(const std::vector<SelectedJet*> jets); 
 
 template<typename M, typename A>

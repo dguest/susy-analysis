@@ -69,6 +69,7 @@ GEN_OBJ     += BosonTruthFilter.o TruthMetFilter.o
 GEN_OBJ     += SmartChain.o SkimReport.o McParticleBuffer.o
 GEN_OBJ     += EventPreselector.o StopDistiller.o CheckSize.o
 GEN_OBJ     += BtagCalibration.o Grl.o RunInfo.o PileupReweighting.o
+GEN_OBJ     += mctlib.o
 GEN_OBJ     += unit_tests.o
 EXE_OBJ     := $(GEN_OBJ) $(T_DICTS) $(TOBJ) 
 PYLIB_OBJ   := $(GEN_OBJ) $(T_DICTS) $(TOBJ)

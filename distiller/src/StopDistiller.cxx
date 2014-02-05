@@ -283,6 +283,12 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
     signal_jets, mets.nominal, DPHI_JET_MET_NJET);
   const double mass_eff = mets.nominal.Mod() + scalar_sum_pt(leading_jets); 
   const double met_eff = mets.nominal.Mod() / mass_eff; 
+  const double mass_ct = signal_jets.size() >= 2 ? 
+    get_mctcorr(*signal_jets.at(0), *signal_jets.at(1), mets.nominal) : -1; 
+  const double mass_cc = signal_jets.size() >= 2 ? 
+    (*signal_jets.at(0) + *signal_jets.at(1)).M() : -1; 
+  const double mt = get_mt(control_electrons, control_muons, mets.nominal); 
+  const double mll = get_mll(control_electrons, control_muons); 
 
   // ---- must calibrate signal jets for b-tagging ----
   calibrate_jets(signal_jets, m_btag_calibration); 
