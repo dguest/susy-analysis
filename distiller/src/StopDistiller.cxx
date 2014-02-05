@@ -10,7 +10,6 @@
 #include "Jets.hh"
 #include "Leptons.hh"
 #include "Met.hh"
-#include "constants.hh"
 #include "RunInfo.hh"
 #include "BitmapCutflow.hh"
 #include "SmartChain.hh"
