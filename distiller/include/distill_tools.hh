@@ -4,40 +4,20 @@
 class SUSYObjDef; 
 class FakeMetEstimator;
 class SelectedJet;
-class TFile; 
 class TVector2; 
-struct RunInfo; 
 class BtagCalibration; 
 class TLorentzVector; 
 class Muon; 
 class Electron; 
-class Mets; 
-class SkimReport; 
 
 // #include "TChain.h"
 #include <vector> 
-#include <string> 
 #include <map>
-#include <set>
 #include <cassert>
 #include <cmath>
 #include "btag_defs.hh"
-#include "typedefs.hh"
 #include "constants_distiller.hh"
 
-// ---- cutflow functions ----
-// TODO: move these into a new file, they depend on a bunch of crap
-ull_t control_lepton_bits(const std::vector<Electron*>&, 
-			  const std::vector<Muon*>&);
-
-ull_t z_control_bits(const std::vector<Electron*>&, 
-		     const std::vector<Muon*>&); 
-
-ull_t signal_jet_bits(const std::vector<SelectedJet*>& signal_jets); 
-
-ull_t met_bits(const Mets& met); 
-
-ull_t bad_tile_bits(const Mets& mets, const std::vector<SelectedJet*> jets); 
 
 // --- utility functions
 
@@ -55,12 +35,6 @@ double get_energy_weighted_time(const std::vector<SelectedJet*>&,
 				size_t n_jets); 
 
 bool pass_chf_check(const std::vector<SelectedJet*> jets); 
-
-template<typename T> 
-bool has_os_zmass_pair(const std::vector<T*>&); 
-
-template<typename T>
-bool are_os_zmass(const T&, const T&); 
 
 template<typename M, typename A>
 A remove_overlaping(const M& mask, A altered, const float delta_r); 
@@ -121,27 +95,5 @@ std::vector<T*> filter_susy(const std::vector<T*>& in)
   return out; 
 }
 
-template<typename T> 
-bool has_os_zmass_pair(const std::vector<T*>& lep) { 
-  size_t n_lep = lep.size(); 
-  for (size_t iii = 0; iii < n_lep; iii++) { 
-    for (size_t jjj = iii + 1; jjj < n_lep; jjj++) { 
-      const T& lep1 = *lep.at(jjj); 
-      const T& lep2 = *lep.at(iii); 
-      if (are_os_zmass(lep1, lep2)) return true; 
-    }
-  }
-  return false; 
-}
-
-template<typename T> 
-bool are_os_zmass(const T& lep1, const T& lep2) { 
-  float ch_prod = lep1.charge() * lep2.charge(); 
-  float mass = (lep1 + lep2).Mag(); 
-  bool os = (ch_prod > -1.5 && ch_prod < -0.5); 
-  bool zmass = (std::fabs(mass - Z_MASS) < Z_MASS_WINDOW); 
-  return os && zmass; 
-  
-}
 
 #endif 
