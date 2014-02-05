@@ -21,18 +21,11 @@ namespace outtree {
     bool met_trigger;
     bool mu_trigger; 
     bool el_trigger;
-    // bool electron_veto; 
-    // bool muon_veto; 
-
-    // bool control_muon; 
-    // bool control_electron; 
-    bool os_zmass_el_pair; 
-    bool os_zmass_mu_pair; 
     bool bad_tile_stmet; 
     bool bad_tile_mumet; 
   }; 
 
-  struct ObjectCounts
+  struct EvtParameters
   {
     void set_branches(TTree*); 
     void clear(); 
@@ -128,7 +121,7 @@ namespace outtree {
     void add_ll_parameter(const std::string& name, long long val); 
   
     ull_t pass_bits; 
-    ObjectCounts counts; 
+    EvtParameters par; 
 
     MetBlock met_nom; 
     MetBlock met_mu; 

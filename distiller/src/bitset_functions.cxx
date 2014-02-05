@@ -4,11 +4,23 @@
 #include "Leptons.hh"
 #include "Met.hh"
 #include "EventBits.hh"
-#include "zmass_functions.hh"
+#include "ObjectComposites.hh"
 
 //_________________________________________________________________
 // cutflow functions
 
+ull_t object_composit_bits(const ObjectComposites& par) { 
+  ull_t pass_bits = 0; 
+  if (par.energy_weighted_time < ENERGY_WEIGHTED_TIME_MAX) {
+    pass_bits |= pass::energy_wt_time; 
+  }
+  if (par.min_jetmet_dphi > DPHI_JET_MET_MIN) { 
+    pass_bits |= pass::dphi_jetmet_min; 
+  }
+  if (par.met_eff > MET_EFF_MIN) pass_bits |= pass::met_eff; 
+
+  return pass_bits; 
+}
 
 ull_t signal_jet_bits(const std::vector<SelectedJet*>& jets) { 
   ull_t pass_bits = 0; 
@@ -52,15 +64,6 @@ ull_t control_lepton_bits(const std::vector<Electron*>& el,
   return pass_bits; 
 }
 
-ull_t z_control_bits(const std::vector<Electron*>& el, 
-		     const std::vector<Muon*>& mu) { 
-  ull_t pass_bits = 0; 
-  // both of these true if _any_ leptons are in the z mass window
-  // (windown defined as a constant)
-  if (has_os_zmass_pair(el)) pass_bits |= pass::os_zmass_el_pair; 
-  if (has_os_zmass_pair(mu)) pass_bits |= pass::os_zmass_mu_pair; 
-  return pass_bits; 
-}
 
 ull_t met_bits(const Mets& mets){ 
   ull_t pass_bits = 0; 

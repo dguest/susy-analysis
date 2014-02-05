@@ -67,7 +67,7 @@ namespace outtree {
   void OutTree::init(const unsigned flags, int n_jets) 
   { 
     MAKE_BRANCH(m_tree, pass_bits); 
-    counts.set_branches(m_tree); 
+    par.set_branches(m_tree); 
 
     met_nom.set_branches(m_tree, ""); 
     met_mu.set_branches(m_tree, "mu_"); 
@@ -116,7 +116,7 @@ namespace outtree {
 
   void OutTree::clear_buffer() { 
     pass_bits = 0; 
-    counts.clear(); 
+    par.clear(); 
 
     met_nom.clear(); 
     met_mu.clear(); 
@@ -249,12 +249,6 @@ namespace outtree {
     MAKE_PASS_BRANCH(met_trigger); 
     MAKE_PASS_BRANCH(mu_trigger); 
     MAKE_PASS_BRANCH(el_trigger); 
-    // MAKE_PASS_BRANCH(electron_veto); 
-    // MAKE_PASS_BRANCH(muon_veto); 
-    // MAKE_PASS_BRANCH(control_muon); 
-    // MAKE_PASS_BRANCH(control_electron); 
-    MAKE_PASS_BRANCH(os_zmass_el_pair); 
-    MAKE_PASS_BRANCH(os_zmass_mu_pair); 
     MAKE_PASS_BRANCH(bad_tile_stmet); 
     MAKE_PASS_BRANCH(bad_tile_mumet); 
   }
@@ -267,18 +261,14 @@ namespace outtree {
     SET_FROM_BIT(met_trigger); 
     SET_FROM_BIT(mu_trigger); 
     SET_FROM_BIT(el_trigger); 
-    // SET_FROM_BIT(electron_veto); 
-    // SET_FROM_BIT(muon_veto); 
-    // SET_FROM_BIT(control_muon); 
-    // SET_FROM_BIT(control_electron); 
-    SET_FROM_BIT(os_zmass_el_pair); 
-    SET_FROM_BIT(os_zmass_mu_pair); 
+    SET_FROM_BIT(bad_tile_stmet); 
+    SET_FROM_BIT(bad_tile_mumet); 
   }
 #undef SET_FROM_BIT
 
   // ---- object counts ----
 
-  void ObjectCounts::set_branches(TTree* tree) { 
+  void EvtParameters::set_branches(TTree* tree) { 
     MAKE_BRANCH(tree, n_preselected_jets); 
     MAKE_BRANCH(tree, n_signal_jets); 
     MAKE_BRANCH(tree, n_veto_electrons); 
@@ -287,7 +277,7 @@ namespace outtree {
     MAKE_BRANCH(tree, n_control_muons); 
   }
 
-  void ObjectCounts::clear() { 
+  void EvtParameters::clear() { 
     n_preselected_jets = -1; 
     n_signal_jets = -1; 
     n_veto_electrons = -1; 

@@ -42,7 +42,7 @@ void copy_leading_jet_info(const std::vector<SelectedJet*>& signal_jets,
   for (size_t jet_n = 0; jet_n < maxjets; jet_n++) { 
     copy_jet_info(signal_jets.at(jet_n), *out_tree.jets.at(jet_n)); 
   }
-  out_tree.counts.n_signal_jets = signal_jets.size(); 
+  out_tree.par.n_signal_jets = signal_jets.size(); 
 }
 
 

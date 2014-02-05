@@ -24,6 +24,7 @@
 
 #include "cutflag.hh"
 #include "EventBits.hh"
+#include "ObjectComposites.hh"
 #include "constants_distiller.hh"
 
 #include <iostream>
@@ -277,37 +278,38 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   const Mets mets(*m_susy_buffer, *m_def, susy_muon_idx, 
 		  sum_muon_pt(control_muons));
 
-  const double energy_weighted_time = get_energy_weighted_time(
+  ObjectComposites par; 
+  par.energy_weighted_time = get_energy_weighted_time(
     signal_jets, ENERGY_WEIGHTED_TIME_NJET); 
-  const double min_jetmet_dphi = get_min_jetmet_dphi(
+  par.min_jetmet_dphi = get_min_jetmet_dphi(
     signal_jets, mets.nominal, DPHI_JET_MET_NJET);
-  const double mass_eff = mets.nominal.Mod() + scalar_sum_pt(leading_jets); 
-  const double met_eff = mets.nominal.Mod() / mass_eff; 
-  const double mass_ct = signal_jets.size() >= 2 ? 
+  par.mass_eff = mets.nominal.Mod() + scalar_sum_pt(leading_jets); 
+  par.met_eff = mets.nominal.Mod() / par.mass_eff; 
+  par.mass_ct = signal_jets.size() >= 2 ? 
     get_mctcorr(*signal_jets.at(0), *signal_jets.at(1), mets.nominal) : -1; 
-  const double mass_cc = signal_jets.size() >= 2 ? 
+  par.mass_cc = signal_jets.size() >= 2 ? 
     (*signal_jets.at(0) + *signal_jets.at(1)).M() : -1; 
-  const double mt = get_mt(control_electrons, control_muons, mets.nominal); 
-  const double mll = get_mll(control_electrons, control_muons); 
+  par.mass_t = get_mt(control_electrons, control_muons, mets.nominal); 
+  par.mass_ll = get_mll(control_electrons, control_muons); 
+  par.htx = get_htx(signal_jets, N_SR_JETS); 
 
   // ---- must calibrate signal jets for b-tagging ----
   calibrate_jets(signal_jets, m_btag_calibration); 
   // ----- object selection is done now, from here is filling outputs ---
 
   if (veto_jets.size() == 0) pass_bits |= pass::jet_clean; 
-  m_out_tree->counts.n_preselected_jets = preselected_jets.size(); 
-  m_out_tree->counts.n_signal_jets = signal_jets.size(); 
-  m_out_tree->counts.n_veto_electrons = veto_electrons.size(); 
-  m_out_tree->counts.n_veto_muons = veto_muons.size(); 
-  m_out_tree->counts.n_control_electrons = control_electrons.size(); 
-  m_out_tree->counts.n_control_muons = control_muons.size(); 
-  m_out_tree->htx = get_htx(signal_jets, N_SR_JETS); 
-  m_out_tree->min_jetmet_dphi = min_jetmet_dphi;  
+  m_out_tree->par.n_preselected_jets = preselected_jets.size(); 
+  m_out_tree->par.n_signal_jets = signal_jets.size(); 
+  m_out_tree->par.n_veto_electrons = veto_electrons.size(); 
+  m_out_tree->par.n_veto_muons = veto_muons.size(); 
+  m_out_tree->par.n_control_electrons = control_electrons.size(); 
+  m_out_tree->par.n_control_muons = control_muons.size(); 
+  m_out_tree->htx = par.htx; 
+  m_out_tree->min_jetmet_dphi = par.min_jetmet_dphi;  
+
+  pass_bits |= object_composit_bits(par); 
 
   pass_bits |= signal_jet_bits(signal_jets); 
-  if (energy_weighted_time < ENERGY_WEIGHTED_TIME_MAX) {
-    pass_bits |= pass::energy_wt_time; 
-  }
 
   pass_bits |= pass::cosmic_muon | pass::bad_muon; 
   for (auto mu: preselected_muons) { 
@@ -319,11 +321,6 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
 
   if (pass_chf_check(signal_jets)) pass_bits |= pass::jet_chf; 
 
-  if (min_jetmet_dphi > DPHI_JET_MET_MIN) { 
-    pass_bits |= pass::dphi_jetmet_min; 
-  }
-  if (met_eff > MET_EFF_MIN) pass_bits |= pass::met_eff; 
-
   copy_leading_jet_info(signal_jets, *m_out_tree); 
 
   if(m_def->IsGoodVertex(m_susy_buffer->vx_nTracks)) {
@@ -331,9 +328,6 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   }
 
   pass_bits |= control_lepton_bits(control_electrons, control_muons); 
-
-  // get zmass pair bits (true if _any_ leptons are in the z window)
-  pass_bits |= z_control_bits(after_overlap_electrons, after_overlap_muons); 
 
   if (veto_electrons.size() == 0) pass_bits |= pass::electron_veto; 
   if (veto_muons.size() == 0) pass_bits |= pass::muon_veto; 

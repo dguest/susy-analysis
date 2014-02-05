@@ -5,18 +5,18 @@ class Mets;
 class SelectedJet;
 class Muon; 
 class Electron; 
+class ObjectComposites; 
 
 #include "typedefs.hh"
 
 #include <vector> 
 
 // ---- cutflow functions ----
-// TODO: move these into a new file, they depend on a bunch of crap
+
+ull_t object_composit_bits(const ObjectComposites& par); 
+
 ull_t control_lepton_bits(const std::vector<Electron*>&, 
 			  const std::vector<Muon*>&);
-
-ull_t z_control_bits(const std::vector<Electron*>&, 
-		     const std::vector<Muon*>&); 
 
 ull_t signal_jet_bits(const std::vector<SelectedJet*>& signal_jets); 
 
