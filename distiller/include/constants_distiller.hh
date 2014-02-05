@@ -14,4 +14,7 @@ const static size_t N_SR_JETS = 3;
 const static float Z_MASS = 91.188e3; 
 const static float Z_MASS_WINDOW = 15.0e3; 
 
+const static size_t ENERGY_WEIGHTED_TIME_NJET = 2; 
+const static double ENERGY_WEIGHTED_TIME_MAX = 5.0; 
+
 #endif 

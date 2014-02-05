@@ -158,6 +158,19 @@ double get_htx(const std::vector<SelectedJet*>& jets, const size_t x){
   }
   return htx; 
 }
+double get_energy_weighted_time(const std::vector<SelectedJet*>& jets,
+				size_t max_jet) { 
+  const size_t n_jets = std::min(max_jet, jets.size()); 
+  double denom = 0; 
+  double num = 0; 
+  
+  for (auto itr = jets.begin(); itr != jets.begin() + n_jets; itr++) { 
+    const auto& jet = **itr; 
+    denom += jet.E(); 
+    num += jet.E() * jet.timing(); 
+  }
+  return num/denom; 
+}
 
 bool has_lower_pt(const TLorentzVector* v1, const TLorentzVector* v2) { 
   return v1->Pt() < v2->Pt(); 

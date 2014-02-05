@@ -52,6 +52,7 @@ SelectedJet::SelectedJet(const EventJets* parent, int jet_index):
   m_jfc_u = buffer.jet_flavor_component_jfitc_pu->at(jet_index); 
 
   m_bch_corr = buffer.jet_BCH_CORR_JET->at(jet_index); 
+  m_timing = buffer.jet_Timing->at(jet_index); 
 
   if ( parent->m_flags & cutflag::truth) { 
     m_flavor_truth_label = buffer.jet_flavor_truth_label->at(jet_index); 
@@ -78,6 +79,9 @@ bool SelectedJet::bad_tile(const TVector2& met) const {
   }
   return false; 
 }
+
+float SelectedJet::timing() const { return m_timing; }
+
 double SelectedJet::flavor_weight(btag::Flavor flavor, 
 				  btag::Tagger tag) const { 
   const std::string err = "flavor fallthrough in " __FILE__; 

@@ -230,9 +230,9 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
 
   std::sort(all_jets.begin(),all_jets.end(),has_higher_pt); 
 
-  auto preselected_jets = object::preselection_jets(all_jets); 
-  auto preselected_electrons = filter_susy(all_electrons); 
-  auto preselected_muons = filter_susy(all_muons); 
+  const auto preselected_jets = object::preselection_jets(all_jets); 
+  const auto preselected_electrons = filter_susy(all_electrons); 
+  const auto preselected_muons = filter_susy(all_muons); 
 
   ob_counts["preselected_jets"] += preselected_jets.size(); 
   ob_counts["preselected_el"] += preselected_electrons.size(); 
@@ -242,27 +242,28 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   std::vector<int> susy_muon_idx = get_indices(preselected_muons); 
 
   // --- overlap removal ---
-  preselected_jets = remove_overlaping(
+  const auto after_overlap_jets = remove_overlaping(
     preselected_electrons, preselected_jets, REMOVE_JET_CONE); 
-  preselected_electrons = remove_overlaping(
-    preselected_jets, preselected_electrons, REMOVE_EL_CONE); 
-  preselected_muons = remove_overlaping(
-    preselected_jets, preselected_muons, REMOVE_MU_CONE); 
+  const auto after_overlap_electrons = remove_overlaping(
+    after_overlap_jets, preselected_electrons, REMOVE_EL_CONE); 
+  const auto after_overlap_muons = remove_overlaping(
+    after_overlap_jets, preselected_muons, REMOVE_MU_CONE); 
 
-  ob_counts["after_overlap_jets"] += preselected_jets.size(); 
-  ob_counts["after_overlap_el"] += preselected_electrons.size(); 
-  ob_counts["after_overlap_mu"] += preselected_muons.size(); 
+  ob_counts["after_overlap_jets"] += after_overlap_jets.size(); 
+  ob_counts["after_overlap_el"] += after_overlap_electrons.size(); 
+  ob_counts["after_overlap_mu"] += after_overlap_muons.size(); 
 
-  const auto veto_jets = object::bad_jets(preselected_jets); 
-  const auto veto_electrons = object::veto_electrons(preselected_electrons); 
-  const auto veto_muons = object::veto_muons(preselected_muons); 
+  const auto veto_jets = object::bad_jets(after_overlap_jets); 
+  const auto veto_electrons = object::veto_electrons(after_overlap_electrons); 
+  const auto veto_muons = object::veto_muons(after_overlap_muons); 
 
   ob_counts["veto_jets"] += veto_jets.size(); 
   ob_counts["veto_el"] += veto_electrons.size(); 
   ob_counts["veto_mu"] += veto_muons.size(); 
 
-  const auto good_jets = object::remove_bad_jets(preselected_jets); 
-  auto signal_jets = object::signal_jets(good_jets); 
+  const auto good_jets = object::remove_bad_jets(after_overlap_jets); 
+  ob_counts["good_jets"] += good_jets.size(); 
+  const auto signal_jets = object::signal_jets(good_jets); 
   const auto control_electrons = object::control_electrons(veto_electrons); 
   const auto control_muons = object::control_muons(veto_muons); 
 
@@ -277,6 +278,9 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   const Mets mets(*m_susy_buffer, *m_def, susy_muon_idx, 
 		  sum_muon_pt(control_muons));
 
+  const double energy_weighted_time = get_energy_weighted_time(
+    signal_jets, ENERGY_WEIGHTED_TIME_NJET); 
+
   // ---- must calibrate signal jets for b-tagging ----
   calibrate_jets(signal_jets, m_btag_calibration); 
   // ----- object selection is done now, from here is filling outputs ---
@@ -290,6 +294,17 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   m_out_tree->counts.n_control_muons = control_muons.size(); 
 
   pass_bits |= signal_jet_bits(signal_jets); 
+  if (energy_weighted_time < ENERGY_WEIGHTED_TIME_MAX) {
+    pass_bits |= pass::energy_wt_time; 
+  }
+
+  pass_bits |= pass::cosmic_muon | pass::bad_muon; 
+  for (auto mu: preselected_muons) { 
+    if (mu->bad() ) pass_bits &=~ pass::bad_muon; 
+  }
+  for (auto mu: after_overlap_muons) { 
+    if (mu->cosmic() ) pass_bits &=~ pass::cosmic_muon; 
+  }
 
   m_out_tree->htx = get_htx(signal_jets, N_SR_JETS); 
   m_out_tree->min_jetmet_dphi = get_min_jetmet_dphi(
@@ -307,13 +322,13 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   pass_bits |= control_lepton_bits(control_electrons, control_muons); 
 
   // get zmass pair bits (true if _any_ leptons are in the z window)
-  pass_bits |= z_control_bits(preselected_electrons, preselected_muons); 
+  pass_bits |= z_control_bits(after_overlap_electrons, after_overlap_muons); 
 
   if (veto_electrons.size() == 0) pass_bits |= pass::electron_veto; 
   if (veto_muons.size() == 0) pass_bits |= pass::muon_veto; 
 
   pass_bits |= met_bits(mets); 
-  pass_bits |= bad_tile_bits(mets, preselected_jets); 
+  pass_bits |= bad_tile_bits(mets, after_overlap_jets); 
 
   if ( m_flags & cutflag::truth ) { 
     copy_cjet_truth(*m_out_tree, signal_jets); 
@@ -465,7 +480,6 @@ void StopDistiller::setup_outputs() {
 void StopDistiller::setup_cutflow(CutflowType cutflow) { 
   const ull_t event_clean = pass::lar_error | pass::tile_error | 
     pass::core | pass::tile_trip; 
-  const ull_t lepton_veto = pass::electron_veto | pass::muon_veto; 
 
   m_cutflow = new BitmapCutflow;
   switch (cutflow) { 
@@ -473,22 +487,27 @@ void StopDistiller::setup_cutflow(CutflowType cutflow) {
     m_cutflow->add("GRL"                   , pass::grl            );  
     m_cutflow->add("trigger"          , pass::met_trigger        );
     m_cutflow->add("primary_vertex"        , pass::vxp_gt_4trk    );
-    m_cutflow->add("lar_error"        , pass::lar_error          );
-    m_cutflow->add("core"        , pass::core          );
-    // m_cutflow->add("event_cleaning"        , event_clean          );
     m_cutflow->add("bad_jet_veto"          , pass::jet_clean      );
     m_cutflow->add("tile_trip"        , pass::tile_trip          );
     m_cutflow->add("tile_error"        , pass::tile_error          );
     m_cutflow->add("bad_tile"          , pass::bad_tile_stmet      ); 
-    m_cutflow->add("electron_veto"           , pass::electron_veto    );
+    m_cutflow->add("lar_error"        , pass::lar_error          );
+    m_cutflow->add("energy_wt_time", pass::energy_wt_time); 
+    m_cutflow->add("core"        , pass::core          );
+    m_cutflow->add("cosmic_muon" , pass::cosmic_muon); 
+    m_cutflow->add("bad_muon"    , pass::bad_muon); 
     m_cutflow->add("muon_veto"           , pass::muon_veto    );
-    m_cutflow->add("lepton_veto"           ,       lepton_veto    );
+    m_cutflow->add("electron_veto"           , pass::electron_veto    );
+    // m_cutflow->add("chf_cut"     , pass::chf_cut); 
+    m_cutflow->add("met_150"               , pass::cutflow_met    );
     m_cutflow->add("n_jet_geq_3"           , pass::n_jet          );
+    // m_cutflow->add("second_jet_50"         , pass::cutflow_jet2   ); 
+    // m_cutflow->add("third_jet_veto50"      , pass::cutflow_jet3   ); 
     m_cutflow->add("dphi_jetmet_min"       , pass::dphi_jetmet_min);
-    m_cutflow->add("met_280"               , pass::cutflow_met    );
-    m_cutflow->add("leading_jet_280"       , pass::cutflow_leading);
-    m_cutflow->add("jtag_2"                , pass::cutflow_tag_2  ); 
-    m_cutflow->add("jtag_1"                , pass::cutflow_tag_1  ); 
+    m_cutflow->add("one_ctag"              , pass::cutflow_tag_1  ); 
+    m_cutflow->add("two_ctag"              , pass::cutflow_tag_2  ); 
+    // m_cutflow->add("m_ct_150"              , pass::mct            ); 
+    // m_cutflow->add("m_cc"                  , pass::m_cc           ); 
     return; 
   }
   case CutflowType::NONE: return; 

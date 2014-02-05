@@ -56,6 +56,8 @@ public:
   float charge() const; 
   float id_sf() const; 
   float id_sf_err() const; 
+  bool cosmic() const; 
+  bool bad() const; 
 private: 
   bool m_pass_susy; 
   double m_isolation; 
@@ -63,6 +65,8 @@ private:
   float m_charge;
   float m_id_sf; 
   float m_id_sf_unct; 
+  bool m_is_cosmic; 
+  bool m_is_bad; 
 }; 
 
 class EventMuons: public std::vector<Muon*>

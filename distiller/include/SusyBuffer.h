@@ -123,6 +123,12 @@ public :
   std::vector<int>     *mu_staco_nSCTDeadSensors;
   std::vector<float>   *mu_staco_energyLossPar; 
 
+  // muon quality cuts
+  std::vector<float>   *mu_staco_qoverp_exPV; 
+  std::vector<float>   *mu_staco_cov_qoverp_exPV; 
+  std::vector<float>   *mu_staco_d0_exPV; 
+  std::vector<float>   *mu_staco_z0_exPV; 
+
   // Jet Stuff
   int           jet_n;
   std::vector<float>   *jet_pt;

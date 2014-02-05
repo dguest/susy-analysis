@@ -8,6 +8,9 @@
 SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br)
 {
 
+#define SET(name) \
+  fChain->SetBranch(#name, &name)
+
   using namespace cutflag; 
 
   std::string jc = "jet_AntiKt4LCTopo"; 
@@ -132,6 +135,11 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br)
   fChain->SetBranch("mu_staco_nSCTDeadSensors", &mu_staco_nSCTDeadSensors); 
   fChain->SetBranch("mu_staco_energyLossPar", &mu_staco_energyLossPar); 
 
+  SET(mu_staco_qoverp_exPV); 
+  SET(mu_staco_cov_qoverp_exPV); 
+  SET(mu_staco_d0_exPV); 
+  SET(mu_staco_z0_exPV); 
+
   fChain->SetBranch(jc + "_n", &jet_n); 
   fChain->SetBranch(jc + "_pt", &jet_pt); 
   fChain->SetBranch(jc + "_eta", &jet_eta); 
@@ -239,5 +247,6 @@ void SusyBuffer::set_mc_branches(SmartChain* chain,
   }
 }
 
+#undef SET
 
 

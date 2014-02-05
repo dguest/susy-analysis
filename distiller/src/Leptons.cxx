@@ -129,6 +129,13 @@ Muon::Muon(const EventMuons* container, int index):
   SetPxPyPzE(tlv.Px(), tlv.Py(), tlv.Pz(), tlv.E()); 
   m_isolation = buffer->mu_staco_ptcone20->at(index); 
   m_charge = buffer->mu_staco_charge->at(index); 
+  float z0 = buffer->mu_staco_z0_exPV->at(index); 
+  float d0 = buffer->mu_staco_d0_exPV->at(index); 
+  m_is_cosmic = def->IsCosmicMuon(z0, d0); 
+  
+  float qoverp = buffer->mu_staco_qoverp_exPV->at(index); 
+  float cov_qoverp = buffer->mu_staco_cov_qoverp_exPV->at(index); 
+  m_is_bad = def->IsBadMuon(qoverp, cov_qoverp); 
 
   if (m_pass_susy) { 
     m_id_sf = def->GetSignalMuonSF(index, SystErr::NONE); 
@@ -153,6 +160,12 @@ float Muon::id_sf() const {
 }
 float Muon::id_sf_err() const { 
   return m_id_sf_unct; 
+}
+bool Muon::cosmic() const { 
+  return m_is_cosmic; 
+}
+bool Muon::bad() const { 
+  return m_is_bad; 
 }
 
 EventMuons::EventMuons(const SusyBuffer& buffer, SUSYObjDef& def, 

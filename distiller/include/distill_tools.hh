@@ -51,6 +51,9 @@ TVector2 sum_muon_pt(const std::vector<Muon*>& muons);
 
 double get_htx(const std::vector<SelectedJet*>&, const size_t x);
 
+double get_energy_weighted_time(const std::vector<SelectedJet*>&, 
+				size_t n_jets); 
+
 template<typename T> 
 bool has_os_zmass_pair(const std::vector<T*>&); 
 
