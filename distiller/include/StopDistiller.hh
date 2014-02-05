@@ -21,9 +21,7 @@ class OutputFilter;
 class BosonTruthFilter; 
 class TruthMetFilter; 
 class BosonPtReweighter; 
-namespace Root { 
-  class TPileupReweighting; 
-}
+class PileupReweighting; 
 
 class StopDistiller
 { 
@@ -73,7 +71,7 @@ private:
   TruthMetFilter* m_truth_met_filter; 
   BosonPtReweighter* m_boson_pt_reweighter; 
 
-  Root::TPileupReweighting* m_prw; 
+  PileupReweighting* m_prw; 
 }; 
 
 #endif

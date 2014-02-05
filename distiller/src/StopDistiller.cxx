@@ -21,6 +21,7 @@
 #include "TruthMetFilter.hh"
 #include "BosonPtReweighter.hh"
 #include "CheckSize.hh"
+#include "PileupReweighting.hh"
 
 #include "cutflag.hh"
 #include "EventBits.hh"
@@ -42,8 +43,6 @@
 
 #include <stdexcept> 
 #include "SUSYTools/SUSYObjDef.h"
-#include "SUSYTools/FakeMetEstimator.h"
-#include "PileupReweighting/TPileupReweighting.h"
 
 namespace { 
   void add_skim_report(const SkimReport& report, outtree::OutTree&); 
@@ -120,7 +119,7 @@ StopDistiller::~StopDistiller() {
   delete m_truth_met_filter; 
   delete m_boson_pt_reweighter; 
   if (m_flags & cutflag::generate_pileup && m_prw) { 
-    m_prw->WriteToFile(m_info.pu_config); 
+    m_prw->write_to(m_info.pu_config); 
   }
   delete m_prw; 
 }
@@ -455,19 +454,7 @@ void StopDistiller::setup_susytools() {
 					   m_info.btag_cal_dir); 
 
   if (m_flags & cutflag::truth && m_info.pu_config.size() > 0) { 
-    m_prw = new Root::TPileupReweighting("PileupReweighting"); 
-    m_prw->DisableWarnings( !(m_flags & cutflag::debug_susy)); 
-    if (m_flags & cutflag::generate_pileup) { 
-      m_prw->UsePeriodConfig("MC12a"); 
-    } else { 
-      m_prw->SetDefaultChannel(0); // this is what Brett does
-      m_prw->AddConfigFile(m_info.pu_config); 
-      m_prw->SetDataScaleFactors(1/1.11); // What Brett, Jan do
-      m_prw->AddLumiCalcFile(m_info.pu_lumicalc); 
-      m_prw->MergeMCRunNumbers(195847,195848); 
-      m_prw->SetUnrepresentedDataAction(2); 
-    }
-    m_prw->Initialize(); 
+    m_prw = new PileupReweighting(m_info, m_flags); 
   }
   dup2(output_dup, fileno(stdout)); 
   close(output_dup); 
@@ -579,24 +566,7 @@ namespace {
 }
 float StopDistiller::get_pileup_weight() { 
   if (!m_prw) return 1.0; 
-  const SusyBuffer* b = m_susy_buffer; 
-
-  // apply hack from Will Butt's twiki: 
-  // https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/ExtendedPileupReweighting#Recipe_A_MC12a_Pileup_Reweightin
-  // sets some values from 1 to 0
-  bool need_hack = b->lbn==1 && int(b->averageIntPerXing+0.5)==1; 
-  float avx = need_hack ? 0.0 : b->averageIntPerXing;
-
-  if (m_flags & cutflag::generate_pileup) { 
-    m_prw->Fill(
-      b->RunNumber, b->mc_channel_number, 
-      b->mc_event_weight, avx); 
-    return 1.0; 
-  } else { 
-    return m_prw->GetCombinedWeight(
-      b->RunNumber,b->mc_channel_number,avx);
-  }
-
+  return m_prw->get_pileup_weight(*m_susy_buffer); 
 }
 
 
