@@ -16,7 +16,8 @@ class BtagCalibration;
 class SelectedJet: public TLorentzVector { 
 public: 
   typedef std::pair<double, double> CalResult; 
-  SelectedJet(const EventJets* container, int jet_index); 
+  SelectedJet(const SusyBuffer& buffer, SUSYObjDef& , int jet_index, 
+	      bool good); 
   int index() const;
   double jvf() const; 
   bool bad_tile(const TVector2& met) const;

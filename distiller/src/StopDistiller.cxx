@@ -306,6 +306,8 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
     if (mu->cosmic() ) pass_bits &=~ pass::cosmic_muon; 
   }
 
+  if (pass_chf_check(signal_jets)) pass_bits |= pass::jet_chf; 
+
   m_out_tree->htx = get_htx(signal_jets, N_SR_JETS); 
   m_out_tree->min_jetmet_dphi = get_min_jetmet_dphi(
     leading_jets, mets.nominal); 
@@ -498,7 +500,7 @@ void StopDistiller::setup_cutflow(CutflowType cutflow) {
     m_cutflow->add("bad_muon"    , pass::bad_muon); 
     m_cutflow->add("muon_veto"           , pass::muon_veto    );
     m_cutflow->add("electron_veto"           , pass::electron_veto    );
-    // m_cutflow->add("chf_cut"     , pass::chf_cut); 
+    m_cutflow->add("chf_cut"     , pass::jet_chf); 
     m_cutflow->add("met_150"               , pass::cutflow_met    );
     m_cutflow->add("n_jet_geq_3"           , pass::n_jet          );
     // m_cutflow->add("second_jet_50"         , pass::cutflow_jet2   ); 

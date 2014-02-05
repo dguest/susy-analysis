@@ -14,7 +14,8 @@
 #define JET_SET(ch,NAME)			\
   ch->SetBranch(jc + "_" #NAME, &jet_ ## NAME)
 
-SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br)
+SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br): 
+  m_has_truth(false)
 {
 
   using namespace cutflag; 
@@ -222,7 +223,11 @@ void SusyBuffer::set_mc_branches(SmartChain* chain,
     chain->fake_set("SUSY_Spart1_pdgId"); 
     chain->fake_set("SUSY_Spart2_pdgId"); 
   }
+  m_has_truth = true; 
 }
+
+bool SusyBuffer::has_truth() const { return m_has_truth; }
+
 
 #undef SET
 #undef JET_SET

@@ -172,6 +172,15 @@ double get_energy_weighted_time(const std::vector<SelectedJet*>& jets,
   return num/denom; 
 }
 
+bool pass_chf_check(const std::vector<SelectedJet*> jets) { 
+  size_t njet = std::min(jets.size(), CHF_CHECK_NJET); 
+  for (auto itr = jets.cbegin(); itr != jets.cbegin() + njet; itr++) { 
+    const auto& jet = **itr; 
+    if (!jet.pass_chf()) return false; 
+  }
+  return true; 
+}
+
 bool has_lower_pt(const TLorentzVector* v1, const TLorentzVector* v2) { 
   return v1->Pt() < v2->Pt(); 
 }

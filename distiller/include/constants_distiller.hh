@@ -17,4 +17,6 @@ const static float Z_MASS_WINDOW = 15.0e3;
 const static size_t ENERGY_WEIGHTED_TIME_NJET = 2; 
 const static double ENERGY_WEIGHTED_TIME_MAX = 5.0; 
 
+const static size_t CHF_CHECK_NJET = 2; 
+
 #endif 

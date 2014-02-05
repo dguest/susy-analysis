@@ -182,10 +182,12 @@ public :
   double sharktopus; 
 
   SusyBuffer(SmartChain *tree, const unsigned use_branches);
+  bool has_truth() const; 
 
 private: 
   void set_mc_branches(SmartChain* chain, const unsigned br, 
 		       std::string jc); 
+  bool m_has_truth; 
 };
 
 #endif

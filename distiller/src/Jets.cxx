@@ -25,21 +25,15 @@ namespace {
   bool check_buffer(const SusyBuffer& buffer); 
 }
 
-SelectedJet::SelectedJet(const EventJets* parent, int jet_index): 
+SelectedJet::SelectedJet(const SusyBuffer& buffer, 
+			 SUSYObjDef& def, 
+			 int jet_index, bool good): 
   m_bits(0)
 { 
-  const SusyBuffer& buffer = *parent->m_buffer; 
-  double pt = buffer.jet_pt  ->at(jet_index); 
-  double eta = buffer.jet_eta ->at(jet_index); 
-  double phi = buffer.jet_phi ->at(jet_index); 
-  double e = buffer.jet_E   ->at(jet_index); 
+  // susytools corrected tlv
+  TLorentzVector tlv = def.GetJetTLV(jet_index); 
+  SetPxPyPzE(tlv.Px(), tlv.Py(), tlv.Pz(), tlv.E()); 
 
-  if (pt){ 
-    SetPtEtaPhiE(pt,eta,phi,e); 
-  }
-  else { 
-    SetPxPyPzE(0,0,0,e); 
-  }
   m_jet_index = jet_index;
 
   m_jvf = buffer.jet_jvtxf->at(jet_index); 
@@ -55,15 +49,24 @@ SelectedJet::SelectedJet(const EventJets* parent, int jet_index):
   m_timing = buffer.jet_Timing->at(jet_index); 
 
   double chf = buffer.jet_sumPtTrk->at(jet_index) / Pt(); 
-  bool fail_chf = Pt() > jet::FAIL_CHF_PT_MIN && 
-    chf < jet::FAIL_CHF_MAX && std::abs(Eta()) < jet::FAIL_CHF_ETA_MAX; 
-  m_pass_chf = !fail_chf; 
+  double em_frac = buffer.jet_emfrac->at(jet_index); 
+  bool fail_chf_pt = Pt() > jet::FAIL_CHF_PT_MIN; 
+  bool fail_chf_eta = std::abs(Eta()) < jet::FAIL_CHF_ETA_MAX; 
 
-  if ( parent->m_flags & cutflag::truth) { 
+  bool fail_chf_no_em = chf < jet::FAIL_CHF_MAX_NOEM;
+  bool fail_chf_em = (chf < jet::FAIL_CHF_MAX_EM && 
+		      em_frac > jet::FAIL_CHF_EM_FRAC_MIN); 
+  bool fail_chf = (fail_chf_em || fail_chf_no_em); 
+  m_pass_chf = !(fail_chf_pt && fail_chf_eta && fail_chf); 
+
+  if ( buffer.has_truth() ) { 
     m_flavor_truth_label = buffer.jet_flavor_truth_label->at(jet_index); 
   }
   else { 
     m_flavor_truth_label = -1; 
+  }
+  if (good) { 
+    set_bit(jetbit::pass_susy_def); 
   }
 
 }
@@ -249,16 +252,7 @@ void EventJets::fill(const SusyBuffer& buffer, SUSYObjDef& def,
 
     bool is_jet = fill_jet(jet_n, buffer, def, flags, info); 
 
-    push_back(new SelectedJet(this, jet_n)); 
-    SelectedJet* the_jet = *rbegin(); 
-
-    // susytools corrected tlv
-    TLorentzVector tlv = def.GetJetTLV(); 
-    the_jet->SetPxPyPzE(tlv.Px(), tlv.Py(), tlv.Pz(), tlv.E()); 
-
-    if (is_jet) { 
-      the_jet->set_bit(jetbit::pass_susy_def); 
-    }
+    push_back(new SelectedJet(buffer, def, jet_n, is_jet)); 
 
   }
 }

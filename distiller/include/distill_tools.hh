@@ -54,6 +54,8 @@ double get_htx(const std::vector<SelectedJet*>&, const size_t x);
 double get_energy_weighted_time(const std::vector<SelectedJet*>&, 
 				size_t n_jets); 
 
+bool pass_chf_check(const std::vector<SelectedJet*> jets); 
+
 template<typename T> 
 bool has_os_zmass_pair(const std::vector<T*>&); 
 

@@ -44,6 +44,9 @@ namespace pass {
   // const ull_t bad_tile_stmet_down  = 1ULL << 27; 
   // const ull_t bad_tile_mumet_down  = 1ULL << 28; 
 
+  // jet charged fraction 
+  const ull_t jet_chf            = 1ULL << 30; 
+
   // late additons to event cleaning 
   const ull_t tile_error         = 1ULL <<  35; 
   const ull_t tile_trip          = 1ULL <<  36; 

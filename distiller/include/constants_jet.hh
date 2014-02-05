@@ -26,8 +26,11 @@ namespace jet {
 
   // charge fraction (jet must meet all to count as bad)
   static const float FAIL_CHF_PT_MIN = 100*GeV; 
-  static const float FAIL_CHF_MAX = 0.05; 
   static const float FAIL_CHF_ETA_MAX = 2.0; 
+  static const float FAIL_CHF_MAX_NOEM = 0.02; 
+  // second category of chf max when emfrac is high 
+  static const float FAIL_CHF_MAX_EM = 0.05;
+  static const float FAIL_CHF_EM_FRAC_MIN = 0.9; 
 
   // static const float UNCALIBRATED_PT_MIN = 2.0*GeV; 
 }
