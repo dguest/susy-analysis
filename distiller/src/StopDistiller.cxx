@@ -279,6 +279,10 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
 
   const double energy_weighted_time = get_energy_weighted_time(
     signal_jets, ENERGY_WEIGHTED_TIME_NJET); 
+  const double min_jetmet_dphi = get_min_jetmet_dphi(
+    signal_jets, mets.nominal);
+  const double mass_eff = mets.nominal.Mod() + scalar_sum_pt(leading_jets); 
+  const double met_eff = mets.nominal.Mod() / mass_eff; 
 
   // ---- must calibrate signal jets for b-tagging ----
   calibrate_jets(signal_jets, m_btag_calibration); 
@@ -291,6 +295,8 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   m_out_tree->counts.n_veto_muons = veto_muons.size(); 
   m_out_tree->counts.n_control_electrons = control_electrons.size(); 
   m_out_tree->counts.n_control_muons = control_muons.size(); 
+  m_out_tree->htx = get_htx(signal_jets, N_SR_JETS); 
+  m_out_tree->min_jetmet_dphi = min_jetmet_dphi;  
 
   pass_bits |= signal_jet_bits(signal_jets); 
   if (energy_weighted_time < ENERGY_WEIGHTED_TIME_MAX) {
@@ -307,12 +313,10 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
 
   if (pass_chf_check(signal_jets)) pass_bits |= pass::jet_chf; 
 
-  m_out_tree->htx = get_htx(signal_jets, N_SR_JETS); 
-  m_out_tree->min_jetmet_dphi = get_min_jetmet_dphi(
-    leading_jets, mets.nominal); 
-  if (m_out_tree->min_jetmet_dphi > MIN_DPHI_JET_MET) { 
+  if (min_jetmet_dphi > MIN_DPHI_JET_MET) { 
     pass_bits |= pass::dphi_jetmet_min; 
   }
+  if (met_eff > MET_EFF_MIN) pass_bits |= pass::met_eff; 
 
   copy_leading_jet_info(signal_jets, *m_out_tree); 
 
@@ -509,10 +513,10 @@ void StopDistiller::setup_cutflow(CutflowType cutflow) {
     m_cutflow->add(cat("met_",CUTFLOW_MET) , pass::cutflow_met    );
     m_cutflow->add(cat("n_jet_",N_SR_JETS) , pass::n_jet          );
     m_cutflow->add(cat("j1_", CUTFLOW_JET1_PT), pass::cutflow_leading);
-    // m_cutflow->add(cat("j2_", CUTFLOW_JET2_PT), pass::cutflow_jet2);
-    // m_cutflow->add(cat("j3_veto_", CUTFLOW_JET3_PT_VETO), pass::cutflow_jet3);
+    m_cutflow->add(cat("j2_", CUTFLOW_JET2_PT), pass::cutflow_jet2);
+    m_cutflow->add(cat("j3_veto_", CUTFLOW_JET3_PT_VETO), pass::cutflow_jet3);
     m_cutflow->add("dphi_jetmet_min"       , pass::dphi_jetmet_min);
-    // NEED MET EFF
+    m_cutflow->add("met_eff"               , pass::met_eff); 
     m_cutflow->add("one_ctag"              , pass::tagged  ); 
     m_cutflow->add("two_ctag"              , pass::double_tagged  ); 
     // m_cutflow->add("m_ct_150"              , pass::mct            ); 

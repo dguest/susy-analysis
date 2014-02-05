@@ -28,5 +28,6 @@ const float CUTFLOW_JET3_PT_VETO = 50*GeV;
 const float FILTER_LEADING_JET_PT = 120*GeV; 
 const float FILTER_MET            = 120*GeV; 
 
+const float MET_EFF_MIN = 0.25; 
 
 #endif 

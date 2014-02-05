@@ -12,7 +12,7 @@
 
 ull_t signal_jet_bits(const std::vector<SelectedJet*>& jets) { 
   ull_t pass_bits = 0; 
-  if (jets.size() > 0) { 
+  if (jets.size() >= 1) { 
     float leading_jet_pt = jets.at(0)->Pt(); 
     if (leading_jet_pt > FILTER_LEADING_JET_PT) { 
       pass_bits |= pass::leading_jet; 
@@ -22,6 +22,12 @@ ull_t signal_jet_bits(const std::vector<SelectedJet*>& jets) {
     }
   }
   if (jets.size() >= N_SR_JETS) pass_bits |= pass::n_jet; 
+  if (jets.size() >= 2 && jets.at(1)->Pt() > CUTFLOW_JET2_PT) { 
+    pass_bits |= pass::cutflow_jet2; 
+  }
+  if (jets.size() < 3 || jets.at(2)->Pt() < CUTFLOW_JET3_PT_VETO) { 
+    pass_bits |= pass::cutflow_jet3; 
+  }
 
   int n_tags = 0; 
   const unsigned medium = jetbit::jfc_medium_anti_u | jetbit::jfc_anti_b; 

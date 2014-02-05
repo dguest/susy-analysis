@@ -40,6 +40,9 @@ template<typename M, typename A>
 A remove_overlaping(const M& mask, A altered, const float delta_r); 
 
 template<typename T>
+double scalar_sum_pt(const T& objects); 
+
+template<typename T>
 std::vector<int> get_indices(const T&); 
 
 template<typename T>
@@ -95,5 +98,13 @@ std::vector<T*> filter_susy(const std::vector<T*>& in)
   return out; 
 }
 
+template<typename T>
+double scalar_sum_pt(const T& obj) { 
+  double sum = 0.0; 
+  for (auto itr: obj) { 
+    sum += itr->Pt(); 
+  }
+  return sum; 
+}
 
 #endif 

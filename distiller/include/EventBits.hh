@@ -31,9 +31,10 @@ namespace pass {
   const ull_t os_zmass_mu_pair   = 1ULL << 19; 
 
   // must be set in the Analysis routines
-  const ull_t mttop              = 1ULL << 21; 
+  // const ull_t mttop              = 1ULL << 21; 
 
-  // late addition control region 
+  // late addition 
+  const ull_t met_eff            = 1ULL << 21; 
   const ull_t mu_met             = 1ULL << 22; 
 
   // bad tile veto
