@@ -17,9 +17,9 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br)
 
   fChain->SetBranchStatus("*",0); 
 
-  fChain->SetBranch("RunNumber", &RunNumber);  
-  fChain->SetBranch("EventNumber", &EventNumber); 
-  fChain->SetBranch("lbn", &lbn); 
+  SET(RunNumber);  
+  SET(EventNumber); 
+  SET(lbn); 
 
   // --- trigger branches ----
   // met
@@ -27,52 +27,41 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br)
   fChain->SetBranch("EF_xe80T_tclcw_loose", &xe80T_tclcw_loose); 
   fChain->SetBranch("EF_xe80_tclcw_loose", &xe80_tclcw_loose); 
   // muon
-  fChain->SetBranch("EF_mu18_tight_mu8_EFFS", &EF_mu18_tight_mu8_EFFS); 
-  fChain->SetBranch("EF_mu24i_tight" 	    , &EF_mu24i_tight);         
-  fChain->SetBranch("EF_mu36_tight"         , &EF_mu36_tight);
+  SET(EF_mu18_tight_mu8_EFFS); 
+  SET(EF_mu24i_tight);
+  SET(EF_mu36_tight);
   // electron 
-  fChain->SetBranch("EF_2e12Tvh_loose1", &EF_2e12Tvh_loose1); 
-  fChain->SetBranch("EF_e24vhi_medium1", &EF_e24vhi_medium1); 
-  fChain->SetBranch("EF_e60_medium1", &EF_e60_medium1); 
+  SET(EF_2e12Tvh_loose1); 
+  SET(EF_e24vhi_medium1); 
+  SET(EF_e60_medium1); 
 
-  fChain->SetBranch("coreFlags", &coreFlags); 
+  SET(coreFlags); 
   
   fChain->SetBranch("top_hfor_type", &hfor_type); 
 
-  fChain->SetBranch(jc + "_jvtxf", 
-		    &jet_jvtxf); 
-  fChain->SetBranch("averageIntPerXing", &averageIntPerXing); 
-  fChain->SetBranch("larError", &larError); 
-  fChain->SetBranch("tileError", &tileError); 
+  fChain->SetBranch(jc + "_jvtxf", &jet_jvtxf); 
+  SET(averageIntPerXing); 
+  SET(larError); 
+  SET(tileError); 
 
-  fChain->SetBranch("Eventshape_rhoKt4LC", &Eventshape_rhoKt4LC); 
+  SET(Eventshape_rhoKt4LC); 
 
   // MET garbage
-  fChain->SetBranch(jc + "_MET_Egamma10NoTau_wet", 
-		    &jet_MET_Egamma10NoTau_wet); 
-  fChain->SetBranch(jc + "_MET_Egamma10NoTau_wpx",
-		    &jet_MET_Egamma10NoTau_wpx); 
-  fChain->SetBranch(jc + "_MET_Egamma10NoTau_wpy", 
-		    &jet_MET_Egamma10NoTau_wpy); 
+  fChain->SetBranch(jc + "_MET_Egamma10NoTau_wet", &jet_MET_Egamma10NoTau_wet); 
+  fChain->SetBranch(jc + "_MET_Egamma10NoTau_wpx", &jet_MET_Egamma10NoTau_wpx); 
+  fChain->SetBranch(jc + "_MET_Egamma10NoTau_wpy", &jet_MET_Egamma10NoTau_wpy); 
   fChain->SetBranch(jc + "_MET_Egamma10NoTau_statusWord", 
 		    &jet_MET_Egamma10NoTau_statusWord); 
 
-  fChain->SetBranch("el_MET_Egamma10NoTau_wet", 
-		    &el_MET_Egamma10NoTau_wet); 
-  fChain->SetBranch("el_MET_Egamma10NoTau_wpx",
-		    &el_MET_Egamma10NoTau_wpx); 
-  fChain->SetBranch("el_MET_Egamma10NoTau_wpy", 
-		    &el_MET_Egamma10NoTau_wpy); 
-  fChain->SetBranch("el_MET_Egamma10NoTau_statusWord", 
-		    &el_MET_Egamma10NoTau_statusWord); 
+  SET(el_MET_Egamma10NoTau_wet); 
+  SET(el_MET_Egamma10NoTau_wpx); 
+  SET(el_MET_Egamma10NoTau_wpy); 
+  SET(el_MET_Egamma10NoTau_statusWord); 
 
 
-  fChain->SetBranch("MET_Egamma10NoTau_CellOut_etx"   ,
-		    &MET_Egamma10NoTau_CellOut_etx);  
-  fChain->SetBranch("MET_Egamma10NoTau_CellOut_ety"   ,
-		    &MET_Egamma10NoTau_CellOut_ety);    
-  fChain->SetBranch("MET_Egamma10NoTau_CellOut_sumet" ,
-		    &MET_Egamma10NoTau_CellOut_sumet);
+  SET(MET_Egamma10NoTau_CellOut_etx);  
+  SET(MET_Egamma10NoTau_CellOut_ety);    
+  SET(MET_Egamma10NoTau_CellOut_sumet);
 
   fChain->SetBranch("MET_Egamma10NoTau_CellOut_Eflow_STVF_etx",
 		    &MET_CellOut_Eflow_STVF_etx);  
@@ -81,59 +70,56 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br)
   fChain->SetBranch("MET_Egamma10NoTau_CellOut_Eflow_STVF_sumet",
 		    &MET_CellOut_Eflow_STVF_sumet);  
 
-  fChain->SetBranch("MET_Egamma10NoTau_RefGamma_etx"  ,
-		    &MET_Egamma10NoTau_RefGamma_etx);  
-  fChain->SetBranch("MET_Egamma10NoTau_RefGamma_ety"  ,
-		    &MET_Egamma10NoTau_RefGamma_ety);   
-  fChain->SetBranch("MET_Egamma10NoTau_RefGamma_sumet",
-		    &MET_Egamma10NoTau_RefGamma_sumet);
+  SET(MET_Egamma10NoTau_RefGamma_etx);  
+  SET(MET_Egamma10NoTau_RefGamma_ety);   
+  SET(MET_Egamma10NoTau_RefGamma_sumet);
 
  
-  fChain->SetBranch("el_n", &el_n); 
-  fChain->SetBranch("el_eta", &el_eta); 
-  fChain->SetBranch("el_phi", &el_phi); 
-  fChain->SetBranch("el_author", &el_author); 
-  fChain->SetBranch("el_OQ", &el_OQ); 
-  fChain->SetBranch("el_mediumPP", &el_mediumPP); 
-  fChain->SetBranch("el_tightPP", &el_tightPP); // for IsSignal
-  fChain->SetBranch("el_ptcone20", &el_ptcone20); // for IsSignal
-  fChain->SetBranch("el_trackd0pv", &el_trackd0pv); // for IsSignal
-  fChain->SetBranch("el_trackz0pv", &el_trackz0pv); // for IsSignal
-  fChain->SetBranch("el_charge", &el_charge); 
-  fChain->SetBranch("el_cl_E", &el_cl_E); 
-  fChain->SetBranch("el_cl_eta", &el_cl_eta); 
-  fChain->SetBranch("el_cl_phi", &el_cl_phi); 
-  // fChain->SetBranch("el_cl_pt", &el_cl_pt); 
-  fChain->SetBranch("el_trackphi", &el_trackphi); 
-  fChain->SetBranch("el_tracketa", &el_tracketa); 
-  fChain->SetBranch("el_nPixHits", &el_nPixHits); 
-  fChain->SetBranch("el_nSCTHits", &el_nSCTHits); 
-  fChain->SetBranch("mu_staco_n", &mu_staco_n); 
-  fChain->SetBranch("mu_staco_pt", &mu_staco_pt); 
-  fChain->SetBranch("mu_staco_eta", &mu_staco_eta); 
-  fChain->SetBranch("mu_staco_phi", &mu_staco_phi); 
-  fChain->SetBranch("mu_staco_ptcone20", &mu_staco_ptcone20); 
-  fChain->SetBranch("mu_staco_charge", &mu_staco_charge); 
-  fChain->SetBranch("mu_staco_isCombinedMuon", &mu_staco_isCombinedMuon); 
-  fChain->SetBranch("mu_staco_isSegmentTaggedMuon", &mu_staco_isSegmentTaggedMuon); 
-  fChain->SetBranch("mu_staco_loose", &mu_staco_loose); 
-  fChain->SetBranch("mu_staco_id_theta_exPV", &mu_staco_id_theta_exPV); 
-  fChain->SetBranch("mu_staco_id_qoverp_exPV", &mu_staco_id_qoverp_exPV); 
-  fChain->SetBranch("mu_staco_me_theta_exPV", &mu_staco_me_theta_exPV); 
-  fChain->SetBranch("mu_staco_me_qoverp_exPV", &mu_staco_me_qoverp_exPV); 
-  fChain->SetBranch("mu_staco_ms_phi", &mu_staco_ms_phi); 
-  fChain->SetBranch("mu_staco_ms_theta", &mu_staco_ms_theta); 
-  fChain->SetBranch("mu_staco_ms_qoverp", &mu_staco_ms_qoverp); 
-  fChain->SetBranch("mu_staco_id_theta", &mu_staco_id_theta); 
-  fChain->SetBranch("mu_staco_nPixHits", &mu_staco_nPixHits); 
-  fChain->SetBranch("mu_staco_nSCTHits", &mu_staco_nSCTHits); 
-  fChain->SetBranch("mu_staco_nTRTHits", &mu_staco_nTRTHits); 
-  fChain->SetBranch("mu_staco_nPixHoles", &mu_staco_nPixHoles); 
-  fChain->SetBranch("mu_staco_nSCTHoles", &mu_staco_nSCTHoles); 
-  fChain->SetBranch("mu_staco_nTRTOutliers", &mu_staco_nTRTOutliers); 
-  fChain->SetBranch("mu_staco_nPixelDeadSensors", &mu_staco_nPixelDeadSensors); 
-  fChain->SetBranch("mu_staco_nSCTDeadSensors", &mu_staco_nSCTDeadSensors); 
-  fChain->SetBranch("mu_staco_energyLossPar", &mu_staco_energyLossPar); 
+  SET(el_n); 
+  SET(el_eta); 
+  SET(el_phi); 
+  SET(el_author); 
+  SET(el_OQ); 
+  SET(el_mediumPP); 
+  SET(el_tightPP); // for IsSignal
+  SET(el_ptcone20); // for IsSignal
+  SET(el_trackd0pv); // for IsSignal
+  SET(el_trackz0pv); // for IsSignal
+  SET(el_charge); 
+  SET(el_cl_E); 
+  SET(el_cl_eta); 
+  SET(el_cl_phi); 
+  // SET(el_cl_pt); 
+  SET(el_trackphi); 
+  SET(el_tracketa); 
+  SET(el_nPixHits); 
+  SET(el_nSCTHits); 
+  SET(mu_staco_n); 
+  SET(mu_staco_pt); 
+  SET(mu_staco_eta); 
+  SET(mu_staco_phi); 
+  SET(mu_staco_ptcone20); 
+  SET(mu_staco_charge); 
+  SET(mu_staco_isCombinedMuon); 
+  SET(mu_staco_isSegmentTaggedMuon); 
+  SET(mu_staco_loose); 
+  SET(mu_staco_id_theta_exPV); 
+  SET(mu_staco_id_qoverp_exPV); 
+  SET(mu_staco_me_theta_exPV); 
+  SET(mu_staco_me_qoverp_exPV); 
+  SET(mu_staco_ms_phi); 
+  SET(mu_staco_ms_theta); 
+  SET(mu_staco_ms_qoverp); 
+  SET(mu_staco_id_theta); 
+  SET(mu_staco_nPixHits); 
+  SET(mu_staco_nSCTHits); 
+  SET(mu_staco_nTRTHits); 
+  SET(mu_staco_nPixHoles); 
+  SET(mu_staco_nSCTHoles); 
+  SET(mu_staco_nTRTOutliers); 
+  SET(mu_staco_nPixelDeadSensors); 
+  SET(mu_staco_nSCTDeadSensors); 
+  SET(mu_staco_energyLossPar); 
 
   SET(mu_staco_qoverp_exPV); 
   SET(mu_staco_cov_qoverp_exPV); 
@@ -182,7 +168,7 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br)
 		    &jet_flavor_component_jfitcomb_pb);
   fChain->SetBranch(jc + "_flavor_component_jfitcomb_pc", 
 		    &jet_flavor_component_jfitcomb_pc);
-  fChain->SetBranch("vx_nTracks", &vx_nTracks); 
+  SET(vx_nTracks); 
 
   if (br & mv3) { 
     fChain->SetBranch(jc + "_flavor_weight_MV3_bVSu", 
@@ -201,18 +187,18 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br)
 		    &jet_flavor_component_jfitc_pc);
 
   if (br & unleash_sharktopus){  
-    fChain->SetBranch("sharktopus",&sharktopus); 
+    SET(sharktopus); 
   }
 
-  fChain->SetBranch("trk_pt", &trk_pt); 
-  fChain->SetBranch("trk_eta", &trk_eta); 
-  fChain->SetBranch("trk_phi_wrtPV", &trk_phi_wrtPV); 
-  fChain->SetBranch("trk_d0_wrtPV", &trk_d0_wrtPV); 
-  fChain->SetBranch("trk_z0_wrtPV", &trk_z0_wrtPV); 
-  fChain->SetBranch("trk_ndof", &trk_ndof); 
-  fChain->SetBranch("trk_chi2", &trk_chi2); 
-  fChain->SetBranch("trk_nPixHits", &trk_nPixHits); 
-  fChain->SetBranch("trk_nSCTHits", &trk_nSCTHits); 
+  SET(trk_pt); 
+  SET(trk_eta); 
+  SET(trk_phi_wrtPV); 
+  SET(trk_d0_wrtPV); 
+  SET(trk_z0_wrtPV); 
+  SET(trk_ndof); 
+  SET(trk_chi2); 
+  SET(trk_nPixHits); 
+  SET(trk_nSCTHits); 
 
 }
 
