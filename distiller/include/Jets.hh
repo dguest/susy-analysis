@@ -20,6 +20,7 @@ public:
   int index() const;
   double jvf() const; 
   bool bad_tile(const TVector2& met) const;
+  bool pass_chf() const; 
   float timing() const; 
   void set_bit(unsigned, bool set_to = true); 
   unsigned bits() const; 
@@ -42,6 +43,7 @@ private:
   double m_jfc_c; 
   double m_jfc_u; 
   float m_bch_corr; 
+  bool m_pass_chf; 
   float m_timing; 
   int m_jet_index;
   float m_jvf; //jet_jvtxf

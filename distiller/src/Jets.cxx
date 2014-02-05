@@ -54,6 +54,11 @@ SelectedJet::SelectedJet(const EventJets* parent, int jet_index):
   m_bch_corr = buffer.jet_BCH_CORR_JET->at(jet_index); 
   m_timing = buffer.jet_Timing->at(jet_index); 
 
+  double chf = buffer.jet_sumPtTrk->at(jet_index) / Pt(); 
+  bool fail_chf = Pt() > jet::FAIL_CHF_PT_MIN && 
+    chf < jet::FAIL_CHF_MAX && std::abs(Eta()) < jet::FAIL_CHF_ETA_MAX; 
+  m_pass_chf = !fail_chf; 
+
   if ( parent->m_flags & cutflag::truth) { 
     m_flavor_truth_label = buffer.jet_flavor_truth_label->at(jet_index); 
   }
@@ -79,6 +84,8 @@ bool SelectedJet::bad_tile(const TVector2& met) const {
   }
   return false; 
 }
+
+bool SelectedJet::pass_chf() const { return m_pass_chf; }
 
 float SelectedJet::timing() const { return m_timing; }
 
