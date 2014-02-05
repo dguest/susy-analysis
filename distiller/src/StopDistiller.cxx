@@ -29,6 +29,7 @@
 #include <iostream>
 #include <fstream>
 #include <string> 
+#include <sstream>
 #include <streambuf>
 #include <cassert>
 #include <cstdlib> // getenv, others
@@ -479,6 +480,24 @@ void StopDistiller::setup_outputs() {
 
 }
 
+namespace {
+  template<typename T>
+  std::string cat(const std::string& str, T other) { 
+    return str + std::to_string(other); 
+  }
+  template<>
+  std::string cat<float>(const std::string& str, float val) { 
+    if (val > 1e3) { 
+      return str + std::to_string(static_cast<int>(val / GeV)); 
+    } else { 
+      std::stringstream strm; 
+      strm << str; 
+      strm << std::setprecision(2) << val; 
+      return strm.str(); 
+    }
+  }
+}
+
 void StopDistiller::setup_cutflow(CutflowType cutflow) { 
   const ull_t event_clean = pass::lar_error | pass::tile_error | 
     pass::core | pass::tile_trip; 
@@ -501,13 +520,15 @@ void StopDistiller::setup_cutflow(CutflowType cutflow) {
     m_cutflow->add("muon_veto"           , pass::muon_veto    );
     m_cutflow->add("electron_veto"           , pass::electron_veto    );
     m_cutflow->add("chf_cut"     , pass::jet_chf); 
-    m_cutflow->add("met_150"               , pass::cutflow_met    );
-    m_cutflow->add("n_jet_geq_3"           , pass::n_jet          );
-    // m_cutflow->add("second_jet_50"         , pass::cutflow_jet2   ); 
-    // m_cutflow->add("third_jet_veto50"      , pass::cutflow_jet3   ); 
+    m_cutflow->add(cat("met_",CUTFLOW_MET) , pass::cutflow_met    );
+    m_cutflow->add(cat("n_jet_",N_SR_JETS) , pass::n_jet          );
+    m_cutflow->add(cat("j1_", CUTFLOW_JET1_PT), pass::cutflow_leading);
+    // m_cutflow->add(cat("j2_", CUTFLOW_JET2_PT), pass::cutflow_jet2);
+    // m_cutflow->add(cat("j3_veto_", CUTFLOW_JET3_PT_VETO), pass::cutflow_jet3);
     m_cutflow->add("dphi_jetmet_min"       , pass::dphi_jetmet_min);
-    m_cutflow->add("one_ctag"              , pass::cutflow_tag_1  ); 
-    m_cutflow->add("two_ctag"              , pass::cutflow_tag_2  ); 
+    // NEED MET EFF
+    m_cutflow->add("one_ctag"              , pass::tagged  ); 
+    m_cutflow->add("two_ctag"              , pass::double_tagged  ); 
     // m_cutflow->add("m_ct_150"              , pass::mct            ); 
     // m_cutflow->add("m_cc"                  , pass::m_cc           ); 
     return; 
@@ -524,12 +545,12 @@ void StopDistiller::setup_cutflow(CutflowType cutflow) {
     m_cutflow->add("event_cleaning"        , event_clean          );
     m_cutflow->add("control_electron"      , pass::control_electron);
     m_cutflow->add("bad_jet_veto"          , pass::jet_clean      );
-    m_cutflow->add("n_jet_geq_3"           , pass::n_jet          );
+    m_cutflow->add("n_jet" , pass::n_jet          );
     m_cutflow->add("dphi_jetmet_min"       , pass::dphi_jetmet_min);
     m_cutflow->add("met_280"               , pass::cutflow_met    );
     m_cutflow->add("leading_jet_280"       , pass::cutflow_leading);
-    m_cutflow->add("jtag_2"                , pass::cutflow_tag_2  ); 
-    m_cutflow->add("jtag_1"                , pass::cutflow_tag_1  ); 
+    // m_cutflow->add("jtag_2"                , pass::cutflow_tag_2  ); 
+    // m_cutflow->add("jtag_1"                , pass::cutflow_tag_1  ); 
     return; 
   }
   case CutflowType::MUON_CR: { 
@@ -547,13 +568,15 @@ void StopDistiller::setup_cutflow(CutflowType cutflow) {
     m_cutflow->add("dphi_jetmet_min"       , pass::dphi_jetmet_min);
     m_cutflow->add("met_280"               , pass::cutflow_met    );
     m_cutflow->add("leading_jet_280"       , pass::cutflow_leading);
-    m_cutflow->add("jtag_2"                , pass::cutflow_tag_2  ); 
-    m_cutflow->add("jtag_1"                , pass::cutflow_tag_1  ); 
+    // m_cutflow->add("jtag_2"                , pass::cutflow_tag_2  ); 
+    // m_cutflow->add("jtag_1"                , pass::cutflow_tag_1  ); 
     return; 
   }
   }
 }
-
+ 
+namespace { 
+}
 float StopDistiller::get_pileup_weight() { 
   if (!m_prw) return 1.0; 
   const SusyBuffer* b = m_susy_buffer; 

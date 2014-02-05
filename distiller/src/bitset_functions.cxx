@@ -17,26 +17,21 @@ ull_t signal_jet_bits(const std::vector<SelectedJet*>& jets) {
     if (leading_jet_pt > FILTER_LEADING_JET_PT) { 
       pass_bits |= pass::leading_jet; 
     }
-    if (leading_jet_pt > CUTFLOW_LEADING_JET_PT) { 
+    if (leading_jet_pt > CUTFLOW_JET1_PT) { 
       pass_bits |= pass::cutflow_leading; 
     }
   }
   if (jets.size() >= N_SR_JETS) pass_bits |= pass::n_jet; 
 
+  int n_tags = 0; 
   const unsigned medium = jetbit::jfc_medium_anti_u | jetbit::jfc_anti_b; 
-  if (jets.size() >= 3) { 
-    if ( (jets.at(1)->bits() & jets.at(2)->bits() & medium) == medium) { 
-      pass_bits |= pass::cutflow_tag_2; 
-    }
+  const int n_jets = std::min(jets.size(), N_SR_JETS); 
+  for (auto itr = jets.begin(); itr != jets.begin() + n_jets; itr++) { 
+    const auto jet = **itr; 
+    if ((jet.bits() & medium) == medium) n_tags++; 
   }
-  const unsigned loose = jetbit::jfc_loose_anti_u | jetbit::jfc_anti_b; 
-  if (jets.size() >= 4) { 
-    if ( (jets.at(1)->bits() & jets.at(2)->bits() & loose) == loose) { 
-      if ( (jets.at(3)->bits() & medium) == medium) {
-	pass_bits |= pass::cutflow_tag_1; 
-      }
-    }
-  }
+  if (n_tags >= 1) pass_bits |= pass::tagged; 
+  if (n_tags >= 2) pass_bits |= pass::double_tagged; 
   return pass_bits; 
 } 
 
