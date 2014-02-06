@@ -19,6 +19,10 @@ ull_t object_composit_bits(const ObjectComposites& par) {
   }
   if (par.met_eff > MET_EFF_MIN) pass_bits |= pass::met_eff; 
 
+  if (par.mass_ct > SR_MCT_MIN) pass_bits |= pass::sr_mct; 
+  if (par.mass_ct > CROF_MCT_MIN) pass_bits |= pass::crof_mct; 
+  if (par.mass_cc > M_CC_MIN) pass_bits |= pass::m_cc; 
+
   return pass_bits; 
 }
 

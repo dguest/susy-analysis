@@ -519,8 +519,8 @@ void StopDistiller::setup_cutflow(CutflowType cutflow) {
     m_cutflow->add("met_eff"               , pass::met_eff); 
     m_cutflow->add("one_ctag"              , pass::tagged  ); 
     m_cutflow->add("two_ctag"              , pass::double_tagged  ); 
-    // m_cutflow->add("m_ct_150"              , pass::mct            ); 
-    // m_cutflow->add("m_cc"                  , pass::m_cc           ); 
+    m_cutflow->add(cat("m_ct_",SR_MCT_MIN) , pass::sr_mct            ); 
+    m_cutflow->add("m_cc"                  , pass::m_cc           ); 
     return; 
   }
   case CutflowType::NONE: return; 
