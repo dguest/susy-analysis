@@ -17,7 +17,7 @@ namespace cutflag {
   const unsigned debug_cutflow    = 1u << 12; 
   const unsigned generate_pileup  = 1u << 13; 
 
-  const unsigned disable_sf       = 1u << 21; 
+  const unsigned disable_sf_err       = 1u << 21; 
   const unsigned spartid          = 1u << 22; 
   const unsigned truth            = 1u << 23; 
   // const unsigned old_skim         = 1u << 24; 

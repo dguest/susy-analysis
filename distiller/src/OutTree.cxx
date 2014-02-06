@@ -23,7 +23,7 @@ namespace outtree {
   SFBox::SFBox(unsigned flags): 
     m_variations(true) 
   { 
-    if (flags & cutflag::disable_sf) { 
+    if (flags & cutflag::disable_sf_err) { 
       m_variations = false; 
     }
   }
@@ -199,10 +199,8 @@ namespace outtree {
     if ( flags & cutflag::truth) { 
       tree->Branch((prefix + "flavor_truth_label").c_str(), 
 		   &flavor_truth_label); 
-      if (! (flags & cutflag::disable_sf)) { 
-	jfc_medium.set_branches(tree, prefix + "jfc_medium_", flags); 
-	jfc_loose.set_branches(tree,  prefix + "jfc_loose_", flags); 
-      }
+      jfc_medium.set_branches(tree, prefix + "jfc_medium_", flags); 
+      jfc_loose.set_branches(tree,  prefix + "jfc_loose_", flags); 
     }
 
     tree->Branch((prefix + "jfc_b").c_str(), &jfc_b); 
@@ -235,7 +233,9 @@ namespace outtree {
 				 unsigned flags)
   {
     tree->Branch((prefix + "scale_factor").c_str(), &scale_factor);
-    tree->Branch((prefix + "scale_factor_err").c_str(), &scale_factor_err);
+    if (! (flags & cutflag::disable_sf_err)) { 
+      tree->Branch((prefix + "scale_factor_err").c_str(), &scale_factor_err);
+    }
   }
   void ScaleFactor::clear() { 
     scale_factor = -1; 

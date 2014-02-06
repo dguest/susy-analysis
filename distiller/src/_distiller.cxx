@@ -40,7 +40,7 @@ static PyObject* py_distiller(PyObject *self,
   }
   
   unsigned flags = get_flags(flags_str); 
-  if (info.systematic != systematic::NONE) flags |= cutflag::disable_sf; 
+  if (info.systematic != systematic::NONE) flags |= cutflag::disable_sf_err; 
 
   typedef std::vector<std::pair<std::string, int> > CCOut; 
   CCOut pass_numbers; 
