@@ -2,7 +2,7 @@
 
 from scharm.stack import hfw
 import os, sys
-from stop import bits
+from scharm import bits
 
 # limit_dict = {
 #     'min_pt': 100*1e3, 

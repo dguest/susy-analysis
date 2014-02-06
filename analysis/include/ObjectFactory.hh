@@ -68,8 +68,9 @@ public:
   int entries() const; 
   void entry(int); 
   std::vector<Jet> jets() const; 
-  TVector2 met(syst::Systematic) const; 
-  TVector2 mu_met(syst::Systematic) const; 
+  // TODO: fix this, we're not storing met systematics in the tree any more
+  TVector2 met(syst::Systematic = syst::NONE) const; 
+  TVector2 mu_met(syst::Systematic = syst::NONE) const; 
   ull_t bits() const; 
   double dphi() const; 
   int n_signal_jets() const; 

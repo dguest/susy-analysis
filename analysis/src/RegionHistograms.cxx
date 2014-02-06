@@ -130,7 +130,7 @@ void RegionHistograms::fill(const EventObjects& obj) {
   fill_tagged_hists(tagged_jets, weight); 
 
   const bool do_mu_met = m_region_config.region_bits & reg::mu_met; 
-  const MetFlavors& mets = obj.met.get_syst(m_region_config.systematic); 
+  const MetFlavors& mets = obj.met; 
   const TVector2 met = do_mu_met ? mets.muon: mets.bare; 
   const TVector2 alt_met = do_mu_met ? mets.bare: mets.muon; 
   const TLorentzVector met4(met.Px(), met.Py(), 0, 0); 

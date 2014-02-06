@@ -9,46 +9,15 @@ namespace {
   Jets remove_electron_jets(Jets); 
 }
 
-MetFlavors::MetFlavors(const ObjectFactory* obj, syst::Systematic syst): 
-  bare(obj->met(syst)), 
-  muon(obj->mu_met(syst))
+MetFlavors::MetFlavors(const ObjectFactory* obj): 
+  bare(obj->met()), 
+  muon(obj->mu_met())
 {
-}
-
-MetSystematics::MetSystematics(const ObjectFactory* obj, bool is_data): 
-  m_nominal(obj, syst::NONE), 
-  m_up(0), 
-  m_down(0), 
-  m_res(0)
-{
-  if (!is_data) { 
-    m_up = new MetFlavors(obj, syst::METUP);
-    m_down = new MetFlavors(obj, syst::METDOWN); 
-    m_res = new MetFlavors(obj, syst::METRES); 
-  }
-}
-MetSystematics::~MetSystematics() { 
-  delete m_up; 
-  delete m_down; 
-  delete m_res; 
-}
-const MetFlavors& MetSystematics::get_syst(syst::Systematic syst) const { 
-  if ( (syst == syst::METUP || 
-	syst == syst::METDOWN || 
-	syst == syst::METRES ) && !m_up) { 
-    throw std::logic_error("problem in " __FILE__); 
-  }
-  switch (syst) { 
-  case syst::METUP: return *m_up; 
-  case syst::METDOWN: return *m_down; 
-  case syst::METRES: return *m_res; 
-  default: return m_nominal; 
-  }
 }
 
 EventObjects::EventObjects(const ObjectFactory* factory, 
 			   unsigned build_flags): 
-  met(factory, build_flags & buildflag::is_data), 
+  met(factory), 
   weight(factory->event_weight()), 
   event_mask(factory->bits()), 
   htx(factory->htx()), 

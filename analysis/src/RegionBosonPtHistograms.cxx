@@ -53,7 +53,7 @@ void RegionBosonPtHistograms::fill(const EventObjects& obj) {
   if (!m_event_filter->pass(obj)) return; 
   bool do_mu_met = m_region_config->region_bits & reg::mu_met; 
 
-  const MetFlavors& mets = obj.met.get_syst(m_region_config->systematic); 
+  const MetFlavors& mets = obj.met; 
   const TVector2 met = do_mu_met ? mets.muon: mets.bare; 
 
   double weight = obj.weight; 

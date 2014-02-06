@@ -3,12 +3,12 @@ Here be bitdefs.
 
  TODO: is it a good idea to generate the bits with each import? Not sure.
 """
-import yaml, sys, stop
+import yaml, sys, scharm
 from os.path import dirname, join
 
 def get_bits(bits_file=None): 
     if not bits_file: 
-        bits_yaml = join(dirname(stop.__file__),'bits.yml')
+        bits_yaml = join(dirname(scharm.__file__),'bits.yml')
     with open(bits_yaml) as bt: 
         bt_dict = yaml.load(bt)
     bt_list = [(n, 1 << s) for n,s in bt_dict.iteritems()]

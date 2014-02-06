@@ -75,7 +75,7 @@ void Region2dKinematicHistograms::fill(const EventObjects& obj) {
     weight *= m_event_filter.boson_scalefactor(obj); 
   }
   bool do_mu_met = m_region_config.region_bits & reg::mu_met; 
-  const MetFlavors& mets = obj.met.get_syst(m_region_config.systematic); 
+  const MetFlavors& mets = obj.met; 
   const TVector2 met = do_mu_met ? mets.muon: mets.bare; 
 
   assert(jets.size() > 0); 
