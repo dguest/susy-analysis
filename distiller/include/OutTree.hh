@@ -84,20 +84,11 @@ namespace outtree {
     double eta; 
     double phi; 
     int flavor_truth_label; 
-    // double cnn_b; 
-    // double cnn_c; 
-    // double cnn_u; 
     double jfc_b; 
     double jfc_c; 
     double jfc_u; 
-    // double cnn_log_cu; 
-    // double cnn_log_cb; 
     unsigned jet_bits; 
 
-    // ScaleFactor cnn_tight; 
-    // ScaleFactor cnn_medium; 
-    // ScaleFactor cnn_loose; 
-    // ScaleFactor jfc_tight; 
     ScaleFactor jfc_medium; 
     ScaleFactor jfc_loose; 
 

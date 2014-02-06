@@ -77,12 +77,6 @@ namespace outtree {
     MAKE_BRANCH(m_tree, htx); 
 
     if ( flags & cutflag::truth) { 
-      met_nom_up.set_branches(m_tree, "stup_"); 
-      met_mu_up.set_branches(m_tree, "stup_mu_"); 
-      met_nom_down.set_branches(m_tree, "stdown_"); 
-      met_mu_down.set_branches(m_tree, "stdown_mu_"); 
-      met_nom_res.set_branches(m_tree, "stres_"); 
-      met_mu_res.set_branches(m_tree, "stres_mu_"); 
       MAKE_BRANCH(m_tree, pileup_weight); 
       MAKE_BRANCH(m_tree, hfor_type); 
       MAKE_BRANCH(m_tree, truth_leading_cjet_pos);
@@ -104,6 +98,7 @@ namespace outtree {
     for (int i = 0; i < n_jets; i++) { 
       jets.push_back(new Jet); 
       std::string jetname = "jet" + std::to_string(i) + "_";
+      jets.at(i)->set_branches(m_tree, jetname, flags); 
     }
 
     electron_jet.set_branches(m_tree, "electron_jet_", flags); 
