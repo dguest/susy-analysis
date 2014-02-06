@@ -20,10 +20,20 @@ namespace outtree {
 
   // -------------- SFBox -----------------
 
+  SFBox::SFBox(unsigned flags): 
+    m_variations(true) 
+  { 
+    if (flags & cutflag::disable_sf) { 
+      m_variations = false; 
+    }
+  }
+
   void SFBox::set_branches(TTree* tree, std::string prefix) { 
     tree->Branch((prefix + "sf").c_str(), &nominal); 
-    tree->Branch((prefix + "sf_up").c_str(), &up); 
-    tree->Branch((prefix + "sf_down").c_str(), &down); 
+    if (m_variations) { 
+      tree->Branch((prefix + "sf_up").c_str(), &up); 
+      tree->Branch((prefix + "sf_down").c_str(), &down); 
+    }
   }
   void SFBox::clear() { 
     nominal = -1; 
@@ -50,6 +60,8 @@ namespace outtree {
 
   OutTree::OutTree(std::string file, std::string tree, const unsigned flags, 
 		   int n_jets): 
+    el_sf(flags), 
+    mu_sf(flags), 
     m_file(0), 
     m_tree(0)
   { 
@@ -187,8 +199,10 @@ namespace outtree {
     if ( flags & cutflag::truth) { 
       tree->Branch((prefix + "flavor_truth_label").c_str(), 
 		   &flavor_truth_label); 
-      jfc_medium.set_branches(tree, prefix + "jfc_medium_", flags); 
-      jfc_loose.set_branches(tree,  prefix + "jfc_loose_", flags); 
+      if (! (flags & cutflag::disable_sf)) { 
+	jfc_medium.set_branches(tree, prefix + "jfc_medium_", flags); 
+	jfc_loose.set_branches(tree,  prefix + "jfc_loose_", flags); 
+      }
     }
 
     tree->Branch((prefix + "jfc_b").c_str(), &jfc_b); 

@@ -39,11 +39,14 @@ namespace outtree {
 
   struct SFBox 
   {
+    SFBox(unsigned flags); 
     float nominal; 
     float up; 
     float down; 
     void set_branches(TTree*, std::string prefix); 
     void clear(); 
+  private: 
+    bool m_variations; 
   }; 
 
   class MetBlock

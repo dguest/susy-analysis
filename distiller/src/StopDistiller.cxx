@@ -86,9 +86,6 @@ StopDistiller::StopDistiller(const std::vector<std::string>& in,
     m_boson_truth_filter = new BosonTruthFilter(info.boson_pt_max_mev); 
   }
   if (info.truth_met_max_mev > 0 ){
-    if (flags & cutflag::old_skim) { 
-      throw std::logic_error("truth met filter disabled for old skims"); 
-    }
     m_truth_met_filter = new TruthMetFilter(info.truth_met_max_mev); 
   }
   if (flags & cutflag::boson_pt_reweight) { 
@@ -449,9 +446,7 @@ void StopDistiller::setup_susytools() {
 
   m_def->initialize(m_flags & cutflag::is_data, 
 		    m_flags & cutflag::is_atlfast); 
-  if (m_flags & cutflag::no_jet_recal) { 
-    m_def->SetJetCalib(false); 
-  }
+
   m_event_preselector = new EventPreselector(m_flags, m_info.grl); 
   m_btag_calibration = new BtagCalibration(m_info.btag_cal_file, 
 					   m_info.btag_cal_dir); 

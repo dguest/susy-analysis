@@ -40,7 +40,7 @@ static PyObject* py_distiller(PyObject *self,
   }
   
   unsigned flags = get_flags(flags_str); 
-  assert( (flags & (cutflag::jetfitter_charm | cutflag::mv3)) == 0); 
+  if (info.systematic != systematic::NONE) flags |= cutflag::disable_sf; 
 
   typedef std::vector<std::pair<std::string, int> > CCOut; 
   CCOut pass_numbers; 
@@ -76,7 +76,7 @@ static unsigned get_flags(const char* flags_str)
   unsigned flags = 0; 
   // flag 'a' is reserved for 'aggressive'
   if (strchr(flags_str,'b')) flags |= cutflag::debug_susy; 
-  if (strchr(flags_str,'c')) flags |= cutflag::jetfitter_charm; 
+  // if (strchr(flags_str,'c')) flags |= cutflag::jetfitter_charm; 
   if (strchr(flags_str,'d')) {
     flags |= cutflag::is_data; 
   }
@@ -86,10 +86,10 @@ static unsigned get_flags(const char* flags_str)
   if (strchr(flags_str,'e')) flags |= cutflag::save_all_events; 
   if (strchr(flags_str,'f')) flags |= cutflag::is_atlfast; 
   if (strchr(flags_str,'g')) flags |= cutflag::get_branches; 
-  if (strchr(flags_str,'h')) flags |= cutflag::old_skim; 
+  // if (strchr(flags_str,'h')) flags |= cutflag::old_skim; 
   if (strchr(flags_str,'i')) flags |= cutflag::spartid; 
   // if (strchr(flags_str,'j')) flags |= cutflag::vector_output; 
-  if (strchr(flags_str,'m')) flags |= cutflag::mv3; 
+  // if (strchr(flags_str,'m')) flags |= cutflag::mv3; 
   if (strchr(flags_str,'p')) flags |= cutflag::boson_pt_reweight; 
   // if (strchr(flags_str,'r')) flags |= cutflag::save_ratios; 
   if (strchr(flags_str,'u')) flags |= cutflag::generate_pileup; 

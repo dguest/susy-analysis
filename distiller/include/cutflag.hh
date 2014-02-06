@@ -12,18 +12,17 @@ namespace cutflag {
   // const unsigned save_ratios      = 1u << 7; 
   // const unsigned vector_output    = 1u << 8; 
   const unsigned maximum_compression = 1u << 9; 
-  const unsigned no_jet_recal     = 1u << 10; 
+  // const unsigned no_jet_recal     = 1u << 10; 
   const unsigned is_atlfast       = 1u << 11; 
   const unsigned debug_cutflow    = 1u << 12; 
   const unsigned generate_pileup  = 1u << 13; 
-  const unsigned jetfitter_charm  = 1u << 14; 
-  const unsigned mv3              = 1u << 15; 
 
+  const unsigned disable_sf       = 1u << 21; 
   const unsigned spartid          = 1u << 22; 
   const unsigned truth            = 1u << 23; 
-  const unsigned old_skim         = 1u << 24; 
+  // const unsigned old_skim         = 1u << 24; 
 
-  const unsigned can_set_at_runtime = (spartid | truth); 
+  // const unsigned can_set_at_runtime = (spartid | truth); 
 
   const unsigned unleash_sharktopus = 1u << 31; 
 }

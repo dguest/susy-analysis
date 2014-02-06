@@ -371,12 +371,11 @@ namespace {
   SystErr::Syste get_susytools_systematic(systematic::Systematic syst) { 
     using namespace systematic; 
     switch (syst) { 
-    case NONE: return SystErr::NONE; 
     case JESUP: return SystErr::JESUP; 
     case JESDOWN: return SystErr::JESDOWN; 
     case JER: return SystErr::JER; 
-    default: 
-      throw std::logic_error("got undedined systematic in " __FILE__); 
+    default:     
+      return SystErr::NONE; 
     }
   }
 
