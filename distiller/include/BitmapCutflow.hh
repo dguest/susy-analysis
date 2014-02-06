@@ -6,15 +6,7 @@
 #include <vector> 
 #include "typedefs.hh"
 
-class CutCounter
-{
-public: 
-  int& operator[](std::string key); 
-  std::vector< std::pair<std::string, int> > get_ordered_cuts() const; 
-private: 
-  std::map<std::string, int> m_counts; 
-  std::vector<std::string> m_cuts; 
-}; 
+#include "CutCounter.hh"
 
 class BitmapCutflow 
 { 

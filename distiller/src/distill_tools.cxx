@@ -165,12 +165,6 @@ bool pass_chf_check(const std::vector<SelectedJet*> jets) {
   return true; 
 }
 
-bool has_lower_pt(const TLorentzVector* v1, const TLorentzVector* v2) { 
-  return v1->Pt() < v2->Pt(); 
-}
-bool has_higher_pt(const TLorentzVector* v1, const TLorentzVector* v2) { 
-  return v1->Pt() > v2->Pt(); 
-}
 
 void set_bit(std::vector<SelectedJet*>& jets, unsigned bit) { 
   for (std::vector<SelectedJet*>::iterator itr = jets.begin(); 

@@ -118,5 +118,13 @@ namespace object {
     assert(nearest_jet); 
     return nearest_jet; 
   }
+
+  bool has_lower_pt(const TLorentzVector* v1, const TLorentzVector* v2) { 
+    return v1->Pt() < v2->Pt(); 
+  }
+  bool has_higher_pt(const TLorentzVector* v1, const TLorentzVector* v2) { 
+    return v1->Pt() > v2->Pt(); 
+  }
+
   
 }

@@ -21,6 +21,7 @@
 #include "BosonPtReweighter.hh"
 #include "CheckSize.hh"
 #include "PileupReweighting.hh"
+#include "CutCounter.hh"
 
 #include "cutflag.hh"
 #include "EventBits.hh"
@@ -210,7 +211,6 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
 
   m_def->Reset(); 
   m_out_tree->clear_buffer(); 
-  ull_t pass_bits = 0; 
     
   EventJets all_jets(*m_susy_buffer, *m_def, m_flags, m_info); 
   EventElectrons all_electrons(*m_susy_buffer, *m_def, m_flags, m_info); 
@@ -218,32 +218,28 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
 
   auto& ob_counts = *m_object_counter; 
 
-  // --- preselection 
-
-  pass_bits |= m_event_preselector->get_preselection_flags(
-    *m_susy_buffer, *m_def); 
 
   // --- object selection 
 
-  std::sort(all_jets.begin(),all_jets.end(),has_higher_pt); 
+  std::sort(all_jets.begin(),all_jets.end(),object::has_higher_pt); 
 
   const auto preselected_jets = object::preselection_jets(all_jets); 
-  const auto preselected_electrons = filter_susy(all_electrons); 
-  const auto preselected_muons = filter_susy(all_muons); 
+  const auto preselected_electrons = object::filter_susy(all_electrons); 
+  const auto preselected_muons = object::filter_susy(all_muons); 
 
   ob_counts["preselected_jets"] += preselected_jets.size(); 
   ob_counts["preselected_el"] += preselected_electrons.size(); 
   ob_counts["preselected_mu"] += preselected_muons.size(); 
 
   // need to get susy muon indices before overlap
-  std::vector<int> susy_muon_idx = get_indices(preselected_muons); 
+  std::vector<int> susy_muon_idx = object::get_indices(preselected_muons); 
 
   // --- overlap removal ---
-  const auto after_overlap_jets = remove_overlaping(
+  const auto after_overlap_jets = object::remove_overlaping(
     preselected_electrons, preselected_jets, REMOVE_JET_CONE); 
-  const auto after_overlap_electrons = remove_overlaping(
+  const auto after_overlap_electrons = object::remove_overlaping(
     after_overlap_jets, preselected_electrons, REMOVE_EL_CONE); 
-  const auto after_overlap_muons = remove_overlaping(
+  const auto after_overlap_muons = object::remove_overlaping(
     after_overlap_jets, preselected_muons, REMOVE_MU_CONE); 
 
   ob_counts["after_overlap_jets"] += after_overlap_jets.size(); 
@@ -293,6 +289,12 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   // ---- must calibrate signal jets for b-tagging ----
   calibrate_jets(signal_jets, m_btag_calibration); 
   // ----- object selection is done now, from here is filling outputs ---
+
+  // --- preselection 
+
+  ull_t pass_bits = 0; 
+  pass_bits |= m_event_preselector->get_preselection_flags(
+    *m_susy_buffer, *m_def); 
 
   if (veto_jets.size() == 0) pass_bits |= pass::jet_clean; 
   m_out_tree->par.n_preselected_jets = preselected_jets.size(); 

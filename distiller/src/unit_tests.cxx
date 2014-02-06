@@ -1,4 +1,5 @@
 #include "distill_tools.hh"
+#include "object_selection.hh"
 #include "TLorentzVector.h"
 #include <cassert>
 #include <utility>
@@ -35,7 +36,7 @@ std::pair<size_t,size_t> test_overlap_removal() {
       altered.push_back(v3); 
       if (fabs(*eta) > *dr) n_expected++; 
     }
-    auto survived = remove_overlaping(masks, altered, *dr); 
+    auto survived = object::remove_overlaping(masks, altered, *dr); 
     size_t n_survived = survived.size(); 
     total_survival += n_survived; 
     total_expected += n_expected; 

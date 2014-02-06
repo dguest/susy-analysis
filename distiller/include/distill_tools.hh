@@ -47,20 +47,8 @@ double get_mll(const std::vector<Electron*>& , const std::vector<Muon*>&);
 
 bool pass_chf_check(const std::vector<SelectedJet*> jets); 
 
-template<typename M, typename A>
-A remove_overlaping(const M& mask, A altered, const float delta_r); 
-
 template<typename T>
 double scalar_sum_pt(const T& objects); 
-
-template<typename T>
-std::vector<int> get_indices(const T&); 
-
-template<typename T>
-std::vector<T*> filter_susy(const std::vector<T*>&); 
-
-bool has_lower_pt(const TLorentzVector*, const TLorentzVector*); 
-bool has_higher_pt(const TLorentzVector*, const TLorentzVector*); 
 
 void set_bit(std::vector<SelectedJet*>& jets, unsigned bit); 
 
@@ -68,46 +56,6 @@ void calibrate_jets(std::vector<SelectedJet*> jets, const BtagCalibration*);
 
 
 // ---- templates -----
-
-template<typename M, typename A>
-A remove_overlaping(const M& mask, A altered, const float delta_r) { 
-  for (auto mitr = mask.begin(); mitr != mask.end(); mitr++) { 
-    A new_container; 
-    for (auto vic = altered.begin(); vic != altered.end(); vic++) { 
-      assert((*mitr)->Pt() > 0); 
-      double delr = (*mitr)->DeltaR(**vic); 
-      if (delr > delta_r) { 
-	new_container.push_back(*vic); 
-      }
-    }
-    altered = new_container; 
-  }
-  return altered; 
-} 
-
-template<typename T>
-std::vector<int> get_indices(const T& cont) 
-{ 
-  std::vector<int> indices; 
-  for (typename T::const_iterator itr = cont.begin(); 
-       itr != cont.end(); itr++ ) { 
-    indices.push_back((*itr)->index()); 
-  }
-  return indices; 
-}; 
-
-template<typename T>
-std::vector<T*> filter_susy(const std::vector<T*>& in) 
-{ 
-  std::vector<T*> out; 
-  for (typename std::vector<T*>::const_iterator itr = in.begin(); 
-	 itr!= in.end(); itr++) { 
-    if ( (*itr)->pass_susy() ) { 
-      out.push_back(*itr); 
-    }
-  }
-  return out; 
-}
 
 template<typename T>
 double scalar_sum_pt(const T& obj) { 
