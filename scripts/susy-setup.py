@@ -323,7 +323,8 @@ def _write_distill_config(script_name, meta_name, input_files,
         }
 
     if systematic == 'all': 
-        systematics = ['JESUP', 'JESDOWN', 'JER', 'NONE']
+        systematics = ['JESUP', 'JESDOWN', 'JER', 'NONE', 
+                       'METUP', 'METDOWN', 'METRES']
     else: 
         systematics = [systematic]
 
