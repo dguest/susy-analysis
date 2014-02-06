@@ -11,14 +11,17 @@ DICT         := dict
 # --- HACKS ----
 CXXFLAG_HACKS := -Wno-literal-suffix #hdf5 header sets this off
 
-# --- external dirs 
--include local.mk		# may be used to locate HDF and other libs
-
-ifndef ND_HIST
-$(error "couldn't find ND_HIST, is it defined in local.mk?")
+# --- hdf and ndhist
+HDF_INFO := $(shell h5c++ -showconfig | grep 'Installation point:')
+HDF_PATH := $(strip $(shell echo ${HDF_INFO} | cut -d ':' -f 2 ))
+ifndef HDF_PATH
+$(error "couldn't find HDF, quitting")
 endif
-ND_HIST_INC      := $(ND_HIST)/include
-ND_HIST_LIB      := $(ND_HIST)/lib
+
+ND_HIST_DIR      := $(CURDIR)/ndhist
+ND_HIST_INC      := $(ND_HIST_DIR)/include
+ND_HIST_LIB      := $(ND_HIST_DIR)/lib
+ND_HIST_SO       := $(ND_HIST_LIB)/libndhist.so
 
 #  set search path
 vpath %.o    $(BIN)
@@ -47,10 +50,8 @@ CXXFLAGS     += ${CXXFLAG_HACKS}
 LIBS         := -L$(ND_HIST_LIB) -Wl,-rpath,$(ND_HIST_LIB) -lndhist
 LDFLAGS      := -Wl,-no-undefined
 
-ifdef HDF_PATH
 CXXFLAGS     += -I$(HDF_PATH)/include
 LIBS         += -L$(HDF_PATH)/lib -Wl,-rpath,$(HDF_PATH)/lib
-endif
 
 # --- HDF5 needed for hist saving
 LIBS         += -lhdf5_cpp -lhdf5 
@@ -93,20 +94,41 @@ ALLOBJ       := $(GEN_OBJ) $(PY_OBJ) $(TOBJ) unit-test.o
 
 ALLOUTPUT    := $(PY_LIB) unit-test stand-alone
 
-all: $(ALLOUTPUT) 
+# ---- all the building stuff
 
-unit-test: $(EXE_OBJ:%=$(BIN)/%)
+LINK_SEQUENCE_DUMMY := link-seq
+LINK_LIST_DUMMY := link-list
+NDHIST_DUMMY := build-ndhist
+.PHONY: $(LINK_SEQUENCE) $(LINK_LIST) $(NDHIST_DUMMY)
+all: $(LINK_SEQUENCE_DUMMY)
+
+ALL_OBJ_PATHS := $(ALL_OBJ:%=$(BIN)/%) 
+
+# we call the dummy first, which builds the dependencies. 
+# _after_ these have been built we call the linking rule. 
+$(LINK_SEQUENCE_DUMMY): $(NDHIST_DUMMY) $(ALL_OBJ_PATHS) 
+	@$(MAKE) $(LINK_LIST_DUMMY) --no-print-directory 
+
+$(LINK_LIST_DUMMY): $(ALLOUTPUT)
+
+$(NDHIST_DUMMY): 
+	@$(MAKE) -C $(ND_HIST_DIR) 
+
+EXE_PATHS := $(EXE_OBJ:%=$(BIN)/%)
+unit-test: $(EXE_PATHS) $(ND_HIST_SO)
 	@echo "linking $^ --> $@"
-	@$(CXX) -o $@ $^ $(LIBS) $(LDFLAGS)
+	@$(CXX) -o $@ $(EXE_PATHS) $(LIBS) $(LDFLAGS)
 
-stand-alone: $(STAND_ALONE_OBJ:%=$(BIN)/%)
+STAND_ALONE_PATHS := $(STAND_ALONE_OBJ:%=$(BIN)/%)
+stand-alone: $(STAND_ALONE_PATHS) $(ND_HIST_SO)
 	@echo "linking $^ --> $@"
-	@$(CXX) -o $@ $^ $(LIBS) $(LDFLAGS)
+	@$(CXX) -o $@ $(STAND_ALONE_PATHS) $(LIBS) $(LDFLAGS)
 
-$(PY_LIB): $(PYLIB_OBJ:%=$(BIN)/%) $(PY_OBJ:%=$(BIN)/%)
+PYLIB_PATHS := $(PYLIB_OBJ:%=$(BIN)/%) $(PY_OBJ:%=$(BIN)/%)
+$(PY_LIB): $(PYLIB_PATHS) $(ND_HIST_SO)
 	@mkdir -p $(shell dirname $(PY_LIB))
 	@echo "linking $^ --> $@"
-	@$(CXX) -o $@ $^ $(LIBS) $(PY_LDFLAGS)
+	@$(CXX) -o $@ $(PYLIB_PATHS) $(LIBS) $(PY_LDFLAGS)
 
 # --------------------------------------------------
 
@@ -141,8 +163,8 @@ $(DEP)/%.d: %.cxx
 .PHONY : clean rmdep
 CLEANLIST     = *~ *.o *.o~ *.d core 
 clean:
-	rm -fr $(CLEANLIST) $(CLEANLIST:%=$(BIN)/%) $(CLEANLIST:%=$(DEP)/%)
 	rm -fr $(BIN) $(ALLOUTPUT) $(DICT)
+	@$(MAKE) -C $(ND_HIST_DIR) clean --no-print-directory
 
 rmdep: 
 	rm -f $(DEP)/*.d

@@ -6,8 +6,7 @@
 #include "H5Cpp.h"
 #include "Histogram.hh"
 
-// TODO: should add lepton counts to the skim instead
-#include "distiller/EventBits.hh"
+#include <cassert>
 
 namespace { 
   const float MAX_PT = 1e6; 
@@ -42,10 +41,11 @@ RegionBosonPtHistograms::~RegionBosonPtHistograms() {
 }
 void RegionBosonPtHistograms::fill(const EventObjects& obj) {
 
-  // slightly hackish... depends on both stored bits and the current ones
-  bool one_muon =     obj.event_mask & pass::control_muon; 
-  bool one_electron = obj.event_mask & pass::control_electron; 
-  bool z_muons =      obj.event_mask & pass::os_zmass_mu_pair; 
+  assert(false); 
+  // this needs to be fixed...
+  bool one_muon =     true; //obj.event_mask & pass::control_muon; 
+  bool one_electron = true; //obj.event_mask & pass::control_electron; 
+  bool z_muons =      true; //obj.event_mask & pass::os_zmass_mu_pair; 
 
   int n_cr_passed = one_muon + one_electron + z_muons; 
   if ( n_cr_passed != 1) return; 
