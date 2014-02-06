@@ -17,6 +17,10 @@
 #include "TFile.h"
 #include "TTree.h"
 
+namespace { 
+  void set_branch(TTree* tree, const std::string& name, void* var); 
+}
+
 JetBuffer::JetBuffer(): 
   flavor_truth_label(-1), 
   is_electron_jet(false)
@@ -65,40 +69,32 @@ ObjectFactory::ObjectFactory(std::string root_file, int n_jets) :
   if (!m_tree) { 
     throw std::runtime_error("evt_tree could not be found"); 
   }
-  int errors = 0; 
   m_met.emplace(syst::NONE, new MetBuffer(m_tree, "")); 
   m_mu_met.emplace(syst::NONE, new MetBuffer(m_tree, "mu_")); 
 
-  errors += m_tree->SetBranchAddress("pass_bits",&m_bits); 
-  errors += m_tree->SetBranchAddress("min_jetmet_dphi", &m_dphi); 
-  errors += m_tree->SetBranchAddress("n_signal_jets", &m_n_signal); 
-  errors += m_tree->SetBranchAddress("n_susy_jets", &m_n_susy); 
+  set_branch(m_tree, "pass_bits", &m_bits); 
+  set_branch(m_tree, "min_jetmet_dphi", &m_dphi); 
+  set_branch(m_tree, "n_preselected_jets", &m_n_preselection_jets); 
+  set_branch(m_tree, "n_signal_jets", &m_n_signal); 
 
-  bool has_truth = (m_tree->GetBranch("hfor_type") && 
-		    m_tree->GetBranch("leading_cjet_pos") && 
-		    m_tree->GetBranch("subleading_cjet_pos") ); 
-  if (has_truth) {
-    m_met.emplace(syst::METUP, new MetBuffer(m_tree, "stup_")); 
-    m_met.emplace(syst::METDOWN, new MetBuffer(m_tree, "stdown_")); 
-    m_met.emplace(syst::METRES, new MetBuffer(m_tree, "stres_")); 
-    m_mu_met.emplace(syst::METUP, new MetBuffer(m_tree, "stup_mu_")); 
-    m_mu_met.emplace(syst::METDOWN, new MetBuffer(m_tree, "stdown_mu_")); 
-    m_mu_met.emplace(syst::METRES, new MetBuffer(m_tree, "stres_mu_")); 
-    errors += m_tree->SetBranchAddress("hfor_type", &m_hfor_type); 
-    errors += m_tree->SetBranchAddress("leading_cjet_pos", 
-				     &m_leading_cjet_pos); 
-    errors += m_tree->SetBranchAddress("subleading_cjet_pos", 
-				       &m_subleading_cjet_pos); 
-    errors += m_tree->SetBranchAddress("mc_event_weight", 
-				       &m_mc_event_weight); 
-    errors += m_tree->SetBranchAddress("pileup_weight", &m_pileup_weight); 
+  try { 
+    // m_met.emplace(syst::METUP, new MetBuffer(m_tree, "stup_")); 
+    // m_met.emplace(syst::METDOWN, new MetBuffer(m_tree, "stdown_")); 
+    // m_met.emplace(syst::METRES, new MetBuffer(m_tree, "stres_")); 
+    // m_mu_met.emplace(syst::METUP, new MetBuffer(m_tree, "stup_mu_")); 
+    // m_mu_met.emplace(syst::METDOWN, new MetBuffer(m_tree, "stdown_mu_")); 
+    // m_mu_met.emplace(syst::METRES, new MetBuffer(m_tree, "stres_mu_")); 
+    set_branch(m_tree,"hfor_type", &m_hfor_type); 
+    set_branch(m_tree,"truth_leading_cjet_pos", &m_leading_cjet_pos); 
+    set_branch(m_tree,"truth_subleading_cjet_pos", &m_subleading_cjet_pos); 
+    set_branch(m_tree,"mc_event_weight", &m_mc_event_weight); 
+    set_branch(m_tree,"pileup_weight", &m_pileup_weight); 
     m_evt_sf = new EventScalefactors(m_tree); 
-  }
-  else { 
+  } catch (MissingBranch& err) { 
     m_ioflags |= ioflag::no_truth; 
   }
 
-  errors += m_tree->SetBranchAddress("htx", &m_htx); 
+  set_branch(m_tree,"htx", &m_htx); 
   for (int i = 0; i < n_jets; i++) { 
     std::string base_name = (boost::format("jet%i_") % i).str(); 
     m_jet_buffers.push_back(new JetBuffer); 
@@ -109,14 +105,8 @@ ObjectFactory::ObjectFactory(std::string root_file, int n_jets) :
     m_tree->SetBranchAddress("boson_pt", &m_boson_pt); 
     m_ioflags |= ioflag::has_boson_pt_weight; 
   }
-  errors += std::abs(m_tree->SetBranchAddress(
-		       "boson_child_pt", &m_boson_child_pt)); 
-  errors += std::abs(m_tree->SetBranchAddress(
-		       "boson_child_phi", &m_boson_child_phi)); 
-  if (errors) { 
-    throw std::runtime_error
-      ((boost::format("%i branch setting errors") % errors).str()); 
-  }
+  set_branch(m_tree, "boson_child_pt", &m_boson_child_pt); 
+  set_branch(m_tree, "boson_child_phi", &m_boson_child_phi); 
 } 
 
 ObjectFactory::~ObjectFactory() 
@@ -229,7 +219,9 @@ TVector2 ObjectFactory::mu_met(syst::Systematic sy) const  {
 ull_t ObjectFactory::bits() const  { return m_bits; }
 double ObjectFactory::dphi()  const  { return m_dphi; }
 int ObjectFactory::n_signal_jets()   const  { return m_n_signal; }
-int ObjectFactory::n_susy()   const  { return m_n_susy; }
+int ObjectFactory::n_preselected_jets()   const  { 
+  return m_n_preselection_jets; 
+}
 int ObjectFactory::leading_cjet_pos() const {return m_leading_cjet_pos;}
 int ObjectFactory::subleading_cjet_pos() const {return m_subleading_cjet_pos;}
 double ObjectFactory::htx() const {return m_htx;}
@@ -323,49 +315,33 @@ void ObjectFactory::set_btag(JetBuffer* buffer, btag::OperatingPoint tag,
 void ObjectFactory::set_buffer(JetBuffer* b, std::string base_name) 
 {
   using namespace std; 
-  int errors = 0; 
   string pt = base_name + "pt"; 
   string eta = base_name + "eta"; 
   string phi = base_name + "phi"; 
   // not setting E because not saved yet...
-  string pb = base_name + "cnn_b"; 
-  string pc = base_name + "cnn_c"; 
-  string pu = base_name + "cnn_u"; 
   string pb_jfc = base_name + "jfc_b"; 
   string pc_jfc = base_name + "jfc_c"; 
   string pu_jfc = base_name + "jfc_u"; 
   string flavor_truth = base_name + "flavor_truth_label"; 
-  string bits = base_name + "bits"; 
   
-  errors += abs(m_tree->SetBranchAddress(pt.c_str(), &b->pt)); 
-  errors += abs(m_tree->SetBranchAddress(eta.c_str(), &b->eta)); 
-  errors += abs(m_tree->SetBranchAddress(phi.c_str(), &b->phi)); 
-  errors += abs(m_tree->SetBranchAddress(bits.c_str(), &b->bits)); 
+  set_branch(m_tree, pt.c_str(), &b->pt); 
+  set_branch(m_tree, eta.c_str(), &b->eta); 
+  set_branch(m_tree, phi.c_str(), &b->phi); 
 
-  if (m_tree->GetBranch(pb.c_str())) { 
-    errors += abs(m_tree->SetBranchAddress(pb.c_str(), &b->cnn_b)); 
-    errors += abs(m_tree->SetBranchAddress(pc.c_str(), &b->cnn_c)); 
-    errors += abs(m_tree->SetBranchAddress(pu.c_str(), &b->cnn_u)); 
-    errors += abs(m_tree->SetBranchAddress(pb_jfc.c_str(), &b->jfc_b)); 
-    errors += abs(m_tree->SetBranchAddress(pc_jfc.c_str(), &b->jfc_c)); 
-    errors += abs(m_tree->SetBranchAddress(pu_jfc.c_str(), &b->jfc_u)); 
+  if (m_tree->GetBranch(pb_jfc.c_str())) { 
+    set_branch(m_tree, pb_jfc.c_str(), &b->jfc_b); 
+    set_branch(m_tree, pc_jfc.c_str(), &b->jfc_c); 
+    set_branch(m_tree, pu_jfc.c_str(), &b->jfc_u); 
   }
   else {
     m_ioflags |= ioflag::no_flavor; 
   }
 
   if (m_tree->GetBranch(flavor_truth.c_str())) { 
-    errors += abs(m_tree->SetBranchAddress(flavor_truth.c_str(), 
-					   &b->flavor_truth_label)); 
+    set_branch(m_tree, flavor_truth.c_str(), &b->flavor_truth_label); 
   }
   else { 
     m_ioflags |= ioflag::no_truth; 
-  }
-
-  if (errors) { 
-    throw std::runtime_error
-      ((boost::format("%i branch setting errors formatting %s") % 
-	errors % base_name).str()); 
   }
 
 }
@@ -374,3 +350,19 @@ bool has_higher_pt(const Jet& v1, const Jet& v2) {
   return v1.Pt() > v2.Pt(); 
 }
 
+namespace { 
+  void set_branch(TTree* tree, const std::string& name, void* var) { 
+    unsigned found = 0; 
+    tree->SetBranchStatus(name.c_str(), true, &found); 
+    tree->SetBranchAddress(name.c_str(), var);
+    if (found != 1) {
+      throw MissingBranch(
+	"" + std::to_string(found) + " branches found setting "  + name);
+    }
+  }
+}
+
+MissingBranch::MissingBranch(const std::string& str): 
+  std::runtime_error(str) 
+{
+}

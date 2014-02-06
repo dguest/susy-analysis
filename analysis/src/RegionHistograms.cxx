@@ -106,6 +106,7 @@ void RegionHistograms::fill(const EventObjects& obj) {
   const Jets jets = use_electron_jet ? obj.jets_with_eljet : obj.jets; 
 
   if (!m_event_filter.pass(obj)) return; 
+
   const std::vector<Jet> tagged_jets = m_event_filter.tagged_jets(jets); 
   bool needs_tags = m_region_config.jet_tag_requirements.size() > 0; 
   if (tagged_jets.size() == 0 && needs_tags) return; 

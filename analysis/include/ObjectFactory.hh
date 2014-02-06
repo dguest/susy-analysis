@@ -70,11 +70,13 @@ public:
   std::vector<Jet> jets() const; 
   // TODO: fix this, we're not storing met systematics in the tree any more
   TVector2 met(syst::Systematic = syst::NONE) const; 
+  // TODO: maybe remove mu_met entirely, just write a new set of trees 
+  // for the SR
   TVector2 mu_met(syst::Systematic = syst::NONE) const; 
   ull_t bits() const; 
   double dphi() const; 
   int n_signal_jets() const; 
-  int n_susy() const; 
+  int n_preselected_jets() const; 
   int leading_cjet_pos() const; 
   int subleading_cjet_pos() const; 
   hfor::JetType hfor_type() const; 
@@ -99,7 +101,7 @@ private:
   ull_t m_bits; 
   double m_dphi; 
   int m_n_signal; 
-  int m_n_susy; 
+  int m_n_preselection_jets; 
   int m_hfor_type; 
   
   int m_leading_cjet_pos; 
@@ -120,5 +122,10 @@ private:
 }; 
 
 bool has_higher_pt(const Jet&, const Jet&); 
+
+class MissingBranch: std::runtime_error {
+public: 
+  MissingBranch(const std::string&); 
+}; 
 
 #endif // JET_FACTORY_H
