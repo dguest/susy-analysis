@@ -3,7 +3,6 @@
 #include "Leptons.hh"
 #include "CutCounter.hh"
 #include "RunInfo.hh"
-// #include "SUSYTools/SUSYObjDef.h"
 #include "constants_distiller.hh"
 #include "object_selection.hh"
 

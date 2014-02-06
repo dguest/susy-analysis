@@ -219,21 +219,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   const Mets mets(*m_susy_buffer, *m_def, obj.susy_muon_idx, 
 		  sum_muon_pt(obj.control_muons), m_info.systematic);
 
-  ObjectComposites par; 
-  par.energy_weighted_time = get_energy_weighted_time(
-    obj.signal_jets, ENERGY_WEIGHTED_TIME_NJET); 
-  par.min_jetmet_dphi = get_min_jetmet_dphi(
-    obj.signal_jets, mets.nominal, DPHI_JET_MET_NJET);
-  par.mass_eff = mets.nominal.Mod() + scalar_sum_pt(obj.leading_jets); 
-  par.met_eff = mets.nominal.Mod() / par.mass_eff; 
-  par.mass_ct = obj.signal_jets.size() >= 2 ? 
-    get_mctcorr(*obj.signal_jets.at(0), *obj.signal_jets.at(1), 
-		mets.nominal) : -1; 
-  par.mass_cc = obj.signal_jets.size() >= 2 ? 
-    (*obj.signal_jets.at(0) + *obj.signal_jets.at(1)).M() : -1; 
-  par.mass_t = get_mt(obj.control_electrons, obj.control_muons, mets.nominal); 
-  par.mass_ll = get_mll(obj.control_electrons, obj.control_muons); 
-  par.htx = get_htx(obj.signal_jets, N_SR_JETS); 
+  ObjectComposites par(obj, mets.nominal); 
 
   // ---- must calibrate signal jets for b-tagging ----
   calibrate_jets(obj.signal_jets, m_btag_calibration); 
@@ -241,8 +227,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
 
   // --- preselection 
 
-  ull_t pass_bits = 0; 
-  pass_bits |= m_event_preselector->get_preselection_flags(
+  ull_t pass_bits = m_event_preselector->get_preselection_flags(
     *m_susy_buffer, *m_def); 
 
   if (obj.veto_jets.size() == 0) pass_bits |= pass::jet_clean; 

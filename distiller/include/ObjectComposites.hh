@@ -1,7 +1,11 @@
 #ifndef OBJECTCOMPOSITES_HH
 #define OBJECTCOMPOSITES_HH
 
+class TVector2; 
+class EventObjects; 
+
 struct ObjectComposites { 
+  ObjectComposites(const EventObjects&, const TVector2& met); 
   double energy_weighted_time; 
   double min_jetmet_dphi; 
   double mass_eff; 
