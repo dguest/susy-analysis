@@ -276,7 +276,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   Jets leading_jets(signal_jets.begin(), signal_jets.begin() + n_leading); 
 
   const Mets mets(*m_susy_buffer, *m_def, susy_muon_idx, 
-		  sum_muon_pt(control_muons));
+		  sum_muon_pt(control_muons), m_info.systematic);
 
   ObjectComposites par; 
   par.energy_weighted_time = get_energy_weighted_time(

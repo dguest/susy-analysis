@@ -115,12 +115,6 @@ namespace outtree {
 
     met_nom.clear(); 
     met_mu.clear(); 
-    met_nom_up.clear(); 
-    met_mu_up.clear(); 
-    met_nom_down.clear(); 
-    met_mu_down.clear(); 
-    min_jetmet_dphi = -1; 
-    sum_jetmet_dphi = -1; 
 
     hfor_type = -2; 
     event_number = 0; 

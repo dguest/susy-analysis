@@ -49,12 +49,6 @@ void copy_leading_jet_info(const std::vector<SelectedJet*>& signal_jets,
 void copy_met(outtree::OutTree& out, const Mets& mets) { 
   out.met_nom.set_met(mets.nominal); 
   out.met_mu.set_met(mets.muon); 
-  out.met_nom_up.set_met(mets.nominal_up); 
-  out.met_mu_up.set_met(mets.muon_up); 
-  out.met_nom_down.set_met(mets.nominal_down); 
-  out.met_mu_down.set_met(mets.muon_down); 
-  out.met_nom_res.set_met(mets.nominal_res); 
-  out.met_mu_res.set_met(mets.muon_res); 
 }
 
 void copy_cjet_truth(outtree::OutTree& out_tree, 

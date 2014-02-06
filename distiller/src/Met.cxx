@@ -3,31 +3,32 @@
 #include "SusyBuffer.h"
 #include "TVector2.h"
 #include "SUSYTools/SUSYObjDef.h"
-// #include "Leptons.hh"
+#include "systematic_defs.hh"
 
 namespace { 
-  TVector2 get_met(
-    const SusyBuffer& buffer, 
-    SUSYObjDef& def, 
-    const std::vector<int>& muon_idx, 
-    SystErr::Syste);
-  // TVector2 get_mumet(const TVector2& met, const std::vector<Muon*>& muons); 
+  TVector2 get_met(const SusyBuffer& buffer, SUSYObjDef& def, 
+    const std::vector<int>& muon_idx, SystErr::Syste);
+  SystErr::Syste get_syste(systematic::Systematic); 
 }
 
 Mets::Mets(const SusyBuffer& buffer, SUSYObjDef& def, 
 	   const std::vector<int>& mudex, 
-	   const TVector2& sum_muons) { 
-  nominal = get_met(buffer, def, mudex, SystErr::NONE); 
+	   const TVector2& sum_muons, systematic::Systematic syst) { 
+  SystErr::Syste susysyst = get_syste(syst); 
+  nominal = get_met(buffer, def, mudex, susysyst); 
   muon = nominal + sum_muons; 
-  nominal_up = get_met(buffer, def, mudex, SystErr::SCALESTUP); 
-  muon_up = nominal_up + sum_muons; 
-  nominal_down = get_met(buffer, def, mudex, SystErr::SCALESTDOWN); 
-  muon_down = nominal_down + sum_muons; 
-  nominal_res = get_met(buffer, def, mudex, SystErr::RESOST); 
-  muon_res = nominal_res + sum_muons; 
 }
 
 namespace { 
+  SystErr::Syste get_syste(systematic::Systematic in) { 
+    using namespace systematic; 
+    switch (in) { 
+    case METUP: return  SystErr::SCALESTUP; 
+    case METDOWN: return SystErr::SCALESTDOWN; 
+    case METRES: return SystErr::RESOST; 
+    default: return SystErr::NONE; 
+    }
+  }
   TVector2 get_met(const SusyBuffer& buffer, 
 		   SUSYObjDef& def, 
 		   const std::vector<int>& mu_mystery_index, 

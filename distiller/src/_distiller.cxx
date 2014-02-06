@@ -158,27 +158,27 @@ static bool safe_copy(PyObject* value, systematic::Systematic& dest) {
   if (PyErr_Occurred()) return false; 
   std::string name(sysname); 
   using namespace systematic; 
-  if (name == "JESUP") { 
-    dest = JESUP; 
-    return true; 
-  }
-  else if (name == "JESDOWN") { 
-    dest = JESDOWN; 
-    return true; 
-  }
-  else if (name == "JER") { 
-    dest = JER; 
-    return true; 
-  }
-  else if (name == "NONE") { 
-    dest = NONE; 
-    return true; 
-  }
-  else { 
-    std::string problem = "got undefined systematic: " + name; 
-    PyErr_SetString(PyExc_ValueError,problem.c_str()); 
-    return false; 
-  }
+
+#define TRY_VAL(value)				\
+  do {					\
+    if (name == #value) {			\
+      dest = value;				\
+      return true;				\
+    }						\
+  } while (false)
+
+  TRY_VAL(NONE); 
+  TRY_VAL(JESUP); 
+  TRY_VAL(JESDOWN); 
+  TRY_VAL(JER); 
+  TRY_VAL(METUP); 
+  TRY_VAL(METDOWN); 
+  TRY_VAL(METRES); 
+
+  std::string problem = "got undefined systematic: " + name; 
+  PyErr_SetString(PyExc_ValueError,problem.c_str()); 
+  return false; 
+
 }
 
 static bool safe_copy(PyObject* value, CutflowType& dest) { 

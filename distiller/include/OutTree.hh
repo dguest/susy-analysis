@@ -116,12 +116,6 @@ namespace outtree {
 
     MetBlock met_nom; 
     MetBlock met_mu; 
-    MetBlock met_nom_up; 
-    MetBlock met_mu_up; 
-    MetBlock met_nom_down; 
-    MetBlock met_mu_down; 
-    MetBlock met_nom_res; 
-    MetBlock met_mu_res; 
 
     double min_jetmet_dphi; 
     double sum_jetmet_dphi; 
