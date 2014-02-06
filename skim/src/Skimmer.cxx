@@ -75,7 +75,7 @@ void Skimmer::copyVariablesTo(TTree* output_tree, TFile* file) {
   SusyBuffer buffer(*m_chain, m_variables); 
   buffer.setPassThrough(*output_tree); 
 
-  double event_wt = 0; 
+  float event_wt = 0; 
   float boson_pt = -1.0; 
   if (buffer.hasMc()) {
     output_tree->Branch(pfx("mcevt_weight"), &event_wt); 

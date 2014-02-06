@@ -137,7 +137,7 @@ namespace outtree {
     truth_leading_cjet_pos = -1; 
     truth_subleading_cjet_pos = -1; 
     truth_n_cjet = 0; 
-    mc_event_weight = 0; 
+    mc_event_weight = -1; 
     truth_boson_pt_weight = -1; 
     truth_boson_pt = -1; 
     spart1_pdgid = 0; 
