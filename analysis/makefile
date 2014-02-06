@@ -87,7 +87,7 @@ PYLIB_OBJ   := $(GEN_OBJ) $(TOBJ)
 STAND_ALONE_OBJ     := $(GEN_OBJ) $(TOBJ) stand-alone.o
 
 PY_OBJ       := _hfw.o
-PY_LIB       := ../python/stop/stack/_hfw.so
+PY_LIB       := ../python/scharm/stack/_hfw.so
 
 
 ALLOBJ       := $(GEN_OBJ) $(PY_OBJ) $(TOBJ) unit-test.o
@@ -96,20 +96,20 @@ ALLOUTPUT    := $(PY_LIB) unit-test stand-alone
 
 # ---- all the building stuff
 
-LINK_SEQUENCE_DUMMY := link-seq
-LINK_LIST_DUMMY := link-list
+BUILD_SEQUENCE_DUMMY := initial-build-sequence
+LINK_SEQUENCE_DUMMY := final-linking-sequence
 NDHIST_DUMMY := build-ndhist
 .PHONY: $(LINK_SEQUENCE) $(LINK_LIST) $(NDHIST_DUMMY)
-all: $(LINK_SEQUENCE_DUMMY)
+all: $(BUILD_SEQUENCE_DUMMY)
 
 ALL_OBJ_PATHS := $(ALL_OBJ:%=$(BIN)/%) 
 
 # we call the dummy first, which builds the dependencies. 
 # _after_ these have been built we call the linking rule. 
-$(LINK_SEQUENCE_DUMMY): $(NDHIST_DUMMY) $(ALL_OBJ_PATHS) 
-	@$(MAKE) $(LINK_LIST_DUMMY) --no-print-directory 
+$(BUILD_SEQUENCE_DUMMY): $(NDHIST_DUMMY) $(ALL_OBJ_PATHS) 
+	@$(MAKE) $(LINK_SEQUENCE_DUMMY) --no-print-directory 
 
-$(LINK_LIST_DUMMY): $(ALLOUTPUT)
+$(LINK_SEQUENCE_DUMMY): $(ALLOUTPUT)
 
 $(NDHIST_DUMMY): 
 	@$(MAKE) -C $(ND_HIST_DIR) 
