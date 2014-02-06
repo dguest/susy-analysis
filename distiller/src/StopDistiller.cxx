@@ -10,6 +10,7 @@
 #include "Jets.hh"
 #include "Leptons.hh"
 #include "Met.hh"
+#include "EventObjects.hh"
 #include "RunInfo.hh"
 #include "BitmapCutflow.hh"
 #include "SmartChain.hh"
@@ -212,82 +213,30 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   m_def->Reset(); 
   m_out_tree->clear_buffer(); 
     
-  EventJets all_jets(*m_susy_buffer, *m_def, m_flags, m_info); 
-  EventElectrons all_electrons(*m_susy_buffer, *m_def, m_flags, m_info); 
-  EventMuons all_muons(*m_susy_buffer, *m_def, m_flags, m_info); 
+  EventObjects obj(*m_susy_buffer, *m_def, m_flags, m_info); 
+  obj.do_overlap_removal(*m_object_counter); 
 
-  auto& ob_counts = *m_object_counter; 
-
-
-  // --- object selection 
-
-  std::sort(all_jets.begin(),all_jets.end(),object::has_higher_pt); 
-
-  const auto preselected_jets = object::preselection_jets(all_jets); 
-  const auto preselected_electrons = object::filter_susy(all_electrons); 
-  const auto preselected_muons = object::filter_susy(all_muons); 
-
-  ob_counts["preselected_jets"] += preselected_jets.size(); 
-  ob_counts["preselected_el"] += preselected_electrons.size(); 
-  ob_counts["preselected_mu"] += preselected_muons.size(); 
-
-  // need to get susy muon indices before overlap
-  std::vector<int> susy_muon_idx = object::get_indices(preselected_muons); 
-
-  // --- overlap removal ---
-  const auto after_overlap_jets = object::remove_overlaping(
-    preselected_electrons, preselected_jets, REMOVE_JET_CONE); 
-  const auto after_overlap_electrons = object::remove_overlaping(
-    after_overlap_jets, preselected_electrons, REMOVE_EL_CONE); 
-  const auto after_overlap_muons = object::remove_overlaping(
-    after_overlap_jets, preselected_muons, REMOVE_MU_CONE); 
-
-  ob_counts["after_overlap_jets"] += after_overlap_jets.size(); 
-  ob_counts["after_overlap_el"] += after_overlap_electrons.size(); 
-  ob_counts["after_overlap_mu"] += after_overlap_muons.size(); 
-
-  const auto veto_jets = object::bad_jets(after_overlap_jets); 
-  const auto veto_electrons = object::veto_electrons(after_overlap_electrons); 
-  const auto veto_muons = object::veto_muons(after_overlap_muons); 
-
-  ob_counts["veto_jets"] += veto_jets.size(); 
-  ob_counts["veto_el"] += veto_electrons.size(); 
-  ob_counts["veto_mu"] += veto_muons.size(); 
-
-  const auto good_jets = object::remove_bad_jets(after_overlap_jets); 
-  ob_counts["good_jets"] += good_jets.size(); 
-  const auto signal_jets = object::signal_jets(good_jets); 
-  const auto control_electrons = object::control_electrons(veto_electrons); 
-  const auto control_muons = object::control_muons(veto_muons); 
-
-  ob_counts["signal_jets"] += signal_jets.size(); 
-  ob_counts["control_el"] += control_electrons.size(); 
-  ob_counts["control_mu"] += control_muons.size(); 
-
-
-  const int n_leading = std::min(signal_jets.size(), N_SR_JETS); 
-  Jets leading_jets(signal_jets.begin(), signal_jets.begin() + n_leading); 
-
-  const Mets mets(*m_susy_buffer, *m_def, susy_muon_idx, 
-		  sum_muon_pt(control_muons), m_info.systematic);
+  const Mets mets(*m_susy_buffer, *m_def, obj.susy_muon_idx, 
+		  sum_muon_pt(obj.control_muons), m_info.systematic);
 
   ObjectComposites par; 
   par.energy_weighted_time = get_energy_weighted_time(
-    signal_jets, ENERGY_WEIGHTED_TIME_NJET); 
+    obj.signal_jets, ENERGY_WEIGHTED_TIME_NJET); 
   par.min_jetmet_dphi = get_min_jetmet_dphi(
-    signal_jets, mets.nominal, DPHI_JET_MET_NJET);
-  par.mass_eff = mets.nominal.Mod() + scalar_sum_pt(leading_jets); 
+    obj.signal_jets, mets.nominal, DPHI_JET_MET_NJET);
+  par.mass_eff = mets.nominal.Mod() + scalar_sum_pt(obj.leading_jets); 
   par.met_eff = mets.nominal.Mod() / par.mass_eff; 
-  par.mass_ct = signal_jets.size() >= 2 ? 
-    get_mctcorr(*signal_jets.at(0), *signal_jets.at(1), mets.nominal) : -1; 
-  par.mass_cc = signal_jets.size() >= 2 ? 
-    (*signal_jets.at(0) + *signal_jets.at(1)).M() : -1; 
-  par.mass_t = get_mt(control_electrons, control_muons, mets.nominal); 
-  par.mass_ll = get_mll(control_electrons, control_muons); 
-  par.htx = get_htx(signal_jets, N_SR_JETS); 
+  par.mass_ct = obj.signal_jets.size() >= 2 ? 
+    get_mctcorr(*obj.signal_jets.at(0), *obj.signal_jets.at(1), 
+		mets.nominal) : -1; 
+  par.mass_cc = obj.signal_jets.size() >= 2 ? 
+    (*obj.signal_jets.at(0) + *obj.signal_jets.at(1)).M() : -1; 
+  par.mass_t = get_mt(obj.control_electrons, obj.control_muons, mets.nominal); 
+  par.mass_ll = get_mll(obj.control_electrons, obj.control_muons); 
+  par.htx = get_htx(obj.signal_jets, N_SR_JETS); 
 
   // ---- must calibrate signal jets for b-tagging ----
-  calibrate_jets(signal_jets, m_btag_calibration); 
+  calibrate_jets(obj.signal_jets, m_btag_calibration); 
   // ----- object selection is done now, from here is filling outputs ---
 
   // --- preselection 
@@ -296,46 +245,46 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   pass_bits |= m_event_preselector->get_preselection_flags(
     *m_susy_buffer, *m_def); 
 
-  if (veto_jets.size() == 0) pass_bits |= pass::jet_clean; 
-  m_out_tree->par.n_preselected_jets = preselected_jets.size(); 
-  m_out_tree->par.n_signal_jets = signal_jets.size(); 
-  m_out_tree->par.n_veto_electrons = veto_electrons.size(); 
-  m_out_tree->par.n_veto_muons = veto_muons.size(); 
-  m_out_tree->par.n_control_electrons = control_electrons.size(); 
-  m_out_tree->par.n_control_muons = control_muons.size(); 
+  if (obj.veto_jets.size() == 0) pass_bits |= pass::jet_clean; 
+  m_out_tree->par.n_preselected_jets = obj.preselected_jets.size(); 
+  m_out_tree->par.n_signal_jets = obj.signal_jets.size(); 
+  m_out_tree->par.n_veto_electrons = obj.veto_electrons.size(); 
+  m_out_tree->par.n_veto_muons = obj.veto_muons.size(); 
+  m_out_tree->par.n_control_electrons = obj.control_electrons.size(); 
+  m_out_tree->par.n_control_muons = obj.control_muons.size(); 
   m_out_tree->htx = par.htx; 
   m_out_tree->min_jetmet_dphi = par.min_jetmet_dphi;  
 
   pass_bits |= object_composit_bits(par); 
 
-  pass_bits |= signal_jet_bits(signal_jets); 
+  pass_bits |= signal_jet_bits(obj.signal_jets); 
 
   pass_bits |= pass::cosmic_muon | pass::bad_muon; 
-  for (auto mu: preselected_muons) { 
+  for (auto mu: obj.preselected_muons) { 
     if (mu->bad() ) pass_bits &=~ pass::bad_muon; 
   }
-  for (auto mu: after_overlap_muons) { 
+  for (auto mu: obj.after_overlap_muons) { 
     if (mu->cosmic() ) pass_bits &=~ pass::cosmic_muon; 
   }
 
-  if (pass_chf_check(signal_jets)) pass_bits |= pass::jet_chf; 
+  if (pass_chf_check(obj.signal_jets)) pass_bits |= pass::jet_chf; 
 
-  copy_leading_jet_info(signal_jets, *m_out_tree); 
+  copy_leading_jet_info(obj.signal_jets, *m_out_tree); 
 
   if(m_def->IsGoodVertex(m_susy_buffer->vx_nTracks)) {
     pass_bits |= pass::vxp_gt_4trk; 
   }
 
-  pass_bits |= control_lepton_bits(control_electrons, control_muons); 
+  pass_bits |= control_lepton_bits(obj.control_electrons, obj.control_muons); 
 
-  if (veto_electrons.size() == 0) pass_bits |= pass::electron_veto; 
-  if (veto_muons.size() == 0) pass_bits |= pass::muon_veto; 
+  if (obj.veto_electrons.size() == 0) pass_bits |= pass::electron_veto; 
+  if (obj.veto_muons.size() == 0) pass_bits |= pass::muon_veto; 
 
   pass_bits |= met_bits(mets); 
-  pass_bits |= bad_tile_bits(mets, after_overlap_jets); 
+  pass_bits |= bad_tile_bits(mets, obj.after_overlap_jets); 
 
   if ( m_flags & cutflag::truth ) { 
-    copy_cjet_truth(*m_out_tree, signal_jets); 
+    copy_cjet_truth(*m_out_tree, obj.signal_jets); 
     copy_event_truth(*m_out_tree, *m_susy_buffer, m_flags); 
   }
 
@@ -356,20 +305,20 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
 
   m_out_tree->event_number = m_susy_buffer->EventNumber; 
 
-  copy_id_vec_to_box(control_electrons, m_out_tree->el_sf); 
-  copy_id_vec_to_box(control_muons, m_out_tree->mu_sf); 
+  copy_id_vec_to_box(obj.control_electrons, m_out_tree->el_sf); 
+  copy_id_vec_to_box(obj.control_muons, m_out_tree->mu_sf); 
 
   // save electron jet
-  if (control_electrons.size() == 1) { 
-    auto control_el = control_electrons.at(0); 
-    auto el_jet = object::get_leptojet(all_jets, *control_el); 
+  if (obj.control_electrons.size() == 1) { 
+    auto control_el = obj.control_electrons.at(0); 
+    auto el_jet = object::get_leptojet(*obj.all_jets, *control_el); 
     el_jet->set_flavor_tag(m_btag_calibration); 
     copy_jet_info(el_jet, m_out_tree->electron_jet); 
   }
 
   // save boson decay products
   TVector2 boson_decay = get_boson_child_pt(
-    control_electrons, control_muons); 
+    obj.control_electrons, obj.control_muons); 
   if (boson_decay.Mod() > 0.001) { 
     m_out_tree->boson_child_pt = boson_decay.Mod(); 
     m_out_tree->boson_child_phi = boson_decay.Phi(); 

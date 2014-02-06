@@ -65,7 +65,8 @@ void EventObjects::do_overlap_removal(CutCounter& ob_counts) {
   ob_counts["control_el"] += control_electrons.size(); 
   ob_counts["control_mu"] += control_muons.size(); 
 
-
+  const int n_leading = std::min(signal_jets.size(), N_SR_JETS); 
+  leading_jets.assign(signal_jets.begin(), signal_jets.begin() + n_leading); 
 }
 
 EventObjects::~EventObjects() { 

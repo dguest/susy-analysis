@@ -43,6 +43,7 @@ struct EventObjects {
   std::vector<Muon*> control_muons; 
   
   std::vector<int> susy_muon_idx; 
+  std::vector<SelectedJet*> leading_jets; 
 }; 
 
 #endif 
