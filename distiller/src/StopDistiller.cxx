@@ -209,6 +209,8 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
     }
   }
 
+  // the sequence of the next few lines is important: 
+  // SUSYObjDef requires that leptons are filled before met
   m_def->Reset(); 
     
   EventObjects obj(*m_susy_buffer, *m_def, m_flags, m_info); 
@@ -228,9 +230,6 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
     *m_susy_buffer, *m_def); 
   pass_bits |= bits::object_composit_bits(par); 
   pass_bits |= bits::event_object_bits(obj); 
-  if(m_def->IsGoodVertex(m_susy_buffer->vx_nTracks)) {
-    pass_bits |= pass::vxp_gt_4trk; 
-  }
   pass_bits |= bits::met_bits(mets); 
   pass_bits |= bits::bad_tile_bits(mets, obj.after_overlap_jets); 
 
@@ -263,8 +262,6 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
 
   // NOTE: lepton jet should be replaced with a designated output
   // where the replacement is done
-
-  // save electron jet
   auto el_jet = obj.electron_jet(); 
   if (el_jet) { 
     el_jet->set_flavor_tag(m_btag_calibration); 

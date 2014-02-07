@@ -59,5 +59,9 @@ ull_t EventPreselector::get_preselection_flags(const SusyBuffer& buffer,
     pass_bits |= pass::tile_trip; 
   }
 
+  if(def.IsGoodVertex(buffer.vx_nTracks)) {
+    pass_bits |= pass::vxp_gt_4trk; 
+  }
+
   return pass_bits; 
 }
