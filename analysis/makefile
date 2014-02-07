@@ -68,7 +68,7 @@ PY_LDFLAGS += -shared
 
 # ---- define objects
 TOBJ        := ObjectFactory.o
-GEN_OBJ     := HistBuilder.o Jet.o
+GEN_OBJ     := HistBuilder.o Jet.o SkimCounts.o
 GEN_OBJ     += Jet2DHists.o Jet1DHists.o 
 GEN_OBJ     += JetTagRescaler.o
 GEN_OBJ     += BtagConfig.o RegionConfig.o Flavor.o
@@ -78,7 +78,7 @@ GEN_OBJ     += RegionEventFilter.o
 GEN_OBJ     += OrderedJetTagFilter.o UnorderedJetTagFilter.o
 GEN_OBJ     += RegionJetEfficiencyHistograms.o
 GEN_OBJ     += RegionBosonPtHistograms.o
-GEN_OBJ     += common_functions.o enum_converters.o
+GEN_OBJ     += common_functions.o enum_converters.o hdf_helpers.o
 GEN_OBJ     += BtagScaler.o BtagBuffer.o
 GEN_OBJ     += EventScalefactors.o
 EXE_OBJ     := $(GEN_OBJ) $(TOBJ) unit-test.o

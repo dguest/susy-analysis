@@ -10,6 +10,7 @@
 #include "RegionBosonPtHistograms.hh"
 #include "constants_physical.hh"
 #include "common_functions.hh"
+#include "SkimCounts.hh"
 #include "H5Cpp.h"
 #include "typedefs.hh"
 #include "RegionConfig.hh"
@@ -114,6 +115,7 @@ void HistBuilder::save() const {
     for (auto hist_itr: itr.second){
       hist_itr->write_to(file); 
     }
+    m_factory->skim_counts()->write_to(file); 
   }
 }
 

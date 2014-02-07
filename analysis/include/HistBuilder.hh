@@ -31,7 +31,6 @@ private:
 
   ObjectFactory* m_factory; 
   std::vector<std::pair<std::string, IRegionHistograms*> > m_histograms; 
-
 };
 
 #endif // HIST_BUILDER_HH

@@ -20,6 +20,7 @@ class BtagBuffer;
 class TLorentzVector; 
 class SFBox; 
 class EventScalefactors; 
+class SkimCounts; 
 
 namespace ioflag {
   const unsigned no_flavor            = 1u << 0; 
@@ -85,6 +86,7 @@ public:
   float marks_boson_pt_weight() const; 
   float boson_pt() const; 
   TVector2 boson_child() const; 
+  const SkimCounts* skim_counts() const; 
   EventScalefactors* event_scalefactors() const; 
 private: 
   void set_btag_n(size_t jet_n, btag::OperatingPoint); 
@@ -118,7 +120,8 @@ private:
 
   unsigned m_ioflags; 
   EventScalefactors* m_evt_sf; 
-  
+
+  SkimCounts* m_skim_counts; 
 }; 
 
 bool has_higher_pt(const Jet&, const Jet&); 

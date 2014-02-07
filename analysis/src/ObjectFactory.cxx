@@ -4,7 +4,7 @@
 #include "BtagBuffer.hh"
 #include "BtagConfig.hh"
 #include "EventScalefactors.hh"
-// #include "met_systematics.hh"
+#include "SkimCounts.hh"
 
 #include <string> 
 #include <vector> 
@@ -58,13 +58,15 @@ ObjectFactory::ObjectFactory(std::string root_file, int n_jets) :
   m_boson_pt_weight(0.0/0.0), 
   m_boson_pt(0.0/0.0), 
   m_ioflags(0), 
-  m_evt_sf(0)
+  m_evt_sf(0), 
+  m_skim_counts(0)
 
 {
   m_file = new TFile(root_file.c_str()); 
   if (!m_file) { 
     throw std::runtime_error(root_file + " could not be found"); 
   }
+  m_skim_counts = new SkimCounts(*m_file); 
   m_tree = dynamic_cast<TTree*>(m_file->Get("evt_tree")); 
   if (!m_tree) { 
     throw std::runtime_error("evt_tree could not be found"); 
@@ -78,12 +80,6 @@ ObjectFactory::ObjectFactory(std::string root_file, int n_jets) :
   set_branch(m_tree, "n_signal_jets", &m_n_signal); 
 
   try { 
-    // m_met.emplace(syst::METUP, new MetBuffer(m_tree, "stup_")); 
-    // m_met.emplace(syst::METDOWN, new MetBuffer(m_tree, "stdown_")); 
-    // m_met.emplace(syst::METRES, new MetBuffer(m_tree, "stres_")); 
-    // m_mu_met.emplace(syst::METUP, new MetBuffer(m_tree, "stup_mu_")); 
-    // m_mu_met.emplace(syst::METDOWN, new MetBuffer(m_tree, "stdown_mu_")); 
-    // m_mu_met.emplace(syst::METRES, new MetBuffer(m_tree, "stres_mu_")); 
     set_branch(m_tree,"hfor_type", &m_hfor_type); 
     set_branch(m_tree,"truth_leading_cjet_pos", &m_leading_cjet_pos); 
     set_branch(m_tree,"truth_subleading_cjet_pos", &m_subleading_cjet_pos); 
@@ -132,6 +128,7 @@ ObjectFactory::~ObjectFactory()
     itr.second = 0; 
   }
   delete m_electron_jet_buffer; 
+  delete m_skim_counts; 
 }
 
 void ObjectFactory::use_electron_jet(bool use) { 
@@ -256,6 +253,10 @@ TVector2 ObjectFactory::boson_child() const {
 
 EventScalefactors* ObjectFactory::event_scalefactors() const { 
   return m_evt_sf; 
+}
+
+const SkimCounts* ObjectFactory::skim_counts() const { 
+  return m_skim_counts; 
 }
 
 hfor::JetType ObjectFactory::hfor_type() const { 
