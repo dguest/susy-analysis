@@ -9,7 +9,6 @@
 namespace { 
   const std::string TOTAL_EVT = "total_events"; 
   const std::string TOTAL_WT = "total_event_weight"; 
-  const std::string META = "meta"; 
 }
 
 SkimCounts::SkimCounts(TFile& file): 
@@ -35,11 +34,10 @@ SkimCounts::SkimCounts(TFile& file):
 
 
 
-void SkimCounts::write_to(H5::CommonFG& fg) const { 
+void SkimCounts::write_to(H5::H5Location& fg) const { 
   using namespace H5; 
-  Group meta(fg.createGroup(META)); 
-  h5::write_attr(meta, TOTAL_EVT, &m_total_events); 
+  h5::write_attr(fg, TOTAL_EVT, &m_total_events); 
   if (m_has_total_event_weight) { 
-    h5::write_attr(meta, TOTAL_WT, &m_total_event_weight); 
+    h5::write_attr(fg, TOTAL_WT, &m_total_event_weight); 
   }
 }

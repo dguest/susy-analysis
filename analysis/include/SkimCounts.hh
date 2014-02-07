@@ -3,14 +3,14 @@
 
 class TFile; 
 namespace H5 { 
-  class CommonFG; 
+  class H5Location; 
 }
 
 
 class SkimCounts { 
 public: 
   SkimCounts(TFile& file); 
-  void write_to(H5::CommonFG&) const; 
+  void write_to(H5::H5Location&) const; 
 private: 
   long long m_total_events; 
   double m_total_event_weight; 
