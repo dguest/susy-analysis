@@ -1,7 +1,6 @@
 #include "StopDistiller.hh"
 #include "distill_tools.hh"
 #include "copy_functions.hh"
-#include "object_selection.hh"
 #include "bitset_functions.hh"
 
 #include "SusyBuffer.h"
@@ -211,7 +210,6 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   }
 
   m_def->Reset(); 
-  m_out_tree->clear_buffer(); 
     
   EventObjects obj(*m_susy_buffer, *m_def, m_flags, m_info); 
   obj.do_overlap_removal(*m_object_counter); 
@@ -219,98 +217,70 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   const Mets mets(*m_susy_buffer, *m_def, obj.susy_muon_idx, 
 		  sum_muon_pt(obj.control_muons), m_info.systematic);
 
-  ObjectComposites par(obj, mets.nominal); 
+  const ObjectComposites par(obj, mets.nominal); 
 
   // ---- must calibrate signal jets for b-tagging ----
   calibrate_jets(obj.signal_jets, m_btag_calibration); 
   // ----- object selection is done now, from here is filling outputs ---
 
-  // --- preselection 
-
+  // --- fill bits ---
   ull_t pass_bits = m_event_preselector->get_preselection_flags(
     *m_susy_buffer, *m_def); 
-
-  if (obj.veto_jets.size() == 0) pass_bits |= pass::jet_clean; 
-  m_out_tree->par.n_preselected_jets = obj.preselected_jets.size(); 
-  m_out_tree->par.n_signal_jets = obj.signal_jets.size(); 
-  m_out_tree->par.n_veto_electrons = obj.veto_electrons.size(); 
-  m_out_tree->par.n_veto_muons = obj.veto_muons.size(); 
-  m_out_tree->par.n_control_electrons = obj.control_electrons.size(); 
-  m_out_tree->par.n_control_muons = obj.control_muons.size(); 
-  m_out_tree->htx = par.htx; 
-  m_out_tree->min_jetmet_dphi = par.min_jetmet_dphi;  
-
-  pass_bits |= object_composit_bits(par); 
-
-  pass_bits |= signal_jet_bits(obj.signal_jets); 
-
-  pass_bits |= pass::cosmic_muon | pass::bad_muon; 
-  for (auto mu: obj.preselected_muons) { 
-    if (mu->bad() ) pass_bits &=~ pass::bad_muon; 
-  }
-  for (auto mu: obj.after_overlap_muons) { 
-    if (mu->cosmic() ) pass_bits &=~ pass::cosmic_muon; 
-  }
-
-  if (pass_chf_check(obj.signal_jets)) pass_bits |= pass::jet_chf; 
-
-  copy_leading_jet_info(obj.signal_jets, *m_out_tree); 
-
+  pass_bits |= bits::object_composit_bits(par); 
+  pass_bits |= bits::event_object_bits(obj); 
   if(m_def->IsGoodVertex(m_susy_buffer->vx_nTracks)) {
     pass_bits |= pass::vxp_gt_4trk; 
   }
+  pass_bits |= bits::met_bits(mets); 
+  pass_bits |= bits::bad_tile_bits(mets, obj.after_overlap_jets); 
 
-  pass_bits |= control_lepton_bits(obj.control_electrons, obj.control_muons); 
+  // save bools to cutflow and out tree
+  m_cutflow->fill(pass_bits); 
 
-  if (obj.veto_electrons.size() == 0) pass_bits |= pass::electron_veto; 
-  if (obj.veto_muons.size() == 0) pass_bits |= pass::muon_veto; 
+  // --- start filling output tree ---
+  outtree::OutTree& out_tree = *m_out_tree; 
 
-  pass_bits |= met_bits(mets); 
-  pass_bits |= bad_tile_bits(mets, obj.after_overlap_jets); 
+  out_tree.clear_buffer(); 
+
+  out_tree.pass_bits = pass_bits; 
+  out_tree.event_number = m_susy_buffer->EventNumber; 
+  out_tree.pileup_weight = pileup_weight; 
+
+  // main event copy function 
+  copy_event(obj, par, mets, out_tree); 
 
   if ( m_flags & cutflag::truth ) { 
-    copy_cjet_truth(*m_out_tree, obj.signal_jets); 
-    copy_event_truth(*m_out_tree, *m_susy_buffer, m_flags); 
+    copy_cjet_truth(out_tree, obj.signal_jets); 
+    copy_event_truth(out_tree, *m_susy_buffer, m_flags); 
   }
 
-  // --- bit filling ends here ---
-
-  m_cutflow->fill(pass_bits); 
-  m_out_tree->pass_bits = pass_bits; 
-
-  copy_met(*m_out_tree, mets); 
-
-  m_out_tree->pileup_weight = pileup_weight; 
   if (m_boson_pt_reweighter) {
-    m_out_tree->truth_boson_pt_weight = m_boson_pt_reweighter->
+    out_tree.truth_boson_pt_weight = m_boson_pt_reweighter->
       get_boson_weight(m_susy_buffer->mc_particles); 
-    m_out_tree->truth_boson_pt = m_boson_pt_reweighter->
+    out_tree.truth_boson_pt = m_boson_pt_reweighter->
       get_boson_pt(m_susy_buffer->mc_particles); 
   }
 
-  m_out_tree->event_number = m_susy_buffer->EventNumber; 
-
-  copy_id_vec_to_box(obj.control_electrons, m_out_tree->el_sf); 
-  copy_id_vec_to_box(obj.control_muons, m_out_tree->mu_sf); 
+  // NOTE: lepton jet should be replaced with a designated output
+  // where the replacement is done
 
   // save electron jet
-  if (obj.control_electrons.size() == 1) { 
-    auto control_el = obj.control_electrons.at(0); 
-    auto el_jet = object::get_leptojet(*obj.all_jets, *control_el); 
+  auto el_jet = obj.electron_jet(); 
+  if (el_jet) { 
     el_jet->set_flavor_tag(m_btag_calibration); 
-    copy_jet_info(el_jet, m_out_tree->electron_jet); 
+    copy_jet_info(el_jet, out_tree.electron_jet); 
   }
 
   // save boson decay products
   TVector2 boson_decay = get_boson_child_pt(
     obj.control_electrons, obj.control_muons); 
   if (boson_decay.Mod() > 0.001) { 
-    m_out_tree->boson_child_pt = boson_decay.Mod(); 
-    m_out_tree->boson_child_phi = boson_decay.Phi(); 
+    out_tree.boson_child_pt = boson_decay.Mod(); 
+    out_tree.boson_child_phi = boson_decay.Phi(); 
   }
 
   if (m_output_filter->should_save_event(pass_bits)) { 
-    m_out_tree->fill(); 
+    out_tree.fill(); 
   }
 
 }

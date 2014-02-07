@@ -8,11 +8,18 @@ namespace outtree {
 }; 
 class SelectedJet; 
 class Mets; 
+class EventObjects; 
+class ObjectComposites; 
 
 #include "btag_defs.hh"
 #include <vector> 
 
 // ---- copy functions ----
+void copy_event(const EventObjects&, const ObjectComposites&, 
+		const Mets&, outtree::OutTree&); 
+
+// the above calls the below
+
 void copy_jet_info(const SelectedJet* , outtree::Jet&); 
 
 void copy_scale_factor(const SelectedJet*, outtree::ScaleFactor&, 

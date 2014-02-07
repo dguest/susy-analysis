@@ -1,12 +1,36 @@
 #include "copy_functions.hh"
 #include "OutTree.hh"
+#include "EventObjects.hh"
 #include "Jets.hh"
 #include "Met.hh"
+#include "Leptons.hh"
+#include "ObjectComposites.hh"
 #include "btag_defs.hh"
 #include "cutflag.hh"
 
 #include <cassert>
 
+// ______________________________________________________________
+// master copy for event
+void copy_event(const EventObjects& obj, 
+		const ObjectComposites& par, 
+		const Mets& mets, outtree::OutTree& out_tree) { 
+  out_tree.par.n_preselected_jets = obj.preselected_jets.size(); 
+  out_tree.par.n_signal_jets = obj.signal_jets.size(); 
+  out_tree.par.n_veto_electrons = obj.veto_electrons.size(); 
+  out_tree.par.n_veto_muons = obj.veto_muons.size(); 
+  out_tree.par.n_control_electrons = obj.control_electrons.size(); 
+  out_tree.par.n_control_muons = obj.control_muons.size(); 
+  out_tree.htx = par.htx; 
+  out_tree.min_jetmet_dphi = par.min_jetmet_dphi;  
+
+  copy_met(out_tree, mets); 
+  copy_leading_jet_info(obj.signal_jets, out_tree); 
+
+  copy_id_vec_to_box(obj.control_electrons, out_tree.el_sf); 
+  copy_id_vec_to_box(obj.control_muons, out_tree.mu_sf); 
+
+}
 
 //_________________________________________________________________
 // copy functions

@@ -20,10 +20,8 @@ struct EventObjects {
   EventObjects(EventObjects&) = delete; 
   EventObjects& operator=(EventObjects&) = delete; 
   ~EventObjects(); 
+  SelectedJet* electron_jet() const; 
   void do_overlap_removal(CutCounter&); 
-  EventJets* all_jets; 
-  EventElectrons* all_electrons; 
-  EventMuons* all_muons; 
   
   std::vector<SelectedJet*> preselected_jets; 
   std::vector<Electron*> preselected_electrons; 
@@ -44,6 +42,10 @@ struct EventObjects {
   
   std::vector<int> susy_muon_idx; 
   std::vector<SelectedJet*> leading_jets; 
+private: 
+  EventJets* m_all_jets; 
+  EventElectrons* m_all_electrons; 
+  EventMuons* m_all_muons; 
 }; 
 
 #endif 

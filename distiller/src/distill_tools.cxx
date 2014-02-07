@@ -156,15 +156,6 @@ double get_mll(const std::vector<Electron*>& el,
   
 }
 
-bool pass_chf_check(const std::vector<SelectedJet*> jets) { 
-  size_t njet = std::min(jets.size(), CHF_CHECK_NJET); 
-  for (auto itr = jets.cbegin(); itr != jets.cbegin() + njet; itr++) { 
-    const auto& jet = **itr; 
-    if (!jet.pass_chf()) return false; 
-  }
-  return true; 
-}
-
 
 void set_bit(std::vector<SelectedJet*>& jets, unsigned bit) { 
   for (std::vector<SelectedJet*>::iterator itr = jets.begin(); 

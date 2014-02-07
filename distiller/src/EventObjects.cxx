@@ -10,22 +10,22 @@
 EventObjects::EventObjects(
   const SusyBuffer& buf, SUSYObjDef& def, 
   unsigned flags, const RunInfo& info): 
-  all_jets(0), 
-  all_electrons(0), 
-  all_muons(0)
+  m_all_jets(0), 
+  m_all_electrons(0), 
+  m_all_muons(0)
 { 
-  all_jets = new EventJets(buf, def, flags, info); 
-  all_electrons = new EventElectrons(buf, def, flags, info); 
-  all_muons = new EventMuons(buf, def, flags, info); 
+  m_all_jets = new EventJets(buf, def, flags, info); 
+  m_all_electrons = new EventElectrons(buf, def, flags, info); 
+  m_all_muons = new EventMuons(buf, def, flags, info); 
   
 }
 
 void EventObjects::do_overlap_removal(CutCounter& ob_counts) { 
-  std::sort(all_jets->begin(),all_jets->end(),object::has_higher_pt); 
+  std::sort(m_all_jets->begin(),m_all_jets->end(),object::has_higher_pt); 
 
-  preselected_jets = object::preselection_jets(*all_jets); 
-  preselected_electrons = object::filter_susy(*all_electrons); 
-  preselected_muons = object::filter_susy(*all_muons); 
+  preselected_jets = object::preselection_jets(*m_all_jets); 
+  preselected_electrons = object::filter_susy(*m_all_electrons); 
+  preselected_muons = object::filter_susy(*m_all_muons); 
 
   ob_counts["preselected_jets"] += preselected_jets.size(); 
   ob_counts["preselected_el"] += preselected_electrons.size(); 
@@ -68,11 +68,22 @@ void EventObjects::do_overlap_removal(CutCounter& ob_counts) {
   leading_jets.assign(signal_jets.begin(), signal_jets.begin() + n_leading); 
 }
 
+
 EventObjects::~EventObjects() { 
-  delete all_jets; 
-  delete all_electrons; 
-  delete all_muons; 
-  all_jets = 0; 
-  all_electrons = 0; 
-  all_muons = 0; 
+  delete m_all_jets; 
+  delete m_all_electrons; 
+  delete m_all_muons; 
+  m_all_jets = 0; 
+  m_all_electrons = 0; 
+  m_all_muons = 0; 
+}
+
+SelectedJet* EventObjects::electron_jet() const { 
+  if (control_electrons.size() == 1) { 
+    auto control_el = control_electrons.at(0); 
+    return object::get_leptojet(*m_all_jets, *control_el); 
+  } else { 
+    return 0; 
+  }
+  
 }

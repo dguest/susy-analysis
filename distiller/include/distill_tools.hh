@@ -45,8 +45,6 @@ double get_mt(const std::vector<Electron*>& , const std::vector<Muon*>& ,
 
 double get_mll(const std::vector<Electron*>& , const std::vector<Muon*>&); 
 
-bool pass_chf_check(const std::vector<SelectedJet*> jets); 
-
 template<typename T>
 double scalar_sum_pt(const T& objects); 
 
