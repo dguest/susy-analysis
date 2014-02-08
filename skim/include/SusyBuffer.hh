@@ -12,6 +12,8 @@ class TTree;
 #include <string> 
 #include <stdexcept>
 
+enum class Save { IF_LISTED, ALWAYS, NEVER }; 
+
 struct Triggers { 
   bool EF_xe80_tclcw_tight; 	// from stop -> charm search (not sure why..)
   bool EF_xe80T_tclcw_loose; 	// missing the first few bunch trains
@@ -66,7 +68,8 @@ public:
 private: 
   // generic branch setters
   template<typename T> 
-  void set(TChain& chain, const std::string& name, T* ptr, bool save = false); 
+  void set(TChain& chain, const std::string& name, T* ptr, 
+	   Save save = Save::IF_LISTED); 
   void setInternal(TChain& chain, const std::string& name, void* dest); 
 
   // specific branch setters (call the above functions)
@@ -74,9 +77,11 @@ private:
   void setTriggerBranches(TChain& chain); 
   void setMetBranches(TChain& chain); 
 
-  // assorted private data
-  std::map<std::string, ITreeBranch*> m_tree_branches; 
+  // all "out branches" are set with setPassThrough 
+  std::map<std::string, ITreeBranch*> m_out_branches; 
+  // all requested branches (via text file)
   const std::set<std::string> m_requested_passthrough; 
+  // exposed inputs are set to some local buffer (not just passing though)
   std::set<std::string> m_exposed_inputs; 
   std::set<std::string> m_missing_inputs; 
   bool m_has_mc; 
