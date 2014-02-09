@@ -34,8 +34,8 @@ import yaml
 import warnings
 import h5py
 from itertools import chain
-from stop.hists import HistNd, HistAdder
-from stop import meta
+from scharm.hists import HistNd, HistAdder
+from scharm import meta
 from collections import defaultdict, Counter
 
 def run(): 
@@ -133,7 +133,7 @@ def cutflow(config):
         print '{:>{}}: {}'.format(cut, cut_strlen, cut_counts[cut])
 
 def list_meta_info(config): 
-    from stop.meta import DatasetCache
+    from scharm.meta import DatasetCache
     meta = DatasetCache(config.meta_file)
     filt_meta = {}
     filters = [config.physics, config.anti_physics, 
