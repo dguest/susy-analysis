@@ -45,8 +45,13 @@ wills_samples = dict(
     ttbarV_samples = [119353, 119355] + range(174830,174833+1), 
     )
 
+_scharm_ext = range(186635,186671+1)
+_scharm_stop_xcheck = range(186641,186643+1)
+_scharm_ext_no_xchk = [x for x in _scharm_ext if x not in _scharm_stop_xcheck]
+
 scharm = {
     'scharm-signal': range(183424,183474+1), 
+    'scharm-signal-ext': _scharm_ext_no_xchk
     }
 
 variations = { 
