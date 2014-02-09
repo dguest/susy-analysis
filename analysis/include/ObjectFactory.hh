@@ -5,6 +5,7 @@
 #include <vector> 
 #include <map>
 #include <unordered_map>
+#include <stdexcept>
 #include "HforTypeDef.hh"
 #include "systematic_defs.hh"
 #include "typedefs.hh"
