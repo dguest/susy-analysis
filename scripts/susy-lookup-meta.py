@@ -66,6 +66,7 @@ def _add_build_parser(subs):
     parser.add_argument('--variations', action='store_true')
     parser.add_argument('--stop', action='store_true')
     parser.add_argument('--scharm', action='store_true')
+    parser.add_argument('--scharm-ext', action='store_true')
     parser.add_argument('-l', '--add-overlap', action='store_true', 
                         help=find_overlap.__doc__)
 
@@ -152,6 +153,8 @@ def build(args):
         build_variations_file(args.steering_file)
     if args.scharm: 
         build_scharm_file(args.steering_file)
+    if args.scharm_ext: 
+        build_scharm_file(args.steering_file, ext=True)
     if args.stop: 
         build_stop_file(args.steering_file)
 
@@ -250,15 +253,16 @@ def build_stop_file(name):
     ds_cache.write()
     dumpbugs(aug, 'stopgrid-warn.log')
 
-def build_scharm_file(name): 
+def build_scharm_file(name, ext=False): 
     from scharm.lookup.ami import AmiAugmenter
     from scharm.runtypes import scharm
     aug = AmiAugmenter('p1512', 'mc12_8TeV')
     aug.bugstream = TemporaryFile()
     ds_cache = DatasetCache(name)
     for phys_type, ids in scharm.iteritems(): 
-        new_meta = aug.get_dataset_range(ids, phys_type)
-        ds_cache.update(new_meta)
+        if phys_type.endswith('-ext') == ext: 
+            new_meta = aug.get_dataset_range(ids, phys_type)
+            ds_cache.update(new_meta)
     ds_cache.write()
     dumpbugs(aug, 'scharmgrid-warn.log')
 

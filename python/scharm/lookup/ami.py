@@ -6,7 +6,9 @@ from collections import defaultdict
 from scharm import meta, bullshit
 
 def _filter_by_ldn(match_sets, *strings): 
-    for string in strings: 
+    for string in strings:
+        if string is None: 
+            continue
         filtered = []
         if len(match_sets) == 1: 
             return match_sets
