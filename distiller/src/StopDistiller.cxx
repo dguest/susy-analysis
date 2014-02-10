@@ -54,11 +54,9 @@ namespace {
 }
 
 StopDistiller::StopDistiller(const std::vector<std::string>& in, 
-			     const RunInfo& info, unsigned flags, 
-			     std::string out): 
+			     const RunInfo& info, unsigned flags): 
   m_info(info), 
   m_flags(flags), 
-  m_out_ntuple_name(out), 
   m_susy_dbg_file("susy-debug.txt"), 
   m_output_filter(new OutputFilter(info, flags)), 
   m_norm_dbg_file(0), 
@@ -69,6 +67,7 @@ StopDistiller::StopDistiller(const std::vector<std::string>& in,
   m_def(0), 
   m_event_preselector(0), 
   m_out_tree(0), 
+  m_mumet_out_tree(0), 
   m_cutflow(0), 
   m_btag_calibration(0), 
   m_boson_truth_filter(0), 
@@ -111,6 +110,7 @@ StopDistiller::~StopDistiller() {
   delete m_event_preselector; 
   delete m_out_tree; 
   delete m_cutflow; 
+  delete m_mumet_out_tree; 
   delete m_object_counter; 
   delete m_btag_calibration; 
   delete m_boson_truth_filter; 
@@ -220,7 +220,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
 		  sum_muon_pt(obj.control_muons), m_info.systematic);
 
   const ObjectComposites par(obj, mets.nominal); 
-
+  const ObjectComposites mumet_par(obj, mets.muon); 
   // ---- must calibrate signal jets for b-tagging ----
   calibrate_jets(obj.signal_jets, m_btag_calibration); 
   // ----- object selection is done now, from here is filling outputs ---
@@ -362,10 +362,12 @@ void StopDistiller::setup_susytools() {
 }
 
 void StopDistiller::setup_outputs() { 
-  m_out_tree = new outtree::OutTree(m_out_ntuple_name, 
-				    "evt_tree", m_flags, N_JETS_TO_SAVE); 
+  m_out_tree = new outtree::OutTree(
+    m_info.out_ntuple, "evt_tree", m_flags, N_JETS_TO_SAVE); 
+  m_mumet_out_tree = new outtree::OutTree(
+    m_info.mumet_out_ntuple, "evt_tree", m_flags, N_JETS_TO_SAVE); 
+					   
   m_object_counter = new CutCounter; 
-
 }
 
 namespace {

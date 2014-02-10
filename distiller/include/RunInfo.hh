@@ -15,6 +15,8 @@ struct RunInfo {
   double truth_met_max_mev; 
   std::string pu_config; 
   std::string pu_lumicalc; 
+  std::string out_ntuple; 
+  std::string mumet_out_ntuple; 
   RunInfo(); 
 }; 
 

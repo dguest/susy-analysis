@@ -28,8 +28,7 @@ class StopDistiller
 public: 
   typedef std::vector<std::pair<std::string, int> > Cutflow; 
   StopDistiller(const std::vector<std::string>& in, 
-		const RunInfo& info, unsigned flags, 
-		std::string out); 
+		const RunInfo& info, unsigned flags); 
   ~StopDistiller(); 
   StopDistiller(StopDistiller&) = delete;
   StopDistiller& operator=(StopDistiller&) = delete; 
@@ -64,6 +63,7 @@ private:
   SUSYObjDef* m_def; 
   EventPreselector* m_event_preselector; 
   outtree::OutTree* m_out_tree; 
+  outtree::OutTree* m_mumet_out_tree; 
   BitmapCutflow* m_cutflow; 
   CutCounter* m_object_counter; 
   BtagCalibration* m_btag_calibration; 

@@ -22,17 +22,12 @@ def cutflow(input_files, flags, grl='', output_ntuple='',
     Flags: 
         a: aggressive --- remove bad files and retry
         b: debug susytools (don't pipe output to /dev/null)
-        c: save JetFitterCharm weights
         d: is data
         e: save all events (don't do further skimming)
         f: is atlfast
         g: get branches as textfile
-        h: old skim (disables 'new' branches)
         i: get sparticle id (requires truth)
-        j: vector output
-        m: save mv3 weights
         p: boson pt reweighting (for sherpa)
-        r: save c-tag ratios
         u: generate pileup mc config file
         v: verbose
         z: maximum compression
@@ -66,16 +61,17 @@ def cutflow(input_files, flags, grl='', output_ntuple='',
         'truth_met_max_mev': truth_met_max_mev, 
         'pu_config': pu_config, 
         'pu_lumicalc': _get_fixed_pathname(pu_lumicalc), 
+        'out_ntuple': output_ntuple, 
         }
     if 'a' in flags: 
         return _aggressive_distill(
-            input_files, input_dict, flags, output_ntuple)
+            input_files, input_dict, flags)
     else: 
         with BullshitFilter(): 
             from scharm.distiller import _distiller 
 
         return _distiller._distiller(
-            input_files, input_dict, flags, output_ntuple)
+            input_files, input_dict, flags)
 
 
 class BullshitFilter(object): 
@@ -102,12 +98,12 @@ class BullshitFilter(object):
             if not veto: 
                 sys.stderr.write(line)
 
-def _aggressive_distill(input_files, input_dict, flags, output_ntuple): 
+def _aggressive_distill(input_files, input_dict, flags): 
     with BullshitFilter(): 
         import _distiller 
     try: 
         cut_out = _distiller._distiller(
-            input_files, input_dict, flags, output_ntuple)
+            input_files, input_dict, flags)
     except RuntimeError as er: 
         if 'bad file:' in str(er): 
             bad_file = str(er).split(':')[-1].strip()
@@ -115,7 +111,7 @@ def _aggressive_distill(input_files, input_dict, flags, output_ntuple):
             if remaining_files:
                 warnings.warn('removed {}, retrying'.format(bad_file))
                 cutlist = _aggressive_distill(
-                    remaining_files, input_dict, flags, output_ntuple)
+                    remaining_files, input_dict, flags)
                 return CorruptedCutflow(cutlist, remaining_files)
             else: 
                 warnings.warn('removed last file in ds: {}'.format(

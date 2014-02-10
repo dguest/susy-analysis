@@ -20,12 +20,11 @@ static PyObject* py_distiller(PyObject *self,
 {
   PyObject* py_input_files; 
   const char* flags_str = ""; 
-  const char* out_ntuple = ""; 
   RunInfo info; 
 
   bool ok = PyArg_ParseTuple
-    (args,"OO&|ss:distiller", &py_input_files, fill_run_info, &info, 
-     &flags_str, &out_ntuple); 
+    (args,"OO&|s:distiller", &py_input_files, fill_run_info, &info, 
+     &flags_str); 
   if (!ok) return NULL;
 
   int n_files = PyList_Size(py_input_files); 
@@ -45,7 +44,7 @@ static PyObject* py_distiller(PyObject *self,
   typedef std::vector<std::pair<std::string, int> > CCOut; 
   CCOut pass_numbers; 
   try { 
-    StopDistiller distiller(input_files, info, flags, out_ntuple); 
+    StopDistiller distiller(input_files, info, flags); 
     pass_numbers = distiller.run_cutflow(); 
   }
   catch (std::runtime_error& e) { 
@@ -110,41 +109,41 @@ static bool fill_run_info(PyObject* dict, RunInfo* info) {
 		      "distiller info dict includes non-string key"); 
       return false; 
     }
-    std::string ckey = PyString_AsString(key); 
-    if (ckey == "grl") { 
-      if (!safe_copy(value, info->grl)) return false; 
-    }
-    else if (ckey == "btag_cal_dir") { 
-      if (!safe_copy(value, info->btag_cal_dir)) return false; 
-    }
-    else if (ckey == "btag_cal_file") { 
-      if (!safe_copy(value, info->btag_cal_file)) return false;
-    }
-    else if (ckey == "systematic") { 
-      if (!safe_copy(value, info->systematic)) return false; 
-    }
-    else if (ckey == "cutflow_type") { 
-      if (!safe_copy(value, info->cutflow_type)) return false; 
-    }
-    else if (ckey == "boson_pt_max_mev") { 
-      if (!safe_copy(value, info->boson_pt_max_mev)) return false; 
-    }
-    else if (ckey == "truth_met_max_mev") { 
-      if (!safe_copy(value, info->truth_met_max_mev)) return false; 
-    }
-    else if (ckey == "pu_config") { 
-      if (!safe_copy(value, info->pu_config)) return false; 
-    }
-    else if (ckey == "pu_lumicalc") { 
-      if (!safe_copy(value, info->pu_lumicalc)) return false; 
-    }
-    else { 
-      std::string err = "got unknown string in distiller info dict: " + ckey; 
-      PyErr_SetString(PyExc_ValueError, err.c_str()); 
-      return false; 
-    }
+    const std::string ckey = PyString_AsString(key); 
+    if (! info_element_copy(value, info, ckey) ) return false;
   }
   return true; 
+}
+
+
+static bool info_element_copy(PyObject* value, RunInfo* info, 
+			      const std::string& ckey) { 
+
+#define TRY_VAL(key)				\
+  do {						\
+    if (ckey == #key) {					\
+      if (!safe_copy(value, info->key)) return false;	\
+      return true;					\
+    }							\
+  } while (false)
+
+  TRY_VAL(grl); 
+  TRY_VAL(btag_cal_dir); 
+  TRY_VAL(btag_cal_file); 
+  TRY_VAL(systematic); 
+  TRY_VAL(cutflow_type); 
+  TRY_VAL(boson_pt_max_mev); 
+  TRY_VAL(truth_met_max_mev); 
+  TRY_VAL(pu_config); 
+  TRY_VAL(pu_lumicalc); 
+  TRY_VAL(out_ntuple); 
+  TRY_VAL(mumet_out_ntuple); 
+
+  std::string err = "got unknown string in distiller info dict: " + ckey; 
+  PyErr_SetString(PyExc_ValueError, err.c_str()); 
+  return false; 
+
+#undef TRY_VAL 
 }
 
 static bool safe_copy(PyObject* value, std::string& dest) { 
@@ -174,6 +173,8 @@ static bool safe_copy(PyObject* value, systematic::Systematic& dest) {
   TRY_VAL(METUP); 
   TRY_VAL(METDOWN); 
   TRY_VAL(METRES); 
+
+#undef TRY_VAL
 
   std::string problem = "got undefined systematic: " + name; 
   PyErr_SetString(PyExc_ValueError,problem.c_str()); 
