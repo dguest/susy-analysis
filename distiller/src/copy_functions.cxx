@@ -2,11 +2,12 @@
 #include "OutTree.hh"
 #include "EventObjects.hh"
 #include "Jets.hh"
-#include "Met.hh"
 #include "Leptons.hh"
 #include "ObjectComposites.hh"
 #include "btag_defs.hh"
 #include "cutflag.hh"
+
+#include "TVector2.h"
 
 #include <cassert>
 
@@ -14,7 +15,7 @@
 // master copy for event
 void copy_event(const EventObjects& obj, 
 		const ObjectComposites& par, 
-		const Mets& mets, outtree::OutTree& out_tree) { 
+		const TVector2& met, outtree::OutTree& out_tree) { 
   out_tree.par.n_preselected_jets = obj.preselected_jets.size(); 
   out_tree.par.n_signal_jets = obj.signal_jets.size(); 
   out_tree.par.n_veto_electrons = obj.veto_electrons.size(); 
@@ -24,7 +25,7 @@ void copy_event(const EventObjects& obj,
   out_tree.htx = par.htx; 
   out_tree.min_jetmet_dphi = par.min_jetmet_dphi;  
 
-  copy_met(out_tree, mets); 
+  copy_met(out_tree, met); 
   copy_leading_jet_info(obj.signal_jets, out_tree); 
 
   copy_id_vec_to_box(obj.control_electrons, out_tree.el_sf); 
@@ -70,9 +71,8 @@ void copy_leading_jet_info(const std::vector<SelectedJet*>& signal_jets,
 }
 
 
-void copy_met(outtree::OutTree& out, const Mets& mets) { 
-  out.met_nom.set_met(mets.nominal); 
-  out.met_mu.set_met(mets.muon); 
+void copy_met(outtree::OutTree& out, const TVector2& met) { 
+  out.met.set_met(met); 
 }
 
 void copy_cjet_truth(outtree::OutTree& out_tree, 

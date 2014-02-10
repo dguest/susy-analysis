@@ -1,7 +1,7 @@
 #ifndef BITSET_FUNCTIONS_HH
 #define BITSET_FUNCTIONS_HH
 
-class Mets; 
+class TVector2; 
 class SelectedJet;
 class Muon; 
 class Electron; 
@@ -26,9 +26,10 @@ namespace bits {
   // other stuff
   ull_t object_composit_bits(const ObjectComposites& par); 
 
-  ull_t met_bits(const Mets& met); 
+  ull_t met_bits(const TVector2& met); 
 
-  ull_t bad_tile_bits(const Mets& mets, const std::vector<SelectedJet*> jets); 
+  ull_t bad_tile_bits(const TVector2& mets, 
+		      const std::vector<SelectedJet*> jets); 
 }
 
 

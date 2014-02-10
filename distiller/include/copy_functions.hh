@@ -7,7 +7,7 @@ namespace outtree {
   class ScaleFactor; 
 }; 
 class SelectedJet; 
-class Mets; 
+class TVector2; 
 class EventObjects; 
 class ObjectComposites; 
 
@@ -16,7 +16,7 @@ class ObjectComposites;
 
 // ---- copy functions ----
 void copy_event(const EventObjects&, const ObjectComposites&, 
-		const Mets&, outtree::OutTree&); 
+		const TVector2&, outtree::OutTree&); 
 
 // the above calls the below
 
@@ -34,7 +34,7 @@ void copy_leading_jet_info(const std::vector<SelectedJet*>& signal_jets,
 void copy_cjet_truth(outtree::OutTree& out_tree, 
 		     const std::vector<SelectedJet*>& jets); 
 
-void copy_met(outtree::OutTree& out, const Mets& mets); 
+void copy_met(outtree::OutTree& out, const TVector2& mets); 
 
 // ---- templates -----
 

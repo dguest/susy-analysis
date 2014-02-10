@@ -10,6 +10,7 @@ class SkimReport;
 class SusyBuffer; 
 class SUSYObjDef; 
 class EventPreselector; 
+class EventObjects; 
 namespace outtree { 
   class OutTree; 
 }
@@ -22,6 +23,7 @@ class BosonTruthFilter;
 class TruthMetFilter; 
 class BosonPtReweighter; 
 class PileupReweighting; 
+class TVector2; 
 
 class StopDistiller
 { 
@@ -45,6 +47,8 @@ private:
 
   float get_pileup_weight(); 
   std::vector<std::pair<std::string, int> > get_cutflow_vec(int errs) const; 
+  void fill_output(const EventObjects&, const TVector2& met, 
+		   outtree::OutTree&) const;
 
   void print_progress(int entry_n, std::ostream&); 
   RunInfo m_info; 

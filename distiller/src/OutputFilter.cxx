@@ -18,7 +18,7 @@ bool OutputFilter::should_save_event(const ull_t event_mask) {
   if ( (signal_selection & event_mask) == signal_selection) return true; 
 
   // -- W mu control region 
-  const ull_t wmunu_sel = preselection | pass::mu_met | pass::control_muon; 
+  const ull_t wmunu_sel = preselection | pass::met | pass::control_muon; 
   if ( (wmunu_sel & event_mask) == wmunu_sel) return true; 
 
   // // -- Z control regions

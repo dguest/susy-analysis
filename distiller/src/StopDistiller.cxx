@@ -195,8 +195,6 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   }
   m_chain->GetEntry(evt_n); 
 
-  const float pileup_weight = get_pileup_weight(); 
-
   if (m_boson_truth_filter) { 
     if (m_boson_truth_filter->is_over_threshold(
 	  m_susy_buffer->mc_particles)) { 
@@ -215,14 +213,23 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
     
   EventObjects obj(*m_susy_buffer, *m_def, m_flags, m_info); 
   obj.do_overlap_removal(*m_object_counter); 
+  // ---- must calibrate signal jets for b-tagging ----
+  calibrate_jets(obj.signal_jets, m_btag_calibration); 
+  obj.pileup_weight = get_pileup_weight(); 
 
   const Mets mets(*m_susy_buffer, *m_def, obj.susy_muon_idx, 
 		  sum_muon_pt(obj.control_muons), m_info.systematic);
 
-  const ObjectComposites par(obj, mets.nominal); 
-  const ObjectComposites mumet_par(obj, mets.muon); 
-  // ---- must calibrate signal jets for b-tagging ----
-  calibrate_jets(obj.signal_jets, m_btag_calibration); 
+  fill_output(obj, mets.nominal, *m_out_tree); 
+  fill_output(obj, mets.muon, *m_mumet_out_tree); 
+}
+
+void StopDistiller::fill_output(const EventObjects& obj, const TVector2& met, 
+				outtree::OutTree& out_tree) const { 
+
+  const float pileup_weight = obj.pileup_weight; 
+
+  const ObjectComposites par(obj, met); 
   // ----- object selection is done now, from here is filling outputs ---
 
   // --- fill bits ---
@@ -230,15 +237,13 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
     *m_susy_buffer, *m_def); 
   pass_bits |= bits::object_composit_bits(par); 
   pass_bits |= bits::event_object_bits(obj); 
-  pass_bits |= bits::met_bits(mets); 
-  pass_bits |= bits::bad_tile_bits(mets, obj.after_overlap_jets); 
+  pass_bits |= bits::met_bits(met); 
+  pass_bits |= bits::bad_tile_bits(met, obj.after_overlap_jets); 
 
   // save bools to cutflow and out tree
   m_cutflow->fill(pass_bits); 
 
-  // --- start filling output tree ---
-  outtree::OutTree& out_tree = *m_out_tree; 
-
+  // start filling out_tree here
   out_tree.clear_buffer(); 
 
   out_tree.pass_bits = pass_bits; 
@@ -246,7 +251,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   out_tree.pileup_weight = pileup_weight; 
 
   // main event copy function 
-  copy_event(obj, par, mets, out_tree); 
+  copy_event(obj, par, met, out_tree); 
 
   if ( m_flags & cutflag::truth ) { 
     copy_cjet_truth(out_tree, obj.signal_jets); 
@@ -401,7 +406,7 @@ void StopDistiller::setup_cutflow(CutflowType cutflow) {
     m_cutflow->add("bad_jet_veto"          , pass::jet_clean      );
     m_cutflow->add("tile_trip"        , pass::tile_trip          );
     m_cutflow->add("tile_error"        , pass::tile_error          );
-    m_cutflow->add("bad_tile"          , pass::bad_tile_stmet      ); 
+    m_cutflow->add("bad_tile"          , pass::bad_tile      ); 
     m_cutflow->add("lar_error"        , pass::lar_error          );
     m_cutflow->add("energy_wt_time", pass::energy_wt_time); 
     m_cutflow->add("core"        , pass::core          );

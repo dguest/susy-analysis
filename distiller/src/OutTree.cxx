@@ -81,8 +81,7 @@ namespace outtree {
     MAKE_BRANCH(m_tree, pass_bits); 
     par.set_branches(m_tree); 
 
-    met_nom.set_branches(m_tree, ""); 
-    met_mu.set_branches(m_tree, "mu_"); 
+    met.set_branches(m_tree, ""); 
 
     MAKE_BRANCH(m_tree, min_jetmet_dphi); 
     MAKE_BRANCH(m_tree, event_number); 
@@ -125,8 +124,7 @@ namespace outtree {
     pass_bits = 0; 
     par.clear(); 
 
-    met_nom.clear(); 
-    met_mu.clear(); 
+    met.clear(); 
 
     hfor_type = -2; 
     event_number = 0; 
@@ -252,8 +250,7 @@ namespace outtree {
     MAKE_PASS_BRANCH(met_trigger); 
     MAKE_PASS_BRANCH(mu_trigger); 
     MAKE_PASS_BRANCH(el_trigger); 
-    MAKE_PASS_BRANCH(bad_tile_stmet); 
-    MAKE_PASS_BRANCH(bad_tile_mumet); 
+    MAKE_PASS_BRANCH(bad_tile); 
   }
 
 #define SET_FROM_BIT(BIT)	  \
@@ -264,8 +261,7 @@ namespace outtree {
     SET_FROM_BIT(met_trigger); 
     SET_FROM_BIT(mu_trigger); 
     SET_FROM_BIT(el_trigger); 
-    SET_FROM_BIT(bad_tile_stmet); 
-    SET_FROM_BIT(bad_tile_mumet); 
+    SET_FROM_BIT(bad_tile); 
   }
 #undef SET_FROM_BIT
 

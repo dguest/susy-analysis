@@ -2,10 +2,11 @@
 #include "constants_distiller.hh"
 #include "Jets.hh"
 #include "Leptons.hh"
-#include "Met.hh"
 #include "EventBits.hh"
 #include "EventObjects.hh"
 #include "ObjectComposites.hh"
+
+#include "TVector2.h"
 
 //_________________________________________________________________
 // cutflow functions
@@ -100,26 +101,23 @@ namespace bits {
   }
 
   // --- other bits ---
-  ull_t met_bits(const Mets& mets){ 
+  ull_t met_bits(const TVector2& mets){ 
     ull_t pass_bits = 0; 
-    if (mets.nominal.Mod() > FILTER_MET) { 
+    if (mets.Mod() > FILTER_MET) { 
       pass_bits |= pass::met; 
     }
-    if (mets.nominal.Mod() > CUTFLOW_MET) { 
+    if (mets.Mod() > CUTFLOW_MET) { 
       pass_bits |= pass::cutflow_met; 
     }
-    if (mets.muon.Mod() > FILTER_MET) pass_bits |= pass::mu_met; 
 
     return pass_bits; 
   }
 
-  ull_t bad_tile_bits(const Mets& mets, 
+  ull_t bad_tile_bits(const TVector2& mets, 
 		      const std::vector<SelectedJet*> jets) { 
-    ull_t bits = pass::bad_tile_stmet | pass::bad_tile_mumet; 
-  
+    ull_t bits = pass::bad_tile; 
     for (auto jet: jets) { 
-      if (jet->bad_tile(mets.nominal)) bits &=~ pass::bad_tile_stmet; 
-      if (jet->bad_tile(mets.muon)) bits &=~ pass::bad_tile_stmet; 
+      if (jet->bad_tile(mets)) bits &=~ pass::bad_tile; 
     }
     return bits; 
   }

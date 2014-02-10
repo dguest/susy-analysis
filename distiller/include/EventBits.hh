@@ -35,11 +35,11 @@ namespace pass {
 
   // late addition 
   const ull_t met_eff            = 1ULL << 21; 
-  const ull_t mu_met             = 1ULL << 22; 
+  // const ull_t mu_met             = 1ULL << 22; 
 
   // bad tile veto
-  const ull_t bad_tile_stmet       = 1ULL << 23; 
-  const ull_t bad_tile_mumet       = 1ULL << 24; 
+  const ull_t bad_tile           = 1ULL << 23; 
+  // const ull_t bad_tile_mumet       = 1ULL << 24; 
   // const ull_t bad_tile_stmet_up    = 1ULL << 25; 
   // const ull_t bad_tile_mumet_up    = 1ULL << 26; 
   // const ull_t bad_tile_stmet_down  = 1ULL << 27; 

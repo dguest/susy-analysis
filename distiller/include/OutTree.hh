@@ -21,8 +21,7 @@ namespace outtree {
     bool met_trigger;
     bool mu_trigger; 
     bool el_trigger;
-    bool bad_tile_stmet; 
-    bool bad_tile_mumet; 
+    bool bad_tile; 
   }; 
 
   struct EvtParameters
@@ -117,8 +116,7 @@ namespace outtree {
     ull_t pass_bits; 
     EvtParameters par; 
 
-    MetBlock met_nom; 
-    MetBlock met_mu; 
+    MetBlock met; 
 
     double min_jetmet_dphi; 
     double sum_jetmet_dphi; 

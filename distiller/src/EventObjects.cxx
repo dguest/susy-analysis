@@ -10,6 +10,8 @@
 EventObjects::EventObjects(
   const SusyBuffer& buf, SUSYObjDef& def, 
   unsigned flags, const RunInfo& info): 
+  pileup_weight(-1), 		// externally set
+
   m_all_jets(0), 
   m_all_electrons(0), 
   m_all_muons(0)

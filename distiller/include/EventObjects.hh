@@ -42,6 +42,8 @@ struct EventObjects {
   
   std::vector<int> susy_muon_idx; 
   std::vector<SelectedJet*> leading_jets; 
+
+  float pileup_weight; 
 private: 
   EventJets* m_all_jets; 
   EventElectrons* m_all_electrons; 
