@@ -20,12 +20,10 @@ class BtagScaler: boost::noncopyable
 {
 public: 
   BtagScaler(const BtagBuffer* buffer, btag::OperatingPoint); 
-  double get_scalefactor(unsigned jet_mask, Flavor flavor, 
+  double get_scalefactor(bool pass, Flavor flavor, 
 			 syst::Systematic = syst::NONE) const; 
 private: 
   const BtagBuffer* m_buffer; 
-  unsigned m_veto; 
-  unsigned m_required; 
   bool m_inverted; 
 }; 
 

@@ -50,10 +50,6 @@ void HistBuilder::add_region(const RegionConfig& region){
   }
 
   add_histogram(region); 
-
-  if (region.region_bits & reg::electron_jet) { 
-    m_factory->use_electron_jet(); 
-  }
   
   if (! (m_build_flags & buildflag::is_data) ) { 
     try { 

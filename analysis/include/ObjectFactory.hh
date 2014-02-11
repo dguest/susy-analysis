@@ -61,7 +61,6 @@ class ObjectFactory
 public: 
   ObjectFactory(std::string root_file, int n_jets); 
   ~ObjectFactory(); 
-  void use_electron_jet(bool = true); 
   void set_btagging(const std::vector<btag::OperatingPoint>&); 
   int entries() const; 
   void entry(int); 
@@ -91,7 +90,6 @@ private:
   TTree* m_tree; 
   TFile* m_file; 
   std::vector<JetBuffer*> m_jet_buffers; 
-  JetBuffer* m_electron_jet_buffer; 
 
   std::unordered_map<int, MetBuffer*> m_met; 
   std::unordered_map<int, MetBuffer*> m_mu_met; 

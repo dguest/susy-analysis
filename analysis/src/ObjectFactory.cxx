@@ -49,7 +49,6 @@ MetBuffer::MetBuffer(TTree* tree, const std::string& prefix) {
 
 ObjectFactory::ObjectFactory(std::string root_file, int n_jets) : 
   m_file(0), 
-  m_electron_jet_buffer(0), 
   m_hfor_type(-1), 
   m_leading_cjet_pos(-1), 
   m_subleading_cjet_pos(-1), 
@@ -127,20 +126,7 @@ ObjectFactory::~ObjectFactory()
     delete itr.second; 
     itr.second = 0; 
   }
-  delete m_electron_jet_buffer; 
   delete m_skim_counts; 
-}
-
-void ObjectFactory::use_electron_jet(bool use) { 
-  if (use && !m_electron_jet_buffer) { 
-    m_electron_jet_buffer = new JetBuffer; 
-    m_electron_jet_buffer->is_electron_jet = true; 
-    set_buffer(m_electron_jet_buffer, "electron_jet_"); 
-  }
-  else if (!use) { 
-    delete m_electron_jet_buffer; 
-    m_electron_jet_buffer = 0; 
-  }
 }
 
 void ObjectFactory
@@ -149,11 +135,6 @@ void ObjectFactory
   for (size_t jet_n = 0; jet_n < m_jet_buffers.size(); jet_n++) { 
     for (auto tag_iter = tags.begin(); tag_iter != tags.end(); tag_iter++) { 
       set_btag_n(jet_n, *tag_iter); 
-    }
-  }
-  if (m_electron_jet_buffer) { 
-    for (auto tag_iter = tags.begin(); tag_iter != tags.end(); tag_iter++) { 
-      set_btag(m_electron_jet_buffer, *tag_iter, "electron_jet"); 
     }
   }
 }

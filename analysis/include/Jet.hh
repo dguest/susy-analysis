@@ -39,7 +39,6 @@ private:
 
   float m_met_dphi; 
 
-
   unsigned m_ioflags; 
   const JetBuffer* m_buffer; 
   bool m_el_jet; 

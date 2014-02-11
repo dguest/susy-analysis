@@ -9,16 +9,13 @@
 BtagScaler::BtagScaler(const BtagBuffer* buffer, btag::OperatingPoint tag): 
   m_buffer(buffer)
 {
-  m_required = btag::required_from_tag(tag); 
-  m_veto = btag::veto_from_tag(tag); 
   m_inverted = btag::is_inverted(tag); 
 }
 
-double BtagScaler::get_scalefactor(unsigned jet_mask, Flavor flavor, 
+double BtagScaler::get_scalefactor(bool pass, Flavor flavor, 
 				   syst::Systematic syst) const 
 {
   using namespace syst; 
-  bool pass = (jet_mask & m_required) && !(jet_mask | m_veto); 
   double base = m_buffer->scale_factor;
   double err = m_buffer->scale_factor_err; 
 
