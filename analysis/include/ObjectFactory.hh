@@ -35,14 +35,10 @@ struct JetBuffer
   double eta; 
   double phi; 
   double E; 
-  double cnn_b; 
-  double cnn_c; 
-  double cnn_u; 
   double jfc_b; 
   double jfc_c; 
   double jfc_u; 
   int flavor_truth_label; 
-  unsigned bits; 
   std::map<std::string, BtagBuffer*> btag_buffers; 
   // TODO: the btag scalers  shoudldn't be owned by the buffer. 
   std::vector<BtagScaler*> btag_scalers; 
@@ -74,7 +70,6 @@ public:
   TVector2 met(syst::Systematic = syst::NONE) const; 
   // TODO: maybe remove mu_met entirely, just write a new set of trees 
   // for the SR
-  TVector2 mu_met(syst::Systematic = syst::NONE) const; 
   ull_t bits() const; 
   double dphi() const; 
   int n_signal_jets() const; 

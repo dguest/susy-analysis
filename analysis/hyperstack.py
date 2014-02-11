@@ -26,71 +26,11 @@ all_cuts = [
         'name': 'pt-order', 
         'output_name': 'histmill.h5', 
         'type': 'CONTROL', 
-        'jet_tag_requirements': ['JFC_MEDIUM','JFC_LOOSE'], 
-        'region_bits': 0x1 << 3, 
+        'jet_tag_requirements': ['JFC_MEDIUM','JFC_MEDIUM'], 
         'tagger':'JFC', 
         'systematic':'NONE', 
         'jet_tag_assignment':'PT_ORDERED', 
         }, 
-    { 
-        'name': 'tag-order', 
-        'output_name': 'histmill.h5', 
-        'type': 'CONTROL', 
-        'jet_tag_requirements': ['JFC_MEDIUM','JFC_LOOSE'], 
-        'region_bits': 0x1 << 3, 
-        'tagger':'JFC', 
-        'systematic':'NONE', 
-        'jet_tag_assignment':'TAG_ORDERED', 
-        }, 
-    {
-        'name': 'tag-order-metup', 
-        'output_name': 'histmill.h5', 
-        'type': 'CONTROL', 
-        'jet_tag_requirements': ['JFC_MEDIUM','JFC_LOOSE'], 
-        'region_bits': 0x1 << 3, 
-        'tagger':'JFC', 
-        'systematic':'METUP', 
-        'jet_tag_assignment':'TAG_ORDERED', 
-        }, 
-    # { 
-    #     'name': 'bosons', 
-    #     'output_name': 'bosons.h5', 
-    #     'type': 'CONTROL', 
-    #     'jet_tag_requirements': ['NOTAG','NOTAG','NOTAG'], 
-    #     'hists': 'BOSON_PT', 
-    #     'tagger':'JFC', 
-    #     'systematic':'NONE'
-    #     }, 
-    # { 
-    #     'name': 'bosons-rw', 
-    #     'output_name': 'bosons.h5', 
-    #     'type': 'CONTROL', 
-    #     'jet_tag_requirements': ['NOTAG','NOTAG','NOTAG'], 
-    #     'hists': 'BOSON_PT', 
-    #     'tagger':'JFC', 
-    #     'systematic':'NONE', 
-    #     'boson_pt_correction': 'MARKS', 
-    #     }, 
-    { 
-        'name': 'boball', 
-        'output_name': 'stupider.h5', 
-        'type': 'CONTROL', 
-        'jet_tag_requirements': [], 
-        'hists': 'HISTMILL', 
-        'tagger':'JFC', 
-        'systematic':'NONE'
-        }, 
     ]
-
-GeV = 1e3
-
-added_cuts = dict(
-    leading_jet = 260*GeV, 
-    met         = 180*GeV, 
-    # j2_anti_b   = -0.2, 
-    # j2_anti_u   =  2.5, 
-    # j3_anti_b   = -0.2, 
-    # j3_anti_u   = -0.5, 
-    )
 
 hfw.stacksusy(sys.argv[1], all_cuts, flags='v')

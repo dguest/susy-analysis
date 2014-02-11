@@ -15,17 +15,9 @@
 class ObjectFactory; 
 class EventScalefactors; 
 
-struct MetFlavors
-{
-  TVector2 bare; 
-  TVector2 muon; 
-  MetFlavors(const ObjectFactory*); 
-}; 
-
-
 struct EventObjects
 {
-  const MetFlavors met; 
+  TVector2 met; 
   double weight; 
   ull_t event_mask; 
   double htx; 
@@ -33,7 +25,6 @@ struct EventObjects
   int subleading_cjet_pos; 
   int n_signal_jets; 
   std::vector<Jet> jets; 
-  std::vector<Jet> jets_with_eljet; 
   EventScalefactors* event_scalefactors; 
   float true_boson_pt; 
   float marks_boson_pt_weight; 

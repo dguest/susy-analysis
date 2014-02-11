@@ -23,7 +23,6 @@ Jet1DHists::Jet1DHists(double max_pt, const unsigned flags,
   m_cnnLogCu = new Histogram(100, -10, 10);
   m_cnnLogBu = new Histogram(100, -10, 10);
   m_met_dphi = new Histogram(100, 0, 3.2);
-  m_mu_met_dphi = new Histogram(100, 0, 3.2);
 
   if ( !(flags & buildflag::is_data)) { 
     m_truth_label = new Histogram(21, -0.5, 20.5); 
@@ -37,7 +36,6 @@ Jet1DHists::~Jet1DHists()
   delete m_cnnLogCu; 
   delete m_cnnLogBu;
   delete m_met_dphi; 
-  delete m_mu_met_dphi; 
 
   delete m_truth_label; 
 
@@ -51,7 +49,6 @@ void Jet1DHists::write_to(H5::CommonFG& file) {
   m_cnnLogCu->write_to(file,"logCu"); 
   m_cnnLogBu->write_to(file,"logBu"); 
   m_met_dphi->write_to(file,"metDphi"); 
-  m_mu_met_dphi->write_to(file,"muMetDphi"); 
   if (m_truth_label) { 
     write_truth_info(file); 
   }
@@ -80,8 +77,7 @@ void Jet1DHists::fill(const Jet& jet, double w) {
       pb << " " << pc << " " << pu; 
     throw std::range_error(str.str()); 
   }
-  m_met_dphi->fill(std::abs(jet.met_dphi(m_systematic)),  w);
-  m_mu_met_dphi->fill(std::abs(jet.mu_met_dphi(m_systematic)), w); 
+  m_met_dphi->fill(std::abs(jet.met_dphi()),  w);
 
   if (m_truth_label) { 
     int label = static_cast<int>(jet.flavor_truth_label()); 

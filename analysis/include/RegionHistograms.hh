@@ -43,7 +43,6 @@ private:
   std::vector<Jet2DHists*> m_jet_2hists; 
 
   Histogram* m_met; 
-  Histogram* m_alt_met; 
   Histogram* m_min_dphi; 
   Histogram* m_mttop; 
   Histogram* m_n_signal_jets; 

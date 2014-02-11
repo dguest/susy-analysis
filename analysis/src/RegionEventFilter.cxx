@@ -47,16 +47,13 @@ bool RegionEventFilter::pass(const EventObjects& obj) const {
   }
 
   // --- check met ---
-  bool do_mu_met = m_region_config.region_bits & reg::mu_met; 
-  const MetFlavors& mets = obj.met; 
-  const TVector2& met = do_mu_met ? mets.muon: mets.bare; 
+  const TVector2& met = obj.met; 
   if (met.Mod() < m_region_config.met) { 
     return false; 
   }
 
   // --- check leading jet pt ---
-  bool use_electron_jet = m_region_config.region_bits & reg::electron_jet; 
-  const Jets jets = use_electron_jet ? obj.jets_with_eljet : obj.jets; 
+  const Jets& jets = obj.jets; 
   if (m_region_config.leading_jet_pt > 0.0) { 
     if (jets.at(0).Pt() < m_region_config.leading_jet_pt) { 
       return false; 
@@ -93,7 +90,7 @@ double RegionEventFilter::jet_scalefactor(const std::vector<Jet>& jets)
   const { 
   double weight = 1.0; 
   for (auto jet: jets) { 
-    weight *= jet.get_scalefactor(jet.get_tag(), m_region_config.systematic);
+    weight *= jet.get_scalefactor(m_region_config.systematic);
   }
   return weight; 
 }

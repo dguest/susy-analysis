@@ -166,34 +166,18 @@ void ObjectFactory::entry(int n) {
 }
 
 std::vector<Jet> ObjectFactory::jets() const { 
-  bool is_data = (m_ioflags & ioflag::no_truth); 
-  std::vector<syst::Systematic> met_systs = {syst::NONE}; 
-  if (!is_data) { 
-    met_systs.insert(
-      met_systs.end(),{syst::METUP, syst::METDOWN, syst::METRES});
-  }
 
   std::vector<Jet> jets_out; 
-  for (auto itr = m_jet_buffers.begin(); itr != m_jet_buffers.end(); itr++) { 
-    if ((*itr)->pt <= 0) { 
+  int jrank = 0; 
+  for (auto jet_buffer: m_jet_buffers) { 
+    if (jet_buffer->pt <= 0) { 
       return jets_out; 
     }
-    jets_out.push_back(Jet(*itr,m_ioflags)); 
+    jets_out.push_back(Jet(jet_buffer,m_ioflags)); 
     Jet& jet = *jets_out.rbegin(); 
-    for (auto sys: met_systs) { 
-      jet.set_event_met(met(sys), sys); 
-      jet.set_mu_met(mu_met(sys), sys); 
-    }
-  }
-  if (m_electron_jet_buffer) { 
-    if (m_electron_jet_buffer->pt > 0) { 
-      jets_out.push_back(Jet(m_electron_jet_buffer, m_ioflags)); 
-      for (auto sys: met_systs) { 
-	jets_out.rbegin()->set_event_met(met(sys), sys); 
-	jets_out.rbegin()->set_mu_met(met(sys), sys); 
-      }
-      std::sort(jets_out.begin(), jets_out.end(), has_higher_pt); 
-    }
+    jet.set_rank(jrank); 
+    jet.set_event_met(met()); 
+    jrank++; 
   }
 
   return jets_out; 
@@ -202,13 +186,6 @@ std::vector<Jet> ObjectFactory::jets() const {
 TVector2 ObjectFactory::met(syst::Systematic sy) const  { 
   if (!m_met.count(sy)) sy = syst::NONE; 
   const MetBuffer& buf = *m_met.at(sy); 
-  TVector2 met; 
-  met.SetMagPhi(buf.met, buf.met_phi); 
-  return met; 
-}
-TVector2 ObjectFactory::mu_met(syst::Systematic sy) const  { 
-  if (!m_mu_met.count(sy)) sy = syst::NONE; 
-  const MetBuffer& buf = *m_mu_met.at(sy); 
   TVector2 met; 
   met.SetMagPhi(buf.met, buf.met_phi); 
   return met; 

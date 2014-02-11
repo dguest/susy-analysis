@@ -4,6 +4,7 @@
 #include "BtagConfig.hh"
 
 #include <stdexcept> 
+#include <cassert> 
 
 #include "TLorentzVector.h"
 #include "TVector2.h"
@@ -15,16 +16,12 @@ namespace {
 
 Jet::Jet(const JetBuffer* basis, unsigned flags): 
   m_rank(RANK_ERROR_CODE), 
-  m_pb(basis->cnn_b), 
-  m_pc(basis->cnn_c), 
-  m_pu(basis->cnn_u), 
   m_jfc_pb(basis->jfc_b), 
   m_jfc_pc(basis->jfc_c), 
   m_jfc_pu(basis->jfc_u), 
   m_ioflags(flags), 
   m_buffer(basis), 
-  m_el_jet(false), 
-  m_tag(btag::NOTAG)
+  m_el_jet(false)
 {
   SetPtEtaPhiM(basis->pt, basis->eta, basis->phi, 0); 
   switch (basis->flavor_truth_label) { 
@@ -35,18 +32,9 @@ Jet::Jet(const JetBuffer* basis, unsigned flags):
   default: m_truth_label = Flavor::NONE; break; 
   }
 }
-void Jet::set_event_met(const TVector2& met, syst::Systematic sy) { 
-  TLorentzVector met_4vec(met.X(), met.Y(), 0, 1); 
-  m_met_dphi[sy] = met_4vec.DeltaPhi(*this); 
+void Jet::set_event_met(const TVector2& met) { 
+  m_met_dphi = met.DeltaPhi(Vect().XYvector()); 
 }
-void Jet::set_mu_met(const TVector2& met, syst::Systematic sy) { 
-  TLorentzVector met_4vec(met.X(), met.Y(), 0, 1); 
-  m_mu_met_dphi[sy] = met_4vec.DeltaPhi(*this); 
-}
-
-void Jet::set_tag(btag::OperatingPoint op) { 
-  m_tag = op; 
-}; 
 
 void Jet::set_rank(int rank) { 
   if (rank == RANK_ERROR_CODE) { 
@@ -62,42 +50,20 @@ int Jet::get_rank() const {
   return m_rank; 
 }
 
-btag::OperatingPoint Jet::get_tag() const {
-  return m_tag; 
-}; 
 
-
-double Jet::met_dphi(syst::Systematic sy) const {
-  if (!m_met_dphi.count(sy)) return m_met_dphi.at(syst::NONE); 
-  return m_met_dphi.at(sy); 
-}
-double Jet::mu_met_dphi(syst::Systematic sy) const {
-  if (!m_mu_met_dphi.count(sy)) return m_mu_met_dphi.at(syst::NONE); 
-  return m_mu_met_dphi.at(sy); 
+double Jet::met_dphi() const {
+  return m_met_dphi; 
 }
 double Jet::flavor_weight(Flavor flav, btag::Tagger tagger) const { 
   req_flavor(); 
-  if (tagger == btag::CNN) { 
-    switch (flav) { 
-    case Flavor::BOTTOM: return m_pb; 
-    case Flavor::CHARM:  return m_pc; 
-    case Flavor::LIGHT:  return m_pu; 
-    default: { 
-      throw std::invalid_argument("non-implemented flavor in " __FILE__); 
-    }
-    }
+  assert(tagger == btag::JFC); 
+  switch (flav) { 
+  case Flavor::BOTTOM: return m_jfc_pb; 
+  case Flavor::CHARM:  return m_jfc_pc; 
+  case Flavor::LIGHT:  return m_jfc_pu; 
+  default: throw std::invalid_argument(
+    "non-implemented flavor in " __FILE__); 
   }
-  else if (tagger == btag::JFC) { 
-    switch (flav) { 
-    case Flavor::BOTTOM: return m_jfc_pb; 
-    case Flavor::CHARM:  return m_jfc_pc; 
-    case Flavor::LIGHT:  return m_jfc_pu; 
-    default: { 
-      throw std::invalid_argument("non-implemented flavor in " __FILE__); 
-    }
-    }
-  }
-  throw std::invalid_argument("non-implemented tagger in " __FILE__); 
 }
 Flavor Jet::flavor_truth_label() const { 
   if (m_ioflags & ioflag::no_truth) { 
@@ -110,30 +76,23 @@ bool Jet::has_flavor() const {
   bool no_flavor = (m_ioflags & ioflag::no_flavor); 
   return !no_flavor; 
 }
+
 bool Jet::pass_tag(btag::OperatingPoint tag) const { 
-  const auto required = btag::required_from_tag(tag); 
-  const auto veto = btag::veto_from_tag(tag); 
-  const auto jet_bits = m_buffer->bits; 
-  bool has_required = ((jet_bits & required) == required); 
-  bool has_veto = (jet_bits & veto); 
-  return has_required & (!has_veto); 
+  auto anti_u = log(m_jfc_pc / m_jfc_pu); 
+  auto anti_b = log(m_jfc_pc / m_jfc_pb); 
+  bool pass_u = anti_u > btag::JFC_MEDIUM_ANTI_U_CUT; 
+  bool pass_b = anti_b > btag::JFC_MEDIUM_ANTI_B_CUT; 
+  switch (tag) { 
+  case btag::JFC_MEDIUM: return pass_u && pass_b; 
+  case btag::JFC_LOOSE: return pass_b; 
+  default: throw std::logic_error("unknown tag requested in " __FILE__); 
+  }
 }
 
-double Jet::get_scalefactor(btag::OperatingPoint tag, syst::Systematic systematic) 
-  const 
+double Jet::get_scalefactor(syst::Systematic systematic) const 
 { 
-  if (tag == btag::NOTAG) { 
-    return 1.0; 
-  }
-  auto& scalers = m_buffer->btag_scalers; 
-  if (int(scalers.size()) <= tag ) { 
-    throw std::logic_error("asked for an out of range scalefactor"); 
-  }
-  if ( !scalers.at(tag)) { 
-    throw std::logic_error("asked for an unset jet scalefactor"); 
-  }
-  return scalers.at(tag)->get_scalefactor
-    (m_buffer->bits, flavor_truth_label(),systematic); 
+  assert(false); 
+  return -1; 
 }
 
 bool Jet::is_electron_jet() const { 

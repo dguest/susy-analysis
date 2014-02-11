@@ -24,7 +24,6 @@ std::vector<Jet> OrderedJetTagFilter::tagged_jets(
     bool pass = jet.pass_tag(requested_tag); 
     if (pass) { 
       auto tagged_jet = jet; 
-      tagged_jet.set_tag(requested_tag); 
       tagged.push_back(tagged_jet); 
     } else { 
       // return empty vector if tagging fails

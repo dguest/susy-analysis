@@ -28,7 +28,6 @@ std::vector<Jet> UnorderedJetTagFilter::tagged_jets(
   if (m_n_jets_skipped > jets.size()) return tagged; 
   std::list<Jet> untagged_jets(jets.begin(), jets.end()); 
   for (size_t jn = 0; jn < m_n_jets_skipped; jn++) { 
-    untagged_jets.front().set_tag(btag::NOTAG); 
     tagged.push_back(untagged_jets.front()); 
     untagged_jets.pop_front(); 
   }
@@ -41,7 +40,6 @@ std::vector<Jet> UnorderedJetTagFilter::tagged_jets(
       if (jitr->pass_tag(op)) {
 	n_tags_found++; 
 	auto tagged_jet = *jitr; 
-	tagged_jet.set_tag(op); 
 	tagged.push_back(tagged_jet); 
 	jitr = untagged_jets.erase(jitr); 
       }

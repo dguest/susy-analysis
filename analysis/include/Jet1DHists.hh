@@ -30,7 +30,6 @@ private:
   Histogram* m_cnnLogCu; 
   Histogram* m_cnnLogBu; 
   Histogram* m_met_dphi; 
-  Histogram* m_mu_met_dphi; 
 
   void write_truth_info(H5::CommonFG&); 
   Histogram* m_truth_label; 

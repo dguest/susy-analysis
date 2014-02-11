@@ -51,10 +51,8 @@ void RegionBosonPtHistograms::fill(const EventObjects& obj) {
   if ( n_cr_passed != 1) return; 
   
   if (!m_event_filter->pass(obj)) return; 
-  bool do_mu_met = m_region_config->region_bits & reg::mu_met; 
 
-  const MetFlavors& mets = obj.met; 
-  const TVector2 met = do_mu_met ? mets.muon: mets.bare; 
+  const TVector2& met = obj.met; 
 
   double weight = obj.weight; 
   if (! (m_build_flags & buildflag::is_data)) { 
