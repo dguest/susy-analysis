@@ -11,10 +11,10 @@ if len(sys.argv) > 1:
     if sys.argv[1] == 'all': 
         files = sys.argv[2:]
         configs = ['NOMINAL','ELECTRON_CR','MUON_CR']
-    elif 'data' in sys.argv[1]: 
+    elif sys.argv[1] == 'data': 
         files = sys.argv[2:]
         flags += 'd'
-    elif 'sherpa' in sys.argv[1]: 
+    elif sys.argv[1] == 'sherpa': 
         files = sys.argv[2:]
         flags += 'p'            # boson pt reweight
     else: 
