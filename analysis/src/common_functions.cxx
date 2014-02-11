@@ -1,10 +1,24 @@
 #include "common_functions.hh"
 #include "constants_physical.hh"
 #include <vector>
+#include <string>
 #include "Jet.hh"
 #include "TVector2.h"
+#include "TTree.h"
 #include <cassert>
 #include <map>
+#include <stdexcept>
+
+void set_branch(TTree* tree, const std::string& name, void* var) { 
+  unsigned found = 0; 
+  tree->SetBranchStatus(name.c_str(), true, &found); 
+  tree->SetBranchAddress(name.c_str(), var);
+  if (found != 1) {
+    throw std::runtime_error(
+      "" + std::to_string(found) + " branches found setting "  + name);
+  }
+}
+
 
 double get_mttop(const std::vector<Jet>& jets, TVector2 met) 
 {

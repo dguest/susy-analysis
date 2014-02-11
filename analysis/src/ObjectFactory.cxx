@@ -79,7 +79,7 @@ ObjectFactory::ObjectFactory(std::string root_file, int n_jets) :
   for (int i = 0; i < n_jets; i++) { 
     std::string base_name = (boost::format("jet%i_") % i).str(); 
     m_jet_buffers.push_back(new JetBuffer); 
-    set_buffer(*m_jet_buffers.rbegin(), base_name); 
+    m_jet_buffers.back()->set_buffer(m_tree, base_name); 
   }
   if (m_tree->GetBranch("boson_pt_weight")) { 
     m_tree->SetBranchAddress("boson_pt_weight", &m_boson_pt_weight); 
@@ -115,16 +115,6 @@ ObjectFactory::~ObjectFactory()
   delete m_skim_counts; 
 }
 
-void ObjectFactory
-::set_btagging(const std::vector<btag::OperatingPoint>& tag_points){ 
-  std::set<btag::OperatingPoint> tags(tag_points.begin(), tag_points.end()); 
-  for (size_t jet_n = 0; jet_n < m_jet_buffers.size(); jet_n++) { 
-    for (auto tag_iter = tags.begin(); tag_iter != tags.end(); tag_iter++) { 
-      set_btag_n(jet_n, *tag_iter); 
-    }
-  }
-}
-
 int ObjectFactory::entries() const { 
   return m_tree->GetEntries(); 
 }
@@ -137,7 +127,7 @@ std::vector<Jet> ObjectFactory::jets() const {
   std::vector<Jet> jets_out; 
   int jrank = 0; 
   for (auto jet_buffer: m_jet_buffers) { 
-    if (jet_buffer->pt <= 0) { 
+    if (!jet_buffer->has_jet()) { 
       return jets_out; 
     }
     jets_out.push_back(Jet(jet_buffer,m_ioflags)); 
@@ -218,77 +208,6 @@ hfor::JetType ObjectFactory::hfor_type() const {
   default: 
     throw std::runtime_error("given undefined hfor type"); 
   }
-}
-
-void ObjectFactory::set_btag_n(size_t jet_n, btag::OperatingPoint tag) { 
-  std::string branch_name = (boost::format("jet%i") % jet_n).str(); 
-  if ( !(m_jet_buffers.size() > jet_n)) { 
-    throw std::range_error("asked for out of range jet " + 
-			   branch_name); 
-  }
-  if (m_ioflags & ioflag::no_truth) { 
-    throw std::logic_error("tried to set btag buffer with no truth info"); 
-  }
-
-  JetBuffer* buffer = m_jet_buffers.at(jet_n); 
-  set_btag(buffer, tag, branch_name); 
-}
-
-void ObjectFactory::set_btag(JetBuffer* buffer, btag::OperatingPoint tag, 
-			     std::string branch_name) { 
-  if (tag == btag::NOTAG) return; 
-  std::string sf_br_name = branch_name + 
-    btag::joiner(tag) + "scale_factor"; 
-  if (!buffer->btag_buffers.count(sf_br_name)) { 
-    buffer->btag_buffers[sf_br_name] = new BtagBuffer(m_tree, sf_br_name); 
-  }
-  const BtagBuffer* btag_buffer = buffer->btag_buffers[sf_br_name]; 
-
-  size_t needed_size = tag + 1; 
-  size_t scalers_size = buffer->btag_scalers.size(); 
-  if (scalers_size < needed_size) { 
-    buffer->btag_scalers.resize(needed_size); 
-  }
-  BtagScaler* scaler = buffer->btag_scalers.at(tag); 
-  if (!scaler) { 
-    scaler = new BtagScaler(btag_buffer, tag);
-  }
-  buffer->btag_scalers.at(tag) = scaler; 
-}
-
-
-void ObjectFactory::set_buffer(JetBuffer* b, std::string base_name) 
-{
-  using namespace std; 
-  string pt = base_name + "pt"; 
-  string eta = base_name + "eta"; 
-  string phi = base_name + "phi"; 
-  // not setting E because not saved yet...
-  string pb_jfc = base_name + "jfc_b"; 
-  string pc_jfc = base_name + "jfc_c"; 
-  string pu_jfc = base_name + "jfc_u"; 
-  string flavor_truth = base_name + "flavor_truth_label"; 
-  
-  set_branch(m_tree, pt.c_str(), &b->pt); 
-  set_branch(m_tree, eta.c_str(), &b->eta); 
-  set_branch(m_tree, phi.c_str(), &b->phi); 
-
-  if (m_tree->GetBranch(pb_jfc.c_str())) { 
-    set_branch(m_tree, pb_jfc.c_str(), &b->jfc_b); 
-    set_branch(m_tree, pc_jfc.c_str(), &b->jfc_c); 
-    set_branch(m_tree, pu_jfc.c_str(), &b->jfc_u); 
-  }
-  else {
-    m_ioflags |= ioflag::no_flavor; 
-  }
-
-  if (m_tree->GetBranch(flavor_truth.c_str())) { 
-    set_branch(m_tree, flavor_truth.c_str(), &b->flavor_truth_label); 
-  }
-  else { 
-    m_ioflags |= ioflag::no_truth; 
-  }
-
 }
 
 bool has_higher_pt(const Jet& v1, const Jet& v2) { 

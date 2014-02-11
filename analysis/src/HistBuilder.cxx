@@ -51,16 +51,7 @@ void HistBuilder::add_region(const RegionConfig& region){
 
   add_histogram(region); 
   
-  if (! (m_build_flags & buildflag::is_data) ) { 
-    try { 
-      m_factory->set_btagging(region.jet_tag_requirements); 
-    }
-    catch (std::runtime_error& err) { 
-      std::string app = " file: " + m_input_file; 
-      throw std::runtime_error(err.what() + app); 
-    }
-  }
-  const IRegionHistograms* hists = m_histograms.rbegin()->second; 
+  const IRegionHistograms* hists = m_histograms.back().second; 
   m_out_file_map[region.output_name].push_back(hists); 
 
 }
@@ -134,7 +125,6 @@ void HistBuilder::add_histogram(const RegionConfig& region) {
       (make_pair(region.name, 
 		 new RegionJetEfficiencyHistograms(region, m_build_flags)));
     using namespace btag; 
-    m_factory->set_btagging({NOTAG, LOOSE, MEDIUM, ANTILOOSE}); 
     return; 
   case BOSON_PT: 
     m_histograms.push_back(

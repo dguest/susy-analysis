@@ -14,7 +14,7 @@ class TVector2;
 class Jet: public TLorentzVector
 {
 public: 
-  Jet(const JetBuffer* basis, unsigned flags = 0); 
+  Jet(const JetBuffer* basis, bool has_truth); 
   int get_rank() const; 
   double met_dphi() const; 
   void set_event_flags(ull_t); 

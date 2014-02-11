@@ -45,7 +45,6 @@ class ObjectFactory
 public: 
   ObjectFactory(std::string root_file, int n_jets); 
   ~ObjectFactory(); 
-  void set_btagging(const std::vector<btag::OperatingPoint>&); 
   int entries() const; 
   void entry(int); 
   std::vector<Jet> jets() const; 
@@ -68,9 +67,6 @@ public:
   const SkimCounts* skim_counts() const; 
   EventScalefactors* event_scalefactors() const; 
 private: 
-  void set_btag_n(size_t jet_n, btag::OperatingPoint); 
-  void set_btag(JetBuffer*, btag::OperatingPoint, std::string branch_name); 
-  void set_buffer(JetBuffer* buffer, std::string base_name); 
   TTree* m_tree; 
   TFile* m_file; 
   std::vector<JetBuffer*> m_jet_buffers; 

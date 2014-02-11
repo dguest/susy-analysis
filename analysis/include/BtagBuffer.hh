@@ -5,12 +5,17 @@ class TTree;
 
 #include <string> 
 
-struct BtagBuffer 
+enum class TagSF { NOMINAL, UP, DOWN}; 
+
+class BtagBuffer 
 {
-  double scale_factor; 
-  double scale_factor_err; 
+public: 
   BtagBuffer(TTree*, std::string branch); 
+  double sf(TagSF) const; 
 private: 
+  bool m_has_err; 
+  double m_scale_factor; 
+  double m_scale_factor_err; 
   void set(TTree*, std::string branch, void* branch_address); 
 };
 

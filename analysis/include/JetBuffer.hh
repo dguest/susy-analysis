@@ -7,9 +7,19 @@
 
 class BtagScaler; 
 class BtagBuffer; 
+class TTree; 
+class Jet; 
 
-struct JetBuffer
+class JetBuffer
 { 
+public: 
+  JetBuffer(); 
+  ~JetBuffer(); 
+  void set_buffer(TTree* tree, const std::string& base_name); 
+  bool has_jet() const; 
+  Jet jet() const; 
+private: 
+  friend class Jet; 
   double pt; 
   double eta; 
   double phi; 
@@ -18,12 +28,10 @@ struct JetBuffer
   double jfc_c; 
   double jfc_u; 
   int flavor_truth_label; 
-  std::map<std::string, BtagBuffer*> btag_buffers; 
-  // TODO: the btag scalers  shoudldn't be owned by the buffer. 
-  std::vector<BtagScaler*> btag_scalers; 
-  bool is_electron_jet; 
-  JetBuffer(); 
-  ~JetBuffer(); 
+  BtagBuffer* m_medium_sf; 
+  BtagBuffer* m_loose_sf; 
+  bool m_has_truth; 
+  bool m_is_electron_jet; 
 };
 
 #endif	// JET_BUFFER_HH
