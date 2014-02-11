@@ -37,7 +37,10 @@ public:
   Cutflow run_cutflow();
 private: 
   typedef std::vector<SelectedJet*> Jets; 
+  // top level function called on each event
   void process_event(int entry_n, std::ostream&); 
+
+  // various setup
   void check_flags(); 
   void setup_streams(); 
   void setup_chain(const std::vector<std::string>& in); 
@@ -47,8 +50,9 @@ private:
 
   float get_pileup_weight(); 
   std::vector<std::pair<std::string, int> > get_cutflow_vec(int errs) const; 
-  void fill_output(const EventObjects&, const TVector2& met, 
-		   outtree::OutTree&) const;
+  // called within process_event
+  void fill_event_output(const EventObjects&, const TVector2& met, 
+			 outtree::OutTree&) const;
 
   void print_progress(int entry_n, std::ostream&); 
   RunInfo m_info; 

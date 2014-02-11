@@ -29,6 +29,7 @@ for config in configs:
         files, flags=flags, 
         grl='~/calibration/grl.xml', 
         output_ntuple='py-output.root', 
+        mumet_output_ntuple='py-output-mumet.root', 
         btag_cal_file='~/calibration/BTagCalibration.env', 
         cal_dir='~/calibration', 
         systematic='NONE', 

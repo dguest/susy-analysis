@@ -157,6 +157,7 @@ StopDistiller::Cutflow StopDistiller::run_cutflow() {
   }
 
   add_skim_report(*m_skim_report, *m_out_tree); 
+  add_skim_report(*m_skim_report, *m_mumet_out_tree); 
   return get_cutflow_vec(n_error); 
 }
 
@@ -220,12 +221,13 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   const Mets mets(*m_susy_buffer, *m_def, obj.susy_muon_idx, 
 		  sum_muon_pt(obj.control_muons), m_info.systematic);
 
-  fill_output(obj, mets.nominal, *m_out_tree); 
-  fill_output(obj, mets.muon, *m_mumet_out_tree); 
+  fill_event_output(obj, mets.nominal, *m_out_tree); 
+  fill_event_output(obj, mets.muon, *m_mumet_out_tree); 
 }
 
-void StopDistiller::fill_output(const EventObjects& obj, const TVector2& met, 
-				outtree::OutTree& out_tree) const { 
+void StopDistiller::fill_event_output(const EventObjects& obj, 
+				      const TVector2& met, 
+				      outtree::OutTree& out_tree) const { 
 
   const float pileup_weight = obj.pileup_weight; 
 

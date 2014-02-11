@@ -14,7 +14,7 @@ class CorruptedCutflow(list):
 def cutflow(input_files, flags, grl='', output_ntuple='', 
             btag_cal_file='', cal_dir='', systematic='NONE', 
             cutflow='NONE', boson_pt_max_mev=-1.0, truth_met_max_mev=-1.0, 
-            pu_config='', pu_lumicalc=''): 
+            pu_config='', pu_lumicalc='', mumet_output_ntuple=''): 
     """
     Returns a list of pairs: (cut_name, n_passing). If output_ntuple is 
     given will also write an ntuple. 
@@ -62,6 +62,7 @@ def cutflow(input_files, flags, grl='', output_ntuple='',
         'pu_config': pu_config, 
         'pu_lumicalc': _get_fixed_pathname(pu_lumicalc), 
         'out_ntuple': output_ntuple, 
+        'mumet_out_ntuple': mumet_output_ntuple, 
         }
     if 'a' in flags: 
         return _aggressive_distill(
