@@ -9,6 +9,7 @@
 #include "TLorentzVector.h"
 #include "TVector2.h"
 #include "Flavor.hh"
+#include "JetBuffer.hh"
 
 namespace { 
   const int RANK_ERROR_CODE = -10; 

@@ -13,6 +13,7 @@
 #include "EventScaleEnums.hh"
 
 class Jet; 
+class JetBuffer; 
 class TTree;
 class TFile; 
 class TVector2;
@@ -29,23 +30,6 @@ namespace ioflag {
   const unsigned has_boson_pt_weight  = 1u << 2; 
 }
 
-struct JetBuffer
-{ 
-  double pt; 
-  double eta; 
-  double phi; 
-  double E; 
-  double jfc_b; 
-  double jfc_c; 
-  double jfc_u; 
-  int flavor_truth_label; 
-  std::map<std::string, BtagBuffer*> btag_buffers; 
-  // TODO: the btag scalers  shoudldn't be owned by the buffer. 
-  std::vector<BtagScaler*> btag_scalers; 
-  bool is_electron_jet; 
-  JetBuffer(); 
-  ~JetBuffer(); 
-};
 
 struct MetBuffer 
 {

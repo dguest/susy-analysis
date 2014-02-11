@@ -1,5 +1,6 @@
 #include "ObjectFactory.hh"
 #include "Jet.hh"
+#include "JetBuffer.hh"
 #include "BtagScaler.hh"
 #include "BtagBuffer.hh"
 #include "BtagConfig.hh"
@@ -21,21 +22,6 @@ namespace {
   void set_branch(TTree* tree, const std::string& name, void* var); 
 }
 
-JetBuffer::JetBuffer(): 
-  flavor_truth_label(-1), 
-  is_electron_jet(false)
-{ 
-}
-JetBuffer::~JetBuffer() { 
-  for (auto itr = btag_scalers.begin(); itr != btag_scalers.end(); itr++) { 
-    delete *itr; 
-    *itr = 0; 
-  }
-  for (auto itr = btag_buffers.begin(); itr != btag_buffers.end(); itr++) { 
-    delete itr->second; 
-    itr->second = 0; 
-  }
-}
 
 MetBuffer::MetBuffer(TTree* tree, const std::string& prefix) { 
   int errors = 0; 
