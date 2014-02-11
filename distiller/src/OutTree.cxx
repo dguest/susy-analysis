@@ -80,12 +80,9 @@ namespace outtree {
   { 
     MAKE_BRANCH(m_tree, pass_bits); 
     par.set_branches(m_tree); 
-
     met.set_branches(m_tree, ""); 
 
-    MAKE_BRANCH(m_tree, min_jetmet_dphi); 
     MAKE_BRANCH(m_tree, event_number); 
-    MAKE_BRANCH(m_tree, htx); 
 
     if ( flags & cutflag::truth) { 
       MAKE_BRANCH(m_tree, pileup_weight); 
@@ -127,7 +124,6 @@ namespace outtree {
     hfor_type = -2; 
     event_number = 0; 
 
-    htx = 0; 
     pileup_weight = -1; 
 
     truth_leading_cjet_pos = -1; 
@@ -267,6 +263,14 @@ namespace outtree {
     MAKE_BRANCH(tree, n_veto_muons); 
     MAKE_BRANCH(tree, n_control_electrons); 
     MAKE_BRANCH(tree, n_control_muons); 
+
+    MAKE_BRANCH(tree, min_jetmet_dphi); 
+    MAKE_BRANCH(tree, met_eff); 
+    MAKE_BRANCH(tree, mct); 
+    MAKE_BRANCH(tree, mcc); 
+    MAKE_BRANCH(tree, mt); 
+    MAKE_BRANCH(tree, mll); 
+    MAKE_BRANCH(tree, htx); 
   }
 
   void EvtParameters::clear() { 
@@ -276,6 +280,15 @@ namespace outtree {
     n_veto_muons = -1; 
     n_control_electrons = -1; 
     n_control_muons = -1; 
+
+    min_jetmet_dphi = -1; 
+    met_eff = -1; 
+    mct = -1; 
+    mcc = -1; 
+    mt = -1; 
+    mll = -1; 
+    htx = -1; 
+    
   }
 
 

@@ -24,6 +24,8 @@ namespace outtree {
     bool event_quality; 
   }; 
 
+  // Reconstructed event parameters, truth level and SF parameters 
+  // are defined in the main OutTree structure. 
   struct EvtParameters
   {
     void set_branches(TTree*); 
@@ -34,6 +36,14 @@ namespace outtree {
     int n_veto_muons; 
     int n_control_electrons; 
     int n_control_muons; 
+
+    float min_jetmet_dphi; 
+    float met_eff; 
+    float mct; 
+    float mcc; 
+    float mt; 
+    float mll; 
+    float htx; 
   };
 
   struct SFBox 
@@ -118,9 +128,6 @@ namespace outtree {
 
     MetBlock met; 
 
-    double min_jetmet_dphi; 
-    double sum_jetmet_dphi; 
-
     int hfor_type; 
     unsigned event_number; 
 
@@ -131,7 +138,6 @@ namespace outtree {
     int spart1_pdgid; 
     int spart2_pdgid; 
 
-    double htx; 
     float pileup_weight; 
     SFBox el_sf; 
     SFBox mu_sf; 

@@ -22,8 +22,14 @@ void copy_event(const EventObjects& obj,
   out_tree.par.n_veto_muons = obj.veto_muons.size(); 
   out_tree.par.n_control_electrons = obj.control_electrons.size(); 
   out_tree.par.n_control_muons = obj.control_muons.size(); 
-  out_tree.htx = par.htx; 
-  out_tree.min_jetmet_dphi = par.min_jetmet_dphi;  
+
+  out_tree.par.min_jetmet_dphi = par.min_jetmet_dphi;  
+  out_tree.par.met_eff = par.met_eff; 
+  out_tree.par.mct = par.mass_ct; 
+  out_tree.par.mcc = par.mass_cc; 
+  out_tree.par.mt = par.mass_t; 
+  out_tree.par.mll = par.mass_ll; 
+  out_tree.par.htx = par.htx; 
 
   copy_met(out_tree, met); 
   copy_leading_jet_info(obj.signal_jets, out_tree); 
