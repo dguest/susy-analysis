@@ -40,9 +40,11 @@ void JetBuffer::set_buffer(TTree* tree, const std::string& base_name)
   set_branch(tree, pu_jfc.c_str(), &jfc_u); 
 
   if (tree->GetBranch(flavor_truth.c_str())) { 
+    string med_name = base_name + "jfc_medium_scale_factor"; 
+    string loose_name = base_name + "jfc_loose_scale_factor"; 
     set_branch(tree, flavor_truth.c_str(), &flavor_truth_label); 
-    m_medium_sf = new BtagBuffer(tree, "medium_scale_factor"); 
-    m_loose_sf = new BtagBuffer(tree, "loose_scale_factor"); 
+    m_medium_sf = new BtagBuffer(tree, med_name); 
+    m_loose_sf = new BtagBuffer(tree, loose_name); 
     m_has_truth = true; 
   }
 

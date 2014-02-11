@@ -57,7 +57,6 @@ ObjectFactory::ObjectFactory(std::string root_file, int n_jets) :
     throw std::runtime_error("evt_tree could not be found"); 
   }
   m_met.emplace(syst::NONE, new MetBuffer(m_tree, "")); 
-  m_mu_met.emplace(syst::NONE, new MetBuffer(m_tree, "mu_")); 
 
   set_branch(m_tree, "pass_bits", &m_bits); 
   set_branch(m_tree, "min_jetmet_dphi", &m_dphi); 
@@ -105,10 +104,6 @@ ObjectFactory::~ObjectFactory()
   m_file = 0; 
   m_evt_sf = 0; 
   for (auto itr: m_met) { 
-    delete itr.second; 
-    itr.second = 0; 
-  }
-  for (auto itr: m_mu_met) { 
     delete itr.second; 
     itr.second = 0; 
   }

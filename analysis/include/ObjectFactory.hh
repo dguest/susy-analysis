@@ -72,7 +72,6 @@ private:
   std::vector<JetBuffer*> m_jet_buffers; 
 
   std::unordered_map<int, MetBuffer*> m_met; 
-  std::unordered_map<int, MetBuffer*> m_mu_met; 
 
   ull_t m_bits; 
   double m_dphi; 
