@@ -112,8 +112,6 @@ namespace outtree {
       jets.at(i)->set_branches(m_tree, jetname, flags); 
     }
 
-    electron_jet.set_branches(m_tree, "electron_jet_", flags); 
-
     MAKE_BRANCH(m_tree, boson_child_pt); 
     MAKE_BRANCH(m_tree, boson_child_phi); 
     m_evt_bools.set_branches(m_tree); 
@@ -144,7 +142,6 @@ namespace outtree {
     for (auto itr = jets.begin(); itr != jets.end(); itr++) { 
       (*itr)->clear(); 
     }
-    electron_jet.clear(); 
     el_sf.clear(); 
     mu_sf.clear(); 
     boson_child_pt = -1; 
@@ -246,22 +243,18 @@ namespace outtree {
   tree->Branch("pass_" #branch, &branch)
 
   void EvtBools::set_branches(TTree* tree) { 
-    MAKE_PASS_BRANCH(grl); 
     MAKE_PASS_BRANCH(met_trigger); 
     MAKE_PASS_BRANCH(mu_trigger); 
     MAKE_PASS_BRANCH(el_trigger); 
-    MAKE_PASS_BRANCH(bad_tile); 
   }
 
 #define SET_FROM_BIT(BIT)	  \
   BIT = pass::BIT & bits
 
   void EvtBools::set_from_bits(ull_t bits) { 
-    SET_FROM_BIT(grl); 
     SET_FROM_BIT(met_trigger); 
     SET_FROM_BIT(mu_trigger); 
     SET_FROM_BIT(el_trigger); 
-    SET_FROM_BIT(bad_tile); 
   }
 #undef SET_FROM_BIT
 

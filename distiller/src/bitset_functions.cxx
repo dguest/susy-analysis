@@ -121,6 +121,17 @@ namespace bits {
     }
     return bits; 
   }
+
+  ull_t compound_bits(const ull_t bits) { 
+    using namespace pass;
+    const auto evt_q_req = (
+      grl | vxp_gt_4trk | jet_clean | tile_trip | tile_error | bad_tile | 
+      lar_error | energy_wt_time | core | cosmic_muon | bad_muon | jet_chf);
+    
+    ull_t out = 0; 
+    if ( (evt_q_req & bits) == evt_q_req ) out |= pass::event_quality; 
+    return out; 
+  }
 }
 
 namespace { 

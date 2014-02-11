@@ -10,15 +10,13 @@ OutputFilter::OutputFilter(const RunInfo&, unsigned run_flags ) {
 
 bool OutputFilter::should_save_event(const ull_t event_mask) { 
   if (m_save_all_events) return true; 
-  const ull_t preselection = pass::grl | pass::lar_error | pass::tile_error |
-    pass::core | pass::tile_trip | pass::vxp_gt_4trk | pass::jet_clean | 
-    pass::leading_jet;
   // -- signal region --
-  const ull_t signal_selection = preselection | pass::met | pass::n_jet; 
+  const ull_t signal_selection = pass::event_quality; // | pass::n_jet; 
   if ( (signal_selection & event_mask) == signal_selection) return true; 
 
   // -- W mu control region 
-  const ull_t wmunu_sel = preselection | pass::met | pass::control_muon; 
+  const ull_t wmunu_sel = pass::event_quality | 
+    pass::met | pass::control_muon; 
   if ( (wmunu_sel & event_mask) == wmunu_sel) return true; 
 
   // // -- Z control regions

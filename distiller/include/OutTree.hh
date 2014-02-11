@@ -17,11 +17,11 @@ namespace outtree {
     void set_branches(TTree*); 
     void set_from_bits(ull_t); 
   private: 
-    bool grl; 
     bool met_trigger;
     bool mu_trigger; 
     bool el_trigger;
-    bool bad_tile; 
+
+    bool event_quality; 
   }; 
 
   struct EvtParameters
@@ -135,8 +135,6 @@ namespace outtree {
     float pileup_weight; 
     SFBox el_sf; 
     SFBox mu_sf; 
-
-    outtree::Jet electron_jet; 
 
     float boson_child_pt; 
     float boson_child_phi; 

@@ -22,35 +22,30 @@ namespace pass {
   const ull_t energy_wt_time     = 1Ull << 12; 
   const ull_t bad_muon           = 1ULL << 13; 
   const ull_t cosmic_muon        = 1ULL << 14; 
+  const ull_t bad_tile           = 1ULL << 15; 
+  const ull_t jet_chf            = 1ULL << 16; 
+  const ull_t tile_error         = 1ULL << 17; 
+  const ull_t tile_trip          = 1ULL << 18; 
 
   // requirements for control regions
-  const ull_t control_muon       = 1ULL << 15; 
-  const ull_t control_electron   = 1ULL << 16;    
-  const ull_t sr_mct             = 1ULL << 17; 
-  const ull_t crof_mct           = 1ULL << 18; 
-  const ull_t m_cc               = 1ULL << 19; 
+  const ull_t met_eff            = 1ULL << 20; 
+  const ull_t control_muon       = 1ULL << 21; 
+  const ull_t control_electron   = 1ULL << 22;    
+  const ull_t sr_mct             = 1ULL << 23; 
+  const ull_t crof_mct           = 1ULL << 24; 
+  const ull_t m_cc               = 1ULL << 25; 
 
-  // must be set in the Analysis routines
-  // const ull_t mttop              = 1ULL << 21; 
+
+  const ull_t event_quality      = 1ULL << 30; 
 
   // late addition 
-  const ull_t met_eff            = 1ULL << 21; 
   // const ull_t mu_met             = 1ULL << 22; 
 
   // bad tile veto
-  const ull_t bad_tile           = 1ULL << 23; 
-  // const ull_t bad_tile_mumet       = 1ULL << 24; 
-  // const ull_t bad_tile_stmet_up    = 1ULL << 25; 
-  // const ull_t bad_tile_mumet_up    = 1ULL << 26; 
-  // const ull_t bad_tile_stmet_down  = 1ULL << 27; 
-  // const ull_t bad_tile_mumet_down  = 1ULL << 28; 
 
   // jet charged fraction 
-  const ull_t jet_chf            = 1ULL << 30; 
 
   // late additons to event cleaning 
-  const ull_t tile_error         = 1ULL <<  35; 
-  const ull_t tile_trip          = 1ULL <<  36; 
 
   // only for the cutflow
   const ull_t cutflow_leading    = 1ULL <<  37; 

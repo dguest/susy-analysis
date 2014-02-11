@@ -221,13 +221,14 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   const Mets mets(*m_susy_buffer, *m_def, obj.susy_muon_idx, 
 		  sum_muon_pt(obj.control_muons), m_info.systematic);
 
-  fill_event_output(obj, mets.nominal, *m_out_tree); 
+  fill_event_output(obj, mets.nominal, *m_out_tree, m_cutflow); 
   fill_event_output(obj, mets.muon, *m_mumet_out_tree); 
 }
 
 void StopDistiller::fill_event_output(const EventObjects& obj, 
 				      const TVector2& met, 
-				      outtree::OutTree& out_tree) const { 
+				      outtree::OutTree& out_tree, 
+				      BitmapCutflow* cutflow) const { 
 
   const float pileup_weight = obj.pileup_weight; 
 
@@ -241,9 +242,10 @@ void StopDistiller::fill_event_output(const EventObjects& obj,
   pass_bits |= bits::event_object_bits(obj); 
   pass_bits |= bits::met_bits(met); 
   pass_bits |= bits::bad_tile_bits(met, obj.after_overlap_jets); 
+  pass_bits |= bits::compound_bits(pass_bits); 
 
   // save bools to cutflow and out tree
-  m_cutflow->fill(pass_bits); 
+  if (cutflow) cutflow->fill(pass_bits); 
 
   // start filling out_tree here
   out_tree.clear_buffer(); 
@@ -265,14 +267,6 @@ void StopDistiller::fill_event_output(const EventObjects& obj,
       get_boson_weight(m_susy_buffer->mc_particles); 
     out_tree.truth_boson_pt = m_boson_pt_reweighter->
       get_boson_pt(m_susy_buffer->mc_particles); 
-  }
-
-  // NOTE: lepton jet should be replaced with a designated output
-  // where the replacement is done
-  auto el_jet = obj.electron_jet(); 
-  if (el_jet) { 
-    el_jet->set_flavor_tag(m_btag_calibration); 
-    copy_jet_info(el_jet, out_tree.electron_jet); 
   }
 
   // save boson decay products

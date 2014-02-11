@@ -30,6 +30,10 @@ namespace bits {
 
   ull_t bad_tile_bits(const TVector2& mets, 
 		      const std::vector<SelectedJet*> jets); 
+
+  // bits made from bits
+  ull_t compound_bits(const ull_t bits); 
+
 }
 
 
