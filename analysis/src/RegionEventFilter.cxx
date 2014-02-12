@@ -13,6 +13,7 @@
 #include "SignalSelection.hh"
 #include "OSDFSelection.hh"
 #include "OSSFSelection.hh"
+#include "CR1LSelection.hh"
 
 #include <stdexcept> 
 
@@ -131,6 +132,7 @@ namespace {
     case Selection::SIGNAL: return new SignalSelection(conf); 
     case Selection::CR_DF: return new OSDFSelection(conf); 
     case Selection::CR_SF: return new OSSFSelection(conf); 
+    case Selection::CR_1L: return new CR1LSelection(conf); 
     default: throw std::logic_error("got undefined selection in " __FILE__); 
     }
   }
