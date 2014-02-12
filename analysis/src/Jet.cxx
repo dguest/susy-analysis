@@ -22,7 +22,7 @@ Jet::Jet(const JetBuffer* basis, bool has_truth):
   m_jfc_pb(basis->m_jfc_b), 
   m_jfc_pc(basis->m_jfc_c), 
   m_jfc_pu(basis->m_jfc_u), 
-  m_ioflags(!has_truth | ioflag::no_truth), 
+  m_ioflags(!has_truth & ioflag::no_truth), 
   m_buffer(basis), 
   m_el_jet(false)
 {
