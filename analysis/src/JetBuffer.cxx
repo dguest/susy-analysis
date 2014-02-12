@@ -1,5 +1,4 @@
 #include "JetBuffer.hh"
-#include "BtagScaler.hh"
 #include "BtagBuffer.hh"
 #include "Jet.hh"
 #include "common_functions.hh"

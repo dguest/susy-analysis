@@ -1,7 +1,6 @@
 #include "ObjectFactory.hh"
 #include "Jet.hh"
 #include "JetBuffer.hh"
-#include "BtagScaler.hh"
 #include "BtagBuffer.hh"
 #include "BtagConfig.hh"
 #include "EventScalefactors.hh"
@@ -64,9 +63,6 @@ ObjectFactory::ObjectFactory(const std::string& root_file, int n_jets) :
   m_event_reco_parameters = new EventRecoParameters; 
   set_reco_parameters(m_tree, *m_event_reco_parameters); 
   set_branch(m_tree, "pass_bits", &m_bits); 
-  // set_branch(m_tree, "min_jetmet_dphi", &m_dphi); 
-  // set_branch(m_tree, "n_preselected_jets", &m_n_preselection_jets); 
-  // set_branch(m_tree, "n_signal_jets", &m_n_signal); 
 
   try { 
     set_branch(m_tree,"hfor_type", &m_hfor_type); 
@@ -80,8 +76,8 @@ ObjectFactory::ObjectFactory(const std::string& root_file, int n_jets) :
   }
 
   // set_branch(m_tree,"htx", &m_htx); 
-  for (int i = 0; i < n_jets; i++) { 
-    std::string base_name = (boost::format("jet%i_") % i).str(); 
+  for (int ji = 0; ji < n_jets; ji++) { 
+    std::string base_name = "jet" + std::to_string(ji); 
     m_jet_buffers.push_back(new JetBuffer); 
     m_jet_buffers.back()->set_buffer(m_tree, base_name); 
   }
