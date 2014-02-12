@@ -74,7 +74,7 @@ private:
   std::unordered_map<int, MetBuffer*> m_met; 
 
   ull_t m_bits; 
-  double m_dphi; 
+  float m_dphi; 
   int m_n_signal; 
   int m_n_preselection_jets; 
   int m_hfor_type; 
@@ -82,7 +82,7 @@ private:
   int m_leading_cjet_pos; 
   int m_subleading_cjet_pos; 
 
-  double m_htx; 
+  float m_htx; 
   float m_mc_event_weight; 
   float m_pileup_weight; 
   float m_boson_pt_weight; 
