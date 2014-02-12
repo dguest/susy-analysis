@@ -4,8 +4,7 @@
 #include "RegionConfig.hh"
 #include <string> 
 
-int run() { 
-  const char* input_file = "py-output.root"; 
+int run(const char* input_file) { 
   std::vector<RegionConfig> regions; 
 
   RegionConfig test; 
@@ -22,7 +21,7 @@ int run() {
   regions.push_back(test); 
 
   int syst_num = 0; 
-  for (auto systematic: {syst::METUP, syst::ELUP, syst::CUP}) { 
+  for (auto systematic: {syst::ELUP, syst::CUP}) { 
     for (auto hists: {reg::HISTMILL, reg::KINEMATIC_STAT}) { 
       for (auto tagger: {btag::JFC, btag::CNN}) { 
 	for (auto reg_bits: {0u, reg::electron_jet}) { 
@@ -55,8 +54,9 @@ int run() {
 }
 
 int main(int narg, char* argv[]) { 
+  if (narg < 2) abort(); 
   for (int iii = 0; iii < 3; iii++) { 
-    run(); 
+    run(argv[1]); 
   }
   return 0; 
 }

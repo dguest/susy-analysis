@@ -7,7 +7,7 @@
 #include "TTree.h"
 
 JetBuffer::JetBuffer(): 
-  flavor_truth_label(-1), 
+  m_flavor_truth_label(-1), 
   m_medium_sf(0), 
   m_loose_sf(0), 
   m_has_truth(false), 
@@ -16,7 +16,7 @@ JetBuffer::JetBuffer():
 }
 
 bool JetBuffer::has_jet() const { 
-  return pt > 0; 
+  return m_pt > 0; 
 }
 
 void JetBuffer::set_buffer(TTree* tree, const std::string& base_name) 
@@ -31,18 +31,18 @@ void JetBuffer::set_buffer(TTree* tree, const std::string& base_name)
   string pu_jfc = base_name + "jfc_u"; 
   string flavor_truth = base_name + "flavor_truth_label"; 
   
-  set_branch(tree, pt.c_str(), &pt); 
-  set_branch(tree, eta.c_str(), &eta); 
-  set_branch(tree, phi.c_str(), &phi); 
+  set_branch(tree, pt.c_str(), &m_pt); 
+  set_branch(tree, eta.c_str(), &m_eta); 
+  set_branch(tree, phi.c_str(), &m_phi); 
 
-  set_branch(tree, pb_jfc.c_str(), &jfc_b); 
-  set_branch(tree, pc_jfc.c_str(), &jfc_c); 
-  set_branch(tree, pu_jfc.c_str(), &jfc_u); 
+  set_branch(tree, pb_jfc.c_str(), &m_jfc_b); 
+  set_branch(tree, pc_jfc.c_str(), &m_jfc_c); 
+  set_branch(tree, pu_jfc.c_str(), &m_jfc_u); 
 
   if (tree->GetBranch(flavor_truth.c_str())) { 
     string med_name = base_name + "jfc_medium_scale_factor"; 
     string loose_name = base_name + "jfc_loose_scale_factor"; 
-    set_branch(tree, flavor_truth.c_str(), &flavor_truth_label); 
+    set_branch(tree, flavor_truth.c_str(), &m_flavor_truth_label); 
     m_medium_sf = new BtagBuffer(tree, med_name); 
     m_loose_sf = new BtagBuffer(tree, loose_name); 
     m_has_truth = true; 

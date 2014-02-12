@@ -19,15 +19,15 @@ namespace {
 
 Jet::Jet(const JetBuffer* basis, bool has_truth): 
   m_rank(RANK_ERROR_CODE), 
-  m_jfc_pb(basis->jfc_b), 
-  m_jfc_pc(basis->jfc_c), 
-  m_jfc_pu(basis->jfc_u), 
+  m_jfc_pb(basis->m_jfc_b), 
+  m_jfc_pc(basis->m_jfc_c), 
+  m_jfc_pu(basis->m_jfc_u), 
   m_ioflags(!has_truth | ioflag::no_truth), 
   m_buffer(basis), 
   m_el_jet(false)
 {
-  SetPtEtaPhiM(basis->pt, basis->eta, basis->phi, 0); 
-  switch (basis->flavor_truth_label) { 
+  SetPtEtaPhiM(basis->m_pt, basis->m_eta, basis->m_phi, 0); 
+  switch (basis->m_flavor_truth_label) { 
   case 0: m_truth_label = Flavor::LIGHT; break; 
   case 4: m_truth_label = Flavor::CHARM; break; 
   case 5: m_truth_label = Flavor::BOTTOM; break; 

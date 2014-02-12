@@ -5,11 +5,13 @@
 #include "Jet.hh"
 #include "TVector2.h"
 #include "TTree.h"
+#include "TLeaf.h"
 #include <cassert>
 #include <map>
 #include <stdexcept>
 
-void set_branch(TTree* tree, const std::string& name, void* var) { 
+void internal_set(TTree* tree, const std::string& name, 
+		  const std::string& type_name, void* var) { 
   unsigned found = 0; 
   tree->SetBranchStatus(name.c_str(), true, &found); 
   tree->SetBranchAddress(name.c_str(), var);
@@ -17,7 +19,20 @@ void set_branch(TTree* tree, const std::string& name, void* var) {
     throw std::runtime_error(
       "" + std::to_string(found) + " branches found setting "  + name);
   }
+  std::string type = tree->GetLeaf(name.c_str())->GetTypeName(); 
+  if (type != type_name) { 
+    throw std::logic_error(
+      "branch types don't match for '" + name + "': tree has " + 
+      type_name + " need a " + type); 
+  }
 }
+
+// misc crap to check type names in ROOT
+std::string get_name(unsigned long long) { return "ULong64_t"; }
+std::string get_name(double) { return "Double_t"; }
+std::string get_name(float) { return "Float_t"; }
+std::string get_name(int) { return "Int_t"; }
+
 
 
 double get_mttop(const std::vector<Jet>& jets, TVector2 met) 

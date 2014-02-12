@@ -6,6 +6,7 @@
 #include "BtagConfig.hh"
 #include "EventScalefactors.hh"
 #include "SkimCounts.hh"
+#include "common_functions.hh"
 
 #include <string> 
 #include <vector> 
@@ -17,10 +18,6 @@
 #include "TVector2.h"
 #include "TFile.h"
 #include "TTree.h"
-
-namespace { 
-  void set_branch(TTree* tree, const std::string& name, void* var); 
-}
 
 
 MetBuffer::MetBuffer(TTree* tree, const std::string& prefix) { 
@@ -209,19 +206,3 @@ bool has_higher_pt(const Jet& v1, const Jet& v2) {
   return v1.Pt() > v2.Pt(); 
 }
 
-namespace { 
-  void set_branch(TTree* tree, const std::string& name, void* var) { 
-    unsigned found = 0; 
-    tree->SetBranchStatus(name.c_str(), true, &found); 
-    tree->SetBranchAddress(name.c_str(), var);
-    if (found != 1) {
-      throw MissingBranch(
-	"" + std::to_string(found) + " branches found setting "  + name);
-    }
-  }
-}
-
-MissingBranch::MissingBranch(const std::string& str): 
-  std::runtime_error(str) 
-{
-}

@@ -70,14 +70,12 @@ int HistBuilder::build() {
   std::ostream outstream(out_buffer); 
 
   for (int entry = 0; entry < n_entries; entry++) { 
-
     if (one_percent && (entry % one_percent == 0 || entry == n_entries - 1)){ 
       outstream << boost::format("\r%i of %i (%.1f%%) processed") % 
-	entry % n_entries % ( entry / one_percent); 
+    	entry % n_entries % ( entry / one_percent); 
       outstream.flush(); 
       if (m_build_flags & buildflag::short_run && entry) break; 
     }
-
     m_factory->entry(entry); 
     
     if (! (m_build_flags & buildflag::is_data)) { 

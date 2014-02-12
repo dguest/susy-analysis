@@ -20,14 +20,14 @@ public:
   Jet jet() const; 
 private: 
   friend class Jet; 
-  double pt; 
-  double eta; 
-  double phi; 
-  double E; 
-  double jfc_b; 
-  double jfc_c; 
-  double jfc_u; 
-  int flavor_truth_label; 
+  double m_pt; 
+  double m_eta; 
+  double m_phi; 
+  double m_E; 
+  double m_jfc_b; 
+  double m_jfc_c; 
+  double m_jfc_u; 
+  int m_flavor_truth_label; 
   BtagBuffer* m_medium_sf; 
   BtagBuffer* m_loose_sf; 
   bool m_has_truth; 
