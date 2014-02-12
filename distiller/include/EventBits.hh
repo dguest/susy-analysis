@@ -33,7 +33,9 @@ namespace pass {
   const ull_t control_electron   = 1ULL << 22;    
   const ull_t sr_mct             = 1ULL << 23; 
   const ull_t crof_mct           = 1ULL << 24; 
-  const ull_t m_cc               = 1ULL << 25; 
+  const ull_t m_cc               = 1ULL << 25;
+  const ull_t ossf               = 1ULL << 26;
+  const ull_t osdf               = 1ULL << 27;
 
 
   const ull_t event_quality      = 1ULL << 30; 

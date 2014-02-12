@@ -243,6 +243,8 @@ namespace outtree {
     MAKE_PASS_BRANCH(mu_trigger); 
     MAKE_PASS_BRANCH(el_trigger); 
     MAKE_PASS_BRANCH(event_quality); 
+    MAKE_PASS_BRANCH(ossf); 
+    MAKE_PASS_BRANCH(osdf); 
   }
 
 #define SET_FROM_BIT(BIT)	  \
@@ -253,6 +255,8 @@ namespace outtree {
     SET_FROM_BIT(mu_trigger); 
     SET_FROM_BIT(el_trigger); 
     SET_FROM_BIT(event_quality); 
+    SET_FROM_BIT(ossf); 
+    SET_FROM_BIT(osdf); 
   }
 #undef SET_FROM_BIT
 

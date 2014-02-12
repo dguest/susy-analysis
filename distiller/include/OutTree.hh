@@ -22,6 +22,8 @@ namespace outtree {
     bool el_trigger;
 
     bool event_quality; 
+    bool ossf;
+    bool osdf;
   }; 
 
   // Reconstructed event parameters, truth level and SF parameters 

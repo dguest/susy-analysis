@@ -79,6 +79,17 @@ namespace bits {
     size_t n_mu = mu.size(); 
     if (n_el == 1) pass_bits |= pass::control_electron; 
     if (n_mu == 1) pass_bits |= pass::control_muon; 
+    if (n_mu == 1 && n_el == 1) { 
+      bool os = (el.at(0)->charge() * mu.at(0)->charge()) < 0; 
+      if (os) pass_bits |= pass::osdf; 
+    }
+    if (n_mu == 2 && n_el == 0) { 
+      bool os = (mu.at(0)->charge() * mu.at(1)->charge()) < 0; 
+      if (os) pass_bits |= pass::ossf; 
+    } else if (n_mu == 0 && n_el == 2) { 
+      bool os = (el.at(0)->charge() * el.at(1)->charge()) < 0; 
+      if (os) pass_bits |= pass::ossf; 
+    }
     return pass_bits; 
   }
 
