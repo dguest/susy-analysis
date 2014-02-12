@@ -46,6 +46,9 @@ static PyObject* py_analysis_alg(PyObject *self, PyObject *args)
   return tuple; 
 }
 
+// _______________________________________________________________
+// top level copy commands
+
 static bool region_copy(PyObject* list, std::vector<RegionConfig>* regs) { 
   return safe_copy<RegionConfig>(list, regs); 
 }
@@ -67,28 +70,25 @@ static bool safe_copy(PyObject* dict, RegionConfig& region)
   REQUIRE(output_name); 
   REQUIRE(type); 
   
-  COPY(required_bits); 
-  COPY(veto_bits); 
   COPY(region_bits); 
   COPY(systematic); 
   COPY(leading_jet_pt); 
-
-  if (!copy(dict, "met", region.met)) return false; 
-  if (!copy(dict, "jet_tag_requirements", 
-	    region.jet_tag_requirements)) return false; 
-  if (!copy(dict, "hists", region.hists)) return false; 
-  if (!copy(dict, "mc_mc_jet_reweight_file", 
-	    region.mc_mc_jet_reweight_file)) return false; 
-  if (!copy(dict, "tagger", region.tagger)) return false; 
-  if (!copy(dict, "jet_tag_assignment", 
-	    region.jet_tag_assignment)) return false; 
-  if (!copy(dict, "boson_pt_correction", 
-	    region.boson_pt_correction)) return false; 
-  return true; 
+  COPY(met);
+  COPY(jet_tag_requirements); 
+  COPY(hists); 
+  COPY(mc_mc_jet_reweight_file); 
+  COPY(tagger); 
+  COPY(jet_tag_assignment); 
+  COPY(boson_pt_correction); 
 
 #undef REQUIRE
 #undef COPY
+
+  return true; 
 }
+
+// _______________________________________________________________
+// basic copy types
 
 static bool safe_copy(PyObject* value, std::string& dest){ 
   std::string cstr = PyString_AsString(value);
@@ -97,12 +97,6 @@ static bool safe_copy(PyObject* value, std::string& dest){
   return true; 
 }
 
-static bool safe_copy(PyObject* value, ull_t& dest) { 
-  ull_t the_long = PyLong_AsUnsignedLongLong(value); 
-  if (PyErr_Occurred()) return false; 
-  dest = the_long; 
-  return true; 
-}
 static bool safe_copy(PyObject* value, unsigned& dest) { 
   unsigned the_long = PyLong_AsUnsignedLong(value); 
   if (PyErr_Occurred()) return false; 
@@ -117,13 +111,16 @@ static bool safe_copy(PyObject* value, double& dest) {
   return true; 
 }
 
+// _______________________________________________________________
+// enum converter copy commands
+
+// for things in some namespace / of type enum class
 #define NAME_TO_PREFIXED(PREFIX, NAME) \
   do { if (name == #NAME) {	       \
       dest = PREFIX::NAME;	       \
       return true;		       \
     }				       \
   } while (0)
-
 
 
 static bool safe_copy(PyObject* value, reg::Selection& dest) { 
@@ -293,8 +290,5 @@ static unsigned parse_flags(const char* flags){
   if(strchr(flags,'v')) bitflags |= verbose; 
   if(strchr(flags,'t')) bitflags |= fill_truth; 
   if(strchr(flags,'d')) bitflags |= is_data; 
-  if(strchr(flags,'i')) bitflags |= leading_jet_btag; 
-  if(strchr(flags,'m')) bitflags |= mttop; 
-  if(strchr(flags,'b')) bitflags |= disable_c_tags; 
   return bitflags; 
 }

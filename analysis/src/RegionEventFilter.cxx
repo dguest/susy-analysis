@@ -48,12 +48,6 @@ bool RegionEventFilter::pass(const EventObjects& obj) const {
   if (reg::throw_for_fun & m_region_config.region_bits) { 
     throw std::runtime_error("fucking fun"); 
   }
-  typedef std::vector<Jet> Jets; 
-  if (obj.event_mask & m_region_config.veto_bits) return false; 
-  const ull_t req_bits = m_region_config.required_bits; 
-  if ( (obj.event_mask & req_bits) != req_bits){
-    return false; 
-  }
 
   // --- check met ---
   const TVector2& met = obj.met; 
@@ -62,8 +56,9 @@ bool RegionEventFilter::pass(const EventObjects& obj) const {
   }
 
   // --- check leading jet pt ---
-  const Jets& jets = obj.jets; 
+  const auto& jets = obj.jets; 
   if (m_region_config.leading_jet_pt > 0.0) { 
+    if (jets.size() == 0) return false; 
     if (jets.at(0).Pt() < m_region_config.leading_jet_pt) { 
       return false; 
     }

@@ -27,8 +27,6 @@ struct RegionConfig
   btag::Assignment jet_tag_assignment; 
   double leading_jet_pt; 
   double met;  
-  ull_t required_bits; 
-  ull_t veto_bits; 
   unsigned region_bits; 
   syst::Systematic systematic; 
   std::string output_name; 
