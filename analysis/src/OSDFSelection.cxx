@@ -30,9 +30,8 @@ bool OSDFSelection::pass(const EventObjects& obj) const {
   }
   assert(false); 
   if (reco.min_jetmet_dphi < MIN_DPHI_JET_MET) return false; 
-  if (reco.mct < SR_MCT_MIN) return false; 
-  if (reco.met_eff < MET_EFF_MIN) return false; 
-  if (reco.mcc < M_CC_MIN) return false; 
+  if (reco.mct < CRDF_MCT_MIN) return false; 
+  if (reco.mcc < CRDF_M_LL_MIN) return false; 
   
 
   return true; 
