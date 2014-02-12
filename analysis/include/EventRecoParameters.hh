@@ -23,6 +23,7 @@ struct EventRecoParameters {
   float mt; 
   float mll; 
   float htx; 
+  float max_lepton_pt;
 }; 
 
 #endif 

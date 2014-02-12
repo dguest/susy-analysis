@@ -242,6 +242,8 @@ namespace {
     SET_PARAMETER(tree, mll); 
     SET_PARAMETER(tree, htx); 
 
+    SET_PARAMETER(tree, max_lepton_pt);
+
 #undef SET_PARAMETER
 
   }
