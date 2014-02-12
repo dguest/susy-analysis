@@ -44,23 +44,18 @@ struct MetBuffer
 class ObjectFactory
 {
 public: 
-  ObjectFactory(std::string root_file, int n_jets); 
+  ObjectFactory(const std::string& root_file, int n_jets); 
   ~ObjectFactory(); 
   int entries() const; 
   void entry(int); 
   std::vector<Jet> jets() const; 
   // TODO: fix this, we're not storing met systematics in the tree any more
   TVector2 met(syst::Systematic = syst::NONE) const; 
-  // TODO: maybe remove mu_met entirely, just write a new set of trees 
-  // for the SR
   ull_t bits() const; 
-  double dphi() const; 
-  int n_signal_jets() const; 
-  int n_preselected_jets() const; 
+  EventRecoParameters event_reco_parameters() const; 
   int leading_cjet_pos() const; 
   int subleading_cjet_pos() const; 
   hfor::JetType hfor_type() const; 
-  double htx() const; 
   double event_weight() const; 
   float marks_boson_pt_weight() const; 
   float boson_pt() const; 

@@ -11,6 +11,7 @@
 // #include <unordered_map>
 #include "typedefs.hh"
 #include "systematic_defs.hh"
+#include "EventRecoParameters.hh"
 
 class ObjectFactory; 
 class EventScalefactors; 
@@ -20,7 +21,7 @@ struct EventObjects
   TVector2 met; 
   double weight; 
   ull_t event_mask; 
-  double htx; 
+  EventRecoParameters reco; 
   int leading_cjet_pos; 
   int subleading_cjet_pos; 
   int n_signal_jets; 

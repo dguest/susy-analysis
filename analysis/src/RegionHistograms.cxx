@@ -151,9 +151,9 @@ void RegionHistograms::fill(const EventObjects& obj) {
   }
   m_min_dphi->fill(min_jetmet_dphi,  weight); 
 
-  m_htx->fill(obj.htx,  weight); 
+  m_htx->fill(obj.reco.htx,  weight); 
     
-  m_n_signal_jets->fill(obj.n_signal_jets,  weight); 
+  m_n_signal_jets->fill(obj.reco.n_signal_jets,  weight); 
   if (m_cjet_rank) fill_cjet_rank(obj, weight); 
 
   unsigned n_jets_truth = std::min(jets.size(), m_jet_truth_hists.size()); 
