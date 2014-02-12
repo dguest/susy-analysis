@@ -11,6 +11,11 @@
 
 #include <cassert>
 
+namespace { 
+  float get_max_lepton_pt(const std::vector<Muon*>&, 
+			  const std::vector<Electron*>&);
+}
+
 // ______________________________________________________________
 // master copy for event
 void copy_event(const EventObjects& obj, 
@@ -30,6 +35,8 @@ void copy_event(const EventObjects& obj,
   out_tree.par.mt = par.mass_t; 
   out_tree.par.mll = par.mass_ll; 
   out_tree.par.htx = par.htx; 
+  out_tree.par.max_lepton_pt = get_max_lepton_pt(
+    obj.control_muons, obj.control_electrons); 
 
   copy_met(out_tree, met); 
   copy_leading_jet_info(obj.signal_jets, out_tree); 
@@ -104,3 +111,19 @@ void copy_cjet_truth(outtree::OutTree& out_tree,
   out_tree.truth_n_cjet = n_cjet; 
 }
 
+//________________________________________________________________
+// helpers
+
+namespace { 
+  float get_max_lepton_pt(const std::vector<Muon*>& mus, 
+			  const std::vector<Electron*>& els) { 
+    double max = -1; 
+    for (const auto& el: els) { 
+      max = std::max(max, el->Pt()); 
+    }
+    for (const auto& mu: mus) { 
+      max = std::max(max, mu->Pt()); 
+    }
+    return max; 
+  }
+}
