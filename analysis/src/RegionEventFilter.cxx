@@ -7,9 +7,12 @@
 #include "OrderedJetTagFilter.hh"
 #include "UnorderedJetTagFilter.hh"
 #include "EventScalefactors.hh"
+#include "Jet.hh"
+
 #include "ISelection.hh"
 #include "SignalSelection.hh"
-#include "Jet.hh"
+#include "OSDFSelection.hh"
+
 #include <stdexcept> 
 
 namespace { 
@@ -49,6 +52,7 @@ bool RegionEventFilter::pass(const EventObjects& obj) const {
   }
 
   // assume we'll always want "quality" events..
+  if (!obj.reco.pass_event_quality) return false; 
 
   // selection configured by the region 
   if (!m_selection->pass(obj)) return false; 
@@ -124,6 +128,7 @@ namespace {
     switch (sel) { 
     case Selection::ERROR: throw std::logic_error("selection not set"); 
     case Selection::SIGNAL: return new SignalSelection(conf); 
+    case Selection::CR_DF: return new OSDFSelection(conf); 
     default: throw std::logic_error("got undefined selection in " __FILE__); 
     }
   }

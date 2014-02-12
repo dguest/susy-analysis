@@ -5,6 +5,9 @@ struct EventRecoParameters {
   bool pass_met_trigger; 
   bool pass_mu_trigger; 
   bool pass_el_trigger; 
+  bool pass_event_quality; 
+  bool pass_ossf; 
+  bool pass_osdf; 
 
   int n_preselected_jets; 
   int n_signal_jets; 

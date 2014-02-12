@@ -11,7 +11,7 @@ namespace reg {
   enum Type { CONTROL, SIGNAL, VALIDATION }; 
   enum Hists { HISTMILL, KINEMATIC_STAT, TAG_EFFICIENCY, BOSON_PT }; 
   enum BosonPtCorrection {NO_PT_CORRECTION, MARKS}; 
-  enum class Selection { SIGNAL, CR_1L, CR_SF, CR_OF, NONE, ERROR}; 
+  enum class Selection { SIGNAL, CR_1L, CR_SF, CR_DF, NONE, ERROR}; 
   // region event filter flags
   const unsigned no_extra_jets = 1u << 0; 
   const unsigned throw_for_fun = 1u << 1; 
