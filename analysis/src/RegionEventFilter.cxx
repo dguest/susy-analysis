@@ -10,7 +10,6 @@
 #include "ISelection.hh"
 #include "SignalSelection.hh"
 #include "Jet.hh"
-#include "constants_stopcuts.hh"
 #include <stdexcept> 
 
 namespace { 
@@ -49,6 +48,11 @@ bool RegionEventFilter::pass(const EventObjects& obj) const {
     throw std::runtime_error("fucking fun"); 
   }
 
+  // assume we'll always want "quality" events..
+
+  // selection configured by the region 
+  if (!m_selection->pass(obj)) return false; 
+
   // --- check met ---
   const TVector2& met = obj.met; 
   if (met.Mod() < m_region_config.met) { 
@@ -71,14 +75,6 @@ bool RegionEventFilter::pass(const EventObjects& obj) const {
     if (jets.size() > n_required_jets) return false; 
   }
 
-  // --- check dphi(jet, met) ---
-  size_t n_check = std::min(jets.size(), DPHI_JET_MET_NJET); 
-  for (size_t jet_n = 0; jet_n < n_check; jet_n++) { 
-    const auto& jet = jets.at(jet_n); 
-    if (std::abs(jet.Vect().XYvector().DeltaPhi(met)) < MIN_DPHI_JET_MET){
-      return false; 
-    }
-  }
 
   return true; 
 
