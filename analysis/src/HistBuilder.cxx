@@ -3,13 +3,9 @@
 #include "constants_schema.hh"
 #include "ObjectFactory.hh"
 #include "EventObjects.hh"
-#include "RegionHistograms.hh"
 #include "IRegionHistograms.hh"
-#include "Region2dKinematicHistograms.hh"
-#include "RegionJetEfficiencyHistograms.hh"
-#include "RegionBosonPtHistograms.hh"
+#include "histogram_factory.hh"
 #include "constants_physical.hh"
-#include "common_functions.hh"
 #include "SkimCounts.hh"
 #include "H5Cpp.h"
 #include "typedefs.hh"
@@ -108,30 +104,8 @@ void HistBuilder::save() const {
 
 void HistBuilder::add_histogram(const RegionConfig& region) {
   using namespace reg; 
-  switch (region.hists) { 
-  case HISTMILL: 
-    m_histograms.push_back
-      (make_pair(region.name,new RegionHistograms(region, m_build_flags)));
-    return; 
-  case KINEMATIC_STAT: 
-    m_histograms.push_back
-      (make_pair(region.name, 
-		 new Region2dKinematicHistograms(region, m_build_flags))); 
-    return; 
-  case TAG_EFFICIENCY:
-    m_histograms.push_back
-      (make_pair(region.name, 
-		 new RegionJetEfficiencyHistograms(region, m_build_flags)));
-    using namespace btag; 
-    return; 
-  case BOSON_PT: 
-    m_histograms.push_back(
-      make_pair(
-	region.name, new RegionBosonPtHistograms(region, m_build_flags))); 
-    return; 
-  default: {
-    throw std::logic_error("unknown hist type for region " + region.name); 
-  }
-  }
+  m_histograms.push_back(make_pair(region.name, histogram_factory(
+				     region, m_build_flags))); 
 }
+
 

@@ -5,7 +5,6 @@
 #include <map>
 #include <vector> 
 #include <utility>		// pair? 
-#include <boost/noncopyable.hpp>
 #include "typedefs.hh"
 #include "systematic_defs.hh"
 
@@ -13,10 +12,12 @@ class ObjectFactory;
 class IRegionHistograms; 
 struct RegionConfig; 
 
-class HistBuilder : public boost::noncopyable
+class HistBuilder
 {
 public: 
   HistBuilder(std::string input, const unsigned flags = 0); 
+  HistBuilder(HistBuilder&) = delete; 
+  HistBuilder& operator=(HistBuilder&) = delete; 
   ~HistBuilder(); 
   void add_region(const RegionConfig& region); 
   int build(); 
