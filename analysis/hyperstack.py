@@ -4,15 +4,6 @@ from scharm.stack import hfw
 import os, sys
 from scharm import bits
 
-# limit_dict = {
-#     'min_pt': 100*1e3, 
-#     'max_pt': 300*1e3, 
-#     'hard_cu': -0.5, 
-#     }
-
-# hyperstack.hypersusy(
-#     sys.argv[1], [('all',0)], 'hyper.h5', flags='v', limit_dict=limit_dict)
-
 all_cuts = [('all',0)] + bits.bits
 
 every_cut = 0
@@ -25,6 +16,7 @@ all_cuts = [
     { 
         'name': 'pt-order', 
         'output_name': 'histmill.h5', 
+        'selection':'SIGNAL', 
         'type': 'CONTROL', 
         'jet_tag_requirements': ['JFC_MEDIUM','JFC_MEDIUM'], 
         'tagger':'JFC', 

@@ -5,6 +5,7 @@
 #include "BtagBuffer.hh"
 #include "BtagConfig.hh"
 #include "EventScalefactors.hh"
+#include "EventRecoParameters.hh"
 #include "SkimCounts.hh"
 #include "common_functions.hh"
 
@@ -19,6 +20,9 @@
 #include "TFile.h"
 #include "TTree.h"
 
+namespace { 
+  void set_reco_parameters(TTree*, EventRecoParameters&); 
+}
 
 MetBuffer::MetBuffer(TTree* tree, const std::string& prefix) { 
   int errors = 0; 
@@ -31,7 +35,9 @@ MetBuffer::MetBuffer(TTree* tree, const std::string& prefix) {
 
 
 ObjectFactory::ObjectFactory(std::string root_file, int n_jets) : 
+  m_tree(0), 
   m_file(0), 
+  m_event_reco_parameters(0), 
   m_hfor_type(-1), 
   m_leading_cjet_pos(-1), 
   m_subleading_cjet_pos(-1), 
@@ -55,10 +61,12 @@ ObjectFactory::ObjectFactory(std::string root_file, int n_jets) :
   }
   m_met.emplace(syst::NONE, new MetBuffer(m_tree, "")); 
 
+  m_event_reco_parameters = new EventRecoParameters; 
+  set_reco_parameters(m_tree, *m_event_reco_parameters); 
   set_branch(m_tree, "pass_bits", &m_bits); 
-  set_branch(m_tree, "min_jetmet_dphi", &m_dphi); 
-  set_branch(m_tree, "n_preselected_jets", &m_n_preselection_jets); 
-  set_branch(m_tree, "n_signal_jets", &m_n_signal); 
+  // set_branch(m_tree, "min_jetmet_dphi", &m_dphi); 
+  // set_branch(m_tree, "n_preselected_jets", &m_n_preselection_jets); 
+  // set_branch(m_tree, "n_signal_jets", &m_n_signal); 
 
   try { 
     set_branch(m_tree,"hfor_type", &m_hfor_type); 
@@ -71,7 +79,7 @@ ObjectFactory::ObjectFactory(std::string root_file, int n_jets) :
     m_ioflags |= ioflag::no_truth; 
   }
 
-  set_branch(m_tree,"htx", &m_htx); 
+  // set_branch(m_tree,"htx", &m_htx); 
   for (int i = 0; i < n_jets; i++) { 
     std::string base_name = (boost::format("jet%i_") % i).str(); 
     m_jet_buffers.push_back(new JetBuffer); 
@@ -97,6 +105,7 @@ ObjectFactory::~ObjectFactory()
     m_file->Close("R"); 
   }
   delete m_file; 
+  delete m_event_reco_parameters; 
   delete m_evt_sf; 
   m_file = 0; 
   m_evt_sf = 0; 
@@ -140,14 +149,20 @@ TVector2 ObjectFactory::met(syst::Systematic sy) const  {
   return met; 
 }
 ull_t ObjectFactory::bits() const  { return m_bits; }
-double ObjectFactory::dphi()  const  { return m_dphi; }
-int ObjectFactory::n_signal_jets()   const  { return m_n_signal; }
+double ObjectFactory::dphi()  const  { 
+  return m_event_reco_parameters->min_jetmet_dphi; 
+}
+int ObjectFactory::n_signal_jets()   const  { 
+  return m_event_reco_parameters->n_signal_jets; 
+}
 int ObjectFactory::n_preselected_jets()   const  { 
-  return m_n_preselection_jets; 
+  return m_event_reco_parameters->n_preselected_jets; 
 }
 int ObjectFactory::leading_cjet_pos() const {return m_leading_cjet_pos;}
 int ObjectFactory::subleading_cjet_pos() const {return m_subleading_cjet_pos;}
-double ObjectFactory::htx() const {return m_htx;}
+double ObjectFactory::htx() const {
+  return m_event_reco_parameters->htx;
+}
 double ObjectFactory::event_weight() const 
 {
   if (m_ioflags & ioflag::no_truth) { 
@@ -205,4 +220,35 @@ hfor::JetType ObjectFactory::hfor_type() const {
 bool has_higher_pt(const Jet& v1, const Jet& v2) { 
   return v1.Pt() > v2.Pt(); 
 }
+
+
+namespace { 
+  void set_reco_parameters(TTree* tree, EventRecoParameters& re) { 
+
+#define SET_PARAMETER(tree, branch)		\
+  set_branch(tree, #branch, &re.branch)
+
+    SET_PARAMETER(tree, pass_met_trigger); 
+    SET_PARAMETER(tree, pass_mu_trigger); 
+    SET_PARAMETER(tree, pass_el_trigger); 
+
+    SET_PARAMETER(tree, n_preselected_jets); 
+    SET_PARAMETER(tree, n_signal_jets); 
+    SET_PARAMETER(tree, n_veto_electrons); 
+    SET_PARAMETER(tree, n_veto_muons); 
+    SET_PARAMETER(tree, n_control_electrons); 
+    SET_PARAMETER(tree, n_control_muons); 
+
+    SET_PARAMETER(tree, min_jetmet_dphi); 
+    SET_PARAMETER(tree, met_eff); 
+    SET_PARAMETER(tree, mct); 
+    SET_PARAMETER(tree, mcc); 
+    SET_PARAMETER(tree, mt); 
+    SET_PARAMETER(tree, mll); 
+    SET_PARAMETER(tree, htx); 
+
+#undef SET_PARAMETER
+
+  }
+}  
 

@@ -21,6 +21,7 @@ double get_mttop(const Jet& jet, TVector2 met);
 std::string get_name(unsigned long long); 
 std::string get_name(double); 
 std::string get_name(float); 
+std::string get_name(bool); 
 std::string get_name(int); 
 
 template<typename T>

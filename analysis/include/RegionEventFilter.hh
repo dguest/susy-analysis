@@ -7,6 +7,7 @@ struct EventObjects;
 class JetTagRescaler; 
 class IJetTagFilter; 
 class Jet; 
+class ISelection; 
 
 #include <vector> 
 
@@ -28,6 +29,7 @@ private:
   const RegionConfig& m_region_config; 
   const JetTagRescaler* m_jet_rescaler; 
   const IJetTagFilter* m_jet_tag_filter; 
+  const ISelection* m_selection; 
 }; 
 
 #endif 

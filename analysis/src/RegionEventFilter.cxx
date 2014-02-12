@@ -7,15 +7,23 @@
 #include "OrderedJetTagFilter.hh"
 #include "UnorderedJetTagFilter.hh"
 #include "EventScalefactors.hh"
+#include "ISelection.hh"
+#include "SignalSelection.hh"
 #include "Jet.hh"
 #include "constants_stopcuts.hh"
 #include <stdexcept> 
 
+namespace { 
+  ISelection* selection_factory(const RegionConfig&); 
+}
+
 RegionEventFilter::RegionEventFilter(const RegionConfig& config, unsigned): 
   m_region_config(config), 
   m_jet_rescaler(0), 
-  m_jet_tag_filter(0)
+  m_jet_tag_filter(0), 
+  m_selection(0)
 {
+  m_selection = selection_factory(config); 
   if (config.mc_mc_jet_reweight_file.size()) { 
     m_jet_rescaler = new JetTagRescaler(config.mc_mc_jet_reweight_file); 
   }
@@ -33,6 +41,7 @@ RegionEventFilter::RegionEventFilter(const RegionConfig& config, unsigned):
 RegionEventFilter::~RegionEventFilter() { 
   delete m_jet_rescaler; 
   delete m_jet_tag_filter; 
+  delete m_selection; 
 }
 
 bool RegionEventFilter::pass(const EventObjects& obj) const { 
@@ -114,4 +123,17 @@ float RegionEventFilter::boson_scalefactor(const EventObjects& obj) const {
     return obj.marks_boson_pt_weight; 
   }
   throw std::invalid_argument("unknown boson pt correction"); 
+}
+
+namespace { 
+  ISelection* selection_factory(const RegionConfig& conf) 
+  { 
+    using namespace reg; 
+    Selection sel = conf.selection; 
+    switch (sel) { 
+    case Selection::ERROR: throw std::logic_error("selection not set"); 
+    case Selection::SIGNAL: return new SignalSelection(conf); 
+    default: throw std::logic_error("got undefined selection in " __FILE__); 
+    }
+  }
 }

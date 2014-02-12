@@ -23,6 +23,7 @@ class TLorentzVector;
 class SFBox; 
 class EventScalefactors; 
 class SkimCounts; 
+class EventRecoParameters; 
 
 namespace ioflag {
   const unsigned no_flavor            = 1u << 0; 
@@ -73,16 +74,18 @@ private:
 
   std::unordered_map<int, MetBuffer*> m_met; 
 
+  EventRecoParameters* m_event_reco_parameters; 
+
   ull_t m_bits; 
-  float m_dphi; 
-  int m_n_signal; 
-  int m_n_preselection_jets; 
+  // float m_dphi; 
+  // int m_n_signal; 
+  // int m_n_preselection_jets; 
   int m_hfor_type; 
   
   int m_leading_cjet_pos; 
   int m_subleading_cjet_pos; 
 
-  float m_htx; 
+  // float m_htx; 
   float m_mc_event_weight; 
   float m_pileup_weight; 
   float m_boson_pt_weight; 

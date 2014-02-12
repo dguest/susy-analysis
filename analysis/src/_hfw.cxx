@@ -57,15 +57,22 @@ static bool safe_copy(PyObject* dict, RegionConfig& region)
     PyErr_SetString(PyExc_ValueError, "Expected RegionConfig formatted dict");
     return false; 
   }
-  if (!require(dict, "name", region.name)) return false; 
-  if (!require(dict, "output_name", region.output_name)) return false;
-  if (!require(dict, "type", region.type)) return false;
+#define REQUIRE(symbol)						\
+  if (!require(dict, #symbol, region.symbol)) return false
+#define COPY(symbol)						\
+  if (!copy(dict, #symbol, region.symbol)) return false
+
+  REQUIRE(name);
+  REQUIRE(selection); 
+  REQUIRE(output_name); 
+  REQUIRE(type); 
   
-  if (!copy(dict, "required_bits", region.required_bits)) return false;
-  if (!copy(dict, "veto_bits", region.veto_bits)) return false;
-  if (!copy(dict, "region_bits", region.region_bits)) return false;
-  if (!copy(dict, "systematic", region.systematic)) return false; 
-  if (!copy(dict, "leading_jet_pt", region.leading_jet_pt)) return false;
+  COPY(required_bits); 
+  COPY(veto_bits); 
+  COPY(region_bits); 
+  COPY(systematic); 
+  COPY(leading_jet_pt); 
+
   if (!copy(dict, "met", region.met)) return false; 
   if (!copy(dict, "jet_tag_requirements", 
 	    region.jet_tag_requirements)) return false; 
@@ -78,6 +85,9 @@ static bool safe_copy(PyObject* dict, RegionConfig& region)
   if (!copy(dict, "boson_pt_correction", 
 	    region.boson_pt_correction)) return false; 
   return true; 
+
+#undef REQUIRE
+#undef COPY
 }
 
 static bool safe_copy(PyObject* value, std::string& dest){ 
@@ -106,6 +116,41 @@ static bool safe_copy(PyObject* value, double& dest) {
   dest = the_double; 
   return true; 
 }
+
+#define NAME_TO_PREFIXED(PREFIX, NAME) \
+  do { if (name == #NAME) {	       \
+      dest = PREFIX::NAME;	       \
+      return true;		       \
+    }				       \
+  } while (0)
+
+
+
+static bool safe_copy(PyObject* value, reg::Selection& dest) { 
+  char* charname = PyString_AsString(value); 
+  if (PyErr_Occurred()) return false; 
+  std::string name(charname); 
+  using namespace reg; 
+
+  NAME_TO_PREFIXED(Selection, SIGNAL); 
+  NAME_TO_PREFIXED(Selection, CR_1L); 
+  NAME_TO_PREFIXED(Selection, CR_SF); 
+  NAME_TO_PREFIXED(Selection, CR_OF); 
+  NAME_TO_PREFIXED(Selection, NONE); 
+
+  std::string problem = "got undefined selection: " + name; 
+  PyErr_SetString(PyExc_ValueError,problem.c_str()); 
+  return false; 
+}
+
+
+#define NAME_TO_DEST(NAME)		\
+  do { if (name == #NAME) { \
+    dest = NAME; \
+    return true; \
+    }		 \
+  } while (0)
+
 
 static bool safe_copy(PyObject* value, btag::OperatingPoint& dest) { 
   char* charname = PyString_AsString(value); 
