@@ -100,7 +100,7 @@ void Skimmer::copyVariablesTo(TTree* output_tree, TFile* file) {
       event_wt = buffer.mcevt_weight->at(0).at(0); 
       summary.total_event_weight += event_wt; 
     }
-    if (hasWillsTriggers(buffer.triggers, buffer.met)) { 
+    if (hasTriggerRequirements(buffer.triggers, buffer.met)) { 
       summary.skimmed_events++; 
       output_tree->Fill(); 
     }
@@ -132,22 +132,28 @@ namespace {
   }
 
   bool hasTriggerRequirements(const Triggers& tr, const Met& met) { 
-    if (tr.EF_mu18_tight_mu8_EFFS || 
-	tr.EF_mu24i_tight || 
-	tr.EF_mu36_tight ||
-	tr.EF_e24vhi_medium1 ||
-	tr.EF_e60_medium1 ||
-	tr.EF_2e12Tvh_loose1) { 
-      return true; 
-    }
+    // ACHTUNG: should update these with some thresholds on reco quantities
+    // if (tr.EF_mu18_tight_mu8_EFFS || 
+    // 	tr.EF_mu24i_tight || 
+    // 	tr.EF_mu36_tight ||
+    // 	tr.EF_e24vhi_medium1 ||
+    // 	tr.EF_e60_medium1 ||
+    // 	tr.EF_2e12Tvh_loose1) { 
+    //   return true; 
+    // }
     constexpr float threshold2 = std::pow(skim::MET_REQUIREMENT,2); 
     float met_x2 = std::pow(met.etx - met.muon_etx,2); 
     float met_y2 = std::pow(met.ety - met.muon_ety,2); 
-    if (tr.EF_xe80_tclcw_tight || 
-	tr.EF_xe80T_tclcw_loose || 
-	tr.EF_xe80_tclcw_loose) { 
+    if (
+      // tr.EF_xe80_tclcw_tight || 
+      // 0
+      // tr.EF_xe80T_tclcw_loose || 
+      // 9811
+      tr.EF_xe80_tclcw_loose ||
+      // 10000 or 0???
+      false) { 
       if (met_x2 + met_y2 > threshold2) { 
-	return true; 
+    	return true; 
       }
     }
     return false; 
@@ -160,6 +166,8 @@ namespace {
       puts(itr.c_str()); 
     }
   }
+  // turns out that Will's triggers are _way_ too loose: 
+  // the met triggers let _everything_ through!
   bool hasWillsTriggers(const Triggers& tr, const Met& met) { 
     if (
       tr.EF_xe80T_tclcw_loose ||
