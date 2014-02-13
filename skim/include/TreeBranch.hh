@@ -79,18 +79,21 @@ public:
   ObjBranch(TTree& in_tree, const std::string& branch_name); 
   ObjBranch(T* in_ptr, const std::string& branch_name, 
 	     const std::string& branch_class = ""); 
+  ~ObjBranch(); 
   void addToTree(TTree& tree); 
   void dump() const; 
 private: 
   std::string m_branch_name; 
   T* m_value; 
   std::string m_branch_class; 
+  bool m_owner;
 }; 
 
 template<typename T>
 ObjBranch<T>::ObjBranch(TTree& in_tree, const std::string& branch_name): 
   m_branch_name(branch_name),
-  m_value(0)
+  m_value(new T), 
+  m_owner(true)
 { 
   setOrThrow(in_tree, branch_name, &m_value); 
   m_branch_class = in_tree.FindBranch(branch_name.c_str())->GetClassName();
@@ -101,8 +104,16 @@ ObjBranch<T>::ObjBranch(T* in_ptr, const std::string& branch_name,
 			const std::string& branch_class) : 
   m_branch_name(branch_name), 
   m_value(in_ptr), 
-  m_branch_class(branch_class)
+  m_branch_class(branch_class), 
+  m_owner(false)
 { 
+}
+
+template<typename T>
+ObjBranch<T>::~ObjBranch() { 
+  if (m_owner) { 
+    delete m_value; 
+  }
 }
 
 template<typename T>

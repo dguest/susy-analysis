@@ -22,3 +22,7 @@ void FlatOwnedBranch<bool>::dump() const {
   puts(m_value ? "true" : "false"); 
 }
 
+template<>
+void ObjBranch<std::vector<float> >::dump() const { 
+  printf("float vec, len %i\n", m_value->size()); 
+}
