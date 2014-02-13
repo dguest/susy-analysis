@@ -26,3 +26,9 @@ template<>
 void ObjBranch<std::vector<float> >::dump() const { 
   printf("float vec, len %i\n", static_cast<int>(m_value->size())); 
 }
+
+template<>
+void FlatBranch<bool>::dump() const { 
+  printf("bool "); 
+  puts(*m_value ? "true" : "false"); 
+}

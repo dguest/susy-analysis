@@ -85,7 +85,7 @@ private:
   std::set<std::string> m_exposed_inputs; 
   std::set<std::string> m_missing_inputs; 
   bool m_has_mc; 
-  bool m_has_xe80_tclcw_tight; 
+  bool m_has_xe80_tclcw_loose; 
 }; 
 
 class VariableTranscriptionError: public std::logic_error

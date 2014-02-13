@@ -19,7 +19,7 @@ SusyBuffer::SusyBuffer(TChain& chain,
 		       const std::vector<std::string>& variables): 
   m_requested_passthrough(variables.begin(), variables.end()), 
   m_has_mc(true), 
-  m_has_xe80_tclcw_tight(true)
+  m_has_xe80_tclcw_loose(true)
 { 
   if (chain.GetEntries() == 0) { 
     throw TolerableDataError("chain is empty, nothing to skim"); 
@@ -129,26 +129,26 @@ void SusyBuffer::setMcBranches(TChain& chain) {
   }
 }
 
+#define SET_TRIG(name, save)			\
+  set(chain, #name, &tr.name, save)
+
 void SusyBuffer::setTriggerBranches(TChain& chain) { 
   Triggers& tr = triggers; 
   try { 
-    set(chain, "EF_xe80_tclcw_loose", &tr.EF_xe80_tclcw_tight, Save::ALWAYS); 
+    SET_TRIG(EF_xe80_tclcw_loose, Save::ALWAYS); 
   } catch (MissingBranchError& err) { 
-    m_has_xe80_tclcw_tight = false; 
-    tr.EF_xe80_tclcw_tight = false; 
+    m_has_xe80_tclcw_loose = false; 
+    tr.EF_xe80_tclcw_loose = false; 
   }
-  set(chain, "EF_xe80T_tclcw_loose", &tr.EF_xe80T_tclcw_loose, Save::ALWAYS); 
-  set(chain, "EF_xe80_tclcw_tight",  &tr.EF_xe80_tclcw_tight, Save::ALWAYS); 
-  set(chain, "EF_xe80T_tclcw",         &tr.EF_xe80T_tclcw, Save::ALWAYS); 
-
-  set(chain, "EF_e24vhi_medium1", &tr.EF_e24vhi_medium1, Save::ALWAYS); 
-  set(chain, "EF_e60_medium1"   , &tr.EF_e60_medium1, Save::ALWAYS);    
-  set(chain, "EF_2e12Tvh_loose1", &tr.EF_2e12Tvh_loose1, Save::ALWAYS); 
-
-  set(chain, "EF_mu18_tight_mu8_EFFS", 
-      &tr.EF_mu18_tight_mu8_EFFS, Save::ALWAYS); 
-  set(chain, "EF_mu24i_tight",         &tr.EF_mu24i_tight, Save::ALWAYS); 
-  set(chain, "EF_mu36_tight",          &tr.EF_mu36_tight, Save::ALWAYS); 
+  SET_TRIG(EF_xe80T_tclcw_loose, Save::ALWAYS); 
+  SET_TRIG(EF_xe80_tclcw_tight, Save::ALWAYS); 
+  SET_TRIG(EF_xe80T_tclcw, Save::ALWAYS); 
+  SET_TRIG(EF_mu18_tight_mu8_EFFS, Save::ALWAYS); 
+  SET_TRIG(EF_mu24i_tight, Save::ALWAYS); 
+  SET_TRIG(EF_mu36_tight, Save::ALWAYS); 
+  SET_TRIG(EF_e24vhi_medium1, Save::ALWAYS); 
+  SET_TRIG(EF_2e12Tvh_loose1, Save::ALWAYS); 
+  SET_TRIG(EF_e60_medium1, Save::ALWAYS);    
 }
 
 void SusyBuffer::setMetBranches(TChain& chain) { 
