@@ -32,8 +32,10 @@ Electron::Electron(const EventElectrons* container, int index) {
   SUSYObjDef* def = container->m_def; 
   const TLorentzVector& tlv = def->GetElecTLV(index); 
   SetPxPyPzE(tlv.Px(), tlv.Py(), tlv.Pz(), tlv.E()); 
-  
-  m_is_signal = def->IsSignalElectron
+
+  // ACHTUNG: this block is removed until we fix the trackz0pv 
+  // variable in the skims
+  m_is_signal = /* def->IsSignalElectron
     (index, 
      buffer->el_tightPP  ->at(index), 
      buffer->el_ptcone20 ->at(index),
@@ -43,7 +45,8 @@ Electron::Electron(const EventElectrons* container, int index) {
      SIGNAL_ELECTRON_ISO_CUT, 
      SIGNAL_ELECTRON_D0_CUT, 
      SIGNAL_ELECTRON_Z0_CUT); 
-  
+		*/ false; 
+
   m_rel_isolation = buffer->el_ptcone20->at(index) / Pt(); 
   m_charge = buffer->el_charge->at(index); 
 
@@ -71,6 +74,7 @@ bool Electron::pass_susy() const {
   return m_pass_susy; 
 }
 bool Electron::is_signal() const { 
+  assert(false); 
   return m_is_signal; 
 }
 double Electron::rel_isolation() const {
@@ -242,8 +246,8 @@ bool el_size_check(const SusyBuffer& buffer) {
   CHECK_SIZE(buffer.el_MET_Egamma10NoTau_wet, buffer.el_n); 
   CHECK_SIZE(buffer.el_tightPP   , buffer.el_n);
   CHECK_SIZE(buffer.el_ptcone20  , buffer.el_n);
-  CHECK_SIZE(buffer.el_trackd0pv , buffer.el_n); 
-  CHECK_SIZE(buffer.el_trackz0pv , buffer.el_n); 
+  // CHECK_SIZE(buffer.el_trackd0pv , buffer.el_n); 
+  // CHECK_SIZE(buffer.el_trackz0pv , buffer.el_n); 
   return true; 
 }
 

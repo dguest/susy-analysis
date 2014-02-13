@@ -90,8 +90,9 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br):
   SET(fChain,el_mediumPP); 
   SET(fChain,el_tightPP); // for IsSignal
   SET(fChain,el_ptcone20); // for IsSignal
-  SET(fChain,el_trackd0pv); // for IsSignal
-  SET(fChain,el_trackz0pv); // for IsSignal
+  // ACHTUNG: these were removed because of a bad skim...
+  // SET(fChain,el_trackd0pv); // for IsSignal
+  // SET(fChain,el_trackz0pv); // for IsSignal
   SET(fChain,el_charge); 
   SET(fChain,el_cl_E); 
   SET(fChain,el_cl_eta); 
