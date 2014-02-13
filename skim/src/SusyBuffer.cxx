@@ -37,7 +37,7 @@ SusyBuffer::SusyBuffer(TChain& chain,
   for (const auto itr: variables) { 
     // if they haven't already been processed in the above setting routines
     // we need to add them to the outputs here. 
-    if (!m_exposed_inputs.count(itr) ) { 
+    if (!m_exposed_inputs.count(itr) && !m_out_branches.count(itr) ) { 
       m_out_branches.insert(
 	std::make_pair(itr,getBranchBuffer(chain, itr))); 
       if (!m_out_branches.find(itr)->second) { 
