@@ -25,7 +25,8 @@ Skimmer::Skimmer(const std::vector<std::string>& vars):
   m_chain(0), 
   m_variables(vars), 
   m_skimmed_var_prefix("skimmed_"), 
-  m_chain_name("susy")
+  m_chain_name("susy"), 
+  m_fast(false)
 { 
   m_chain = new TChain(m_chain_name.c_str(), m_chain_name.c_str()); 
 }
