@@ -26,7 +26,7 @@ RegionHistograms::RegionHistograms(const RegionConfig& config,
   m_jet_scalefactor(0), 
   m_lepton_scalefactor(0)
 { 
-  const double max_pt = 1e3*GeV; 
+  const double max_pt = 1_TeV; 
   const size_t n_jets = N_JETS_TO_READ; 
 
   if (config.output_name.size() == 0) { 

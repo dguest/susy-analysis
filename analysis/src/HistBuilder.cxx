@@ -5,7 +5,6 @@
 #include "EventObjects.hh"
 #include "IRegionHistograms.hh"
 #include "histogram_factory.hh"
-#include "constants_physical.hh"
 #include "SkimCounts.hh"
 #include "H5Cpp.h"
 #include "typedefs.hh"

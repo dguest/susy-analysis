@@ -13,7 +13,6 @@
 #include <set> 
 #include <stdexcept> 
 #include <algorithm>
-#include <boost/format.hpp>
 
 #include "TVector2.h"
 #include "TFile.h"
