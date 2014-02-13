@@ -35,6 +35,10 @@ Skimmer::~Skimmer() {
   delete m_chain; 
 }
 
+void Skimmer::runFast() { 
+  m_fast = true; 
+}
+
 void Skimmer::addFile(const std::string& file_name) 
 { 
   if (!entriesInTree(file_name, m_chain_name)) { 
@@ -66,8 +70,8 @@ void Skimmer::makeSkim(const std::string& out_file_name) {
 
 // ----- private ----
 
-const char* Skimmer::pfx(const std::string& word) { 
-  return (m_skimmed_var_prefix + word).c_str(); 
+std::string Skimmer::pfx(const std::string& word) { 
+  return m_skimmed_var_prefix + word; 
 }
 
 void Skimmer::copyVariablesTo(TTree* output_tree, TFile* file) { 
@@ -78,8 +82,8 @@ void Skimmer::copyVariablesTo(TTree* output_tree, TFile* file) {
   float event_wt = 0; 
   float boson_pt = -1.0; 
   if (buffer.hasMc()) {
-    output_tree->Branch(pfx("mcevt_weight"), &event_wt); 
-    output_tree->Branch(pfx("boson_pt"), &boson_pt); 
+    output_tree->Branch(pfx("mcevt_weight").c_str(), &event_wt); 
+    output_tree->Branch(pfx("boson_pt").c_str(), &boson_pt); 
   }
 
   SummaryParameters summary(buffer.hasMc()); 
@@ -108,7 +112,7 @@ void Skimmer::copyVariablesTo(TTree* output_tree, TFile* file) {
       summary.skimmed_events++; 
       output_tree->Fill(); 
     }
-    // break; 
+    if (m_fast) break; 
   }
   if (file) { 
     summary.writeTo(*file); 

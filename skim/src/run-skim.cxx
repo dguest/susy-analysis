@@ -20,6 +20,10 @@ int main(int narg, char* argv[]) {
   Skimmer skim(variables); 
   for (int nn = 1; nn < narg; nn++) { 
     std::stringstream full_arg(argv[nn]); 
+    if (full_arg.str() == "--check") {
+      skim.runFast(); 
+      continue; 
+    }
     std::string file_name; 
     while (std::getline(full_arg, file_name, ',')) { 
       skim.addFile(file_name); 
