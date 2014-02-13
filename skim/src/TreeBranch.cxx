@@ -24,5 +24,5 @@ void FlatOwnedBranch<bool>::dump() const {
 
 template<>
 void ObjBranch<std::vector<float> >::dump() const { 
-  printf("float vec, len %i\n", m_value->size()); 
+  printf("float vec, len %i\n", static_cast<int>(m_value->size())); 
 }

@@ -15,8 +15,7 @@ int main(int narg, char* argv[]) {
   std::string line; 
   if (!var_file.is_open()) throw std::runtime_error("can't read " + varf);
   while (!var_file.eof()) { 
-    var_file >> line; 
-    variables.push_back(line); 
+    if (var_file >> line) variables.push_back(line); 
   }
   Skimmer skim(variables); 
   for (int nn = 1; nn < narg; nn++) { 
