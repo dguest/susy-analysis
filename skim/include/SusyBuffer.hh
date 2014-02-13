@@ -15,6 +15,9 @@ class TTree;
 enum class Save { IF_LISTED, ALWAYS, NEVER }; 
 
 struct Triggers { 
+  Triggers() = default; 
+  Triggers(Triggers&) = delete;
+  Triggers& operator=(Triggers&) = delete; 
   bool EF_xe80_tclcw_tight; 	// from stop -> charm search (not sure why..)
   bool EF_xe80T_tclcw_loose; 	// missing the first few bunch trains
   bool EF_xe80_tclcw_loose; 	// missing in the beginning of year
