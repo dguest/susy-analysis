@@ -18,7 +18,8 @@ namespace {
   bool hasTriggerRequirements(const Triggers&, const Met&); 
   bool hasWillsTriggers(const Triggers& tr, const Met& met); 
   void dumpMissing(const SusyBuffer& buffer); 
-  bool entriesInTree(const std::string& file, const std::string& = ""); 
+  long long entriesInTree(const std::string& file, 
+			  const std::string& tree_name); 
 }
 
 Skimmer::Skimmer(const std::vector<std::string>& vars): 
@@ -26,6 +27,8 @@ Skimmer::Skimmer(const std::vector<std::string>& vars):
   m_variables(vars), 
   m_skimmed_var_prefix("skimmed_"), 
   m_chain_name("susy"), 
+  m_collection_tree_name("CollectionTree"), 
+  m_collection_tree_events(0), 
   m_fast(false)
 { 
   m_chain = new TChain(m_chain_name.c_str(), m_chain_name.c_str()); 
@@ -47,6 +50,8 @@ void Skimmer::addFile(const std::string& file_name)
     return; 
   }
   m_chain->Add(file_name.c_str(), -1); 
+  m_collection_tree_events += entriesInTree(file_name, 
+					    m_collection_tree_name); 
 }
 
 void Skimmer::makeSkim(const std::string& out_file_name) { 
@@ -91,6 +96,7 @@ void Skimmer::copyVariablesTo(TTree* output_tree, TFile* file) {
   
   const int n_entries = m_chain->GetEntries(); 
   summary.total_events = n_entries; 
+  summary.collection_tree_events = m_collection_tree_events; 
   for (int entry_n = 0; entry_n < n_entries; entry_n++) { 
     m_chain->GetEntry(entry_n); 
 
@@ -124,21 +130,17 @@ void Skimmer::copyVariablesTo(TTree* output_tree, TFile* file) {
 }
 
 namespace { 
-  bool entriesInTree(const std::string& fname, const std::string& tree) { 
+  long long entriesInTree(const std::string& fname, const std::string& tree){ 
     std::unique_ptr<TFile> file(TFile::Open(fname.c_str())); 
     if (!file) throw std::runtime_error("no file: " + fname);
     if (!file->IsOpen() || file->IsZombie()) { 
       throw std::runtime_error("bad file: " + fname); 
     }
-    if (tree.size() > 0) { 
-      TTree* the_tree = dynamic_cast<TTree*>(file->Get(tree.c_str())); 
-      if (!the_tree) { 
-	throw std::runtime_error("missing tree " + tree + " in " + fname); 
-      } else if (the_tree->GetEntries() == 0) { 
-	return false; 
-      }
-    }
-    return true; 
+    TTree* the_tree = dynamic_cast<TTree*>(file->Get(tree.c_str())); 
+    if (!the_tree) { 
+      throw std::runtime_error("missing tree " + tree + " in " + fname); 
+    } 
+    return the_tree->GetEntries(); 
   }
 
   bool hasTriggerRequirements(const Triggers& tr, const Met& met) { 
@@ -196,6 +198,7 @@ namespace {
 
 SummaryParameters::SummaryParameters(bool has_mc) : 
   total_event_weight(0), 
+  collection_tree_events(0),
   total_events(0), 
   skimmed_events(0), 
   has_bosons(has_mc), 
@@ -206,8 +209,11 @@ SummaryParameters::SummaryParameters(bool has_mc) :
 void SummaryParameters::writeTo(TFile& file) const { 
   TParameter<long long> events("total_events", total_events); 
   TParameter<long long> skimmed("skimmed_events", skimmed_events); 
+  TParameter<long long> col_tree("collection_tree_events", 
+				 collection_tree_events); 
   file.WriteTObject(&events); 
   file.WriteTObject(&skimmed); 
+  file.WriteTObject(&col_tree); 
   if (has_mc) { 
     TParameter<double> skim_total("total_event_weight", total_event_weight); 
     TParameter<bool> bosons_found("bosons_found", has_bosons);

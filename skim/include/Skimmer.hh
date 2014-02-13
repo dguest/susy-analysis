@@ -11,6 +11,7 @@ class SusyBuffer;
 
 struct SummaryParameters { 
   double total_event_weight; 
+  long long collection_tree_events;
   long long total_events; 
   long long skimmed_events; 
   bool has_bosons; 
@@ -38,6 +39,8 @@ private:
   std::vector<std::string> m_variables; 
   std::string m_skimmed_var_prefix; 
   std::string m_chain_name; 
+  std::string m_collection_tree_name; 
+  long long m_collection_tree_events;
   bool m_fast; 
 }; 
 
