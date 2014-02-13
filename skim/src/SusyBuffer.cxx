@@ -52,6 +52,12 @@ SusyBuffer::~SusyBuffer() {
   for (auto itr: m_out_branches) { 
     delete itr.second; 
   }
+  delete mc_pt; 
+  delete mc_eta; 
+  delete mc_phi; 
+  delete mc_m; 
+  delete mc_status; 
+  delete mc_pdgId; 
 }
 
 std::set<std::string> SusyBuffer::getExposedInputs() const { 
@@ -126,6 +132,13 @@ void SusyBuffer::setMcBranches(TChain& chain) {
     set(chain, "mc_m",      &mc_m     , should_save_mc); 
     set(chain, "mc_status", &mc_status, should_save_mc); 
     set(chain, "mc_pdgId",  &mc_pdgId , should_save_mc); 
+  } else { 
+    mc_pt = 0; 
+    mc_eta = 0; 
+    mc_phi = 0; 
+    mc_m = 0; 
+    mc_status = 0; 
+    mc_pdgId = 0; 
   }
 }
 
