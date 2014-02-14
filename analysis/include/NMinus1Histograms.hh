@@ -9,6 +9,7 @@
 class Histogram; 
 struct Axis; 
 class RegionConfig;
+class ISelection;
 
 namespace H5 { 
   class CommonFG; 
@@ -18,10 +19,21 @@ namespace nminus {
   const float MAX_LEADING_JET_PT = 500e3; 
   const float MAX_MET = 500e3; 
   const float MEV_PER_BIN = 5.0e3; 
+
+  // names for internal use (and saving)
+  const std::string J1_PT = "j1_pt"; 
+  const std::string MET = "met"; 
+  const std::string J3_PT = "j3_pt";
+  const std::string DPHI = "jetmet_dphi"; 
+  const std::string MCT = "mass_ct"; 
+  const std::string MET_EFF = "met_eff"; 
+  const std::string MCC = "mass_cc"; 
+
   struct Selection { 
     Selection(); 
-    double max;
+    Selection(double, double); 
     double min;
+    double max;
   }; 
   class NMinusHist { 
   public: 
@@ -55,6 +67,7 @@ public:
   virtual void write_to(H5::CommonFG&) const; 
 private: 
   const RegionConfig* m_region_config; 
+  const ISelection* m_selection; 
   const unsigned m_build_flags; 
 
   std::vector<nminus::NMinusHist> m_hists; 

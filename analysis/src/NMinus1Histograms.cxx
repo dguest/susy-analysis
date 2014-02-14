@@ -1,24 +1,32 @@
 #include "NMinus1Histograms.hh"
 #include "HistBuilderFlags.hh"
-#include "Histogram.hh"
+#include "ISelection.hh"
+#include "SignalSelection.hh"
 #include "typedefs.hh"
 #include "RegionConfig.hh"
 #include "EventObjects.hh"
-#include "H5Cpp.h"
 #include "hdf_helpers.hh"
+#include "constants_scharmcuts.hh"
+
+#include "Histogram.hh"
+
+#include "H5Cpp.h"
+
 #include <stdexcept>
 #include <cassert>
 #include <limits>
-#include "constants_scharmcuts.hh"
 
 namespace nminus { 
 
   Selection::Selection() : 
-    max(std::numeric_limits<double>::quiet_NaN()), 
-    min(std::numeric_limits<double>::quiet_NaN())
+    min(std::numeric_limits<double>::quiet_NaN()),
+    max(std::numeric_limits<double>::quiet_NaN()) 
   { 
   }
-
+  Selection::Selection(double mn, double mx): min(mn), max(mx)
+  {
+  }
+  
   NMinusHist::NMinusHist(const Axis& axis, 
 			 const std::map<std::string,Selection>& selection) : 
     m_histogram(new Histogram({axis})), 
@@ -60,20 +68,23 @@ namespace nminus {
   }
 }
 
-namespace {
-  std::map<std::string, nminus::Selection> get_selections(reg::Selection); 
+namespace nminus {
+  std::map<std::string, Selection> get_selections(const RegionConfig&); 
+  ISelection* selection_factory(const RegionConfig&); 
 }
 
 NMinus1Histograms
 ::NMinus1Histograms(const RegionConfig& config, 
 		    const unsigned flags) : 
   m_region_config(new RegionConfig(config)), 
+  m_selection(nminus::selection_factory(config)), 
   m_build_flags(flags)
 { 
   
 }
 
 NMinus1Histograms::~NMinus1Histograms() { 
+  delete m_selection; 
   delete m_region_config; 
 }
 
@@ -115,10 +126,18 @@ void NMinus1Histograms::write_to(H5::CommonFG& file) const {
   // }
 }
 
-namespace { 
-  std::map<std::string, nminus::Selection> get_selections(reg::Selection sel) 
+namespace nminus { 
+  std::map<std::string, Selection> get_selections(const RegionConfig& cfg) 
   { 
-    assert(sel == reg::Selection::SIGNAL); 
-    
+    std::map<std::string, Selection> sel = {
+      {J1_PT, {cfg.leading_jet_pt, INFINITY} } , 
+      {MET, {cfg.met, INFINITY} }
+    }; 
+    assert(cfg.selection == reg::Selection::SIGNAL); 
+    return { {"nothing", Selection(100,200) } } ; 
+  }
+  ISelection* selection_factory(const RegionConfig& cfg) { 
+    assert(cfg.selection == reg::Selection::SIGNAL); 
+    return new NMinusSignalSelection(cfg); 
   }
 }
