@@ -22,12 +22,18 @@ namespace nminus {
 
   // names for internal use (and saving)
   const std::string J1_PT = "j1_pt"; 
-  const std::string MET = "met"; 
   const std::string J3_PT = "j3_pt";
+  const std::string MET = "met"; 
   const std::string DPHI = "jetmet_dphi"; 
   const std::string MCT = "mass_ct"; 
   const std::string MET_EFF = "met_eff"; 
   const std::string MCC = "mass_cc"; 
+
+  // naming functions
+  std::string jabseta(int jn); 
+  std::string jpt(int jn); 
+  std::string jantib(int jn); 
+  std::string jantiu(int jn); 
 
   struct Selection { 
     Selection(); 

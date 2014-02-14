@@ -7,10 +7,12 @@
 #include "EventObjects.hh"
 #include "hdf_helpers.hh"
 #include "constants_scharmcuts.hh"
+#include "constants_tagging.hh"
 
 #include "Histogram.hh"
 
 #include "H5Cpp.h"
+#include "TVector2.h"
 
 #include <stdexcept>
 #include <cassert>
@@ -51,6 +53,7 @@ namespace nminus {
   {
   }
   void NMinusHist::fill(const std::map<std::string, double>& values) { 
+    if (!values.count(m_name)) return;
     for (const auto& cut: m_cuts) { 
       const auto& var = cut.first; 
       const auto& sel = cut.second; 
@@ -80,7 +83,7 @@ NMinus1Histograms
   m_selection(nminus::selection_factory(config)), 
   m_build_flags(flags)
 { 
-  
+  // ACHTUNG: work do here
 }
 
 NMinus1Histograms::~NMinus1Histograms() { 
@@ -93,20 +96,14 @@ void NMinus1Histograms::fill(const EventObjects& obj) {
   const EventRecoParameters& reco = obj.reco; 
   if (!reco.pass_event_quality) return; 
 
-  // double weight = obj.weight; 
-  // const Jets jets = obj.jets; 
-
-  // if (!m_event_filter.pass(obj)) return; 
-  // const std::vector<Jet> tagged_jets = m_event_filter.tagged_jets(jets); 
-  // bool needs_tags = m_region_config.jet_tag_requirements.size() > 0; 
-  // if (tagged_jets.size() == 0 && needs_tags) return; 
-
+  if (!m_selection->pass(obj)) return;
+  
   // if (! (m_build_flags & buildflag::is_data)) { 
   //   weight *= m_event_filter.jet_scalefactor(tagged_jets); 
   //   weight *= m_event_filter.lepton_scalefactor(obj); 
   //   weight *= m_event_filter.boson_scalefactor(obj); 
   // }
-  // const TVector2& met = obj.met; 
+  const TVector2& met = obj.met; 
 
   // assert(jets.size() > 0); 
   // const std::vector<double> ptmet = {jets.at(0).Pt(), met.Mod()}; 
@@ -129,15 +126,51 @@ void NMinus1Histograms::write_to(H5::CommonFG& file) const {
 namespace nminus { 
   std::map<std::string, Selection> get_selections(const RegionConfig& cfg) 
   { 
+    // basic kinematics
     std::map<std::string, Selection> sel = {
       {J1_PT, {cfg.leading_jet_pt, INFINITY} } , 
-      {MET, {cfg.met, INFINITY} }
+      {J3_PT, {-INFINITY, SIGNAL_JET_3_MAX_PT} }, 
+      {MET, {cfg.met, INFINITY} }, 
+      {DPHI, {MIN_DPHI_JET_MET, INFINITY} }, 
     }; 
-    assert(cfg.selection == reg::Selection::SIGNAL); 
-    return { {"nothing", Selection(100,200) } } ; 
+    // add tagging cuts
+    for (auto jn: {0,1} ) { 
+      const auto& antib = btag::JFC_MEDIUM_ANTI_B_CUT; 
+      const auto& antiu = btag::JFC_MEDIUM_ANTI_U_CUT; 
+      sel.insert({jabseta(jn), {0, btag::TAG_ETA}});
+      sel.insert({jantib(jn), {antib, INFINITY} }); 
+      sel.insert({jantiu(jn), {antiu, INFINITY} }); 
+    }
+
+    switch (cfg.selection) { 
+    case reg::Selection::SIGNAL: sel.insert( 
+      { 
+	{MCT, {SR_MCT_MIN, INFINITY} }, 
+	{MET_EFF, {MET_EFF_MIN, INFINITY} }, 
+	{MCC, {M_CC_MIN, INFINITY} } 
+      }); 
+      return sel; 
+    default: throw std::invalid_argument("unknown selection in " __FILE__); 
+    }
   }
   ISelection* selection_factory(const RegionConfig& cfg) { 
     assert(cfg.selection == reg::Selection::SIGNAL); 
     return new NMinusSignalSelection(cfg); 
   }
+
+  std::string jabseta(int jn) { 
+    return "j" + std::to_string(jn) + "_abseta"; 
+  }
+  std::string jpt(int jn) { 
+    return "j" + std::to_string(jn) + "_pt"; 
+  }
+  std::string jantib(int jn) {
+    return "j" + std::to_string(jn) + "_antib"; 
+  }
+  std::string jantiu(int jn) {
+    return "j" + std::to_string(jn) + "_antiu"; 
+  }
+
+
+
 }

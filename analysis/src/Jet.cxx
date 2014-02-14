@@ -2,6 +2,7 @@
 #include "ObjectFactory.hh"	// JetBuffer
 #include "BtagBuffer.hh"
 #include "BtagConfig.hh"
+#include "constants_tagging.hh"
 
 #include <stdexcept> 
 #include <cassert> 
