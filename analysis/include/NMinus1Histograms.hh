@@ -32,10 +32,12 @@ namespace nminus {
     NMinusHist(NMinusHist&&); 
     NMinusHist operator=(NMinusHist&) = delete; 
     void fill(const std::map<std::string, double>& values); 
+    void write_to(H5::CommonFG&, std::string name = "") const; 
   private: 
     Histogram* m_histogram; 
-    std::string m_this_name; 
-    Selection m_this_selection; 
+    // NOTE: generalization would also require something new here
+    Selection m_selection; 
+    std::string m_name; 
     std::vector<std::pair<std::string,Selection> > m_cuts; 
   }; 
 }; 

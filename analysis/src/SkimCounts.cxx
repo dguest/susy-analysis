@@ -36,8 +36,8 @@ SkimCounts::SkimCounts(TFile& file):
 
 void SkimCounts::write_to(H5::H5Location& fg) const { 
   using namespace H5; 
-  h5::write_attr(fg, TOTAL_EVT, &m_total_events); 
+  h5::write_attr(fg, TOTAL_EVT, m_total_events); 
   if (m_has_total_event_weight) { 
-    h5::write_attr(fg, TOTAL_WT, &m_total_event_weight); 
+    h5::write_attr(fg, TOTAL_WT, m_total_event_weight); 
   }
 }

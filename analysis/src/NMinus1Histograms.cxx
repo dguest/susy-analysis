@@ -5,6 +5,7 @@
 #include "RegionConfig.hh"
 #include "EventObjects.hh"
 #include "H5Cpp.h"
+#include "hdf_helpers.hh"
 #include <stdexcept>
 // #include <cmath>
 #include <cassert>
@@ -23,8 +24,8 @@ namespace nminus {
   NMinusHist::NMinusHist(const Axis& axis, 
 			 const std::map<std::string,Selection>& selection) : 
     m_histogram(new Histogram({axis})), 
-    m_this_name(axis.name), 
-    m_this_selection(selection.at(axis.name))
+    m_selection(selection.at(axis.name)), 
+    m_name(axis.name)
   { 
     for (const auto& sel: selection) { 
       assert(sel.second.min < sel.second.max); 
@@ -38,8 +39,8 @@ namespace nminus {
   }
   NMinusHist::NMinusHist(NMinusHist&& old): 
     m_histogram(old.m_histogram), 
-    m_this_name(std::move(old.m_this_name)), 
-    m_this_selection(std::move(old.m_this_selection)), 
+    m_selection(std::move(old.m_selection)),
+    m_name(std::move(old.m_name)),
     m_cuts(std::move(old.m_cuts))
   {
   }
@@ -51,6 +52,13 @@ namespace nminus {
       if (sel.min > val || val > sel.max) return; 
     }
     m_histogram->fill(values); 
+  }
+  void NMinusHist::write_to(H5::CommonFG& file, std::string name) const { 
+    if (name.size() == 0) name = m_name; 
+    m_histogram->write_to(file, name); 
+    H5::DataSet the_hist(file.openDataSet(name)); 
+    h5::write_attr(the_hist, "selection_min", m_selection.min); 
+    h5::write_attr(the_hist, "selection_max", m_selection.max); 
   }
 }
 
