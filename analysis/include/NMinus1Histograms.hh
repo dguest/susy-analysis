@@ -7,6 +7,8 @@
 #include "IRegionHistograms.hh"
 
 class Histogram; 
+struct Axis; 
+class RegionConfig;
 
 namespace H5 { 
   class CommonFG; 
@@ -17,22 +19,24 @@ namespace nminus {
   const float MAX_MET = 500e3; 
   const float MEV_PER_BIN = 5.0e3; 
   struct Selection { 
-    std::string name;
+    Selection(); 
     double max;
     double min;
   }; 
   class NMinusHist { 
   public: 
-    NMinusHist(const std::string& name, const std::vector<Selection>&);
+    // NOTE: could generalize this by making it an initalizer list
+    NMinusHist(const Axis&, const std::map<std::string, Selection>&);
+    ~NMinusHist(); 
     NMinusHist(NMinusHist&) = delete; 
     NMinusHist(NMinusHist&&); 
-    ~NMinusHist(); 
     NMinusHist operator=(NMinusHist&) = delete; 
     void fill(const std::map<std::string, double>& values); 
   private: 
     Histogram* m_histogram; 
+    std::string m_this_name; 
     Selection m_this_selection; 
-    std::vector<Selection> m_cuts; 
+    std::vector<std::pair<std::string,Selection> > m_cuts; 
   }; 
 }; 
 
@@ -49,10 +53,9 @@ public:
   virtual void write_to(H5::CommonFG&) const; 
 private: 
   const RegionConfig* m_region_config; 
-  const RegionEventFilter* m_event_filter; 
   const unsigned m_build_flags; 
 
-  std::vector<NMinusHist> m_hists; 
+  std::vector<nminus::NMinusHist> m_hists; 
 }; 
 
 
