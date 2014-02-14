@@ -224,6 +224,7 @@ static bool safe_copy(PyObject* value, reg::Hists& dest) {
   NAME_TO_DEST(KINEMATIC_STAT); 
   NAME_TO_DEST(TAG_EFFICIENCY); 
   NAME_TO_DEST(BOSON_PT); 
+  NAME_TO_DEST(NMINUS); 
 
   std::string problem = "got undefined hists type: " + name; 
   PyErr_SetString(PyExc_ValueError,problem.c_str()); 

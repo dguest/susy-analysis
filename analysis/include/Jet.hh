@@ -18,7 +18,7 @@ public:
   int get_rank() const; 
   double met_dphi() const; 
   void set_event_flags(ull_t); 
-  double flavor_weight(Flavor, btag::Tagger) const; 
+  double flavor_weight(Flavor, btag::Tagger = btag::JFC) const; 
   Flavor flavor_truth_label() const; 
   bool has_flavor() const; 
   bool pass_tag(btag::OperatingPoint) const; 

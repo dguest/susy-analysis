@@ -1,10 +1,13 @@
 #ifndef N_MINUS_ONE_HISTOGRAMS_HH
 #define N_MINUS_ONE_HISTOGRAMS_HH
 
+#include "constants_physical.hh"
+#include "IRegionHistograms.hh"
+
 #include <vector> 
 #include <string>
 #include <map>
-#include "IRegionHistograms.hh"
+
 
 class Histogram; 
 struct Axis; 
@@ -16,9 +19,11 @@ namespace H5 {
 }
 
 namespace nminus { 
-  const float MAX_LEADING_JET_PT = 500e3; 
-  const float MAX_MET = 500e3; 
-  const float MEV_PER_BIN = 5.0e3; 
+  const size_t N_BINS = 100;
+  const double MAX_ENERGY = 500_GeV;
+
+  // all units are in MeV
+  const std::string EUNIT = "MeV"; 
 
   // names for internal use (and saving)
   const std::string J1_PT = "j1_pt"; 
@@ -30,7 +35,7 @@ namespace nminus {
   const std::string MCC = "mass_cc"; 
 
   // naming functions
-  std::string jabseta(int jn); 
+  std::string jeta(int jn); 
   std::string jpt(int jn); 
   std::string jantib(int jn); 
   std::string jantiu(int jn); 

@@ -83,7 +83,19 @@ NMinus1Histograms
   m_selection(nminus::selection_factory(config)), 
   m_build_flags(flags)
 { 
-  // ACHTUNG: work do here
+  using namespace nminus;
+  const auto sel = get_selections(config); 
+  m_hists.emplace_back(Axis{MET, N_BINS, 0.0, MAX_ENERGY, EUNIT}, sel); 
+  m_hists.emplace_back(Axis{DPHI, 80, 0.0, 3.2}, sel); 
+  m_hists.emplace_back(Axis{MCT, N_BINS, 0.0, MAX_ENERGY, EUNIT}, sel);
+  m_hists.emplace_back(Axis{MET_EFF, N_BINS, 10}, sel); 
+  m_hists.emplace_back(Axis{MCC, N_BINS, 0.0, 100_GeV, EUNIT}, sel); 
+  for (int jn: {0,1,2}) { 
+    m_hists.emplace_back(Axis{jeta(jn), N_BINS, -2.8, 2.8}, sel);
+    m_hists.emplace_back(Axis{jpt(jn), N_BINS, 0, MAX_ENERGY, EUNIT}, sel);
+    m_hists.emplace_back(Axis{jantib(jn), N_BINS, -10, 10}, sel); 
+    m_hists.emplace_back(Axis{jantiu(jn), N_BINS, -10, 10}, sel); 
+  }
 }
 
 NMinus1Histograms::~NMinus1Histograms() { 
@@ -105,22 +117,38 @@ void NMinus1Histograms::fill(const EventObjects& obj) {
   // }
   const TVector2& met = obj.met; 
 
-  // assert(jets.size() > 0); 
-  // const std::vector<double> ptmet = {jets.at(0).Pt(), met.Mod()}; 
-  // m_leading_pt_vs_met->fill(ptmet,  weight); 
-  // if (m_leading_pt_vs_met_sum_wt2) { 
-  //   m_leading_pt_vs_met_sum_wt2->fill(ptmet, weight*weight); 
-  // }
+  using namespace nminus;
+  std::map<std::string, double> values{
+    {MET, met.Mod()}, 
+    {DPHI, reco.min_jetmet_dphi}, 
+    {MCT, reco.mct}, 
+    {MET_EFF, reco.met_eff}, 
+    {MCC, reco.mcc} 
+  };
+  int jn = 0;
+  for (const auto& jet: obj.jets) { 
+    double pb = jet.flavor_weight(Flavor::BOTTOM);
+    double pc = jet.flavor_weight(Flavor::CHARM);
+    double pu = jet.flavor_weight(Flavor::LIGHT);
+    values.insert( { 
+    	{jeta(jn), jet.Eta()}, 
+    	{jpt(jn), jet.Pt()}, 
+    	{jantib(jn), log(pc/pb)}, 
+    	{jantiu(jn), log(pc/pu)} } );
+  }
+  for (auto& hist: m_hists) { 
+    hist.fill(values);
+  }
 }
 
 void NMinus1Histograms::write_to(H5::CommonFG& file) const { 
   using namespace H5; 
   Group region(file.createGroup(m_region_config->name)); 
+  
+  for (const auto& hist: m_hists) { 
+    hist.write_to(region);
+  } 
 
-  // m_leading_pt_vs_met->write_to(region, "kinematics");
-  // if (m_leading_pt_vs_met_sum_wt2) { 
-  //   m_leading_pt_vs_met_sum_wt2->write_to(region, "kinematicWt2"); 
-  // }
 }
 
 namespace nminus { 
@@ -137,7 +165,7 @@ namespace nminus {
     for (auto jn: {0,1} ) { 
       const auto& antib = btag::JFC_MEDIUM_ANTI_B_CUT; 
       const auto& antiu = btag::JFC_MEDIUM_ANTI_U_CUT; 
-      sel.insert({jabseta(jn), {0, btag::TAG_ETA}});
+      sel.insert({jeta(jn), {-btag::TAG_ETA, btag::TAG_ETA}});
       sel.insert({jantib(jn), {antib, INFINITY} }); 
       sel.insert({jantiu(jn), {antiu, INFINITY} }); 
     }
@@ -158,8 +186,8 @@ namespace nminus {
     return new NMinusSignalSelection(cfg); 
   }
 
-  std::string jabseta(int jn) { 
-    return "j" + std::to_string(jn) + "_abseta"; 
+  std::string jeta(int jn) { 
+    return "j" + std::to_string(jn) + "_eta"; 
   }
   std::string jpt(int jn) { 
     return "j" + std::to_string(jn) + "_pt"; 
