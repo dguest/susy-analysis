@@ -7,11 +7,9 @@
 #include "H5Cpp.h"
 #include "hdf_helpers.hh"
 #include <stdexcept>
-// #include <cmath>
 #include <cassert>
 #include <limits>
-
-#include "TVector2.h"
+#include "constants_scharmcuts.hh"
 
 namespace nminus { 
 
@@ -62,20 +60,27 @@ namespace nminus {
   }
 }
 
+namespace {
+  std::map<std::string, nminus::Selection> get_selections(reg::Selection); 
+}
+
 NMinus1Histograms
 ::NMinus1Histograms(const RegionConfig& config, 
 		    const unsigned flags) : 
   m_region_config(new RegionConfig(config)), 
   m_build_flags(flags)
 { 
-
+  
 }
 
 NMinus1Histograms::~NMinus1Histograms() { 
   delete m_region_config; 
 }
 
-void NMinus1Histograms::fill(const EventObjects& ) { 
+void NMinus1Histograms::fill(const EventObjects& obj) { 
+
+  const EventRecoParameters& reco = obj.reco; 
+  if (!reco.pass_event_quality) return; 
 
   // double weight = obj.weight; 
   // const Jets jets = obj.jets; 
@@ -110,3 +115,10 @@ void NMinus1Histograms::write_to(H5::CommonFG& file) const {
   // }
 }
 
+namespace { 
+  std::map<std::string, nminus::Selection> get_selections(reg::Selection sel) 
+  { 
+    assert(sel == reg::Selection::SIGNAL); 
+    
+  }
+}
