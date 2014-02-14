@@ -46,11 +46,12 @@ namespace nminus {
     delete m_histogram; 
   }
   NMinusHist::NMinusHist(NMinusHist&& old): 
-    m_histogram(old.m_histogram), 
+    m_histogram(0), 
     m_selection(std::move(old.m_selection)),
     m_name(std::move(old.m_name)),
     m_cuts(std::move(old.m_cuts))
   {
+    std::swap(m_histogram, old.m_histogram);
   }
   void NMinusHist::fill(const std::map<std::string, double>& values) { 
     if (!values.count(m_name)) return;

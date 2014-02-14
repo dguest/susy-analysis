@@ -16,7 +16,8 @@ all_cuts = [
     { 
         'name': 'pt-order', 
         'output_name': 'histmill.h5', 
-        'selection':'QUALITY_EVENT', 
+        'hists':'NMINUS',
+        'selection':'SIGNAL', 
         'type': 'CONTROL', 
         'jet_tag_requirements': ['JFC_MEDIUM','JFC_MEDIUM'], 
         'tagger':'JFC', 
