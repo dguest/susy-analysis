@@ -10,13 +10,15 @@
 #include <map>
 #include <stdexcept>
 
+// ___________________________________________________________________
+// branch setting stuff
+
 void internal_set(TTree* tree, const std::string& name, 
 		  const std::string& type_name, void* var) { 
   unsigned found = 0; 
   tree->SetBranchStatus(name.c_str(), true, &found); 
-  tree->SetBranchAddress(name.c_str(), var);
   if (found != 1) {
-    throw std::runtime_error(
+    throw MissingBranch(
       "" + std::to_string(found) + " branches found setting "  + name);
   }
   std::string type = tree->GetLeaf(name.c_str())->GetTypeName(); 
@@ -25,6 +27,7 @@ void internal_set(TTree* tree, const std::string& name,
       "branch types don't match for '" + name + "': tree has " + 
       type_name + " need a " + type); 
   }
+  tree->SetBranchAddress(name.c_str(), var);
 }
 
 // misc crap to check type names in ROOT
@@ -34,7 +37,13 @@ std::string get_name(float) { return "Float_t"; }
 std::string get_name(bool) { return "Bool_t"; }
 std::string get_name(int) { return "Int_t"; }
 
+MissingBranch::MissingBranch(const std::string& what): 
+  std::runtime_error(what)
+{ 
+}
 
+// ___________________________________________________________________
+// mttop stuff
 
 double get_mttop(const std::vector<Jet>& jets, TVector2 met) 
 {

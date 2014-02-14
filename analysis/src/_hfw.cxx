@@ -70,7 +70,6 @@ static bool safe_copy(PyObject* dict, RegionConfig& region)
   REQUIRE(output_name); 
   REQUIRE(type); 
   
-  COPY(region_bits); 
   COPY(systematic); 
   COPY(leading_jet_pt); 
   COPY(met);
@@ -133,7 +132,7 @@ static bool safe_copy(PyObject* value, reg::Selection& dest) {
   NAME_TO_PREFIXED(Selection, CR_1L); 
   NAME_TO_PREFIXED(Selection, CR_SF); 
   NAME_TO_PREFIXED(Selection, CR_DF); 
-  NAME_TO_PREFIXED(Selection, NONE); 
+  NAME_TO_PREFIXED(Selection, QUALITY_EVENT); 
 
   std::string problem = "got undefined selection: " + name; 
   PyErr_SetString(PyExc_ValueError,problem.c_str()); 

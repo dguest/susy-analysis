@@ -47,6 +47,7 @@ public:
   ObjectFactory(const std::string& root_file, int n_jets); 
   ~ObjectFactory(); 
   int entries() const; 
+  bool is_data() const;
   void entry(int); 
   std::vector<Jet> jets() const; 
   // TODO: fix this, we're not storing met systematics in the tree any more
@@ -72,9 +73,6 @@ private:
   EventRecoParameters* m_event_reco_parameters; 
 
   ull_t m_bits; 
-  // float m_dphi; 
-  // int m_n_signal; 
-  // int m_n_preselection_jets; 
   int m_hfor_type; 
   
   int m_leading_cjet_pos; 
@@ -97,9 +95,5 @@ private:
 
 bool has_higher_pt(const Jet&, const Jet&); 
 
-class MissingBranch: std::runtime_error {
-public: 
-  MissingBranch(const std::string&); 
-}; 
 
 #endif // JET_FACTORY_H
