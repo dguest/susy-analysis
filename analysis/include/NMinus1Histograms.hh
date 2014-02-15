@@ -26,8 +26,6 @@ namespace nminus {
   const std::string EUNIT = "MeV"; 
 
   // names for internal use (and saving)
-  const std::string J1_PT = "j1_pt"; 
-  const std::string J3_PT = "j3_pt";
   const std::string MET = "met"; 
   const std::string DPHI = "jetmet_dphi"; 
   const std::string MCT = "mass_ct"; 

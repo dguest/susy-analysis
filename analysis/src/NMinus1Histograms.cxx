@@ -32,9 +32,14 @@ namespace nminus {
   NMinusHist::NMinusHist(const Axis& axis, 
 			 const std::map<std::string,Selection>& selection) : 
     m_histogram(new Histogram({axis})), 
-    m_selection(selection.at(axis.name)), 
     m_name(axis.name)
   { 
+    if (!selection.count(axis.name)) { 
+      m_selection = {-INFINITY, INFINITY};
+    } else {
+      m_selection = selection.at(axis.name);
+    }
+
     for (const auto& sel: selection) { 
       assert(sel.second.min < sel.second.max); 
       if (sel.first != axis.name) { 
@@ -56,10 +61,15 @@ namespace nminus {
   void NMinusHist::fill(const std::map<std::string, double>& values) { 
     if (!values.count(m_name)) return;
     for (const auto& cut: m_cuts) { 
-      const auto& var = cut.first; 
-      const auto& sel = cut.second; 
-      const auto& val = values.at(var); 
-      if (sel.min > val || val > sel.max) return; 
+
+      const auto& cut_variable = cut.first; 
+
+      // skip cut if the value is missing
+      if (!values.count(cut_variable)) continue;
+
+      const auto& selection = cut.second; 
+      const auto& value = values.at(cut_variable); 
+      if (selection.min > value || value > selection.max) return; 
     }
     m_histogram->fill(values); 
   }
@@ -89,7 +99,7 @@ NMinus1Histograms
   m_hists.emplace_back(Axis{MET, N_BINS, 0.0, MAX_ENERGY, EUNIT}, sel); 
   m_hists.emplace_back(Axis{DPHI, 80, 0.0, 3.2}, sel); 
   m_hists.emplace_back(Axis{MCT, N_BINS, 0.0, MAX_ENERGY, EUNIT}, sel);
-  m_hists.emplace_back(Axis{MET_EFF, N_BINS, 10}, sel); 
+  m_hists.emplace_back(Axis{MET_EFF, N_BINS, 0, 10}, sel); 
   m_hists.emplace_back(Axis{MCC, N_BINS, 0.0, 100_GeV, EUNIT}, sel); 
   for (int jn: {0,1,2}) { 
     m_hists.emplace_back(Axis{jeta(jn), N_BINS, -2.8, 2.8}, sel);
@@ -157,8 +167,8 @@ namespace nminus {
   { 
     // basic kinematics
     std::map<std::string, Selection> sel = {
-      {J1_PT, {cfg.leading_jet_pt, INFINITY} } , 
-      {J3_PT, {-INFINITY, SIGNAL_JET_3_MAX_PT} }, 
+      {jpt(0), {cfg.leading_jet_pt, INFINITY} } , 
+      {jpt(2), {-INFINITY, SIGNAL_JET_3_MAX_PT} },
       {MET, {cfg.met, INFINITY} }, 
       {DPHI, {MIN_DPHI_JET_MET, INFINITY} }, 
     }; 
@@ -166,6 +176,7 @@ namespace nminus {
     for (auto jn: {0,1} ) { 
       const auto& antib = btag::JFC_MEDIUM_ANTI_B_CUT; 
       const auto& antiu = btag::JFC_MEDIUM_ANTI_U_CUT; 
+      sel.insert({jpt(jn), {30_GeV, INFINITY}});
       sel.insert({jeta(jn), {-btag::TAG_ETA, btag::TAG_ETA}});
       sel.insert({jantib(jn), {antib, INFINITY} }); 
       sel.insert({jantiu(jn), {antiu, INFINITY} }); 
