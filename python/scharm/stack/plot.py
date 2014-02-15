@@ -1,9 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from stop.hists import Hist1d
-from stop import style, hists
+from scharm.hists import Hist1d
+from scharm import style, hists
 from os.path import isdir, join
-from stop.stack.draw import Stack, Hist2d
+from scharm.stack.draw import Stack, Hist2d
 import os
 from itertools import chain
 
@@ -47,7 +47,7 @@ class HistConverter(object):
 
     def hist1_from_histn(self, pvc, histn): 
         physics, variable, cut = pvc
-        if physics not in style.type_dict and not physics.startswith('stop'):
+        if physics not in style.type_dict and not physics.startswith('scharm'):
             raise ValueError("what the fuck is {}?".format(pvc))
     
         assert len(histn.axes) == 1
@@ -131,7 +131,7 @@ def sort_data_mc(hist1_dict):
             if tup in stack_data: 
                 raise ValueError('doubling the data')
             stack_data[variable, cut] = hist
-        elif physics_type.startswith('stop'): 
+        elif physics_type.startswith('scharm'): 
             signals[variable,cut].append(hist)
         else: 
             lists[variable, cut].append(hist)

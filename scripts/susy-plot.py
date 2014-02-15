@@ -3,14 +3,14 @@
 Top level for mc / data stack plotting routines for the main analysis. 
 """
 import argparse
-from stop.stack import plot, draw
+from scharm.stack import plot, draw
 import yaml
 import sys
-from stop.stack.aggregator import HistDict
-from stop.stack.kinplt import run_kinematic_plot
-from stop.stack.countplt import plot_counts
-from stop.stack.truthplt import plot_truth
-from stop.bullshit import make_dir_if_none
+from scharm.stack.aggregator import HistDict
+from scharm.stack.kinplt import run_kinematic_plot
+from scharm.stack.countplt import plot_counts
+from scharm.stack.truthplt import plot_truth
+from scharm.bullshit import make_dir_if_none
 import re
 import os
 
@@ -29,7 +29,7 @@ def get_config():
                                   help=d, default='plots')
     signal_point = argparse.ArgumentParser(add_help=False)
     signal_point.add_argument(
-        '-s','--signal-point', default='stop-150-90', 
+        '-s','--signal-point', default='scharm-150-90', 
         help="assumes <particle>-<something> type name, " + d)
 
     top_parser = argparse.ArgumentParser(description=__doc__)
@@ -51,12 +51,12 @@ def get_config():
         'kin', parents=[plotting_general])
     phys_type = kinematic_parser.add_mutually_exclusive_group(required=True)
     phys_type.add_argument('-s','--signal-point', nargs='?', 
-                           const='stop-200-125')
+                           const='scharm-200-125')
     phys_type.add_argument('-b','--background', action='store_true')
     phys_type.add_argument('-r','--s-over-b', nargs='?', 
-                           const='stop-200-125')
+                           const='scharm-200-125')
     phys_type.add_argument('--all', nargs='?', 
-                           const='stop-200-125')
+                           const='scharm-200-125')
     kinematic_parser.add_argument('--sys-factor', type=float, default=0)
     kinematic_parser.add_argument('-z', '--fix-z-range', action='store_true')
 
@@ -170,7 +170,7 @@ def run_plotmill(args):
         
 def _get_config_info(steering_file): 
     if not steering_file: 
-        from stop.runtypes import marks_types
+        from scharm.runtypes import marks_types
         config = {
             'misc': { 'lumi_fb': 21 }, 
             'backgrounds': {'used': marks_types.keys() }, 

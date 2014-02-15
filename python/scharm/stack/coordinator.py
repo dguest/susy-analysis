@@ -134,6 +134,8 @@ class Coordinator(object):
                     agg_name))
             hist_dict = agg.HistDict(agg_name)
         else: 
+            # ACHTUNG: could probalby move this stuff to top level in 
+            # some script
             whiskey = glob.glob('{}/*.h5'.format(hist_path))
             aggregator = agg.SampleAggregator(
                 meta_path=self._config_dict['files']['meta'], 
