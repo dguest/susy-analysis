@@ -77,8 +77,10 @@ namespace nminus {
     if (name.size() == 0) name = m_name; 
     m_histogram->write_to(file, name); 
     H5::DataSet the_hist(file.openDataSet(name)); 
-    h5::write_attr(the_hist, "selection_min", m_selection.min); 
-    h5::write_attr(the_hist, "selection_max", m_selection.max); 
+    h5::write_attr_vec(the_hist, "selection_min", 
+		       std::vector<double>{m_selection.min}); 
+    h5::write_attr_vec(the_hist, "selection_max", 
+		       std::vector<double>{m_selection.max}); 
   }
 }
 
