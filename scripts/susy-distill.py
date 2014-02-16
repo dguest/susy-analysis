@@ -7,7 +7,7 @@ import argparse
 import sys, os
 from os.path import isfile, isdir
 from os.path import join, splitext, basename, expanduser
-from stop import meta, bullshit
+from stop import bullshit
 import re
 import yaml
 
@@ -41,10 +41,10 @@ def distill_d3pds(config):
         return 
 
     out_file = splitext(basename(config.input_file))[0] + '.root'
-
-    meta_lookup = meta.DatasetCache(config.meta)
     ds_key = basename(splitext(out_file)[0]).split('-')[0]
-    dataset = meta_lookup[ds_key]
+
+    with open(config.meta) as yml: 
+        dataset = yaml.load(yml)[ds_key]
     flags, add_dict = _config_from_meta(dataset)
     add_dict['systematic'] = config.systematic
 
@@ -116,11 +116,12 @@ def _dump_settings(settings_dict):
 
 def _config_from_meta(dataset): 
     flags = ''
-    if dataset.is_data: 
+    full_name = dataset['full_name']
+    if full_name.startswith('data'): 
         flags += 'd'
-    elif _is_atlfast(dataset.full_name): 
+    elif _is_atlfast(full_name): 
         flags += 'f'
-    overlap = dataset.overlap
+    overlap = dataset.get('overlap',{})
     add_dict = dict(
         boson_pt_max_mev = float(overlap.get('sherpa_boson',-1.0))*1e3, 
         truth_met_max_mev = float(overlap.get('truth_met', -1.0))*1e3, 
@@ -145,20 +146,18 @@ def _is_atlfast(sample):
 
 def _is_sherpa_ew(dataset): 
     ew_re = re.compile('\.[Ss]herpa_.*(W(e|mu|tau)nu|Z(e|mu|tau|nu){2})')
-    ew_matched = ew_re.search(dataset.full_name)
-    pt = dataset.physics_type
+    full_name = dataset['full_name']
+    pt = dataset['physics_type']
+    ew_matched = ew_re.search(full_name)
     type_matched = bool(pt) and pt in {'Wjets','Zjets'}
     if bool(ew_matched) != type_matched: 
         prob = (
             "can't make sense of physics type '{}' with name '{}', "
             "ew match = {}, type match = {}").format(
-            dataset.physics_type, dataset.full_name, bool(ew_matched), 
+            pt, full_name, bool(ew_matched), 
             type_matched)
         raise ValueError(prob)
     return bool(ew_matched)
-
-def _is_data(sample): 
-    return sample.startswith('data')
 
 def _ntuple_name_from_ds_name(ds_name): 
     bname = basename(ds_name)
