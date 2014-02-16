@@ -7,7 +7,7 @@ import argparse
 import sys, os
 from os.path import isfile, isdir
 from os.path import join, splitext, basename, expanduser
-from stop import bullshit
+from scharm import bullshit, schema
 import re
 import yaml
 
@@ -49,16 +49,7 @@ def distill_d3pds(config):
     add_dict['systematic'] = config.systematic
 
     add_dict.update(_get_cal_paths_dict(config))
-    out_path = join(config.output_dir, out_file)
-    if config.build_prw:        # not sure we'll ever use this
-        prw_dir = 'pileup-reweighting'
-        bullshit.make_dir_if_none(prw_dir)
-        prw_file = join(prw_dir, '{}.prw{}'.format(*splitext(out_file)))
-        flags += 'u'            # turn on pu file generation 
-        add_dict['pu_config'] = prw_file
-        out_path = ''           # disable output trees
-    else: 
-        bullshit.make_dir_if_none(config.output_dir)
+    add_dict.update(_get_outputs(config))
         
     if config.more_info: 
         flags += 'i'           # save sparticle id
@@ -81,7 +72,6 @@ def distill_d3pds(config):
         cut_counts = cutflow.cutflow(
             input_files=files, 
             flags=flags, 
-            output_ntuple=out_path, 
             cutflow='NOMINAL', 
             **add_dict)
 
@@ -109,6 +99,27 @@ def _get_cal_paths_dict(config):
     call_paths['cal_dir'] = calibration_dir
     return call_paths
 
+def _get_outputs(config, out_file): 
+    """
+    various output configurations
+    """
+    char = out_file[0]
+    if char not in schema.stream_schema: 
+        raise ValueError("stream not recognized: {}".format(out_file))
+
+    sys_dir = config.systematic.lower()
+    stream_dir = schema.stream_schema[char]
+
+    if char == 'm':
+        out_type = 'mumet_output_ntuple'
+    else: 
+        out_type = 'output_ntuple'
+
+    out_path = join(config.output_dir, stream_dir, sys_dir, out_file)
+
+    return {out_type: out_path}
+
+
 def _dump_settings(settings_dict): 
     set_width = max(len(str(n)) for n in settings_dict)
     for name, value in settings_dict.iteritems(): 
@@ -129,6 +140,8 @@ def _config_from_meta(dataset):
     if _is_sherpa_ew(dataset): 
         flags += 'p'            # do boson pt reweighting
     return flags, add_dict
+
+# --- various smaller checks
 
 def _is_atlfast(sample): 
     sim_re = re.compile('\.e[0-9]+_([as])[0-9]+_')
@@ -159,20 +172,24 @@ def _is_sherpa_ew(dataset):
         raise ValueError(prob)
     return bool(ew_matched)
 
-def _ntuple_name_from_ds_name(ds_name): 
-    bname = basename(ds_name)
-    fields = bname.split('.')
-    try: 
-        type_index = fields.index('mc12_8TeV')
-    except ValueError: 
-        raise ValueError("can't find type string in {}".format(bname))
-    dsid = fields[type_index + 1]
-    sim_name = fields[type_index + 2].split('_')[0]
-    return '{}-{}.root'.format(sim_name, dsid)
-
 def run(): 
     args = _get_config()
     distill_d3pds(args)
+
+# ------ not used right now... revisit ----
+
+def _setup_prw(config): 
+    # right now we're not using this... not sure if it should be here
+    if config.build_prw:        
+        prw_dir = 'pileup-reweighting'
+        bullshit.make_dir_if_none(prw_dir)
+        prw_file = join(prw_dir, '{}.prw{}'.format(*splitext(out_file)))
+        # flags += 'u'            # turn on pu file generation 
+        add_dict['pu_config'] = prw_file
+        out_path = ''           # disable output trees
+    else: 
+        bullshit.make_dir_if_none(config.output_dir)
+
 
 if __name__ == '__main__': 
     run()

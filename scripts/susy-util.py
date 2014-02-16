@@ -335,15 +335,15 @@ def rename(config):
             os.rename(old_name, new_name)
 
 def group_input_files(config): 
+    from scharm.schema import get_prechar
     files_by_dsid = defaultdict(set)
     dsid_finder = re.compile('mc.._.TeV\.([0-9]{6})\.')
     run_finder = re.compile('data.._.TeV\.([0-9]{8})\.')
     for in_dir in config.input_dirs: 
-        prechar = 's'           # s is for simulation 
+        prechar = get_prechar(in_dir)
         dsid_match = dsid_finder.search(in_dir)
         if not dsid_match: 
             dsid_match = run_finder.search(in_dir)
-            prechar = 'd'       # data
         if not dsid_match: 
             raise IOError("can't find dsid for {}".format(in_dir))
         ds_key = prechar + dsid_match.group(1).lstrip('0')

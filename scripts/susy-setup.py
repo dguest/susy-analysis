@@ -3,7 +3,7 @@
 Omega setup scripts
 """
 import argparse, sys, os, math
-from stop import meta, bullshit
+from scharm import bullshit
 from os.path import basename, splitext, dirname, isdir, isfile
 import glob
 import yaml
@@ -20,14 +20,14 @@ def get_config():
 
     parser = argparse.ArgumentParser(description=__doc__)
     subs = parser.add_subparsers(dest='which')
-    distil_args = subs.add_parser('distill')
+    distil_args = subs.add_parser(
+        'distill', description=setup_distill.__doc__)
     distil_args.add_argument(
         'input_textfiles', nargs='+', 
         help='can be produced with susy-utils')
-    distil_args.add_argument('-m', '--update-meta', 
-                           help='update meta file with sum_wt etc')
+    distil_args.add_argument('-m', '--meta', required=True)
     distil_args.add_argument(
-        '-s', '--script', help='build this PBS script' + d, 
+        '-s', '--script', help='build this PBS script ' + d, 
         default='sharktopus.sh')
     distil_args.add_argument('-p', '--build-prw', action='store_true')
     distil_args.add_argument('-a', '--aggressive', action='store_true')
@@ -281,29 +281,13 @@ def setup_stack(config):
         out_script.write(get_runline('kinematic_stat'))
 
 def setup_distill(config): 
-    ds_meta = None
-    if config.update_meta: 
-        ds_meta = meta.DatasetCache(config.update_meta)
-        for ds_key in ds_meta: 
-            ds_meta[ds_key].sum_event_weight = 0.0
-            ds_meta[ds_key].n_raw_entries = 0
-        collector = meta.MetaTextCollector()
-        prog_meter = bullshit.FlatProgressMeter(len(config.input_textfiles))
-        for file_n, textfile in enumerate(config.input_textfiles): 
-            prog_meter.update(file_n)
-            ds_key = basename(splitext(textfile)[0]).split('-')[0]
-            with open(textfile) as steering_file: 
-                files = [l.strip() for l in steering_file.readlines()]
-            n_events, total_wt, n_cor = collector.get_recorded_events(
-                files, aggressive=config.aggressive)
-            ds_meta[ds_key].sum_event_weight += total_wt
-            ds_meta[ds_key].n_raw_entries += n_events
-        ds_meta.write(config.update_meta)
-    if config.script: 
-        _write_distill_config(script_name=config.script, 
-                              meta_name=config.update_meta, 
-                              input_files=config.input_textfiles, 
-                              build_prw=config.build_prw)
+    """
+    Build the distiller submit script.
+    """
+    _write_distill_config(script_name=config.script, 
+                          meta_name=config.meta, 
+                          input_files=config.input_textfiles, 
+                          build_prw=config.build_prw)
 
 
 def _dirify(systematic_name): 
@@ -336,7 +320,7 @@ def _write_distill_config(script_name, meta_name, input_files,
             run_args = [
                 meta_name, 
                 '-s {}'.format(syst), 
-                '-o whiskey/{}'.format(_dirify(syst))]
+                '-o whiskey']
             if build_prw: 
                 run_args.append('-p')
             line_args = { 
