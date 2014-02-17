@@ -10,10 +10,10 @@ import time
 import sys, os
 import yaml
 import itertools
-from scharm3.postfit import split_to_planes, numpy_plane_from_dict
+from scharm.postfit import split_to_planes, numpy_plane_from_dict
 import h5py
 import numpy as np
-from scharm3.bullshit import FlatProgressMeter
+from scharm.bullshit import FlatProgressMeter
 
 def _load_plotters(): 
     from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas

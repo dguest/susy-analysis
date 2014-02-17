@@ -7,7 +7,7 @@ class Region(object):
     checking the integrity of its stored data. 
     """
     default_dict = { 
-        'selection', 'signal'
+        'selection': 'signal',
         'type':'signal', 
         'kinematics':{
             'leading_jet_gev':240, 

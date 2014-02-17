@@ -1,19 +1,9 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3.3
 """
 An attempt at a dumber stacking routine for the full analysis. 
 Sets up textfiles that point to collections of root files, decides on 
 which systematics / regions to use based on a metafile and the 
 path to the root files. 
-
-NOTE: Should really consider merging this with the susy-performance stacking
-routine, which manages the construction of batch submit scripts. 
-"""
-
-_setup_help="""
-Sets up the textfiles. Can set up multiple textfiles, which are simply 
-named for batch submission. 
-
-NOTE: should remove this, or move to susy-setup. 
 """
 
 import argparse, sys
@@ -21,15 +11,12 @@ import yaml
 import glob
 from os.path import join, splitext, expanduser
 import os
-from itertools import groupby
-import errno
 from warnings import warn
 
-from stop.stack.regions import Region, condense_regions
-from stop.stack.stacker import Stacker
-from stop.bullshit import make_dir_if_none
+from scharm.stack.regions import Region
+from scharm.stack.stacker import Stacker
+from scharm.bullshit import make_dir_if_none
 import h5py
-from stop.sysdef import get_systematics
 
 def run(): 
     config = get_config()
@@ -44,7 +31,6 @@ def get_config():
 
     parser = argparse.ArgumentParser(description=__doc__)
 
-    parser = subs.add_parser('run', description='run the stacker')
     parser.add_argument('input_files_list')
     parser.add_argument('steering_file')
     parser.add_argument(
@@ -62,20 +48,12 @@ def run_stacker(config):
     with open(config.steering_file) as steering_yml: 
         config_dict = yaml.load(steering_yml)
 
-    regions = {k:Region(v) for k, v in config_dict['regions'].iteritems()}
+    regions = {k:Region(v) for k, v in config_dict['regions'].items()}
     hists_dir = config.hists_dir
     
     make_dir_if_none(hists_dir)
 
-    if config.mode == 'kinematic_stat': 
-        regions = condense_regions(regions)
-        super_dict = {n:v.get_yaml_dict() for n,v in regions.iteritems()}
-        with open(join(hists_dir, 'superregions.yml'), 'w') as super_yml: 
-            super_yml.write(yaml.dump(super_dict))
-
     stacker = Stacker(regions)
-    # meta_dict=config_dict['files'].get('meta',None)
-    #stacker.mc_mc_sf_file = expanduser(config_dict['files']['mcsf'])
     stacker.rerun = True
     stacker.make_dirs = True
     stacker.verbose = False
@@ -100,6 +78,18 @@ def run_stacker(config):
             ntuple, hists_dir, systematics, 
             outsubdir=outsubdir, tuple_n=tuple_n)
 
+_shift_sf = list('BCUT') + ['EL','MU']
+scale_factor_systematics = ['NONE'] + [
+    part + shift for part in _shift_sf for shift in ['UP','DOWN']
+    ]
+
+def get_systematics(ntuple): 
+    tld = dirname(ntuple).split('/')[-1]
+    syst = tld.upper()
+    if syst == 'NONE': 
+        return scale_factor_systematics
+    else: 
+        return [syst]
 
 if __name__ == '__main__': 
     run()
