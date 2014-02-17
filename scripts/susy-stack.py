@@ -29,7 +29,6 @@ from stop.stack.regions import Region, condense_regions
 from stop.stack.stacker import Stacker
 from stop.bullshit import make_dir_if_none
 import h5py
-from stop.hists import HistAdder
 from stop.sysdef import get_systematics
 
 def run(): 
@@ -44,47 +43,19 @@ def get_config():
     c = "with no argument is '%(const)s'"
 
     parser = argparse.ArgumentParser(description=__doc__)
-    subs = parser.add_subparsers(dest='which')
 
-    setup_parser = subs.add_parser('setup', description=_setup_help)
-    setup_parser.add_argument('steering_file')
-    setup_parser.add_argument('output_file', nargs='?', 
-                              default='ntuples.txt', help=d)
-    setup_parser.add_argument('-s','--split-output', type=int, 
-                              help='split output into multiple files')
-
-    run_parser = subs.add_parser('run', description='run the stacker')
-    run_parser.add_argument('input_files_list')
-    run_parser.add_argument('steering_file')
-    run_parser.add_argument(
-        '--mode', default='histmill', choices={'histmill','kinematic_stat'}, 
+    parser = subs.add_parser('run', description='run the stacker')
+    parser.add_argument('input_files_list')
+    parser.add_argument('steering_file')
+    parser.add_argument(
+        '--mode', default='histmill', choices={
+            'histmill','kinematic_stat','nminus'}, 
         help=d)
-    run_parser.add_argument('-d','--dump-run', action='store_true', 
+    parser.add_argument('-d','--dump-run', action='store_true', 
                             help="dump region config, don't run")
-    run_parser.add_argument('-o','--hists-dir', default='hists', help=d)
+    parser.add_argument('-o','--hists-dir', default='hists', help=d)
     
     return parser.parse_args(sys.argv[1:])
-
-def setup_steering(config): 
-    warn('setup routine is going to be removed', FutureWarning, stacklevel=2)
-    with open(config.steering_file) as meta_yml: 
-        config_dict = yaml.load(meta_yml)
-    ntuples = config_dict['files']['ntuples']
-    all_files = []
-    for basedir in ntuples.values(): 
-        all_files += glob.glob( join(basedir, '*.root*'))
-    if config.split_output: 
-        subfiles = {x:[] for x in xrange(config.split_output)}
-        for in_n, in_file in enumerate(all_files): 
-            subfiles[in_n % config.split_output].append(in_file)
-        for file_n in xrange(config.split_output): 
-            file_name = '{}-{n}{}'.format(
-                *splitext(config.output_file), n=file_n)
-            with open(file_name, 'w') as out_file: 
-                out_file.writelines('\n'.join(subfiles[file_n]) + '\n')
-    else: 
-        with open(config.output_file,'w') as out_file: 
-            out_file.writelines('\n'.join(all_files) + '\n')
 
 
 def run_stacker(config): 

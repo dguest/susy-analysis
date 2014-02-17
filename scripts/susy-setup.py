@@ -269,7 +269,7 @@ def setup_stack(config):
 
     def get_runline(mode): 
         line_args = { 
-            'routine': 'susy-stack.py run', 
+            'routine': 'susy-stack.py', 
             'run_args': '{} --mode {} -o {}'.format(
                 config.steering, mode, config.hists_dir), 
             }
@@ -277,8 +277,7 @@ def setup_stack(config):
 
     with open(config.script, 'w') as out_script: 
         out_script.write(submit_head)
-        out_script.write(get_runline('histmill'))
-        out_script.write(get_runline('kinematic_stat'))
+        out_script.write(get_runline('nminus'))
 
 def setup_distill(config): 
     """
