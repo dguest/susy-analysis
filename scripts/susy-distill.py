@@ -19,7 +19,7 @@ def _get_config():
     parser.add_argument('input_file', help='input file listing root inputs')
     parser.add_argument('meta', help='meta yaml file')
     parser.add_argument(
-        '-o', '--output-dir', default='whiskey', 
+        '-o', '--output-dir', default='ntuples', 
         help='where the outputs go, ' + d)
     parser.add_argument(
         '-s', '--systematic', choices={'NONE', 'JESUP', 'JESDOWN', 'JER'}, 

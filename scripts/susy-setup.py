@@ -319,7 +319,7 @@ def _write_distill_config(script_name, meta_name, input_files,
             run_args = [
                 meta_name, 
                 '-s {}'.format(syst), 
-                '-o whiskey']
+                '-o ntuples']
             if build_prw: 
                 run_args.append('-p')
             line_args = { 
