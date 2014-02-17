@@ -1,6 +1,6 @@
 #!/usr/bin/env python3.3
 
-from scharm3.stack import hfw
+from scharm.stack import hfw
 import os, sys
 
 all_cuts = [
