@@ -36,7 +36,7 @@ ROOTLIBS      += -lCore -lTree -lPhysics -lRIO
 ROOTLDFLAGS   := $(shell root-config --ldflags)
 
 # and py config
-PY_CONFIG := python2.7-config
+PY_CONFIG := python3.3-config
 
 PY_FLAGS :=   $(shell $(PY_CONFIG) --includes)
 PY_LIB   := -L$(shell $(PY_CONFIG) --prefix)/lib
@@ -96,7 +96,7 @@ PYLIB_OBJ   := $(GEN_OBJ)
 STAND_ALONE_OBJ     := $(GEN_OBJ) stand-alone.o
 
 PY_OBJ       := _hfw.o
-PY_LIB       := ../python/scharm/stack/_hfw.so
+PY_LIB       := ../python3/scharm3/stack/_hfw.so
 
 
 ALLOBJ       := $(GEN_OBJ) $(PY_OBJ) unit-test.o
