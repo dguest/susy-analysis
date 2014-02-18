@@ -11,6 +11,8 @@ from scharm import bullshit, schema
 import re
 import yaml
 
+_sys_choices = {'NONE', 'JESUP', 'JESDOWN', 'JER', 
+                'METUP', 'METDOWN', 'METRES'}
 def _get_config(): 
     d = 'default: %(default)s'
     c = "with no argument is '%(const)s'"
@@ -22,7 +24,7 @@ def _get_config():
         '-o', '--output-dir', default='ntuples', 
         help='where the outputs go, ' + d)
     parser.add_argument(
-        '-s', '--systematic', choices={'NONE', 'JESUP', 'JESDOWN', 'JER'}, 
+        '-s', '--systematic', choices=_sys_choices, 
         help=d, default='NONE')
     parser.add_argument(
         '-c', '--calibration', default='~/calibration', help=d)
@@ -49,7 +51,7 @@ def distill_d3pds(config):
     add_dict['systematic'] = config.systematic
 
     add_dict.update(_get_cal_paths_dict(config))
-    add_dict.update(_get_outputs(config))
+    add_dict.update(_get_outputs(config, out_file))
         
     if config.more_info: 
         flags += 'i'           # save sparticle id
@@ -68,7 +70,7 @@ def distill_d3pds(config):
     if config.test: 
         cut_counts = [('test',1)]
     else: 
-        from stop.distiller import cutflow
+        from scharm.distiller import cutflow
         cut_counts = cutflow.cutflow(
             input_files=files, 
             flags=flags, 
@@ -104,11 +106,11 @@ def _get_outputs(config, out_file):
     various output configurations
     """
     char = out_file[0]
-    if char not in schema.stream_schema: 
+    if char not in schema.dir_schema: 
         raise ValueError("stream not recognized: {}".format(out_file))
 
     sys_dir = config.systematic.lower()
-    stream_dir = schema.stream_schema[char]
+    stream_dir = schema.dir_schema[char]
 
     if char == 'm':
         out_type = 'mumet_output_ntuple'
