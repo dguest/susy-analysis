@@ -19,13 +19,7 @@ def submit_ds(ds_name, debug=False, version=0, branches='branches.txt',
               out_talk=None, in_tar=None, maxgb=False, blacklist=[], 
               skim_dir='skim-stuff', user=None): 
 
-    if not user: 
-        user = os.path.expandvars('$USER')
-    preskim_name = _strip_front(ds_name)
-    output_base = '.'.join(preskim_name.split('.')[:3])
-    rev_number = _get_tag(ds_name)
-    out_ds = 'user.{user}.{in_ds}.skim.{rev}_v{version}/'.format(
-        user=user, in_ds=output_base, version=version, rev=rev_number)
+    out_ds = _get_output_name(ds_name, version, user)
 
     bstring = 'cd {sd}; make clean; make; cd ..; ln {sd}/run-skim'.format(
         sd=skim_dir)
@@ -70,6 +64,26 @@ def _get_tag(ds_name):
         return 'p' + ptag
     except IndexError: 
         return None
+
+def _get_output_name(ds_name, version, user=None): 
+    if not user: 
+        user = os.path.expandvars('$USER')
+    preskim_name = _strip_front(ds_name)
+    out_split = preskim_name.split('.')
+    fmt_args = dict(
+        in_ds='.'.join(out_split[:3]), 
+        rev=_get_tag(ds_name), 
+        version=version, 
+        user=user)
+    output_tmp = 'user.{user}.{in_ds}.skim.{rev}_v{version}/'
+    out_ds = output_tmp.format(**fmt_args)
+    # grid won't accept names longer than 120 chars. 
+    # (actually, the stated error says the name must be less than 120 char)
+    if len(out_ds) > 120: 
+        fmt_args['in_ds'] = '.'.join(out_split[:2])
+        out_ds = output_tmp.format(**fmt_args)
+    return out_ds
+    
 
 def _strip_front(ds_name): 
     if not any(ds_name.startswith(x) for x in ['data','mc']): 
