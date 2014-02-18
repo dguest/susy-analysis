@@ -9,6 +9,7 @@
 #include "TError.h"
 #include "TROOT.h"  
 #include "TParameter.h"
+#include "TH1.h"
 
 #include <set>
 #include <cmath>
@@ -206,6 +207,13 @@ SummaryParameters::SummaryParameters(bool has_mc) :
 { 
 }
 
+namespace {
+  void setBin(int bin_n, double value, const std::string& name, TH1& hist) {
+    hist.SetBinContent(bin_n, value);
+    hist.GetXaxis()->SetBinLabel(bin_n, name.c_str());
+  }
+}
+
 void SummaryParameters::writeTo(TFile& file) const { 
   TParameter<long long> events("total_events", total_events); 
   TParameter<long long> skimmed("skimmed_events", skimmed_events); 
@@ -214,10 +222,22 @@ void SummaryParameters::writeTo(TFile& file) const {
   file.WriteTObject(&events); 
   file.WriteTObject(&skimmed); 
   file.WriteTObject(&col_tree); 
+
+  TH1D entry_hist("skim_counts", "skim_counts", 3, 0, 3);
+  setBin(1, total_events, "total_events", entry_hist);
+  setBin(2, skimmed_events, "skimmed_events", entry_hist);
+  setBin(3, collection_tree_events, "collection_tree_events", entry_hist);
+  file.WriteTObject(&entry_hist);
+
   if (has_mc) { 
     TParameter<double> skim_total("total_event_weight", total_event_weight); 
     TParameter<bool> bosons_found("bosons_found", has_bosons);
     file.WriteTObject(&skim_total); 
     file.WriteTObject(&bosons_found); 
+
+    TH1D mc_hist("mc_counts","mc_counts", 1, 0, 1);
+    setBin(1, total_event_weight, "total_event_weight", mc_hist);
+    file.WriteTObject(&mc_hist);
   }
+
 }
