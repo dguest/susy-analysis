@@ -1,4 +1,4 @@
-import re
+import re, warnings
 
 _stream_schema = { 
     'm':'Muon', 
@@ -11,7 +11,8 @@ dir_schema = {
     'e': 'electron', 
     'j': 'jet', 
     'a': 'atlfast', 
-    's': 'fullsim'
+    's': 'fullsim',
+    'u': 'unknown'
 }
 
 def get_prechar(name):
@@ -27,4 +28,7 @@ def get_prechar(name):
     fullsimfinder = re.compile('(_s([0-9]+))+')
     if fullsimfinder.search(name): 
         return 's'
-    raise ValueError("can't classify {}".format(name))
+    warnings.warn(
+        "{} lacks atlfast / fullsim info".format(
+            name), stacklevel=2)
+    return 's'
