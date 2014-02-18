@@ -23,8 +23,8 @@ def submit_ds(ds_name, debug=False, version=0, branches='branches.txt',
         user = os.path.expandvars('$USER')
     preskim_name = _strip_front(ds_name)
     output_base = '.'.join(preskim_name.split('.')[:3])
-    rev_number = _get_ptag(ds_name)
-    out_ds = 'user.{user}.{in_ds}.skim_p{rev}_v{version}/'.format(
+    rev_number = _get_tag(ds_name)
+    out_ds = 'user.{user}.{in_ds}.skim.{rev}_v{version}/'.format(
         user=user, in_ds=output_base, version=version, rev=rev_number)
 
     bstring = 'cd {sd}; make clean; make; cd ..; ln {sd}/run-skim'.format(
@@ -38,6 +38,7 @@ def submit_ds(ds_name, debug=False, version=0, branches='branches.txt',
         '--excludeFile=*.tar,*.log,*.sh,*.out,*.root',
         '--extFile={}'.format(branches), 
         '--rootVer=5.34/14',
+        '--mergeOutput',
         '--cmtConfig=x86_64-slc6-gcc47-opt', 
         ]
     if blacklist: 
@@ -59,9 +60,14 @@ def submit_ds(ds_name, debug=False, version=0, branches='branches.txt',
         out_talk.put(head_line + err + out + '\n')
     return out_ds, out, err
 
-def _get_ptag(ds_name): 
+simfind = re.compile('\.e[0-9]{3,5}(_[sar][0-9]{3,5})+(_p[0-9]+)+')
+def _get_tag(ds_name): 
     try: 
-        return re.compile('_p([0-9]{3,5})').findall(ds_name)[-1]
+        ptag = re.compile('_p([0-9]{3,5})').findall(ds_name)[-1]
+        simtag = simfind.search(ds_name)
+        if simtag: 
+            return simtag.group(0).lstrip('.')
+        return 'p' + ptag
     except IndexError: 
         return None
 
