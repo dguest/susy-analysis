@@ -1,12 +1,12 @@
 import re, warnings
 
-_stream_schema = { 
+_data_stream_schema = { 
     'm':'Muon', 
     'e':'Egamma', 
     'j':'JetTauEtmiss'
     }
 
-dir_schema = { 
+stream_schema = { 
     'm': 'muon', 
     'e': 'electron', 
     'j': 'jet', 
@@ -19,7 +19,8 @@ def get_prechar(name):
     """
     map dataset names onto the key charicter
     """
-    for char, stream in _stream_schema.iteritems(): 
+    for char, stream in _data_stream_schema.iteritems(): 
+        # data streams have physics_<stream> in the name somewhere
         if '_' + stream in name: 
             return char
     atlfinder = re.compile('(_a([0-9]+))+')

@@ -5,11 +5,12 @@ lots of info in the meta file.
 """
 import argparse
 import sys, os
-from os.path import isfile, isdir
-from os.path import join, splitext, basename, expanduser
+from os.path import isfile, isdir, dirname
+from os.path import join, splitext, basename, expanduser, split
 from scharm import bullshit, schema
 import re
 import yaml
+import warnings
 
 _sys_choices = {'NONE', 'JESUP', 'JESDOWN', 'JER', 
                 'METUP', 'METDOWN', 'METRES'}
@@ -34,9 +35,23 @@ def _get_config():
     parser.add_argument('-p', '--build-prw', action='store_true')
     return parser.parse_args(sys.argv[1:])
 
+def _get_ds_dict(meta_file_name, ds_key): 
+    """
+    Function to get this thing running even though there was a skimming bug
+    Should remove ASAP
+    """
+    with open(meta_file_name) as yml: 
+        yml_dict = yaml.load(yml)
+        try: 
+            return yml_dict[ds_key]
+        except KeyError:
+            warnings.warn('trying to fudge ds key to atlfast', stacklevel=2)
+            return yml_dict['a' + ds_key[1:]]
 
 def distill_d3pds(config): 
-
+    """
+    Main distill routine.
+    """
     with open(config.input_file) as d3pd_file: 
         files = [l.strip() for l in d3pd_file.readlines()]
     if not files: 
@@ -45,27 +60,19 @@ def distill_d3pds(config):
     out_file = splitext(basename(config.input_file))[0] + '.root'
     ds_key = basename(splitext(out_file)[0]).split('-')[0]
 
-    with open(config.meta) as yml: 
-        dataset = yaml.load(yml)[ds_key]
+    dataset = _get_ds_dict(config.meta, ds_key)
     flags, add_dict = _config_from_meta(dataset)
     add_dict['systematic'] = config.systematic
 
     add_dict.update(_get_cal_paths_dict(config))
     add_dict.update(_get_outputs(config, out_file))
         
-    if config.more_info: 
-        flags += 'i'           # save sparticle id
-    if config.all_events: 
-        flags += 'e'            # disables skimming
+    flags += _get_config_flags(config)
     if 'd' in flags: 
         if config.systematic != 'NONE' or config.build_prw: 
             return 
 
-    if sys.stdin.isatty(): 
-        flags += 'v'            # verbose
-    else: 
-        print 'running {} with flags {}'.format(config.input_file, flags)
-        _dump_settings(add_dict)
+    _dump_settings(add_dict, flags)
 
     if config.test: 
         cut_counts = [('test',1)]
@@ -77,11 +84,20 @@ def distill_d3pds(config):
             cutflow='NOMINAL', 
             **add_dict)
 
-    if out_path: 
-        counts_path = splitext(out_path)[0] + '_counts.yml'
-        list_counts = [list(c) for c in cut_counts]
-        with open(counts_path,'w') as out_yml: 
-            out_yml.write(yaml.dump(list_counts))
+    _write_cutflow(cut_counts, add_dict['output_ntuple'])
+
+def _write_cutflow(cut_counts, output_ntuple): 
+    """
+    Write out a yaml file showing the cuts passed
+    """
+    ntup_dir, ntup_name = split(output_ntuple)
+    cf_name = '{}_counts.yml'.format(splitext(ntup_name)[0])
+    counts_dir = join(ntup_dir.rsplit('/',1)[0], 'cutflows')
+    bullshit.make_dir_if_none(counts_dir)
+    counts_path = join(counts_dir, cf_name)
+    list_counts = [list(c) for c in cut_counts]
+    with open(counts_path,'w') as out_yml: 
+        out_yml.write(yaml.dump(list_counts))
 
 def _get_cal_paths_dict(config): 
     calibration_dir = expanduser(config.calibration)
@@ -106,23 +122,22 @@ def _get_outputs(config, out_file):
     various output configurations
     """
     char = out_file[0]
-    if char not in schema.dir_schema: 
+    if char not in schema.stream_schema: 
         raise ValueError("stream not recognized: {}".format(out_file))
 
     sys_dir = config.systematic.lower()
-    stream_dir = schema.dir_schema[char]
+    stream_dir = schema.stream_schema[char]
 
-    if char == 'm':
-        out_type = 'mumet_output_ntuple'
-    else: 
-        out_type = 'output_ntuple'
+    def make_output(replacement): 
+        out_dir = join(config.output_dir, stream_dir, sys_dir, replacement)
+        bullshit.make_dir_if_none(out_dir)
+        return join(out_dir, out_file)
 
-    out_path = join(config.output_dir, stream_dir, sys_dir, out_file)
+    return {'mumet_output_ntuple': make_output('mumet'), 
+            'output_ntuple': make_output('normal')}
 
-    return {out_type: out_path}
-
-
-def _dump_settings(settings_dict): 
+def _dump_settings(settings_dict, flags): 
+    print "running with flags '{}'".format(flags)
     set_width = max(len(str(n)) for n in settings_dict)
     for name, value in settings_dict.iteritems(): 
         print '{n:{w}}: {v}'.format(n=name, w=set_width, v=value)
@@ -142,6 +157,16 @@ def _config_from_meta(dataset):
     if _is_sherpa_ew(dataset): 
         flags += 'p'            # do boson pt reweighting
     return flags, add_dict
+
+def _get_config_flags(config):
+    flags = ''
+    if config.more_info: 
+        flags += 'i'           # save sparticle id
+    if config.all_events: 
+        flags += 'e'            # disables skimming
+    if sys.stdin.isatty(): 
+        flags += 'v'            # verbose
+    return flags
 
 # --- various smaller checks
 

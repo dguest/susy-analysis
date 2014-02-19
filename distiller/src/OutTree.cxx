@@ -67,6 +67,9 @@ namespace outtree {
   { 
     if (file.size() > 0) { 
       m_file = new TFile(file.c_str(), "recreate"); 
+      if (!m_file->IsOpen()) {
+	throw std::runtime_error("can't create output file: " + file);
+      }
       if (flags & cutflag::maximum_compression) { 
 	m_file->SetCompressionLevel(9); 
       }
