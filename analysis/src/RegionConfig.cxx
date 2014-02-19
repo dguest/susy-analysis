@@ -6,7 +6,6 @@ RegionConfig::RegionConfig() :
   jet_tag_assignment(btag::PT_ORDERED), 
   leading_jet_pt(0), 
   met(0), 
-  region_bits(0), 
   systematic(syst::NONE), 
   output_name(""), 
   type(reg::SIGNAL), 		// will be blinded by default

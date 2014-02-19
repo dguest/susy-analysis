@@ -15,8 +15,8 @@ import numpy as np
 import bisect
 from os.path import dirname
 
-from scharm3.bullshit import make_dir_if_none
-from scharm3.style import vdict, hdict
+from scharm.bullshit import make_dir_if_none
+from scharm.style import vdict, hdict
 
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigCanvas

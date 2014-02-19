@@ -113,9 +113,9 @@ class Stacker(object):
 
     def _run(self, ntuple, regions): 
         if self.dummy: 
-            print ntuple
+            print(ntuple)
             for reg in regions: 
-                print reg
+                print(reg)
             return 
         from stop.stack.hfw import stacksusy
         flags = ''.join(self.flags)

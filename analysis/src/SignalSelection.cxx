@@ -3,16 +3,18 @@
 #include "EventObjects.hh"
 #include "constants_scharmcuts.hh"
 
+// ______________________________________________________________________
+// Looser version 
 
-SignalSelection::SignalSelection(const RegionConfig& ) { 
+NMinusSignalSelection::NMinusSignalSelection(const RegionConfig& ) { 
   
 }
 
-SignalSelection::~SignalSelection() { 
+NMinusSignalSelection::~NMinusSignalSelection() { 
 
 }
 
-bool SignalSelection::pass(const EventObjects& obj) const { 
+bool NMinusSignalSelection::pass(const EventObjects& obj) const { 
   
   const EventRecoParameters& reco = obj.reco; 
   // check trigger
@@ -23,6 +25,28 @@ bool SignalSelection::pass(const EventObjects& obj) const {
   if (reco.n_veto_electrons > 0) return false; 
   if (reco.n_veto_muons > 0) return false; 
 
+  return true; 
+}
+
+// ______________________________________________________________________
+// tighter version 
+
+SignalSelection::SignalSelection(const RegionConfig& cfg): 
+  m_nminus(cfg)
+{ 
+}
+
+SignalSelection::~SignalSelection() { 
+
+}
+
+bool SignalSelection::pass(const EventObjects& obj) const { 
+
+  // call the above routine
+  if (!m_nminus.pass(obj)) return false; 
+
+  const EventRecoParameters& reco = obj.reco; 
+
   // other parameters
   if (obj.jets.size() > 2) { 
     if (obj.jets.at(2).Pt() > SIGNAL_JET_3_MAX_PT) return false; 
@@ -31,7 +55,6 @@ bool SignalSelection::pass(const EventObjects& obj) const {
   if (reco.mct < SR_MCT_MIN) return false; 
   if (reco.met_eff < MET_EFF_MIN) return false; 
   if (reco.mcc < M_CC_MIN) return false; 
-  
 
   return true; 
 }

@@ -1,4 +1,4 @@
-from stop import bits
+
 
 class Region(object): 
     """
@@ -7,25 +7,17 @@ class Region(object):
     checking the integrity of its stored data. 
     """
     default_dict = { 
-        'type':'control', 
-        'bits': { 
-            'required':['preselection'], 
-            'veto':[], 
-            'region_flags':[], 
-            }, 
+        'selection': 'signal',
+        'type':'signal', 
         'kinematics':{
             'leading_jet_gev':240, 
             'met_gev':180, 
             }, 
         'btag_config':['NOTAG','LOOSE','TIGHT'], 
-        'tagger':'CNN', 
+        'tagger':'JFC', 
         'jet_tag_assignment': 'PT_ORDERED'
         }
-    _bit_dict = dict(bits.bits)
-    _composite_bit_dict = dict(bits.composite_bits)
-    _final_dict = bits.final_dict
     _allowed_types = set(['control','signal','validation'])
-    _region_flags = bits.region_event_filter_bits
 
     def __init__(self, yaml_dict={}): 
         if not yaml_dict: 
@@ -37,16 +29,13 @@ class Region(object):
 
     def _read_dict(self,yaml_dict): 
         self.type = yaml_dict['type']
-        self.bits = yaml_dict['bits']
         self.kinematics = yaml_dict['kinematics']
         self.btag_config = yaml_dict['btag_config']
         if self.type not in self._allowed_types: 
             raise RegionConfigError('region type {} is not known'.format(
                     self.type))
-        if not 'required' in self.bits: 
-            raise RegionConfigError("'required' bits should be in 'bits'")
         self.tagger = yaml_dict.get('tagger', None)
-        self.hists = yaml_dict.get('hists', 'HISTMILL')
+        self.hists = yaml_dict.get('hists', 'NMINUS')
         self.jet_tag_assignment = yaml_dict.get(
             'jet_tag_assignment','PT_ORDERED')
         self.boson_pt_correction = yaml_dict.get(
@@ -60,43 +49,16 @@ class Region(object):
         baselist = self.__dict__.items()
         base = {k:v for k, v in baselist if not k.startswith('_')}
         return base
-
-    def _get_bits(self, namelist): 
-        bits = 0
-        for name in namelist:
-            if name in self._final_dict: 
-                bits |= self._final_dict[name]
-            elif name in self._composite_bit_dict: 
-                bits |= self._composite_bit_dict[name]
-            elif name in self._bit_dict: 
-                bits |= self._bit_dict[name]
-            else: 
-                raise ValueError("{} isn't a defined bit".format(name))
-        return long(bits)
-            
-    def get_bits(self): 
-        return self._get_bits(self.bits['required'])
-        
-    def get_antibits(self):
-        return self._get_bits(self.bits.get('veto',[]))
-    
-    def get_region_bits(self): 
-        allbits = 0
-        for name in self.bits.get('region_flags',[]):
-            allbits |= self._region_flags[name]
-        return long(allbits)
     
     def get_config_dict(self): 
         """
         Produces the configuration info needed for _stacksusy
         """
         config_dict = {
+            'selection': self.selection, 
             'jet_tag_requirements': self.btag_config, 
             'leading_jet_pt': self.kinematics['leading_jet_gev']*1e3, 
             'met': self.kinematics['met_gev']*1e3, 
-            'required_bits': self.get_bits(), 
-            'veto_bits': self.get_antibits(), 
-            'region_bits': self.get_region_bits(), 
             'type': self.type.upper(), 
             'hists': self.hists.upper(), 
             'tagger': _get_tagger(self.btag_config, self.tagger), 

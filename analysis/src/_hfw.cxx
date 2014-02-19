@@ -39,7 +39,7 @@ static PyObject* py_analysis_alg(PyObject *self, PyObject *args)
     return NULL; 
   }
   catch (std::logic_error& e) { 
-    PyErr_SetString(PyExc_StandardError, e.what()); 
+    PyErr_SetString(PyExc_Exception, e.what()); 
     return NULL; 
   }
   PyObject* tuple = Py_BuildValue("i", ret_val);
@@ -70,7 +70,6 @@ static bool safe_copy(PyObject* dict, RegionConfig& region)
   REQUIRE(output_name); 
   REQUIRE(type); 
   
-  COPY(region_bits); 
   COPY(systematic); 
   COPY(leading_jet_pt); 
   COPY(met);
@@ -91,8 +90,8 @@ static bool safe_copy(PyObject* dict, RegionConfig& region)
 // basic copy types
 
 static bool safe_copy(PyObject* value, std::string& dest){ 
-  std::string cstr = PyString_AsString(value);
-  if (PyErr_Occurred() || (PyString_Size(value) == 0)) return false; 
+  std::string cstr = PyUnicode_AsUTF8(value);
+  if (PyErr_Occurred() || (PyUnicode_GetLength(value) == 0)) return false; 
   dest = cstr; 
   return true; 
 }
@@ -124,7 +123,7 @@ static bool safe_copy(PyObject* value, double& dest) {
 
 
 static bool safe_copy(PyObject* value, reg::Selection& dest) { 
-  char* charname = PyString_AsString(value); 
+  char* charname = PyUnicode_AsUTF8(value); 
   if (PyErr_Occurred()) return false; 
   std::string name(charname); 
   using namespace reg; 
@@ -133,7 +132,7 @@ static bool safe_copy(PyObject* value, reg::Selection& dest) {
   NAME_TO_PREFIXED(Selection, CR_1L); 
   NAME_TO_PREFIXED(Selection, CR_SF); 
   NAME_TO_PREFIXED(Selection, CR_DF); 
-  NAME_TO_PREFIXED(Selection, NONE); 
+  NAME_TO_PREFIXED(Selection, QUALITY_EVENT); 
 
   std::string problem = "got undefined selection: " + name; 
   PyErr_SetString(PyExc_ValueError,problem.c_str()); 
@@ -150,7 +149,7 @@ static bool safe_copy(PyObject* value, reg::Selection& dest) {
 
 
 static bool safe_copy(PyObject* value, btag::OperatingPoint& dest) { 
-  char* charname = PyString_AsString(value); 
+  char* charname = PyUnicode_AsUTF8(value); 
   if (PyErr_Occurred()) return false; 
   std::string name(charname); 
   using namespace btag; 
@@ -172,7 +171,7 @@ static bool safe_copy(PyObject* value, btag::OperatingPoint& dest) {
 }
 
 static bool safe_copy(PyObject* value, btag::Tagger& dest) { 
-  char* charname = PyString_AsString(value); 
+  char* charname = PyUnicode_AsUTF8(value); 
   if (PyErr_Occurred()) return false; 
   std::string name(charname); 
   using namespace btag; 
@@ -186,7 +185,7 @@ static bool safe_copy(PyObject* value, btag::Tagger& dest) {
 }
 
 static bool safe_copy(PyObject* value, btag::Assignment& dest) { 
-  char* charname = PyString_AsString(value); 
+  char* charname = PyUnicode_AsUTF8(value); 
   if (PyErr_Occurred()) return false; 
   std::string name(charname); 
   using namespace btag; 
@@ -201,7 +200,7 @@ static bool safe_copy(PyObject* value, btag::Assignment& dest) {
 
 
 static bool safe_copy(PyObject* value, reg::Type& dest) { 
-  char* charname = PyString_AsString(value); 
+  char* charname = PyUnicode_AsUTF8(value); 
   if (PyErr_Occurred()) return false; 
   std::string name(charname); 
   using namespace reg; 
@@ -216,7 +215,7 @@ static bool safe_copy(PyObject* value, reg::Type& dest) {
 }
 
 static bool safe_copy(PyObject* value, reg::Hists& dest) { 
-  char* charname = PyString_AsString(value); 
+  char* charname = PyUnicode_AsUTF8(value); 
   if (PyErr_Occurred()) return false; 
   std::string name(charname); 
   using namespace reg; 
@@ -225,6 +224,7 @@ static bool safe_copy(PyObject* value, reg::Hists& dest) {
   NAME_TO_DEST(KINEMATIC_STAT); 
   NAME_TO_DEST(TAG_EFFICIENCY); 
   NAME_TO_DEST(BOSON_PT); 
+  NAME_TO_DEST(NMINUS); 
 
   std::string problem = "got undefined hists type: " + name; 
   PyErr_SetString(PyExc_ValueError,problem.c_str()); 
@@ -232,7 +232,7 @@ static bool safe_copy(PyObject* value, reg::Hists& dest) {
 }
 
 static bool safe_copy(PyObject* value, syst::Systematic& dest) { 
-  char* charname = PyString_AsString(value); 
+  char* charname = PyUnicode_AsUTF8(value); 
   if (PyErr_Occurred()) return false; 
   std::string name(charname); 
   using namespace syst; 
@@ -257,7 +257,7 @@ static bool safe_copy(PyObject* value, syst::Systematic& dest) {
 }
 
 static bool safe_copy(PyObject* value, reg::BosonPtCorrection& dest) {
-  char* charname = PyString_AsString(value); 
+  char* charname = PyUnicode_AsUTF8(value); 
   if (PyErr_Occurred()) return false; 
   std::string name(charname); 
   using namespace reg; 
@@ -274,13 +274,20 @@ static PyMethodDef methods[] = {
   {NULL, NULL, 0, NULL}   /* sentinel */
 };
 
+static struct PyModuleDef hfw  = {
+   PyModuleDef_HEAD_INIT,
+   "hfw",   /* name of module */
+   "this be hfw", /* module documentation, may be NULL */
+   -1,       /* size of per-interpreter state of the module,
+                or -1 if the module keeps state in global variables. */
+   methods
+};
+
 extern "C" { 
-
-  PyMODINIT_FUNC init_hfw(void)
+  PyMODINIT_FUNC PyInit__hfw(void)
   {
-    Py_InitModule("_hfw", methods);
+    return PyModule_Create(&hfw);
   }
-
 }
 
 

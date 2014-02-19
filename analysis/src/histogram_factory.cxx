@@ -6,6 +6,7 @@
 #include "Region2dKinematicHistograms.hh"
 #include "RegionJetEfficiencyHistograms.hh"
 #include "RegionBosonPtHistograms.hh"
+#include "NMinus1Histograms.hh"
 
 IRegionHistograms* histogram_factory(const RegionConfig& region, 
 				     const unsigned build_flags){ 
@@ -18,6 +19,8 @@ IRegionHistograms* histogram_factory(const RegionConfig& region,
     return new RegionJetEfficiencyHistograms(region, build_flags);
   case BOSON_PT: 
     return new RegionBosonPtHistograms(region, build_flags); 
+  case NMINUS: 
+    return new NMinus1Histograms(region, build_flags);
   default: 
     throw std::logic_error("unknown hist type for region " + region.name); 
   }

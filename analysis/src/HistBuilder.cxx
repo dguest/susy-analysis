@@ -23,6 +23,7 @@ HistBuilder::HistBuilder(std::string input, const unsigned flags):
   m_build_flags(flags)
 { 
   m_factory = new ObjectFactory(input, N_JETS_TO_READ); 
+  if (m_factory->is_data()) m_build_flags |= buildflag::is_data; 
 }
 
 HistBuilder::~HistBuilder() { 

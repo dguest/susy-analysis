@@ -76,7 +76,7 @@ ObjectFactory::ObjectFactory(const std::string& root_file, int n_jets) :
 
   // set_branch(m_tree,"htx", &m_htx); 
   for (int ji = 0; ji < n_jets; ji++) { 
-    std::string base_name = "jet" + std::to_string(ji); 
+    std::string base_name = "jet" + std::to_string(ji) + "_"; 
     m_jet_buffers.push_back(new JetBuffer); 
     m_jet_buffers.back()->set_buffer(m_tree, base_name); 
   }
@@ -114,6 +114,11 @@ ObjectFactory::~ObjectFactory()
 int ObjectFactory::entries() const { 
   return m_tree->GetEntries(); 
 }
+
+bool ObjectFactory::is_data() const { 
+  return ioflag::no_truth & m_ioflags; 
+}
+
 void ObjectFactory::entry(int n) { 
   m_tree->GetEntry(n); 
 }

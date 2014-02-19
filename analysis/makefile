@@ -36,7 +36,7 @@ ROOTLIBS      += -lCore -lTree -lPhysics -lRIO
 ROOTLDFLAGS   := $(shell root-config --ldflags)
 
 # and py config
-PY_CONFIG := python2.7-config
+PY_CONFIG := python3.3-config
 
 PY_FLAGS :=   $(shell $(PY_CONFIG) --includes)
 PY_LIB   := -L$(shell $(PY_CONFIG) --prefix)/lib
@@ -67,32 +67,39 @@ PY_LDFLAGS += $(PY_LIB)
 PY_LDFLAGS += -shared
 
 # ---- define objects
-TOBJ        := ObjectFactory.o
-GEN_OBJ     := HistBuilder.o Jet.o SkimCounts.o
-GEN_OBJ     += Jet2DHists.o Jet1DHists.o 
+GEN_OBJ     := HistBuilder.o Jet.o SkimCounts.o ObjectFactory.o
 GEN_OBJ     += JetTagRescaler.o JetBuffer.o BtagBuffer.o
 GEN_OBJ     += BtagConfig.o RegionConfig.o Flavor.o
-GEN_OBJ     += TruthJetHists.o RegionHistograms.o EventObjects.o
-GEN_OBJ     += Region2dKinematicHistograms.o
+GEN_OBJ     += EventObjects.o
 GEN_OBJ     += RegionEventFilter.o 
+
+GEN_OBJ     += QualityEventSelection.o
 GEN_OBJ     += SignalSelection.o CR1LSelection.o 
 GEN_OBJ     += OSDFSelection.o OSSFSelection.o
+
 GEN_OBJ     += OrderedJetTagFilter.o UnorderedJetTagFilter.o
+
+GEN_OBJ     += NMinus1Histograms.o
+GEN_OBJ     += Region2dKinematicHistograms.o
 GEN_OBJ     += RegionJetEfficiencyHistograms.o
 GEN_OBJ     += RegionBosonPtHistograms.o
+GEN_OBJ     += RegionHistograms.o
+
+GEN_OBJ     += Jet2DHists.o Jet1DHists.o TruthJetHists.o
+
 GEN_OBJ     += common_functions.o enum_converters.o hdf_helpers.o
 GEN_OBJ     += histogram_factory.o
 GEN_OBJ     += EventScalefactors.o
-EXE_OBJ     := $(GEN_OBJ) $(TOBJ) unit-test.o
-PYLIB_OBJ   := $(GEN_OBJ) $(TOBJ)
+EXE_OBJ     := $(GEN_OBJ) unit-test.o
+PYLIB_OBJ   := $(GEN_OBJ)
 
-STAND_ALONE_OBJ     := $(GEN_OBJ) $(TOBJ) stand-alone.o
+STAND_ALONE_OBJ     := $(GEN_OBJ) stand-alone.o
 
 PY_OBJ       := _hfw.o
-PY_LIB       := ../python/scharm/stack/_hfw.so
+PY_LIB       := ../python3/scharm3/stack/_hfw.so
 
 
-ALLOBJ       := $(GEN_OBJ) $(PY_OBJ) $(TOBJ) unit-test.o
+ALLOBJ       := $(GEN_OBJ) $(PY_OBJ) unit-test.o
 
 ALLOUTPUT    := $(PY_LIB) unit-test stand-alone
 

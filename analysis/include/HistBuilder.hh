@@ -25,7 +25,7 @@ public:
 private: 
   void add_histogram(const RegionConfig& region); 
   const std::string m_input_file; 
-  const unsigned m_build_flags; 
+  unsigned m_build_flags; 
   
   std::map<std::string, 
 	   std::vector<const IRegionHistograms*> > m_out_file_map; 

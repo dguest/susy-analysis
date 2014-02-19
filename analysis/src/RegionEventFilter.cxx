@@ -14,6 +14,7 @@
 #include "OSDFSelection.hh"
 #include "OSSFSelection.hh"
 #include "CR1LSelection.hh"
+#include "QualityEventSelection.hh"
 
 #include <stdexcept> 
 
@@ -49,9 +50,6 @@ RegionEventFilter::~RegionEventFilter() {
 }
 
 bool RegionEventFilter::pass(const EventObjects& obj) const { 
-  if (reg::throw_for_fun & m_region_config.region_bits) { 
-    throw std::runtime_error("fucking fun"); 
-  }
 
   // assume we'll always want "quality" events..
   if (!obj.reco.pass_event_quality) return false; 
@@ -77,10 +75,6 @@ bool RegionEventFilter::pass(const EventObjects& obj) const {
   // --- check number of tagged jets (must have at least this many) ---
   unsigned n_required_jets = m_region_config.jet_tag_requirements.size(); 
   if (jets.size() < n_required_jets) return false; 
-  if (reg::no_extra_jets & m_region_config.region_bits) { 
-    if (jets.size() > n_required_jets) return false; 
-  }
-
 
   return true; 
 
@@ -133,6 +127,7 @@ namespace {
     case Selection::CR_DF: return new OSDFSelection(conf); 
     case Selection::CR_SF: return new OSSFSelection(conf); 
     case Selection::CR_1L: return new CR1LSelection(conf); 
+    case Selection::QUALITY_EVENT: return new QualityEventSelection(conf); 
     default: throw std::logic_error("got undefined selection in " __FILE__); 
     }
   }
