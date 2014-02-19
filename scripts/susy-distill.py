@@ -189,7 +189,7 @@ def _is_sherpa_ew(dataset):
     full_name = dataset['full_name']
     pt = dataset['physics_type']
     ew_matched = ew_re.search(full_name)
-    type_matched = bool(pt) and pt in {'Wjets','Zjets'}
+    type_matched = bool(pt) and any(t in pt for t in {'Wjets','Zjets'})
     if bool(ew_matched) != type_matched: 
         prob = (
             "can't make sense of physics type '{}' with name '{}', "
