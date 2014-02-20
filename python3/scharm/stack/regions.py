@@ -1,6 +1,6 @@
 
 
-class Region(object): 
+class Region: 
     """
     Stores info on signal / control region. Bits are stored as strings 
     and used to look up real values. This class is also responsible for
@@ -13,7 +13,7 @@ class Region(object):
             'leading_jet_gev':240, 
             'met_gev':180, 
             }, 
-        'btag_config':['NOTAG','LOOSE','TIGHT'], 
+        'btag_config':[], 
         'tagger':'JFC', 
         'jet_tag_assignment': 'PT_ORDERED'
         }
@@ -29,6 +29,7 @@ class Region(object):
 
     def _read_dict(self,yaml_dict): 
         self.type = yaml_dict['type']
+        self.selection = yaml_dict['selection']
         self.kinematics = yaml_dict['kinematics']
         self.btag_config = yaml_dict['btag_config']
         if self.type not in self._allowed_types: 
@@ -55,7 +56,7 @@ class Region(object):
         Produces the configuration info needed for _stacksusy
         """
         config_dict = {
-            'selection': self.selection, 
+            'selection': self.selection.upper(), 
             'jet_tag_requirements': self.btag_config, 
             'leading_jet_pt': self.kinematics['leading_jet_gev']*1e3, 
             'met': self.kinematics['met_gev']*1e3, 

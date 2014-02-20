@@ -31,6 +31,8 @@ def get_config():
         default='sharktopus.sh')
     distil_args.add_argument('-p', '--build-prw', action='store_true')
     distil_args.add_argument('-a', '--aggressive', action='store_true')
+    distil_args.add_argument('-y', '--systematics', action='store_true', 
+                             help='enable systematics')
 
     stack_args = subs.add_parser('stack', description=setup_stack.__doc__)
     stack_args.add_argument('input_ntuples', nargs='+')
@@ -283,19 +285,7 @@ def setup_distill(config):
     """
     Build the distiller submit script.
     """
-    _write_distill_config(script_name=config.script, 
-                          meta_name=config.meta, 
-                          input_files=config.input_textfiles, 
-                          build_prw=config.build_prw)
-
-
-def _dirify(systematic_name): 
-    if systematic_name == 'NONE': 
-        return 'baseline'
-    return systematic_name.lower()
-
-def _write_distill_config(script_name, meta_name, input_files, 
-                          systematic='all', build_prw=False): 
+    input_files = config.input_textfiles
     in_dir = dirname(input_files[0])
     sub_dict = {
         'n_jobs': len(input_files), 
@@ -305,30 +295,33 @@ def _write_distill_config(script_name, meta_name, input_files,
         'walltime': '00:03:00:00'
         }
 
-    if systematic == 'all': 
-        systematics = ['JESUP', 'JESDOWN', 'JER', 'NONE', 
-                       'METUP', 'METDOWN', 'METRES']
-    else: 
-        systematics = [systematic]
+    systematics = ['NONE']
+    if config.systematics: 
+        systematics += [
+            'JESUP', 'JESDOWN', 'JER',  
+            'METUP', 'METDOWN', 'METRES'
+            ]
 
     submit_head = _get_submit_head(**sub_dict)
 
-    with open(script_name, 'w') as out_script: 
+    with open(config.script, 'w') as out_script: 
         out_script.write(submit_head)
         for syst in systematics:
             run_args = [
-                meta_name, 
+                config.meta, 
                 '-s {}'.format(syst), 
                 '-o ntuples']
-            if build_prw: 
-                run_args.append('-p')
             line_args = { 
                 'routine': 'susy-distill.py', 
                 'run_args': ' '.join(run_args), 
                 }
             syst_line = _submit_line.format(**line_args)
             out_script.write(syst_line + '\n')
-    
+
+def _dirify(systematic_name): 
+    if systematic_name == 'NONE': 
+        return 'baseline'
+    return systematic_name.lower()
 
 _submit_head="""
 #!/usr/bin/env bash

@@ -20,10 +20,11 @@ namespace H5 {
 
 namespace nminus { 
   const size_t N_BINS = 100;
-  const double MAX_ENERGY = 500_GeV;
+  const double MAX_ENERGY = 1_TeV;
 
   // all units are in MeV
   const std::string EUNIT = "MeV"; 
+
 
   // names for internal use (and saving)
   const std::string MET = "met"; 
@@ -52,7 +53,7 @@ namespace nminus {
     NMinusHist(NMinusHist&) = delete; 
     NMinusHist(NMinusHist&&); 
     NMinusHist operator=(NMinusHist&) = delete; 
-    void fill(const std::map<std::string, double>& values); 
+    void fill(const std::map<std::string, double>& values, double weight); 
     void write_to(H5::CommonFG&, std::string name = "") const; 
   private: 
     Histogram* m_histogram; 

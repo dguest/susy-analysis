@@ -106,6 +106,9 @@ void Skimmer::copyVariablesTo(TTree* output_tree, TFile* file) {
     if (summary.has_mc) { 
       if (summary.has_bosons) { 
 	try {
+	  // TODO: we should keep track of how often we get bosons
+	  // rather than assuming there are none if this throws once.
+	  // Should make this function return -N_BOSONS_FOUND or something...
 	  boson_pt = get_boson_truth_pt(buffer); 
 	} catch (BosonError& err) { 
 	  summary.has_bosons = false; 

@@ -9,21 +9,19 @@ path to the root files.
 import argparse, sys
 import yaml
 import glob
-from os.path import join, splitext, expanduser
+from os.path import join, splitext, expanduser, dirname
 import os
 from warnings import warn
 
 from scharm.stack.regions import Region
 from scharm.stack.stacker import Stacker
+from scharm import schema
 from scharm.bullshit import make_dir_if_none
 import h5py
 
 def run(): 
     config = get_config()
-    subs = {
-        'setup': setup_steering, 
-        'run': run_stacker}
-    subs[config.which](config)
+    run_stacker(config)
 
 def get_config(): 
     d = 'default: %(default)s'
@@ -34,7 +32,7 @@ def get_config():
     parser.add_argument('input_files_list')
     parser.add_argument('steering_file')
     parser.add_argument(
-        '--mode', default='histmill', choices={
+        '--mode', default='nminus', choices={
             'histmill','kinematic_stat','nminus'}, 
         help=d)
     parser.add_argument('-d','--dump-run', action='store_true', 
@@ -43,18 +41,27 @@ def get_config():
     
     return parser.parse_args(sys.argv[1:])
 
+def _build_reg_dict(reg_file): 
+    if not os.path.isfile(reg_file): 
+        dummy_region = Region()
+        reg_dict = {
+            'regions': {
+                'dummy':dummy_region.get_yaml_dict()
+                }
+            }
+
+        with open(reg_file, 'w') as regions: 
+            regions.write(yaml.dump(reg_dict))
+        sys.exit('wrote dummy, quit...')
 
 def run_stacker(config): 
+    _build_reg_dict(config.steering_file)
     with open(config.steering_file) as steering_yml: 
         config_dict = yaml.load(steering_yml)
 
     regions = {k:Region(v) for k, v in config_dict['regions'].items()}
-    hists_dir = config.hists_dir
-    
-    make_dir_if_none(hists_dir)
 
-    stacker = Stacker(regions)
-    stacker.rerun = True
+    stacker = Stacker(regions, config.hists_dir)
     stacker.make_dirs = True
     stacker.verbose = False
     stacker.dummy = config.dump_run
@@ -66,7 +73,8 @@ def run_stacker(config):
     stacker.total_ntuples = len(ntuples)
 
     for tuple_n, ntuple in enumerate(ntuples): 
-        systematics = get_systematics(ntuple)
+        variant = schema.distiller_settings_from_dir(dirname(ntuple))
+        systematics = _get_systematics(variant)
         outsubdir = None
         if len(systematics) == 1: 
             outsubdir = systematics[0].lower()
@@ -75,21 +83,18 @@ def run_stacker(config):
             # turn it off here
             systematics = ['NONE'] 
         stacker.run_multisys(
-            ntuple, hists_dir, systematics, 
-            outsubdir=outsubdir, tuple_n=tuple_n)
+            ntuple, systematics, tuple_n=tuple_n)
 
 _shift_sf = list('BCUT') + ['EL','MU']
 scale_factor_systematics = ['NONE'] + [
     part + shift for part in _shift_sf for shift in ['UP','DOWN']
     ]
 
-def get_systematics(ntuple): 
-    tld = dirname(ntuple).split('/')[-1]
-    syst = tld.upper()
-    if syst == 'NONE': 
+def _get_systematics(variant): 
+    syst = variant['systematic']
+    if syst == 'none': 
         return scale_factor_systematics
-    else: 
-        return [syst]
+    return [syst]
 
 if __name__ == '__main__': 
     run()
