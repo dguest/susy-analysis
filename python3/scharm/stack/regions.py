@@ -1,6 +1,6 @@
 
 
-class Region(object): 
+class Region: 
     """
     Stores info on signal / control region. Bits are stored as strings 
     and used to look up real values. This class is also responsible for

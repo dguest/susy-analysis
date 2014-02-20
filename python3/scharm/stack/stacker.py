@@ -1,5 +1,6 @@
 import sys, os
 from os.path import join, isdir, basename, splitext, isfile
+from scharm import schema
 from scharm.bullshit import make_dir_if_none
 
 class Stacker(object): 
@@ -9,7 +10,7 @@ class Stacker(object):
     """
     data_prepend = 'jem'
     mc_prepend = 'sa'
-    def __init__(self, regions_dict): 
+    def __init__(self, regions_dict, base_dir): 
         self._regions = regions_dict
         self.dummy = False
         self.flags = set()
@@ -19,6 +20,7 @@ class Stacker(object):
         self.bugstream = sys.stderr
         self.rerun = False
         self.make_dirs = False
+        self.base_dir = base_dir
     @property
     def verbose(self): 
         return self._verbose
@@ -41,19 +43,14 @@ class Stacker(object):
                 "not sure what '{}' does as ntuple prepend in '{}'".format(
                     first, ntuple_name))
 
-    def _setup_region_dict(self, name, reg, outsubdir, systematic, ntuple, 
-                           basedir): 
+    def _setup_region_dict(self, name, reg, ntuple, systematic): 
         regdic = reg.get_config_dict()
-        modedir = regdic['hists'].lower()
         regdic['name'] = name
-        if outsubdir: 
-            systdir = outsubdir
-        else: 
-            if systematic == 'NONE': 
-                systdir = 'baseline'
-            else: 
-                systdir = systematic.lower()
-        full_out_dir = join(basedir, modedir, systdir)
+        dist_settings = schema.distiller_settings_from_dir(dirname(ntuple))
+        dist_settings['systematic'] = systematic
+        mid_path = schema.dir_from_distiller_settings(
+            dist_settings, base=self.base_dir)
+        full_out_dir = join(mid_path, regdic['hists'].lower())
         if not isdir(full_out_dir): 
             if self.make_dirs: 
                 make_dir_if_none(full_out_dir)
@@ -62,23 +59,19 @@ class Stacker(object):
         histname = '{}.h5'.format(basename(splitext(ntuple)[0]))
         full_out_path = join(full_out_dir, histname)
         if isfile(full_out_path): 
-            if self.rerun: 
-                os.remove(full_out_path)
-            else: 
-                return None
+            os.remove(full_out_path)
         regdic['output_name'] = full_out_path
-        regdic['systematic'] = systematic
+        regdic['systematic'] = systematic.upper()
 
         return regdic
 
-    def run_multisys(self, ntuple, basedir, systematics, tuple_n=None, 
-                     outsubdir=None): 
+    def run_multisys(self, ntuple, systematics, tuple_n=None): 
         regions = []
         for name, reg in self._regions.items(): 
             for systematic in systematics: 
                 if self._ismc(ntuple) or systematic == 'NONE':
                     regdic = self._setup_region_dict(
-                        name, reg, outsubdir, systematic, ntuple, basedir)
+                        name, reg, ntuple, systematic)
                     if regdic: 
                         regions.append(regdic)
 
@@ -99,10 +92,7 @@ class Stacker(object):
         if all(print_req):
             n_syst = len(systematics)
             if n_syst == 1: 
-                if outsubdir: 
-                    tag = outsubdir
-                else: 
-                    tag = systematics[0]
+                tag = systematics[0]
                 prline = '\rstacking {} ({:4} of {})'.format(
                     tag, tuple_n, self.total_ntuples)
             else: 
