@@ -58,7 +58,8 @@ namespace nminus {
   {
     std::swap(m_histogram, old.m_histogram);
   }
-  void NMinusHist::fill(const std::map<std::string, double>& values) { 
+  void NMinusHist::fill(const std::map<std::string, double>& values, 
+			double weight) { 
     if (!values.count(m_name)) return;
     for (const auto& cut: m_cuts) { 
 
@@ -71,7 +72,7 @@ namespace nminus {
       const auto& value = values.at(cut_variable); 
       if (selection.min > value || value > selection.max) return; 
     }
-    m_histogram->fill(values); 
+    m_histogram->fill(values, weight); 
   }
   void NMinusHist::write_to(H5::CommonFG& file, std::string name) const { 
     if (name.size() == 0) name = m_name; 
@@ -122,7 +123,9 @@ void NMinus1Histograms::fill(const EventObjects& obj) {
   if (!reco.pass_event_quality) return; 
 
   if (!m_selection->pass(obj)) return;
-  
+
+  double weight = obj.weight;
+
   // if (! (m_build_flags & buildflag::is_data)) { 
   //   weight *= m_event_filter.jet_scalefactor(tagged_jets); 
   //   weight *= m_event_filter.lepton_scalefactor(obj); 
@@ -150,7 +153,7 @@ void NMinus1Histograms::fill(const EventObjects& obj) {
     	{jantiu(jn), log(pc/pu)} } );
   }
   for (auto& hist: m_hists) { 
-    hist.fill(values);
+    hist.fill(values, weight);
   }
 }
 
