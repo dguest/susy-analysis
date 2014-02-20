@@ -116,6 +116,7 @@ class Axis(object):
         self._type = 'bare'
         self._units = ''
         self._hist = None
+        self.parameters = {}
     def __eq__(self, other): 
         span = self.max - self.min
         span_diff = (self.max - other.max)**2 + (self.min - other.min)**2
@@ -276,6 +277,16 @@ class HistNd(object):
     Wrapper for multidimensional array. This class exists to simplify 
     conversion from HDF5 array to a 1d or 2d hist which can be plotted. 
     """
+    # conversion from hdf to axis names
+    _ax_schema = {
+        'max':'_max', 
+        'min':'_min', 
+        'n_bins':'_bins', 
+        'units':'_units', 
+        'names': '_name'}
+    _scalar_parameters = {
+        'nan'
+        }
 
     def __init__(self,array=None): 
         self._axes = {}
@@ -303,16 +314,25 @@ class HistNd(object):
 
     def __from_hdf(self, hdf_array): 
         self._array = np.array(hdf_array)
-        for name, atr in hdf_array.attrs.iteritems(): 
-            if name == 'nan': 
-                self.nan = atr
-                continue
-            ax_name, part, ax_prop = name.rpartition('_')
-            the_axis = self._axes.get(ax_name, Axis())
-            setattr(the_axis, '_' + ax_prop, atr)
-            the_axis._name = ax_name
+        extra_attrs = {}
+        for key in hdf_array.attrs: 
+            if key not in self._ax_schema: 
+                if key not in self._scalar_parameters: 
+                    extra_attrs[key] = hdf_array.attrs[key]
+
+        self.nan = hdf_array.attrs['nan']
+        # loop over the axes
+        for ax_n in xrange(len(hdf_array.attrs['max'])): 
+            the_axis = Axis()
+            the_axis._axis = ax_n
+            # loop over attributes and pick out one for axis
+            for attname, axname in self._ax_schema.iteritems(): 
+                setattr(the_axis, axname, hdf_array.attrs[attname][ax_n])
             the_axis._hist = self
-            self._axes[ax_name] = the_axis
+            # extras are copied 'as is'
+            for key, prop in extra_attrs.iteritems(): 
+                the_axis.parameters[key] = prop[ax_n]
+            self._axes[the_axis.name] = the_axis
 
         for name, axis in self._axes.items(): 
             if not axis.valid: 
@@ -323,15 +343,22 @@ class HistNd(object):
     def __to_hdf(self, target, name): 
         ds = target.create_dataset(name, data=self._array, 
                                    compression='gzip')
-        ax_list = sorted([(ax.number, ax) for ax in self._axes.values()])
-        for num, ax in ax_list: 
-            ds.attrs['{}_axis'.format(ax.name)] = num
-            ds.attrs['{}_bins'.format(ax.name)] = ax.bins
-            ds.attrs['{}_min'.format(ax.name)] = ax.min
-            ds.attrs['{}_max'.format(ax.name)] = ax.max
-            ds.attrs['{}_type'.format(ax.name)] = ax.type
-            ds.attrs['{}_units'.format(ax.name)] = ax.units
         ds.attrs['nan'] = self.nan
+
+        ax_list = sorted([(ax.number, ax) for ax in self._axes.values()])
+        hdf_attribs = {key: [] for key in self._ax_schema}
+        for num, ax in ax_list: 
+            for hdf_key, ax_key in self._ax_schema.iteritems(): 
+                hdf_attribs[hdf_key].append(getattr(ax, ax_key))
+            if ax.parameters: 
+                warnings.warn('dropping parameters {}'.format(
+                        ax.parameters.keys()))
+
+        for attr_name, attr_list in hdf_attribs.iteritems(): 
+            try: 
+                ds.attrs[attr_name] = attr_list
+            except TypeError:   # hack for unicode problem in h5py
+                ds.attrs[attr_name] = [str(a) for a in attr_list]
 
     def _init_example(self): 
         self._array = np.arange(-1,11) + np.arange(-10,110,10).reshape((-1,1))
@@ -608,6 +635,7 @@ class HistAdder(object):
     def __init__(self, base_group, weight=1.0, wt2_ext=None): 
         self.wt2_ext = wt2_ext
         self.hists = self._search(base_group, weight)
+        
         
     def _search(self, group, weight): 
         subhists = {}
