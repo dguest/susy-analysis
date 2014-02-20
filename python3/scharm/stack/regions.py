@@ -29,6 +29,7 @@ class Region:
 
     def _read_dict(self,yaml_dict): 
         self.type = yaml_dict['type']
+        self.selection = yaml_dict['selection']
         self.kinematics = yaml_dict['kinematics']
         self.btag_config = yaml_dict['btag_config']
         if self.type not in self._allowed_types: 
@@ -55,7 +56,7 @@ class Region:
         Produces the configuration info needed for _stacksusy
         """
         config_dict = {
-            'selection': self.selection, 
+            'selection': self.selection.upper(), 
             'jet_tag_requirements': self.btag_config, 
             'leading_jet_pt': self.kinematics['leading_jet_gev']*1e3, 
             'met': self.kinematics['met_gev']*1e3, 

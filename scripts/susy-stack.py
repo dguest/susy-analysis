@@ -21,10 +21,7 @@ import h5py
 
 def run(): 
     config = get_config()
-    subs = {
-        'setup': setup_steering, 
-        'run': run_stacker}
-    subs[config.which](config)
+    run_stacker(config)
 
 def get_config(): 
     d = 'default: %(default)s'
@@ -48,14 +45,15 @@ def _build_reg_dict(reg_file):
     if not os.path.isfile(reg_file): 
         dummy_region = Region()
         reg_dict = {
-            'regions': [ 
-                dummy_region.get_yaml_dict()
-                ]
+            'regions': {
+                'dummy':dummy_region.get_yaml_dict()
+                }
             }
 
         with open(reg_file, 'w') as regions: 
             regions.write(yaml.dump(reg_dict))
         sys.exit('wrote dummy, quit...')
+
 def run_stacker(config): 
     _build_reg_dict(config.steering_file)
     with open(config.steering_file) as steering_yml: 

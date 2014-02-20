@@ -1,5 +1,5 @@
 import sys, os
-from os.path import join, isdir, basename, splitext, isfile
+from os.path import join, isdir, basename, splitext, isfile, dirname
 from scharm import schema
 from scharm.bullshit import make_dir_if_none
 
@@ -76,13 +76,15 @@ class Stacker(object):
                         regions.append(regdic)
 
         if regions: 
-            self._print_progress(tuple_n, systematics, outsubdir)
+            self._print_progress(tuple_n, systematics)
             self._run(ntuple, regions)
+            if tuple_n == self.total_ntuples - 1: 
+                self.outstream.write('\n')
             return 1
         else: 
             return 0
 
-    def _print_progress(self, tuple_n, systematics, outsubdir): 
+    def _print_progress(self, tuple_n, systematics): 
         print_req = [
             not self.verbose, 
             self.outstream.isatty(), 
@@ -107,12 +109,11 @@ class Stacker(object):
             for reg in regions: 
                 print(reg)
             return 
-        from stop.stack.hfw import stacksusy
+        from scharm.stack.hfw import stacksusy
         flags = ''.join(self.flags)
         if basename(ntuple).startswith('d'): 
             flags += 'd'
         if not isfile(ntuple): 
             raise IOError(3,"doesn't exist",ntuple)
-
         stacksusy(ntuple, regions, flags=flags)
         
