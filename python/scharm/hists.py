@@ -636,7 +636,6 @@ class HistAdder(object):
         self.wt2_ext = wt2_ext
         self.hists = self._search(base_group, weight)
         
-        
     def _search(self, group, weight): 
         subhists = {}
         for key, subgroup in group.iteritems(): 
