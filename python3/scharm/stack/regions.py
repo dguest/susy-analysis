@@ -13,7 +13,7 @@ class Region(object):
             'leading_jet_gev':240, 
             'met_gev':180, 
             }, 
-        'btag_config':['NOTAG','LOOSE','TIGHT'], 
+        'btag_config':[], 
         'tagger':'JFC', 
         'jet_tag_assignment': 'PT_ORDERED'
         }

@@ -66,7 +66,7 @@ def run_stacker(config):
     stacker.total_ntuples = len(ntuples)
 
     for tuple_n, ntuple in enumerate(ntuples): 
-        systematics = get_systematics(ntuple)
+        systematics = _get_systematics(ntuple)
         outsubdir = None
         if len(systematics) == 1: 
             outsubdir = systematics[0].lower()
@@ -83,7 +83,7 @@ scale_factor_systematics = ['NONE'] + [
     part + shift for part in _shift_sf for shift in ['UP','DOWN']
     ]
 
-def get_systematics(ntuple): 
+def _get_systematics(ntuple): 
     tld = dirname(ntuple).split('/')[-1]
     syst = tld.upper()
     if syst == 'NONE': 
