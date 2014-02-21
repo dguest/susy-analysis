@@ -347,18 +347,21 @@ class HistNd(object):
 
         ax_list = sorted([(ax.number, ax) for ax in self._axes.values()])
         hdf_attribs = {key: [] for key in self._ax_schema}
+        ax_parameters = {key: [] for key in ax_list[0][1].parameters}
         for num, ax in ax_list: 
-            for hdf_key, ax_key in self._ax_schema.iteritems(): 
+            for hdf_key, ax_key in self._ax_schema.iteritems():
                 hdf_attribs[hdf_key].append(getattr(ax, ax_key))
-            if ax.parameters: 
-                warnings.warn('dropping parameters {}'.format(
-                        ax.parameters.keys()))
+            for parkey, parlst in ax_parameters.iteritems(): 
+                parlst.append(ax.parameters[parkey])
 
-        for attr_name, attr_list in hdf_attribs.iteritems(): 
+        for attr_name, attr_list in hdf_attribs.iteritems():
             try: 
                 ds.attrs[attr_name] = attr_list
             except TypeError:   # hack for unicode problem in h5py
                 ds.attrs[attr_name] = [str(a) for a in attr_list]
+
+        for par_name, par_list in ax_parameters.iteritems():
+            ds.attrs[par_name] = par_list
 
     def _init_example(self): 
         self._array = np.arange(-1,11) + np.arange(-10,110,10).reshape((-1,1))
