@@ -39,10 +39,10 @@ class HistConverter(object):
             hdict[pvc] = self.hist1_from_histn(pvc, histn=histn)
             return hdict
         for ax_name, axis in histn.axes.iteritems(): 
-            y_vals, extent = histn.project_1d(axis.name)
+            xy_tup = histn.project_1d(axis.name)
             subvar = '-'.join([variable,axis.name])
-            hdict[(physics, subvar, cut)] = self._get_hist1(
-                y_vals, extent, axis.units , pvc)
+            hdict[physics, subvar, cut] = self._get_hist1(
+                xy_tup, axis.units , pvc)
         return hdict
 
     def hist1_from_histn(self, pvc, histn): 
@@ -52,10 +52,12 @@ class HistConverter(object):
             raise ValueError("what the fuck is {}?".format(pvc))
     
         assert len(histn.axes) == 1
-        y_vals, extent = histn.project_1d()
-        units = histn[0].units
-        return self._get_hist1(y_vals, extent, units, 
-                               (physics, variable, cut))
+        xy_tup = histn.project_1d()
+        ax = histn[0]
+        pars = ax.parameters
+        if 'selection_min' in pars: 
+            sel = tuple(pars['selection_' + m] for m in ['min','max'])
+        return self._get_hist1(xy_tup, ax.units, pvc, sel)
 
     def h2dict_from_histn(self, pvc, histn): 
         axes = histn.axes.values()
@@ -98,10 +100,14 @@ class HistConverter(object):
         x_ax_full_label = r' '.join(variable.split('/')[:-1] + [x_ax_lab])
         return x_ax_full_label, extent
 
-    def _get_hist1(self, y_vals, extent, units, pvc): 
+    def _get_hist1(self, xy_tup, units, pvc, selection=None): 
+        y_vals, extent = xy_tup
         physics, variable, cut = pvc
         x_ax_full_label, extent = self._get_axislabel_extent(
             variable, extent, units)
+        if selection: 
+            nada, selection = self._get_axislabel_extent(
+                variable, selection, units)
     
         hist = Hist1d(y_vals, extent)
         n_center_bins = len(y_vals) - 2 
@@ -109,6 +115,7 @@ class HistConverter(object):
             hist.rebin(4)
         hist.x_label = x_ax_full_label
         hist.y_label = style.event_label(self.lumi_fb)
+        hist.selection = selection
         try: 
             hist.color = style.type_dict[physics].color
             hist.title = style.type_dict[physics].tex

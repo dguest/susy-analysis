@@ -19,6 +19,7 @@ class Hist1d(object):
         self.title = title
         self.color = ''
         self.group = group
+        self.selection = None
 
     def __float__(self): 
         return self._array.sum()

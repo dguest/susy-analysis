@@ -32,8 +32,9 @@ class Stack(object):
             locator = MaxNLocator(5, prune='upper') 
             self.ratio.get_yaxis().set_major_locator(locator)
         self.x_vals = None
-        self._y_sum_step = None
-        self.y_sum = None
+        self._selection = None
+        self._y_sum_step = 0.0
+        self.y_sum = 0.0
         self.colors = 'mky'
         self.y_min = None
         self._proxy_legs = []
@@ -77,15 +78,8 @@ class Stack(object):
             if not fill_color: 
                 fill_color = next(color_itr)
 
-            if self._y_sum_step is None:
-                self._y_sum_step = y_vals
-            else: 
-                self._y_sum_step = self._y_sum_step + y_vals
-                
-            if self.y_sum is None: 
-                self.y_sum = hist.get_xy_center_pts()[1]
-            else: 
-                self.y_sum += hist.get_xy_center_pts()[1]
+            self._y_sum_step += y_vals
+            self.y_sum += hist.get_xy_center_pts()[1]
 
             tmp_sum = np.array(self._y_sum_step[:])
             if self.y_min is not None: 
@@ -95,7 +89,8 @@ class Stack(object):
                                  facecolor=fill_color)
             proxy = plt.Rectangle((0, 0), 1, 1, fc=fill_color, 
                                   label=hist.title)
-
+            if hist.selection: 
+                self._add_selection(*hist.selection)
             self._bg_proxy_legs.append( (proxy,hist.title)) 
 
             last_plot = tmp_sum
@@ -121,6 +116,22 @@ class Stack(object):
             bad_y_vals = y_vals <= self.y_min
             plot_vals[bad_y_vals] = self.y_min*1.001
         return plot_vals
+
+    def _add_selection(self, low, high): 
+        if self._selection: 
+            if low != self._selection[0] or high != self._selection[1]: 
+                raise ValueError('multiple incompatible selections')
+        fill_args = dict(facecolor=(0.9, 0, 0, 0.02), linestyle=None)
+        line_args = dict(color='r', linewidth=2)
+        inf = float('inf')
+        xlow, xhigh = self.ax.get_xlim()
+        if low != -inf:
+            self.ax.axvspan(xlow, low, **fill_args)
+            self.ax.axvline(low, **line_args)
+        if high != inf: 
+            self.ax.axvspan(high, xhigh, **fill_args)
+            self.ax.axvline(high, **line_args)
+        self._selection = (low, high)
 
     def _add_ratio(self, x_vals, y_vals, lows, highs): 
         ratable = (self.y_sum > 0.0) 
