@@ -47,7 +47,8 @@ class HistConverter(object):
 
     def hist1_from_histn(self, pvc, histn): 
         physics, variable, cut = pvc
-        if physics not in style.type_dict and not physics.startswith('scharm'):
+        is_signal = physics.startswith('scharm')
+        if physics not in style.type_dict and not is_signal:
             raise ValueError("what the fuck is {}?".format(pvc))
     
         assert len(histn.axes) == 1
