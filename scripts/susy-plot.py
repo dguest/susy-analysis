@@ -150,14 +150,14 @@ def run_plotmill(args):
     plots_dict = {}
     for agg_file in aggregates: 
         print 'loading {}'.format(agg_file)
-        hists = HistDict(agg_file,args.filt, physics_set=used_physics, 
+        hists = HistDict(agg_file,args.filt, physics_set=used_physics,
                          var_blacklist={'truth'})
         plots_dict.update(hists)
             
     needed = get_signal_finder(args.signal_point)
     plots_dict = {k:v for k,v in plots_dict.iteritems() if needed(k)}
     plotting_info = {
-        'lumi_fb': config['misc']['lumi_fb'], 
+        'lumi_fb': config['misc']['lumi_fb'],
         'base_dir': args.output_dir, 
         'output_ext': args.ext, 
         'used_backgrounds': config['backgrounds']['used'], 
@@ -170,10 +170,16 @@ def run_plotmill(args):
         
 def _get_config_info(steering_file): 
     if not steering_file: 
-        from scharm.runtypes import marks_types
+        # TODO: 
+        #  1) get lumi from aggregate file
+        #  2) make a better filter for background types
+        bgs = ['diboson', 'QCD','singleTop','ttbar', 'ttbarV']
+        for ch in 'BCL': 
+            bgs.append('Wjets' + ch)
+            bgs.append('Zjets' + ch)
         config = {
             'misc': { 'lumi_fb': 21 }, 
-            'backgrounds': {'used': marks_types.keys() }, 
+            'backgrounds': {'used': bgs }, 
             }
         return config
     else: 

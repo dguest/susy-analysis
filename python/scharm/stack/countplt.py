@@ -1,6 +1,6 @@
 import yaml
-from stop.stack.aggregator import HistDict
-from stop.bullshit import make_dir_if_none
+from scharm.stack.aggregator import HistDict
+from scharm.bullshit import make_dir_if_none
 import os
 
 def plot_counts(args): 

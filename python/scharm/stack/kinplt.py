@@ -1,5 +1,5 @@
-from stop.stack.aggregator import HistDict
-from stop.stack.draw import h2_from_hn
+from scharm.stack.aggregator import HistDict
+from scharm.stack.draw import h2_from_hn
 from collections import defaultdict
 from os.path import isfile, join, isdir
 import os

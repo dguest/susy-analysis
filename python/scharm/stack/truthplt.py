@@ -3,7 +3,7 @@ import numpy as np
 from collections import Counter
 from os.path import dirname, isdir
 import os
-from stop import style
+from scharm import style
 
 def _is_signal(name): 
     return len(name.split('-')) >= 3

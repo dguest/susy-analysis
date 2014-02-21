@@ -441,7 +441,11 @@ class HistNd(object):
         return new
 
     def __getitem__(self, ax_key): 
-        return self.axes[ax_key]
+        try: 
+            return self.axes[ax_key]
+        except KeyError: 
+            sort_ax = list(iter(self))
+            return self.axes[sort_ax[ax_key]]
     
     def __delitem__(self, ax_key): 
         self._reduce(ax_key)
@@ -565,16 +569,24 @@ class HistNd(object):
             new_hist = new_hist.array
         return new_hist
 
-    def project_1d(self, axis): 
+    def project_1d(self, axis=None): 
         """
         get (array, extent) tuple for axis
         """
         victim = copy.deepcopy(self)
+        if axis is None: 
+            the_ax = victim[0]
+            return victim._array, (the_ax.min, the_ax.max)
+        if axis not in self.axes: 
+            raise ValueError('{} not in hist, choices: {}'.format(
+                    axis, ','.join(self.axes)))
         for red_ax in self.axes: 
             if red_ax == axis: continue
             victim._reduce(red_ax)
         
-        assert len(victim.axes) == 1
+        nax = len(victim.axes)
+        if not nax == 1: 
+            raise ValueError('tried to project on {}d'.format(nax))
         the_ax = victim.axes[axis]
         return victim._array, (the_ax.min, the_ax.max)
 

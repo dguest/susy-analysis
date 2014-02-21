@@ -5,7 +5,7 @@ from matplotlib.ticker import MaxNLocator, LogLocator
 from matplotlib.ticker import LogFormatterMathtext, LogFormatter
 import numpy as np
 from itertools import chain
-from stop import stattest
+from scharm import stattest
 from warnings import warn
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure

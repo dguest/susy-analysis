@@ -51,8 +51,8 @@ class HistConverter(object):
             raise ValueError("what the fuck is {}?".format(pvc))
     
         assert len(histn.axes) == 1
-        y_vals, extent = histn.project_1d('x')
-        units = histn.axes['x'].units
+        y_vals, extent = histn.project_1d()
+        units = histn[0].units
         return self._get_hist1(y_vals, extent, units, 
                                (physics, variable, cut))
 
