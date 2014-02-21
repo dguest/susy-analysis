@@ -1,5 +1,5 @@
-from stop import meta
-from stop.hists import HistNd
+import yaml
+from scharm.hists import HistNd
 from os.path import basename, splitext, isfile
 import h5py
 import warnings
@@ -97,9 +97,10 @@ class SampleAggregator(object):
     def __init__(self,meta_path, whiskey, variables): 
         self.whiskey = whiskey
         self.variables = variables
-        self.filter_meta = meta.DatasetCache(meta_path)
+        with open(meta_path) as yml: 
+            self.filter_meta = yaml.load(yml)
         self.lumi_fb = 20.661
-        self.signal_prestring = 'stop'
+        self.signal_prestring = 'scharm'
         self._plots_dict = HistDict()
         self.outstream = sys.stdout
         self.bugstream = sys.stderr
@@ -124,51 +125,49 @@ class SampleAggregator(object):
         this is slightly hackish, but does the right thing by renaming the 
         physics type. 
         """
-        old_finder = re.compile('directCC_([0-9]+)_([0-9]+)')
-        met_finder = finder = re.compile(
-            'stopToCharmLSP_t([0-9]+)_n([0-9]+)_MET([0-9]+)')
-
-        found = met_finder.findall(ds.full_name)
-        if not found: 
-            found = old_finder.findall(ds.full_name)
-        if not found: 
+        finder = re.compile('Scharm_dir_([0-9]+)_([0-9]+)_MET([0-9]+)')
+        
+        try: 
+            found = finder.search(ds).group
+        except AttributeError: 
             return None
         generator_info = { 
-                'stop_mass_gev': int(found[0][0]), 
-                'lsp_mass_gev': int(found[0][1]), 
+                'stop_mass_gev': int(found(1)), 
+                'lsp_mass_gev': int(found(2)), 
+                'met_filter_gev': found(3),
                 }
-        if len(found) == 3: 
-            generator_info['met_filter_gev'] = found[0][2]
-
+        
         namestring = self.signal_name_template
         return namestring.format(self.signal_prestring,
                                  **generator_info)
-        return None
 
     def _get_physics_type(self, file_meta): 
-        physics_type = file_meta.physics_type
-        if not physics_type:
-            if file_meta.is_data: 
+        full_name = file_meta['full_name']
+        if not 'physics_type' in file_meta:
+            if full_name.startswith('data'):
                 physics_type = 'data'
             else: 
-                raise OSError('got unknown physics in {}'.format(f))
+                raise OSError('got unknown physics in {}'.format(full_name))
+        else:
+            physics_type = file_meta['physics_type']
 
-        if physics_type == 'signal': 
-            physics_type = self._get_matched_signame(file_meta)
+        if 'signal' in physics_type:
+            physics_type = self._get_matched_signame(full_name)
         if not physics_type: 
-            raise OSError("couldn't classify {}".format(
-                    file_meta.full_name))
+            raise OSError("couldn't classify {}".format(full_name))
         return physics_type
 
     def _check_for_bugs(self, ds): 
-        if not ds.total_xsec_fb and not ds.is_data: 
+        full_name = ds['full_name']
+        if not 'total_xsec_fb' in ds and not full_name.startswith('data'):
             self.bugstream.write(
-                'no cross section for {} {}, skipping\n'.format(
-                    ds.key, ds.name))
+                'no cross section for {}, skipping\n'.format(full_name))
             return True
-        if ds.n_corrupted_files: 
+
+        if 'n_corrupted_files' in ds:
             self.bugstream.write(
-                '{} bad files in {}\n'.format(ds.n_corrupted_files, ds.key))
+                '{} bad files in {}\n'.format(ds['n_corrupted_files'],
+                                              full_name))
             
         return False
 
@@ -180,22 +179,38 @@ class SampleAggregator(object):
         return self._plots_dict
 
 
-    def _get_lumi_scale(self, file_meta): 
-        if file_meta.is_data: 
-            return 1.0
+    def _get_hist_scaler(self, file_meta): 
+        """
+        Factory of scalar factories: the returned function 
+        returns scalar after it's been called on the h5 file
+        """
+        if file_meta['full_name'].startswith('data'): 
+            def scalar_fact(hfile): 
+                def scaler(variable, hist): 
+                    """
+                    Dummy scaler for data
+                    """
+                    return hist
+                return scaler
         else: 
-            try: 
-                eff_lumi_fb = file_meta.get_effective_luminosity_fb()
-            except meta.EffectiveLuminosityError as exc: 
-                eff_lumi_fb = exc.best_guess_fb
-                bugline = '{}: {}\n'.format(
-                    file_meta.name, str(exc))
-                self.bugstream.write(bugline)
-            if not eff_lumi_fb: 
-                raise ArithmeticError(
-                    'lumi problem in {}'.format(file_meta.full_name))
-                    
-            return self.lumi_fb / eff_lumi_fb
+            filteff = file_meta['filteff']
+            xsec = file_meta['total_xsec_fb']
+            kfactor = file_meta.get('kfactor',1)
+            def scalar_fact(hfile): 
+                sum_evt_weight = hfile.attrs['total_event_weight']
+                def scaler(variable, hist): 
+                    """
+                    mc scalar
+                    """
+                    n_before_sel = xsec * kfactor * filteff * self.lumi_fb
+                    lumi_scale = n_before_sel / sum_evt_weight
+                    if variable.endswith('Wt2'): 
+                        hist *= lumi_scale**2.0
+                    else: 
+                        hist *= lumi_scale
+                    return hist
+                return scaler
+        return scalar_fact
 
     def aggregate(self): 
         merged_files = Counter()
@@ -209,30 +224,23 @@ class SampleAggregator(object):
                 self.outstream.flush()
             meta_name = basename(splitext(f)[0])
             if meta_name not in self.filter_meta: 
-                short_name = meta_name.split('-')[0]
-                if short_name != meta_name: 
-                    merged_files[short_name] += 1
-                    meta_name = short_name
-                else: 
-                    self.bugstream.write('could not identify {}\n'.format(
+                atlhack = 'a' + meta_name[1:]
+                if atlhack in self.filter_meta: 
+                    meta_name = atlhack
+                    self.bugstream.write(' atlhack: {}\n'.format(
                             meta_name))
+                else: 
                     continue
     
             file_meta = self.filter_meta[meta_name]
             if self._check_for_bugs(file_meta): 
                 continue
 
-            lumi_scale = self._get_lumi_scale(file_meta)
-            def scale_hist(variable, hist): 
-                if variable.endswith('Wt2'): 
-                    hist *= lumi_scale**2.0
-                else: 
-                    hist *= lumi_scale
-                return hist
-
+            scaler_fact = self._get_hist_scaler(file_meta)
             physics_type = self._get_physics_type(file_meta)
     
             with h5py.File(f) as hfile: 
+                scale_hist = scaler_fact(hfile)
                 for cut_name, vargroup in hfile.iteritems(): 
                     if self.variables == 'all': 
                         variables = _get_all_variables(vargroup)
@@ -257,12 +265,6 @@ class SampleAggregator(object):
         if self.outstream and self.outstream.isatty(): 
             self.outstream.write('\n')
         self._plots_dict = plots_dict
-        for mkey, mcount in merged_files.iteritems(): 
-            expected_count = self.filter_meta[mkey].total_subsets
-            if mcount != expected_count: 
-                self.bugstream.write(
-                    '{}: expected {} files, only found {}\n'.format(
-                        mkey, expected_count, mcount))
 
     def write(self, file_name): 
         self._plots_dict.write(file_name)
