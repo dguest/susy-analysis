@@ -83,6 +83,7 @@ def get_config():
     hist_add.add_argument('input_hists', nargs='+')
     hist_add.add_argument('-o', '--output', 
                           help='hist or (for dash-hadd) directory')
+    hist_add.add_argument('-a', '--aggressive', action='store_true')
     hist_add_method = hist_add.add_mutually_exclusive_group()
     hist_add_method.add_argument(
         '-d', '--dash-hadd', action='store_true', 
@@ -203,7 +204,8 @@ def hadd(config):
     if config.dash_hadd: 
         if config.norm: 
             raise ValueError('normalization not allowed for dash-hadd')
-        _dash_hadd(good_files, config.output, fast=config.fast)
+        _dash_hadd(good_files, config.output, fast=config.fast, 
+                   aggressive=config.aggressive)
     else: 
         weights_dict = {}
         if config.norm: 
@@ -244,9 +246,10 @@ def _recursive_hadd(config):
                 "output directory {} already exists, "
                 " refusing overwrite".format(out_path))
         os.makedirs(out_path)
-        _dash_hadd(good_files, out_path, fast=config.fast)
+        _dash_hadd(good_files, out_path, fast=config.fast, 
+                   aggressive=config.aggressive)
 
-def _dash_hadd(good_files, output, fast=False): 
+def _dash_hadd(good_files, output, fast=False, aggressive=False): 
     def key_from_name(fname): 
         return splitext(basename(fname))[0].split('-')[0]
     if not isdir(output): 
@@ -259,9 +262,13 @@ def _dash_hadd(good_files, output, fast=False):
         missing = _get_missing_subfiles(file_group)
         if missing: 
             subfiles_str = ', '.join(str(x) for x in sorted(missing))
-            raise IOError(
-                "file {} can't be created, missing subfiles: {}".format(
-                    out_path, subfiles_str))
+
+            prob = "file {} can't be created, missing subfiles: {}".format(
+                out_path, subfiles_str)
+            if aggressive: 
+                warnings.warn(prob, stacklevel=2)
+            else: 
+                raise IOError(prob)
         _hadd(file_group, out_path, fast=fast)
     
 
