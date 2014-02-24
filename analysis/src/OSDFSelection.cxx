@@ -5,15 +5,19 @@
 
 #include <cassert>
 
-OSDFSelection::OSDFSelection(const RegionConfig& ) { 
+
+// _______________________________________________________________________
+// loose
+
+NMinusOSDFSelection::NMinusOSDFSelection(const RegionConfig& ) { 
   
 }
 
-OSDFSelection::~OSDFSelection() { 
+NMinusOSDFSelection::~NMinusOSDFSelection() { 
 
 }
 
-bool OSDFSelection::pass(const EventObjects& obj) const { 
+bool NMinusOSDFSelection::pass(const EventObjects& obj) const { 
   
   const EventRecoParameters& reco = obj.reco; 
   // check trigger
@@ -23,6 +27,29 @@ bool OSDFSelection::pass(const EventObjects& obj) const {
 
   // check object counts
   if (reco.n_signal_jets < 2) return false; 
+
+  return true;
+}
+
+
+// _______________________________________________________________________
+// tight
+
+
+OSDFSelection::OSDFSelection(const RegionConfig& cfg): 
+  m_nminus(cfg)
+{ 
+}
+
+OSDFSelection::~OSDFSelection() { 
+
+}
+
+bool OSDFSelection::pass(const EventObjects& obj) const { 
+
+  if (!m_nminus.pass(obj)) return false;
+  
+  const EventRecoParameters& reco = obj.reco; 
 
   // other parameters
   if (obj.jets.size() > 2) { 

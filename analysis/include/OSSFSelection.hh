@@ -5,11 +5,21 @@
 
 struct RegionConfig; 
 
+class NMinusOSSFSelection : public ISelection { 
+public: 
+  NMinusOSSFSelection(const RegionConfig&); 
+  virtual ~NMinusOSSFSelection(); 
+  virtual bool pass(const EventObjects&) const; 
+}; 
+
+
 class OSSFSelection : public ISelection { 
 public: 
   OSSFSelection(const RegionConfig&); 
   virtual ~OSSFSelection(); 
   virtual bool pass(const EventObjects&) const; 
+private:
+  NMinusOSSFSelection m_nminus; 
 }; 
 
 #endif 

@@ -5,16 +5,18 @@
 
 #include <cassert>
 
-OSSFSelection::OSSFSelection(const RegionConfig& ) { 
+// _______________________________________________________________________
+// loose
+
+NMinusOSSFSelection::NMinusOSSFSelection(const RegionConfig& ) { 
   
 }
 
-OSSFSelection::~OSSFSelection() { 
+NMinusOSSFSelection::~NMinusOSSFSelection() { 
 
 }
 
-bool OSSFSelection::pass(const EventObjects& obj) const { 
-  
+bool NMinusOSSFSelection::pass(const EventObjects& obj) const { 
   const EventRecoParameters& reco = obj.reco; 
   // check trigger
   if (! (reco.pass_mu_trigger || reco.pass_el_trigger) ) return false; 
@@ -23,6 +25,27 @@ bool OSSFSelection::pass(const EventObjects& obj) const {
 
   // check object counts
   if (reco.n_signal_jets < 2) return false; 
+
+  return true;
+}
+
+// _______________________________________________________________________
+// tight
+
+OSSFSelection::OSSFSelection(const RegionConfig& cfg): 
+  m_nminus(cfg)
+{ 
+  
+}
+
+OSSFSelection::~OSSFSelection() { 
+
+}
+
+bool OSSFSelection::pass(const EventObjects& obj) const { 
+
+  if (!m_nminus.pass(obj)) return false;
+  const EventRecoParameters& reco = obj.reco; 
 
   // other parameters
   if (obj.jets.size() > 2) { 
