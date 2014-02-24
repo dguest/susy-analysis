@@ -5,8 +5,36 @@
 
 #include <cassert>
 
-CR1LSelection::CR1LSelection(const RegionConfig& ) { 
+// _______________________________________________________________________
+// loose
+
+NMinusCR1LSelection::NMinusCR1LSelection(const RegionConfig& ) { 
   
+}
+
+NMinusCR1LSelection::~NMinusCR1LSelection() { 
+
+}
+
+bool NMinusCR1LSelection::pass(const EventObjects& obj) const { 
+  const EventRecoParameters& reco = obj.reco; 
+  // check trigger
+  if (! (reco.pass_mu_trigger || reco.pass_el_trigger) ) return false; 
+
+  // check object counts
+  auto total_leptons = reco.n_control_electrons + reco.n_control_muons; 
+  if (total_leptons != 1) return false; 
+  if (reco.n_signal_jets < 2) return false; 
+
+  return true; 
+}
+
+// _______________________________________________________________________
+// tight
+
+CR1LSelection::CR1LSelection(const RegionConfig& config) : 
+  m_nminus(config)
+{ 
 }
 
 CR1LSelection::~CR1LSelection() { 
@@ -14,16 +42,10 @@ CR1LSelection::~CR1LSelection() {
 }
 
 bool CR1LSelection::pass(const EventObjects& obj) const { 
-  
+
+  if (!m_nminus.pass(obj)) return false;
+
   const EventRecoParameters& reco = obj.reco; 
-  // check trigger
-  if (! (reco.pass_mu_trigger || reco.pass_el_trigger) ) return false; 
-
-  auto total_leptons = reco.n_control_electrons + reco.n_control_muons; 
-  if (total_leptons != 1) return false; 
-
-  // check object counts
-  if (reco.n_signal_jets < 2) return false; 
 
   // other parameters
   if (obj.jets.size() > 2) { 
