@@ -151,6 +151,7 @@ void NMinus1Histograms::fill(const EventObjects& obj) {
     	{jpt(jn), jet.Pt()}, 
     	{jantib(jn), log(pc/pb)}, 
     	{jantiu(jn), log(pc/pu)} } );
+    jn++; 
   }
   for (auto& hist: m_hists) { 
     hist.fill(values, weight);
