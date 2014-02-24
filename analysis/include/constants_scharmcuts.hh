@@ -3,6 +3,9 @@
 
 #include "constants_physical.hh"
 
+// all jets are above some threshold pt
+const float JET_PT_MIN = 50_GeV;
+
 // third jet veto above some pt
 const float SIGNAL_JET_3_MAX_PT = 50_GeV; 
 

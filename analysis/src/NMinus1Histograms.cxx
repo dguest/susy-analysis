@@ -103,7 +103,7 @@ NMinus1Histograms
   m_hists.emplace_back(Axis{DPHI, 80, 0.0, 3.2}, sel); 
   m_hists.emplace_back(Axis{MCT, N_BINS, 0.0, MAX_ENERGY, EUNIT}, sel);
   m_hists.emplace_back(Axis{MET_EFF, N_BINS, 0, 10}, sel); 
-  m_hists.emplace_back(Axis{MCC, N_BINS, 0.0, 100_GeV, EUNIT}, sel); 
+  m_hists.emplace_back(Axis{MCC, N_BINS, 0.0, MAX_ENERGY, EUNIT}, sel); 
   for (int jn: {0,1,2}) { 
     m_hists.emplace_back(Axis{jeta(jn), N_BINS, -2.8, 2.8}, sel);
     m_hists.emplace_back(Axis{jpt(jn), N_BINS, 0, MAX_ENERGY, EUNIT}, sel);
@@ -169,8 +169,9 @@ void NMinus1Histograms::write_to(H5::CommonFG& file) const {
 }
 
 namespace nminus { 
-  std::map<std::string, Selection> get_selections(const RegionConfig& cfg) 
-  { 
+  std::map<std::string, Selection> get_common_selection(
+    const RegionConfig& cfg) { 
+    
     // basic kinematics
     std::map<std::string, Selection> sel = {
       {jpt(0), {cfg.leading_jet_pt, INFINITY} } , 
@@ -182,11 +183,17 @@ namespace nminus {
     for (auto jn: {0,1} ) { 
       const auto& antib = btag::JFC_MEDIUM_ANTI_B_CUT; 
       const auto& antiu = btag::JFC_MEDIUM_ANTI_U_CUT; 
-      sel.insert({jpt(jn), {30_GeV, INFINITY}});
+      sel.insert({jpt(jn), {JET_PT_MIN, INFINITY}});
       sel.insert({jeta(jn), {-btag::TAG_ETA, btag::TAG_ETA}});
       sel.insert({jantib(jn), {antib, INFINITY} }); 
       sel.insert({jantiu(jn), {antiu, INFINITY} }); 
     }
+    return sel; 
+  }
+
+  std::map<std::string, Selection> get_selections(const RegionConfig& cfg) 
+  { 
+    auto sel = get_common_selection(cfg);
 
     switch (cfg.selection) { 
     case reg::Selection::SIGNAL: sel.insert( 
@@ -196,6 +203,34 @@ namespace nminus {
 	{MCC, {M_CC_MIN, INFINITY} } 
       }); 
       return sel; 
+    case reg::Selection::CR_1L: {
+      using namespace cr1l; 
+      sel.insert(
+	{
+	  {MT, {M_T_MIN, M_T_MAX} }, 
+	  {MCT, {SR_MCT_MIN, INFINITY} }
+	});
+      return sel;
+    }
+    case reg::Selection::CR_SF: { 
+      using namespace crsf;
+      sel.insert(
+	{
+	  {LLPT, {LEPTON_PT_MIN, INFINITY} }, 
+	  {MLL, {M_LL_MIN, M_LL_MAX} }, 
+	  {MCC, {M_CC_MIN, INFINITY} }
+	});
+      return sel;
+    }
+    case reg::Selection::CR_DF: {
+      using namespace crdf;
+      sel.insert(
+	{
+	  {MCT, {MCT_MIN, INFINITY} }, 
+	  {MLL, {M_LL_MIN, INFINITY} }
+	});
+      return sel; 
+    }
     default: throw std::invalid_argument("unknown selection in " __FILE__); 
     }
   }

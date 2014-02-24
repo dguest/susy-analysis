@@ -32,6 +32,9 @@ namespace nminus {
   const std::string MCT = "mass_ct"; 
   const std::string MET_EFF = "met_eff"; 
   const std::string MCC = "mass_cc"; 
+  const std::string LLPT = "leading_lepton_pt";
+  const std::string MT = "mass_t"; 
+  const std::string MLL = "mass_ll"; 
 
   // naming functions
   std::string jeta(int jn); 
