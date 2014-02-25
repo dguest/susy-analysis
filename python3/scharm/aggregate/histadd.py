@@ -1,5 +1,6 @@
 from scharm.hists import HistNd, HistAdder
 import h5py
+from os.path import isfile
 
 def hadd(config): 
     """

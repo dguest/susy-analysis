@@ -3,7 +3,7 @@ from collections import defaultdict
 import copy
 import bisect
 import warnings
-from h5py import Group, Dataset
+from h5py import Group, Dataset, special_dtype
 
 class Hist1d(object): 
     """
@@ -359,7 +359,9 @@ class HistNd(object):
             try: 
                 ds.attrs[attr_name] = attr_list
             except TypeError:   # hack for unicode problem in h5py
-                ds.attrs[attr_name] = [str(a) for a in attr_list]
+                dt = special_dtype(vlen=str)
+                char_array = np.array(attr_list, dtype=dt)
+                ds.attrs[attr_name] = char_array
 
         for par_name, par_list in ax_parameters.items():
             ds.attrs[par_name] = par_list
