@@ -221,7 +221,7 @@ def setup_hadd(config):
         }
     submit_head = _get_submit_head(**sub_dict)
     line_args = { 
-        'routine': 'susy-util.py hadd', 
+        'routine': 'susy-hadd.py', 
         'run_args': '--recursive --fast --output {}'.format(config.hadd_dir), 
         }
     submit_line = '{routine} $(cat ${{files[$PBS_ARRAYID-1]}}) {run_args}'

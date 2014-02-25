@@ -5,6 +5,8 @@ import bisect
 import warnings
 from h5py import Group, Dataset
 
+warnings.warn("hists are being migrated to py3k", FutureWarning)
+
 class Hist1d(object): 
     """
     class to organize 1d hists from np arrays

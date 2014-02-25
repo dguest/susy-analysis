@@ -108,7 +108,7 @@ def _get_missing_subfiles(file_group):
         return []
 
 def _hadd(good_files, output, weights_dict={}, fast=False):
-    with h5py.File(good_files[0]) as base_h5:
+    with h5py.File(good_files[0],'r') as base_h5:
         weight = weights_dict.get(good_files[0],1.0)
         hadder = HistAdder(base_h5, weight=weight, wt2_ext='Wt2')
         # TODO: move these counters into a class
@@ -119,13 +119,13 @@ def _hadd(good_files, output, weights_dict={}, fast=False):
             raise IOError("{} doesn't exist".format(add_file))
         if fast: 
             weight = weights_dict.get(add_file, None)
-            with h5py.File(add_file) as add_h5: 
+            with h5py.File(add_file,'r') as add_h5: 
                 hadder.fast_add(add_h5, weight=weight)
                 sum_wt += add_h5.attrs.get('total_event_weight', 0)
                 total_evt += add_h5.attrs.get('total_events', 0)
         else: 
             weight = weights_dict.get(add_file, 1.0)
-            with h5py.File(add_file) as add_h5: 
+            with h5py.File(add_file,'r') as add_h5: 
                 hadder.add(add_h5, weight=weight)
                 sum_wt += add_h5.attrs.get('total_event_weight', 0)
                 total_evt += add_h5.attrs.get('total_events', 0)

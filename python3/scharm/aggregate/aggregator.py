@@ -18,7 +18,7 @@ def _get_objects(h5_cont):
     return objects
 
 def get_all_objects(filepath): 
-    with h5py.File(filepath) as hfile: 
+    with h5py.File(filepath,'r') as hfile: 
         objects = _get_objects(hfile)
     return objects
 
@@ -39,7 +39,7 @@ class HistDict(dict):
                  cut_set=None, var_blacklist=None): 
         if not file_name: 
             return None
-        with h5py.File(file_name) as infile: 
+        with h5py.File(file_name,'r') as infile: 
             for path in self._list_paths(infile): 
                 if filt: 
                     if not filt in path: 
@@ -239,7 +239,7 @@ class SampleAggregator(object):
             scaler_fact = self._get_hist_scaler(file_meta)
             physics_type = self._get_physics_type(file_meta)
     
-            with h5py.File(f) as hfile: 
+            with h5py.File(f,'r') as hfile: 
                 scale_hist = scaler_fact(hfile)
                 for cut_name, vargroup in hfile.items(): 
                     if self.variables == 'all': 
