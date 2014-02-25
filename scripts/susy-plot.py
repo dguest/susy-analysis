@@ -142,6 +142,8 @@ def run_tagger_one_type(args):
 
 
 def run_plotmill(args): 
+    warnings.warn("this is being migrated to susy-plot-stack", 
+                  DeprecationWarning, stacklevel=2)
     config = _get_config_info(args.steering_file)
     aggregates = [args.aggregate]
     used_physics = config['backgrounds']['used'] + ['data']
