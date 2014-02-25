@@ -74,7 +74,7 @@ class Hist1d(object):
         """
         if isinstance(bins, int): 
             lbin = 1
-            for hbin in xrange(bins + 1, self._array.size, bins): 
+            for hbin in range(bins + 1, self._array.size, bins): 
                 ave_bins = np.arange(lbin, hbin)
                 lbin = hbin
                 self.average_bins(ave_bins)
@@ -135,7 +135,7 @@ class Axis(object):
 
     def __deepcopy__(self, memo): 
         new = type(self)()
-        for name, val in self.__dict__.iteritems(): 
+        for name, val in self.__dict__.items(): 
             new.__dict__[name] = copy.deepcopy(val, memo)
         new._hist = None
         return new
@@ -304,13 +304,13 @@ class HistNd(object):
         return new
     def __deepcopy__(self, memo): 
         new = type(self)()
-        for name, val in self.__dict__.iteritems(): 
+        for name, val in self.__dict__.items(): 
             new.__dict__[name] = copy.deepcopy(val, memo)
         new._update_axes()
         return new
  
     def _update_axes(self): 
-        for ax in self._axes.itervalues(): 
+        for ax in self._axes.values(): 
             ax._hist = self
 
     def __from_hdf(self, hdf_array): 
@@ -323,15 +323,15 @@ class HistNd(object):
 
         self.nan = hdf_array.attrs['nan']
         # loop over the axes
-        for ax_n in xrange(len(hdf_array.attrs['max'])): 
+        for ax_n in range(len(hdf_array.attrs['max'])): 
             the_axis = Axis()
             the_axis._axis = ax_n
             # loop over attributes and pick out one for axis
-            for attname, axname in self._ax_schema.iteritems(): 
+            for attname, axname in self._ax_schema.items(): 
                 setattr(the_axis, axname, hdf_array.attrs[attname][ax_n])
             the_axis._hist = self
             # extras are copied 'as is'
-            for key, prop in extra_attrs.iteritems(): 
+            for key, prop in extra_attrs.items(): 
                 the_axis.parameters[key] = prop[ax_n]
             self._axes[the_axis.name] = the_axis
 
@@ -350,18 +350,18 @@ class HistNd(object):
         hdf_attribs = {key: [] for key in self._ax_schema}
         ax_parameters = {key: [] for key in ax_list[0][1].parameters}
         for num, ax in ax_list: 
-            for hdf_key, ax_key in self._ax_schema.iteritems():
+            for hdf_key, ax_key in self._ax_schema.items():
                 hdf_attribs[hdf_key].append(getattr(ax, ax_key))
-            for parkey, parlst in ax_parameters.iteritems(): 
+            for parkey, parlst in ax_parameters.items(): 
                 parlst.append(ax.parameters[parkey])
 
-        for attr_name, attr_list in hdf_attribs.iteritems():
+        for attr_name, attr_list in hdf_attribs.items():
             try: 
                 ds.attrs[attr_name] = attr_list
             except TypeError:   # hack for unicode problem in h5py
                 ds.attrs[attr_name] = [str(a) for a in attr_list]
 
-        for par_name, par_list in ax_parameters.iteritems():
+        for par_name, par_list in ax_parameters.items():
             ds.attrs[par_name] = par_list
 
     def _init_example(self): 
@@ -654,7 +654,7 @@ class HistAdder(object):
         
     def _search(self, group, weight): 
         subhists = {}
-        for key, subgroup in group.iteritems(): 
+        for key, subgroup in group.items(): 
             if isinstance(subgroup, Group): 
                 subhists[key] = self._search(subgroup, weight)
             elif isinstance(subgroup, Dataset): 
@@ -670,7 +670,7 @@ class HistAdder(object):
         return subhists
     def _merge(self, hist_dict, new_hists, weight): 
         merged = {}
-        for key, subgroup in hist_dict.iteritems(): 
+        for key, subgroup in hist_dict.items(): 
             if not key in new_hists: 
                 raise HistAddError(
                     "node {} not found in new hists".format(key))
@@ -727,7 +727,7 @@ class HistAdder(object):
                         type(subgroup), key))
 
     def _write(self, hists, group): 
-        for key, hist in hists.iteritems(): 
+        for key, hist in hists.items(): 
             if isinstance(hist, dict): 
                 subgrp = group.create_group(key)
                 self._write(hist, subgrp)
@@ -745,14 +745,14 @@ class HistAdder(object):
     def dump(self, group=None, base=''): 
         if not group: 
             group = self.hists
-        for key, subgroup in group.iteritems(): 
+        for key, subgroup in group.items(): 
             path = '/'.join([base, key])
             if isinstance(subgroup, dict): 
                 self.dump(subgroup, path)
             else: 
-                print path, subgroup.array.sum()
+                print(path, subgroup.array.sum())
 
-class HistAddError(StandardError): 
+class HistAddError(Exception): 
     def __init__(self, args): 
         super(HistAddError, self).__init__(args)
 
