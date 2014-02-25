@@ -10,7 +10,7 @@ Could use some refactoring:
 """
 
 import argparse
-from scharm.stack import aggregator as agg
+from scharm.aggregate import aggregator as agg
 from os.path import isfile
 from tempfile import TemporaryFile
 import yaml
