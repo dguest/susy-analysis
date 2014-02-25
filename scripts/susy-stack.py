@@ -13,7 +13,7 @@ from os.path import join, splitext, expanduser, dirname
 import os
 from warnings import warn
 
-from scharm.stack.regions import Region
+from scharm.stack.regions import Region, sbottom_regions
 from scharm.stack.stacker import Stacker
 from scharm import schema
 from scharm.bullshit import make_dir_if_none
@@ -45,9 +45,7 @@ def _build_reg_dict(reg_file):
     if not os.path.isfile(reg_file): 
         dummy_region = Region()
         reg_dict = {
-            'regions': {
-                'dummy':dummy_region.get_yaml_dict()
-                }
+            'regions': sbottom_regions()
             }
 
         with open(reg_file, 'w') as regions: 

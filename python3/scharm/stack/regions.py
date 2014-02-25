@@ -1,27 +1,15 @@
 
-
 class Region: 
     """
     Stores info on signal / control region. Bits are stored as strings 
     and used to look up real values. This class is also responsible for
     checking the integrity of its stored data. 
     """
-    default_dict = { 
-        'selection': 'signal',
-        'type':'signal', 
-        'kinematics':{
-            'leading_jet_gev':240, 
-            'met_gev':180, 
-            }, 
-        'btag_config':[], 
-        'tagger':'JFC', 
-        'jet_tag_assignment': 'PT_ORDERED'
-        }
     _allowed_types = set(['control','signal','validation'])
 
     def __init__(self, yaml_dict={}): 
         if not yaml_dict: 
-            yaml_dict = self.default_dict
+            yaml_dict = _sbottom_region('SR') 
         self._read_dict(yaml_dict)
 
     def __repr__(self): 
@@ -67,6 +55,36 @@ class Region:
             'boson_pt_correction': self.boson_pt_correction, 
             }
         return config_dict
+
+# ___________________________________________________________________________
+# sbottom definitions
+
+def sbottom_regions(): 
+    """
+    return sbottom regions as a yml file
+    """
+    regions = _sbottom_cr | {'SR'}
+    return {x: _sbottom_region(x) for x in regions}
+
+_sbottom_cr = {'CR_1L', 'CR_DF', 'CR_SF'}
+def _sbottom_region(version): 
+    lj =  {'SR': 130, 'CR_1L': 130, 'CR_SF': 50,  'CR_DF': 130}[version]
+    met = {'SR': 150, 'CR_1L': 100, 'CR_SF': 100, 'CR_DF': 100}[version]
+    default_dict = { 
+        'selection': version,
+        'type': 'signal' if version not in _sbottom_cr else 'control', 
+        'kinematics':{
+            'leading_jet_gev': lj, 
+            'met_gev': met, 
+            }, 
+        'btag_config':[], 
+        'tagger':'JFC', 
+        'jet_tag_assignment': 'PT_ORDERED'
+        }
+    return default_dict
+
+# ___________________________________________________________________________
+# various helpers
     
 class RegionConfigError(ValueError): 
     def __init__(self, message): 
