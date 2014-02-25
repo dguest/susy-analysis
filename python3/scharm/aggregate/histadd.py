@@ -68,7 +68,7 @@ def _dash_hadd(good_files, output, fast=False, aggressive=False):
     base_keys = {key_from_name(f) for f in good_files}
     for key in base_keys: 
         out_path = join(output, '{}.h5'.format(key))
-        print 'making {}'.format(out_path)
+        print('making {}'.format(out_path))
         file_group = [f for f in good_files if key in f]
         missing = _get_missing_subfiles(file_group)
         if missing: 
@@ -103,7 +103,7 @@ def _get_missing_subfiles(file_group):
             raise IOError('two totals ({}) found for {}'.format(
                     ', '.join(total_set), gname))
         if not len(numbers) == total: 
-            return set(xrange(1, total + 1)) - numbers
+            return set(range(1, total + 1)) - numbers
         return []
 
 def _hadd(good_files, output, weights_dict={}, fast=False):
