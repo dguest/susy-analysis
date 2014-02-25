@@ -5,11 +5,11 @@ import os, sys
 
 all_cuts = [
     { 
-        'name': 'pt-order', 
+        'name': 'sr', 
         'output_name': 'histmill.h5', 
         'hists':'NMINUS',
         'selection':'SIGNAL', 
-        'type': 'CONTROL', 
+        'type': 'SIGNAL', 
         'jet_tag_requirements': ['JFC_MEDIUM','JFC_MEDIUM'], 
         'tagger':'JFC', 
         'systematic':'NONE', 

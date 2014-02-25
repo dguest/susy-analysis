@@ -82,6 +82,7 @@ private:
   const RegionConfig* m_region_config; 
   const ISelection* m_selection; 
   const unsigned m_build_flags; 
+  bool m_make_lepton_plots;
 
   std::vector<nminus::NMinusHist> m_hists; 
 }; 

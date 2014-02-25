@@ -2,6 +2,9 @@
 #include "HistBuilderFlags.hh"
 #include "ISelection.hh"
 #include "SignalSelection.hh"
+#include "CR1LSelection.hh"
+#include "OSDFSelection.hh"
+#include "OSSFSelection.hh"
 #include "typedefs.hh"
 #include "RegionConfig.hh"
 #include "EventObjects.hh"
@@ -17,6 +20,7 @@
 #include <stdexcept>
 #include <cassert>
 #include <limits>
+#include <set>
 
 namespace nminus { 
 
@@ -95,8 +99,13 @@ NMinus1Histograms
 		    const unsigned flags) : 
   m_region_config(new RegionConfig(config)), 
   m_selection(nminus::selection_factory(config)), 
-  m_build_flags(flags)
+  m_build_flags(flags), 
+  m_make_lepton_plots(false)
 { 
+  std::set<reg::Selection> lepton_regions {
+    reg::Selection::CR_1L, reg::Selection::CR_SF, reg::Selection::CR_DF};
+  if (lepton_regions.count(config.selection)) m_make_lepton_plots = true;
+
   using namespace nminus;
   const auto sel = get_selections(config); 
   m_hists.emplace_back(Axis{MET, N_BINS, 0.0, MAX_ENERGY, EUNIT}, sel); 
@@ -110,6 +119,12 @@ NMinus1Histograms
     m_hists.emplace_back(Axis{jantib(jn), N_BINS, -10, 10}, sel); 
     m_hists.emplace_back(Axis{jantiu(jn), N_BINS, -10, 10}, sel); 
   }
+  
+  if (m_make_lepton_plots) { 
+    m_hists.emplace_back(Axis{LLPT, N_BINS, 0.0, 500_GeV, EUNIT}, sel);
+    m_hists.emplace_back(Axis{MLL, N_BINS, 0.0, 500_GeV, EUNIT}, sel);
+    m_hists.emplace_back(Axis{MT, N_BINS, 0.0, 500_GeV, EUNIT}, sel);
+  }
 }
 
 NMinus1Histograms::~NMinus1Histograms() { 
@@ -117,20 +132,24 @@ NMinus1Histograms::~NMinus1Histograms() {
   delete m_region_config; 
 }
 
+
+namespace nminus { 
+  void insert_jets(const std::vector<Jet>&, 
+		   std::map<std::string, double>& values);
+}
 void NMinus1Histograms::fill(const EventObjects& obj) { 
 
   const EventRecoParameters& reco = obj.reco; 
   if (!reco.pass_event_quality) return; 
-
   if (!m_selection->pass(obj)) return;
 
   double weight = obj.weight;
-
   // if (! (m_build_flags & buildflag::is_data)) { 
   //   weight *= m_event_filter.jet_scalefactor(tagged_jets); 
   //   weight *= m_event_filter.lepton_scalefactor(obj); 
   //   weight *= m_event_filter.boson_scalefactor(obj); 
   // }
+
   const TVector2& met = obj.met; 
 
   using namespace nminus;
@@ -141,21 +160,34 @@ void NMinus1Histograms::fill(const EventObjects& obj) {
     {MET_EFF, reco.met_eff}, 
     {MCC, reco.mcc} 
   };
-  int jn = 0;
-  for (const auto& jet: obj.jets) { 
-    double pb = jet.flavor_weight(Flavor::BOTTOM);
-    double pc = jet.flavor_weight(Flavor::CHARM);
-    double pu = jet.flavor_weight(Flavor::LIGHT);
+
+  insert_jets(obj.jets, values);
+
+  if (m_make_lepton_plots) { 
     values.insert( { 
-    	{jeta(jn), jet.Eta()}, 
-    	{jpt(jn), jet.Pt()}, 
-    	{jantib(jn), log(pc/pb)}, 
-    	{jantiu(jn), log(pc/pu)} } );
-    jn++; 
+	{LLPT, reco.max_lepton_pt}, {MT, reco.mt}, {MLL, reco.mll} } );
   }
   for (auto& hist: m_hists) { 
     hist.fill(values, weight);
   }
+}
+namespace nminus { 
+  void insert_jets(const std::vector<Jet>& jets, 
+		   std::map<std::string, double>& values) {
+    int jn = 0;
+    for (const auto& jet: jets) { 
+      double pb = jet.flavor_weight(Flavor::BOTTOM);
+      double pc = jet.flavor_weight(Flavor::CHARM);
+      double pu = jet.flavor_weight(Flavor::LIGHT);
+      values.insert( { 
+	  {jeta(jn), jet.Eta()}, 
+	  {jpt(jn), jet.Pt()}, 
+	  {jantib(jn), log(pc/pb)}, 
+	  {jantiu(jn), log(pc/pu)} } );
+
+      jn++; 
+    }
+  } // end insert_jets
 }
 
 void NMinus1Histograms::write_to(H5::CommonFG& file) const { 
@@ -235,8 +267,13 @@ namespace nminus {
     }
   }
   ISelection* selection_factory(const RegionConfig& cfg) { 
-    assert(cfg.selection == reg::Selection::SIGNAL); 
-    return new NMinusSignalSelection(cfg); 
+    switch (cfg.selection) { 
+    case reg::Selection::SIGNAL: return new NMinusSignalSelection(cfg); 
+    case reg::Selection::CR_1L: return new NMinusCR1LSelection(cfg);
+    case reg::Selection::CR_SF: return new NMinusOSSFSelection(cfg);
+    case reg::Selection::CR_DF: return new NMinusOSDFSelection(cfg);
+    default: throw std::invalid_argument("unknown selection in " __FILE__);
+    }
   }
 
   std::string jeta(int jn) { 
