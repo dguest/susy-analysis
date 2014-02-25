@@ -43,7 +43,6 @@ def get_config():
 
 def _build_reg_dict(reg_file): 
     if not os.path.isfile(reg_file): 
-        dummy_region = Region()
         reg_dict = {
             'regions': sbottom_regions()
             }
