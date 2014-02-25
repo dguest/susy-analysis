@@ -111,7 +111,7 @@ NMinus1Histograms
   m_hists.emplace_back(Axis{MET, N_BINS, 0.0, MAX_ENERGY, EUNIT}, sel); 
   m_hists.emplace_back(Axis{DPHI, 80, 0.0, 3.2}, sel); 
   m_hists.emplace_back(Axis{MCT, N_BINS, 0.0, MAX_ENERGY, EUNIT}, sel);
-  m_hists.emplace_back(Axis{MET_EFF, N_BINS, 0, 10}, sel); 
+  m_hists.emplace_back(Axis{MET_EFF, N_BINS, 0, 1.5}, sel); 
   m_hists.emplace_back(Axis{MCC, N_BINS, 0.0, MAX_ENERGY, EUNIT}, sel); 
   for (int jn: {0,1,2}) { 
     m_hists.emplace_back(Axis{jeta(jn), N_BINS, -2.8, 2.8}, sel);

@@ -63,13 +63,13 @@ def sbottom_regions():
     """
     return sbottom regions as a yml file
     """
-    regions = _sbottom_cr | {'SR'}
-    return {x: _sbottom_region(x) for x in regions}
+    regions = _sbottom_cr | {'SIGNAL'}
+    return {x.lower(): _sbottom_region(x) for x in regions}
 
 _sbottom_cr = {'CR_1L', 'CR_DF', 'CR_SF'}
 def _sbottom_region(version): 
-    lj =  {'SR': 130, 'CR_1L': 130, 'CR_SF': 50,  'CR_DF': 130}[version]
-    met = {'SR': 150, 'CR_1L': 100, 'CR_SF': 100, 'CR_DF': 100}[version]
+    lj =  {'SIGNAL': 130, 'CR_1L': 130, 'CR_SF': 50,  'CR_DF': 130}[version]
+    met = {'SIGNAL': 150, 'CR_1L': 100, 'CR_SF': 100, 'CR_DF': 100}[version]
     default_dict = { 
         'selection': version,
         'type': 'signal' if version not in _sbottom_cr else 'control', 
