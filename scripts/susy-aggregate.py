@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3.3
 """
 uses run / mc meta data and ntuples files to produce stacks.
 
@@ -46,8 +46,6 @@ def get_signal_finder(signal_point):
 def run(): 
     args = get_config()
 
-    # ACHTUNG: could probably cut out a few levels here, just skip 
-    # straight to L138 or so in this file where we set up an aggregator...
     aggregator = agg.SampleAggregator(
         meta_path=args.meta, 
         whiskey=args.files,

@@ -49,12 +49,14 @@ type_dict = {l: StackStyle(t,l,c) for t,l,c in physics_labels}
 class VariableStyle(object): 
     def __init__(self, tex_name, units=''): 
         self.tex_name = tex_name
-        self.units = units
+        self.units = str(units)
     @property
     def axis_label(self): 
         if self.units:
-            return '{} [{}]'.format(self.tex_name, self.units)
+            ret_str = '{} [{}]'.format(self.tex_name, str(self.units))
+            return ret_str
         else: 
+            print('twingo')
             return self.tex_name
 
     def rescale(self, cord): 

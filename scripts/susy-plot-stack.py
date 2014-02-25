@@ -5,21 +5,18 @@ Plotting routine for stack plots
 import argparse
 import yaml
 import sys
-from scharm.aggregate import plot, draw
-from scharm.aggregate.aggregator import HistDict
-from scharm.bullshit import make_dir_if_none
 
 def get_config(): 
     d = 'default: %(default)s'
     c = "with no argument is '%(const)s'"
 
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('aggregate')
     parser.add_argument('steering_file', nargs='?')
     parser.add_argument('--scale', choices={'log','linear', 'both'}, 
                         default='log', help=d)
     parser.add_argument(
-        '--filt', type=_filt_converter, 
-        help='exactly what is filtered depends on the routine')
+        '--filt', help='not really sure what this does... should fix it')
     parser.add_argument(
         '-s','--signal-point', default='scharm-150-90', 
         help="assumes <particle>-<something> type name, " + d)
@@ -36,6 +33,8 @@ def run():
     run_plotmill(args)
 
 def run_plotmill(args): 
+    from scharm.aggregate import plot
+    from scharm.aggregate.aggregator import HistDict
     config = _get_config_info(args.steering_file)
     aggregates = [args.aggregate]
     used_physics = config['backgrounds']['used'] + ['data']
@@ -43,13 +42,13 @@ def run_plotmill(args):
         used_physics.append(args.signal_point)
     plots_dict = {}
     for agg_file in aggregates: 
-        print 'loading {}'.format(agg_file)
+        print('loading {}'.format(agg_file))
         hists = HistDict(agg_file,args.filt, physics_set=used_physics,
                          var_blacklist={'truth'})
         plots_dict.update(hists)
             
-    needed = get_signal_finder(args.signal_point)
-    plots_dict = {k:v for k,v in plots_dict.iteritems() if needed(k)}
+    needed = _get_signal_finder(args.signal_point)
+    plots_dict = {k:v for k,v in plots_dict.items() if needed(k)}
     plotting_info = {
         'lumi_fb': config['misc']['lumi_fb'],
         'base_dir': args.output_dir, 
@@ -61,6 +60,19 @@ def run_plotmill(args):
     plot.make_plots(plots_dict, plotting_info, log=do_log)
     if args.scale == 'both': 
         plot.make_plots(plots_dict, plotting_info, log=True)
+
+def _get_signal_finder(signal_point): 
+    if signal_point: 
+        signal_head = signal_point.split('-')[0]
+        def needed(tup): 
+            phys = tup[0]
+            if not phys.startswith(signal_head): 
+                return True
+            return phys == signal_point
+    else: 
+        def needed(tup): 
+            return True
+    return needed
 
 def _get_config_info(steering_file): 
     if not steering_file: 
@@ -81,3 +93,5 @@ def _get_config_info(steering_file):
             config = yaml.load(steering_yml)
         return config
         
+if __name__ == '__main__': 
+    run()

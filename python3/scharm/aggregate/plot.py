@@ -3,7 +3,7 @@ import numpy as np
 from scharm.hists import Hist1d
 from scharm import style, hists
 from os.path import isdir, join
-from scharm.stack.draw import Stack, Hist2d
+from scharm.aggregate.draw import Stack, Hist2d
 import os
 from itertools import chain
 
@@ -60,7 +60,7 @@ class HistConverter(object):
         return self._get_hist1(xy_tup, ax.units, pvc, sel)
 
     def h2dict_from_histn(self, pvc, histn): 
-        axes = histn.axes.values()
+        axes = list(histn.axes.values())
         nax = len(axes)
         h2dict = {}
         physics, var, cut = pvc

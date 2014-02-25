@@ -5,7 +5,7 @@ from matplotlib.ticker import MaxNLocator, LogLocator
 from matplotlib.ticker import LogFormatterMathtext, LogFormatter
 import numpy as np
 from itertools import chain
-from scharm import stattest
+from scharm import errorbars
 from warnings import warn
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -177,7 +177,7 @@ class Stack(object):
         if self.x_vals is None: 
             self.x_vals = x_vals
         
-        lows, highs = stattest.poisson_interval(y_vals)
+        lows, highs = errorbars.poisson_interval(y_vals)
 
         plt_y = self._get_min_plotable(y_vals)
         plt_low = self._get_min_plotable(lows)
