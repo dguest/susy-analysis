@@ -79,7 +79,7 @@ class HistDict(dict):
         if isfile(file_name): 
             raise IOError('refusing to overwrite {}'.format(file_name))
         with h5py.File(file_name,'w') as outfile: 
-            for nametup, ndhist in self.iteritems():
+            for nametup, ndhist in self.items():
                 physics, variable, cut = nametup
                 path = '/'.join([''] + list(nametup))
                 ndhist.write_to(outfile, path)
@@ -241,7 +241,7 @@ class SampleAggregator(object):
     
             with h5py.File(f) as hfile: 
                 scale_hist = scaler_fact(hfile)
-                for cut_name, vargroup in hfile.iteritems(): 
+                for cut_name, vargroup in hfile.items(): 
                     if self.variables == 'all': 
                         variables = _get_all_variables(vargroup)
                     else: 
@@ -275,7 +275,7 @@ def _get_all_variables(group, prepend=''):
     if not isinstance(group, h5py.Group): 
         return [prepend.strip('/')]
     variables = []
-    for subname, subgroup in group.iteritems(): 
+    for subname, subgroup in group.items(): 
         name = prepend + '/' + subname
         newvals = _get_all_variables(subgroup, name)
         variables += newvals

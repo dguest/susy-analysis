@@ -297,7 +297,7 @@ class Hist2d(object):
         try: 
             cb = plt.colorbar(im, **cb_dict)
         except ValueError: 
-            print self.imdict['X'].sum()
+            print(self.imdict['X'].sum())
             raise
         ax.set_xlabel(self.x_label, x=0.98, ha='right')        
         ax.set_ylabel(self.y_label, y=0.98, ha='right')
@@ -305,7 +305,7 @@ class Hist2d(object):
             cb.set_label(self.cb_label, y=0.98, ha='right')
         canvas.print_figure(name, bbox_inches='tight')
 
-class PlottingError(StandardError): 
+class PlottingError(Exception): 
     def __init__(self, problem): 
         super(PlottingError,self).__init__(problem)
 
@@ -348,7 +348,7 @@ def tagger_overlay_plot_for_jet_number(plots_dict, jetn, signal_point,
         phys_dicts[phys] = get_im_dict(phys, jetn)
     
     color_arrays = {k:None for k in color_groups}
-    for color, physics_types in color_groups.iteritems(): 
+    for color, physics_types in color_groups.items(): 
         for phys in physics_types: 
             if color_arrays[color] is None: 
                 color_arrays[color] = phys_dicts[phys]['X']
@@ -359,7 +359,7 @@ def tagger_overlay_plot_for_jet_number(plots_dict, jetn, signal_point,
         (color_arrays[color] for color in ['red','green','blue']))
 
     stacked_array = np.log(stacked_array + 1)
-    for i in xrange(3): 
+    for i in range(3): 
         the_max = stacked_array[:,:,i].max()
         stacked_array[:,:,i] /= the_max
 
@@ -370,8 +370,8 @@ def tagger_overlay_plot_for_jet_number(plots_dict, jetn, signal_point,
     stacked_array[chop_vals] = new_max
     stacked_array /= stacked_array.max()
 
-    for color, array in color_arrays.iteritems(): 
-        print color, array.sum()
+    for color, array in color_arrays.items(): 
+        print(color, array.sum())
 
     im_dic = phys_dicts[signal_point].copy()
     im_dic['X'] = stacked_array
@@ -383,7 +383,7 @@ def tagger_overlay_plot_for_jet_number(plots_dict, jetn, signal_point,
     y_lims = ax.get_ylim()
     x_lims = ax.get_xlim()
 
-    for color, phys_types in color_groups.iteritems(): 
+    for color, phys_types in color_groups.items(): 
         label = ', '.join(phys_types)
         ax.plot(np.zeros(0), color[0] + '-', lw=10, label=label)
     ax.legend(loc='lower right')

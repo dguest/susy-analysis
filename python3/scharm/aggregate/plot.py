@@ -12,7 +12,7 @@ def make_plots(plots_dict, misc_info, log=False):
     hist2_dict = {}
     converter = HistConverter(misc_info)
     converter.appended_evt_str = None
-    for tup, hist in plots_dict.iteritems():
+    for tup, hist in plots_dict.items():
         hist1_dict.update(converter.h1dict_from_histn(tup, histn=hist))
         hist2_dict.update(converter.h2dict_from_histn(tup, histn=hist))
 
@@ -38,7 +38,7 @@ class HistConverter(object):
         if len(histn.axes) == 1: 
             hdict[pvc] = self.hist1_from_histn(pvc, histn=histn)
             return hdict
-        for ax_name, axis in histn.axes.iteritems(): 
+        for ax_name, axis in histn.axes.items(): 
             xy_tup = histn.project_1d(axis.name)
             subvar = '-'.join([variable,axis.name])
             hdict[physics, subvar, cut] = self._get_hist1(
@@ -64,10 +64,10 @@ class HistConverter(object):
         nax = len(axes)
         h2dict = {}
         physics, var, cut = pvc
-        for x_n in xrange(nax): 
+        for x_n in range(nax): 
             x_axis = axes[x_n]
             xname = x_axis.name
-            for y_n in xrange(x_n): 
+            for y_n in range(x_n): 
                 y_axis = axes[y_n]
                 yname = y_axis.name
                 varname = '-'.join([var,xname,yname])
@@ -132,7 +132,7 @@ def sort_data_mc(hist1_dict):
     variables = set(v for p,v,c in hist1_dict.keys())
     lists = {(v,c):[] for v in variables for c in all_cuts}
     signals = {(v,c):[] for v in variables for c in all_cuts}
-    for threetup, hist in hist1_dict.iteritems(): 
+    for threetup, hist in hist1_dict.items(): 
         physics_type, variable, cut = threetup
         tup = (variable, cut)
         if physics_type == 'data': 
@@ -174,9 +174,9 @@ class StackPlotPrinter(object):
             has_ratio = id_tup in stack_data
             if self.verbose: 
                 if has_ratio: 
-                    print 'making ratio {}'.format(save_name)
+                    print('making ratio {}'.format(save_name))
                 else: 
-                    print 'making {}'.format(save_name)
+                    print('making {}'.format(save_name))
             stack = Stack(stack_name, ratio=has_ratio)
             if self.log: 
                 stack.y_min = 0.1
@@ -208,7 +208,7 @@ class H2Printer(object):
             if id_tup in data: 
                 data_name = save_base.format('data')
                 if self.verbose: 
-                    print 'making {}'.format(data_name)
+                    print('making {}'.format(data_name))
                 data[id_tup].save(data_name)
             if id_tup in signal: 
                 for hist in signal[id_tup]: 
@@ -216,14 +216,14 @@ class H2Printer(object):
                     # should fix this 
                     sig_name = save_base.format(hist.title)
                     if self.verbose: 
-                        print 'making {}'.format(sig_name)
+                        print('making {}'.format(sig_name))
                     hist.save(sig_name)
             mc_name = save_base.format('bg')
             if id_tup in mc: 
                 mclist = mc[id_tup]
                 bg_total = sum(mclist[1:], mclist[0])
                 if self.verbose: 
-                    print 'making {}'.format(mc_name)
+                    print('making {}'.format(mc_name))
                 bg_total.save(mc_name, log=self.log)
 
         
