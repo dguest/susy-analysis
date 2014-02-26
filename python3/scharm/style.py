@@ -95,10 +95,19 @@ _fuzzy_matches = [
     _make_jet_matcher('antiu', r'JFC $\log (c / u)$')
     ]
 
+_shorthand = dict(
+    met=r'E_{\mathrm{T}}^{\mathrm{miss}}', 
+    met_eff=r'E_{\mathrm{T}, \mathrm{eff}}^{\mathrm{miss}}', 
+    pt=r'p_{\mathrm{T}}',
+    meff=r'\sum_{i = \{1,2\} } p_{\mathrm{T}}^i'
+)
+    
+
 _ax_labels = { 
     'met' : VariableStyle(r'$E_{\mathrm{T}}^{\mathrm{miss}}$', 'GeV'), 
     'met_eff' : VariableStyle(
-        r'$E_{\mathrm{T}, \mathrm{eff}}^{\mathrm{miss}}$', 'GeV'), 
+        r'${met_eff} \equiv {met} / \left[ {meff} + {met} \right]$'.format(
+            **_shorthand)), 
     'mttop': VariableStyle(r'$m_{\mathrm{T}}^t$', 'GeV'), 
     'htx': VariableStyle(r'$H_{\mathrm{T}3}$'), 
     'jetmet_dphi': VariableStyle(
