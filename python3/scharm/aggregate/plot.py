@@ -161,15 +161,12 @@ class StackPlotPrinter(object):
 
     def print_plots(self, stack_data, stack_mc_lists, signal_hists={}): 
         plot_dir = self.plot_dir
-        if not isdir(plot_dir): 
-            os.mkdir(plot_dir)
         for id_tup in stack_mc_lists.keys(): 
             variable, cut = id_tup
-            stack_name = '_'.join(
-                [variable.replace('/','-'), cut.replace('_','-')])
+            save_dir = join(plot_dir, cut)
+            save_base = join(save_dir, variable)
             if self.log: 
-                stack_name += '_log'
-            save_base = join(plot_dir, stack_name)
+                save_base += '_log'
             save_name = save_base + self.ext
             has_ratio = id_tup in stack_data
             if self.verbose: 
@@ -177,7 +174,7 @@ class StackPlotPrinter(object):
                     print('making ratio {}'.format(save_name))
                 else: 
                     print('making {}'.format(save_name))
-            stack = Stack(stack_name, ratio=has_ratio)
+            stack = Stack(ratio=has_ratio)
             if self.log: 
                 stack.y_min = 0.1
                 stack.ax.set_yscale('log')
@@ -187,6 +184,8 @@ class StackPlotPrinter(object):
             if id_tup in stack_data: 
                 stack.add_data(stack_data[id_tup])
             stack.add_legend()
+            if not isdir(save_dir): 
+                os.makedirs(save_dir)
             stack.save(save_name)
 
 class H2Printer(object): 

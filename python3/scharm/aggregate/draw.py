@@ -17,8 +17,8 @@ class Stack(object):
     """
     This is for drawing. 
     """
-    def __init__(self, title, ratio=False): 
-        self.title = title
+    def __init__(self, ratio=False): 
+        # self.title = title
         self.fig = Figure(figsize=(8,6))
         self.canvas = FigureCanvas(self.fig)
         if not ratio:
