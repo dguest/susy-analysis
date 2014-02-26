@@ -1,6 +1,11 @@
-from scharm.hists import HistNd, HistAdder
+from scharm.hists import HistNd
 import h5py
-from os.path import isfile
+import numpy as np
+from h5py import Dataset, Group
+from os.path import isfile, isdir, join, splitext, basename
+from itertools import chain
+import os
+import warnings
 
 def hadd(config): 
     """
@@ -137,3 +142,121 @@ def _hadd(good_files, output, weights_dict={}, fast=False):
                 out_file.attrs['total_event_weight'] = sum_wt
     else:
         hadder.dump()
+
+# ___________________________________________________________________________
+# HistAdder class
+
+class HistAdder(object): 
+    """
+    Generic histogram adder. Traverses the first given file to map out 
+    histograms, then finds the corresponding hists for each call to add 
+    and adds them. 
+    """
+    def __init__(self, base_group, weight=1.0, wt2_ext=None): 
+        self.wt2_ext = wt2_ext
+        self.hists = self._search(base_group, weight)
+        
+    def _search(self, group, weight): 
+        subhists = {}
+        for key, subgroup in group.items(): 
+            if isinstance(subgroup, Group): 
+                subhists[key] = self._search(subgroup, weight)
+            elif isinstance(subgroup, Dataset): 
+                # proper treating of weighted hists
+                # FIXME: this should be a hist attribute
+                if self.wt2_ext and key.endswith(self.wt2_ext): 
+                    subhists[key] = HistNd(subgroup) * weight**2
+                else: 
+                    subhists[key] = HistNd(subgroup)*weight
+            else: 
+                raise HistAddError('not sure what to do with {} {}'.format(
+                        type(subgroup), key))
+        return subhists
+    def _merge(self, hist_dict, new_hists, weight): 
+        merged = {}
+        for key, subgroup in hist_dict.items(): 
+            if not key in new_hists: 
+                raise HistAddError(
+                    "node {} not found in new hists".format(key))
+            if isinstance(subgroup, dict): 
+                merged[key] = self._merge(subgroup, new_hists[key], weight)
+            elif isinstance(subgroup, HistNd): 
+                if not isinstance(new_hists[key], Dataset): 
+                    raise HistAddError(
+                        "tried to merge non-dataset {}".format(key))
+                # proper treating of weighted hists
+                if self.wt2_ext and key.endswith(self.wt2_ext): 
+                    new_hist = HistNd(new_hists[key]) * weight**2
+                else: 
+                    new_hist = HistNd(new_hists[key])*weight
+                merged[key] = subgroup + new_hist
+            else: 
+                raise HistAddError('not sure what to do with {}, {}'.format(
+                        type(subgroup), key))
+        return merged
+
+    def _fast_merge(self, hist_dict, new_hists, weight): 
+        """
+        circumvents lots of error checking and array copying used in the
+        normal merge. 
+
+        Basic benchmarking: 
+         - fast merge:   8.025s
+         - normal merge: 21.071s
+         - speedup of 2.6
+        """
+        keys = hist_dict.keys()
+        for key in keys:
+            subgroup = hist_dict[key]
+            if not key in new_hists: 
+                raise HistAddError(
+                    "node {} not found in new hists".format(key))
+            if isinstance(subgroup, dict): 
+                self._fast_merge(hist_dict[key], new_hists[key], weight)
+            elif isinstance(subgroup, HistNd): 
+                if not isinstance(new_hists[key], Dataset): 
+                    raise HistAddError(
+                        "tried to merge non-dataset {}".format(key))
+                # proper treating of weighted hists
+                if weight is None: 
+                    new_arr = np.array(new_hists[key])
+                elif self.wt2_ext and key.endswith(self.wt2_ext): 
+                    new_arr = np.array(new_hists[key]) * weight**2
+                else: 
+                    new_arr = np.array(new_hists[key])*weight
+
+                hist_dict[key] += new_arr
+            else: 
+                raise HistAddError('not sure what to do with {}, {}'.format(
+                        type(subgroup), key))
+
+    def _write(self, hists, group): 
+        for key, hist in hists.items(): 
+            if isinstance(hist, dict): 
+                subgrp = group.create_group(key)
+                self._write(hist, subgrp)
+            else: 
+                hist.write_to(group, key)
+
+    def add(self, group, weight=1.0): 
+        self.hists = self._merge(self.hists, group, weight)
+    def fast_add(self, group, weight=None): 
+        self._fast_merge(self.hists, group, weight)
+
+    def write_to(self, group): 
+        self._write(self.hists, group)
+        
+    def dump(self, group=None, base=''): 
+        if not group: 
+            group = self.hists
+        for key, subgroup in group.items(): 
+            path = '/'.join([base, key])
+            if isinstance(subgroup, dict): 
+                self.dump(subgroup, path)
+            else: 
+                print(path, subgroup.array.sum())
+
+class HistAddError(Exception): 
+    def __init__(self, args): 
+        super(HistAddError, self).__init__(args)
+

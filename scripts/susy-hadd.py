@@ -3,7 +3,6 @@
 add .h5 histogram files
 """
 import argparse, sys
-from scharm.hists import HistNd, HistAdder
 from scharm.aggregate import histadd
 
 def run(): 
