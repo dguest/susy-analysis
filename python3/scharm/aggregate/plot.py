@@ -1,9 +1,7 @@
-import matplotlib.pyplot as plt
 import numpy as np
-from scharm.hists import Hist1d
 from scharm import style, hists
 from os.path import isdir, join
-from scharm.aggregate.draw import Stack, Hist2d
+from scharm.aggregate.draw import Stack, Hist2d, Hist1d
 import os
 from itertools import chain
 
@@ -73,10 +71,10 @@ class HistConverter(object):
                 varname = '-'.join([var,xname,yname])
                 imdict = histn.project_imshow(xname, yname)
                 xvar = ' '.join([var, xname])
-                xlab, xext = self._get_axislabel_extent(
+                xlab, xext, xunit = self._get_axislabel_extent(
                     xvar, x_axis.extent, x_axis.units)
                 yvar = ' '.join([var, yname])
-                ylab, yext = self._get_axislabel_extent(
+                ylab, yext, yunit = self._get_axislabel_extent(
                     yvar, y_axis.extent, y_axis.units)
                 imdict['extent'] = np.fromiter(chain(xext, yext),np.float)
                 subvar = '-'.join([var,yname,'vs',xname])
@@ -96,25 +94,23 @@ class HistConverter(object):
             var_sty.units = units
         else: 
             var_sty = style.VariableStyle(base_var, units)
-        x_ax_lab = var_sty.axis_label
-        x_ax_full_label = r' '.join(variable.split('/')[:-1] + [x_ax_lab])
-        return x_ax_full_label, extent
+        x_ax_lab = var_sty.tex_name
+        return x_ax_lab, extent, units
 
     def _get_hist1(self, xy_tup, units, pvc, selection=None): 
         y_vals, extent = xy_tup
         physics, variable, cut = pvc
-        x_ax_full_label, extent = self._get_axislabel_extent(
+        x_label, extent, units = self._get_axislabel_extent(
             variable, extent, units)
         if selection: 
-            nada, selection = self._get_axislabel_extent(
+            nada, selection, zilch = self._get_axislabel_extent(
                 variable, selection, units)
     
-        hist = Hist1d(y_vals, extent)
+        hist = Hist1d(y_vals, extent, x_label=x_label, x_units=units,
+                      y_label='Events')
         n_center_bins = len(y_vals) - 2 
         if n_center_bins > 50 and n_center_bins % 4 == 0: 
             hist.rebin(4)
-        hist.x_label = x_ax_full_label
-        hist.y_label = style.event_label(self.lumi_fb)
         hist.selection = selection
         try: 
             hist.color = style.type_dict[physics].color
