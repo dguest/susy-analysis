@@ -1,3 +1,6 @@
+import re
+# __________________________________________________________________________
+# sample / stack labeling stuff
 physics_labels = [
     (r'diboson',                'diboson','pink'), 
     (r'QCD',                    'QCD','c'), 
@@ -45,35 +48,68 @@ class StackStyle(object):
 
 type_dict = {l: StackStyle(t,l,c) for t,l,c in physics_labels}
 
+# __________________________________________________________________________
+# axis labeling stuff
+
+def get_variable_style(ax_name, units): 
+    """
+    Top level axis style function, should be all you need to call from 
+    the plotting scripts. Tries to match variable exactly, then tries
+    regular expressions, then just returns the input.
+    """
+    if ax_name in _ax_labels: 
+        return _ax_labels[ax_name]
+    
+    for matcher in _fuzzy_matches: 
+        match = matcher(ax_name)
+        if match is not None: 
+            return match
+
+    return VariableStyle(ax_name.replace('_',' '), units)
 
 class VariableStyle(object): 
     def __init__(self, tex_name, units=''): 
         self.tex_name = tex_name
         self.units = str(units)
-    @property
-    def axis_label(self): 
-        if self.units:
-            ret_str = '{} [{}]'.format(self.tex_name, str(self.units))
-            return ret_str
-        else: 
-            return self.tex_name
 
-    def rescale(self, cord): 
-        if self.units == 'GeV': 
-            return cord / 1e3
-        else:
-            return cord
+def _make_jet_matcher(match_token, tex_str, units=''): 
+    """
+    Build a function to try to match jet variable names.
+    """
+    regex = re.compile('j([0-9])_{}'.format(match_token))
+    def matcher(in_str): 
+        matches = regex.search(in_str)
+        if not matches: 
+            return None
+        jet_n = int(matches.group(1)) + 1
+        tex = r'Jet {n} {}'.format(tex_str, n=jet_n)
+        return VariableStyle(tex, units)
+    return matcher
 
-ax_labels = { 
+# things in here return None if they don't match, otherwise return the new 
+# variable name
+_fuzzy_matches = [
+    _make_jet_matcher('eta', r'$\eta$'),
+    _make_jet_matcher('pt', r'$p_{\mathrm{T}}$', 'GeV'),
+    _make_jet_matcher('antib', r'JFC $\log (c / b)$'),
+    _make_jet_matcher('antiu', r'JFC $\log (c / u)$')
+    ]
+
+_ax_labels = { 
     'met' : VariableStyle(r'$E_{\mathrm{T}}^{\mathrm{miss}}$', 'GeV'), 
-    'pt': VariableStyle(r'$p_{\mathrm{T}}$', 'GeV'), 
+    'met_eff' : VariableStyle(
+        r'$E_{\mathrm{T}, \mathrm{eff}}^{\mathrm{miss}}$', 'GeV'), 
     'mttop': VariableStyle(r'$m_{\mathrm{T}}^t$', 'GeV'), 
     'htx': VariableStyle(r'$H_{\mathrm{T}3}$'), 
-    'metDphi': VariableStyle(
-        r'$\Delta \phi (j, E_{\mathrm{T}}^{\mathrm{miss}})$'), 
-    'minDphi': VariableStyle(
+    'jetmet_dphi': VariableStyle(
         r'$\min_{i = \{1,2,3\}}\left(\Delta \phi (j_{i}, '
-        r'E_{\mathrm{T}}^{\mathrm{miss}})\right)$')
+        r'E_{\mathrm{T}}^{\mathrm{miss}})\right)$'),
+    'leading_lepton_pt': VariableStyle(
+        r'Leading Lepton $p_{\mathrm{T}}$', 'GeV'),
+    'mass_t': VariableStyle('$m_{\mathrm{T}}$', 'GeV'),
+    'mass_cc': VariableStyle('$m_{cc}$', 'GeV'), 
+    'mass_ll': VariableStyle('$m_{\ell \ell}$', 'GeV'), 
+    'mass_ct': VariableStyle('$m_{\mathrm{CT}}$', 'GeV'),
     }
 
 def event_label(lumi): 

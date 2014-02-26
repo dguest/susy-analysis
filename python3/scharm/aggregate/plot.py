@@ -89,24 +89,20 @@ class HistConverter(object):
         if units == 'MeV': 
             extent = [e / 1000.0 for e in extent]
             units = 'GeV'
-        if base_var in style.ax_labels: 
-            var_sty = style.ax_labels[base_var]
-            var_sty.units = units
-        else: 
-            var_sty = style.VariableStyle(base_var, units)
+        var_sty = style.get_variable_style(base_var, units)
         x_ax_lab = var_sty.tex_name
-        return x_ax_lab, extent, units
+        return x_ax_lab, extent, var_sty.units
 
     def _get_hist1(self, xy_tup, units, pvc, selection=None): 
         y_vals, extent = xy_tup
         physics, variable, cut = pvc
-        x_label, extent, units = self._get_axislabel_extent(
+        x_label, extent, x_units = self._get_axislabel_extent(
             variable, extent, units)
         if selection: 
             nada, selection, zilch = self._get_axislabel_extent(
                 variable, selection, units)
     
-        hist = Hist1d(y_vals, extent, x_label=x_label, x_units=units,
+        hist = Hist1d(y_vals, extent, x_label=x_label, x_units=x_units,
                       y_label='Events')
         n_center_bins = len(y_vals) - 2 
         if n_center_bins > 50 and n_center_bins % 4 == 0: 

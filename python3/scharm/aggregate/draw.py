@@ -265,12 +265,13 @@ class Hist1d(object):
 
     @property
     def y_label(self): 
-        if not self._x_units: 
-            return self._y_label
         bins = len(self._array) - 2
         x_per_bin = (self.extent[1] - self.extent[0]) / bins
-        return '{} / {:.1f} {}'.format(
-            self._y_label, x_per_bin, self._x_units)
+        fm_string = '{} / {:.1f}'
+        if self._x_units: 
+            fm_string += ' {units}'
+        return fm_string.format(
+            self._y_label, x_per_bin, units=self._x_units)
 
     def scale(self, factor): 
         self._array = self._array * factor
