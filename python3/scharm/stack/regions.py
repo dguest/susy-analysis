@@ -64,12 +64,18 @@ def sbottom_regions():
     return sbottom regions as a yml file
     """
     regions = _sbottom_cr | {'SIGNAL'}
-    return {x.lower(): _sbottom_region(x) for x in regions}
+    sbottom = {x.lower(): _sbottom_region(x) for x in regions}
+    sbottom['preselection'] = _build_kinematic_region(
+        'QUALITY_EVENT', 50, 100)
+    return sbottom
 
 _sbottom_cr = {'CR_1L', 'CR_DF', 'CR_SF'}
 def _sbottom_region(version): 
     lj =  {'SIGNAL': 130, 'CR_1L': 130, 'CR_SF': 50,  'CR_DF': 130}[version]
     met = {'SIGNAL': 150, 'CR_1L': 100, 'CR_SF': 100, 'CR_DF': 100}[version]
+    return _build_kinematic_region(version, lj, met)
+
+def _build_kinematic_region(version, lj, met):
     default_dict = { 
         'selection': version,
         'type': 'signal' if version not in _sbottom_cr else 'control', 

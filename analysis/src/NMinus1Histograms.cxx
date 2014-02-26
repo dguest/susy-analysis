@@ -5,6 +5,7 @@
 #include "CR1LSelection.hh"
 #include "OSDFSelection.hh"
 #include "OSSFSelection.hh"
+#include "QualityEventSelection.hh"
 #include "typedefs.hh"
 #include "RegionConfig.hh"
 #include "EventObjects.hh"
@@ -228,8 +229,7 @@ namespace nminus {
     auto sel = get_common_selection(cfg);
 
     switch (cfg.selection) { 
-    case reg::Selection::SIGNAL: sel.insert( 
-      { 
+    case reg::Selection::SIGNAL: sel.insert( { 
 	{MCT, {SR_MCT_MIN, INFINITY} }, 
 	{MET_EFF, {MET_EFF_MIN, INFINITY} }, 
 	{MCC, {M_CC_MIN, INFINITY} } 
@@ -243,7 +243,7 @@ namespace nminus {
 	  {MCT, {SR_MCT_MIN, INFINITY} }
 	});
       return sel;
-    }
+    } 
     case reg::Selection::CR_SF: { 
       using namespace crsf;
       sel.insert(
@@ -253,7 +253,7 @@ namespace nminus {
 	  {MCC, {M_CC_MIN, INFINITY} }
 	});
       return sel;
-    }
+    } 
     case reg::Selection::CR_DF: {
       using namespace crdf;
       sel.insert(
@@ -262,7 +262,8 @@ namespace nminus {
 	  {MLL, {M_LL_MIN, INFINITY} }
 	});
       return sel; 
-    }
+    } 
+    case reg::Selection::QUALITY_EVENT: return sel;
     default: throw std::invalid_argument("unknown selection in " __FILE__); 
     }
   }
@@ -272,6 +273,7 @@ namespace nminus {
     case reg::Selection::CR_1L: return new NMinusCR1LSelection(cfg);
     case reg::Selection::CR_SF: return new NMinusOSSFSelection(cfg);
     case reg::Selection::CR_DF: return new NMinusOSDFSelection(cfg);
+    case reg::Selection::QUALITY_EVENT: return new QualityEventSelection(cfg);
     default: throw std::invalid_argument("unknown selection in " __FILE__);
     }
   }
