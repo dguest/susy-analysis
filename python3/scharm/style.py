@@ -56,7 +56,6 @@ class VariableStyle(object):
             ret_str = '{} [{}]'.format(self.tex_name, str(self.units))
             return ret_str
         else: 
-            print('twingo')
             return self.tex_name
 
     def rescale(self, cord): 

@@ -215,9 +215,6 @@ class Stack(object):
         if self.ratio: 
             self.ratio.set_ylim(0,self.ratio_max)
         self.canvas.print_figure(name)
-    def close(self): 
-        # should garbage collect on it's own now
-        warn('This method is no longer needed',FutureWarning,stacklevel=2)
 
 def h2_from_hn(in_hist): 
     if not len(in_hist) == 2: 
@@ -294,11 +291,8 @@ class Hist2d(object):
             cb_dict['ticks'] = LogLocator(10, np.arange(0.1,1,0.1))
             cb_dict['format'] = LogFormatterMathtext(10)
             
-        try: 
-            cb = plt.colorbar(im, **cb_dict)
-        except ValueError: 
-            print(self.imdict['X'].sum())
-            raise
+        cb = plt.colorbar(im, **cb_dict)
+
         ax.set_xlabel(self.x_label, x=0.98, ha='right')        
         ax.set_ylabel(self.y_label, y=0.98, ha='right')
         if self.cb_label: 
