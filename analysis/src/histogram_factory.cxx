@@ -8,6 +8,8 @@
 #include "RegionBosonPtHistograms.hh"
 #include "NMinus1Histograms.hh"
 
+#include <stdexcept>
+
 IRegionHistograms* histogram_factory(const RegionConfig& region, 
 				     const unsigned build_flags){ 
   using namespace reg; 
