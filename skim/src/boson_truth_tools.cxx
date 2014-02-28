@@ -32,13 +32,12 @@ float get_boson_truth_pt(const SusyBuffer& buffer) {
 	l2.SetPtEtaPhiM(pt,eta, phi, m);
 	foundSecond = true;
       } else {
-	throw BosonError(
-	  "found more than 2 leptons (in " __FILE__ ")");
+	return -2.0; 
       }
     }
   }
   if (!foundSecond) { 
-    throw BosonError("couldn't find two bosons (in " __FILE__ ")"); 
+    return -1.0; 
   }
   TLorentzVector v = l1 + l2; 
   return v.Pt(); 

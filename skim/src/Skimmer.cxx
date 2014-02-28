@@ -88,6 +88,10 @@ void Skimmer::copyVariablesTo(TTree* output_tree, TFile* file) {
 
   float event_wt = 0; 
   float boson_pt = -1.0; 
+
+  // this only exists to check if the return code is usually negative
+  // (i.e. no bosons are being found)
+  long long n_bosons = 0;
   if (buffer.hasMc()) {
     output_tree->Branch(pfx("mcevt_weight").c_str(), &event_wt); 
     output_tree->Branch(pfx("boson_pt").c_str(), &boson_pt); 
@@ -100,20 +104,10 @@ void Skimmer::copyVariablesTo(TTree* output_tree, TFile* file) {
   summary.collection_tree_events = m_collection_tree_events; 
   for (int entry_n = 0; entry_n < n_entries; entry_n++) { 
     m_chain->GetEntry(entry_n); 
-
     // buffer.dump(); 
-
     if (summary.has_mc) { 
-      if (summary.has_bosons) { 
-	try {
-	  // TODO: we should keep track of how often we get bosons
-	  // rather than assuming there are none if this throws once.
-	  // Should make this function return -N_BOSONS_FOUND or something...
-	  boson_pt = get_boson_truth_pt(buffer); 
-	} catch (BosonError& err) { 
-	  summary.has_bosons = false; 
-	}
-      }
+      boson_pt = get_boson_truth_pt(buffer); 
+      if (boson_pt > 0) n_bosons++;
       event_wt = buffer.mcevt_weight->at(0).at(0); 
       summary.total_event_weight += event_wt; 
     }
@@ -125,6 +119,8 @@ void Skimmer::copyVariablesTo(TTree* output_tree, TFile* file) {
     }
     if (m_fast) break; 
   }
+  // EW samples _should_ have 100% bosons, require 90% for safety
+  if (n_bosons > n_entries * 0.9) summary.has_bosons = true;
   if (file) { 
     summary.writeTo(*file); 
   }
