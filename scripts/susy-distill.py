@@ -136,7 +136,7 @@ def _get_outputs(config, out_file):
 
     return {'mumet_output_ntuple': make_output('mumet'), 
             'output_ntuple': make_output('normal'),
-            'leptmet_out_ntuple': make_output('leptmet')}
+            'leptmet_output_ntuple': make_output('leptmet')}
 
 def _dump_settings(settings_dict, flags): 
     print "running with flags '{}'".format(flags)
