@@ -33,6 +33,7 @@ def _get_config():
     parser.add_argument('-e', '--all-events', action='store_true')
     parser.add_argument('--test', action='store_true')
     parser.add_argument('-p', '--build-prw', action='store_true')
+    parser.add_argument('-a', '--aggressive', action='store_true')
     return parser.parse_args(sys.argv[1:])
 
 def _get_ds_dict(meta_file_name, ds_key): 
@@ -166,6 +167,8 @@ def _get_config_flags(config):
         flags += 'e'            # disables skimming
     if sys.stdin.isatty(): 
         flags += 'v'            # verbose
+    if config.aggressive: 
+        flags += 'a'            # remove bad files and try again
     return flags
 
 # --- various smaller checks
