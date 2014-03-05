@@ -28,6 +28,7 @@ float get_min_jetmet_dphi(const std::vector<SelectedJet*>&,
 			  const TVector2& , size_t njet); 
 
 TVector2 sum_muon_pt(const std::vector<Muon*>& muons); 
+TVector2 sum_el_pt(const std::vector<Electron*>& el); 
 
 double get_htx(const std::vector<SelectedJet*>&, const size_t x);
 

@@ -138,6 +138,7 @@ static bool info_element_copy(PyObject* value, RunInfo* info,
   TRY_VAL(pu_lumicalc); 
   TRY_VAL(out_ntuple); 
   TRY_VAL(mumet_out_ntuple); 
+  TRY_VAL(leptmet_out_ntuple); 
 
   std::string err = "got unknown string in distiller info dict: " + ckey; 
   PyErr_SetString(PyExc_ValueError, err.c_str()); 

@@ -68,6 +68,7 @@ StopDistiller::StopDistiller(const std::vector<std::string>& in,
   m_event_preselector(0), 
   m_out_tree(0), 
   m_mumet_out_tree(0), 
+  m_leptmet_out_tree(0),
   m_cutflow(0), 
   m_btag_calibration(0), 
   m_boson_truth_filter(0), 
@@ -111,6 +112,7 @@ StopDistiller::~StopDistiller() {
   delete m_out_tree; 
   delete m_cutflow; 
   delete m_mumet_out_tree; 
+  delete m_leptmet_out_tree;
   delete m_object_counter; 
   delete m_btag_calibration; 
   delete m_boson_truth_filter; 
@@ -158,6 +160,7 @@ StopDistiller::Cutflow StopDistiller::run_cutflow() {
 
   add_skim_report(*m_skim_report, *m_out_tree); 
   add_skim_report(*m_skim_report, *m_mumet_out_tree); 
+  add_skim_report(*m_skim_report, *m_leptmet_out_tree); 
   return get_cutflow_vec(n_error); 
 }
 
@@ -219,10 +222,13 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   obj.pileup_weight = get_pileup_weight(); 
 
   const Mets mets(*m_susy_buffer, *m_def, obj.susy_muon_idx, 
-		  sum_muon_pt(obj.control_muons), m_info.systematic);
+		  sum_muon_pt(obj.control_muons), 
+		  sum_el_pt(obj.control_electrons),
+		  m_info.systematic);
 
   fill_event_output(obj, mets.nominal, *m_out_tree, m_cutflow); 
   fill_event_output(obj, mets.muon, *m_mumet_out_tree); 
+  fill_event_output(obj, mets.lepton, *m_leptmet_out_tree); 
 }
 
 void StopDistiller::fill_event_output(const EventObjects& obj, 
@@ -367,6 +373,8 @@ void StopDistiller::setup_outputs() {
     m_info.out_ntuple, "evt_tree", m_flags, N_JETS_TO_SAVE); 
   m_mumet_out_tree = new outtree::OutTree(
     m_info.mumet_out_ntuple, "evt_tree", m_flags, N_JETS_TO_SAVE); 
+  m_leptmet_out_tree = new outtree::OutTree(
+    m_info.leptmet_out_ntuple, "evt_tree", m_flags, N_JETS_TO_SAVE);
 					   
   m_object_counter = new CutCounter; 
 }

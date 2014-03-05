@@ -72,6 +72,7 @@ private:
   EventPreselector* m_event_preselector; 
   outtree::OutTree* m_out_tree; 
   outtree::OutTree* m_mumet_out_tree; 
+  outtree::OutTree* m_leptmet_out_tree;
   BitmapCutflow* m_cutflow; 
   CutCounter* m_object_counter; 
   BtagCalibration* m_btag_calibration; 

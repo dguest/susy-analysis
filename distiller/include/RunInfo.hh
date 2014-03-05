@@ -16,7 +16,8 @@ struct RunInfo {
   std::string pu_config; 
   std::string pu_lumicalc; 
   std::string out_ntuple; 
-  std::string mumet_out_ntuple; 
+  std::string mumet_out_ntuple;
+  std::string leptmet_out_ntuple;
   RunInfo(); 
 }; 
 

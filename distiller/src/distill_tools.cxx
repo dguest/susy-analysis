@@ -68,6 +68,13 @@ TVector2 sum_muon_pt(const std::vector<Muon*>& muons) {
   }
   return sum.Vect().XYvector(); 
 }
+TVector2 sum_el_pt(const std::vector<Electron*>& els) { 
+  TLorentzVector sum; 
+  for (auto el: els) { 
+    sum += *el; 
+  }
+  return sum.Vect().XYvector(); 
+}
 
 double get_htx(const std::vector<SelectedJet*>& jets, const size_t x){ 
   double htx = 0; 

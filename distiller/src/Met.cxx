@@ -13,10 +13,13 @@ namespace {
 
 Mets::Mets(const SusyBuffer& buffer, SUSYObjDef& def, 
 	   const std::vector<int>& mudex, 
-	   const TVector2& sum_muons, systematic::Systematic syst) { 
+	   const TVector2& sum_muons, 
+	   const TVector2& sum_electrons,
+	   systematic::Systematic syst) { 
   SystErr::Syste susysyst = get_syste(syst); 
   nominal = get_met(buffer, def, mudex, susysyst); 
   muon = nominal + sum_muons; 
+  lepton = nominal + sum_muons + sum_electrons;
 }
 
 namespace { 
