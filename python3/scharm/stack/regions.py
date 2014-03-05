@@ -74,7 +74,7 @@ _sbottom_cr = {'CR_1L', 'CR_DF', 'CR_SF'}
 def _sbottom_region(version): 
     lj =  {'SIGNAL': 130, 'CR_1L': 130, 'CR_SF': 50,  'CR_DF': 130}[version]
     met = {'SIGNAL': 150, 'CR_1L': 100, 'CR_SF': 100, 'CR_DF': 100}[version]
-    rpl = 'normal' if version == 'SIGNAL' else 'mumet'
+    rpl = 'normal' if version == 'SIGNAL' else 'leptmet'
     return _build_kinematic_region(version, lj, met, rpl)
 
 def _build_kinematic_region(version, lj, met, rpl='normal'):
