@@ -11,6 +11,7 @@ Could use some refactoring:
 
 import argparse
 from scharm.aggregate import aggregator as agg
+from scharm.aggregate.sample_selector import SampleSelector
 from os.path import isfile
 from tempfile import TemporaryFile
 import yaml
@@ -46,9 +47,11 @@ def get_signal_finder(signal_point):
 def run(): 
     args = get_config()
 
+    selected_samples = SampleSelector(args.meta).select_samples(args.files)
+
     aggregator = agg.SampleAggregator(
         meta_path=args.meta, 
-        whiskey=args.files,
+        hfiles=args.files,
         variables='all',
         )
     # aggregator.bugstream = tempfile.TemporaryFile()

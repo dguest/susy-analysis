@@ -85,17 +85,17 @@ class HistDict(dict):
                 ndhist.write_to(outfile, path)
     
 
-class SampleAggregator(object): 
+class SampleAggregator: 
     """
-    Takes some meta data and whiskey as an input, produces aggrigated 
+    Takes some meta data and hists as an input, produces aggrigated 
     histograms. 
     """
     signal_name_template_met_filter = ( 
         '{}-{stop_mass_gev}-{lsp_mass_gev}-TMF{met_filter_gev:.0f}')
     signal_name_template = '{}-{stop_mass_gev}-{lsp_mass_gev}'
 
-    def __init__(self,meta_path, whiskey, variables): 
-        self.whiskey = whiskey
+    def __init__(self,meta_path, hfiles, variables): 
+        self.hfiles = hfiles
         self.variables = variables
         with open(meta_path) as yml: 
             self.filter_meta = yaml.load(yml)
@@ -212,25 +212,21 @@ class SampleAggregator(object):
                 return scaler
         return scalar_fact
 
+    def _print_prog(self, filenum, numfiles): 
+        if self.outstream and self.outstream.isatty():
+            self.outstream.write(
+                '\r{}adding file {} of {}'.format(
+                    self.out_prepend, filenum, numfiles))
+            self.outstream.flush()
+        
+
     def aggregate(self): 
         merged_files = Counter()
         plots_dict = HistDict()
-        numfiles = len(self.whiskey)
-        for filenum, f in enumerate(self.whiskey): 
-            if self.outstream and self.outstream.isatty():
-                self.outstream.write(
-                    '\r{}adding file {} of {}'.format(
-                        self.out_prepend, filenum, numfiles))
-                self.outstream.flush()
+        numfiles = len(self.hfiles)
+        for filenum, f in enumerate(self.hfiles):
+            self._print_prog(filenum, numfiles)
             meta_name = basename(splitext(f)[0])
-            if meta_name not in self.filter_meta: 
-                atlhack = 'a' + meta_name[1:]
-                if atlhack in self.filter_meta: 
-                    meta_name = atlhack
-                    self.bugstream.write(' atlhack: {}\n'.format(
-                            meta_name))
-                else: 
-                    continue
     
             file_meta = self.filter_meta[meta_name]
             if self._check_for_bugs(file_meta): 
