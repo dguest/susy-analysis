@@ -30,6 +30,6 @@ def get_prechar(name):
     if fullsimfinder.search(name): 
         return 's'
     warnings.warn(
-        "{} lacks atlfast / fullsim info".format(
+        "{} lacks atlfast / fullsim info, assume 'a'".format(
             name), stacklevel=2)
-    return 's'
+    return 'a'
