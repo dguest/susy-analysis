@@ -65,11 +65,15 @@ class Stacker(object):
 
         return regdic
 
-    def run_multisys(self, ntuple, systematics, tuple_n=None): 
+    def run_multisys(self, ntuple, systematics, tuple_n=None):
         regions = []
         for name, reg in self._regions.items(): 
             for systematic in systematics: 
-                if self._ismc(ntuple) or systematic == 'NONE':
+                needed_syst = self._ismc(ntuple) or systematic == 'NONE'
+                replacement = schema.distiller_settings_from_dir(
+                    dirname(ntuple))['replacement']
+                needed_replacement = replacement == reg.replacement
+                if needed_syst and needed_replacement:
                     regdic = self._setup_region_dict(
                         name, reg, ntuple, systematic)
                     if regdic: 

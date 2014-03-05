@@ -237,14 +237,14 @@ class SampleAggregator:
     
             with h5py.File(f,'r') as hfile: 
                 scale_hist = scaler_fact(hfile)
-                for cut_name, vargroup in hfile.items(): 
+                for region, vargroup in hfile.items(): 
                     if self.variables == 'all': 
                         variables = _get_all_variables(vargroup)
                     else: 
                         variables = self.variables
                     for variable in variables:
                         h5hist = vargroup[variable]
-                        idx_tuple = (physics_type, variable, cut_name)
+                        idx_tuple = (physics_type, variable, region)
                         if idx_tuple in plots_dict: 
                             # if this hist already exists we only need the 
                             # numpy array 

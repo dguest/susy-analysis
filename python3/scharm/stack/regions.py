@@ -29,6 +29,7 @@ class Region:
             'jet_tag_assignment','PT_ORDERED')
         self.boson_pt_correction = yaml_dict.get(
             'boson_pt_correction', 'MARKS')
+        self.replacement = yaml_dict.get('replacement','normal')
 
     def get_yaml_dict(self): 
         """
@@ -73,19 +74,21 @@ _sbottom_cr = {'CR_1L', 'CR_DF', 'CR_SF'}
 def _sbottom_region(version): 
     lj =  {'SIGNAL': 130, 'CR_1L': 130, 'CR_SF': 50,  'CR_DF': 130}[version]
     met = {'SIGNAL': 150, 'CR_1L': 100, 'CR_SF': 100, 'CR_DF': 100}[version]
-    return _build_kinematic_region(version, lj, met)
+    rpl = 'normal' if version == 'SIGNAL' else 'mumet'
+    return _build_kinematic_region(version, lj, met, rpl)
 
-def _build_kinematic_region(version, lj, met):
+def _build_kinematic_region(version, lj, met, rpl='normal'):
     default_dict = { 
         'selection': version,
-        'type': 'signal' if version not in _sbottom_cr else 'control', 
+        'type': 'signal' if version not in _sbottom_cr else 'control',
         'kinematics':{
-            'leading_jet_gev': lj, 
-            'met_gev': met, 
-            }, 
-        'btag_config':[], 
-        'tagger':'JFC', 
-        'jet_tag_assignment': 'PT_ORDERED'
+            'leading_jet_gev': lj,
+            'met_gev': met,
+            },
+        'btag_config':[],
+        'tagger':'JFC',
+        'jet_tag_assignment': 'PT_ORDERED',
+        'replacement': rpl,
         }
     return default_dict
 
