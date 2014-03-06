@@ -18,7 +18,7 @@ def get_config():
     parser.add_argument(
         '--filt', help='not really sure what this does... should fix it')
     parser.add_argument(
-        '-s','--signal-point', default='scharm-150-90', 
+        '-s','--signal-point', default='scharm-400-200', 
         help="assumes <particle>-<something> type name, " + d)
     parser.add_argument(
         '--ext', help='plot extensions, ' + d, default='.pdf')
