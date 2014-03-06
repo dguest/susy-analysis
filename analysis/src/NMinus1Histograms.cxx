@@ -212,6 +212,9 @@ namespace nminus {
       {MET, {cfg.met, INFINITY} }, 
       {DPHI, {MIN_DPHI_JET_MET, INFINITY} }, 
     }; 
+    return sel; 
+  }
+  void add_tagging_cuts(std::map<std::string, Selection>& sel) {
     // add tagging cuts
     for (auto jn: {0,1} ) { 
       const auto& antib = btag::JFC_MEDIUM_ANTI_B_CUT; 
@@ -221,7 +224,6 @@ namespace nminus {
       sel.insert({jantib(jn), {antib, INFINITY} }); 
       sel.insert({jantiu(jn), {antiu, INFINITY} }); 
     }
-    return sel; 
   }
 
   std::map<std::string, Selection> get_selections(const RegionConfig& cfg) 
@@ -229,12 +231,15 @@ namespace nminus {
     auto sel = get_common_selection(cfg);
 
     switch (cfg.selection) { 
-    case reg::Selection::SIGNAL: sel.insert( { 
-	{MCT, {SR_MCT_MIN, INFINITY} }, 
-	{MET_EFF, {MET_EFF_MIN, INFINITY} }, 
-	{MCC, {M_CC_MIN, INFINITY} } 
-      }); 
+    case reg::Selection::SIGNAL: {
+      sel.insert( { 
+	  {MCT, {SR_MCT_MIN, INFINITY} }, 
+	  {MET_EFF, {MET_EFF_MIN, INFINITY} }, 
+	  {MCC, {M_CC_MIN, INFINITY} } 
+	}); 
+      add_tagging_cuts(sel);
       return sel; 
+    }
     case reg::Selection::CR_1L: {
       using namespace cr1l; 
       sel.insert(
@@ -242,6 +247,7 @@ namespace nminus {
 	  {MT, {M_T_MIN, M_T_MAX} }, 
 	  {MCT, {SR_MCT_MIN, INFINITY} }
 	});
+      add_tagging_cuts(sel);
       return sel;
     } 
     case reg::Selection::CR_SF: { 
@@ -252,6 +258,7 @@ namespace nminus {
 	  {MLL, {M_LL_MIN, M_LL_MAX} }, 
 	  {MCC, {M_CC_MIN, INFINITY} }
 	});
+      add_tagging_cuts(sel);
       return sel;
     } 
     case reg::Selection::CR_DF: {
@@ -261,6 +268,7 @@ namespace nminus {
 	  {MCT, {MCT_MIN, INFINITY} }, 
 	  {MLL, {M_LL_MIN, INFINITY} }
 	});
+      add_tagging_cuts(sel);
       return sel; 
     } 
     case reg::Selection::QUALITY_EVENT: return sel;
