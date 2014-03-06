@@ -184,7 +184,8 @@ class SampleAggregator:
         Factory of scalar factories: the returned function 
         returns scalar after it's been called on the h5 file
         """
-        if file_meta['full_name'].startswith('data'): 
+        ds_name = file_meta['full_name']
+        if ds_name.startswith('data'): 
             def scalar_fact(hfile): 
                 def scaler(variable, hist): 
                     """
@@ -196,14 +197,14 @@ class SampleAggregator:
             filteff = file_meta['filteff']
             xsec = file_meta['total_xsec_fb']
             kfactor = file_meta.get('kfactor',1)
+            n_before_sel = xsec * kfactor * filteff * self.lumi_fb
             def scalar_fact(hfile): 
                 sum_evt_weight = hfile.attrs['total_event_weight']
+                lumi_scale = n_before_sel / sum_evt_weight
                 def scaler(variable, hist): 
                     """
                     mc scalar
                     """
-                    n_before_sel = xsec * kfactor * filteff * self.lumi_fb
-                    lumi_scale = n_before_sel / sum_evt_weight
                     if variable.endswith('Wt2'): 
                         hist *= lumi_scale**2.0
                     else: 
