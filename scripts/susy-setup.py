@@ -2,7 +2,7 @@
 """
 Omega setup scripts
 """
-import argparse, sys, os, math
+import argparse, sys, os, math, random
 from scharm import bullshit
 from os.path import basename, splitext, dirname, isdir, isfile, join
 import glob
@@ -41,7 +41,6 @@ def get_config():
                             default='crocosaurus.sh')
     stack_args.add_argument('-o', '--output-name', 
                             default='batch/ntuple/ntuples.txt', help=d)
-    stack_args.add_argument('-n','--n-outputs', type=int, default=20, help=d)
     stack_args.add_argument('-d','--hists-dir', default='hists', help=d)
 
     hadd_args = subs.add_parser('hadd', description=setup_hadd.__doc__)
@@ -248,21 +247,19 @@ def setup_stack(config):
     Sets up textfiles and shell script to run histograming via susy-stack.
     One histogram file will be created for each input ntuple. 
     """
-    all_files = _get_all_ntuples(config.input_ntuples)
+    all_files = list(_get_all_ntuples(config.input_ntuples))
 
-    subfiles = {x:[] for x in xrange(config.n_outputs)}
-    for in_n, in_file in enumerate(all_files): 
-        subfiles[in_n % config.n_outputs].append(in_file)
-    for file_n in xrange(config.n_outputs): 
+    n_files = len(all_files)
+    for file_n in xrange(n_files): 
         file_name = '{}-{n}{}'.format(
             *splitext(config.output_name), n=file_n)
         if not isdir(dirname(file_name)): 
             os.makedirs(dirname(file_name))
         with open(file_name, 'w') as out_file: 
-            out_file.writelines('\n'.join(subfiles[file_n]) + '\n')
+            out_file.writelines('\n'.join(all_files[file_n]) + '\n')
 
     sub_dict = {
-        'n_jobs': config.n_outputs, 
+        'n_jobs': n_files, 
         'out_dir': 'output/stack', 
         'in_dir': dirname(config.output_name), 
         'in_ext': '.txt', 
@@ -281,13 +278,31 @@ def setup_stack(config):
         out_script.write(submit_head)
         out_script.write(get_runline('nminus'))
 
-def _get_all_ntuples(base_path): 
+def _get_all_ntuples(base_path, chunk_size=1e9): 
+    """
+    returns random chunks of files in base_path, all of them should 
+    be under chunk_size in total size. Single files over chunk_size are 
+    added as their own chunk.
+    """
     all_ntuples = []
     for root, dirs, files in os.walk(base_path): 
         for fi in files: 
             if fi.endswith('.root'): 
-                all_ntuples.append(join(root,fi))
-    return all_ntuples
+                path = join(root, fi)
+                all_ntuples.append((path, os.path.getsize(path)))
+    random.shuffle(all_ntuples)
+
+    tot_size = 0.0
+    out_ntuples = []
+    for path, size in all_ntuples: 
+        if tot_size + size > chunk_size and out_ntuples: 
+            yield out_ntuples
+            tot_size = 0.0
+            out_ntuples = []
+        out_ntuples.append(path)
+        tot_size += size
+    if out_ntuples: 
+        yield out_ntuples
 
 def setup_distill(config): 
     """
@@ -325,11 +340,6 @@ def setup_distill(config):
                 }
             syst_line = _submit_line.format(**line_args)
             out_script.write(syst_line + '\n')
-
-def _dirify(systematic_name): 
-    if systematic_name == 'NONE': 
-        return 'baseline'
-    return systematic_name.lower()
 
 _submit_head="""
 #!/usr/bin/env bash
