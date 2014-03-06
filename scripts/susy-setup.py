@@ -4,7 +4,7 @@ Omega setup scripts
 """
 import argparse, sys, os, math
 from scharm import bullshit
-from os.path import basename, splitext, dirname, isdir, isfile
+from os.path import basename, splitext, dirname, isdir, isfile, join
 import glob
 import yaml
 
@@ -35,7 +35,7 @@ def get_config():
                              help='enable systematics')
 
     stack_args = subs.add_parser('stack', description=setup_stack.__doc__)
-    stack_args.add_argument('input_ntuples', nargs='+')
+    stack_args.add_argument('input_ntuples')
     stack_args.add_argument('-y', '--steering', required=True)
     stack_args.add_argument('-s', '--script', help='build this, ' + d, 
                             default='crocosaurus.sh')
@@ -248,7 +248,7 @@ def setup_stack(config):
     Sets up textfiles and shell script to run histograming via susy-stack.
     One histogram file will be created for each input ntuple. 
     """
-    all_files = config.input_ntuples
+    all_files = _get_all_ntuples(config.input_ntuples)
 
     subfiles = {x:[] for x in xrange(config.n_outputs)}
     for in_n, in_file in enumerate(all_files): 
@@ -280,6 +280,14 @@ def setup_stack(config):
     with open(config.script, 'w') as out_script: 
         out_script.write(submit_head)
         out_script.write(get_runline('nminus'))
+
+def _get_all_ntuples(base_path): 
+    all_ntuples = []
+    for root, dirs, files in os.walk(base_path): 
+        for fi in files: 
+            if fi.endswith('.root'): 
+                all_ntuples.append(join(root,fi))
+    return all_ntuples
 
 def setup_distill(config): 
     """
