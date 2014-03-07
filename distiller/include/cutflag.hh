@@ -2,13 +2,13 @@
 #define RUN_BITS_H
 
 namespace cutflag { 
-  const unsigned verbose          = 1u << 0; 
-  const unsigned is_data          = 1u << 1; 
-  const unsigned save_all_events  = 1u << 2;  
-  const unsigned boson_pt_reweight= 1u << 3; 
-  const unsigned debug_susy       = 1u << 4; 
-  // const unsigned raw_evt_info     = 1u << 5; 
-  const unsigned get_branches     = 1u << 6; 
+  const unsigned verbose            = 1u << 0; 
+  const unsigned is_data            = 1u << 1; 
+  const unsigned save_all_events    = 1u << 2;  
+  const unsigned boson_pt_reweight  = 1u << 3; 
+  const unsigned debug_susy         = 1u << 4; 
+  const unsigned all_trig_branches  = 1u << 5; 
+  const unsigned get_branches       = 1u << 6; 
   // const unsigned save_ratios      = 1u << 7; 
   // const unsigned vector_output    = 1u << 8; 
   const unsigned maximum_compression = 1u << 9; 

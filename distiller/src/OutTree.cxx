@@ -62,6 +62,7 @@ namespace outtree {
 		   int n_jets): 
     el_sf(flags), 
     mu_sf(flags), 
+    m_evt_bools(flags),
     m_file(0), 
     m_tree(0)
   { 
@@ -81,7 +82,6 @@ namespace outtree {
 
   void OutTree::init(const unsigned flags, int n_jets) 
   { 
-    MAKE_BRANCH(m_tree, pass_bits); 
     par.set_branches(m_tree); 
     met.set_branches(m_tree, ""); 
 
@@ -200,8 +200,6 @@ namespace outtree {
     tree->Branch((prefix + "jfc_b").c_str(), &jfc_b); 
     tree->Branch((prefix + "jfc_c").c_str(), &jfc_c); 
     tree->Branch((prefix + "jfc_u").c_str(), &jfc_u); 
-
-    // tree->Branch((prefix + "bits").c_str(), &jet_bits); 
   }
 
   void Jet::clear() 
@@ -238,13 +236,34 @@ namespace outtree {
 
   // ----------------- EvtBools -----------------------
 
+  EvtBools::EvtBools(unsigned flags) { 
+    m_dump_triggers = flags & cutflag::all_trig_branches;
+  }
+
 #define MAKE_PASS_BRANCH(branch) \
   tree->Branch("pass_" #branch, &branch)
 
   void EvtBools::set_branches(TTree* tree) { 
-    MAKE_PASS_BRANCH(met_trigger); 
-    MAKE_PASS_BRANCH(mu_trigger); 
-    MAKE_PASS_BRANCH(el_trigger); 
+    if (m_dump_triggers) { 
+      // met triggers
+      MAKE_PASS_BRANCH(EF_xe80_tclcw_loose);
+      MAKE_PASS_BRANCH(EF_xe80T_tclcw_loose);
+      MAKE_PASS_BRANCH(EF_xe80_tclcw_tight);
+      // dilep triggers
+      MAKE_PASS_BRANCH(EF_mu18_tight_mu8_EFFS);
+      MAKE_PASS_BRANCH(EF_2e12Tvh_loose1);
+      // single lepton triggers
+      MAKE_PASS_BRANCH(EF_mu24i_tight); 
+      MAKE_PASS_BRANCH(EF_e24vhi_medium1);
+      MAKE_PASS_BRANCH(EF_mu36_tight);
+      MAKE_PASS_BRANCH(EF_e60_medium1);
+    } else { 
+      // compound trigger
+      MAKE_PASS_BRANCH(met_trigger);
+      MAKE_PASS_BRANCH(dilep_trigger);
+      MAKE_PASS_BRANCH(single_lep_trigger);
+    }
+    // computed internally
     MAKE_PASS_BRANCH(event_quality); 
     MAKE_PASS_BRANCH(ossf); 
     MAKE_PASS_BRANCH(osdf); 
@@ -254,9 +273,24 @@ namespace outtree {
   BIT = pass::BIT & bits
 
   void EvtBools::set_from_bits(ull_t bits) { 
-    SET_FROM_BIT(met_trigger); 
-    SET_FROM_BIT(mu_trigger); 
-    SET_FROM_BIT(el_trigger); 
+    // met triggers
+    SET_FROM_BIT(EF_xe80_tclcw_loose);
+    SET_FROM_BIT(EF_xe80T_tclcw_loose);
+    SET_FROM_BIT(EF_xe80_tclcw_tight);
+    // dilep triggers
+    SET_FROM_BIT(EF_mu18_tight_mu8_EFFS);
+    SET_FROM_BIT(EF_2e12Tvh_loose1);
+    // single lepton triggers
+    SET_FROM_BIT(EF_mu24i_tight); 
+    SET_FROM_BIT(EF_e24vhi_medium1);
+    SET_FROM_BIT(EF_mu36_tight);
+    SET_FROM_BIT(EF_e60_medium1);
+
+    SET_FROM_BIT(met_trigger);
+    SET_FROM_BIT(dilep_trigger);
+    SET_FROM_BIT(single_lep_trigger);
+
+    // computed internally
     SET_FROM_BIT(event_quality); 
     SET_FROM_BIT(ossf); 
     SET_FROM_BIT(osdf); 

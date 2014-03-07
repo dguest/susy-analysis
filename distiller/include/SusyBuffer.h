@@ -22,9 +22,9 @@ public :
   unsigned lbn; 
 
   // --- trigger branches ---
-  bool          xe80_tclcw_tight; 
-  bool          xe80T_tclcw_loose; 
-  bool          xe80_tclcw_loose; 
+  bool EF_xe80_tclcw_tight; 
+  bool EF_xe80T_tclcw_loose; 
+  bool EF_xe80_tclcw_loose; 
   bool      EF_mu18_tight_mu8_EFFS; 
   bool      EF_mu24i_tight; 
   bool      EF_mu36_tight;          

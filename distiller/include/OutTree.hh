@@ -14,16 +14,34 @@ namespace outtree {
   class EvtBools 
   {
   public: 
+    EvtBools(unsigned);
     void set_branches(TTree*); 
     void set_from_bits(ull_t); 
   private: 
+    // met triggers
+    bool EF_xe80_tclcw_loose;
+    bool EF_xe80T_tclcw_loose;
+    bool EF_xe80_tclcw_tight;
+    // dilep triggers
+    bool EF_mu18_tight_mu8_EFFS;
+    bool EF_2e12Tvh_loose1;
+    // single lepton triggers
+    bool EF_mu24i_tight; 
+    bool EF_e24vhi_medium1;
+    bool EF_mu36_tight;
+    bool EF_e60_medium1;
+    // compound
     bool met_trigger;
-    bool mu_trigger; 
-    bool el_trigger;
+    bool dilep_trigger; 
+    bool single_lep_trigger;
 
+    // computed in the distiller
     bool event_quality; 
     bool ossf;
     bool osdf;
+
+    // save all triggers
+    bool m_dump_triggers;
   }; 
 
   // Reconstructed event parameters, truth level and SF parameters 

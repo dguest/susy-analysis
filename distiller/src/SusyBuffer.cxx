@@ -31,9 +31,9 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br):
 
   // --- trigger branches ----
   // met
-  fChain->SetBranch("EF_xe80_tclcw_tight", &xe80_tclcw_tight); 
-  fChain->SetBranch("EF_xe80T_tclcw_loose", &xe80T_tclcw_loose); 
-  fChain->SetBranch("EF_xe80_tclcw_loose", &xe80_tclcw_loose); 
+  SET(fChain, EF_xe80_tclcw_tight);
+  SET(fChain, EF_xe80T_tclcw_loose);
+  SET(fChain, EF_xe80_tclcw_loose);
   // muon
   SET(fChain,EF_mu18_tight_mu8_EFFS); 
   SET(fChain,EF_mu24i_tight);
