@@ -256,7 +256,6 @@ namespace nminus {
 	{
 	  {LLPT, {LEPTON_PT_MIN, INFINITY} }, 
 	  {MLL, {M_LL_MIN, M_LL_MAX} }, 
-	  {MCC, {M_CC_MIN, INFINITY} }
 	});
       add_tagging_cuts(sel);
       return sel;
@@ -265,7 +264,6 @@ namespace nminus {
       using namespace crdf;
       sel.insert(
 	{
-	  {MCT, {MCT_MIN, INFINITY} }, 
 	  {MLL, {M_LL_MIN, INFINITY} }
 	});
       add_tagging_cuts(sel);

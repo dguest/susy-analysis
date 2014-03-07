@@ -21,7 +21,7 @@ namespace crdf {
   const float M_LL_MIN = 50_GeV; 
 }
 namespace crsf { 
-  const float LEPTON_PT_MIN = 90_GeV; 
+  const float LEPTON_PT_MIN = 70_GeV; 
   const float M_LL_MIN = 75_GeV; 
   const float M_LL_MAX = 105_GeV; 
 }
