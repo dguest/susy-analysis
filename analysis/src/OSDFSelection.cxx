@@ -21,7 +21,7 @@ bool NMinusOSDFSelection::pass(const EventObjects& obj) const {
   
   const EventRecoParameters& reco = obj.reco; 
   // check trigger
-  if (! (reco.pass_mu_trigger || reco.pass_el_trigger) ) return false; 
+  if (! (reco.pass_single_lep_trigger) ) return false; 
 
   if (!reco.pass_osdf) return false; 
 

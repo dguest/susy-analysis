@@ -19,7 +19,7 @@ NMinusOSSFSelection::~NMinusOSSFSelection() {
 bool NMinusOSSFSelection::pass(const EventObjects& obj) const { 
   const EventRecoParameters& reco = obj.reco; 
   // check trigger
-  if (! (reco.pass_mu_trigger || reco.pass_el_trigger) ) return false; 
+  if (! (reco.pass_dilep_trigger) ) return false; 
 
   if (!reco.pass_ossf) return false; 
 

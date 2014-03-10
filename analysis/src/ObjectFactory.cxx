@@ -220,8 +220,8 @@ namespace {
   set_branch(tree, #branch, &re.branch)
 
     SET_PARAMETER(tree, pass_met_trigger); 
-    SET_PARAMETER(tree, pass_mu_trigger); 
-    SET_PARAMETER(tree, pass_el_trigger); 
+    SET_PARAMETER(tree, pass_dilep_trigger); 
+    SET_PARAMETER(tree, pass_single_lep_trigger); 
     SET_PARAMETER(tree, pass_event_quality); 
 
     SET_PARAMETER(tree, pass_osdf); 
