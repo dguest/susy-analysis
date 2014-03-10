@@ -33,7 +33,13 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br):
   // met
   SET(fChain, EF_xe80_tclcw_tight);
   SET(fChain, EF_xe80T_tclcw_loose);
-  SET(fChain, EF_xe80_tclcw_loose);
+  try { 
+    // this thing is sometimes missing in the Egamma stream... 
+    // doesn't really matter there (since we're not using met triggers)
+    SET(fChain, EF_xe80_tclcw_loose);
+  } catch (MissingBranchError& err) { 
+    EF_xe80_tclcw_loose = false;
+  }
   // muon
   SET(fChain,EF_mu18_tight_mu8_EFFS); 
   SET(fChain,EF_mu24i_tight);
