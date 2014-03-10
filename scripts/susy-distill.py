@@ -36,19 +36,6 @@ def _get_config():
     parser.add_argument('-a', '--aggressive', action='store_true')
     return parser.parse_args(sys.argv[1:])
 
-def _get_ds_dict(meta_file_name, ds_key): 
-    """
-    Function to get this thing running even though there was a skimming bug
-    Should remove ASAP
-    """
-    with open(meta_file_name) as yml: 
-        yml_dict = yaml.load(yml)
-        try: 
-            return yml_dict[ds_key]
-        except KeyError:
-            warnings.warn('trying to fudge ds key to atlfast', stacklevel=2)
-            return yml_dict['a' + ds_key[1:]]
-
 def distill_d3pds(config): 
     """
     Main distill routine.
@@ -61,8 +48,7 @@ def distill_d3pds(config):
     out_file = splitext(basename(config.input_file))[0] + '.root'
     ds_key = basename(splitext(out_file)[0]).split('-')[0]
 
-    dataset = _get_ds_dict(config.meta, ds_key)
-    flags, add_dict = _config_from_meta(dataset)
+    flags, add_dict = _config_from_meta(config.meta, ds_key)
     add_dict['systematic'] = config.systematic
 
     add_dict.update(_get_cal_paths_dict(config))
@@ -134,8 +120,7 @@ def _get_outputs(config, out_file):
         bullshit.make_dir_if_none(out_dir)
         return join(out_dir, out_file)
 
-    return {'mumet_output_ntuple': make_output('mumet'), 
-            'output_ntuple': make_output('normal'),
+    return {'output_ntuple': make_output('normal'),
             'leptmet_output_ntuple': make_output('leptmet')}
 
 def _dump_settings(settings_dict, flags): 
@@ -144,12 +129,15 @@ def _dump_settings(settings_dict, flags):
     for name, value in settings_dict.iteritems(): 
         print '{n:{w}}: {v}'.format(n=name, w=set_width, v=value)
 
-def _config_from_meta(dataset): 
+def _config_from_meta(meta_file_name, ds_key): 
+    if ds_key[0] in 'jem': 
+        return 'd', {}          # data flag, no special instructions
+    with open(meta_file_name) as yml: 
+        dataset = yaml.load(yml)[ds_key]
+            
     flags = ''
     full_name = dataset['full_name']
-    if full_name.startswith('data'): 
-        flags += 'd'
-    elif _is_atlfast(full_name): 
+    if _is_atlfast(full_name): 
         flags += 'f'
     overlap = dataset.get('overlap',{})
     add_dict = dict(
