@@ -14,7 +14,6 @@ EventObjects::EventObjects(const ObjectFactory* factory,
 			   unsigned build_flags): 
   met(factory->met()), 
   weight(factory->event_weight()), 
-  event_mask(factory->bits()), 
   reco(factory->event_reco_parameters()), 
   leading_cjet_pos(0), 
   subleading_cjet_pos(0), 

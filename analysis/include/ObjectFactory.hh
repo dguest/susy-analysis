@@ -72,7 +72,6 @@ private:
 
   EventRecoParameters* m_event_reco_parameters; 
 
-  ull_t m_bits; 
   int m_hfor_type; 
   
   int m_leading_cjet_pos; 

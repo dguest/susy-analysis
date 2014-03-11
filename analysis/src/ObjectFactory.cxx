@@ -62,7 +62,6 @@ ObjectFactory::ObjectFactory(const std::string& root_file, int n_jets) :
 
   m_event_reco_parameters = new EventRecoParameters; 
   set_reco_parameters(m_tree, *m_event_reco_parameters); 
-  set_branch(m_tree, "pass_bits", &m_bits); 
 
   try { 
     set_branch(m_tree,"hfor_type", &m_hfor_type); 
@@ -149,7 +148,6 @@ TVector2 ObjectFactory::met(syst::Systematic sy) const  {
   met.SetMagPhi(buf.met, buf.met_phi); 
   return met; 
 }
-ull_t ObjectFactory::bits() const  { return m_bits; }
 EventRecoParameters ObjectFactory::event_reco_parameters() const { 
   return *m_event_reco_parameters; 
 }

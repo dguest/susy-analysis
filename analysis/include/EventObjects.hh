@@ -20,7 +20,6 @@ struct EventObjects
 {
   TVector2 met; 
   double weight; 
-  ull_t event_mask; 
   EventRecoParameters reco; 
   int leading_cjet_pos; 
   int subleading_cjet_pos; 
