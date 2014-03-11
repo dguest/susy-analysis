@@ -2,10 +2,12 @@
 #define EVENT_PARAMETERS_HH
 
 struct EventRecoParameters { 
-  bool pass_met_trigger; 
-  bool pass_dilep_trigger; 
-  bool pass_single_lep_trigger; 
-  bool pass_event_quality; 
+  bool pass_met_trigger;
+  bool pass_two_el_trigger; 
+  bool pass_two_mu_trigger; 
+  bool pass_single_el_trigger;
+  bool pass_single_mu_trigger;
+  bool pass_event_quality;
   bool pass_ossf; 
   bool pass_osdf; 
 

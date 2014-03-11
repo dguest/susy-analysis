@@ -4,13 +4,21 @@
 #include "constants_scharmcuts.hh"
 
 #include <cassert>
-
+#include <set>
 
 // _______________________________________________________________________
 // loose
 
-NMinusOSDFSelection::NMinusOSDFSelection(const RegionConfig& ) { 
-  
+NMinusOSDFSelection::NMinusOSDFSelection(const RegionConfig& reg): 
+  m_stream(reg.stream)
+{ 
+  using namespace reg;
+  const std::set<Stream> valid_streams {
+    Stream::MUON, Stream::ELECTRON, Stream::SIMULATED};
+  if (!valid_streams.count(m_stream)) {
+    throw std::invalid_argument(
+      "got bad stream in " __FILE__);
+  }
 }
 
 NMinusOSDFSelection::~NMinusOSDFSelection() { 
@@ -21,7 +29,19 @@ bool NMinusOSDFSelection::pass(const EventObjects& obj) const {
   
   const EventRecoParameters& reco = obj.reco; 
   // check trigger
-  if (! (reco.pass_single_lep_trigger) ) return false; 
+  if (m_stream == reg::Stream::MUON) { 
+    if (! reco.pass_single_mu_trigger ) return false; 
+  } else if (m_stream == reg::Stream::ELECTRON ) { 
+    if (! reco.pass_single_el_trigger ) return false;
+  }
+  if (m_stream != reg::Stream::SIMULATED) { 
+    // stream overlap removal
+    if ( reco.pass_single_el_trigger && reco.pass_single_mu_trigger ) { 
+      // if the event fires both triggers, we only take the one from the 
+      // electron stream
+      if (m_stream == reg::Stream::MUON) return false;
+    }
+  }
 
   if (!reco.pass_osdf) return false; 
 

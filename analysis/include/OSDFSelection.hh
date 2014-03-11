@@ -2,6 +2,7 @@
 #define OSDF_SELECTION_HH
 
 #include "ISelection.hh"
+#include "region_enums.hh"
 
 struct RegionConfig; 
 
@@ -10,6 +11,8 @@ public:
   NMinusOSDFSelection(const RegionConfig&); 
   virtual ~NMinusOSDFSelection(); 
   virtual bool pass(const EventObjects&) const; 
+private: 
+  reg::Stream m_stream;
 }; 
 
 

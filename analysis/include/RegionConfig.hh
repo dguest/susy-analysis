@@ -5,16 +5,7 @@
 #include <vector> 
 #include "btag_enums.hh"
 #include "systematic_defs.hh"
-#include "typedefs.hh"
-
-namespace reg { 
-  enum Type { CONTROL, SIGNAL, VALIDATION }; 
-  enum Hists { 
-    HISTMILL, KINEMATIC_STAT, TAG_EFFICIENCY, BOSON_PT, NMINUS }; 
-  enum BosonPtCorrection {NO_PT_CORRECTION, MARKS}; 
-  enum class Selection { 
-    SIGNAL, CR_1L, CR_SF, CR_DF, ERROR, QUALITY_EVENT}; 
-}
+#include "region_enums.hh"
 
 struct RegionConfig 
 {
@@ -31,6 +22,7 @@ struct RegionConfig
   std::string mc_mc_jet_reweight_file; 
   btag::Tagger tagger; 
   reg::BosonPtCorrection boson_pt_correction; 
+  reg::Stream stream;
   RegionConfig(); 
 };
 

@@ -18,8 +18,10 @@ NMinusCR1LSelection::~NMinusCR1LSelection() {
 
 bool NMinusCR1LSelection::pass(const EventObjects& obj) const { 
   const EventRecoParameters& reco = obj.reco; 
+
+  assert(false);
   // check trigger
-  if (! (reco.pass_single_lep_trigger) ) return false; 
+  // if (! (reco.pass_single_lep_trigger) ) return false; 
 
   // check object counts
   auto total_leptons = reco.n_control_electrons + reco.n_control_muons; 

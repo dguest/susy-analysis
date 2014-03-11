@@ -34,6 +34,7 @@ static bool safe_copy(PyObject* value, reg::Type& dest);
 static bool safe_copy(PyObject* value, reg::Hists& dest); 
 static bool safe_copy(PyObject* value, reg::BosonPtCorrection& dest); 
 static bool safe_copy(PyObject* value, reg::Selection& dest); 
+static bool safe_copy(PyObject* value, reg::Stream& dest); 
 
 // --- implementation ---
 

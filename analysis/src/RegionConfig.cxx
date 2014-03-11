@@ -12,6 +12,7 @@ RegionConfig::RegionConfig() :
   hists(reg::HISTMILL), 
   mc_mc_jet_reweight_file(""), 
   tagger(btag::Tagger::ERROR), 
-  boson_pt_correction(reg::NO_PT_CORRECTION)
+  boson_pt_correction(reg::NO_PT_CORRECTION), 
+  stream(reg::Stream::ERROR)
 {
 }

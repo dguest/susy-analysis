@@ -7,6 +7,8 @@
 #include "_hfw.hh"
 #include "systematic_defs.hh"
 
+#include <set>
+
 static unsigned parse_flags(const char* flags);
 
 // not sure why this can't be templated...
@@ -68,6 +70,7 @@ static bool safe_copy(PyObject* dict, RegionConfig& region)
   REQUIRE(selection); 
   REQUIRE(output_name); 
   REQUIRE(type); 
+  REQUIRE(stream);
   
   COPY(systematic); 
   COPY(leading_jet_pt); 
@@ -134,6 +137,28 @@ static bool safe_copy(PyObject* value, reg::Selection& dest) {
   NAME_TO_PREFIXED(Selection, QUALITY_EVENT); 
 
   std::string problem = "got undefined selection: " + name; 
+  PyErr_SetString(PyExc_ValueError,problem.c_str()); 
+  return false; 
+}
+
+static bool safe_copy(PyObject* value, reg::Stream& dest) { 
+  char* charname = PyUnicode_AsUTF8(value); 
+  if (PyErr_Occurred()) return false; 
+  std::string name(charname); 
+  using namespace reg; 
+
+  NAME_TO_PREFIXED(Stream, ELECTRON);
+  NAME_TO_PREFIXED(Stream, MUON);
+  NAME_TO_PREFIXED(Stream, JET);
+
+  // mc streams don't require any special action
+  const std::set<std::string> mc_streams{"ATLFAST", "FULLSIM"};
+  if (mc_streams.count(name)) { 
+    dest = Stream::SIMULATED;
+    return true;
+  }
+
+  std::string problem = "got undefined stream: " + name; 
   PyErr_SetString(PyExc_ValueError,problem.c_str()); 
   return false; 
 }
