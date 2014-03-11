@@ -33,14 +33,15 @@ RegionEventFilter::RegionEventFilter(const RegionConfig& config, unsigned):
     m_jet_rescaler = new JetTagRescaler(config.mc_mc_jet_reweight_file); 
   }
   switch (config.jet_tag_assignment) { 
-  case btag::PT_ORDERED: 
+  case btag::Assignment::PT_ORDERED: 
     m_jet_tag_filter = new OrderedJetTagFilter(config.jet_tag_requirements,
 					       config.systematic); 
     return; 
-  case btag::TAG_ORDERED: 
+  case btag::Assignment::TAG_ORDERED: 
     m_jet_tag_filter = new UnorderedJetTagFilter(config.jet_tag_requirements,
 						 config.systematic); 
     return; 
+  default: throw std::logic_error("unknown tagger in " __FILE__);
   }
 }
 RegionEventFilter::~RegionEventFilter() { 

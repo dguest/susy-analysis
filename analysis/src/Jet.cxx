@@ -60,7 +60,6 @@ double Jet::met_dphi() const {
 }
 double Jet::flavor_weight(Flavor flav, btag::Tagger tagger) const { 
   req_flavor(); 
-  assert(tagger == btag::JFC); 
   switch (flav) { 
   case Flavor::BOTTOM: return m_jfc_pb; 
   case Flavor::CHARM:  return m_jfc_pc; 

@@ -19,15 +19,11 @@ class Region:
         self.type = yaml_dict['type']
         self.selection = yaml_dict['selection']
         self.kinematics = yaml_dict['kinematics']
-        self.btag_config = yaml_dict['btag_config']
         self.stream = yaml_dict['stream']
         if self.type not in self._allowed_types: 
             raise RegionConfigError('region type {} is not known'.format(
                     self.type))
-        self.tagger = yaml_dict.get('tagger', None)
         self.hists = yaml_dict.get('hists', 'NMINUS')
-        self.jet_tag_assignment = yaml_dict.get(
-            'jet_tag_assignment','PT_ORDERED')
         self.boson_pt_correction = yaml_dict.get(
             'boson_pt_correction', 'MARKS')
         self.replacement = yaml_dict.get('replacement','normal')
@@ -47,13 +43,10 @@ class Region:
         """
         config_dict = {
             'selection': self.selection.upper(), 
-            'jet_tag_requirements': self.btag_config, 
             'leading_jet_pt': self.kinematics['leading_jet_gev']*1e3, 
             'met': self.kinematics['met_gev']*1e3, 
             'type': self.type.upper(), 
             'hists': self.hists.upper(), 
-            'tagger': _get_tagger(self.btag_config, self.tagger), 
-            'jet_tag_assignment': self.jet_tag_assignment, 
             'boson_pt_correction': self.boson_pt_correction, 
             }
         return config_dict
@@ -61,22 +54,24 @@ class Region:
 # ___________________________________________________________________________
 # sbottom definitions
 
+_sbottom_cr = {'CR_1L', 'CR_DF', 'CR_SF'}
 def sbottom_regions(): 
     """
     return sbottom regions as a yml file
     """
-    regions = _sbottom_cr | {'SIGNAL'}
-    sbottom = {x.lower(): _sbottom_region(x) for x in regions}
+    sbottom = {'signal': _sbottom_region('SIGNAL', 'jet')}
+    for st in ['electron', 'muon']:
+        for cr in _sbottom_cr:
+            name = '_'.join([cr, st])
+            sbottom[name] =  _sbottom_region(cr,st)
     sbottom['preselection'] = _build_kinematic_region(
-        'QUALITY_EVENT', 50, 100)
+        'QUALITY_EVENT', 50, 150)
     return sbottom
 
-_sbottom_cr = {'CR_1L', 'CR_DF', 'CR_SF'}
-def _sbottom_region(version): 
+def _sbottom_region(version, stream): 
     lj =  {'SIGNAL': 130, 'CR_1L': 130, 'CR_SF': 50,  'CR_DF': 130}[version]
     met = {'SIGNAL': 150, 'CR_1L': 100, 'CR_SF': 100, 'CR_DF': 100}[version]
     rpl = 'leptmet' if version == 'CR_SF' else 'normal'
-    st = {'SIGNAL': 'jet'}      # work in progress
     return _build_kinematic_region(version, lj, met, rpl, stream)
 
 def _build_kinematic_region(version, lj, met, rpl='normal', stream='jet'):
@@ -87,10 +82,9 @@ def _build_kinematic_region(version, lj, met, rpl='normal', stream='jet'):
             'leading_jet_gev': lj,
             'met_gev': met,
             },
-        'btag_config':[],
-        'tagger':'JFC',
         'jet_tag_assignment': 'PT_ORDERED',
         'replacement': rpl,
+        'stream': stream
         }
     return default_dict
 

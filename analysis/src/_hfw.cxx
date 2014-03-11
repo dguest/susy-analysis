@@ -153,16 +153,16 @@ static bool safe_copy(PyObject* value, btag::OperatingPoint& dest) {
   std::string name(charname); 
   using namespace btag; 
 
-  NAME_TO_DEST(NOTAG); 
-  NAME_TO_DEST(LOOSE); 
-  NAME_TO_DEST(MEDIUM); 
-  NAME_TO_DEST(TIGHT); 
-  NAME_TO_DEST(ANTILOOSE); 
+  NAME_TO_PREFIXED(OperatingPoint, NOTAG); 
+  NAME_TO_PREFIXED(OperatingPoint, LOOSE); 
+  NAME_TO_PREFIXED(OperatingPoint, MEDIUM); 
+  NAME_TO_PREFIXED(OperatingPoint, TIGHT); 
+  NAME_TO_PREFIXED(OperatingPoint, ANTILOOSE); 
 
-  NAME_TO_DEST(JFC_LOOSE); 
-  NAME_TO_DEST(JFC_MEDIUM); 
-  NAME_TO_DEST(JFC_TIGHT); 
-  NAME_TO_DEST(JFC_ANTILOOSE); 
+  NAME_TO_PREFIXED(OperatingPoint, JFC_LOOSE); 
+  NAME_TO_PREFIXED(OperatingPoint, JFC_MEDIUM); 
+  NAME_TO_PREFIXED(OperatingPoint, JFC_TIGHT); 
+  NAME_TO_PREFIXED(OperatingPoint, JFC_ANTILOOSE); 
 
   std::string problem = "got undefined op: " + name; 
   PyErr_SetString(PyExc_ValueError,problem.c_str()); 
@@ -175,8 +175,8 @@ static bool safe_copy(PyObject* value, btag::Tagger& dest) {
   std::string name(charname); 
   using namespace btag; 
 
-  NAME_TO_DEST(CNN); 
-  NAME_TO_DEST(JFC); 
+  NAME_TO_PREFIXED(Tagger, CNN); 
+  NAME_TO_PREFIXED(Tagger, JFC); 
 
   std::string problem = "got undefined tagger: " + name; 
   PyErr_SetString(PyExc_ValueError,problem.c_str()); 
@@ -189,8 +189,8 @@ static bool safe_copy(PyObject* value, btag::Assignment& dest) {
   std::string name(charname); 
   using namespace btag; 
 
-  NAME_TO_DEST(PT_ORDERED); 
-  NAME_TO_DEST(TAG_ORDERED); 
+  NAME_TO_PREFIXED(Assignment, PT_ORDERED); 
+  NAME_TO_PREFIXED(Assignment, TAG_ORDERED); 
 
   std::string problem = "got undefined tagging assignment: " + name; 
   PyErr_SetString(PyExc_ValueError,problem.c_str()); 

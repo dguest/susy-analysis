@@ -3,7 +3,7 @@
 RegionConfig::RegionConfig() : 
   name(""), 
   selection(reg::Selection::ERROR), 
-  jet_tag_assignment(btag::PT_ORDERED), 
+  jet_tag_assignment(btag::Assignment::ERROR), 
   leading_jet_pt(0), 
   met(0), 
   systematic(syst::NONE), 
@@ -11,7 +11,7 @@ RegionConfig::RegionConfig() :
   type(reg::SIGNAL), 		// will be blinded by default
   hists(reg::HISTMILL), 
   mc_mc_jet_reweight_file(""), 
-  tagger(btag::JFC), 
+  tagger(btag::Tagger::ERROR), 
   boson_pt_correction(reg::NO_PT_CORRECTION)
 {
 }
