@@ -145,14 +145,14 @@ namespace bits {
     // composite triggers
     const auto met_trigger_bits = (
       EF_xe80_tclcw_loose | EF_xe80T_tclcw_loose | EF_xe80_tclcw_tight);
-    if ( (met_trigger_bits & bits) == met_trigger_bits) out |= met_trigger;
+    if ( met_trigger_bits & bits) out |= met_trigger;
 
     const auto dilep_bits = (EF_mu18_tight_mu8_EFFS | EF_2e12Tvh_loose1);
-    if ( (dilep_bits & bits ) == dilep_bits) out |= dilep_trigger;
+    if ( dilep_bits & bits ) out |= dilep_trigger;
 
     const auto slep_bits = (
       EF_mu24i_tight | EF_e24vhi_medium1 | EF_mu36_tight | EF_e60_medium1);
-    if ( (slep_bits & bits ) == slep_bits) out |= single_lep_trigger;
+    if ( slep_bits & bits ) out |= single_lep_trigger;
 
     return out; 
   }
