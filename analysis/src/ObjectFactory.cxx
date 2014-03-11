@@ -7,6 +7,7 @@
 #include "EventRecoParameters.hh"
 #include "SkimCounts.hh"
 #include "common_functions.hh"
+#include "StackerExceptions.hh"
 
 #include <string> 
 #include <vector> 

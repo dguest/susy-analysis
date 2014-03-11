@@ -1,5 +1,6 @@
 #include "common_functions.hh"
 #include "constants_physical.hh"
+#include "StackerExceptions.hh"
 #include <vector>
 #include <string>
 #include "Jet.hh"
@@ -36,11 +37,6 @@ std::string get_name(double) { return "Double_t"; }
 std::string get_name(float) { return "Float_t"; }
 std::string get_name(bool) { return "Bool_t"; }
 std::string get_name(int) { return "Int_t"; }
-
-MissingBranch::MissingBranch(const std::string& what): 
-  std::runtime_error(what)
-{ 
-}
 
 // ___________________________________________________________________
 // mttop stuff

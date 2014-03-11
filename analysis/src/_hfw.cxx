@@ -1,7 +1,6 @@
 // python wrapper for the histo builder
 // Author: Daniel Guest (dguest@cern.ch)
 #include <Python.h>
-#include <stdexcept>
 
 #include "HistBuilder.hh"
 #include "HistBuilderFlags.hh"
@@ -34,11 +33,11 @@ static PyObject* py_analysis_alg(PyObject *self, PyObject *args)
     ret_val = builder.build(); 
     builder.save(); 
   }
-  catch (std::runtime_error& e) { 
+  catch (const std::runtime_error& e) { 
     PyErr_SetString(PyExc_IOError, e.what()); 
     return NULL; 
   }
-  catch (std::logic_error& e) { 
+  catch (const std::logic_error& e) { 
     PyErr_SetString(PyExc_Exception, e.what()); 
     return NULL; 
   }

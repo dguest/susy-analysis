@@ -30,11 +30,6 @@ void set_branch(TTree* tree, const std::string& name, T* var){
   internal_set(tree, name, type_name, var); 
 } 
 
-class MissingBranch: std::runtime_error {
-public: 
-  MissingBranch(const std::string&); 
-}; 
-
 // --- mt top functions (don't know if they will ever be used) ---
 
 double get_mttop(const std::vector<Jet>& jets, TVector2 met); 
