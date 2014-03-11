@@ -7,9 +7,7 @@ class Region:
     """
     _allowed_types = set(['control','signal','validation'])
 
-    def __init__(self, yaml_dict={}): 
-        if not yaml_dict: 
-            yaml_dict = _sbottom_region('SR') 
+    def __init__(self, yaml_dict): 
         self._read_dict(yaml_dict)
 
     def __repr__(self): 
@@ -62,7 +60,7 @@ def sbottom_regions():
     sbottom = {'signal': _sbottom_region('SIGNAL', 'jet')}
     for st in ['electron', 'muon']:
         for cr in _sbottom_cr:
-            name = '_'.join([cr, st])
+            name = '_'.join([cr, st]).lower()
             sbottom[name] =  _sbottom_region(cr,st)
     sbottom['preselection'] = _build_kinematic_region(
         'QUALITY_EVENT', 50, 150)

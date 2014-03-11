@@ -68,12 +68,24 @@ class Stacker(object):
     def run_multisys(self, ntuple, systematics, tuple_n=None):
         regions = []
         dis = schema.distiller_settings_from_dir(dirname(ntuple))
+
+        def stcheck(reg): 
+            """
+            Check to make sure this region is supposed to run on
+            this stream.
+            """
+            stream = dis['stream']
+            if stream in {'atlfast', 'fullsim'}: 
+                return True
+            return stream == reg.stream
+
         for name, reg in self._regions.items(): 
             needed_replacement = dis['replacement'] == reg.replacement
-            needed_stream = dis['stream'] == reg.stream
+            if not stcheck(reg) or not needed_replacement: 
+                continue
             for systematic in systematics: 
                 needed_syst = self._ismc(ntuple) or systematic == 'NONE'
-                if needed_syst and needed_replacement and needed_stream:
+                if needed_syst:
                     regdic = self._setup_region_dict(
                         name, reg, ntuple, systematic)
                     if regdic: 
