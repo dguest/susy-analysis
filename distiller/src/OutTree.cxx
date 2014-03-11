@@ -260,8 +260,10 @@ namespace outtree {
     } else { 
       // compound trigger
       MAKE_PASS_BRANCH(met_trigger);
-      MAKE_PASS_BRANCH(dilep_trigger);
-      MAKE_PASS_BRANCH(single_lep_trigger);
+      MAKE_PASS_BRANCH(single_mu_trigger);
+      MAKE_PASS_BRANCH(single_el_trigger);
+      MAKE_PASS_BRANCH(two_mu_trigger);
+      MAKE_PASS_BRANCH(two_el_trigger);
     }
     // computed internally
     MAKE_PASS_BRANCH(event_quality); 
@@ -287,8 +289,10 @@ namespace outtree {
     SET_FROM_BIT(EF_e60_medium1);
 
     SET_FROM_BIT(met_trigger);
-    SET_FROM_BIT(dilep_trigger);
-    SET_FROM_BIT(single_lep_trigger);
+    SET_FROM_BIT(two_el_trigger);
+    SET_FROM_BIT(two_mu_trigger);
+    SET_FROM_BIT(single_el_trigger);
+    SET_FROM_BIT(single_mu_trigger);
 
     // computed internally
     SET_FROM_BIT(event_quality); 

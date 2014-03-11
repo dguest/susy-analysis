@@ -32,8 +32,10 @@ namespace outtree {
     bool EF_e60_medium1;
     // compound
     bool met_trigger;
-    bool dilep_trigger; 
-    bool single_lep_trigger;
+    bool two_el_trigger; 
+    bool two_mu_trigger; 
+    bool single_el_trigger;
+    bool single_mu_trigger;
 
     // computed in the distiller
     bool event_quality; 

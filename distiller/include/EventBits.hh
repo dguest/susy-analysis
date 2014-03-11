@@ -64,8 +64,10 @@ namespace pass {
 
   // compound trigger
   const ull_t met_trigger        = 1ULL << 44; 
-  const ull_t dilep_trigger      = 1ULL << 45; 
-  const ull_t single_lep_trigger = 1ULL << 46; 
+  const ull_t two_el_trigger     = 1ULL << 45; 
+  const ull_t two_mu_trigger     = 1ULL << 46; 
+  const ull_t single_el_trigger  = 1ULL << 47; 
+  const ull_t single_mu_trigger  = 1ULL << 48; 
   
 }
 
