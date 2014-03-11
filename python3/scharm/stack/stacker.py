@@ -67,13 +67,13 @@ class Stacker(object):
 
     def run_multisys(self, ntuple, systematics, tuple_n=None):
         regions = []
+        dis = schema.distiller_settings_from_dir(dirname(ntuple))
         for name, reg in self._regions.items(): 
+            needed_replacement = dis['replacement'] == reg.replacement
+            needed_stream = dis['stream'] == reg.stream
             for systematic in systematics: 
                 needed_syst = self._ismc(ntuple) or systematic == 'NONE'
-                replacement = schema.distiller_settings_from_dir(
-                    dirname(ntuple))['replacement']
-                needed_replacement = replacement == reg.replacement
-                if needed_syst and needed_replacement:
+                if needed_syst and needed_replacement and needed_stream:
                     regdic = self._setup_region_dict(
                         name, reg, ntuple, systematic)
                     if regdic: 

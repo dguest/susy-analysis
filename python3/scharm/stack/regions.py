@@ -20,6 +20,7 @@ class Region:
         self.selection = yaml_dict['selection']
         self.kinematics = yaml_dict['kinematics']
         self.btag_config = yaml_dict['btag_config']
+        self.stream = yaml_dict['stream']
         if self.type not in self._allowed_types: 
             raise RegionConfigError('region type {} is not known'.format(
                     self.type))
@@ -75,9 +76,10 @@ def _sbottom_region(version):
     lj =  {'SIGNAL': 130, 'CR_1L': 130, 'CR_SF': 50,  'CR_DF': 130}[version]
     met = {'SIGNAL': 150, 'CR_1L': 100, 'CR_SF': 100, 'CR_DF': 100}[version]
     rpl = 'leptmet' if version == 'CR_SF' else 'normal'
-    return _build_kinematic_region(version, lj, met, rpl)
+    st = {'SIGNAL': 'jet'}      # work in progress
+    return _build_kinematic_region(version, lj, met, rpl, stream)
 
-def _build_kinematic_region(version, lj, met, rpl='normal'):
+def _build_kinematic_region(version, lj, met, rpl='normal', stream='jet'):
     default_dict = { 
         'selection': version,
         'type': 'signal' if version not in _sbottom_cr else 'control',
