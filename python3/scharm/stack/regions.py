@@ -40,12 +40,13 @@ class Region:
         Produces the configuration info needed for _stacksusy
         """
         config_dict = {
-            'selection': self.selection.upper(), 
-            'leading_jet_pt': self.kinematics['leading_jet_gev']*1e3, 
-            'met': self.kinematics['met_gev']*1e3, 
-            'type': self.type.upper(), 
-            'hists': self.hists.upper(), 
-            'boson_pt_correction': self.boson_pt_correction, 
+            'selection': self.selection.upper(),
+            'leading_jet_pt': self.kinematics['leading_jet_gev']*1e3,
+            'met': self.kinematics['met_gev']*1e3,
+            'type': self.type.upper(),
+            'hists': self.hists.upper(),
+            'boson_pt_correction': self.boson_pt_correction,
+            'stream': self.stream.upper(),
             }
         return config_dict
 
