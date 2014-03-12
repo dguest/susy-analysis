@@ -23,6 +23,8 @@ bool NMinusCR1LSelection::pass(const EventObjects& obj) const {
   if (!trig::pass_single_lepton_trigger(reco, m_stream)) return false;
 
   // check object counts
+  auto veto_leptons = reco.n_veto_electrons + reco.n_veto_muons; 
+  if (veto_leptons != 1) return false;
   auto total_leptons = reco.n_control_electrons + reco.n_control_muons; 
   if (total_leptons != 1) return false; 
   if (reco.n_signal_jets < 2) return false; 

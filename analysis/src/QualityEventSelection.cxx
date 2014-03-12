@@ -2,14 +2,15 @@
 #include "RegionConfig.hh"
 #include "EventObjects.hh"
 #include "constants_scharmcuts.hh"
+#include "trigger_logic.hh"
+
 #include <stdexcept>
 
-QualityEventSelection::QualityEventSelection(const RegionConfig& reg)
+
+
+QualityEventSelection::QualityEventSelection(const RegionConfig& reg):
+  m_stream(reg.stream)
 { 
-  if (reg.stream != reg::Stream::JET) { 
-    throw std::invalid_argument(
-      "streams other than JET aren't defined in " __FILE__);
-  }
 }
 
 QualityEventSelection::~QualityEventSelection() { 
@@ -17,5 +18,17 @@ QualityEventSelection::~QualityEventSelection() {
 }
 
 bool QualityEventSelection::pass(const EventObjects& obj) const { 
-  return obj.reco.pass_met_trigger; 
+  const EventRecoParameters& reco = obj.reco;
+  using namespace reg;
+  bool one_lep_trigger = trig::pass_single_lepton_trigger(reco, m_stream);
+  bool two_lep_trigger = trig::pass_two_lepton_trigger(reco, m_stream);
+  auto n_lep = reco.n_veto_electrons + reco.n_veto_muons;
+  if (n_lep == 0) {
+    return reco.pass_met_trigger;
+  } else if (n_lep == 1) {
+    return one_lep_trigger;
+  } else if (n_lep == 2) {
+    return two_lep_trigger;
+  }
+  return false;
 }
