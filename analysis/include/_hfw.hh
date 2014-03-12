@@ -7,8 +7,6 @@
 #include "RegionConfig.hh"
 #include "typedefs.hh"
 
-// struct HistConfig; 
-
 #include <string> 
 #include <map>
 #include <vector> 

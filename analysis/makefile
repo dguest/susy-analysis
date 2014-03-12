@@ -68,7 +68,7 @@ PY_LDFLAGS += -shared
 
 # ---- define objects
 GEN_OBJ     := HistBuilder.o Jet.o SkimCounts.o ObjectFactory.o
-GEN_OBJ     += JetTagRescaler.o JetBuffer.o BtagBuffer.o
+GEN_OBJ     += JetBuffer.o BtagBuffer.o
 GEN_OBJ     += BtagConfig.o RegionConfig.o Flavor.o
 GEN_OBJ     += EventObjects.o
 GEN_OBJ     += RegionEventFilter.o 
@@ -87,7 +87,7 @@ GEN_OBJ     += RegionHistograms.o
 
 GEN_OBJ     += Jet2DHists.o Jet1DHists.o TruthJetHists.o
 
-GEN_OBJ     += common_functions.o enum_converters.o hdf_helpers.o
+GEN_OBJ     += common_functions.o hdf_helpers.o
 GEN_OBJ     += trigger_logic.o
 GEN_OBJ     += StackerExceptions.o
 GEN_OBJ     += histogram_factory.o

@@ -4,7 +4,6 @@
 // Intended to house all the event-wise rescaling and filtering code. 
 
 struct EventObjects; 
-class JetTagRescaler; 
 class IJetTagFilter; 
 class Jet; 
 class ISelection; 
@@ -27,7 +26,6 @@ public:
   float boson_scalefactor(const EventObjects& objects) const; 
 private: 
   const RegionConfig& m_region_config; 
-  const JetTagRescaler* m_jet_rescaler; 
   const IJetTagFilter* m_jet_tag_filter; 
   const ISelection* m_selection; 
 }; 

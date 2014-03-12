@@ -1,8 +1,6 @@
 #include "RegionEventFilter.hh"
 #include "RegionConfig.hh"
 #include "EventObjects.hh"
-#include "JetTagRescaler.hh"
-#include "enum_converters.hh"
 #include "IJetTagFilter.hh"
 #include "OrderedJetTagFilter.hh"
 #include "UnorderedJetTagFilter.hh"
@@ -24,14 +22,10 @@ namespace {
 
 RegionEventFilter::RegionEventFilter(const RegionConfig& config, unsigned): 
   m_region_config(config), 
-  m_jet_rescaler(0), 
   m_jet_tag_filter(0), 
   m_selection(0)
 {
   m_selection = selection_factory(config); 
-  if (config.mc_mc_jet_reweight_file.size()) { 
-    m_jet_rescaler = new JetTagRescaler(config.mc_mc_jet_reweight_file); 
-  }
   switch (config.jet_tag_assignment) { 
   case btag::Assignment::PT_ORDERED: 
     m_jet_tag_filter = new OrderedJetTagFilter(config.jet_tag_requirements,
@@ -45,7 +39,6 @@ RegionEventFilter::RegionEventFilter(const RegionConfig& config, unsigned):
   }
 }
 RegionEventFilter::~RegionEventFilter() { 
-  delete m_jet_rescaler; 
   delete m_jet_tag_filter; 
   delete m_selection; 
 }

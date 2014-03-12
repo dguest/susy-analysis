@@ -77,7 +77,6 @@ static bool safe_copy(PyObject* dict, RegionConfig& region)
   COPY(met);
   COPY(jet_tag_requirements); 
   COPY(hists); 
-  COPY(mc_mc_jet_reweight_file); 
   COPY(tagger); 
   COPY(jet_tag_assignment); 
   COPY(boson_pt_correction); 
