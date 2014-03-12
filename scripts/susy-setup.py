@@ -202,32 +202,34 @@ def setup_hadd(config):
     Sets up text files and shell script to run hadding via susy-utils. 
     Creates one job for each directory to hadd. 
     """
-    for dir_n, hadd_dir in enumerate(config.input_dirs): 
+    input_dirs = []
+    for hadd_dir in config.input_dirs: 
         if not isdir(hadd_dir): 
             raise OSError("inputs must be directories")
-        txt_file_name = '{}-{n}{}'.format(*splitext(config.textfile_name), 
-                                           n=dir_n)
-        if not isdir(dirname(txt_file_name)): 
-            os.makedirs(dirname(txt_file_name))
-        with open(txt_file_name, 'w') as out_file: 
-            out_file.write(hadd_dir + '\n')
+        for root, dirs, files in os.walk(hadd_dir): 
+            if files and dirs: 
+                raise OSError("confused: {} and {} in {}".format(
+                    files, dirs, root))
+            if files: 
+                input_dirs.append(root)
 
     sub_dict = {
-        'n_jobs': len(config.input_dirs), 
+        'n_jobs': len(input_dirs), 
         'out_dir': 'output/hadd', 
         'in_dir': dirname(config.textfile_name), 
         'in_ext': '.txt', 
         }
-    submit_head = _get_submit_head(**sub_dict)
+    submit_head = _get_submit_head(short=True, **sub_dict)
     line_args = { 
         'routine': 'susy-hadd.py', 
         'run_args': '--recursive --fast --output {}'.format(config.hadd_dir), 
         }
-    submit_line = '{routine} $(cat ${{files[$PBS_ARRAYID-1]}}) {run_args}'
+    submit_line = '{routine} ${{files[$PBS_ARRAYID-1]}} {run_args}'
     run_line = submit_line.format(**line_args)
 
     with open(config.script, 'w') as out_script: 
         out_script.write(submit_head)
+        out_script.write('\n'.join(['files=('] + input_dirs + [')\n']))
         out_script.write(run_line + '\n')
 
 def _get_meta(guess): 
@@ -341,7 +343,7 @@ def setup_distill(config):
             syst_line = _submit_line.format(**line_args)
             out_script.write(syst_line + '\n')
 
-_submit_head="""
+_short_subhead="""
 #!/usr/bin/env bash
 
 #PBS -t 1-{n_jobs}
@@ -355,15 +357,16 @@ cd $PBS_O_WORKDIR
 mkdir -p {out_dir}
 echo 'submitted from: ' $PBS_O_WORKDIR 
 
-files=($(ls {in_dir}/*{in_ext} | sort))
-
 """
 
-def _get_submit_head(n_jobs, out_dir, **args): 
+_submit_head = _short_subhead + "files=($(ls {in_dir}/*{in_ext} | sort))\n"
+
+def _get_submit_head(n_jobs, out_dir, short=False, **args): 
     default_args = dict(
         in_dir='.', in_ext='.txt', mem='4gb', walltime='00:06:00:00')
     default_args.update(args)
-    return _submit_head.format(n_jobs=n_jobs, out_dir=out_dir, **default_args)
+    subhead = _short_subhead if short else _submit_head
+    return subhead.format(n_jobs=n_jobs, out_dir=out_dir, **default_args)
 
         
     
