@@ -239,6 +239,7 @@ class SampleAggregator:
             with h5py.File(f,'r') as hfile: 
                 scale_hist = scaler_fact(hfile)
                 for region, vargroup in hfile.items(): 
+                    region = _get_superregion(region)
                     if self.variables == 'all': 
                         variables = _get_all_variables(vargroup)
                     else: 
@@ -278,6 +279,15 @@ def _get_all_variables(group, prepend=''):
         variables += newvals
     return variables
 
+def _get_superregion(region): 
+    """
+    Strip off the electron and muon postfixes for regions which are filled
+    by stream, so we can combine them.
+    """
+    for end in ['_electron','_muon']:
+        if region.endswith(end): 
+            return region[:-len(end)]
+        return end
                         
 class MissingCacheError(IOError): 
     """

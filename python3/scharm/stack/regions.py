@@ -74,14 +74,14 @@ def _sbottom_region(version, stream):
     return _build_kinematic_region(version, lj, met, rpl, stream)
 
 def _build_kinematic_region(version, lj, met, rpl='normal', stream='jet'):
+    control_regions = _sbottom_cr | {'QUALITY_EVENT'}
     default_dict = { 
         'selection': version,
-        'type': 'signal' if version not in _sbottom_cr else 'control',
+        'type': 'signal' if version not in control_regions else 'control',
         'kinematics':{
             'leading_jet_gev': lj,
             'met_gev': met,
             },
-        'jet_tag_assignment': 'PT_ORDERED',
         'replacement': rpl,
         'stream': stream
         }
