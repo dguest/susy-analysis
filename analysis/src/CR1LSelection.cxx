@@ -2,14 +2,14 @@
 #include "RegionConfig.hh"
 #include "EventObjects.hh"
 #include "constants_scharmcuts.hh"
-
-#include <cassert>
+#include "trigger_logic.hh"	// trig namespace
 
 // _______________________________________________________________________
 // loose
 
-NMinusCR1LSelection::NMinusCR1LSelection(const RegionConfig& ) { 
-  
+NMinusCR1LSelection::NMinusCR1LSelection(const RegionConfig& reg):
+  m_stream(reg.stream){ 
+  trig::throw_if_not_lepstream(m_stream);
 }
 
 NMinusCR1LSelection::~NMinusCR1LSelection() { 
@@ -19,9 +19,8 @@ NMinusCR1LSelection::~NMinusCR1LSelection() {
 bool NMinusCR1LSelection::pass(const EventObjects& obj) const { 
   const EventRecoParameters& reco = obj.reco; 
 
-  assert(false);
   // check trigger
-  // if (! (reco.pass_single_lep_trigger) ) return false; 
+  if (!trig::pass_single_lepton_trigger(reco, m_stream)) return false;
 
   // check object counts
   auto total_leptons = reco.n_control_electrons + reco.n_control_muons; 

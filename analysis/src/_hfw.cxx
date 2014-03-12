@@ -98,13 +98,6 @@ static bool safe_copy(PyObject* value, std::string& dest){
   return true; 
 }
 
-static bool safe_copy(PyObject* value, unsigned& dest) { 
-  unsigned the_long = PyLong_AsUnsignedLong(value); 
-  if (PyErr_Occurred()) return false; 
-  dest = the_long; 
-  return true; 
-}
-
 static bool safe_copy(PyObject* value, double& dest) { 
   double the_double = PyFloat_AsDouble(value); 
   if (PyErr_Occurred()) return false; 

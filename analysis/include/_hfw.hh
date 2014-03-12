@@ -26,7 +26,6 @@ static bool safe_copy(PyObject* list, std::vector<T>& dest);
 
 static bool safe_copy(PyObject* dict, RegionConfig& region); 
 static bool safe_copy(PyObject* value, std::string& dest); 
-static bool safe_copy(PyObject* value, unsigned& dest); 
 static bool safe_copy(PyObject* value, double& dest); 
 static bool safe_copy(PyObject* value, btag::OperatingPoint& dest); 
 static bool safe_copy(PyObject* value, syst::Systematic& dest); 

@@ -2,6 +2,7 @@
 #define CR1L_SELECTION_HH
 
 #include "ISelection.hh"
+#include "region_enums.hh"
 
 struct RegionConfig; 
 
@@ -11,6 +12,8 @@ public:
   NMinusCR1LSelection(const RegionConfig&); 
   virtual ~NMinusCR1LSelection(); 
   virtual bool pass(const EventObjects&) const; 
+private:
+  reg::Stream m_stream;
 }; 
 
 class CR1LSelection : public ISelection { 

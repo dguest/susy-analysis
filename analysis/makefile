@@ -88,6 +88,7 @@ GEN_OBJ     += RegionHistograms.o
 GEN_OBJ     += Jet2DHists.o Jet1DHists.o TruthJetHists.o
 
 GEN_OBJ     += common_functions.o enum_converters.o hdf_helpers.o
+GEN_OBJ     += trigger_logic.o
 GEN_OBJ     += StackerExceptions.o
 GEN_OBJ     += histogram_factory.o
 GEN_OBJ     += EventScalefactors.o

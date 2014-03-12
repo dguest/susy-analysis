@@ -2,20 +2,14 @@
 #include "RegionConfig.hh"
 #include "EventObjects.hh"
 #include "constants_scharmcuts.hh"
+#include "trigger_logic.hh"
 
-#include <set>
 
 // ______________________________________________________________________
 // Looser version 
 
 NMinusSignalSelection::NMinusSignalSelection(const RegionConfig& reg) { 
-  using namespace reg;
-  const std::set<Stream> valid_streams {
-    reg::Stream::JET, reg::Stream::SIMULATED};
-  if (!valid_streams.count(reg.stream)) { 
-    throw std::invalid_argument(
-      "invalid stream in " __FILE__);
-  }
+  trig::throw_if_not_jetstream(reg.stream);
 }
 
 NMinusSignalSelection::~NMinusSignalSelection() { 
