@@ -282,11 +282,14 @@ class Hist1d(object):
             raise ValueError("rebinning: {} doesn't go into {}".format(
                     n_bins, n_old))
         newcenter = center_bins.reshape((-1, n_bins)).sum(axis=1)
-        newhist = np.zeros(n_old / n_bins + 2)
+        newhist = np.zeros(n_old // n_bins + 2)
         newhist[0] = self._array[0]
         newhist[1:-1] = newcenter
         newhist[-1] = self._array[-1]
         self._array = newhist
+
+    def crop(self, low=None, high=None): 
+        warn("this doesn't do anything right now...", stacklevel=2)
         
     def average_bins(self, bins): 
         """

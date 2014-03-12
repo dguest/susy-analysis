@@ -68,9 +68,10 @@ def get_variable_style(ax_name, units):
     return VariableStyle(ax_name.replace('_',' '), units)
 
 class VariableStyle(object): 
-    def __init__(self, tex_name, units=''): 
+    def __init__(self, tex_name, units='', plot_range=None): 
         self.tex_name = tex_name
         self.units = str(units)
+        self.plot_range = plot_range
 
 def _make_jet_matcher(match_token, tex_str, units=''): 
     """
@@ -115,9 +116,9 @@ _ax_labels = {
         r'E_{\mathrm{T}}^{\mathrm{miss}})\right)$'),
     'leading_lepton_pt': VariableStyle(
         r'Leading Lepton $p_{\mathrm{T}}$', 'GeV'),
-    'mass_t': VariableStyle('$m_{\mathrm{T}}$', 'GeV'),
+    'mass_t': VariableStyle('$m_{\mathrm{T}}$', 'GeV', (0,200)),
     'mass_cc': VariableStyle('$m_{cc}$', 'GeV'), 
-    'mass_ll': VariableStyle('$m_{\ell \ell}$', 'GeV'), 
+    'mass_ll': VariableStyle('$m_{\ell \ell}$', 'GeV', (0,200)), 
     'mass_ct': VariableStyle('$m_{\mathrm{CT}}$', 'GeV'),
     }
 
