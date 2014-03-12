@@ -77,7 +77,11 @@ class Stacker(object):
             stream = dis['stream']
             if stream in {'atlfast', 'fullsim'}: 
                 return True
-            return stream == reg.stream
+            checks = {
+                'lepton': stream in {'electron', 'muon'}, 
+                'jet': stream == 'jet', 
+                'all': True}
+            return checks[reg.stream]
 
         for name, reg in self._regions.items(): 
             needed_replacement = dis['replacement'] == reg.replacement

@@ -59,12 +59,10 @@ def sbottom_regions():
     return sbottom regions as a yml file
     """
     sbottom = {'signal': _sbottom_region('SIGNAL', 'jet')}
-    for st in ['electron', 'muon']:
-        for cr in _sbottom_cr:
-            name = '_'.join([cr, st]).lower()
-            sbottom[name] =  _sbottom_region(cr,st)
+    for cr in _sbottom_cr:
+        sbottom[cr] =  _sbottom_region(cr,'lepton')
     sbottom['preselection'] = _build_kinematic_region(
-        'QUALITY_EVENT', 50, 150)
+        'QUALITY_EVENT', 50, 150, stream='all')
     return sbottom
 
 def _sbottom_region(version, stream): 
