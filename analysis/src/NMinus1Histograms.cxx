@@ -145,11 +145,9 @@ void NMinus1Histograms::fill(const EventObjects& obj) {
   if (!m_selection->pass(obj)) return;
 
   double weight = obj.weight;
-  // if (! (m_build_flags & buildflag::is_data)) { 
-  //   weight *= m_event_filter.jet_scalefactor(tagged_jets); 
-  //   weight *= m_event_filter.lepton_scalefactor(obj); 
-  //   weight *= m_event_filter.boson_scalefactor(obj); 
-  // }
+  if (! (m_build_flags & buildflag::is_data)) { 
+    // stuff do here!
+  }
 
   const TVector2& met = obj.met; 
 
