@@ -18,6 +18,7 @@ private:
   float m_nominal; 
   float m_up; 
   float m_down; 
+  bool m_has_variations;
 }; 
 
 

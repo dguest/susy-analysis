@@ -6,18 +6,24 @@
 
 #include "TTree.h"
 
-SFBox::SFBox(TTree* tree, const std::string& prefix) 
+SFBox::SFBox(TTree* tree, const std::string& prefix):
+  m_has_variations(true)
 { 
   std::string nom_name = prefix;
   std::string up_name = prefix + "_up"; 
   std::string down_name = prefix + "_down"; 
   size_t errors = 0; 
-  errors += std::abs(tree->SetBranchAddress(nom_name.c_str(), &m_nominal)); 
-  errors += std::abs(tree->SetBranchAddress(up_name.c_str(), &m_up)); 
-  errors += std::abs(tree->SetBranchAddress(down_name.c_str(), &m_down)); 
-  if (errors) throw std::logic_error("missing branches in " __FILE__); 
+  errors += std::abs(tree->SetBranchAddress(nom_name.c_str(), &m_nominal));
+  if (errors) throw std::logic_error("missing branches in " __FILE__);
+  errors += std::abs(tree->SetBranchAddress(up_name.c_str(), &m_up));
+  errors += std::abs(tree->SetBranchAddress(down_name.c_str(), &m_down));
+  if (errors) m_has_variations = false;
 }
 float SFBox::get_sf(SystVariation systematic) const{ 
+  if (!m_has_variations && systematic != SystVariation::NONE){
+    throw std::logic_error(
+      "asked for systematic variation where there was none");
+  }
   switch (systematic) { 
   case SystVariation::NONE: return m_nominal; 
   case SystVariation::UP: return m_up; 
