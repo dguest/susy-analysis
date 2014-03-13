@@ -1,3 +1,7 @@
+"""
+Lower level drawing routines for stack plots
+"""
+
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm, Normalize
 from matplotlib.gridspec import GridSpec
@@ -11,7 +15,7 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from os.path import join, isdir, dirname
-import os
+import os, math
 
 class Stack(object): 
     """
@@ -57,6 +61,17 @@ class Stack(object):
         if not xlabel: 
             axes.set_xlabel(name, x=0.98, ha='right')
 
+    def _get_legstr(self, hist): 
+        title = hist.title.replace('scharm-','')
+        hval = float(hist)
+        if hval < 10: 
+            return '{} ({:.1f})'.format(title, hval)
+        exp = int(math.log10(hval * 2) / 3)
+        char = {1:'k', 2:'M', 3:'G'}.get(exp,'')
+        coif = hval / 10**(exp*3)
+        prec = 1 if coif < 10 else 0
+        return '{} ({:.{p}f}{})'.format(title, coif, char, p=prec)
+
     def _set_xlims(self, hist): 
         xval = hist.get_xy_step_pts()[0]
         xmin = xval.min()
@@ -98,7 +113,7 @@ class Stack(object):
                                   label=hist.title)
             if hist.selection: 
                 self._add_selection(*hist.selection)
-            self._bg_proxy_legs.append( (proxy,hist.title)) 
+            self._bg_proxy_legs.append( (proxy,self._get_legstr(hist))) 
 
             last_plot = tmp_sum
 
@@ -115,7 +130,7 @@ class Stack(object):
                 color = next(color_itr)
             style = color + '--'
             plt_handle, = self.ax.plot(x_vals,y_vals,style, linewidth=2.0)
-            self._proxy_legs.append( (plt_handle, hist.title))
+            self._proxy_legs.append( (plt_handle, self._get_legstr(hist)))
 
     def _get_min_plotable(self, y_vals): 
         plot_vals = np.array(y_vals)
@@ -219,7 +234,7 @@ class Stack(object):
             plt_x, plt_y, ms=10, fmt='k.', 
             yerr=[plt_err_down,plt_err_up])
             
-        self._proxy_legs.append( (line, hist.title))
+        self._proxy_legs.append( (line, self._get_legstr(hist)))
     
     def add_legend(self): 
         all_legs = chain(self._proxy_legs,reversed(self._bg_proxy_legs))
@@ -237,7 +252,10 @@ class Stack(object):
         self.ax.set_xlim(*self._x_limits)
         if self.ax.get_yscale() != 'log': 
             ymax = self.ax.get_ylim()[1]
-            self.ax.set_ylim(0,ymax)
+            self.ax.set_ylim(0,ymax * 2)
+        else: 
+            ymin, ymax = self.ax.get_ylim()
+            self.ax.set_ylim(ymin, ymax**2)
 
         self.fig.tight_layout(pad=0.3, h_pad=0.3, w_pad=0.3)
 
@@ -253,6 +271,7 @@ class Hist1d(object):
     def __init__(self, array, extent, 
                  x_label = '', y_label = '', x_units='', title=''): 
         self._array = array
+        self._prebin_array = None
         self.extent = extent
         self._x_label = x_label
         self._x_units = x_units
@@ -262,6 +281,34 @@ class Hist1d(object):
         self.selection = None
 
     def __float__(self): 
+        # if there's a selection, we only return the sum of the selected
+        if self.selection:
+            if self._prebin_array is None:
+                arr = self._array
+            else: 
+                arr = self._prebin_array
+            npts = arr.size - 1 # n non-overflow bins + 1
+            xpts = np.linspace(*self.extent, num=npts)
+
+            def bindex(value): 
+                if value == np.inf: 
+                    return arr.size
+                if value == -np.inf: 
+                    return 0
+                idx = np.abs(xpts - value).argmin()
+                rel_err = abs( (xpts[idx] - value) / (xpts[-1] - xpts[0]))
+                if rel_err > 0.001:
+                    wstr = "bad binning in {}: target {} != {}".format(
+                        self.title, value, xpts[idx])
+                    if rel_err > 0.1:
+                        raise ValueError(wstr)
+                    else: 
+                        warn(wstr)
+                        
+                return idx + 1
+            slow, shigh = self.selection
+            return arr[bindex(slow):bindex(shigh)].sum()
+
         return self._array.sum()
     def __cmp__(self, other): 
         this_val = float(self)
@@ -305,6 +352,11 @@ class Hist1d(object):
     def scale(self, factor): 
         self._array = self._array * factor
     def rebin(self, n_bins): 
+        # grab the prebin array if we've already rebinned before
+        if self._prebin_array: 
+            self._array = self._prebin_array
+        else: 
+            self._prebin_array = self._array
         center_bins = self._array[1:-1]
         n_old = len(center_bins)
         if not n_old % n_bins == 0: 

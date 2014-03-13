@@ -1,3 +1,7 @@
+"""
+Top level drawing routines for stack plots.
+"""
+
 import numpy as np
 from scharm import style, hists
 from os.path import isdir, join
