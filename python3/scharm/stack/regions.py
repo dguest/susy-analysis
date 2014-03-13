@@ -23,7 +23,7 @@ class Region:
                     self.type))
         self.hists = yaml_dict.get('hists', 'NMINUS')
         self.boson_pt_correction = yaml_dict.get(
-            'boson_pt_correction', 'MARKS')
+            'boson_pt_correction', 'NO_PT_CORRECTION')
         self.replacement = yaml_dict.get('replacement','normal')
 
     def get_yaml_dict(self): 
@@ -82,7 +82,8 @@ def _build_kinematic_region(version, lj, met, rpl='normal', stream='jet'):
             'met_gev': met,
             },
         'replacement': rpl,
-        'stream': stream
+        'stream': stream, 
+        'boson_pt_correction': 'MARKS',
         }
     return default_dict
 
