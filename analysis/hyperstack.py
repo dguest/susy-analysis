@@ -9,6 +9,7 @@ try:
         reg_dict = Region(yaml_dict).get_config_dict()
         reg_dict['name'] = name
         reg_dict['output_name'] = 'nminus.h5'
+        reg_dict['stream'] = 'FULLSIM'
         return reg_dict
     all_cuts = [named_region(x,d) for x,d in sbr().items()]
 except ImportError: 

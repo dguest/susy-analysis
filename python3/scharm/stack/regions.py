@@ -37,7 +37,9 @@ class Region:
     
     def get_config_dict(self): 
         """
-        Produces the configuration info needed for _stacksusy
+        Produces the configuration info needed for _stacksusy.
+        Note that this lacks some important information, such as
+        the 'output_name' and the 'stream'.
         """
         config_dict = {
             'selection': self.selection.upper(),
@@ -46,7 +48,6 @@ class Region:
             'type': self.type.upper(),
             'hists': self.hists.upper(),
             'boson_pt_correction': self.boson_pt_correction,
-            'stream': self.stream.upper(),
             }
         return config_dict
 
@@ -60,7 +61,7 @@ def sbottom_regions():
     """
     sbottom = {'signal': _sbottom_region('SIGNAL', 'jet')}
     for cr in _sbottom_cr:
-        sbottom[cr] =  _sbottom_region(cr,'lepton')
+        sbottom[cr.lower()] =  _sbottom_region(cr,'lepton')
     sbottom['preselection'] = _build_kinematic_region(
         'QUALITY_EVENT', 50, 150, stream='all')
     return sbottom

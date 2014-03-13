@@ -45,27 +45,40 @@ class Stacker(object):
 
     def _setup_region_dict(self, name, reg, ntuple, systematic): 
         regdic = reg.get_config_dict()
+        regdic['systematic'] = systematic.upper()
         regdic['name'] = name
+        # we get the basic output path from the input path
         dist_settings = schema.distiller_settings_from_dir(dirname(ntuple))
-        dist_settings['systematic'] = systematic
+        # the output path must be altered for systematics that can be
+        # applied at the stacker level (will be 'NONE' if it's a distiller
+        # systematic).
+        if systematic != 'NONE':
+            dist_settings['systematic'] = systematic
+
+        # Whatever systematic we apply, we have to shift the base directory..
         mid_path = schema.dir_from_distiller_settings(
             dist_settings, base=self.base_dir)
+        # ...and add a final directory for the histogram type
         full_out_dir = join(mid_path, regdic['hists'].lower())
-        if not isdir(full_out_dir): 
-            if self.make_dirs: 
-                make_dir_if_none(full_out_dir)
-            else: 
-                raise IOError(99,"no dir",full_out_dir)
+        make_dir_if_none(full_out_dir)
         histname = '{}.h5'.format(basename(splitext(ntuple)[0]))
         full_out_path = join(full_out_dir, histname)
         if isfile(full_out_path): 
             os.remove(full_out_path)
+
+        # some options for the stacker are pulled from the input file path
+        # we have to add them here.
         regdic['output_name'] = full_out_path
-        regdic['systematic'] = systematic.upper()
+        regdic['stream'] = dist_settings['stream'].upper()
 
         return regdic
 
     def run_multisys(self, ntuple, systematics, tuple_n=None):
+        """
+        Run hist builder for ntuple. The 'systematics' input is a list of
+        variations that can be applied at the scalefactor level. This should
+        be 'NONE' for systematics that must be applied at distiller level.
+        """
         regions = []
         dis = schema.distiller_settings_from_dir(dirname(ntuple))
 
