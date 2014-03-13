@@ -3,15 +3,14 @@
 uses run / mc meta data and ntuples files to produce stacks.
 
 When running in kinematic_stat mode, --fast or --all results in a yaml file.
-
-Could use some refactoring: 
- - one routine should produce an aggregated histogram file. 
- - another routine should make the yaml counts files. 
 """
+
+_files_help="can specify either a root directory or a set of files"
 
 import argparse
 from scharm.aggregate import aggregator as agg
 from scharm.aggregate.sample_selector import SampleSelector
+from scharm.aggregate.file_selector import get_all_files
 from os.path import isfile
 from tempfile import TemporaryFile
 import yaml
@@ -25,9 +24,10 @@ def get_config():
     parser = argparse.ArgumentParser(
         description=__doc__, 
         formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('files', nargs='+')
+    parser.add_argument('files', nargs='+', help=_files_help)
     parser.add_argument('-m','--meta', required=True)
     parser.add_argument('-o','--output', required=True)
+    parser.add_argument('-s','--systematic', default='none', help=d)
     args = parser.parse_args(sys.argv[1:])
     return args
 
@@ -47,7 +47,8 @@ def get_signal_finder(signal_point):
 def run(): 
     args = get_config()
 
-    selected_samples = SampleSelector(args.meta).select_samples(args.files)
+    all_files = get_all_files(args.files, systematic=args.systematic)
+    selected_samples = SampleSelector(args.meta).select_samples(all_files)
 
     aggregator = agg.SampleAggregator(
         meta_path=args.meta, 

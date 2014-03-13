@@ -11,12 +11,17 @@ class Sample:
     """
     def __init__(self, ds_path, sample_dict):
         ds_key = _key_from_path(ds_path)
+        if '-' in ds_key: 
+            raise ValueError('tried to run on unmerged sample: {}'.format(
+                    ds_path))
         this_samp = sample_dict[ds_key]
-        self.stats = this_samp['n_expected_entries']
+        self.stats = this_samp.get('n_expected_entries',0)
         self.dsid = int(ds_key[1:])
         self.type_char = ds_key[0]
         self.path = ds_path
         self.key = ds_key
+        if self.stats == 0 and self.type_char not in 'jem': 
+            raise ValueError('no expected entries in {}'.format(ds_key))
 
 class SampleSelector: 
     """
