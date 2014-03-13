@@ -9,6 +9,7 @@
 #include "typedefs.hh"
 #include "RegionConfig.hh"
 #include "EventObjects.hh"
+#include "EventScalefactors.hh"
 #include "hdf_helpers.hh"
 #include "constants_scharmcuts.hh"
 #include "constants_tagging.hh"
@@ -138,6 +139,7 @@ namespace nminus {
   void insert_jets(const std::vector<Jet>&, 
 		   std::map<std::string, double>& values);
 }
+
 void NMinus1Histograms::fill(const EventObjects& obj) { 
 
   const EventRecoParameters& reco = obj.reco; 
@@ -146,7 +148,18 @@ void NMinus1Histograms::fill(const EventObjects& obj) {
 
   double weight = obj.weight;
   if (! (m_build_flags & buildflag::is_data)) { 
-    // stuff do here!
+    // --- apply scalefactors ---
+    auto syst = m_region_config->systematic;
+    assert(obj.jets.size() >= 2);
+    for (auto jn = 0; jn < 2; jn++) { 
+      weight *= obj.jets.at(jn).get_scalefactor(syst);
+    }
+    weight *= obj.event_scalefactors->get_sf(EventSyst::ELECTRON, syst);
+    weight *= obj.event_scalefactors->get_sf(EventSyst::MUON, syst);
+    if (m_region_config->boson_pt_correction == reg::MARKS) {
+      weight *= obj.marks_boson_pt_weight;
+    }
+    // --- end of scalefactors ---
   }
 
   const TVector2& met = obj.met; 
@@ -170,6 +183,8 @@ void NMinus1Histograms::fill(const EventObjects& obj) {
     hist.fill(values, weight);
   }
 }
+
+
 namespace nminus { 
   void insert_jets(const std::vector<Jet>& jets, 
 		   std::map<std::string, double>& values) {

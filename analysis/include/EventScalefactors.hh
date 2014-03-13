@@ -29,7 +29,7 @@ public:
   EventScalefactors(const EventScalefactors&) = delete; 
   EventScalefactors& operator=(const EventScalefactors&) = delete; 
   // TODO: wrap this in a function that multiplies all the event sf
-  float lepton_sf(EventSyst lept, syst::Systematic syst) const; 
+  float get_sf(EventSyst lept, syst::Systematic syst) const; 
 private: 
   SFBox* m_el_sf; 
   SFBox* m_mu_sf; 

@@ -40,8 +40,7 @@ EventScalefactors::~EventScalefactors() {
   m_mu_sf = 0; 
 }
 
-float EventScalefactors
-::lepton_sf(EventSyst lept, syst::Systematic sys) const 
+float EventScalefactors::get_sf(EventSyst lept, syst::Systematic sys) const
 { 
   SystVariation box_syst; 
   switch (sys) { 

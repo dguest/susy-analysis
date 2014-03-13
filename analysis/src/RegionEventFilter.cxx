@@ -92,9 +92,9 @@ double RegionEventFilter::jet_scalefactor(const std::vector<Jet>& jets)
 float RegionEventFilter::lepton_scalefactor(const EventObjects& obj) const {
   float weight = 1.0; 
   if (obj.event_scalefactors) { 
-    weight *= obj.event_scalefactors->lepton_sf(
+    weight *= obj.event_scalefactors->get_sf(
       EventSyst::ELECTRON, m_region_config.systematic); 
-    weight *= obj.event_scalefactors->lepton_sf(
+    weight *= obj.event_scalefactors->get_sf(
       EventSyst::MUON, m_region_config.systematic); 
   }
   return weight; 
