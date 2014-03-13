@@ -116,10 +116,10 @@ NMinus1Histograms
   m_hists.emplace_back(Axis{MET_EFF, N_BINS, 0, 1.0}, sel); 
   m_hists.emplace_back(Axis{MCC, N_BINS, 0.0, MAX_ENERGY, EUNIT}, sel); 
   for (int jn: {0,1,2}) { 
-    m_hists.emplace_back(Axis{jeta(jn), N_BINS, -2.8, 2.8}, sel);
+    m_hists.emplace_back(Axis{jeta(jn), 112, -2.8, 2.8}, sel);
     m_hists.emplace_back(Axis{jpt(jn), N_BINS, 0, MAX_ENERGY, EUNIT}, sel);
-    m_hists.emplace_back(Axis{jantib(jn), N_BINS, -10, 10}, sel); 
-    m_hists.emplace_back(Axis{jantiu(jn), N_BINS, -10, 10}, sel); 
+    m_hists.emplace_back(Axis{jantib(jn), 200, -10, 10}, sel); 
+    m_hists.emplace_back(Axis{jantiu(jn), 200, -10, 10}, sel); 
   }
   
   if (m_make_lepton_plots) { 
