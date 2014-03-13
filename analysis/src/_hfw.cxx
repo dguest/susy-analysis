@@ -8,6 +8,7 @@
 #include "systematic_defs.hh"
 
 #include <set>
+#include <stdexcept>
 
 static unsigned parse_flags(const char* flags);
 
