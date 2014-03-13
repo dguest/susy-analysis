@@ -18,8 +18,6 @@ class Stacker(object):
         self.total_ntuples = None
         self.outstream = sys.stdout
         self.bugstream = sys.stderr
-        self.rerun = False
-        self.make_dirs = False
         self.base_dir = base_dir
     @property
     def verbose(self): 

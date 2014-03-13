@@ -59,7 +59,6 @@ def run_stacker(config):
     regions = {k:Region(v) for k, v in config_dict['regions'].items()}
 
     stacker = Stacker(regions, config.hists_dir)
-    stacker.make_dirs = True
     stacker.verbose = False
     stacker.dummy = config.dump_run
 
