@@ -17,8 +17,8 @@ class Stack(object):
     """
     This is for drawing. 
     """
-    def __init__(self, ratio=False): 
-        # self.title = title
+    def __init__(self, ratio=False, exclude_zeros=True): 
+        self._exclude_zeros = exclude_zeros
         self.fig = Figure(figsize=(8,6))
         self.canvas = FigureCanvas(self.fig)
         if not ratio:
@@ -31,15 +31,15 @@ class Stack(object):
             self.ratio.set_ylabel('Data / SM')# y=0.98, va='top')
             locator = MaxNLocator(5, prune='upper') 
             self.ratio.get_yaxis().set_major_locator(locator)
-        self.x_vals = None
         self._selection = None
         self._y_sum_step = 0.0
-        self.y_sum = 0.0
+        self._y_sum = 0.0
         self.colors = 'mky'
         self.y_min = None
         self._proxy_legs = []
         self._bg_proxy_legs = []
         self.ratio_max = 2.0
+        self._x_limits = None
         
     def _set_xlab(self, name): 
         if self.ratio: 
@@ -56,6 +56,15 @@ class Stack(object):
 
         if not xlabel: 
             axes.set_xlabel(name, x=0.98, ha='right')
+
+    def _set_xlims(self, hist): 
+        xval = hist.get_xy_step_pts()[0]
+        xmin = xval.min()
+        xmax = xval.max()
+        if not self._x_limits: 
+            self._x_limits = (xmin,xmax)
+        else: 
+            pass                # add check!
         
     def add_backgrounds(self, hist_list): 
         last_plot = 0
@@ -65,10 +74,8 @@ class Stack(object):
         for hist in hist_list:
             x_vals, y_vals = hist.get_xy_step_pts()
 
-            if self.x_vals is None: 
-                self.x_vals = x_vals
-            else: 
-                pass            # TODO: add check
+            self._set_xlims(hist)
+
             ylabel = self.ax.get_ylabel()
             if not ylabel: 
                 self.ax.set_ylabel(hist.y_label, y=0.98,ha='right')
@@ -79,7 +86,7 @@ class Stack(object):
                 fill_color = next(color_itr)
 
             self._y_sum_step += y_vals
-            self.y_sum += hist.get_xy_center_pts()[1]
+            self._y_sum += hist.get_xy_center_pts()[1]
 
             tmp_sum = np.array(self._y_sum_step[:])
             if self.y_min is not None: 
@@ -121,23 +128,33 @@ class Stack(object):
         if self._selection: 
             if low != self._selection[0] or high != self._selection[1]: 
                 raise ValueError('multiple incompatible selections')
-        fill_args = dict(facecolor=(0.9, 0, 0, 0.02), linestyle=None)
+        self._selection = (low, high)
+
+    def _draw_selection(self): 
+        if not self._selection: 
+            return 
+        low, high = self._selection
+        fill_args = dict(facecolor=(0.9, 0, 0, 0.2), linestyle=None)
         line_args = dict(color='r', linewidth=2)
         inf = float('inf')
-        xlow, xhigh = self.ax.get_xlim()
+        xlow, xhigh = self._x_limits
         if low != -inf:
             self.ax.axvspan(xlow, low, **fill_args)
             self.ax.axvline(low, **line_args)
         if high != inf: 
             self.ax.axvspan(high, xhigh, **fill_args)
             self.ax.axvline(high, **line_args)
-        self._selection = (low, high)
-
+        
     def _add_ratio(self, x_vals, y_vals, lows, highs): 
-        ratable = (self.y_sum > 0.0) 
+        """
+        Adds a ratio plot to the bottom axes, showing data / simulated
+        """
+        ratable = (self._y_sum > 0.0)
+        if self._exclude_zeros: 
+            ratable &= (y_vals != 0.0)
         rat_x = x_vals[ratable]
         rat_y = y_vals[ratable]
-        rat_y_sum = self.y_sum[ratable]
+        rat_y_sum = self._y_sum[ratable]
         y_ratios = rat_y / rat_y_sum
 
         # all ratio points must fall within the upper limit, if not move them
@@ -174,42 +191,54 @@ class Stack(object):
 
     def add_data(self, hist): 
         x_vals, y_vals = hist.get_xy_center_pts()
-        if self.x_vals is None: 
-            self.x_vals = x_vals
-        
         lows, highs = errorbars.poisson_interval(y_vals)
 
-        plt_y = self._get_min_plotable(y_vals)
+        if self.ratio and np.any(self._y_sum): 
+            self._add_ratio(x_vals, y_vals, lows, highs)
+
+        self._set_xlims(hist)
+
+        plt_x = x_vals
+        plt_y = y_vals
+        if self._exclude_zeros: 
+            nonzero = np.nonzero(y_vals)
+            plt_x = plt_x[nonzero]
+            plt_y = plt_y[nonzero]
+            lows = lows[nonzero]
+            highs = highs[nonzero]
+        
+        plt_y = self._get_min_plotable(plt_y)
         plt_low = self._get_min_plotable(lows)
         plt_err_up = highs - plt_y
         plt_err_down = plt_y - plt_low
 
         if not np.any(plt_err_up): 
             return 
-        line,cap,notsure = self.ax.errorbar(
-            x_vals, plt_y, ms=10, fmt='k.', 
-            yerr=[plt_err_down,plt_err_up])
 
-        if self.ratio and np.any(self.y_sum): 
-            self._add_ratio(x_vals, y_vals, lows, highs)
+        line,cap,notsure = self.ax.errorbar(
+            plt_x, plt_y, ms=10, fmt='k.', 
+            yerr=[plt_err_down,plt_err_up])
             
         self._proxy_legs.append( (line, hist.title))
     
     def add_legend(self): 
         all_legs = chain(self._proxy_legs,reversed(self._bg_proxy_legs))
         proxies = zip(*all_legs)
-        legend = self.ax.legend(*proxies, numpoints=1)
+        legend = self.ax.legend(*proxies, numpoints=1, ncol=2)
         if legend: 
             legend.get_frame().set_linewidth(0)
             legend.get_frame().set_alpha(0)
             
     def save(self, name):
-        if self.x_vals is None: 
+        if self._x_limits is None: 
             return 
+
+        self._draw_selection()
+        self.ax.set_xlim(*self._x_limits)
         if self.ax.get_yscale() != 'log': 
             ymax = self.ax.get_ylim()[1]
             self.ax.set_ylim(0,ymax)
-            self.ax.set_xlim(min(self.x_vals), max(self.x_vals))
+
         self.fig.tight_layout(pad=0.3, h_pad=0.3, w_pad=0.3)
 
         if self.ratio: 
@@ -317,7 +346,7 @@ class Hist1d(object):
 
         return double_x_vals, double_y_vals
 
-    def get_xy_center_pts(self): 
+    def get_xy_center_pts(self, exclude_zeros=True): 
         """
         returns points at the bin centers
         """
