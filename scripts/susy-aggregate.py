@@ -52,7 +52,7 @@ def run():
 
     aggregator = agg.SampleAggregator(
         meta_path=args.meta, 
-        hfiles=args.files,
+        hfiles=list(selected_samples),
         variables='all',
         )
     # aggregator.bugstream = tempfile.TemporaryFile()
