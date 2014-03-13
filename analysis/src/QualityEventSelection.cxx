@@ -21,9 +21,12 @@ bool QualityEventSelection::pass(const EventObjects& obj) const {
   const EventRecoParameters& reco = obj.reco;
   using namespace reg;
   auto n_lep = reco.n_veto_electrons + reco.n_veto_muons;
-  if (n_lep == 0) {
+  if (m_stream == Stream::JET) {
     return reco.pass_met_trigger;
   }
+
+  if (reco.pass_met_trigger) return true;
+
   bool one_lep_trigger = trig::pass_single_lepton_trigger(reco, m_stream);
   bool two_lep_trigger = trig::pass_two_lepton_trigger(reco, m_stream);
   if (n_lep == 1) {

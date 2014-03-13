@@ -3,6 +3,12 @@
 
 #include <set>
 #include <stdexcept>
+#include <string>
+
+namespace { 
+  // for debugging
+  std::string stream_name(reg::Stream);
+}
 
 namespace trig {
 
@@ -39,7 +45,8 @@ namespace trig {
     } else if (stream == reg::Stream::ELECTRON ) { 
       return el_trig;
     }
-    throw std::invalid_argument("got unknown stream in lepton trig check");
+    throw std::invalid_argument(
+      "lepton trig check doesnt do " + stream_name(stream));
   }
 
   // trigger for the Z cr
@@ -55,7 +62,24 @@ namespace trig {
     } else if (stream == reg::Stream::ELECTRON ) { 
       return el_trig;
     }
-    throw std::invalid_argument("got unknown stream in 2 lep trig check");
+    throw std::invalid_argument(
+      "2 lepton trig check doesnt do " + stream_name(stream));
   }
 
+}
+
+namespace { 
+#define NAME_STREAM(name) case Stream::name: return #name
+  std::string stream_name(reg::Stream str) { 
+    using namespace reg;
+    switch (str) { 
+      NAME_STREAM(ELECTRON);
+      NAME_STREAM(MUON);
+      NAME_STREAM(JET);
+      NAME_STREAM(SIMULATED);
+      NAME_STREAM(ERROR);
+    default: return "unknown";
+    }
+  }
+#undef NAME_STREAM
 }
