@@ -84,7 +84,7 @@ def _get_config_info(steering_file):
             bgs.append('Wjets' + ch)
             bgs.append('Zjets' + ch)
         config = {
-            'misc': { 'lumi_fb': 21 }, 
+            'misc': { 'lumi_fb': 20.3 }, 
             'backgrounds': {'used': bgs }, 
             }
         return config

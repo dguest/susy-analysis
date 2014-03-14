@@ -7,6 +7,7 @@ from matplotlib.colors import LogNorm, Normalize
 from matplotlib.gridspec import GridSpec
 from matplotlib.ticker import MaxNLocator, LogLocator
 from matplotlib.ticker import LogFormatterMathtext, LogFormatter
+from matplotlib.lines import Line2D
 import numpy as np
 from itertools import chain
 from scharm import errorbars
@@ -21,10 +22,15 @@ class Stack(object):
     """
     This is for drawing. 
     """
+    lumi_str = '$\int\ \mathcal{{L}}\ dt\ =\ {:.1f}\ \mathrm{{fb}}^{{-1}}$'
     def __init__(self, ratio=False, exclude_zeros=True): 
         self._exclude_zeros = exclude_zeros
         self.fig = Figure(figsize=(8,6))
         self.canvas = FigureCanvas(self.fig)
+        self.lumi = None
+        self.ratio_max = 2.0
+        self.colors = 'mky'
+        self.y_min = None
         if not ratio:
             self.ax = self.fig.add_subplot(1,1,1)
             self.ratio = None
@@ -38,12 +44,10 @@ class Stack(object):
         self._selection = None
         self._y_sum_step = 0.0
         self._y_sum = 0.0
-        self.colors = 'mky'
-        self.y_min = None
         self._proxy_legs = []
         self._bg_proxy_legs = []
-        self.ratio_max = 2.0
         self._x_limits = None
+        self._sm_total = 0.0
         
     def _set_xlab(self, name): 
         if self.ratio: 
@@ -64,13 +68,7 @@ class Stack(object):
     def _get_legstr(self, hist): 
         title = hist.title.replace('scharm-','')
         hval = float(hist)
-        if hval < 10: 
-            return '{} ({:.1f})'.format(title, hval)
-        exp = int(math.log10(hval * 2) / 3)
-        char = {1:'k', 2:'M', 3:'G'}.get(exp,'')
-        coif = hval / 10**(exp*3)
-        prec = 1 if coif < 10 else 0
-        return '{} ({:.{p}f}{})'.format(title, coif, char, p=prec)
+        return '{}: {}'.format(title, _legstr(hval))
 
     def _set_xlims(self, hist): 
         xval = hist.get_xy_step_pts()[0]
@@ -116,6 +114,7 @@ class Stack(object):
             self._bg_proxy_legs.append( (proxy,self._get_legstr(hist))) 
 
             last_plot = tmp_sum
+            self._sm_total += float(hist)
 
     def add_signals(self, hist_list): 
         color_itr = iter(self.colors)
@@ -237,12 +236,19 @@ class Stack(object):
         self._proxy_legs.append( (line, self._get_legstr(hist)))
     
     def add_legend(self): 
-        all_legs = chain(self._proxy_legs,reversed(self._bg_proxy_legs))
+        tstring = 'SM total: {}'.format(_legstr(self._sm_total))
+        tartist = Line2D((0,1),(0,0), color='k')
+        bg_legs = reversed(self._bg_proxy_legs)
+        all_legs = chain(self._proxy_legs,[(tartist, tstring)], bg_legs)
         proxies = zip(*all_legs)
         legend = self.ax.legend(*proxies, numpoints=1, ncol=2)
         if legend: 
             legend.get_frame().set_linewidth(0)
             legend.get_frame().set_alpha(0)
+        if self.lumi:
+            self.ax.text(
+                0.02, 0.8, self.lumi_str.format(self.lumi),
+                transform=self.ax.transAxes, size=16)
             
     def save(self, name):
         if self._x_limits is None: 
@@ -262,6 +268,18 @@ class Stack(object):
         if self.ratio: 
             self.ratio.set_ylim(0,self.ratio_max)
         self.canvas.print_figure(name)
+
+def _legstr(hval):
+    """
+    format legend string
+    """
+    if hval < 10: 
+        return '{:.1f}'.format(hval)
+    exp = int(math.log10(hval * 2) / 3)
+    char = {1:'k', 2:'M', 3:'G'}.get(exp,'')
+    coif = hval / 10**(exp*3)
+    prec = 1 if coif < 10 else 0
+    return '{:.{p}f}{}'.format(coif, char, p=prec)
 
 class Hist1d(object): 
     """

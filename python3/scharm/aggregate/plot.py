@@ -108,10 +108,10 @@ class HistConverter(object):
     
         hist = Hist1d(y_vals, extent, x_label=x_label, x_units=x_units,
                       y_label='Events')
+        hist.selection = selection
         n_center_bins = len(y_vals) - 2 
         if n_center_bins > 50 and n_center_bins % 4 == 0: 
             hist.rebin(4)
-        hist.selection = selection
         try: 
             hist.color = style.type_dict[physics].color
             hist.title = style.type_dict[physics].tex
@@ -152,6 +152,7 @@ class StackPlotPrinter(object):
     def __init__(self, options): 
         self.plot_dir = options['base_dir']
         self.ext = options['output_ext']
+        self.lumi = options['lumi_fb']
         self.log = False
         self.verbose = True
 
@@ -171,6 +172,7 @@ class StackPlotPrinter(object):
                 else: 
                     print('making {}'.format(save_name))
             stack = Stack(ratio=has_ratio)
+            stack.lumi = self.lumi
             if self.log: 
                 stack.y_min = 0.1
                 stack.ax.set_yscale('log')
