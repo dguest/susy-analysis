@@ -80,9 +80,9 @@ ObjectFactory::ObjectFactory(const std::string& root_file, int n_jets) :
     m_jet_buffers.push_back(new JetBuffer); 
     m_jet_buffers.back()->set_buffer(m_tree, base_name); 
   }
-  if (m_tree->GetBranch("boson_pt_weight")) { 
-    m_tree->SetBranchAddress("boson_pt_weight", &m_boson_pt_weight); 
-    m_tree->SetBranchAddress("boson_pt", &m_boson_pt); 
+  if (m_tree->GetBranch("truth_boson_pt_weight")) { 
+    m_tree->SetBranchAddress("truth_boson_pt_weight", &m_boson_pt_weight); 
+    m_tree->SetBranchAddress("truth_boson_pt", &m_boson_pt); 
     m_ioflags |= ioflag::has_boson_pt_weight; 
   }
   set_branch(m_tree, "boson_child_pt", &m_boson_child_pt); 
