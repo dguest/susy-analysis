@@ -49,18 +49,14 @@ void EventObjects::do_overlap_removal(CutCounter& ob_counts) {
   ob_counts["after_overlap_mu"] += after_overlap_muons.size(); 
 
   veto_jets = object::bad_jets(after_overlap_jets); 
-  veto_electrons = object::veto_electrons(after_overlap_electrons); 
-  veto_muons = object::veto_muons(after_overlap_muons); 
 
   ob_counts["veto_jets"] += veto_jets.size(); 
-  ob_counts["veto_el"] += veto_electrons.size(); 
-  ob_counts["veto_mu"] += veto_muons.size(); 
 
   good_jets = object::remove_bad_jets(after_overlap_jets); 
   ob_counts["good_jets"] += good_jets.size(); 
   signal_jets = object::signal_jets(good_jets); 
-  control_electrons = object::control_electrons(veto_electrons); 
-  control_muons = object::control_muons(veto_muons); 
+  control_electrons = object::control_electrons(after_overlap_electrons); 
+  control_muons = object::control_muons(after_overlap_muons); 
 
   ob_counts["signal_jets"] += signal_jets.size(); 
   ob_counts["control_el"] += control_electrons.size(); 

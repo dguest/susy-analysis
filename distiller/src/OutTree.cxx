@@ -306,10 +306,10 @@ namespace outtree {
   void EvtParameters::set_branches(TTree* tree) { 
     MAKE_BRANCH(tree, n_preselected_jets); 
     MAKE_BRANCH(tree, n_signal_jets); 
-    MAKE_BRANCH(tree, n_veto_electrons); 
-    MAKE_BRANCH(tree, n_veto_muons); 
-    MAKE_BRANCH(tree, n_control_electrons); 
-    MAKE_BRANCH(tree, n_control_muons); 
+    MAKE_BRANCH(tree, n_baseline_electrons); 
+    MAKE_BRANCH(tree, n_baseline_muons); 
+    MAKE_BRANCH(tree, n_signal_electrons); 
+    MAKE_BRANCH(tree, n_signal_muons); 
 
     MAKE_BRANCH(tree, min_jetmet_dphi); 
     MAKE_BRANCH(tree, met_eff); 
@@ -325,10 +325,10 @@ namespace outtree {
   void EvtParameters::clear() { 
     n_preselected_jets = -1; 
     n_signal_jets = -1; 
-    n_veto_electrons = -1; 
-    n_veto_muons = -1; 
-    n_control_electrons = -1; 
-    n_control_muons = -1; 
+    n_baseline_electrons = -1; 
+    n_baseline_muons = -1; 
+    n_signal_electrons = -1; 
+    n_signal_muons = -1; 
 
     min_jetmet_dphi = -1; 
     met_eff = -1; 

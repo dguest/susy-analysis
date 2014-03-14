@@ -10,38 +10,25 @@
 // TODO: move leptons into leptons, jets into jets? 
 
 namespace object { 
-  Electrons veto_electrons(const Electrons& preselected_electrons) { 
-    Electrons out; 
-    for (auto el: preselected_electrons) {
-      if (el->rel_isolation() < VETO_ELECTRON_REL_ISOLATION) { 
-	out.push_back(el); 
-      }
-    }
-    return out; 
-  }
   Electrons control_electrons(const Electrons& electrons) { 
     Electrons out; 
     for (auto el: electrons) { 
-      if (el->Pt() > CONTROL_ELECTRON_PT) { 
+      bool tight_pp = el->tightpp();
+      bool control_pt = el->Pt() > CONTROL_ELECTRON_PT; 
+      bool rel_iso = el->rel_isolation() < CONTROL_ELECTRON_REL_ISOLATION;
+      if (control_pt && tight_pp && rel_iso) { 
 	out.push_back(el); 
       }
     }
     return out; 
   }
 
-  Muons veto_muons(const Muons& preselected_muons){ 
-    Muons out; 
-    for (auto mu: preselected_muons) {
-      if ( mu->isolation() < VETO_MUON_ISOLATION) { 
-	out.push_back(mu); 
-      }
-    }
-    return out; 
-  }
   Muons control_muons(const Muons& muons) { 
     Muons out; 
     for (auto mu: muons) { 
-      if ( mu->Pt() > CONTROL_MUON_PT) { 
+      bool control_pt = mu->Pt() > CONTROL_MUON_PT;
+      bool iso = mu->isolation() < CONTROL_MUON_ISOLATION;
+      if ( control_pt && iso ) { 
 	out.push_back(mu); 
       }
     }

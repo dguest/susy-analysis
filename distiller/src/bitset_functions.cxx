@@ -32,8 +32,10 @@ namespace bits {
     if (pass_chf_check(obj.signal_jets)) pass_bits |= pass::jet_chf; 
     pass_bits |= control_lepton_bits(obj.control_electrons, 
 				     obj.control_muons); 
-    if (obj.veto_electrons.size() == 0) pass_bits |= pass::electron_veto; 
-    if (obj.veto_muons.size() == 0) pass_bits |= pass::muon_veto; 
+    if (obj.after_overlap_electrons.size() == 0) {
+      pass_bits |= pass::electron_veto; 
+    }
+    if (obj.after_overlap_muons.size() == 0) pass_bits |= pass::muon_veto; 
     if (obj.veto_jets.size() == 0) pass_bits |= pass::jet_clean; 
 
     return pass_bits; 

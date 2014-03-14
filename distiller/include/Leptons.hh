@@ -20,6 +20,7 @@ public:
   float charge() const; 
   float id_sf() const; 
   float id_sf_err() const; 
+  bool tightpp() const;
 private: 
   bool m_pass_susy; 
   bool m_is_signal; 
@@ -28,6 +29,7 @@ private:
   float m_charge; 
   float m_id_sf; 
   float m_id_sf_unct; 
+  bool m_tight_pp;
 }; 
 
 class EventElectrons: public std::vector<Electron*> 

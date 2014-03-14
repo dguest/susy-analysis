@@ -32,8 +32,6 @@ struct EventObjects {
   std::vector<Muon*> after_overlap_muons; 
 
   std::vector<SelectedJet*> veto_jets; 
-  std::vector<Electron*> veto_electrons; 
-  std::vector<Muon*> veto_muons; 
   
   std::vector<SelectedJet*> good_jets; 
   std::vector<SelectedJet*> signal_jets; 

@@ -33,11 +33,12 @@ Electron::Electron(const EventElectrons* container, int index) {
   const TLorentzVector& tlv = def->GetElecTLV(index); 
   SetPxPyPzE(tlv.Px(), tlv.Py(), tlv.Pz(), tlv.E()); 
 
+  m_tight_pp = buffer->el_tightPP->at(index);
   // ACHTUNG: this block is removed until we fix the trackz0pv 
   // variable in the skims
   m_is_signal = def->IsSignalElectron
     (index, 
-     buffer->el_tightPP  ->at(index), 
+     m_tight_pp, 
      buffer->el_ptcone20 ->at(index),
      buffer->el_trackd0pv->at(index), 
      buffer->el_trackz0pv->at(index), 
@@ -87,6 +88,9 @@ float Electron::id_sf() const {
 }
 float Electron::id_sf_err() const { 
   return m_id_sf_unct; 
+}
+bool Electron::tightpp() const { 
+  return m_tight_pp;
 }
 
 EventElectrons::EventElectrons(const SusyBuffer& buffer, SUSYObjDef& def, 

@@ -23,10 +23,10 @@ void copy_event(const EventObjects& obj,
 		const TVector2& met, outtree::OutTree& out_tree) { 
   out_tree.par.n_preselected_jets = obj.preselected_jets.size(); 
   out_tree.par.n_signal_jets = obj.signal_jets.size(); 
-  out_tree.par.n_veto_electrons = obj.veto_electrons.size(); 
-  out_tree.par.n_veto_muons = obj.veto_muons.size(); 
-  out_tree.par.n_control_electrons = obj.control_electrons.size(); 
-  out_tree.par.n_control_muons = obj.control_muons.size(); 
+  out_tree.par.n_baseline_electrons = obj.after_overlap_electrons.size(); 
+  out_tree.par.n_baseline_muons = obj.after_overlap_muons.size(); 
+  out_tree.par.n_signal_electrons = obj.control_electrons.size(); 
+  out_tree.par.n_signal_muons = obj.control_muons.size(); 
 
   out_tree.par.min_jetmet_dphi = par.min_jetmet_dphi;  
   out_tree.par.met_eff = par.met_eff; 
