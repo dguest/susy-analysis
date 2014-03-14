@@ -118,8 +118,8 @@ NMinus1Histograms
   for (int jn: {0,1,2}) { 
     m_hists.emplace_back(Axis{jeta(jn), 112, -2.8, 2.8}, sel);
     m_hists.emplace_back(Axis{jpt(jn), N_BINS, 0, MAX_ENERGY, EUNIT}, sel);
-    m_hists.emplace_back(Axis{jantib(jn), 200, -10, 10}, sel); 
-    m_hists.emplace_back(Axis{jantiu(jn), 200, -10, 10}, sel); 
+    m_hists.emplace_back(Axis{jantib(jn), 300, -7.5, 7.5}, sel); 
+    m_hists.emplace_back(Axis{jantiu(jn), 300, -7.5, 7.5}, sel); 
   }
   
   if (m_make_lepton_plots) { 
