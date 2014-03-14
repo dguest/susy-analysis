@@ -9,7 +9,7 @@ namespace cutflag {
   const unsigned debug_susy         = 1u << 4; 
   const unsigned all_trig_branches  = 1u << 5; 
   const unsigned get_branches       = 1u << 6; 
-  // const unsigned save_ratios      = 1u << 7; 
+  const unsigned cutflow            = 1u << 7; 
   // const unsigned vector_output    = 1u << 8; 
   const unsigned maximum_compression = 1u << 9; 
   // const unsigned no_jet_recal     = 1u << 10; 

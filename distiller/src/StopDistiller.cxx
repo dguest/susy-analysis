@@ -126,6 +126,7 @@ StopDistiller::~StopDistiller() {
 
 StopDistiller::Cutflow StopDistiller::run_cutflow() { 
   m_n_entries = m_chain->GetEntries(); 
+  if (m_flags & cutflag::cutflow) m_n_entries = std::min(m_n_entries, 100000);
   m_one_percent = m_n_entries / 100; 
 
   std::ostream debug_stream(m_debug_buffer); 

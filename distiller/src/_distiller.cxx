@@ -75,7 +75,7 @@ static unsigned get_flags(const char* flags_str)
   unsigned flags = 0; 
   // flag 'a' is reserved for 'aggressive'
   if (strchr(flags_str,'b')) flags |= cutflag::debug_susy; 
-  // if (strchr(flags_str,'c')) flags |= cutflag::jetfitter_charm; 
+  if (strchr(flags_str,'c')) flags |= cutflag::cutflow; 
   if (strchr(flags_str,'d')) {
     flags |= cutflag::is_data; 
   }
