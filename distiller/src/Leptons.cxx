@@ -35,7 +35,7 @@ Electron::Electron(const EventElectrons* container, int index) {
 
   // ACHTUNG: this block is removed until we fix the trackz0pv 
   // variable in the skims
-  m_is_signal = /* def->IsSignalElectron
+  m_is_signal = def->IsSignalElectron
     (index, 
      buffer->el_tightPP  ->at(index), 
      buffer->el_ptcone20 ->at(index),
@@ -44,8 +44,7 @@ Electron::Electron(const EventElectrons* container, int index) {
      SIGNAL_ELECTRON_ET_CUT, 
      SIGNAL_ELECTRON_ISO_CUT, 
      SIGNAL_ELECTRON_D0_CUT, 
-     SIGNAL_ELECTRON_Z0_CUT); 
-		*/ false; 
+     SIGNAL_ELECTRON_Z0_CUT);
 
   m_rel_isolation = buffer->el_ptcone20->at(index) / Pt(); 
   m_charge = buffer->el_charge->at(index); 

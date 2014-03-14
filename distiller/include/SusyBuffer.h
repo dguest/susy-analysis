@@ -85,8 +85,8 @@ public :
   std::vector<int>     *el_mediumPP;
   std::vector<int>     *el_tightPP;
   std::vector<float>     *el_ptcone20;
-  // std::vector<float>     *el_trackd0pv;
-  // std::vector<float>     *el_trackz0pv;
+  std::vector<float>     *el_trackd0pv;
+  std::vector<float>     *el_trackz0pv;
   std::vector<float>     *el_charge;
   std::vector<float>   *el_cl_E;
   std::vector<float>   *el_cl_eta;
