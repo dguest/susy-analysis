@@ -51,11 +51,8 @@ class SampleSelector:
                     yield one_dsid[char]
         else: 
             yield from one_dsid.values()
-
-    def select_samples(self, sample_list):
-        """
-        filter a list of paths from 
-        """
+            
+    def _select_keys(self, sample_list): 
         by_dsid_and_char = defaultdict(dict)
         for sample_path in sample_list: 
             sample = Sample(sample_path, self.meta_dict)
@@ -64,10 +61,21 @@ class SampleSelector:
         all_keys = set()
         for dsid, sims in by_dsid_and_char.items(): 
             all_keys.update( (x.key for x in self._get_selected(sims) ))
+        return all_keys
 
+    def get_datasets(self, sample_list): 
+        select_keys = self._select_keys(sample_list)
+        for key in select_keys: 
+            yield self.meta_dict[key]['full_name']
+
+    def select_samples(self, sample_list):
+        """
+        filter a list of samples to use
+        """
+        select_keys = self._select_keys(sample_list)
         for path in sample_list: 
             sample_key = _key_from_path(path)
-            if sample_key in all_keys: 
+            if sample_key in select_keys: 
                 yield path
                 
         

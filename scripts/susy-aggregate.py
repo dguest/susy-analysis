@@ -28,6 +28,8 @@ def get_config():
     parser.add_argument('-m','--meta', required=True)
     parser.add_argument('-o','--output', required=True)
     parser.add_argument('-s','--systematic', default='none', help=d)
+    parser.add_argument('-d','--dump', action='store_true', 
+                        help='dump samples used (and quit)')
     args = parser.parse_args(sys.argv[1:])
     return args
 
@@ -48,6 +50,11 @@ def run():
     args = get_config()
 
     all_files = get_all_files(args.files, systematic=args.systematic)
+    if args.dump:
+        samples = SampleSelector(args.meta).select_datasets(all_files)
+        for samp in samples: 
+            print(samp)
+        sys.exit(0)
     selected_samples = SampleSelector(args.meta).select_samples(all_files)
 
     aggregator = agg.SampleAggregator(
