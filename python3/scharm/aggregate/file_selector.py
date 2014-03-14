@@ -17,12 +17,13 @@ def get_all_files(root_list, systematic='none'):
         all_files.extend(get_files(root, systematic))
     return all_files
 
-def get_files(root_dir, systematic='none'): 
+def get_files(root_dir, systematic='none', plot_type=None): 
     all_files = []
     sys_level = dir_key_order.index('systematic')
     # files are stored two directories past the 'replacement' level
     # (the hist type sits in the middle)
-    file_level = dir_key_order.index('replacement') + 2
+    plot_type_level = dir_key_order.index('replacement') + 1
+    file_level = plot_type_level + 1
     for root, dirs, files in os.walk(root_dir): 
         rpth = relpath(root, root_dir).split('/')
         levels = len([d for d in rpth if d != '.'])
@@ -31,7 +32,13 @@ def get_files(root_dir, systematic='none'):
                 raise FileNotFoundError(
                     "can't find {} in {}".format(systematic, root))
             dirs[:] = [systematic]
-        if levels == file_level: 
+        elif levels == plot_type_level:
+            if plot_type is not None: 
+                if not plot_type in dirs:
+                    raise FileNotFoundError(
+                        "can't find {} in {}".format(plot_type, root))
+                dirs[:] == [plot_type]
+        elif levels == file_level: 
             all_files.extend(join(root,f) for f in files)
         elif files: 
             raise RuntimeError(
