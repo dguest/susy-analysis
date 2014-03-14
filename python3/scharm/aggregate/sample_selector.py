@@ -63,7 +63,7 @@ class SampleSelector:
             all_keys.update( (x.key for x in self._get_selected(sims) ))
         return all_keys
 
-    def get_datasets(self, sample_list): 
+    def select_datasets(self, sample_list): 
         select_keys = self._select_keys(sample_list)
         for key in select_keys: 
             yield self.meta_dict[key]['full_name']
