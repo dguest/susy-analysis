@@ -169,12 +169,12 @@ namespace bits {
       if ( EF_mu18_tight_mu8_EFFS & bits ) out |= two_mu_trigger;
     }
 
-    const auto el_bits = (EF_mu24i_tight | EF_e24vhi_medium1);
-    if ( (one_el_match | one_mu_match ) & bits ) { 
+    const auto el_bits = (EF_e60_medium1 | EF_e24vhi_medium1);
+    if ( one_el_match & bits ) { 
       if ( el_bits & bits ) out |= single_el_trigger;
     }
-    const auto mu_bits = (EF_mu36_tight | EF_e60_medium1);
-    if ( (one_el_match | one_mu_match ) & bits ) { 
+    const auto mu_bits = (EF_mu36_tight | EF_mu24i_tight);
+    if ( one_mu_match & bits ) { 
       if ( mu_bits & bits ) out |= single_mu_trigger;
     }
 

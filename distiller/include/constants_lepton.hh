@@ -21,4 +21,9 @@ static const float MUON_ETA_CUT = 2.4;
 const static float CONTROL_MUON_ISOLATION = 1.8*GeV; 
 const static float CONTROL_MUON_PT = 20e3; 
 
+const static float SINGLE_EL_TRIGGER_PT_MIN = 25*GeV;
+const static float DOUBLE_EL_TRIGGER_PT_MIN = 25*GeV;
+const static float SINGLE_MU_TRIGGER_PT_MIN = 25*GeV;
+const static float DOUBLE_MU_TRIGGER_PT_MIN = 20*GeV;
+
 #endif 

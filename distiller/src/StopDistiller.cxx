@@ -126,7 +126,7 @@ StopDistiller::~StopDistiller() {
 
 StopDistiller::Cutflow StopDistiller::run_cutflow() { 
   m_n_entries = m_chain->GetEntries(); 
-  if (m_flags & cutflag::cutflow) m_n_entries = std::min(m_n_entries, 100000);
+  if (m_flags & cutflag::cutflow) m_n_entries = std::min(m_n_entries, 10000);
   m_one_percent = m_n_entries / 100; 
 
   std::ostream debug_stream(m_debug_buffer); 
@@ -440,7 +440,7 @@ void StopDistiller::setup_cutflow(CutflowType cutflow) {
   case CutflowType::CRW: { 
     m_cutflow->add("GRL"                   , pass::grl            );  
     m_cutflow->add("lepton_trigger" , lept_trigger);
-    // m_cutflow->add("matched_trigger" , match_trigger);
+    m_cutflow->add("matched_trigger" , match_trigger);
     m_cutflow->add("primary_vertex"        , pass::vxp_gt_4trk    );
     m_cutflow->add("bad_jet_veto"          , pass::jet_clean      );
     m_cutflow->add("tile_trip"        , pass::tile_trip          );

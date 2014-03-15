@@ -73,17 +73,19 @@ Electron::Electron(const EventElectrons* container, int index):
 
   // trigger matching
   int nothing; 
-  if (Pt()) { 
+  if (Pt() > SINGLE_EL_TRIGGER_PT_MIN) { 
     if (PassedTriggerEF(
-	  Eta(), Phi(), 
-	  buffer->trig_EF_el_EF_e24vhi_medium1, 
-	  nothing, buffer->trig_EF_el_eta->size(), 
-	  buffer->trig_EF_el_eta, buffer->trig_EF_el_phi)) m_trigger = true; 
-    if (PassedTriggerEF(
-	  Eta(), Phi(), 
-	  buffer->trig_EF_el_EF_e60_medium1, 
-	  nothing, buffer->trig_EF_el_eta->size(), 
-	  buffer->trig_EF_el_eta, buffer->trig_EF_el_phi)) m_trigger = true; 
+    	  Eta(), Phi(), 
+    	  buffer->trig_EF_el_EF_e24vhi_medium1, 
+    	  nothing, buffer->trig_EF_el_eta->size(), 
+    	  buffer->trig_EF_el_eta, buffer->trig_EF_el_phi)) m_trigger = true; 
+    if (PassedTriggerEF( 
+    	  Eta(), Phi(), 
+    	  buffer->trig_EF_el_EF_e60_medium1, 
+    	  nothing, buffer->trig_EF_el_eta->size(), 
+    	  buffer->trig_EF_el_eta, buffer->trig_EF_el_phi)) m_trigger = true; 
+  }
+  if (Pt() > DOUBLE_EL_TRIGGER_PT_MIN) { 
     if (PassedTriggerEF(
 	  Eta(), Phi(), 
 	  buffer->trig_EF_el_EF_2e12Tvh_loose1, 
@@ -177,23 +179,25 @@ Muon::Muon(const EventMuons* container, int index):
     m_id_sf_unct = def->GetSignalMuonSF(index, SystErr::MEFFUP) - m_id_sf; 
   }
   int nothing;
-  if (Pt()) { 
+  if (Pt() > SINGLE_MU_TRIGGER_PT_MIN) { 
     if (def->MuonHasTriggerMatch(
-	  Eta(), Phi(), 
-	  buffer->trig_EF_trigmuonef_EF_mu24i_tight, 
-	  nothing, nothing, 
-	  buffer->trig_EF_trigmuonef_track_CB_eta->size(), 
-	  buffer->trig_EF_trigmuonef_track_CB_eta, 
-	  buffer->trig_EF_trigmuonef_track_CB_phi, 
-	  buffer->trig_EF_trigmuonef_track_CB_hasCB)) m_trigger = true; 
+    	  Eta(), Phi(), 
+    	  buffer->trig_EF_trigmuonef_EF_mu24i_tight, 
+    	  nothing, nothing, 
+    	  buffer->trig_EF_trigmuonef_track_CB_eta->size(), 
+    	  buffer->trig_EF_trigmuonef_track_CB_eta, 
+    	  buffer->trig_EF_trigmuonef_track_CB_phi, 
+    	  buffer->trig_EF_trigmuonef_track_CB_hasCB)) m_trigger = true; 
     if (def->MuonHasTriggerMatch(
-	  Eta(), Phi(), 
-	  buffer->trig_EF_trigmuonef_EF_mu36_tight, 
-	  nothing, nothing, 
-	  buffer->trig_EF_trigmuonef_track_CB_eta->size(), 
-	  buffer->trig_EF_trigmuonef_track_CB_eta, 
-	  buffer->trig_EF_trigmuonef_track_CB_phi, 
-	  buffer->trig_EF_trigmuonef_track_CB_hasCB)) m_trigger = true; 
+    	  Eta(), Phi(), 
+    	  buffer->trig_EF_trigmuonef_EF_mu36_tight, 
+    	  nothing, nothing, 
+    	  buffer->trig_EF_trigmuonef_track_CB_eta->size(), 
+    	  buffer->trig_EF_trigmuonef_track_CB_eta, 
+    	  buffer->trig_EF_trigmuonef_track_CB_phi, 
+    	  buffer->trig_EF_trigmuonef_track_CB_hasCB)) m_trigger = true; 
+  }
+  if (Pt() > DOUBLE_MU_TRIGGER_PT_MIN) {
     if (def->MuonHasTriggerMatch(
 	  Eta(), Phi(), 
 	  buffer->trig_EF_trigmuonef_EF_mu18_tight_mu8_EFFS, 
