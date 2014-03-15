@@ -45,9 +45,9 @@ namespace pass {
 
   // only for the cutflow
   const ull_t cutflow_leading    = 1ULL <<  31; 
-  // const ull_t m        = 1ULL <<  32; 
-  // const ull_t cutflow_jet2      = 1ULL <<  33; 
-  const ull_t cutflow_jet3      = 1ULL <<  34; 
+  const ull_t two_lepton         = 1ULL <<  32; 
+  const ull_t one_signal_lepton  = 1ULL <<  33; 
+  const ull_t cutflow_jet3       = 1ULL <<  34; 
 
   // --- trigger ---
   // met

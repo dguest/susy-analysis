@@ -38,19 +38,30 @@ namespace bits {
     if (n_el == 0) pass_bits |= pass::electron_veto;
     if (n_mu == 0) pass_bits |= pass::muon_veto; 
     if (n_el + n_mu == 1) pass_bits |= pass::one_lepton;
+    if (n_el + n_mu == 2) pass_bits |= pass::two_lepton;
     if (obj.veto_jets.size() == 0) pass_bits |= pass::jet_clean; 
 
-    // trigger matching
-    for (auto el: obj.control_electrons) { 
-      if (el->trigger()) pass_bits |= pass::one_el_match;
-      if (el->dilep_trigger()) pass_bits |= pass::two_el_match;
-    }
-    for (auto mu: obj.control_muons) { 
-      if (mu->trigger()) pass_bits |= pass::one_mu_match;
-      if (mu->dilep_trigger()) pass_bits |= pass::two_mu_match;
-    }
-    return pass_bits; 
+    pass_bits |= trigger_match_bits(obj.control_electrons, 
+				    obj.control_muons);
+    return pass_bits;
+  }
 
+  // trigger matching
+  ull_t trigger_match_bits(const std::vector<Electron*>& els, 
+			   const std::vector<Muon*>& mus) {
+    ull_t pass_bits = 0;
+    int diel = 0, dimu = 0;
+    for (auto el: els) { 
+      if (el->trigger()) pass_bits |= pass::one_el_match;
+      if (el->dilep_trigger()) diel++;
+    }
+    if (diel >= 2) pass_bits |= pass::two_el_match;
+    for (auto mu: mus) { 
+      if (mu->trigger()) pass_bits |= pass::one_mu_match;
+      if (mu->dilep_trigger()) dimu++;
+    }
+    if (dimu >= 2) pass_bits |= pass::two_mu_match;
+    return pass_bits; 
   }
 
   ull_t signal_jet_bits(const std::vector<SelectedJet*>& jets) { 
@@ -68,7 +79,7 @@ namespace bits {
     if (jets.size() >= N_SR_JETS) pass_bits |= pass::n_jet; 
     if (jets.size() >= 2){
       auto j2pt = jets.at(1)->Pt();
-      if ( j2pt > 50*GeV) pass_bits |= pass::j1_50;
+      if ( j2pt > 50*GeV) pass_bits |= pass::j2_50;
     }
     if (jets.size() < 3 || jets.at(2)->Pt() < CUTFLOW_JET3_PT_VETO) { 
       pass_bits |= pass::cutflow_jet3; 
@@ -94,6 +105,7 @@ namespace bits {
     size_t n_mu = mu.size(); 
     if (n_el == 1) pass_bits |= pass::control_electron; 
     if (n_mu == 1) pass_bits |= pass::control_muon; 
+    if (n_mu + n_el == 1) pass_bits |= pass::one_signal_lepton;
     if (n_mu == 1 && n_el == 1) { 
       bool os = (el.at(0)->charge() * mu.at(0)->charge()) < 0; 
       if (os) pass_bits |= pass::osdf; 
@@ -140,7 +152,7 @@ namespace bits {
   }
 
   ull_t bad_tile_bits(const TVector2& mets, 
-		      const std::vector<SelectedJet*> jets) { 
+		      const std::vector<SelectedJet*>& jets) { 
     ull_t bits = pass::bad_tile; 
     for (auto jet: jets) { 
       if (jet->bad_tile(mets)) bits &=~ pass::bad_tile; 

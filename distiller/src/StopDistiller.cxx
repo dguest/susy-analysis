@@ -227,9 +227,16 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
 		  sum_el_pt(obj.control_electrons),
 		  m_info.systematic);
 
-  fill_event_output(obj, mets.nominal, *m_out_tree, m_cutflow); 
+  BitmapCutflow* nom_cutflow = 0;
+  BitmapCutflow* lept_cutflow = 0;
+  if (m_info.cutflow_type == CutflowType::CRZ) { 
+    lept_cutflow = m_cutflow;
+  } else { 
+    nom_cutflow = m_cutflow;
+  }
+  fill_event_output(obj, mets.nominal, *m_out_tree, nom_cutflow); 
   fill_event_output(obj, mets.muon, *m_mumet_out_tree); 
-  fill_event_output(obj, mets.lepton, *m_leptmet_out_tree); 
+  fill_event_output(obj, mets.lepton, *m_leptmet_out_tree, lept_cutflow); 
 }
 
 void StopDistiller::fill_event_output(const EventObjects& obj, 
@@ -451,12 +458,12 @@ void StopDistiller::setup_cutflow(CutflowType cutflow) {
     m_cutflow->add("core"        , pass::core          );
     m_cutflow->add("cosmic_muon" , pass::cosmic_muon); 
     m_cutflow->add("bad_muon"    , pass::bad_muon); 
-    m_cutflow->add("pass_1l", pass::control_muon | pass::control_electron);
+    m_cutflow->add("pass_1l", pass::one_signal_lepton);
     m_cutflow->add("lepton_veto"        , pass::one_lepton);
     m_cutflow->add("chf_cut"     , pass::jet_chf); 
-    m_cutflow->add("met_50" , pass::met50    );
+    m_cutflow->add("met_100" , pass::met100    );
     m_cutflow->add(cat("n_jet_",N_SR_JETS) , pass::n_jet          );
-    m_cutflow->add("j1_50", pass::j1_50);
+    m_cutflow->add(cat("j1_", CUTFLOW_JET1_PT), pass::cutflow_leading);
     m_cutflow->add("j2_50", pass::j2_50);
     m_cutflow->add("dphi_jetmet_min"       , pass::dphi_jetmet_min);
     m_cutflow->add("one_ctag"              , pass::tagged  ); 
@@ -465,7 +472,7 @@ void StopDistiller::setup_cutflow(CutflowType cutflow) {
   }
   case CutflowType::CRZ: { 
     m_cutflow->add("GRL"                   , pass::grl            );  
-    m_cutflow->add("trigger"          , pass::met_trigger        );
+    m_cutflow->add("trigger", pass::two_el_trigger | pass::two_mu_trigger);
     m_cutflow->add("primary_vertex"        , pass::vxp_gt_4trk    );
     m_cutflow->add("bad_jet_veto"          , pass::jet_clean      );
     m_cutflow->add("tile_trip"        , pass::tile_trip          );
@@ -476,15 +483,14 @@ void StopDistiller::setup_cutflow(CutflowType cutflow) {
     m_cutflow->add("core"        , pass::core          );
     m_cutflow->add("cosmic_muon" , pass::cosmic_muon); 
     m_cutflow->add("bad_muon"    , pass::bad_muon); 
-    m_cutflow->add("muon_veto"           , pass::muon_veto    );
-    m_cutflow->add("electron_veto"           , pass::electron_veto    );
+
+    m_cutflow->add("ossf"           , pass::ossf    );
+    m_cutflow->add("lepton_veto"        , pass::two_lepton);
     m_cutflow->add("chf_cut"     , pass::jet_chf); 
-    m_cutflow->add("met_150" , pass::met150    );
+    m_cutflow->add("met_100" , pass::met100    );
     m_cutflow->add(cat("n_jet_",N_SR_JETS) , pass::n_jet          );
     m_cutflow->add("j1_50", pass::j1_50);
     m_cutflow->add("j2_50", pass::j2_50);
-    m_cutflow->add("dphi_jetmet_min"       , pass::dphi_jetmet_min);
-    m_cutflow->add("met_eff"               , pass::met_eff); 
     m_cutflow->add("one_ctag"              , pass::tagged  ); 
     m_cutflow->add("two_ctag"              , pass::double_tagged  ); 
     m_cutflow->add(cat("m_ct_",SR_MCT_MIN) , pass::sr_mct            ); 
