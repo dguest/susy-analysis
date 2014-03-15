@@ -28,6 +28,7 @@ namespace pass {
   const ull_t tile_trip          = 1ULL << 18; 
 
   // requirements for control regions / cutflow
+  const ull_t one_lepton         = 1ULL << 19;
   const ull_t met_eff            = 1ULL << 20; 
   const ull_t control_muon       = 1ULL << 21; 
   const ull_t control_electron   = 1ULL << 22;    
@@ -44,8 +45,8 @@ namespace pass {
 
   // only for the cutflow
   const ull_t cutflow_leading    = 1ULL <<  31; 
-  const ull_t cutflow_met        = 1ULL <<  32; 
-  const ull_t cutflow_jet2      = 1ULL <<  33; 
+  // const ull_t m        = 1ULL <<  32; 
+  // const ull_t cutflow_jet2      = 1ULL <<  33; 
   const ull_t cutflow_jet3      = 1ULL <<  34; 
 
   // --- trigger ---
@@ -69,6 +70,14 @@ namespace pass {
   const ull_t single_el_trigger  = 1ULL << 47; 
   const ull_t single_mu_trigger  = 1ULL << 48; 
   
+
+  // random cutflow
+  const ull_t met50              = 1ULL << 50;
+  const ull_t met100             = 1ULL << 51;
+  const ull_t j1_50              = 1ULL << 52;
+  const ull_t j2_50              = 1ULL << 53;
+  const ull_t mumet50            = 1ULL << 54;
+  const ull_t met150             = 1ULL << 55;
 }
 
 #endif

@@ -32,12 +32,13 @@ namespace bits {
     if (pass_chf_check(obj.signal_jets)) pass_bits |= pass::jet_chf; 
     pass_bits |= control_lepton_bits(obj.control_electrons, 
 				     obj.control_muons); 
-    if (obj.after_overlap_electrons.size() == 0) {
-      pass_bits |= pass::electron_veto; 
-    }
-    if (obj.after_overlap_muons.size() == 0) pass_bits |= pass::muon_veto; 
-    if (obj.veto_jets.size() == 0) pass_bits |= pass::jet_clean; 
 
+    const auto n_el = obj.after_overlap_electrons.size();
+    const auto n_mu = obj.after_overlap_muons.size();
+    if (n_el == 0) pass_bits |= pass::electron_veto;
+    if (n_mu == 0) pass_bits |= pass::muon_veto; 
+    if (n_el + n_mu == 1) pass_bits |= pass::one_lepton;
+    if (obj.veto_jets.size() == 0) pass_bits |= pass::jet_clean; 
     return pass_bits; 
 
   }
@@ -52,10 +53,12 @@ namespace bits {
       if (leading_jet_pt > CUTFLOW_JET1_PT) { 
 	pass_bits |= pass::cutflow_leading; 
       }
+      if (leading_jet_pt > 50*GeV) pass_bits |= pass::j1_50;
     }
     if (jets.size() >= N_SR_JETS) pass_bits |= pass::n_jet; 
-    if (jets.size() >= 2 && jets.at(1)->Pt() > CUTFLOW_JET2_PT) { 
-      pass_bits |= pass::cutflow_jet2; 
+    if (jets.size() >= 2){
+      auto j2pt = jets.at(1)->Pt();
+      if ( j2pt > 50*GeV) pass_bits |= pass::j1_50;
     }
     if (jets.size() < 3 || jets.at(2)->Pt() < CUTFLOW_JET3_PT_VETO) { 
       pass_bits |= pass::cutflow_jet3; 
@@ -119,9 +122,9 @@ namespace bits {
     if (mets.Mod() > FILTER_MET) { 
       pass_bits |= pass::met; 
     }
-    if (mets.Mod() > CUTFLOW_MET) { 
-      pass_bits |= pass::cutflow_met; 
-    }
+    if (mets.Mod() > 50*GeV) pass_bits |= pass::met50;
+    if (mets.Mod() > 100*GeV) pass_bits |= pass::met100;
+    if (mets.Mod() > 150*GeV) pass_bits |= pass::met150;
 
     return pass_bits; 
   }

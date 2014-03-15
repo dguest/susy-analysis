@@ -23,9 +23,7 @@ const static double ENERGY_WEIGHTED_TIME_MAX = 5.0;
 
 const static size_t CHF_CHECK_NJET = 2; 
 
-const float CUTFLOW_MET            = 150*GeV; 
 const float CUTFLOW_JET1_PT = 130*GeV; 
-const float CUTFLOW_JET2_PT  = 50*GeV; 
 const float CUTFLOW_JET3_PT_VETO = 50*GeV;
 
 const float FILTER_LEADING_JET_PT = 120*GeV; 

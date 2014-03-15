@@ -153,11 +153,6 @@ static bool safe_copy(PyObject* value, std::string& dest) {
   dest = str; 
   return true; 
 }
-static bool safe_copy(PyObject* value, systematic::Systematic& dest) { 
-  char* sysname = PyString_AsString(value); 
-  if (PyErr_Occurred()) return false; 
-  std::string name(sysname); 
-  using namespace systematic; 
 
 #define TRY_VAL(value)				\
   do {					\
@@ -167,6 +162,13 @@ static bool safe_copy(PyObject* value, systematic::Systematic& dest) {
     }						\
   } while (false)
 
+
+static bool safe_copy(PyObject* value, systematic::Systematic& dest) { 
+  char* sysname = PyString_AsString(value); 
+  if (PyErr_Occurred()) return false; 
+  std::string name(sysname); 
+  using namespace systematic; 
+
   TRY_VAL(NONE); 
   TRY_VAL(JESUP); 
   TRY_VAL(JESDOWN); 
@@ -175,40 +177,39 @@ static bool safe_copy(PyObject* value, systematic::Systematic& dest) {
   TRY_VAL(METDOWN); 
   TRY_VAL(METRES); 
 
-#undef TRY_VAL
-
   std::string problem = "got undefined systematic: " + name; 
   PyErr_SetString(PyExc_ValueError,problem.c_str()); 
   return false; 
 
 }
+#undef TRY_VAL
+
+#define TRY_VAL(NAMESPACE, value)		\
+  do {					\
+    if (name == #value) {			\
+      dest = NAMESPACE::value;			\
+      return true;				\
+    }						\
+  } while (false)
+
 
 static bool safe_copy(PyObject* value, CutflowType& dest) { 
   char* sysname = PyString_AsString(value); 
   if (PyErr_Occurred()) return false; 
   std::string name(sysname); 
-  if (name == "NOMINAL") { 
-    dest = CutflowType::NOMINAL; 
-    return true; 
-  }
-  else if (name == "NONE") { 
-    dest = CutflowType::NONE; 
-    return true; 
-  }
-  else if (name == "ELECTRON_CR") { 
-    dest = CutflowType::ELECTRON_CR; 
-    return true; 
-  }
-  else if (name == "MUON_CR") { 
-    dest = CutflowType::MUON_CR; 
-    return true; 
-  }
-  else { 
-    std::string problem = "got undefined cutflow type: " + name; 
-    PyErr_SetString(PyExc_ValueError,problem.c_str()); 
-    return false; 
-  }
+
+  TRY_VAL(CutflowType, SIGNAL);
+  TRY_VAL(CutflowType, NONE);
+  TRY_VAL(CutflowType, CRZ);
+  TRY_VAL(CutflowType, CRW);
+  TRY_VAL(CutflowType, CRT);
+  
+  std::string problem = "got undefined cutflow type: " + name; 
+  PyErr_SetString(PyExc_ValueError,problem.c_str()); 
+  return false; 
 }
+#undef TRY_VAL
+
 
 static bool safe_copy(PyObject* value, double& dest) { 
   double the_double = PyFloat_AsDouble(value); 

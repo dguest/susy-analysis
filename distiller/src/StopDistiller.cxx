@@ -399,12 +399,13 @@ namespace {
 }
 
 void StopDistiller::setup_cutflow(CutflowType cutflow) { 
-  const ull_t event_clean = pass::lar_error | pass::tile_error | 
-    pass::core | pass::tile_trip; 
 
+  const ull_t lept_trigger = pass::single_el_trigger | 
+    pass::single_mu_trigger;
   m_cutflow = new BitmapCutflow;
   switch (cutflow) { 
-  case CutflowType::NOMINAL: { 
+  case CutflowType::NONE: return; 
+  case CutflowType::SIGNAL: { 
     m_cutflow->add("GRL"                   , pass::grl            );  
     m_cutflow->add("trigger"          , pass::met_trigger        );
     m_cutflow->add("primary_vertex"        , pass::vxp_gt_4trk    );
@@ -420,10 +421,10 @@ void StopDistiller::setup_cutflow(CutflowType cutflow) {
     m_cutflow->add("muon_veto"           , pass::muon_veto    );
     m_cutflow->add("electron_veto"           , pass::electron_veto    );
     m_cutflow->add("chf_cut"     , pass::jet_chf); 
-    m_cutflow->add(cat("met_",CUTFLOW_MET) , pass::cutflow_met    );
+    m_cutflow->add("met_150" , pass::met150    );
     m_cutflow->add(cat("n_jet_",N_SR_JETS) , pass::n_jet          );
     m_cutflow->add(cat("j1_", CUTFLOW_JET1_PT), pass::cutflow_leading);
-    m_cutflow->add(cat("j2_", CUTFLOW_JET2_PT), pass::cutflow_jet2);
+    m_cutflow->add("j2_50", pass::j2_50);
     m_cutflow->add(cat("j3_veto_", CUTFLOW_JET3_PT_VETO), pass::cutflow_jet3);
     m_cutflow->add("dphi_jetmet_min"       , pass::dphi_jetmet_min);
     m_cutflow->add("met_eff"               , pass::met_eff); 
@@ -433,43 +434,57 @@ void StopDistiller::setup_cutflow(CutflowType cutflow) {
     m_cutflow->add("m_cc"                  , pass::m_cc           ); 
     return; 
   }
-  case CutflowType::NONE: return; 
-  case CutflowType::ELECTRON_CR: { 
+  case CutflowType::CRW: { 
     m_cutflow->add("GRL"                   , pass::grl            );  
-    m_cutflow->add("trigger"          , pass::trigger        );
+    m_cutflow->add("trigger" , lept_trigger);
     m_cutflow->add("primary_vertex"        , pass::vxp_gt_4trk    );
-    m_cutflow->add("lar_error"        , pass::lar_error          );
-    m_cutflow->add("tile_error"        , pass::tile_error          );
-    m_cutflow->add("core"        , pass::core          );
-    m_cutflow->add("tile_trip"        , pass::tile_trip          );
-    m_cutflow->add("event_cleaning"        , event_clean          );
-    m_cutflow->add("control_electron"      , pass::control_electron);
     m_cutflow->add("bad_jet_veto"          , pass::jet_clean      );
-    m_cutflow->add("n_jet" , pass::n_jet          );
+    m_cutflow->add("tile_trip"        , pass::tile_trip          );
+    m_cutflow->add("tile_error"        , pass::tile_error          );
+    m_cutflow->add("bad_tile"          , pass::bad_tile      ); 
+    m_cutflow->add("lar_error"        , pass::lar_error          );
+    m_cutflow->add("energy_wt_time", pass::energy_wt_time); 
+    m_cutflow->add("core"        , pass::core          );
+    m_cutflow->add("cosmic_muon" , pass::cosmic_muon); 
+    m_cutflow->add("bad_muon"    , pass::bad_muon); 
+    m_cutflow->add("pass_1l", pass::control_muon | pass::control_electron);
+    m_cutflow->add("lepton_veto"        , pass::one_lepton);
+    m_cutflow->add("chf_cut"     , pass::jet_chf); 
+    m_cutflow->add("met_50" , pass::met50    );
+    m_cutflow->add(cat("n_jet_",N_SR_JETS) , pass::n_jet          );
+    m_cutflow->add("j1_50", pass::j1_50);
+    m_cutflow->add("j2_50", pass::j2_50);
     m_cutflow->add("dphi_jetmet_min"       , pass::dphi_jetmet_min);
-    m_cutflow->add("met_280"               , pass::cutflow_met    );
-    m_cutflow->add("leading_jet_280"       , pass::cutflow_leading);
-    // m_cutflow->add("jtag_2"                , pass::cutflow_tag_2  ); 
-    // m_cutflow->add("jtag_1"                , pass::cutflow_tag_1  ); 
+    m_cutflow->add("one_ctag"              , pass::tagged  ); 
+    m_cutflow->add("two_ctag"              , pass::double_tagged  ); 
     return; 
   }
-  case CutflowType::MUON_CR: { 
+  case CutflowType::CRZ: { 
     m_cutflow->add("GRL"                   , pass::grl            );  
-    m_cutflow->add("trigger"          , pass::trigger        );
+    m_cutflow->add("trigger"          , pass::met_trigger        );
     m_cutflow->add("primary_vertex"        , pass::vxp_gt_4trk    );
-    m_cutflow->add("lar_error"        , pass::lar_error          );
-    m_cutflow->add("tile_error"        , pass::tile_error          );
-    m_cutflow->add("core"        , pass::core          );
-    m_cutflow->add("tile_trip"        , pass::tile_trip          );
-    m_cutflow->add("event_cleaning"        , event_clean          );
-    m_cutflow->add("control_muon"      , pass::control_muon    );
     m_cutflow->add("bad_jet_veto"          , pass::jet_clean      );
-    m_cutflow->add("n_jet_geq_3"           , pass::n_jet          );
+    m_cutflow->add("tile_trip"        , pass::tile_trip          );
+    m_cutflow->add("tile_error"        , pass::tile_error          );
+    m_cutflow->add("bad_tile"          , pass::bad_tile      ); 
+    m_cutflow->add("lar_error"        , pass::lar_error          );
+    m_cutflow->add("energy_wt_time", pass::energy_wt_time); 
+    m_cutflow->add("core"        , pass::core          );
+    m_cutflow->add("cosmic_muon" , pass::cosmic_muon); 
+    m_cutflow->add("bad_muon"    , pass::bad_muon); 
+    m_cutflow->add("muon_veto"           , pass::muon_veto    );
+    m_cutflow->add("electron_veto"           , pass::electron_veto    );
+    m_cutflow->add("chf_cut"     , pass::jet_chf); 
+    m_cutflow->add("met_150" , pass::met150    );
+    m_cutflow->add(cat("n_jet_",N_SR_JETS) , pass::n_jet          );
+    m_cutflow->add("j1_50", pass::j1_50);
+    m_cutflow->add("j2_50", pass::j2_50);
     m_cutflow->add("dphi_jetmet_min"       , pass::dphi_jetmet_min);
-    m_cutflow->add("met_280"               , pass::cutflow_met    );
-    m_cutflow->add("leading_jet_280"       , pass::cutflow_leading);
-    // m_cutflow->add("jtag_2"                , pass::cutflow_tag_2  ); 
-    // m_cutflow->add("jtag_1"                , pass::cutflow_tag_1  ); 
+    m_cutflow->add("met_eff"               , pass::met_eff); 
+    m_cutflow->add("one_ctag"              , pass::tagged  ); 
+    m_cutflow->add("two_ctag"              , pass::double_tagged  ); 
+    m_cutflow->add(cat("m_ct_",SR_MCT_MIN) , pass::sr_mct            ); 
+    m_cutflow->add("m_cc"                  , pass::m_cc           ); 
     return; 
   }
   }
