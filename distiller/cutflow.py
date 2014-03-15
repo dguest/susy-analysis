@@ -5,7 +5,7 @@ import sys, glob, os
 
 flags = 'vbgzfc'
 # flags += 'u'                    # generate pu reweighting file
-configs = ['CRZ']
+configs = ['CRT']
 files = []
 if len(sys.argv) > 1: 
     if sys.argv[1] == 'all': 

@@ -483,7 +483,6 @@ void StopDistiller::setup_cutflow(CutflowType cutflow) {
     m_cutflow->add("core"        , pass::core          );
     m_cutflow->add("cosmic_muon" , pass::cosmic_muon); 
     m_cutflow->add("bad_muon"    , pass::bad_muon); 
-
     m_cutflow->add("ossf"           , pass::ossf    );
     m_cutflow->add("lepton_veto"        , pass::two_lepton);
     m_cutflow->add("chf_cut"     , pass::jet_chf); 
@@ -495,6 +494,32 @@ void StopDistiller::setup_cutflow(CutflowType cutflow) {
     m_cutflow->add("two_ctag"              , pass::double_tagged  ); 
     m_cutflow->add(cat("m_ct_",SR_MCT_MIN) , pass::sr_mct            ); 
     m_cutflow->add("m_cc"                  , pass::m_cc           ); 
+    return; 
+  }
+  case CutflowType::CRT: { 
+    m_cutflow->add("GRL"                   , pass::grl            );  
+    m_cutflow->add("lepton_trigger" , lept_trigger);
+    m_cutflow->add("matched_trigger" , match_trigger);
+    m_cutflow->add("primary_vertex"        , pass::vxp_gt_4trk    );
+    m_cutflow->add("bad_jet_veto"          , pass::jet_clean      );
+    m_cutflow->add("tile_trip"        , pass::tile_trip          );
+    m_cutflow->add("tile_error"        , pass::tile_error          );
+    m_cutflow->add("bad_tile"          , pass::bad_tile      ); 
+    m_cutflow->add("lar_error"        , pass::lar_error          );
+    m_cutflow->add("energy_wt_time", pass::energy_wt_time); 
+    m_cutflow->add("core"        , pass::core          );
+    m_cutflow->add("cosmic_muon" , pass::cosmic_muon); 
+    m_cutflow->add("bad_muon"    , pass::bad_muon); 
+    m_cutflow->add("lepton_veto"        , pass::two_lepton);
+    m_cutflow->add("osdf", pass::osdf);
+    m_cutflow->add("chf_cut"     , pass::jet_chf); 
+    m_cutflow->add("met_50" , pass::met50 );
+    m_cutflow->add(cat("n_jet_",N_SR_JETS) , pass::n_jet          );
+    m_cutflow->add("j1_50", pass::j1_50);
+    m_cutflow->add("j2_50", pass::j2_50);
+    m_cutflow->add("dphi_jetmet_min"       , pass::dphi_jetmet_min);
+    m_cutflow->add("one_ctag"              , pass::tagged  ); 
+    m_cutflow->add("two_ctag"              , pass::double_tagged  ); 
     return; 
   }
   }
