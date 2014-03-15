@@ -13,13 +13,13 @@ static const float SIGNAL_ELECTRON_D0_CUT = 1.0;
 static const float SIGNAL_ELECTRON_Z0_CUT = 2.0; 
 
 const static float CONTROL_ELECTRON_REL_ISOLATION = 0.1; 
-const static float CONTROL_ELECTRON_PT = 20e3; 
+const static float CONTROL_ELECTRON_PT = 0.0; // only used in t cr
 
 static const float MUON_PT_CUT = 6*GeV; 
 static const float MUON_ETA_CUT = 2.4; 
 
 const static float CONTROL_MUON_ISOLATION = 1.8*GeV; 
-const static float CONTROL_MUON_PT = 20e3; 
+const static float CONTROL_MUON_PT = 0.0; // only used in t cr
 
 const static float SINGLE_EL_TRIGGER_PT_MIN = 25*GeV;
 const static float DOUBLE_EL_TRIGGER_PT_MIN = 25*GeV;
