@@ -400,7 +400,10 @@ namespace {
 
 void StopDistiller::setup_cutflow(CutflowType cutflow) { 
 
-  const ull_t lept_trigger = pass::single_el_trigger | 
+  const ull_t lept_trigger = (
+    pass::EF_mu24i_tight | pass::EF_e24vhi_medium1 | 
+    pass::EF_mu36_tight | pass::EF_e60_medium1);
+  const ull_t match_trigger = pass::single_el_trigger | 
     pass::single_mu_trigger;
   m_cutflow = new BitmapCutflow;
   switch (cutflow) { 
@@ -436,7 +439,8 @@ void StopDistiller::setup_cutflow(CutflowType cutflow) {
   }
   case CutflowType::CRW: { 
     m_cutflow->add("GRL"                   , pass::grl            );  
-    m_cutflow->add("trigger" , lept_trigger);
+    m_cutflow->add("lepton_trigger" , lept_trigger);
+    // m_cutflow->add("matched_trigger" , match_trigger);
     m_cutflow->add("primary_vertex"        , pass::vxp_gt_4trk    );
     m_cutflow->add("bad_jet_veto"          , pass::jet_clean      );
     m_cutflow->add("tile_trip"        , pass::tile_trip          );

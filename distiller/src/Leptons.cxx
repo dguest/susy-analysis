@@ -11,6 +11,7 @@
 
 #include "TLorentzVector.h"
 #include "SUSYTools/SUSYObjDef.h"
+#include "egammaAnalysisUtils/egammaTriggerMatching.h"
 
 
 
@@ -18,7 +19,8 @@
 // lepton classes
 
 // -- electron --
-Electron::Electron(const EventElectrons* container, int index) { 
+Electron::Electron(const EventElectrons* container, int index): 
+  m_trigger(false), m_dilep_trigger(false) {
   const SusyBuffer* buffer = container->m_buffer; 
   
   // calls the susytools electron filler
@@ -69,6 +71,26 @@ Electron::Electron(const EventElectrons* container, int index) {
     buffer->RunNumber, 
     SystErr::EEFFUP) - m_id_sf; 
 
+  // trigger matching
+  int nothing; 
+  if (Pt()) { 
+    if (PassedTriggerEF(
+	  Eta(), Phi(), 
+	  buffer->trig_EF_el_EF_e24vhi_medium1, 
+	  nothing, buffer->trig_EF_el_eta->size(), 
+	  buffer->trig_EF_el_eta, buffer->trig_EF_el_phi)) m_trigger = true; 
+    if (PassedTriggerEF(
+	  Eta(), Phi(), 
+	  buffer->trig_EF_el_EF_e60_medium1, 
+	  nothing, buffer->trig_EF_el_eta->size(), 
+	  buffer->trig_EF_el_eta, buffer->trig_EF_el_phi)) m_trigger = true; 
+    if (PassedTriggerEF(
+	  Eta(), Phi(), 
+	  buffer->trig_EF_el_EF_2e12Tvh_loose1, 
+	  nothing, buffer->trig_EF_el_eta->size(), 
+	  buffer->trig_EF_el_eta, 
+	  buffer->trig_EF_el_phi)) m_dilep_trigger = true; 
+  }
 }
 bool Electron::pass_susy() const { 
   return m_pass_susy; 
@@ -91,6 +113,12 @@ float Electron::id_sf_err() const {
 }
 bool Electron::tightpp() const { 
   return m_tight_pp;
+}
+bool Electron::trigger() const { 
+  return m_trigger;
+}
+bool Electron::dilep_trigger() const { 
+  return m_dilep_trigger;
 }
 
 EventElectrons::EventElectrons(const SusyBuffer& buffer, SUSYObjDef& def, 
@@ -120,7 +148,7 @@ EventElectrons::~EventElectrons() {
 // -- muon --
 
 Muon::Muon(const EventMuons* container, int index): 
-  m_index(index)
+  m_index(index), m_trigger(false), m_dilep_trigger(false)
 { 
   const SusyBuffer* buffer = container->m_buffer; 
 
@@ -148,7 +176,33 @@ Muon::Muon(const EventMuons* container, int index):
     m_id_sf = def->GetSignalMuonSF(index, SystErr::NONE); 
     m_id_sf_unct = def->GetSignalMuonSF(index, SystErr::MEFFUP) - m_id_sf; 
   }
-
+  int nothing;
+  if (Pt()) { 
+    if (def->MuonHasTriggerMatch(
+	  Eta(), Phi(), 
+	  buffer->trig_EF_trigmuonef_EF_mu24i_tight, 
+	  nothing, nothing, 
+	  buffer->trig_EF_trigmuonef_track_CB_eta->size(), 
+	  buffer->trig_EF_trigmuonef_track_CB_eta, 
+	  buffer->trig_EF_trigmuonef_track_CB_phi, 
+	  buffer->trig_EF_trigmuonef_track_CB_hasCB)) m_trigger = true; 
+    if (def->MuonHasTriggerMatch(
+	  Eta(), Phi(), 
+	  buffer->trig_EF_trigmuonef_EF_mu36_tight, 
+	  nothing, nothing, 
+	  buffer->trig_EF_trigmuonef_track_CB_eta->size(), 
+	  buffer->trig_EF_trigmuonef_track_CB_eta, 
+	  buffer->trig_EF_trigmuonef_track_CB_phi, 
+	  buffer->trig_EF_trigmuonef_track_CB_hasCB)) m_trigger = true; 
+    if (def->MuonHasTriggerMatch(
+	  Eta(), Phi(), 
+	  buffer->trig_EF_trigmuonef_EF_mu18_tight_mu8_EFFS, 
+	  nothing, nothing, 
+	  buffer->trig_EF_trigmuonef_track_CB_eta->size(), 
+	  buffer->trig_EF_trigmuonef_track_CB_eta, 
+	  buffer->trig_EF_trigmuonef_track_CB_phi, 
+	  buffer->trig_EF_trigmuonef_track_CB_hasCB)) m_dilep_trigger = true; 
+  }
 }
 bool Muon::pass_susy() const { 
   return m_pass_susy; 
@@ -173,6 +227,12 @@ bool Muon::cosmic() const {
 }
 bool Muon::bad() const { 
   return m_is_bad; 
+}
+bool Muon::trigger() const { 
+  return m_trigger;
+}
+bool Muon::dilep_trigger() const { 
+  return m_dilep_trigger;
 }
 
 EventMuons::EventMuons(const SusyBuffer& buffer, SUSYObjDef& def, 

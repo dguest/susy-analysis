@@ -21,6 +21,8 @@ public:
   float id_sf() const; 
   float id_sf_err() const; 
   bool tightpp() const;
+  bool trigger() const;
+  bool dilep_trigger() const;
 private: 
   bool m_pass_susy; 
   bool m_is_signal; 
@@ -30,6 +32,8 @@ private:
   float m_id_sf; 
   float m_id_sf_unct; 
   bool m_tight_pp;
+  bool m_trigger;
+  bool m_dilep_trigger;
 }; 
 
 class EventElectrons: public std::vector<Electron*> 
@@ -60,6 +64,8 @@ public:
   float id_sf_err() const; 
   bool cosmic() const; 
   bool bad() const; 
+  bool trigger() const;
+  bool dilep_trigger() const;
 private: 
   bool m_pass_susy; 
   double m_isolation; 
@@ -69,6 +75,8 @@ private:
   float m_id_sf_unct; 
   bool m_is_cosmic; 
   bool m_is_bad; 
+  bool m_trigger;
+  bool m_dilep_trigger;
 }; 
 
 class EventMuons: public std::vector<Muon*>

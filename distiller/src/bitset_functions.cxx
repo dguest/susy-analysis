@@ -39,6 +39,16 @@ namespace bits {
     if (n_mu == 0) pass_bits |= pass::muon_veto; 
     if (n_el + n_mu == 1) pass_bits |= pass::one_lepton;
     if (obj.veto_jets.size() == 0) pass_bits |= pass::jet_clean; 
+
+    // trigger matching
+    for (auto el: obj.control_electrons) { 
+      if (el->trigger()) pass_bits |= pass::one_el_match;
+      if (el->dilep_trigger()) pass_bits |= pass::two_el_match;
+    }
+    for (auto mu: obj.control_muons) { 
+      if (mu->trigger()) pass_bits |= pass::one_mu_match;
+      if (mu->dilep_trigger()) pass_bits |= pass::two_mu_match;
+    }
     return pass_bits; 
 
   }
@@ -152,14 +162,21 @@ namespace bits {
       EF_xe80_tclcw_loose | EF_xe80T_tclcw_loose | EF_xe80_tclcw_tight);
     if ( met_trigger_bits & bits) out |= met_trigger;
 
-    if ( EF_2e12Tvh_loose1 & bits ) out |= two_el_trigger;
-    if ( EF_mu18_tight_mu8_EFFS & bits ) out |= two_mu_trigger;
+    if ( two_el_match & bits) { 
+      if ( EF_2e12Tvh_loose1 & bits ) out |= two_el_trigger;
+    }
+    if ( two_mu_match & bits ) { 
+      if ( EF_mu18_tight_mu8_EFFS & bits ) out |= two_mu_trigger;
+    }
 
     const auto el_bits = (EF_mu24i_tight | EF_e24vhi_medium1);
-    if ( el_bits & bits ) out |= single_el_trigger;
-
+    if ( (one_el_match | one_mu_match ) & bits ) { 
+      if ( el_bits & bits ) out |= single_el_trigger;
+    }
     const auto mu_bits = (EF_mu36_tight | EF_e60_medium1);
-    if ( mu_bits & bits ) out |= single_mu_trigger;
+    if ( (one_el_match | one_mu_match ) & bits ) { 
+      if ( mu_bits & bits ) out |= single_mu_trigger;
+    }
 
     return out; 
   }

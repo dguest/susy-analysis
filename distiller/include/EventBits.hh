@@ -63,21 +63,26 @@ namespace pass {
   const ull_t EF_mu36_tight      = 1ULL << 42;
   const ull_t EF_e60_medium1     = 1ULL << 43;
 
-  // compound trigger
+  // compound trigger (include match)
   const ull_t met_trigger        = 1ULL << 44; 
   const ull_t two_el_trigger     = 1ULL << 45; 
   const ull_t two_mu_trigger     = 1ULL << 46; 
   const ull_t single_el_trigger  = 1ULL << 47; 
   const ull_t single_mu_trigger  = 1ULL << 48; 
-  
+
+  // trigger match
+  const ull_t two_el_match       = 1ULL << 49;
+  const ull_t two_mu_match       = 1ULL << 50;
+  const ull_t one_el_match       = 1ULL << 51;
+  const ull_t one_mu_match       = 1ULL << 52;
 
   // random cutflow
-  const ull_t met50              = 1ULL << 50;
-  const ull_t met100             = 1ULL << 51;
-  const ull_t j1_50              = 1ULL << 52;
-  const ull_t j2_50              = 1ULL << 53;
   const ull_t mumet50            = 1ULL << 54;
-  const ull_t met150             = 1ULL << 55;
+  const ull_t met50              = 1ULL << 55;
+  const ull_t met100             = 1ULL << 56;
+  const ull_t met150             = 1ULL << 57;
+  const ull_t j1_50              = 1ULL << 58;
+  const ull_t j2_50              = 1ULL << 59;
 }
 
 #endif

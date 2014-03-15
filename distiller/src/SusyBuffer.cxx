@@ -49,6 +49,21 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br):
   SET(fChain,EF_e24vhi_medium1); 
   SET(fChain,EF_e60_medium1); 
 
+  // lepton trigger match
+  SET(fChain,trig_EF_el_EF_e24vhi_medium1); 
+  SET(fChain,trig_EF_el_EF_e60_medium1); 
+  SET(fChain,trig_EF_el_EF_2e12Tvh_loose1); 
+  SET(fChain,trig_EF_el_eta); 
+  SET(fChain,trig_EF_el_phi); 
+
+  SET(fChain,trig_EF_trigmuonef_EF_mu18_tight_mu8_EFFS); 
+  SET(fChain,trig_EF_trigmuonef_EF_mu24i_tight); 	    
+  SET(fChain,trig_EF_trigmuonef_EF_mu36_tight);          
+  SET(fChain,trig_EF_trigmuonef_track_CB_eta); 
+  SET(fChain,trig_EF_trigmuonef_track_CB_phi); 
+  SET(fChain,trig_EF_trigmuonef_track_CB_hasCB); 
+
+
   SET(fChain,coreFlags); 
   
   fChain->SetBranch("top_hfor_type", &hfor_type); 
