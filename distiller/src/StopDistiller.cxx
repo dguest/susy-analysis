@@ -248,7 +248,7 @@ void StopDistiller::fill_event_output(const EventObjects& obj,
   pass_bits |= bits::object_composit_bits(par); 
   pass_bits |= bits::event_object_bits(obj); 
   pass_bits |= bits::met_bits(met); 
-  pass_bits |= bits::bad_tile_bits(met, obj.after_overlap_jets); 
+  pass_bits |= bits::bad_tile_bits(met, obj.preselected_jets); 
   pass_bits |= bits::compound_bits(pass_bits); 
 
   // save bools to cutflow and out tree

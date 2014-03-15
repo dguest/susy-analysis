@@ -98,7 +98,7 @@ namespace bits {
   // --- ObjectComposites bits ---
   ull_t object_composit_bits(const ObjectComposites& par) { 
     ull_t pass_bits = 0; 
-    if (par.energy_weighted_time < ENERGY_WEIGHTED_TIME_MAX) {
+    if (std::abs(par.energy_weighted_time) <= ENERGY_WEIGHTED_TIME_MAX) {
       pass_bits |= pass::energy_wt_time; 
     }
     if (par.min_jetmet_dphi > DPHI_JET_MET_MIN) { 

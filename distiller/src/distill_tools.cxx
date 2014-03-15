@@ -90,8 +90,10 @@ double get_htx(const std::vector<SelectedJet*>& jets, const size_t x){
   }
   return htx; 
 }
+
 double get_energy_weighted_time(const std::vector<SelectedJet*>& jets,
 				size_t max_jet) { 
+  if (jets.size() == 0) return 0.0;
   const size_t n_jets = std::min(max_jet, jets.size()); 
   double denom = 0; 
   double num = 0; 

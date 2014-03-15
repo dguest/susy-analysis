@@ -28,9 +28,9 @@ for config in configs:
     values = cutflow.cutflow(
         files, flags=flags, 
         grl='~/calibration/grl.xml', 
-        output_ntuple='py-output.root', 
-        mumet_output_ntuple='py-output-mumet.root', 
-        leptmet_output_ntuple='py-output-leptmet.root', 
+        # output_ntuple='py-output.root', 
+        # mumet_output_ntuple='py-output-mumet.root', 
+        # leptmet_output_ntuple='py-output-leptmet.root', 
         btag_cal_file='~/calibration/BTagCalibration.env', 
         cal_dir='~/calibration', 
         systematic='NONE', 
