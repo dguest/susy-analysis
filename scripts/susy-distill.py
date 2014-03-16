@@ -68,7 +68,7 @@ def distill_d3pds(config):
         cut_counts = cutflow.cutflow(
             input_files=files, 
             flags=flags, 
-            cutflow='NOMINAL', 
+            cutflow='NONE', 
             **add_dict)
 
     _write_cutflow(cut_counts, add_dict['output_ntuple'])
