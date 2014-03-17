@@ -13,10 +13,10 @@ struct EventRecoParameters {
 
   int n_preselected_jets; 
   int n_signal_jets; 
-  int n_veto_electrons; 
-  int n_veto_muons; 
-  int n_control_electrons; 
-  int n_control_muons; 
+  int n_baseline_electrons; 
+  int n_baseline_muons; 
+  int n_signal_electrons; 
+  int n_signal_muons; 
 
   float min_jetmet_dphi; 
   float met_eff; 

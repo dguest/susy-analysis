@@ -16,27 +16,17 @@ int run(const char* input_file) {
   test.output_name = "stant-alone-out.h5"; 
   test.type = reg::CONTROL; 
   test.hists = reg::HISTMILL; 
-  test.tagger = btag::JFC; 
   regions.push_back(test); 
 
   int syst_num = 0; 
   for (auto systematic: {syst::ELUP, syst::CUP}) { 
     for (auto hists: {reg::HISTMILL, reg::KINEMATIC_STAT}) { 
-      for (auto tagger: {btag::JFC, btag::CNN}) { 
-	for (auto assignment: {btag::PT_ORDERED, btag::TAG_ORDERED}) { 
-	  RegionConfig syst_reg = test; 
-	  syst_reg.name = "syst" + std::to_string(syst_num); 
-	  syst_reg.systematic = systematic; 
-	  syst_reg.hists = hists; 
-	  syst_reg.tagger = tagger; 
-	  syst_reg.jet_tag_assignment = assignment; 
-	  if (tagger == btag::CNN) { 
-	    syst_reg.jet_tag_requirements = {btag::MEDIUM, btag::LOOSE}; 
-	  }
-	  regions.push_back(syst_reg); 
-	  syst_num++; 
-	}
-      }
+      RegionConfig syst_reg = test; 
+      syst_reg.name = "syst" + std::to_string(syst_num); 
+      syst_reg.systematic = systematic; 
+      syst_reg.hists = hists; 
+      regions.push_back(syst_reg); 
+      syst_num++; 
     }
   }
 

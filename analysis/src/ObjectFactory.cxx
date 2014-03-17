@@ -231,10 +231,10 @@ namespace {
 
     SET_PARAMETER(tree, n_preselected_jets); 
     SET_PARAMETER(tree, n_signal_jets); 
-    SET_PARAMETER(tree, n_veto_electrons); 
-    SET_PARAMETER(tree, n_veto_muons); 
-    SET_PARAMETER(tree, n_control_electrons); 
-    SET_PARAMETER(tree, n_control_muons); 
+    SET_PARAMETER(tree, n_baseline_electrons); 
+    SET_PARAMETER(tree, n_baseline_muons); 
+    SET_PARAMETER(tree, n_signal_electrons); 
+    SET_PARAMETER(tree, n_signal_muons); 
 
     SET_PARAMETER(tree, min_jetmet_dphi); 
     SET_PARAMETER(tree, met_eff); 

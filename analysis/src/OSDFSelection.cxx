@@ -29,7 +29,7 @@ bool NMinusOSDFSelection::pass(const EventObjects& obj) const {
   if (reco.n_signal_jets < 2) return false; 
   // veto el / mu are the same as preselected (may add isolation at 
   // some point)
-  if (reco.n_veto_electrons + reco.n_veto_muons != 2) return false;
+  if (reco.n_baseline_electrons + reco.n_baseline_muons != 2) return false;
 
   return true;
 }

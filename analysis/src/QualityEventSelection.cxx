@@ -23,7 +23,7 @@ bool QualityEventSelection::pass(const EventObjects& obj) const {
   if (reco.n_signal_jets < 2) return false;
 
   using namespace reg;
-  auto n_lep = reco.n_veto_electrons + reco.n_veto_muons;
+  auto n_lep = reco.n_baseline_electrons + reco.n_baseline_muons;
   if (m_stream == Stream::JET) {
     return reco.pass_met_trigger;
   }
