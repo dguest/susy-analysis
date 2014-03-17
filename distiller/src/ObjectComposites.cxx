@@ -15,7 +15,8 @@ ObjectComposites::ObjectComposites(const EventObjects& obj,
   mass_eff = met.Mod() + scalar_sum_pt(obj.leading_jets); 
   met_eff = met.Mod() / mass_eff; 
   mass_ct = obj.signal_jets.size() >= 2 ? 
-    get_mctcorr(*obj.signal_jets.at(0), *obj.signal_jets.at(1), met) : -1; 
+    get_mctcorr(*obj.signal_jets.at(0), *obj.signal_jets.at(1), 
+		obj.control_electrons, obj.control_muons, met) : -1; 
   mass_cc = obj.signal_jets.size() >= 2 ? 
     (*obj.signal_jets.at(0) + *obj.signal_jets.at(1)).M() : -1; 
   mass_t = get_mt(obj.control_electrons, 

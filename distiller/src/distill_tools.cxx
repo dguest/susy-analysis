@@ -115,13 +115,21 @@ double get_m_ct(const TLorentzVector& v1, const TLorentzVector& v2) {
 }
 
 double get_mctcorr(const TLorentzVector& tv1, const TLorentzVector& tv2, 
+		   const std::vector<Electron*>& els,
+		   const std::vector<Muon*>& mus,
 		   const TVector2& vmet)
 {
+  TLorentzVector sum;
+  for (auto el: els) {
+    sum += *el;
+  }
+  for (auto mu: mus) {
+    sum += *mu;
+  }
   mctlib mct_object;
-  
-  double v1[4] = {tv1.E(), tv1.Px(), tv1.Py(), tv1.Pz()};
-  double v2[4] = {tv2.E(), tv2.Px(), tv2.Py(), tv2.Pz()};
-  double vds[4] = {0.0, 0.0, 0.0, 0.0};
+  double v1[4] =  {tv1.E(), tv1.Px(), tv1.Py(), tv1.Pz()};
+  double v2[4] =  {tv2.E(), tv2.Px(), tv2.Py(), tv2.Pz()};
+  double vds[4] = {sum.E(), sum.Px(), sum.Py(), sum.Pz()};
   double ptm[2] = {vmet.X(), vmet.Y()};
   return mct_object.mctcorr(v1, v2, vds, ptm, 8e6, 0.0);
 }

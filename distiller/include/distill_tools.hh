@@ -38,7 +38,9 @@ double get_energy_weighted_time(const std::vector<SelectedJet*>&,
 // m_ct functions
 double get_m_ct(const TLorentzVector& v1, const TLorentzVector& v2); 
 
-double get_mctcorr(const TLorentzVector& v1, const TLorentzVector& v2, 
+double get_mctcorr(const TLorentzVector& v1, const TLorentzVector& v2,
+		   const std::vector<Electron*>& el,
+		   const std::vector<Muon*>& mu,
 		   const TVector2& vmet);
 
 double get_mt(const std::vector<Electron*>& , const std::vector<Muon*>& , 
