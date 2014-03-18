@@ -284,7 +284,11 @@ namespace nminus {
       add_tagging_cuts(sel);
       return sel; 
     } 
-    case reg::Selection::QUALITY_EVENT: return sel;
+    case reg::Selection::QUALITY_EVENT: 
+      sel.insert({ 
+	  {DPHI, {MIN_DPHI_JET_MET, INFINITY} },
+	    });
+      return sel;
     default: throw std::invalid_argument("unknown selection in " __FILE__); 
     }
   }
