@@ -221,9 +221,7 @@ namespace nminus {
     // basic kinematics
     std::map<std::string, Selection> sel = {
       {jpt(0), {cfg.leading_jet_pt, INFINITY} } , 
-      {jpt(2), {-INFINITY, SIGNAL_JET_3_MAX_PT} },
       {MET, {cfg.met, INFINITY} }, 
-      {DPHI, {MIN_DPHI_JET_MET, INFINITY} }, 
     }; 
     return sel; 
   }
@@ -246,9 +244,11 @@ namespace nminus {
     switch (cfg.selection) { 
     case reg::Selection::SIGNAL: {
       sel.insert( { 
-	  {MCT, {SR_MCT_MIN, INFINITY} }, 
-	  {MET_EFF, {MET_EFF_MIN, INFINITY} }, 
-	  {MCC, {M_CC_MIN, INFINITY} } 
+	  {MCT, {SR_MCT_MIN, INFINITY} },
+	  {MET_EFF, {MET_EFF_MIN, INFINITY} },
+	  {MCC, {M_CC_MIN, INFINITY} },
+	  {DPHI, {MIN_DPHI_JET_MET, INFINITY} },
+	  {jpt(2), {-INFINITY, SIGNAL_JET_3_MAX_PT} },
 	}); 
       add_tagging_cuts(sel);
       return sel; 
@@ -257,8 +257,9 @@ namespace nminus {
       using namespace cr1l; 
       sel.insert(
 	{
-	  {MT, {M_T_MIN, M_T_MAX} }, 
-	  {MCT, {SR_MCT_MIN, INFINITY} }
+	  {MT, {M_T_MIN, M_T_MAX} },
+	  {MCT, {SR_MCT_MIN, INFINITY} },
+	  {DPHI, {MIN_DPHI_JET_MET, INFINITY} },
 	});
       add_tagging_cuts(sel);
       return sel;
@@ -267,8 +268,8 @@ namespace nminus {
       using namespace crsf;
       sel.insert(
 	{
-	  {LLPT, {LEPTON_PT_MIN, INFINITY} }, 
-	  {MLL, {M_LL_MIN, M_LL_MAX} }, 
+	  {LLPT, {LEPTON_PT_MIN, INFINITY} },
+	  {MLL, {M_LL_MIN, M_LL_MAX} },
 	});
       add_tagging_cuts(sel);
       return sel;
@@ -277,7 +278,8 @@ namespace nminus {
       using namespace crdf;
       sel.insert(
 	{
-	  {MLL, {M_LL_MIN, INFINITY} }
+	  {MLL, {M_LL_MIN, INFINITY} },
+	  {DPHI, {MIN_DPHI_JET_MET, INFINITY} },
 	});
       add_tagging_cuts(sel);
       return sel; 
