@@ -32,8 +32,9 @@ const float FILTER_MET            = 120*GeV;
 const float MET_EFF_MIN = 0.25; 
 
 const float SR_MCT_MIN = 150*GeV; 
-const float CROF_MCT_MIN = 75*GeV; 
 const float M_CC_MIN = 200*GeV; 
 const float M_LL_MIN = 50*GeV; 
+const float M_T_MIN = 40*GeV;
+const float M_T_MAX = 100*GeV;
 
 #endif 

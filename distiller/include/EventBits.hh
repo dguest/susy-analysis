@@ -17,8 +17,8 @@ namespace pass {
   const ull_t met                = 1ULL <<  7; 
   const ull_t n_jet              = 1ULL <<  8; 
   const ull_t dphi_jetmet_min    = 1ULL <<  9; 
-  const ull_t electron_veto      = 1ULL << 10; 
-  const ull_t muon_veto          = 1ULL << 11; 
+  const ull_t lepton_veto        = 1ULL << 10; 
+  const ull_t zero_lepton        = 1ULL << 11; 
   const ull_t energy_wt_time     = 1Ull << 12; 
   const ull_t bad_muon           = 1ULL << 13; 
   const ull_t cosmic_muon        = 1ULL << 14; 
@@ -29,11 +29,11 @@ namespace pass {
 
   // requirements for control regions / cutflow
   const ull_t one_lepton         = 1ULL << 19;
-  const ull_t met_eff            = 1ULL << 20; 
-  const ull_t control_muon       = 1ULL << 21; 
-  const ull_t control_electron   = 1ULL << 22;    
-  const ull_t sr_mct             = 1ULL << 23; 
-  const ull_t crof_mct           = 1ULL << 24; 
+  const ull_t met_eff            = 1ULL << 20;
+  const ull_t control_muon       = 1ULL << 21;
+  const ull_t control_electron   = 1ULL << 22;
+  const ull_t sr_mct             = 1ULL << 23;
+  const ull_t lepton_70          = 1ULL << 24;
   const ull_t m_cc               = 1ULL << 25;
   const ull_t tagged             = 1ULL << 26; 
   const ull_t double_tagged      = 1ULL << 27; 
@@ -64,6 +64,7 @@ namespace pass {
   const ull_t EF_e60_medium1     = 1ULL << 43;
 
   // compound trigger (include match)
+  // NOTE: these are saved to the output ntuples
   const ull_t met_trigger        = 1ULL << 44; 
   const ull_t two_el_trigger     = 1ULL << 45; 
   const ull_t two_mu_trigger     = 1ULL << 46; 
@@ -83,6 +84,9 @@ namespace pass {
   const ull_t met150             = 1ULL << 57;
   const ull_t j1_50              = 1ULL << 58;
   const ull_t j2_50              = 1ULL << 59;
+  const ull_t mass_t             = 1ULL << 60;
+  const ull_t mass_ll_z          = 1ULL << 61;
+  const ull_t mass_ll_t          = 1ULL << 62;
 }
 
 #endif

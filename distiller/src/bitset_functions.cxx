@@ -1,5 +1,6 @@
 #include "bitset_functions.hh"
 #include "constants_distiller.hh"
+#include "constants_z.hh"
 #include "Jets.hh"
 #include "Leptons.hh"
 #include "EventBits.hh"
@@ -35,10 +36,13 @@ namespace bits {
 
     const auto n_el = obj.after_overlap_electrons.size();
     const auto n_mu = obj.after_overlap_muons.size();
-    if (n_el == 0) pass_bits |= pass::electron_veto;
-    if (n_mu == 0) pass_bits |= pass::muon_veto; 
-    if (n_el + n_mu == 1) pass_bits |= pass::one_lepton;
-    if (n_el + n_mu == 2) pass_bits |= pass::two_lepton;
+    const auto n_sig_el = obj.control_electrons.size();
+    const auto n_sig_mu = obj.control_muons.size();
+    const auto total_sig_leptons = n_sig_el + n_sig_mu;
+    if (total_sig_leptons == n_el + n_mu) pass_bits |= pass::lepton_veto;
+    if (total_sig_leptons == 0) pass_bits |= pass::zero_lepton; 
+    if (total_sig_leptons == 1) pass_bits |= pass::one_lepton;
+    if (total_sig_leptons == 2) pass_bits |= pass::two_lepton;
     if (obj.veto_jets.size() == 0) pass_bits |= pass::jet_clean; 
 
     pass_bits |= trigger_match_bits(obj.control_electrons, 
@@ -117,6 +121,11 @@ namespace bits {
       bool os = (el.at(0)->charge() * el.at(1)->charge()) < 0; 
       if (os) pass_bits |= pass::ossf; 
     }
+
+    double max_pt = std::max(n_el ? el.at(0)->Pt() : 0.0, 
+			     n_mu ? mu.at(0)->Pt() : 0.0);
+    if (max_pt > 70*GeV) pass_bits |= pass::lepton_70;
+
     return pass_bits; 
   }
 
@@ -132,8 +141,13 @@ namespace bits {
     if (par.met_eff > MET_EFF_MIN) pass_bits |= pass::met_eff; 
 
     if (par.mass_ct > SR_MCT_MIN) pass_bits |= pass::sr_mct; 
-    if (par.mass_ct > CROF_MCT_MIN) pass_bits |= pass::crof_mct; 
     if (par.mass_cc > M_CC_MIN) pass_bits |= pass::m_cc; 
+    if (M_T_MIN < par.mass_t && par.mass_t < M_T_MAX ) { 
+      pass_bits |= pass::mass_t;
+    }
+    float z_diff = std::abs(par.mass_ll - Z_MASS);
+    if (z_diff < Z_MASS_WINDOW) pass_bits |= pass::mass_ll_z;
+    if (par.mass_ll > M_LL_MIN) pass_bits |= pass::mass_ll_t;
 
     return pass_bits; 
   }
