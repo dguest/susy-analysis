@@ -55,6 +55,7 @@ def _add_build_parser(subs):
         help=('either a textfile of datasets'
               ' or an existing meta file ({})'.format(d)))
     parser.add_argument('--susy-lookup', help=d)
+    parser.add_argument('-t', '--from-textfile')
     parser.add_argument('-m','--mc', action='store_true', 
                         help='generate fresh mc file from Will\'s ds')
     parser.add_argument('--jets', action='store_true', 
@@ -69,10 +70,6 @@ def _add_build_parser(subs):
     parser.add_argument('--scharm-ext', action='store_true')
     parser.add_argument('-l', '--add-overlap', action='store_true', 
                         help=find_overlap.__doc__)
-
-    ami_mode = parser.add_mutually_exclusive_group()
-    ami_mode.add_argument('--update-ami', action='store_true')
-    ami_mode.add_argument('--rewrite-ami', action='store_true')
 
     parser.add_argument('-d','--dump', action='store_true')
     parser.add_argument(
@@ -158,8 +155,8 @@ def build(args):
     if args.stop: 
         build_stop_file(args.steering_file)
 
-    if args.update_ami or args.rewrite_ami: 
-        update(args.steering_file, overwrite=args.rewrite_ami)
+    if args.from_textfile: 
+        build_from_textfile(args.steering_file, args.from_textfile)
 
     if args.susy_lookup: 
         mf = MetaFactory(args.steering_file)
@@ -195,27 +192,6 @@ def find_overlap(name):
     with DatasetCache(name) as ds_cache: 
         overlap.clear_overlap_info(ds_cache)
         overlap_tool.add_overlap_info(ds_cache)
-        
-
-def update(name, overwrite=False): 
-    from stop.lookup.ami import AmiAugmenter
-    aug = AmiAugmenter('p1328', 'mc12_8TeV', backup_ptag='p1181')
-    aug.bugstream = TemporaryFile()
-    with DatasetCache(name) as ds_cache: 
-        for key, ds in ds_cache.iteritems(): 
-            if not ds.is_data: 
-                required = [
-                    ds.filteff, 
-                    ds.total_xsec_fb, 
-                    ]
-                if not all(required) or overwrite:
-                    sys.stdout.write('updating {}...'.format(ds.full_name))
-                    success = aug.update_ds(ds, overwrite)
-                    if success: 
-                        sys.stdout.write('success\n')
-                    else: 
-                        sys.stdout.write('failed\n')
-    dumpbugs(aug)
 
 def dumpbugs(aug, bugslog='ami-bugs.log'): 
     if aug.bugstream.tell(): 
@@ -225,6 +201,21 @@ def dumpbugs(aug, bugslog='ami-bugs.log'):
                 bugs.write(line)
         sys.stderr.write('wrote bugs to {}\n'.format(bugslog))
 
+def build_from_textfile(name, textfile): 
+    from scharm.lookup.ami import AmiAugmenter
+    aug = AmiAugmenter('p1512', 'mc12_8TeV')
+    aug.bugstream = TemporaryFile()
+    ds_cache = DatasetCache(name)
+    with open(textfile) as datasets: 
+        for line in datasets:
+            print 'looking up {}'.format(line.strip())
+            ldn = line.strip().rstrip('/')
+            new_meta = aug.ds_from_ldn(ldn)
+            ds_cache[new_meta.key] = new_meta
+    ds_cache.write()
+    dumpbugs(aug, 'textin-warn.log')
+    
+
 def build_will_file(name): 
     from scharm.lookup.ami import AmiAugmenter
     from scharm.runtypes import wills_samples
@@ -232,7 +223,7 @@ def build_will_file(name):
     wills_types = [
         (k.split('_')[0], v) for k,v in wills_samples.items() 
         if k not in do_not_use]
-    aug = AmiAugmenter('p1328', 'mc12_8TeV')
+    aug = AmiAugmenter('p1512', 'mc12_8TeV')
     aug.bugstream = TemporaryFile()
     ds_cache = DatasetCache(name)
     for phys_type, ids in wills_types: 

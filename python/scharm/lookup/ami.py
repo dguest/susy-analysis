@@ -69,7 +69,7 @@ class AmiAugmenter(object):
                         ds_dict[ds.key] = largest_ds[0]
                     else: 
                         raise DatasetOverwriteError(
-                            "tried to overwrite {}, {} with {}".format(
+                            "tried to overwrite {},\n{} with \n{}".format(
                                 ds.key, ds.full_name, 
                                 ds_dict[ds.key].full_name))
                 else: 
@@ -94,65 +94,16 @@ class AmiAugmenter(object):
 
         for match in match_sets: 
             ldn = _ldn(match)
-            info = query.get_dataset_info(self.client, ldn)
-            ds = meta.Dataset(ldn)
-            self._write_ami_info(ds, info)
-            if not ds.is_data: 
-                self._write_mc_ami_info(ds, info)
-                ds.physics_type = 'data'
-            yield ds
+            yield self.ds_from_ldn(ldn)
 
-    def update_ds(self, ds, overwrite=True): 
-        if ds.is_data: 
-            args = {'run':str(ds.id)}
-        else: 
-            args = {'dataset_number':str(ds.id)}
-
-        match_sets = query.get_datasets(self.client,'%', **args)
-        primary_matches = []
-        secondary_matches = []
-        for match in match_sets: 
-            ldn = _ldn(match)
-            if ldn.endswith(self.p_tag) and self.ntup_filter in ldn: 
-                primary_matches.append(_ldn(match))
-            if ldn.endswith(self.backup_ptag) and self.ntup_filter in ldn: 
-                secondary_matches.append(_ldn(match))
-
-        if len(primary_matches) > 1: 
-            exact = [m for m in primary_matches if m == ds.full_name]
-            if len(exact) == 1: 
-                primary_matches = exact
-            else: 
-                raise DatasetMatchError(
-                    'problem matching {} with {}'.format(
-                        ds.key, self.p_tag), primary_matches)
-        info = query.get_dataset_info(self.client, primary_matches[0])
-        
-        def add_info(ds): 
-            checks = [ 
-                not ds.n_expected_entries and 'totalEvents' in info.info, 
-                not ds.filteff and 'approx_GenFiltEff' in info.extra, 
-                not ds.total_xsec_fb and 'approx_crossSection' in info.extra, 
-                ]
-            if any(checks) or overwrite: 
-                self._write_ami_info(ds, info)
-                if not ds.is_data: 
-                    self._write_mc_ami_info(ds, info, overwrite)
-                return True
-            else: 
-                return False
-                
-        added = add_info(ds)
-        if added: 
-            return True
-        if not secondary_matches: 
-            return False
-        if len(secondary_matches) > 1: 
-            raise DatasetMatchError('problem matching {} with {}'.format(
-                    ds.key, self.p_tag), secondary_matches)
-        info = query.get_dataset_info(self.client, secondary_matches[0])
-        added = add_info(ds)
-        return added
+    def ds_from_ldn(self, ldn): 
+        info = query.get_dataset_info(self.client, ldn)
+        ds = meta.Dataset(ldn)
+        self._write_ami_info(ds, info)
+        if not ds.is_data: 
+            self._write_mc_ami_info(ds, info)
+            ds.physics_type = 'data'
+        return ds
 
     def get_datasets_year(self, year=12, stream=None): 
         datasets = {}
@@ -321,9 +272,23 @@ def _largest_fullsim_filter(*datasets):
             largest.append(ds)
     return largest
 
+def _largest_etag_finder(*datasets): 
+    etag_finder = re.compile('\.e([0-9]+)')
+    largest_number = 0
+    largest_ds = []
+    for ds in datasets: 
+        ldn = ds.full_name
+        etag = int(etag_finder.search(ldn).group(1))
+        if etag > largest_number: 
+            largest_ds = [ds]
+            largest_number = etag
+        elif etag == largest_number: 
+            largest_ds.append(ds)
+    return largest_ds
+
 def _filter_for_largest_tags(*datasets): 
     ds_list = datasets
-    filters = [_largest_s_tag_filter, _largest_s_tag_filter]
+    filters = [_largest_s_tag_filter, _largest_etag_finder]
     for filt in filters: 
         ds_list = filt(*ds_list)
     return ds_list
