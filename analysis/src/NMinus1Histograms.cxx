@@ -248,7 +248,6 @@ namespace nminus {
 	  {MET_EFF, {MET_EFF_MIN, INFINITY} },
 	  {MCC, {M_CC_MIN, INFINITY} },
 	  {DPHI, {MIN_DPHI_JET_MET, INFINITY} },
-	  {jpt(2), {-INFINITY, SIGNAL_JET_3_MAX_PT} },
 	}); 
       add_tagging_cuts(sel);
       return sel; 
