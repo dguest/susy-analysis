@@ -69,7 +69,7 @@ def _add_build_parser(subs):
     parser.add_argument('--scharm', action='store_true')
     parser.add_argument('--scharm-ext', action='store_true')
     parser.add_argument('-l', '--add-overlap', action='store_true', 
-                        help=find_overlap.__doc__)
+                        help=(find_overlap.__doc__ + find_type.__doc__))
 
     parser.add_argument('-d','--dump', action='store_true')
     parser.add_argument(
@@ -167,6 +167,7 @@ def build(args):
 
     if args.add_overlap: 
         find_overlap(args.steering_file)
+        find_type(args.steering_file)
     
     if args.write_steering: 
         found, missing = get_ds_lists(args.steering_file)
@@ -178,6 +179,8 @@ def build(args):
             for ds in found: 
                 st.write(ds.strip('/') + '/\n')
         return 
+
+_wills_composites = {'top_samples','Wjets_samples','Zjets_samples'}
 
 def find_overlap(name): 
     """
@@ -192,6 +195,25 @@ def find_overlap(name):
     with DatasetCache(name) as ds_cache: 
         overlap.clear_overlap_info(ds_cache)
         overlap_tool.add_overlap_info(ds_cache)
+
+def find_type(name): 
+    """
+    Adds types to the datasets
+
+    """
+    from scharm.runtypes import wills_samples
+    labels = {}
+    for label, samples in wills_samples.iteritems():
+        if label in _wills_composites: 
+            continue
+        for sample in samples: 
+            labels[sample] = label.split('_')[0]
+    with DatasetCache(name) as ds_cache:
+        for key, ds in ds_cache.iteritems(): 
+            if key[0] in 'jem': 
+                ds.physics_type = ''
+            else: 
+                ds.physics_type = labels.get(int(key[1:]), 'unknown')
 
 def dumpbugs(aug, bugslog='ami-bugs.log'): 
     if aug.bugstream.tell(): 
@@ -215,11 +237,10 @@ def build_from_textfile(name, textfile):
     ds_cache.write()
     dumpbugs(aug, 'textin-warn.log')
     
-
 def build_will_file(name): 
     from scharm.lookup.ami import AmiAugmenter
     from scharm.runtypes import wills_samples
-    do_not_use = {'top_samples','Wjets_samples','Zjets_samples'}
+    do_not_use = _wills_composites
     wills_types = [
         (k.split('_')[0], v) for k,v in wills_samples.items() 
         if k not in do_not_use]

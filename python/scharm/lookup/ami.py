@@ -102,7 +102,6 @@ class AmiAugmenter(object):
         self._write_ami_info(ds, info)
         if not ds.is_data: 
             self._write_mc_ami_info(ds, info)
-            ds.physics_type = 'data'
         return ds
 
     def get_datasets_year(self, year=12, stream=None): 
