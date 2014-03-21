@@ -486,7 +486,6 @@ void StopDistiller::setup_cutflow(CutflowType cutflow) {
     m_cutflow->add("cosmic_muon" , pass::cosmic_muon); 
     m_cutflow->add("bad_muon"    , pass::bad_muon); 
     m_cutflow->add("ossf"           , pass::ossf    );
-    m_cutflow->add("two_lepton"        , pass::two_lepton);
     m_cutflow->add("lepton_veto"        , pass::lepton_veto);
     m_cutflow->add("chf_cut"     , pass::jet_chf); 
     m_cutflow->add("met_100" , pass::met100    );

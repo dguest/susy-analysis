@@ -34,12 +34,12 @@ namespace bits {
     pass_bits |= control_lepton_bits(obj.control_electrons, 
 				     obj.control_muons); 
 
-    const auto n_el = obj.after_overlap_electrons.size();
-    const auto n_mu = obj.after_overlap_muons.size();
-    const auto n_sig_el = obj.control_electrons.size();
-    const auto n_sig_mu = obj.control_muons.size();
-    const auto total_sig_leptons = n_sig_el + n_sig_mu;
-    if (total_sig_leptons == n_el + n_mu) pass_bits |= pass::lepton_veto;
+    const int n_el = obj.after_overlap_electrons.size();
+    const int n_mu = obj.after_overlap_muons.size();
+    const int n_sig_el = obj.control_electrons.size();
+    const int n_sig_mu = obj.control_muons.size();
+    const int total_sig_leptons = n_sig_el + n_sig_mu;
+    if (n_el + n_mu == total_sig_leptons) pass_bits |= pass::lepton_veto;
     if (total_sig_leptons == 0) pass_bits |= pass::zero_lepton; 
     if (total_sig_leptons == 1) pass_bits |= pass::one_lepton;
     if (total_sig_leptons == 2) pass_bits |= pass::two_lepton;
