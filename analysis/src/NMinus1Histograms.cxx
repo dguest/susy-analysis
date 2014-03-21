@@ -258,7 +258,6 @@ namespace nminus {
 	{
 	  {MT, {M_T_MIN, M_T_MAX} },
 	  {MCT, {SR_MCT_MIN, INFINITY} },
-	  {DPHI, {MIN_DPHI_JET_MET, INFINITY} },
 	});
       add_tagging_cuts(sel);
       return sel;
@@ -278,7 +277,6 @@ namespace nminus {
       sel.insert(
 	{
 	  {MLL, {M_LL_MIN, INFINITY} },
-	  {DPHI, {MIN_DPHI_JET_MET, INFINITY} },
 	});
       add_tagging_cuts(sel);
       return sel; 
