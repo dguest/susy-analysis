@@ -20,7 +20,6 @@
 #include "TruthMetFilter.hh"
 #include "BosonPtReweighter.hh"
 #include "CheckSize.hh"
-#include "PileupReweighting.hh"
 #include "CutCounter.hh"
 
 #include "cutflag.hh"
@@ -73,8 +72,7 @@ StopDistiller::StopDistiller(const std::vector<std::string>& in,
   m_btag_calibration(0), 
   m_boson_truth_filter(0), 
   m_truth_met_filter(0), 
-  m_boson_pt_reweighter(0), 
-  m_prw(0)
+  m_boson_pt_reweighter(0)
 { 
   gErrorIgnoreLevel = kError;
   check_flags(); 
@@ -118,10 +116,6 @@ StopDistiller::~StopDistiller() {
   delete m_boson_truth_filter; 
   delete m_truth_met_filter; 
   delete m_boson_pt_reweighter; 
-  if (m_flags & cutflag::generate_pileup && m_prw) { 
-    m_prw->write_to(m_info.pu_config); 
-  }
-  delete m_prw; 
 }
 
 StopDistiller::Cutflow StopDistiller::run_cutflow() { 
@@ -217,11 +211,11 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   // SUSYObjDef requires that leptons are filled before met
   m_def->Reset(); 
     
-  EventObjects obj(*m_susy_buffer, *m_def, m_flags, m_info); 
+  EventObjects obj(*m_susy_buffer, *m_def, m_flags, m_info, 
+		   *m_event_preselector); 
   obj.do_overlap_removal(*m_object_counter); 
   // ---- must calibrate signal jets for b-tagging ----
   calibrate_jets(obj.signal_jets, m_btag_calibration); 
-  obj.pileup_weight = get_pileup_weight(); 
 
   const Mets mets(*m_susy_buffer, *m_def, obj.susy_muon_idx, 
 		  sum_muon_pt(obj.control_muons), 
@@ -245,14 +239,14 @@ void StopDistiller::fill_event_output(const EventObjects& obj,
 				      outtree::OutTree& out_tree, 
 				      BitmapCutflow* cutflow) const { 
 
-  const float pileup_weight = obj.pileup_weight; 
+  // ACHTUNG: this is saved as the pileup weight, should fix that...
+  const float combined_mc_wt = obj.prec.pileup_weight * obj.prec.trigger_sf; 
 
   const ObjectComposites par(obj, met); 
   // ----- object selection is done now, from here is filling outputs ---
 
   // --- fill bits ---
-  ull_t pass_bits = m_event_preselector->get_preselection_flags(
-    *m_susy_buffer, *m_def); 
+  ull_t pass_bits = obj.prec.bits;
   pass_bits |= bits::object_composit_bits(par); 
   pass_bits |= bits::event_object_bits(obj); 
   pass_bits |= bits::met_bits(met); 
@@ -267,7 +261,7 @@ void StopDistiller::fill_event_output(const EventObjects& obj,
 
   out_tree.pass_bits = pass_bits; 
   out_tree.event_number = m_susy_buffer->EventNumber; 
-  out_tree.pileup_weight = pileup_weight; 
+  out_tree.pileup_weight = combined_mc_wt; 
 
   // main event copy function 
   copy_event(obj, par, met, out_tree); 
@@ -366,13 +360,10 @@ void StopDistiller::setup_susytools() {
   m_def->initialize(m_flags & cutflag::is_data, 
 		    m_flags & cutflag::is_atlfast); 
 
-  m_event_preselector = new EventPreselector(m_flags, m_info.grl); 
+  m_event_preselector = new EventPreselector(m_flags, m_info); 
   m_btag_calibration = new BtagCalibration(m_info.btag_cal_file, 
 					   m_info.btag_cal_dir); 
 
-  if (m_flags & cutflag::truth && m_info.pu_config.size() > 0) { 
-    m_prw = new PileupReweighting(m_info, m_flags); 
-  }
   dup2(output_dup, fileno(stdout)); 
   close(output_dup); 
 }
@@ -530,11 +521,6 @@ void StopDistiller::setup_cutflow(CutflowType cutflow) {
  
 namespace { 
 }
-float StopDistiller::get_pileup_weight() { 
-  if (!m_prw) return 1.0; 
-  return m_prw->get_pileup_weight(*m_susy_buffer); 
-}
-
 
 void StopDistiller::print_progress(int entry_n, std::ostream& stream) { 
   if (m_one_percent) { 

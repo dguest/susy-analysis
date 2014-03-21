@@ -2,7 +2,9 @@
 #define EVENT_OBJECTS_HH
 
 // this is supposed to give us all the jets and leptons we need
-#include<vector>
+#include <vector>
+
+#include "PreselectionInfo.hh"
 
 class SusyBuffer; 
 class SUSYObjDef; 
@@ -14,9 +16,11 @@ class CutCounter;
 class EventJets; 
 class EventMuons; 
 class EventElectrons;
+class EventPreselector;
 
 struct EventObjects { 
-  EventObjects(const SusyBuffer&, SUSYObjDef& def, unsigned, const RunInfo&);
+  EventObjects(const SusyBuffer&, SUSYObjDef& def, unsigned, const RunInfo&, 
+    const EventPreselector&);
   EventObjects(EventObjects&) = delete; 
   EventObjects& operator=(EventObjects&) = delete; 
   ~EventObjects(); 
@@ -41,7 +45,7 @@ struct EventObjects {
   std::vector<int> susy_muon_idx; 
   std::vector<SelectedJet*> leading_jets; 
 
-  float pileup_weight; 
+  PreselectionInfo prec;
 private: 
   EventJets* m_all_jets; 
   EventElectrons* m_all_electrons; 

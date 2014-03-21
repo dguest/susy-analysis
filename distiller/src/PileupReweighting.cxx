@@ -29,6 +29,10 @@ PileupReweighting::~PileupReweighting() {
   m_prw = 0; 
 }
 
+unsigned PileupReweighting::random_run_number(unsigned mc_run) const { 
+  return m_prw->GetRandomRunNumber(mc_run);
+}
+
 float PileupReweighting::get_pileup_weight(const SusyBuffer& buffer) { 
   // apply hack from Will Butt's twiki: 
   // https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/ExtendedPileupReweighting#Recipe_A_MC12a_Pileup_Reweightin

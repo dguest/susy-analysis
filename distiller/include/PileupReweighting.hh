@@ -17,6 +17,7 @@ public:
   PileupReweighting& operator=(PileupReweighting&) = delete; 
   ~PileupReweighting(); 
   float get_pileup_weight(const SusyBuffer&); 
+  unsigned random_run_number(unsigned) const;
   void write_to(const std::string& file_name); 
 private: 
   Root::TPileupReweighting* m_prw; 

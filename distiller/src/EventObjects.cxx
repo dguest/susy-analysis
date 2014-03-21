@@ -5,12 +5,11 @@
 #include "RunInfo.hh"
 #include "constants_distiller.hh"
 #include "object_selection.hh"
-
+#include "EventPreselector.hh"
 
 EventObjects::EventObjects(
   const SusyBuffer& buf, SUSYObjDef& def, 
-  unsigned flags, const RunInfo& info): 
-  pileup_weight(-1), 		// externally set
+  unsigned flags, const RunInfo& info, const EventPreselector& presel): 
 
   m_all_jets(0), 
   m_all_electrons(0), 
@@ -20,6 +19,7 @@ EventObjects::EventObjects(
   m_all_electrons = new EventElectrons(buf, def, flags, info); 
   m_all_muons = new EventMuons(buf, def, flags, info); 
   
+  prec = presel.get_preselection_info(buf, def);
 }
 
 void EventObjects::do_overlap_removal(CutCounter& ob_counts) { 

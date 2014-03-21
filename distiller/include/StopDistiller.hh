@@ -22,7 +22,6 @@ class OutputFilter;
 class BosonTruthFilter; 
 class TruthMetFilter; 
 class BosonPtReweighter; 
-class PileupReweighting; 
 class TVector2; 
 
 class StopDistiller
@@ -48,7 +47,6 @@ private:
   void setup_outputs(); 
   void setup_cutflow(CutflowType config); 
 
-  float get_pileup_weight(); 
   std::vector<std::pair<std::string, int> > get_cutflow_vec(int errs) const; 
   // called within process_event
   void fill_event_output(const EventObjects&, const TVector2& met, 
@@ -79,8 +77,6 @@ private:
   BosonTruthFilter* m_boson_truth_filter; 
   TruthMetFilter* m_truth_met_filter; 
   BosonPtReweighter* m_boson_pt_reweighter; 
-
-  PileupReweighting* m_prw; 
 }; 
 
 #endif
