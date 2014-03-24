@@ -83,6 +83,7 @@ private:
   const ISelection* m_selection; 
   const unsigned m_build_flags; 
   bool m_make_lepton_plots;
+  bool m_make_dilep_plots;
 
   std::vector<nminus::NMinusHist> m_hists; 
 }; 

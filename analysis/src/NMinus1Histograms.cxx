@@ -103,11 +103,17 @@ NMinus1Histograms
   m_region_config(new RegionConfig(config)), 
   m_selection(nminus::selection_factory(config)), 
   m_build_flags(flags), 
-  m_make_lepton_plots(false)
+  m_make_lepton_plots(false), 
+  m_make_dilep_plots(false)
 { 
-  std::set<reg::Selection> lepton_regions {
-    reg::Selection::CR_1L, reg::Selection::CR_SF, reg::Selection::CR_DF};
+  std::set<reg::Selection> onelep_regions {reg::Selection::CR_1L};
+  std::set<reg::Selection> dilep_regions { 
+    reg::Selection::CR_SF, reg::Selection::CR_DF, reg::Selection::CR_Z};
+  auto lepton_regions(onelep_regions);
+  lepton_regions.insert(dilep_regions.begin(), dilep_regions.end());
+
   if (lepton_regions.count(config.selection)) m_make_lepton_plots = true;
+  if (dilep_regions.count(config.selection)) m_make_dilep_plots = true;
 
   using namespace nminus;
   const auto sel = get_selections(config); 
@@ -125,8 +131,10 @@ NMinus1Histograms
   
   if (m_make_lepton_plots) { 
     m_hists.emplace_back(Axis{LLPT, N_BINS, 0.0, 500_GeV, EUNIT}, sel);
-    m_hists.emplace_back(Axis{MLL, N_BINS, 0.0, 500_GeV, EUNIT}, sel);
     m_hists.emplace_back(Axis{MT, N_BINS, 0.0, 500_GeV, EUNIT}, sel);
+  }
+  if (m_make_dilep_plots) { 
+    m_hists.emplace_back(Axis{MLL, N_BINS, 0.0, 500_GeV, EUNIT}, sel);
   }
 }
 
@@ -177,9 +185,9 @@ void NMinus1Histograms::fill(const EventObjects& obj) {
   insert_jets(obj.jets, values);
 
   if (m_make_lepton_plots) { 
-    values.insert( { 
-	{LLPT, reco.max_lepton_pt}, {MT, reco.mt}, {MLL, reco.mll} } );
+    values.insert( { {LLPT, reco.max_lepton_pt}, {MT, reco.mt} } );
   }
+  if (m_make_dilep_plots) values.insert({ { MLL, reco.mll} });
   for (auto& hist: m_hists) { 
     hist.fill(values, weight);
   }
