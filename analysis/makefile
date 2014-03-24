@@ -76,6 +76,7 @@ GEN_OBJ     += RegionEventFilter.o
 GEN_OBJ     += QualityEventSelection.o
 GEN_OBJ     += SignalSelection.o CR1LSelection.o 
 GEN_OBJ     += OSDFSelection.o OSSFSelection.o
+GEN_OBJ     += CRZSelection.o
 
 GEN_OBJ     += OrderedJetTagFilter.o UnorderedJetTagFilter.o
 

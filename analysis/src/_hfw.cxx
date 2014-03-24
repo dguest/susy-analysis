@@ -126,6 +126,7 @@ static bool safe_copy(PyObject* value, reg::Selection& dest) {
   NAME_TO_PREFIXED(Selection, SIGNAL); 
   NAME_TO_PREFIXED(Selection, CR_1L); 
   NAME_TO_PREFIXED(Selection, CR_SF); 
+  NAME_TO_PREFIXED(Selection, CR_Z); 
   NAME_TO_PREFIXED(Selection, CR_DF); 
   NAME_TO_PREFIXED(Selection, QUALITY_EVENT); 
 

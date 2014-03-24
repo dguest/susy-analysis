@@ -5,6 +5,7 @@
 #include "CR1LSelection.hh"
 #include "OSDFSelection.hh"
 #include "OSSFSelection.hh"
+#include "CRZSelection.hh"
 #include "QualityEventSelection.hh"
 #include "typedefs.hh"
 #include "RegionConfig.hh"
@@ -262,6 +263,7 @@ namespace nminus {
       add_tagging_cuts(sel);
       return sel;
     } 
+    case reg::Selection::CR_Z: 	// intentional fallthrough
     case reg::Selection::CR_SF: { 
       using namespace crsf;
       sel.insert(
@@ -294,6 +296,7 @@ namespace nminus {
     case reg::Selection::SIGNAL: return new NMinusSignalSelection(cfg); 
     case reg::Selection::CR_1L: return new NMinusCR1LSelection(cfg);
     case reg::Selection::CR_SF: return new NMinusOSSFSelection(cfg);
+    case reg::Selection::CR_Z: return new NMinusCRZSelection(cfg);
     case reg::Selection::CR_DF: return new NMinusOSDFSelection(cfg);
     case reg::Selection::QUALITY_EVENT: return new QualityEventSelection(cfg);
     default: throw std::invalid_argument("unknown selection in " __FILE__);

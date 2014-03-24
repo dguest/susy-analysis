@@ -4,6 +4,8 @@
 #include "constants_scharmcuts.hh"
 #include "trigger_logic.hh"	// trig namespace
 
+#include <stdexcept>
+
 // _______________________________________________________________________
 // loose
 
@@ -49,6 +51,7 @@ OSDFSelection::~OSDFSelection() {
 }
 
 bool OSDFSelection::pass(const EventObjects& obj) const { 
+  throw std::logic_error("deprecated in " __FILE__);
 
   if (!m_nminus.pass(obj)) return false;
   

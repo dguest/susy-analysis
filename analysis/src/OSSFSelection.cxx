@@ -4,6 +4,8 @@
 #include "constants_scharmcuts.hh"
 #include "trigger_logic.hh"	// trig namespace
 
+#include <stdexcept>
+
 // _______________________________________________________________________
 // loose
 
@@ -27,8 +29,6 @@ bool NMinusOSSFSelection::pass(const EventObjects& obj) const {
 
   // check object counts
   if (reco.n_signal_jets < 2) return false; 
-  // veto el / mu are the same as preselected (may add isolation at 
-  // some point)
   if (reco.n_baseline_electrons + reco.n_baseline_muons != 2) return false;
 
   return true;
@@ -49,6 +49,7 @@ OSSFSelection::~OSSFSelection() {
 
 bool OSSFSelection::pass(const EventObjects& obj) const { 
 
+  throw std::logic_error("deprecated in " __FILE__);
   if (!m_nminus.pass(obj)) return false;
   const EventRecoParameters& reco = obj.reco; 
 

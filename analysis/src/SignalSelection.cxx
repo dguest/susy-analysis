@@ -4,6 +4,7 @@
 #include "constants_scharmcuts.hh"
 #include "trigger_logic.hh"
 
+#include <stdexcept>
 
 // ______________________________________________________________________
 // Looser version 
@@ -43,6 +44,7 @@ SignalSelection::~SignalSelection() {
 }
 
 bool SignalSelection::pass(const EventObjects& obj) const { 
+  throw std::logic_error("deprecated in " __FILE__);
 
   // call the above routine
   if (!m_nminus.pass(obj)) return false; 

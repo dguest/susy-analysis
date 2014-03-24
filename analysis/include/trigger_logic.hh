@@ -10,5 +10,6 @@ namespace trig {
   void throw_if_not_lepstream(reg::Stream);
   bool pass_single_lepton_trigger(const EventRecoParameters&, reg::Stream);
   bool pass_two_lepton_trigger(const EventRecoParameters&, reg::Stream);
+  bool pass_any_lepton_trigger(const EventRecoParameters&, reg::Stream);
 }
 #endif

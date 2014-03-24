@@ -8,6 +8,9 @@
 namespace { 
   // for debugging
   std::string stream_name(reg::Stream);
+  
+  // stream overlap removal logic
+  bool passes_overlap(reg::Stream, bool el_trig, bool mu_trig);
 }
 
 namespace trig {
@@ -31,22 +34,12 @@ namespace trig {
     }
   }
 
-
   // trigger for the W and t control regions
   bool pass_single_lepton_trigger(const EventRecoParameters& reco, 
 				  reg::Stream stream){
     bool mu_trig = reco.pass_single_mu_trigger;
     bool el_trig = reco.pass_single_el_trigger;
-    if (stream == reg::Stream::SIMULATED) { 
-      return mu_trig || el_trig;
-    }
-    if (stream == reg::Stream::MUON) { 
-      return mu_trig && !el_trig;
-    } else if (stream == reg::Stream::ELECTRON ) { 
-      return el_trig;
-    }
-    throw std::invalid_argument(
-      "lepton trig check doesnt do " + stream_name(stream));
+    return passes_overlap(stream, el_trig, mu_trig);
   }
 
   // trigger for the Z cr
@@ -54,16 +47,14 @@ namespace trig {
 			       reg::Stream stream){
     bool mu_trig = reco.pass_two_mu_trigger;
     bool el_trig = reco.pass_two_el_trigger;
-    if (stream == reg::Stream::SIMULATED) { 
-      return mu_trig || el_trig;
-    }
-    if (stream == reg::Stream::MUON) { 
-      return mu_trig && !el_trig;
-    } else if (stream == reg::Stream::ELECTRON ) { 
-      return el_trig;
-    }
-    throw std::invalid_argument(
-      "2 lepton trig check doesnt do " + stream_name(stream));
+    return passes_overlap(stream, el_trig, mu_trig);
+  }
+
+  bool pass_any_lepton_trigger(const EventRecoParameters& reco,
+			       reg::Stream stream){
+    bool mu_trig = reco.pass_two_mu_trigger || reco.pass_single_mu_trigger;
+    bool el_trig = reco.pass_two_el_trigger || reco.pass_single_el_trigger;
+    return passes_overlap(stream, el_trig, mu_trig);
   }
 
 }
@@ -82,4 +73,18 @@ namespace {
     }
   }
 #undef NAME_STREAM
+
+  bool passes_overlap(reg::Stream stream, bool el_trig, bool mu_trig) { 
+    if (stream == reg::Stream::SIMULATED) { 
+      return mu_trig || el_trig;
+    }
+    if (stream == reg::Stream::MUON) { 
+      return mu_trig && !el_trig;
+    } else if (stream == reg::Stream::ELECTRON ) { 
+      return el_trig;
+    }
+    throw std::invalid_argument(
+      "lepton trig check doesnt do " + stream_name(stream));
+  }
+
 }
