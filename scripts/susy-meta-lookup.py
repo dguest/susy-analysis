@@ -202,10 +202,24 @@ def find_type(name):
 
     """
     from scharm.runtypes import wills_samples
-    labels = {}
+    from scharm.runtypes import scharm as scharm_dict
+    used_samples = {}
+
+    # add background samples
     for label, samples in wills_samples.iteritems():
         if label in _wills_composites: 
             continue
+        used_samples[label] = samples
+
+    # add signal samples
+    signal_samples = set()
+    for rng in scharm_dict.itervalues():
+        signal_samples |= set(rng)
+    used_samples['signal'] = signal_samples
+
+    # invert the above dict so each dsid points to a label
+    labels = {}
+    for label, samples in used_samples.iteritems():
         for sample in samples: 
             labels[sample] = label.split('_')[0]
     with DatasetCache(name) as ds_cache:
