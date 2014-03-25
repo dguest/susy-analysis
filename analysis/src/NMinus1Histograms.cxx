@@ -108,7 +108,8 @@ NMinus1Histograms
 { 
   std::set<reg::Selection> onelep_regions {reg::Selection::CR_1L};
   std::set<reg::Selection> dilep_regions { 
-    reg::Selection::CR_SF, reg::Selection::CR_DF, reg::Selection::CR_Z};
+    reg::Selection::CR_SF, reg::Selection::CR_DF, reg::Selection::CR_Z, 
+      reg::Selection::QUALITY_EVENT};
   auto lepton_regions(onelep_regions);
   lepton_regions.insert(dilep_regions.begin(), dilep_regions.end());
 
@@ -134,7 +135,7 @@ NMinus1Histograms
     m_hists.emplace_back(Axis{MT, N_BINS, 0.0, 500_GeV, EUNIT}, sel);
   }
   if (m_make_dilep_plots) { 
-    m_hists.emplace_back(Axis{MLL, N_BINS, 0.0, 500_GeV, EUNIT}, sel);
+    m_hists.emplace_back(Axis{MLL, N_BINS, 0.0, 200_GeV, EUNIT}, sel);
   }
 }
 
