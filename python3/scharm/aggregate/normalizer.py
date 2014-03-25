@@ -143,12 +143,13 @@ class StatsCounter:
         found = hfile.attrs['total_events']
         self._expected_entries[phys_type] += expected
         self._found_entries[phys_type] += found
-    def write_to(self, out_file): 
+    def write_to(self, out_file, dump_all=False): 
         for phys_type, found in self._found_entries.items(): 
             expected = self._expected_entries[phys_type]
-            out_vals = dict(
-                ex=expected,
-                ra=(found / expected),
-                pt=phys_type, fo=found)
+            if found != expected or dump_all:
+                out_vals = dict(
+                    ex=expected,
+                    ra=(found / expected),
+                    pt=phys_type, fo=found)
                             
-            out_file.write(self.out_str.format(**out_vals))
+                out_file.write(self.out_str.format(**out_vals))
