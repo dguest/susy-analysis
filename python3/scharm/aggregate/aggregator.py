@@ -88,6 +88,10 @@ class SampleAggregator:
     histograms. 
     """
 
+    # the sum(weight^2) histograms have a special tag that tells 
+    # us to multiply by the squared normalization
+    wt2_tag = 'Wt2'
+
     def __init__(self,meta_path, hfiles, variables): 
         self._normalizer = Normalizer(meta_path, hfiles)
         self.variables = variables
@@ -124,7 +128,8 @@ class SampleAggregator:
                 else: 
                     variables = self.variables
                 for variable in variables:
-                    if variable.endswith('Wt2'): 
+                    # the sum(weight^2) histograms have a special tag
+                    if variable.endswith(self.wt2_tag): 
                         wt_norm = normalization**2
                     else: 
                         wt_norm = normalization
