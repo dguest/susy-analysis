@@ -5,6 +5,7 @@ RegionConfig::RegionConfig() :
   selection(reg::Selection::ERROR), 
   jet_tag_assignment(btag::Assignment::ERROR), 
   leading_jet_pt(0), 
+  second_jet_pt(0),
   met(0), 
   systematic(syst::NONE), 
   output_name(""), 

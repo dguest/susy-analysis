@@ -135,7 +135,7 @@ NMinus1Histograms
     m_hists.emplace_back(Axis{MT, N_BINS, 0.0, 500_GeV, EUNIT}, sel);
   }
   if (m_make_dilep_plots) { 
-    m_hists.emplace_back(Axis{MLL, N_BINS, 0.0, 200_GeV, EUNIT}, sel);
+    m_hists.emplace_back(Axis{MLL, 200, 0.0, 200_GeV, EUNIT}, sel);
   }
 }
 
@@ -230,17 +230,17 @@ namespace nminus {
     
     // basic kinematics
     std::map<std::string, Selection> sel = {
-      {jpt(0), {cfg.leading_jet_pt, INFINITY} } , 
-      {MET, {cfg.met, INFINITY} }, 
-    }; 
-    return sel; 
+      {jpt(0), {cfg.leading_jet_pt, INFINITY} },
+      {jpt(1), {cfg.second_jet_pt, INFINITY} },
+      {MET, {cfg.met, INFINITY} },
+    };
+    return sel;
   }
   void add_tagging_cuts(std::map<std::string, Selection>& sel) {
-    // add tagging cuts
+    // add tagging cuts (use of `insert` prevents overwrite)
     for (auto jn: {0,1} ) { 
       const auto& antib = btag::JFC_MEDIUM_ANTI_B_CUT; 
       const auto& antiu = btag::JFC_MEDIUM_ANTI_U_CUT; 
-      sel.insert({jpt(jn), {JET_PT_MIN, INFINITY}});
       sel.insert({jeta(jn), {-btag::TAG_ETA, btag::TAG_ETA}});
       sel.insert({jantib(jn), {antib, INFINITY} }); 
       sel.insert({jantiu(jn), {antiu, INFINITY} }); 

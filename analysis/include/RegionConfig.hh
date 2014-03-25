@@ -14,6 +14,7 @@ struct RegionConfig
   std::vector<btag::OperatingPoint> jet_tag_requirements; 
   btag::Assignment jet_tag_assignment; 
   double leading_jet_pt; 
+  double second_jet_pt;
   double met;  
   syst::Systematic systematic; 
   std::string output_name; 

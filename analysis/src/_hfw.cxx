@@ -74,7 +74,8 @@ static bool safe_copy(PyObject* dict, RegionConfig& region)
   REQUIRE(stream);
   
   COPY(systematic); 
-  COPY(leading_jet_pt); 
+  REQUIRE(leading_jet_pt); 
+  REQUIRE(second_jet_pt); 
   COPY(met);
   COPY(jet_tag_requirements); 
   COPY(hists); 
