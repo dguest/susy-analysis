@@ -298,6 +298,35 @@ class Hist1d(object):
         self.color = ''
         self.selection = None
 
+    def _get_bindexer(self, warn_threshold=0.001, err_threshold=0.001):
+        """
+        returns a function that finds bin index for a given x value
+        """
+        if self._prebin_array is None:
+            arr = self._array
+        else: 
+            arr = self._prebin_array
+        npts = arr.size - 1 # n non-overflow bins + 1
+        xpts = np.linspace(*self.extent, num=npts)
+
+        def bindex(value): 
+            if value == np.inf: 
+                return arr.size
+            if value == -np.inf: 
+                return 0
+            idx = np.abs(xpts - value).argmin()
+            rel_err = abs( (xpts[idx] - value) / (xpts[-1] - xpts[0]))
+            if rel_err > warn_threshold or warn_threshold > err_threshold:
+                wstr = "bad binning in {}: target {} != {}".format(
+                    self.title, value, xpts[idx])
+                if rel_err > err_threshold:
+                    raise ValueError(wstr)
+                else: 
+                    warn(wstr)
+                    
+            return idx + 1
+        return bindex
+
     def __float__(self): 
         # if there's a selection, we only return the sum of the selected
         if self.selection:
@@ -305,26 +334,9 @@ class Hist1d(object):
                 arr = self._array
             else: 
                 arr = self._prebin_array
-            npts = arr.size - 1 # n non-overflow bins + 1
-            xpts = np.linspace(*self.extent, num=npts)
 
-            def bindex(value): 
-                if value == np.inf: 
-                    return arr.size
-                if value == -np.inf: 
-                    return 0
-                idx = np.abs(xpts - value).argmin()
-                rel_err = abs( (xpts[idx] - value) / (xpts[-1] - xpts[0]))
-                if rel_err > 0.001:
-                    wstr = "bad binning in {}: target {} != {}".format(
-                        self.title, value, xpts[idx])
-                    if rel_err > 0.1:
-                        raise ValueError(wstr)
-                    else: 
-                        warn(wstr)
-                        
-                return idx + 1
             slow, shigh = self.selection
+            bindex = self._get_bindexer()
             return arr[bindex(slow):bindex(shigh)].sum()
 
         return self._array.sum()
@@ -369,12 +381,30 @@ class Hist1d(object):
 
     def scale(self, factor): 
         self._array = self._array * factor
-    def rebin(self, n_bins): 
+
+    def rebin(self, max_bins): 
+        n_bins = self._array.size - 2
+        if n_bins < max_bins:
+            return
+
         # grab the prebin array if we've already rebinned before
-        if self._prebin_array: 
+        if self._prebin_array is not None: 
             self._array = self._prebin_array
         else: 
             self._prebin_array = self._array
+        binbase = np.arange(2,16)
+        rebin_numbers = np.concatenate([binbase*10**x for x in (0,1,2,3)])
+        # find the maximum numbers by which the current number is divisible
+        int_rebin = (n_bins % rebin_numbers == 0) 
+        # and the numbers which give less than the max number of bins
+        under_max = (n_bins // rebin_numbers < max_bins)
+        valid_rebins = int_rebin & under_max
+        if not valid_rebins.any():
+            return
+        n_bins = rebin_numbers[int_rebin & under_max].min()
+        self._rebin(n_bins)
+
+    def _rebin(self, n_bins): 
         center_bins = self._array[1:-1]
         n_old = len(center_bins)
         if not n_old % n_bins == 0: 
@@ -387,8 +417,22 @@ class Hist1d(object):
         newhist[-1] = self._array[-1]
         self._array = newhist
 
-    def crop(self, low=None, high=None): 
-        warn("this doesn't do anything right now...", stacklevel=2)
+    def crop(self, low=-np.inf, high=np.inf): 
+        bindex = self._get_bindexer()
+        if self._prebin_array is not None: 
+            warn("throwing away binning by cropping, fixme", stacklevel=2)
+            self._array = self._prebin_array
+        uf, center, of = np.split(self._array, [bindex(low), bindex(high)])
+        # the under and overflows may be included in 'center', in which 
+        # case we don't want to add them to the new array. So we use crunch.
+        def crunch(arr):
+            """like sum, but keeps zero-sized arrays zero-sized"""
+            if arr.size > 0:
+                return np.array([arr.sum()])
+            return np.array([])
+        new_arr = np.concatenate([crunch(uf), center, crunch(of)])
+        self._array = self._prebin_array = new_arr
+        self.extent = (low, high)
         
     def average_bins(self, bins): 
         """

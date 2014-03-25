@@ -34,10 +34,15 @@ class HistConverter(object):
         self.lumi_fb = misc_info['lumi_fb']
         self.appended_evt_str = r': {:.1f} Evt'
 
-    def h1dict_from_histn(self, pvc, histn): 
+    def h1dict_from_histn(self, pvc, histn):
+        """
+        for hists with any number of dims.
+        If n_dim > 1, project along each axis.
+        """
         physics, variable, cut = pvc
         hdict = {}
         if len(histn.axes) == 1: 
+            # for the simple case call the simple 1d formatter
             hdict[pvc] = self.hist1_from_histn(pvc, histn=histn)
             return hdict
         for ax_name, axis in histn.axes.items(): 
@@ -97,7 +102,8 @@ class HistConverter(object):
         x_ax_lab = var_sty.tex_name
         return x_ax_lab, extent, var_sty.units
 
-    def _get_hist1(self, xy_tup, units, pvc, selection=None): 
+    def _get_hist1(self, xy_tup, units, pvc, selection=None):
+        """does all the formatting / axis scaling"""
         y_vals, extent = xy_tup
         physics, variable, cut = pvc
         x_label, extent, x_units = self._get_axislabel_extent(
@@ -108,10 +114,11 @@ class HistConverter(object):
     
         hist = Hist1d(y_vals, extent, x_label=x_label, x_units=x_units,
                       y_label='Events')
+        if variable in style.crop_vars: 
+            hist.crop(*style.crop_vars[variable])
         hist.selection = selection
-        n_center_bins = len(y_vals) - 2 
-        if n_center_bins > 50 and n_center_bins % 4 == 0: 
-            hist.rebin(4)
+        max_bins = style.rebinning.get(cut,30)
+        hist.rebin(max_bins=max_bins)
         try: 
             hist.color = style.type_dict[physics].color
             hist.title = style.type_dict[physics].tex

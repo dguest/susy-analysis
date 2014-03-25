@@ -1,4 +1,5 @@
 import re
+_inf = float('inf')
 # __________________________________________________________________________
 # sample / stack labeling stuff
 physics_labels = [
@@ -121,6 +122,25 @@ _ax_labels = {
     'mass_ll': VariableStyle('$m_{\ell \ell}$', 'GeV', (0,200)), 
     'mass_ct': VariableStyle('$m_{\mathrm{CT}}$', 'GeV'),
     }
+
+# _________________________________________________________________________
+# variable range cropping 
+# NOTE: this is "plot level" units, the cropping is done _after_ 
+#       units are converted
+crop_vars = { 
+    'mass_ll': (0, 200),
+    'j1_pt': (0, 500),
+    'j2_pt': (0, 200),
+}
+
+# ________________________________________________________________________
+# rebinning
+rebinning = {
+    'preselection':100,
+}
+
+# _________________________________________________________________________
+# misc things
 
 def event_label(lumi): 
     return r'Events / {:.1f} fb$^{{-1}}$'.format(lumi)
