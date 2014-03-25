@@ -128,7 +128,7 @@ _ax_labels = {
 # NOTE: this is "plot level" units, the cropping is done _after_ 
 #       units are converted
 crop_vars = { 
-    'mass_ll': (0, 200),
+    'mass_ll': (40, 140),
     'j1_pt': (0, 500),
     'j2_pt': (0, 200),
 }
