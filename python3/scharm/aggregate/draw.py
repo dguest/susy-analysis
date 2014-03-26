@@ -29,7 +29,7 @@ class Stack(object):
         self.canvas = FigureCanvas(self.fig)
         self.lumi = None
         self.ratio_max = 2.0
-        self.colors = list('mc') + ['purple', 'orange']
+        self.colors = list('kc') + ['purple', 'orange']
         self.y_min = None
         if not ratio:
             self.ax = self.fig.add_subplot(1,1,1)
@@ -128,7 +128,7 @@ class Stack(object):
             else: 
                 color = next(color_itr)
             style = color + '--'
-            plt_handle, = self.ax.plot(x_vals,y_vals,style, linewidth=2.0)
+            plt_handle, = self.ax.plot(x_vals,y_vals,style, linewidth=3.0)
             self._proxy_legs.append( (plt_handle, self._get_legstr(hist)))
 
     def _get_min_plotable(self, y_vals): 
