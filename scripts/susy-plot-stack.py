@@ -9,7 +9,7 @@ import sys
 def get_config(): 
     d = 'default: %(default)s'
     c = "with no argument is '%(const)s'"
-    def_pts = {'scharm-400-200', 'scharm-550-50'}
+    def_pts = ['scharm-400-200', 'scharm-550-50']
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('aggregate')
     parser.add_argument('steering_file', nargs='?')
@@ -63,7 +63,7 @@ def run_plotmill(args):
 
 def _get_signal_finder(signal_points): 
     if signal_points: 
-        signal_head = list(signal_points)[0].split('-')[0]
+        signal_head = signal_points[0].split('-')[0]
         def needed(tup): 
             phys = tup[0]
             if not phys.startswith(signal_head): 
