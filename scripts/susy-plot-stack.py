@@ -9,7 +9,7 @@ import sys
 def get_config(): 
     d = 'default: %(default)s'
     c = "with no argument is '%(const)s'"
-
+    def_pts = {'scharm-400-200', 'scharm-550-50'}
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('aggregate')
     parser.add_argument('steering_file', nargs='?')
@@ -18,7 +18,7 @@ def get_config():
     parser.add_argument(
         '--filt', help='not really sure what this does... should fix it')
     parser.add_argument(
-        '-s','--signal-point', default='scharm-400-200', 
+        '-s','--signal-points', default=def_pts, nargs='+',
         help="assumes <particle>-<something> type name, " + d)
     parser.add_argument(
         '--ext', help='plot extensions, ' + d, default='.pdf')
@@ -38,8 +38,8 @@ def run_plotmill(args):
     config = _get_config_info(args.steering_file)
     aggregates = [args.aggregate]
     used_physics = config['backgrounds']['used'] + ['data']
-    if args.signal_point: 
-        used_physics.append(args.signal_point)
+    if args.signal_points: 
+        used_physics.extend(args.signal_points)
     plots_dict = {}
     for agg_file in aggregates: 
         print('loading {}'.format(agg_file))
@@ -47,7 +47,7 @@ def run_plotmill(args):
                          var_blacklist={'truth'})
         plots_dict.update(hists)
             
-    needed = _get_signal_finder(args.signal_point)
+    needed = _get_signal_finder(args.signal_points)
     plots_dict = {k:v for k,v in plots_dict.items() if needed(k)}
     plotting_info = {
         'lumi_fb': config['misc']['lumi_fb'],
@@ -61,14 +61,17 @@ def run_plotmill(args):
     if args.scale == 'both': 
         plot.make_plots(plots_dict, plotting_info, log=True)
 
-def _get_signal_finder(signal_point): 
-    if signal_point: 
-        signal_head = signal_point.split('-')[0]
+def _get_signal_finder(signal_points): 
+    if signal_points: 
+        signal_head = list(signal_points)[0].split('-')[0]
         def needed(tup): 
             phys = tup[0]
             if not phys.startswith(signal_head): 
                 return True
-            return phys == signal_point
+            for point in signal_points:
+                if phys == point: 
+                    return True
+            return False
     else: 
         def needed(tup): 
             return True

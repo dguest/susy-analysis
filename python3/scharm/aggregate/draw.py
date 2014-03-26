@@ -29,7 +29,7 @@ class Stack(object):
         self.canvas = FigureCanvas(self.fig)
         self.lumi = None
         self.ratio_max = 2.0
-        self.colors = 'mky'
+        self.colors = list('mc') + ['purple', 'orange']
         self.y_min = None
         if not ratio:
             self.ax = self.fig.add_subplot(1,1,1)

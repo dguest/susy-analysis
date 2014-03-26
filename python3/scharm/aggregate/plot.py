@@ -123,7 +123,7 @@ class HistConverter(object):
             hist.color = style.type_dict[physics].color
             hist.title = style.type_dict[physics].tex
         except KeyError: 
-            hist.color = 'k'
+            hist.color = None
             hist.title = physics
         if self.appended_evt_str: 
             hist.title += self.appended_evt_str.format(float(hist))
