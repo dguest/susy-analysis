@@ -25,22 +25,22 @@
 
 
 namespace nminus {
-  std::map<std::string, Selection> get_selections(const RegionConfig&); 
-  ISelection* selection_factory(const RegionConfig&); 
+  std::map<std::string, Selection> get_selections(const RegionConfig&);
+  ISelection* selection_factory(const RegionConfig&);
 }
 
 NMinus1Histograms
-::NMinus1Histograms(const RegionConfig& config, 
-		    const unsigned flags) : 
-  m_region_config(new RegionConfig(config)), 
-  m_selection(nminus::selection_factory(config)), 
-  m_build_flags(flags), 
-  m_make_lepton_plots(false), 
+::NMinus1Histograms(const RegionConfig& config,
+		    const unsigned flags) :
+  m_region_config(new RegionConfig(config)),
+  m_selection(nminus::selection_factory(config)),
+  m_build_flags(flags),
+  m_make_lepton_plots(false),
   m_make_dilep_plots(false)
-{ 
+{
   std::set<reg::Selection> onelep_regions {reg::Selection::CR_1L};
-  std::set<reg::Selection> dilep_regions { 
-    reg::Selection::CR_SF, reg::Selection::CR_DF, reg::Selection::CR_Z, 
+  std::set<reg::Selection> dilep_regions {
+    reg::Selection::CR_SF, reg::Selection::CR_DF, reg::Selection::CR_Z,
       reg::Selection::QUALITY_EVENT};
   auto lepton_regions(onelep_regions);
   lepton_regions.insert(dilep_regions.begin(), dilep_regions.end());
@@ -49,51 +49,51 @@ NMinus1Histograms
   if (dilep_regions.count(config.selection)) m_make_dilep_plots = true;
 
   using namespace nminus;
-  const auto sel = get_selections(config); 
-  m_hists.emplace_back(Axis{MET, N_BINS, 0.0, MAX_ENERGY, EUNIT}, sel); 
-  m_hists.emplace_back(Axis{DPHI, 80, 0.0, 3.2}, sel); 
+  const auto sel = get_selections(config);
+  m_hists.emplace_back(Axis{MET, N_BINS, 0.0, MAX_ENERGY, EUNIT}, sel);
+  m_hists.emplace_back(Axis{DPHI, 80, 0.0, 3.2}, sel);
   m_hists.emplace_back(Axis{MCT, N_BINS, 0.0, MAX_ENERGY, EUNIT}, sel);
-  m_hists.emplace_back(Axis{MET_EFF, N_BINS, 0, 1.0}, sel); 
-  m_hists.emplace_back(Axis{MCC, N_BINS, 0.0, MAX_ENERGY, EUNIT}, sel); 
-  for (int jn: {0,1,2}) { 
+  m_hists.emplace_back(Axis{MET_EFF, N_BINS, 0, 1.0}, sel);
+  m_hists.emplace_back(Axis{MCC, N_BINS, 0.0, MAX_ENERGY, EUNIT}, sel);
+  for (int jn: {0,1,2}) {
     m_hists.emplace_back(Axis{jeta(jn), 112, -2.8, 2.8}, sel);
     m_hists.emplace_back(Axis{jpt(jn), N_BINS, 0, MAX_ENERGY, EUNIT}, sel);
-    m_hists.emplace_back(Axis{jantib(jn), 300, -7.5, 7.5}, sel); 
-    m_hists.emplace_back(Axis{jantiu(jn), 300, -7.5, 7.5}, sel); 
+    m_hists.emplace_back(Axis{jantib(jn), 300, -7.5, 7.5}, sel);
+    m_hists.emplace_back(Axis{jantiu(jn), 300, -7.5, 7.5}, sel);
   }
-  
-  if (m_make_lepton_plots) { 
+
+  if (m_make_lepton_plots) {
     m_hists.emplace_back(Axis{LLPT, N_BINS, 0.0, 500_GeV, EUNIT}, sel);
     m_hists.emplace_back(Axis{MT, N_BINS, 0.0, 500_GeV, EUNIT}, sel);
   }
-  if (m_make_dilep_plots) { 
+  if (m_make_dilep_plots) {
     m_hists.emplace_back(Axis{MLL, 200, 0.0, 200_GeV, EUNIT}, sel);
   }
 }
 
-NMinus1Histograms::~NMinus1Histograms() { 
-  delete m_selection; 
-  delete m_region_config; 
+NMinus1Histograms::~NMinus1Histograms() {
+  delete m_selection;
+  delete m_region_config;
 }
 
 
-namespace nminus { 
-  void insert_jets(const std::vector<Jet>&, 
+namespace nminus {
+  void insert_jets(const std::vector<Jet>&,
 		   std::map<std::string, double>& values);
 }
 
-void NMinus1Histograms::fill(const EventObjects& obj) { 
+void NMinus1Histograms::fill(const EventObjects& obj) {
 
-  const EventRecoParameters& reco = obj.reco; 
-  if (!reco.pass_event_quality) return; 
+  const EventRecoParameters& reco = obj.reco;
+  if (!reco.pass_event_quality) return;
   if (!m_selection->pass(obj)) return;
 
   double weight = obj.weight;
-  if (! (m_build_flags & buildflag::is_data)) { 
+  if (! (m_build_flags & buildflag::is_data)) {
     // --- apply scalefactors ---
     auto syst = m_region_config->systematic;
     assert(obj.jets.size() >= 2);
-    for (auto jn = 0; jn < 2; jn++) { 
+    for (auto jn = 0; jn < 2; jn++) {
       weight *= obj.jets.at(jn).get_scalefactor(syst);
     }
     weight *= obj.event_scalefactors->get_sf(EventSyst::ELECTRON, syst);
@@ -104,62 +104,62 @@ void NMinus1Histograms::fill(const EventObjects& obj) {
     // --- end of scalefactors ---
   }
 
-  const TVector2& met = obj.met; 
+  const TVector2& met = obj.met;
 
   using namespace nminus;
   std::map<std::string, double> values{
-    {MET, met.Mod()}, 
-    {DPHI, reco.min_jetmet_dphi}, 
-    {MCT, reco.mct}, 
-    {MET_EFF, reco.met_eff}, 
-    {MCC, reco.mcc} 
+    {MET, met.Mod()},
+    {DPHI, reco.min_jetmet_dphi},
+    {MCT, reco.mct},
+    {MET_EFF, reco.met_eff},
+    {MCC, reco.mcc},
   };
 
   insert_jets(obj.jets, values);
 
-  if (m_make_lepton_plots) { 
+  if (m_make_lepton_plots) {
     values.insert( { {LLPT, reco.max_lepton_pt}, {MT, reco.mt} } );
   }
   if (m_make_dilep_plots) values.insert({ { MLL, reco.mll} });
-  for (auto& hist: m_hists) { 
+  for (auto& hist: m_hists) {
     hist.fill(values, weight);
   }
 }
 
 
-namespace nminus { 
-  void insert_jets(const std::vector<Jet>& jets, 
+namespace nminus {
+  void insert_jets(const std::vector<Jet>& jets,
 		   std::map<std::string, double>& values) {
     int jn = 0;
-    for (const auto& jet: jets) { 
+    for (const auto& jet: jets) {
       double pb = jet.flavor_weight(Flavor::BOTTOM);
       double pc = jet.flavor_weight(Flavor::CHARM);
       double pu = jet.flavor_weight(Flavor::LIGHT);
-      values.insert( { 
-	  {jeta(jn), jet.Eta()}, 
-	  {jpt(jn), jet.Pt()}, 
-	  {jantib(jn), log(pc/pb)}, 
+      values.insert( {
+	  {jeta(jn), jet.Eta()},
+	  {jpt(jn), jet.Pt()},
+	  {jantib(jn), log(pc/pb)},
 	  {jantiu(jn), log(pc/pu)} } );
 
-      jn++; 
+      jn++;
     }
   } // end insert_jets
 }
 
-void NMinus1Histograms::write_to(H5::CommonFG& file) const { 
-  using namespace H5; 
-  Group region(file.createGroup(m_region_config->name)); 
-  
-  for (const auto& hist: m_hists) { 
+void NMinus1Histograms::write_to(H5::CommonFG& file) const {
+  using namespace H5;
+  Group region(file.createGroup(m_region_config->name));
+
+  for (const auto& hist: m_hists) {
     hist.write_to(region);
-  } 
+  }
 
 }
 
-namespace nminus { 
+namespace nminus {
   std::map<std::string, Selection> get_common_selection(
-    const RegionConfig& cfg) { 
-    
+    const RegionConfig& cfg) {
+
     // basic kinematics
     std::map<std::string, Selection> sel = {
       {jpt(0), {cfg.leading_jet_pt, INFINITY} },
@@ -170,32 +170,32 @@ namespace nminus {
   }
   void add_tagging_cuts(std::map<std::string, Selection>& sel) {
     // add tagging cuts (use of `insert` prevents overwrite)
-    for (auto jn: {0,1} ) { 
-      const auto& antib = btag::JFC_MEDIUM_ANTI_B_CUT; 
-      const auto& antiu = btag::JFC_MEDIUM_ANTI_U_CUT; 
+    for (auto jn: {0,1} ) {
+      const auto& antib = btag::JFC_MEDIUM_ANTI_B_CUT;
+      const auto& antiu = btag::JFC_MEDIUM_ANTI_U_CUT;
       sel.insert({jeta(jn), {-btag::TAG_ETA, btag::TAG_ETA}});
-      sel.insert({jantib(jn), {antib, INFINITY} }); 
-      sel.insert({jantiu(jn), {antiu, INFINITY} }); 
+      sel.insert({jantib(jn), {antib, INFINITY} });
+      sel.insert({jantiu(jn), {antiu, INFINITY} });
     }
   }
 
-  std::map<std::string, Selection> get_selections(const RegionConfig& cfg) 
-  { 
+  std::map<std::string, Selection> get_selections(const RegionConfig& cfg)
+  {
     auto sel = get_common_selection(cfg);
 
-    switch (cfg.selection) { 
+    switch (cfg.selection) {
     case reg::Selection::SIGNAL: {
-      sel.insert( { 
+      sel.insert( {
 	  {MCT, {SR_MCT_MIN, INFINITY} },
 	  {MET_EFF, {MET_EFF_MIN, INFINITY} },
 	  {MCC, {M_CC_MIN, INFINITY} },
 	  {DPHI, {MIN_DPHI_JET_MET, INFINITY} },
-	}); 
+	});
       add_tagging_cuts(sel);
-      return sel; 
+      return sel;
     }
     case reg::Selection::CR_1L: {
-      using namespace cr1l; 
+      using namespace cr1l;
       sel.insert(
 	{
 	  {MT, {M_T_MIN, M_T_MAX} },
@@ -203,9 +203,9 @@ namespace nminus {
 	});
       add_tagging_cuts(sel);
       return sel;
-    } 
+    }
     case reg::Selection::CR_Z: 	// intentional fallthrough
-    case reg::Selection::CR_SF: { 
+    case reg::Selection::CR_SF: {
       using namespace crsf;
       sel.insert(
 	{
@@ -214,7 +214,7 @@ namespace nminus {
 	});
       add_tagging_cuts(sel);
       return sel;
-    } 
+    }
     case reg::Selection::CR_DF: {
       using namespace crdf;
       sel.insert(
@@ -222,19 +222,19 @@ namespace nminus {
 	  {MLL, {M_LL_MIN, INFINITY} },
 	});
       add_tagging_cuts(sel);
-      return sel; 
-    } 
-    case reg::Selection::QUALITY_EVENT: 
-      sel.insert({ 
+      return sel;
+    }
+    case reg::Selection::QUALITY_EVENT:
+      sel.insert({
 	  {DPHI, {MIN_DPHI_JET_MET, INFINITY} },
 	    });
       return sel;
-    default: throw std::invalid_argument("unknown selection in " __FILE__); 
+    default: throw std::invalid_argument("unknown selection in " __FILE__);
     }
   }
-  ISelection* selection_factory(const RegionConfig& cfg) { 
-    switch (cfg.selection) { 
-    case reg::Selection::SIGNAL: return new NMinusSignalSelection(cfg); 
+  ISelection* selection_factory(const RegionConfig& cfg) {
+    switch (cfg.selection) {
+    case reg::Selection::SIGNAL: return new NMinusSignalSelection(cfg);
     case reg::Selection::CR_1L: return new NMinusCR1LSelection(cfg);
     case reg::Selection::CR_SF: return new NMinusOSSFSelection(cfg);
     case reg::Selection::CR_Z: return new NMinusCRZSelection(cfg);
@@ -244,17 +244,17 @@ namespace nminus {
     }
   }
 
-  std::string jeta(int jn) { 
-    return "j" + std::to_string(jn) + "_eta"; 
+  std::string jeta(int jn) {
+    return "j" + std::to_string(jn) + "_eta";
   }
-  std::string jpt(int jn) { 
-    return "j" + std::to_string(jn) + "_pt"; 
+  std::string jpt(int jn) {
+    return "j" + std::to_string(jn) + "_pt";
   }
   std::string jantib(int jn) {
-    return "j" + std::to_string(jn) + "_antib"; 
+    return "j" + std::to_string(jn) + "_antib";
   }
   std::string jantiu(int jn) {
-    return "j" + std::to_string(jn) + "_antiu"; 
+    return "j" + std::to_string(jn) + "_antiu";
   }
 
 

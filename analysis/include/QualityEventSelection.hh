@@ -4,15 +4,15 @@
 #include "ISelection.hh"
 #include "region_enums.hh"
 
-struct RegionConfig; 
+struct RegionConfig;
 
-class QualityEventSelection : public ISelection { 
-public: 
-  QualityEventSelection(const RegionConfig&); 
-  virtual ~QualityEventSelection(); 
-  virtual bool pass(const EventObjects&) const; 
+class QualityEventSelection : public ISelection {
+public:
+  QualityEventSelection(const RegionConfig&);
+  virtual ~QualityEventSelection();
+  virtual bool pass(const EventObjects&) const;
 private:
   reg::Stream m_stream;
-}; 
+};
 
-#endif 
+#endif

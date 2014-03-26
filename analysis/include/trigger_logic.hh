@@ -5,7 +5,7 @@
 
 struct EventRecoParameters;
 
-namespace trig { 
+namespace trig {
   void throw_if_not_jetstream(reg::Stream);
   void throw_if_not_lepstream(reg::Stream);
   bool pass_single_lepton_trigger(const EventRecoParameters&, reg::Stream);

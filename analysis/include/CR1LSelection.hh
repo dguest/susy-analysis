@@ -4,25 +4,25 @@
 #include "ISelection.hh"
 #include "region_enums.hh"
 
-struct RegionConfig; 
+struct RegionConfig;
 
 // looser variant of the full selection, used for n-1 plots
-class NMinusCR1LSelection : public ISelection { 
-public: 
-  NMinusCR1LSelection(const RegionConfig&); 
-  virtual ~NMinusCR1LSelection(); 
-  virtual bool pass(const EventObjects&) const; 
+class NMinusCR1LSelection : public ISelection {
+public:
+  NMinusCR1LSelection(const RegionConfig&);
+  virtual ~NMinusCR1LSelection();
+  virtual bool pass(const EventObjects&) const;
 private:
   reg::Stream m_stream;
-}; 
+};
 
-class CR1LSelection : public ISelection { 
-public: 
-  CR1LSelection(const RegionConfig&); 
-  virtual ~CR1LSelection(); 
-  virtual bool pass(const EventObjects&) const; 
-private: 
-  NMinusCR1LSelection m_nminus; 
-}; 
+class CR1LSelection : public ISelection {
+public:
+  CR1LSelection(const RegionConfig&);
+  virtual ~CR1LSelection();
+  virtual bool pass(const EventObjects&) const;
+private:
+  NMinusCR1LSelection m_nminus;
+};
 
-#endif 
+#endif

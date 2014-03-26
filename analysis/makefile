@@ -25,9 +25,9 @@ ND_HIST_SO       := $(ND_HIST_LIB)/libndhist.so
 
 #  set search path
 vpath %.o    $(BIN)
-vpath %.cxx  $(SRC) 
-vpath %.hh   $(INC) 
-vpath %.h    $(INC) 
+vpath %.cxx  $(SRC)
+vpath %.hh   $(INC)
+vpath %.h    $(INC)
 
 # --- load in root config
 ROOTCFLAGS    := $(shell root-config --cflags)
@@ -54,9 +54,9 @@ CXXFLAGS     += -I$(HDF_PATH)/include
 LIBS         += -L$(HDF_PATH)/lib -Wl,-rpath,$(HDF_PATH)/lib
 
 # --- HDF5 needed for hist saving
-LIBS         += -lhdf5_cpp -lhdf5 
+LIBS         += -lhdf5_cpp -lhdf5
 
-# rootstuff 
+# rootstuff
 CXXFLAGS     += $(ROOTCFLAGS)
 LDFLAGS      += $(ROOTLDFLAGS)
 LIBS         += $(ROOTLIBS)
@@ -72,13 +72,13 @@ GEN_OBJ     := HistBuilder.o Jet.o SkimCounts.o ObjectFactory.o
 GEN_OBJ     += JetBuffer.o BtagBuffer.o
 GEN_OBJ     += BtagConfig.o RegionConfig.o Flavor.o
 GEN_OBJ     += EventObjects.o
-GEN_OBJ     += RegionEventFilter.o 
+GEN_OBJ     += RegionEventFilter.o
 GEN_OBJ     += EventScalefactors.o
 GEN_OBJ     += NMinusHist.o
 
 # selection classes
 GEN_OBJ     += QualityEventSelection.o
-GEN_OBJ     += SignalSelection.o CR1LSelection.o 
+GEN_OBJ     += SignalSelection.o CR1LSelection.o
 GEN_OBJ     += OSDFSelection.o OSSFSelection.o
 GEN_OBJ     += CRZSelection.o
 
@@ -121,17 +121,17 @@ NDHIST_DUMMY := build-ndhist
 .PHONY: $(LINK_SEQUENCE) $(LINK_LIST) $(NDHIST_DUMMY)
 all: $(BUILD_SEQUENCE_DUMMY)
 
-ALL_OBJ_PATHS := $(ALL_OBJ:%=$(BIN)/%) 
+ALL_OBJ_PATHS := $(ALL_OBJ:%=$(BIN)/%)
 
-# we call the dummy first, which builds the dependencies. 
-# _after_ these have been built we call the linking rule. 
-$(BUILD_SEQUENCE_DUMMY): $(NDHIST_DUMMY) $(ALL_OBJ_PATHS) 
-	@$(MAKE) $(LINK_SEQUENCE_DUMMY) --no-print-directory 
+# we call the dummy first, which builds the dependencies.
+# _after_ these have been built we call the linking rule.
+$(BUILD_SEQUENCE_DUMMY): $(NDHIST_DUMMY) $(ALL_OBJ_PATHS)
+	@$(MAKE) $(LINK_SEQUENCE_DUMMY) --no-print-directory
 
 $(LINK_SEQUENCE_DUMMY): $(ALLOUTPUT)
 
-$(NDHIST_DUMMY): 
-	@$(MAKE) -C $(ND_HIST_DIR) 
+$(NDHIST_DUMMY):
+	@$(MAKE) -C $(ND_HIST_DIR)
 
 EXE_PATHS := $(EXE_OBJ:%=$(BIN)/%)
 unit-test: $(EXE_PATHS) $(ND_HIST_SO)
@@ -152,10 +152,10 @@ $(PY_LIB): $(PYLIB_PATHS) $(ND_HIST_SO)
 # --------------------------------------------------
 
 # python object compile
-$(BIN)/_%.o: _%.cxx 
+$(BIN)/_%.o: _%.cxx
 	@echo compiling python object $@
 	@mkdir -p $(BIN)
-	@$(CXX) -c $(CXXFLAGS) $(PY_FLAGS) $< -o $@ 
+	@$(CXX) -c $(CXXFLAGS) $(PY_FLAGS) $< -o $@
 
 # compile rule
 $(BIN)/%.o: %.cxx
@@ -176,14 +176,14 @@ DEPTARGSTR = -MT $(BIN)/$*.o -MT $(DEP)/$*.d
 $(DEP)/%.d: %.cxx
 	@echo making dependencies for $<
 	@mkdir -p $(DEP)
-	@$(CXX) -MM -MP $(DEPTARGSTR) $(CXXFLAGS) $(PY_FLAGS) $< -o $@ 
+	@$(CXX) -MM -MP $(DEPTARGSTR) $(CXXFLAGS) $(PY_FLAGS) $< -o $@
 
 # clean
 .PHONY : clean rmdep
-CLEANLIST     = *~ *.o *.o~ *.d core 
+CLEANLIST     = *~ *.o *.o~ *.d core
 clean:
 	rm -fr $(BIN) $(ALLOUTPUT) $(DICT)
 	@$(MAKE) -C $(ND_HIST_DIR) clean --no-print-directory
 
-rmdep: 
+rmdep:
 	rm -f $(DEP)/*.d

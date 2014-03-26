@@ -4,9 +4,9 @@
 #include <stdexcept>
 
 class MissingBranch: public std::runtime_error {
-public: 
-  MissingBranch(const std::string&); 
-}; 
+public:
+  MissingBranch(const std::string&);
+};
 
 
 #endif
