@@ -1,24 +1,24 @@
 
-class Region: 
+class Region:
     """
-    Stores info on signal / control region. Bits are stored as strings 
+    Stores info on signal / control region. Bits are stored as strings
     and used to look up real values. This class is also responsible for
-    checking the integrity of its stored data. 
+    checking the integrity of its stored data.
     """
     _allowed_types = set(['control','signal','validation'])
 
-    def __init__(self, yaml_dict): 
+    def __init__(self, yaml_dict):
         self._read_dict(yaml_dict)
 
-    def __repr__(self): 
+    def __repr__(self):
         return repr(self.get_yaml_dict())
 
-    def _read_dict(self,yaml_dict): 
+    def _read_dict(self,yaml_dict):
         self.type = yaml_dict['type']
         self.selection = yaml_dict['selection']
         self.kinematics = yaml_dict['kinematics']
         self.stream = yaml_dict['stream']
-        if self.type not in self._allowed_types: 
+        if self.type not in self._allowed_types:
             raise RegionConfigError('region type {} is not known'.format(
                     self.type))
         self.hists = yaml_dict.get('hists', 'NMINUS')
@@ -27,7 +27,7 @@ class Region:
         self.replacement = yaml_dict.get('replacement','normal')
         self.max_signal_jets = yaml_dict.get('max_signal_jets', 999)
 
-    def get_yaml_dict(self): 
+    def get_yaml_dict(self):
         """
         returns the object as a dict for yaml
         """
@@ -35,8 +35,8 @@ class Region:
         baselist = self.__dict__.items()
         base = {k:v for k, v in baselist if not k.startswith('_')}
         return base
-    
-    def get_config_dict(self): 
+
+    def get_config_dict(self):
         """
         Produces the configuration info needed for _stacksusy.
         Note that this lacks some important information, such as
@@ -58,7 +58,7 @@ class Region:
 # sbottom definitions
 
 _sbottom_cr = {'CR_1L', 'CR_DF', 'CR_SF'}
-def sbottom_regions(): 
+def sbottom_regions():
     """
     return sbottom regions as a yml file
     """
@@ -69,7 +69,7 @@ def sbottom_regions():
         'QUALITY_EVENT', 50, 150, stream='all')
     return sbottom
 
-def _sbottom_region(version, stream): 
+def _sbottom_region(version, stream):
     lj =  {'SIGNAL': 130, 'CR_1L': 130, 'CR_SF': 50,  'CR_DF': 130}[version]
     met = {'SIGNAL': 150, 'CR_1L': 100, 'CR_SF': 100, 'CR_DF': 100}[version]
     rpl = 'leptmet' if version == 'CR_SF' else 'normal'
@@ -77,7 +77,7 @@ def _sbottom_region(version, stream):
 
 def _build_kinematic_region(version, lj, met, rpl='normal', stream='jet'):
     control_regions = _sbottom_cr | {'QUALITY_EVENT'}
-    default_dict = { 
+    default_dict = {
         'selection': version,
         'type': 'signal' if version not in control_regions else 'control',
         'kinematics':{
@@ -85,35 +85,35 @@ def _build_kinematic_region(version, lj, met, rpl='normal', stream='jet'):
             'met_gev': met,
             },
         'replacement': rpl,
-        'stream': stream, 
+        'stream': stream,
         'boson_pt_correction': 'MARKS',
         }
     return default_dict
 
 # ___________________________________________________________________________
 # various helpers
-    
-class RegionConfigError(ValueError): 
-    def __init__(self, message): 
+
+class RegionConfigError(ValueError):
+    def __init__(self, message):
         super(RegionConfigError,self).__init__(message)
 
-def _get_tagger(jet_tags, tagger): 
+def _get_tagger(jet_tags, tagger):
     """
-    Figure out the tagger based on the tags used. 
+    Figure out the tagger based on the tags used.
     """
     jfc_tags = {j for j in jet_tags if j.startswith('JFC')}
     non_jfc = set(jet_tags) - jfc_tags - set(['NOTAG'])
     if tagger:
-        if jfc_tags or non_jfc: 
+        if jfc_tags or non_jfc:
             raise RegionConfigError(
                 "should only specify tagger when op are given")
         return tagger
-    
-    if jfc_tags and non_jfc: 
+
+    if jfc_tags and non_jfc:
         raise RegionConfigError(
             "can't be mixing taggers (right now), tried to use {}".format(
                 ', '.join(set(jet_tags))))
-    if jfc_tags: 
+    if jfc_tags:
         return 'JFC'
-    else: 
+    else:
         return 'CNN'
