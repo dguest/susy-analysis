@@ -15,10 +15,16 @@ class ISelection;
 namespace nminus {
   const size_t N_BINS = 100;
   const double MAX_ENERGY = 1_TeV;
+  // for now the upstream filters remove events with less than 2 signal
+  // jets (may break code here to allow fewer)
+  const int MIN_SIGNAL_JETS = 2;
+  // signal jet hist shows from -0.5 to (SJET_RANGE - 0.5)
+  const int SJET_RANGE = 8;
+  // this number or higher means "infinite"
+  const int SJET_INF_THRESHOLD = 100;
 
   // all units are in MeV
   const std::string EUNIT = "MeV";
-
 
   // names for internal use (and saving)
   const std::string MET = "met";
@@ -29,6 +35,7 @@ namespace nminus {
   const std::string LLPT = "leading_lepton_pt";
   const std::string MT = "mass_t";
   const std::string MLL = "mass_ll";
+  const std::string NSJET = "n_signal_jets";
 
   // naming functions
   std::string jeta(int jn);

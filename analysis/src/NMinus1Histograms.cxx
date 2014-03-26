@@ -50,6 +50,7 @@ NMinus1Histograms
 
   using namespace nminus;
   const auto sel = get_selections(config);
+  m_hists.emplace_back(Axis{NSJET, SJET_RANGE, -0.5, SJET_RANGE - 0.5}, sel);
   m_hists.emplace_back(Axis{MET, N_BINS, 0.0, MAX_ENERGY, EUNIT}, sel);
   m_hists.emplace_back(Axis{DPHI, 80, 0.0, 3.2}, sel);
   m_hists.emplace_back(Axis{MCT, N_BINS, 0.0, MAX_ENERGY, EUNIT}, sel);
@@ -108,6 +109,7 @@ void NMinus1Histograms::fill(const EventObjects& obj) {
 
   using namespace nminus;
   std::map<std::string, double> values{
+    {NSJET, reco.n_signal_jets},
     {MET, met.Mod()},
     {DPHI, reco.min_jetmet_dphi},
     {MCT, reco.mct},
@@ -166,6 +168,15 @@ namespace nminus {
       {jpt(1), {cfg.second_jet_pt, INFINITY} },
       {MET, {cfg.met, INFINITY} },
     };
+    // SJET_RANGE goes from -0.5, so we only show a limit if the max jets
+    // are < the range (i.e. 0 to 7 is a range of 8, don't show if max is 8)
+    if (cfg.max_signal_jets < SJET_RANGE) {
+      sel[NSJET] = {MIN_SIGNAL_JETS - 0.5, cfg.max_signal_jets + 0.5};
+    } else if (cfg.max_signal_jets < SJET_INF_THRESHOLD){
+      throw std::logic_error(
+	"specified a cut above " + std::to_string(SJET_RANGE) + ", but below"
+	" the 'infinite' value of " + std::to_string(SJET_INF_THRESHOLD));
+    }
     return sel;
   }
   void add_tagging_cuts(std::map<std::string, Selection>& sel) {

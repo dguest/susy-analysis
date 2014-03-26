@@ -25,6 +25,7 @@ class Region:
         self.boson_pt_correction = yaml_dict.get(
             'boson_pt_correction', 'NO_PT_CORRECTION')
         self.replacement = yaml_dict.get('replacement','normal')
+        self.max_signal_jets = yaml_dict.get('max_signal_jets', 999)
 
     def get_yaml_dict(self): 
         """
@@ -46,6 +47,7 @@ class Region:
             'leading_jet_pt': self.kinematics['leading_jet_gev']*1e3,
             'second_jet_pt': self.kinematics.get('second_jet_gev', 50)*1e3,
             'met': self.kinematics['met_gev']*1e3,
+            'max_signal_jets': self.max_signal_jets,
             'type': self.type.upper(),
             'hists': self.hists.upper(),
             'boson_pt_correction': self.boson_pt_correction,

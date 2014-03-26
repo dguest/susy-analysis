@@ -77,6 +77,7 @@ static bool safe_copy(PyObject* dict, RegionConfig& region)
   REQUIRE(leading_jet_pt); 
   REQUIRE(second_jet_pt); 
   COPY(met);
+  REQUIRE(max_signal_jets);
   COPY(jet_tag_requirements); 
   COPY(hists); 
   COPY(tagger); 
@@ -103,6 +104,13 @@ static bool safe_copy(PyObject* value, double& dest) {
   double the_double = PyFloat_AsDouble(value); 
   if (PyErr_Occurred()) return false; 
   dest = the_double; 
+  return true; 
+}
+
+static bool safe_copy(PyObject* value, long& dest) { 
+  long the_int = PyLong_AsLong(value); 
+  if (PyErr_Occurred()) return false; 
+  dest = the_int; 
   return true; 
 }
 

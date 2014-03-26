@@ -16,6 +16,7 @@ struct RegionConfig
   double leading_jet_pt;
   double second_jet_pt;
   double met;
+  long max_signal_jets;
   syst::Systematic systematic;
   std::string output_name;
   reg::Type type;
