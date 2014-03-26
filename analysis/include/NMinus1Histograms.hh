@@ -3,20 +3,14 @@
 
 #include "constants_physical.hh"
 #include "IRegionHistograms.hh"
+#include "NMinusHist.hh"
 
 #include <vector> 
 #include <string>
-#include <map>
 
-
-class Histogram; 
 struct Axis; 
 class RegionConfig;
 class ISelection;
-
-namespace H5 { 
-  class CommonFG; 
-}
 
 namespace nminus { 
   const size_t N_BINS = 100;
@@ -42,29 +36,6 @@ namespace nminus {
   std::string jantib(int jn); 
   std::string jantiu(int jn); 
 
-  struct Selection { 
-    Selection(); 
-    Selection(double, double); 
-    double min;
-    double max;
-  }; 
-  class NMinusHist { 
-  public: 
-    // NOTE: could generalize this by making it an initalizer list
-    NMinusHist(const Axis&, const std::map<std::string, Selection>&);
-    ~NMinusHist(); 
-    NMinusHist(NMinusHist&) = delete; 
-    NMinusHist(NMinusHist&&); 
-    NMinusHist operator=(NMinusHist&) = delete; 
-    void fill(const std::map<std::string, double>& values, double weight); 
-    void write_to(H5::CommonFG&, std::string name = "") const; 
-  private: 
-    Histogram* m_histogram; 
-    // NOTE: generalization would also require something new here
-    Selection m_selection; 
-    std::string m_name; 
-    std::vector<std::pair<std::string,Selection> > m_cuts; 
-  }; 
 }; 
 
 class NMinus1Histograms: 
