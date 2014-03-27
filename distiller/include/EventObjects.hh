@@ -6,50 +6,50 @@
 
 #include "PreselectionInfo.hh"
 
-class SusyBuffer; 
-class SUSYObjDef; 
+class SusyBuffer;
+class SUSYObjDef;
 class RunInfo;
-class SelectedJet; 
-class Muon; 
-class Electron;  
-class CutCounter; 
-class EventJets; 
-class EventMuons; 
+class SelectedJet;
+class Muon;
+class Electron;
+class CutCounter;
+class EventJets;
+class EventMuons;
 class EventElectrons;
 class EventPreselector;
 
-struct EventObjects { 
-  EventObjects(const SusyBuffer&, SUSYObjDef& def, unsigned, const RunInfo&, 
+struct EventObjects {
+  EventObjects(const SusyBuffer&, SUSYObjDef& def, unsigned, const RunInfo&,
     const EventPreselector&);
-  EventObjects(EventObjects&) = delete; 
-  EventObjects& operator=(EventObjects&) = delete; 
-  ~EventObjects(); 
-  SelectedJet* electron_jet() const; 
-  void do_overlap_removal(CutCounter&); 
-  
-  std::vector<SelectedJet*> preselected_jets; 
-  std::vector<Electron*> preselected_electrons; 
-  std::vector<Muon*> preselected_muons; 
+  EventObjects(EventObjects&) = delete;
+  EventObjects& operator=(EventObjects&) = delete;
+  ~EventObjects();
+  SelectedJet* electron_jet() const;
+  void do_overlap_removal(CutCounter&);
 
-  std::vector<SelectedJet*> after_overlap_jets; 
-  std::vector<Electron*> after_overlap_electrons; 
-  std::vector<Muon*> after_overlap_muons; 
+  std::vector<SelectedJet*> preselected_jets;
+  std::vector<Electron*> preselected_electrons;
+  std::vector<Muon*> preselected_muons;
 
-  std::vector<SelectedJet*> veto_jets; 
-  
-  std::vector<SelectedJet*> good_jets; 
-  std::vector<SelectedJet*> signal_jets; 
-  std::vector<Electron*> control_electrons; 
-  std::vector<Muon*> control_muons; 
-  
-  std::vector<int> susy_muon_idx; 
-  std::vector<SelectedJet*> leading_jets; 
+  std::vector<SelectedJet*> after_overlap_jets;
+  std::vector<Electron*> after_overlap_electrons;
+  std::vector<Muon*> after_overlap_muons;
+
+  std::vector<SelectedJet*> veto_jets;
+
+  std::vector<SelectedJet*> good_jets;
+  std::vector<SelectedJet*> signal_jets;
+  std::vector<Electron*> control_electrons;
+  std::vector<Muon*> control_muons;
+
+  std::vector<int> susy_muon_idx;
+  std::vector<SelectedJet*> leading_jets;
 
   PreselectionInfo prec;
-private: 
-  EventJets* m_all_jets; 
-  EventElectrons* m_all_electrons; 
-  EventMuons* m_all_muons; 
-}; 
+private:
+  EventJets* m_all_jets;
+  EventElectrons* m_all_electrons;
+  EventMuons* m_all_muons;
+};
 
-#endif 
+#endif

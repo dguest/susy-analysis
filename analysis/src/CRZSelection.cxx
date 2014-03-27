@@ -9,13 +9,13 @@
 // _______________________________________________________________________
 // loose
 
-NMinusCRZSelection::NMinusCRZSelection(const RegionConfig& reg): 
+NMinusCRZSelection::NMinusCRZSelection(const RegionConfig& reg):
   m_stream(reg.stream)
 {
   trig::throw_if_not_lepstream(m_stream);
 }
 
-NMinusCRZSelection::~NMinusCRZSelection() { 
+NMinusCRZSelection::~NMinusCRZSelection() {
 
 }
 
@@ -25,7 +25,7 @@ bool NMinusCRZSelection::pass(const EventObjects& obj) const {
   // check trigger
   if (!trig::pass_any_lepton_trigger(reco, m_stream)) return false;
 
-  if (!reco.pass_ossf) return false; 
+  if (!reco.pass_ossf) return false;
 
   // check object counts
   if (reco.n_baseline_electrons + reco.n_baseline_muons != 2) return false;
