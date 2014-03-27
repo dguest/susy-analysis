@@ -229,27 +229,32 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   } else {
     nom_cutflow = m_cutflow;
   }
-  fill_event_output(obj, mets.nominal, *m_out_tree, nom_cutflow);
-  fill_event_output(obj, mets.muon, *m_mumet_out_tree);
-  fill_event_output(obj, mets.lepton, *m_leptmet_out_tree, lept_cutflow);
+  fill_event_output(obj, mets.nominal, mets.nominal, *m_out_tree,
+		    nom_cutflow);
+  fill_event_output(obj, mets.nominal, mets.muon, *m_mumet_out_tree);
+  fill_event_output(obj, mets.nominal, mets.lepton, *m_leptmet_out_tree,
+		    lept_cutflow);
 }
 
 void StopDistiller::fill_event_output(const EventObjects& obj,
 				      const TVector2& met,
+				      const TVector2& alt_met,
 				      outtree::OutTree& out_tree,
 				      BitmapCutflow* cutflow) const {
 
   // ACHTUNG: this is saved as the pileup weight, should fix that...
   const float combined_mc_wt = obj.prec.pileup_weight * obj.prec.trigger_sf;
 
-  const ObjectComposites par(obj, met);
+  const ObjectComposites par(obj, met, alt_met);
   // ----- object selection is done now, from here is filling outputs ---
 
   // --- fill bits ---
   ull_t pass_bits = obj.prec.bits;
   pass_bits |= bits::object_composit_bits(par);
   pass_bits |= bits::event_object_bits(obj);
-  pass_bits |= bits::met_bits(met);
+  pass_bits |= bits::met_bits(alt_met);
+  // ACHTUNG: the "bad tile" veto is using standard met for qcd rejection
+  // (Will seems to agree that we should do this)
   pass_bits |= bits::bad_tile_bits(met, obj.preselected_jets);
   pass_bits |= bits::compound_bits(pass_bits);
 
@@ -264,7 +269,7 @@ void StopDistiller::fill_event_output(const EventObjects& obj,
   out_tree.pileup_weight = combined_mc_wt;
 
   // main event copy function
-  copy_event(obj, par, met, out_tree);
+  copy_event(obj, par, alt_met, out_tree);
 
   if ( m_flags & cutflag::truth ) {
     copy_cjet_truth(out_tree, obj.signal_jets);

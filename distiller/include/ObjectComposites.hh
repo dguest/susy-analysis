@@ -5,7 +5,8 @@ class TVector2;
 class EventObjects;
 
 struct ObjectComposites {
-  ObjectComposites(const EventObjects&, const TVector2& met);
+  ObjectComposites(const EventObjects&,
+		   const TVector2& met, const TVector2& alt_met);
   double energy_weighted_time;
   double min_jetmet_dphi;
   double mass_eff;
