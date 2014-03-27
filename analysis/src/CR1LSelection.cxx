@@ -27,7 +27,6 @@ bool NMinusCR1LSelection::pass(const EventObjects& obj) const {
   if (veto_leptons != 1) return false;
   auto total_leptons = reco.n_signal_electrons + reco.n_signal_muons; 
   if (total_leptons != 1) return false; 
-  if (reco.n_signal_jets < 2) return false; 
 
   return true; 
 }

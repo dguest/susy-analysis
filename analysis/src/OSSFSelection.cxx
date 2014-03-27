@@ -28,7 +28,6 @@ bool NMinusOSSFSelection::pass(const EventObjects& obj) const {
   if (!reco.pass_ossf) return false; 
 
   // check object counts
-  if (reco.n_signal_jets < 2) return false; 
   if (reco.n_baseline_electrons + reco.n_baseline_muons != 2) return false;
 
   return true;

@@ -19,8 +19,6 @@ QualityEventSelection::~QualityEventSelection() {
 
 bool QualityEventSelection::pass(const EventObjects& obj) const { 
   const EventRecoParameters& reco = obj.reco;
-  // all regions require 2 jets
-  if (reco.n_signal_jets < 2) return false;
 
   using namespace reg;
   if (m_stream == Stream::JET) {

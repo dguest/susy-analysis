@@ -93,8 +93,8 @@ void NMinus1Histograms::fill(const EventObjects& obj) {
   if (! (m_build_flags & buildflag::is_data)) {
     // --- apply scalefactors ---
     auto syst = m_region_config->systematic;
-    assert(obj.jets.size() >= 2);
-    for (auto jn = 0; jn < 2; jn++) {
+    size_t n_jets = std::min(2UL, obj.jets.size());
+    for (size_t jn = 0; jn < n_jets; jn++) {
       weight *= obj.jets.at(jn).get_scalefactor(syst);
     }
     weight *= obj.event_scalefactors->get_sf(EventSyst::ELECTRON, syst);
@@ -176,6 +176,8 @@ namespace nminus {
       throw std::logic_error(
 	"specified a cut above " + std::to_string(SJET_RANGE) + ", but below"
 	" the 'infinite' value of " + std::to_string(SJET_INF_THRESHOLD));
+    } else {
+      sel[NSJET] = {MIN_SIGNAL_JETS - 0.5, INFINITY};
     }
     return sel;
   }
