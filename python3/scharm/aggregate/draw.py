@@ -48,6 +48,8 @@ class Stack:
         self._bg_proxy_legs = []
         self._x_limits = None
         self._sm_total = 0.0
+        # for setting plot upper limit with selection applied
+        self._upper_limit = 0.0
 
     def _set_xlab(self, name):
         if self.ratio:
@@ -130,6 +132,8 @@ class Stack:
             style = color + '--'
             plt_handle, = self.ax.plot(x_vals,y_vals,style, linewidth=3.0)
             self._proxy_legs.append( (plt_handle, self._get_legstr(hist)))
+
+            self._upper_limit = np.maximum(self._upper_limit, y_vals)
 
     def _get_min_plotable(self, y_vals):
         plot_vals = np.array(y_vals)
@@ -234,6 +238,7 @@ class Stack:
             yerr=[plt_err_down,plt_err_up])
 
         self._proxy_legs.append( (line, self._get_legstr(hist)))
+        self._upper_limit = np.maximum(self._upper_limit, highs)
 
     def add_legend(self):
         tstring = 'SM total: {}'.format(_legstr(self._sm_total))
