@@ -19,7 +19,7 @@ namespace nminus {
   // jets (may break code here to allow fewer)
   const int MIN_SIGNAL_JETS = 2;
   // signal jet hist shows from -0.5 to (SJET_RANGE - 0.5)
-  const int SJET_RANGE = 8;
+  const int SJET_RANGE = 15;
   // this number or higher means "infinite"
   const int SJET_INF_THRESHOLD = 100;
 
