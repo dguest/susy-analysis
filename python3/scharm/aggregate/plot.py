@@ -62,6 +62,7 @@ class HistConverter(object):
         xy_tup = histn.project_1d()
         ax = histn[0]
         pars = ax.parameters
+        sel = None
         if 'selection_min' in pars:
             sel = tuple(pars['selection_' + m] for m in ['min','max'])
         return self._get_hist1(xy_tup, ax.units, pvc, sel)
