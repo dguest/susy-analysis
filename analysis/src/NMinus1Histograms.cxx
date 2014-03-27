@@ -162,10 +162,11 @@ namespace nminus {
   std::map<std::string, Selection> get_common_selection(
     const RegionConfig& cfg) {
 
-    // basic kinematics
+    // basic kinematics (jets don't have to exist to pass this cut, but
+    // the events will fail the n_jet selection)
     std::map<std::string, Selection> sel = {
-      {jpt(0), {cfg.leading_jet_pt, INFINITY} },
-      {jpt(1), {cfg.second_jet_pt, INFINITY} },
+      {jpt(0), {cfg.leading_jet_pt, INFINITY, Selection::Missing::ACCEPT} },
+      {jpt(1), {cfg.second_jet_pt, INFINITY, Selection::Missing::ACCEPT} },
       {MET, {cfg.met, INFINITY} },
     };
     // SJET_RANGE goes from -0.5, so we only show a limit if the max jets
@@ -182,20 +183,23 @@ namespace nminus {
     return sel;
   }
   void add_tagging_cuts(std::map<std::string, Selection>& sel) {
+    // accept events where these jets are missing
+    // (they will be rejected by the njet cut anyway)
+    auto miss = Selection::Missing::ACCEPT;
     // add tagging cuts (use of `insert` prevents overwrite)
     for (auto jn: {0,1} ) {
       const auto& antib = btag::JFC_MEDIUM_ANTI_B_CUT;
       const auto& antiu = btag::JFC_MEDIUM_ANTI_U_CUT;
-      sel.insert({jeta(jn), {-btag::TAG_ETA, btag::TAG_ETA}});
-      sel.insert({jantib(jn), {antib, INFINITY} });
-      sel.insert({jantiu(jn), {antiu, INFINITY} });
+      sel.insert({jeta(jn), {-btag::TAG_ETA, btag::TAG_ETA, miss}});
+      sel.insert({jantib(jn), {antib, INFINITY, miss} });
+      sel.insert({jantiu(jn), {antiu, INFINITY, miss} });
     }
   }
 
   std::map<std::string, Selection> get_selections(const RegionConfig& cfg)
   {
     auto sel = get_common_selection(cfg);
-
+    const auto PHANTOM = Selection::Missing::PHANTOM;
     switch (cfg.selection) {
     case reg::Selection::SIGNAL: {
       sel.insert( {
@@ -237,9 +241,14 @@ namespace nminus {
       add_tagging_cuts(sel);
       return sel;
     }
+      // this case has phantom cuts to indicate where SR cuts _would_ be
     case reg::Selection::QUALITY_EVENT:
       sel.insert({
 	  {DPHI, {MIN_DPHI_JET_MET, INFINITY} },
+	  {MCT, {SR_MCT_MIN, INFINITY, PHANTOM} },
+	  {MET_EFF, {MET_EFF_MIN, INFINITY, PHANTOM} },
+	  {MCC, {M_CC_MIN, INFINITY, PHANTOM} },
+	  {DPHI, {MIN_DPHI_JET_MET, INFINITY, PHANTOM} },
 	    });
       return sel;
     default: throw std::invalid_argument("unknown selection in " __FILE__);

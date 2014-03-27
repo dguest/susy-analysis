@@ -12,11 +12,14 @@ namespace H5 {
   class CommonFG;
 }
 namespace nminus {
+
   struct Selection {
+    enum class Missing {REJECT, ACCEPT, THROW, PHANTOM};
     Selection();
-    Selection(double, double);
+    Selection(double, double, Missing = Missing::THROW);
     double min;
     double max;
+    Missing missing;
   };
   class NMinusHist {
   public:

@@ -24,7 +24,6 @@ bool NMinusSignalSelection::pass(const EventObjects& obj) const {
   if (!reco.pass_met_trigger) return false; 
 
   // check object counts
-  if (reco.n_signal_jets < 2) return false; 
   if (reco.n_baseline_electrons > 0) return false; 
   if (reco.n_baseline_muons > 0) return false; 
 
