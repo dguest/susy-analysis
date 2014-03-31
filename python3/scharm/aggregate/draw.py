@@ -133,7 +133,10 @@ class Stack:
             plt_handle, = self.ax.plot(x_vals,y_vals,style, linewidth=3.0)
             self._proxy_legs.append( (plt_handle, self._get_legstr(hist)))
 
-            self._upper_limit = np.maximum(self._upper_limit, y_vals)
+            # TODO: fix this (right now the dimensions of the array
+            # don't match the ones from data)
+            # self._upper_limit = np.maximum(
+            #     self._upper_limit, hist.get_xy_center_pts())
 
     def _get_min_plotable(self, y_vals):
         plot_vals = np.array(y_vals)
@@ -238,7 +241,8 @@ class Stack:
             yerr=[plt_err_down,plt_err_up])
 
         self._proxy_legs.append( (line, self._get_legstr(hist)))
-        self._upper_limit = np.maximum(self._upper_limit, highs)
+        # TODO: fix this, the dims don't match the backgrounds
+        # self._upper_limit = np.maximum(self._upper_limit, highs)
 
     def add_legend(self):
         tstring = 'SM total: {}'.format(_legstr(self._sm_total))
