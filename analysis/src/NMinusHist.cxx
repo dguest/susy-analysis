@@ -24,8 +24,9 @@ namespace nminus {
   }
 
   NMinusHist::NMinusHist(const Axis& axis,
-			 const std::map<std::string,Selection>& selection) :
-    m_histogram(new Histogram({axis})),
+			 const std::map<std::string,Selection>& selection,
+			 unsigned flags):
+    m_histogram(new Histogram({axis}, flags)),
     m_name(axis.name)
   {
     auto inf = std::numeric_limits<double>::infinity();

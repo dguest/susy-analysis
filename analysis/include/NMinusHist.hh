@@ -24,7 +24,8 @@ namespace nminus {
   class NMinusHist {
   public:
     // NOTE: could generalize this by making it an initalizer list
-    NMinusHist(const Axis&, const std::map<std::string, Selection>&);
+    NMinusHist(const Axis&, const std::map<std::string, Selection>&,
+	       unsigned flags = 0); // flags are passed to ndhist
     ~NMinusHist();
     NMinusHist(NMinusHist&) = delete;
     NMinusHist(NMinusHist&&);
