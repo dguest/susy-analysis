@@ -10,8 +10,10 @@ class Histogram;
 
 namespace H5 {
   class CommonFG;
+  class DataSet;
 }
 namespace nminus {
+  const std::string WT2_POSTFIX = "Wt2";
 
   struct Selection {
     enum class Missing {REJECT, ACCEPT, THROW, PHANTOM};
@@ -33,10 +35,12 @@ namespace nminus {
     void fill(const std::map<std::string, double>& values, double weight);
     void write_to(H5::CommonFG&, std::string name = "") const;
   private:
+    void add_selection(H5::DataSet&) const;
     Histogram* m_histogram;
     // NOTE: generalization would also require something new here
     Selection m_selection;
     std::string m_name;
+    bool m_save_wt2;
     std::vector<std::pair<std::string,Selection> > m_cuts;
   };
 }
