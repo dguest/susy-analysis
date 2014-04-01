@@ -17,48 +17,48 @@ import yaml
 import sys, os
 import warnings
 
-def get_config(): 
+def get_config():
     d = 'default: %(default)s'
     c = "with no argument is '%(const)s'"
 
     parser = argparse.ArgumentParser(
-        description=__doc__, 
+        description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('files', nargs='+', help=_files_help)
     parser.add_argument('-m','--meta', required=True)
     parser.add_argument('-o','--output', required=True)
     parser.add_argument('-s','--systematic', default='none', help=d)
-    parser.add_argument('-d','--dump', action='store_true', 
+    parser.add_argument('-d','--dump', action='store_true',
                         help='dump samples used (and quit)')
     args = parser.parse_args(sys.argv[1:])
     return args
 
-def get_signal_finder(signal_point): 
-    if signal_point: 
+def get_signal_finder(signal_point):
+    if signal_point:
         signal_head = signal_point.split('-')[0]
-        def needed(tup): 
+        def needed(tup):
             phys = tup[0]
-            if not phys.startswith(signal_head): 
+            if not phys.startswith(signal_head):
                 return True
             return phys == signal_point
-    else: 
-        def needed(tup): 
+    else:
+        def needed(tup):
             return True
     return needed
 
-def run(): 
+def run():
     args = get_config()
 
     all_files = get_all_files(args.files, systematic=args.systematic)
     if args.dump:
         samples = SampleSelector(args.meta).select_datasets(all_files)
-        for samp in samples: 
+        for samp in samples:
             print(samp)
         sys.exit(0)
     selected_samples = SampleSelector(args.meta).select_samples(all_files)
 
     aggregator = agg.SampleAggregator(
-        meta_path=args.meta, 
+        meta_path=args.meta,
         hfiles=list(selected_samples),
         variables='all',
         )
@@ -66,13 +66,13 @@ def run():
     # aggregator.out_prepend = 'systamatic: {} '.format(systematic)
     aggregator.aggregate()
     # aggregator.bugstream.seek(0)
-    # for line in aggregator.bugstream: 
+    # for line in aggregator.bugstream:
     #     print line
     agg_name = args.output
-    if isfile(agg_name): 
+    if isfile(agg_name):
         os.remove(agg_name)
     aggregator.write(agg_name)
-    
 
-if __name__ == '__main__': 
+
+if __name__ == '__main__':
     run()

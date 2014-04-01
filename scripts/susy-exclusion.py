@@ -1,10 +1,10 @@
 #!/usr/bin/env python3.3
 """
-Top level for routines to draw excluded contour. Cuts used are defined in 
-yaml_cuts. To make fancy names for regions, use the 'fancy_name' key. 
+Top level for routines to draw excluded contour. Cuts used are defined in
+yaml_cuts. To make fancy names for regions, use the 'fancy_name' key.
 
-Colors can be given in draw_style, which will also make dashes 
-if a '-' appears. 
+Colors can be given in draw_style, which will also make dashes
+if a '-' appears.
 """
 
 import argparse
@@ -27,15 +27,15 @@ from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
 from matplotlib.font_manager import FontProperties
 
-def get_args(): 
+def get_args():
     d = 'default: %(default)s'
     pl_parent = argparse.ArgumentParser(add_help=False)
     pl_parent.add_argument(
-        '-e','--plot-ext', help='output extension', 
+        '-e','--plot-ext', help='output extension',
         choices={'.pdf','.png','.eps', '.txt'}, default='.pdf')
     pl_parent.add_argument(
         '-r','--aspect-ratio', nargs='?', type=float, default=8.0/9.0,
-        const=0.64, 
+        const=0.64,
         help=("defaults to %(default).2f, "
               "const value is %(const).2f"))
     pl_parent.add_argument('-o','--out-dir', default='exclusion')
@@ -43,7 +43,7 @@ def get_args():
     pl_parent.add_argument('-p','--pr-crap', action='store_true')
 
     parser = argparse.ArgumentParser(
-        description=__doc__, parents=[pl_parent], 
+        description=__doc__, parents=[pl_parent],
         formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('hdf_input')
     parser.add_argument('yaml_cuts')
@@ -51,48 +51,48 @@ def get_args():
     parser.add_argument('--heat', action='store_true')
     return parser.parse_args(sys.argv[1:])
 
-def _get_part_mstop_mlsp(string): 
+def _get_part_mstop_mlsp(string):
     the_re = re.compile('([^-]+)-([0-9]+)-([0-9]+)')
     match = the_re.search(string)
     mstop, mlsp = [int(x) for x in match.group(2,3)]
     part = match.group(1)
     return part, mstop, mlsp
 
-def _value_from_plane(plane, sr_cuts): 
+def _value_from_plane(plane, sr_cuts):
     extents = plane.attrs['extent']
     ax_names = plane.attrs['ax_names']
     ext_chunks = [extents[i:i+2] for i in range(0, len(extents), 2)]
     index = []
-    for name, extent, n_bins in zip(ax_names, ext_chunks, plane.shape): 
+    for name, extent, n_bins in zip(ax_names, ext_chunks, plane.shape):
         cut_val = sr_cuts[name.decode()]
         index.append(_bin_from_cut(cut_val, extent, n_bins))
     return plane[tuple(index)]
 
-def _bin_from_cut(cutval, extent, n_bins): 
+def _bin_from_cut(cutval, extent, n_bins):
     bin_vals = np.linspace(*extent, num=n_bins, endpoint=False)
     index = bisect.bisect_left(bin_vals, cutval)
-    if not bin_vals[index] == cutval: 
+    if not bin_vals[index] == cutval:
         raise ValueError('{} != {}'.format(bin_vals[index], cutval))
     return index
 
-def run(): 
+def run():
     args = get_args()
     hdf = h5py.File(args.hdf_input)
     plot_args = dict(
-        threshold=args.threshold, 
-        aspect_ratio=args.aspect_ratio, 
+        threshold=args.threshold,
+        aspect_ratio=args.aspect_ratio,
         signal_prefix='stop')
-    with open(args.yaml_cuts) as cuts_yml: 
+    with open(args.yaml_cuts) as cuts_yml:
         signal_regions = yaml.load(cuts_yml)
-    if args.plot_ext == '.txt': 
+    if args.plot_ext == '.txt':
         ex_plane = ExcludedList(**plot_args)
-    else: 
+    else:
         ex_plane = ExclusionPlane(**plot_args)
-    for signal_region in signal_regions: 
+    for signal_region in signal_regions:
         sr_name = signal_region['region_key']
         sp_group = hdf[sr_name]
         stop_lsp_ul = []
-        for sp_name, plane in sp_group.items(): 
+        for sp_name, plane in sp_group.items():
             part, mstop, mlsp = _get_part_mstop_mlsp(sp_name)
             upper_limit = _value_from_plane(plane, signal_region)
             stop_lsp_ul.append( (mstop, mlsp, upper_limit) )
@@ -101,31 +101,31 @@ def run():
         contour_name = signal_region.get('fancy_name',sr_name)
         style = signal_region.get('draw_style', None)
         ex_plane.add_config(stop_lsp_ul, contour_name, style)
-        if args.heat: 
+        if args.heat:
             _plot_points(stop_lsp_ul, out_name)
 
-    if args.pr_crap: 
+    if args.pr_crap:
         ex_plane.add_labels()
     ex_plane.save(os.path.join(args.out_dir, args.out_name + args.plot_ext))
 
-class ExcludedList(object): 
-    def __init__(self, threshold, **argv): 
+class ExcludedList(object):
+    def __init__(self, threshold, **argv):
         self._threshold = threshold
         self._excluded = set()
-        def make_signame(mstop, mlsp): 
+        def make_signame(mstop, mlsp):
             return '{}-{}-{}'.format(argv['signal_prefix'], mstop, mlsp)
         self.make_signame = make_signame
-    def add_config(self, stop_lsp_ul, label, style=None): 
-        for x, y, z in stop_lsp_ul: 
-            if z < self._threshold: 
+    def add_config(self, stop_lsp_ul, label, style=None):
+        for x, y, z in stop_lsp_ul:
+            if z < self._threshold:
                 self._excluded.add(self.make_signame(x,y))
-    def save(self, name): 
+    def save(self, name):
         make_dir_if_none(dirname(name))
-        with open(name,'w') as output: 
+        with open(name,'w') as output:
             output.write('\n'.join(self._excluded) + '\n')
 
-class ExclusionPlane(object): 
-    def __init__(self, threshold=1.0, **argv): 
+class ExclusionPlane(object):
+    def __init__(self, threshold=1.0, **argv):
         width = 9.0
         height = width*argv.get('aspect_ratio',8.0/width)
         self.figure = Figure(figsize=(width,height))
@@ -141,11 +141,11 @@ class ExclusionPlane(object):
         self.lw = 3
         self._pts = None
         self._threshold = threshold
-        
-    def _get_style(self, style_string): 
-        if not style_string: 
-            for color in self.colors: 
-                if not color in self.used_colors: 
+
+    def _get_style(self, style_string):
+        if not style_string:
+            for color in self.colors:
+                if not color in self.used_colors:
                     self.used_colors.add(color)
                     return color, 'solid'
 
@@ -154,9 +154,9 @@ class ExclusionPlane(object):
         self.used_colors.add(the_color)
         return the_color, line_style
 
-    def add_config(self, stop_lsp_ul, label, style=None): 
+    def add_config(self, stop_lsp_ul, label, style=None):
         """
-        Expects a list of (mass stop, mass lsp, upper limit) tuples. 
+        Expects a list of (mass stop, mass lsp, upper limit) tuples.
         """
         low_x = 80
         low_y = 50
@@ -183,40 +183,40 @@ class ExclusionPlane(object):
         ct_color, ct_style = self._get_style(style)
         draw_opts = dict(color=ct_color, linewidth=self.lw, linestyle=ct_style)
         ct = self.ax.contour(
-            xp, yp, zp, [self._threshold], 
+            xp, yp, zp, [self._threshold],
             colors=ct_color, linewidths=self.lw, linestyles=ct_style )
         self._proxy_contour.append(
             ( Line2D((0,0),(0,1), **draw_opts), str(label)) )
-        if not self._pts: 
+        if not self._pts:
             inpts = (x > xmin) & (y > ymin)
             self._pts, = self.ax.plot(x[inpts],y[inpts],'.k')
             self._proxy_contour.insert(0,(self._pts, 'signal points'))
 
-    def add_labels(self): 
-        self.ax.text(0.7, 0.3, 
+    def add_labels(self):
+        self.ax.text(0.7, 0.3,
                      '$\sqrt{s}\ =\ 8\ \mathrm{TeV}$',
                      transform=self.ax.transAxes, size=24)
-        self.ax.text(0.6, 0.2, 
+        self.ax.text(0.6, 0.2,
                      '$\int\ \mathcal{L}\ dt\ =\ 20.3\ \mathrm{fb}^{-1}$',
                      transform=self.ax.transAxes, size=24)
-        self.ax.text(0.7, 0.05, 'ATLAS', style='italic', weight='bold', 
-                     horizontalalignment='right', 
+        self.ax.text(0.7, 0.05, 'ATLAS', style='italic', weight='bold',
+                     horizontalalignment='right',
                      transform=self.ax.transAxes, size=24)
-        self.ax.text(0.7, 0.05, ' INTERNAL', style='italic', 
-                     horizontalalignment='left', 
+        self.ax.text(0.7, 0.05, ' INTERNAL', style='italic',
+                     horizontalalignment='left',
                      transform=self.ax.transAxes, size=24)
 
-    def save(self, name): 
+    def save(self, name):
         leg = self.ax.legend(
-            *zip(*self._proxy_contour), fontsize='xx-large', 
+            *zip(*self._proxy_contour), fontsize='xx-large',
              loc='upper left', framealpha=0.0, numpoints=1)
         # may be able to use these to positon lables
         # (x1, y1),(x2,y2) = leg.get_bbox_to_anchor().get_points()
         make_dir_if_none(dirname(name))
         self.canvas.print_figure(name, bbox_inches='tight')
-        
 
-def _plot_points(stop_lsp_ul, out_name): 
+
+def _plot_points(stop_lsp_ul, out_name):
     figure = Figure(figsize=(9,8))
     canvas = FigCanvas(figure)
     ax = figure.add_subplot(1,1,1)
@@ -251,7 +251,7 @@ def _plot_points(stop_lsp_ul, out_name):
 
     canvas.print_figure(out_name, bbox_inches='tight')
 
-if __name__ == '__main__': 
+if __name__ == '__main__':
     run()
 
-    
+

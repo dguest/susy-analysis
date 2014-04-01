@@ -1,35 +1,35 @@
 #!/usr/bin/env python2.7
 """
-This is intended to be the top level script for various performance scripts. 
+This is intended to be the top level script for various performance scripts.
 """
 
 _tag_help="""
-Routine to run over d3pds (distill) condense resulting ntuples (stack), and 
-plot them (plot). Should probably be run from an empty directory. 
+Routine to run over d3pds (distill) condense resulting ntuples (stack), and
+plot them (plot). Should probably be run from an empty directory.
 """
 
 _ratio_help="""
-Computes the ratio between two efficiencies. Output is either plotted or 
+Computes the ratio between two efficiencies. Output is either plotted or
 dumped as yaml
 """
 
 _distill_help="""
-Produces one output file for the dir or textfile given. 
-If a textfile is given, it should contain a list of root files. If a 
-directory is given, it should be for one entire dataset. 
+Produces one output file for the dir or textfile given.
+If a textfile is given, it should contain a list of root files. If a
+directory is given, it should be for one entire dataset.
 
-This is designed to be run in parallel. 
+This is designed to be run in parallel.
 
-TODO: think about how to merge this with the susy-distill routine. 
+TODO: think about how to merge this with the susy-distill routine.
 In theory this script could be simpler / easier to use with batch systems
-than the older susy-distill, but for the moment it doesn't do enough 
-with systematics. 
+than the older susy-distill, but for the moment it doesn't do enough
+with systematics.
 """
 
 _setup_help="""
-General setup for D3PD -> whiskey_tuple -> histogram chain. 
+General setup for D3PD -> whiskey_tuple -> histogram chain.
 
-TODO: move to top level? 
+TODO: move to top level?
 """
 
 import argparse, sys
@@ -48,12 +48,12 @@ from stop.hists import HistNd
 from susy.distiller import cutflow
 from stop import meta
 
-def run(): 
+def run():
     config = get_config()
     subs = {'tag':jet_tag_efficinecy}
     subs[config.which](config)
 
-def get_config(): 
+def get_config():
     d = 'default: %(default)s'
     c = "with no argument is '%(const)s'"
 
@@ -64,9 +64,9 @@ def get_config():
 
     tag_setup = tag_step.add_parser('setup', description=_setup_help)
     tag_setup.add_argument(
-        'input_textfiles', nargs='+', 
+        'input_textfiles', nargs='+',
         help='can be produced with susy-utils')
-    tag_setup.add_argument('-m', '--update-meta', required=True, 
+    tag_setup.add_argument('-m', '--update-meta', required=True,
                            help='update meta file with sum_wt etc')
     tag_setup.add_argument('-s', '--script', help='build this PBS script')
     tag_setup.add_argument('-f', '--filter-output', action='store_true')
@@ -76,13 +76,13 @@ def get_config():
         'd3pds', help='input d3pd dir OR file listing d3pds')
     tag_distill.add_argument('meta', help='meta yaml file')
     tag_distill.add_argument(
-        '-f','--filter-output', action='store_true', 
+        '-f','--filter-output', action='store_true',
         help=('apply same output filter as is applied to the search skims'
               ' (for compatibility)'))
     tag_distill.add_argument(
-        '-o','--output-dir', default='whiskey', 
+        '-o','--output-dir', default='whiskey',
         help='output dir for distillates, ' + d)
-    tag_distill.add_argument('--calibration', default='~/calibration', 
+    tag_distill.add_argument('--calibration', default='~/calibration',
                              help=d)
 
     tag_agg = tag_step.add_parser('stack')
@@ -90,23 +90,23 @@ def get_config():
     tag_agg_run = tag_agg_step.add_parser('run')
     tag_agg_run.add_argument(
         'whiskey_dir', help='input dir (or file)')
-    tag_agg_run.add_argument('-o', '--output-dir', default='hists', 
+    tag_agg_run.add_argument('-o', '--output-dir', default='hists',
                              help='output dir for hists, ' + d)
     tag_agg_setup = tag_agg_step.add_parser('setup')
     tag_agg_setup.add_argument('whiskey_dir')
     tag_agg_setup.add_argument('hist_dir')
     tag_agg_setup.add_argument(
-        '-s', '--script', default='crocosaurus.sh', 
+        '-s', '--script', default='crocosaurus.sh',
         help=d)
 
     tag_plot = tag_step.add_parser('plot')
     tag_plot.add_argument('input_hists', nargs='*')
-    tag_plot.add_argument('-o', '--output-dir', default='plots', 
+    tag_plot.add_argument('-o', '--output-dir', default='plots',
                           help='output dir for plots, ' + d)
-    tag_plot.add_argument('-b', '--binned', action='store_true', 
+    tag_plot.add_argument('-b', '--binned', action='store_true',
                           help='bin by flavortag bins')
     tag_plot.add_argument(
-        '--binomial-error', action='store_true', 
+        '--binomial-error', action='store_true',
         help=('calculate errors as binomial rather than using wt2 linear '
               'propagation'))
     tag_plot.add_argument('--ext', help='plot extension ' + d, default='.pdf')
@@ -116,85 +116,85 @@ def get_config():
     eff_ratio.add_argument('-n','--numerators', nargs='+')
     eff_ratio.add_argument('-d','--denominators', nargs='+')
     eff_ratio.add_argument('-o','--plot-dir')
-    eff_ratio.add_argument('--ext', help='plot extension ' + d, 
+    eff_ratio.add_argument('--ext', help='plot extension ' + d,
                            default='.pdf')
     eff_ratio.add_argument('--flavor', default='all')
     return parser.parse_args(sys.argv[1:])
 
-def jet_tag_efficinecy(config): 
-    subs = {'distill':distill_d3pds,'stack':jet_tag_stack, 
-            'plot':plot_jet_eff, 'ratio': jet_eff_ratio, 
+def jet_tag_efficinecy(config):
+    subs = {'distill':distill_d3pds,'stack':jet_tag_stack,
+            'plot':plot_jet_eff, 'ratio': jet_eff_ratio,
             'setup': make_setup}
     subs[config.step](config)
 
-def jet_tag_stack(config): 
+def jet_tag_stack(config):
     subs = {'setup':make_stack_setup, 'run':aggregate_jet_plots}
     subs[config.stackstep](config)
 
-def make_stack_setup(config): 
+def make_stack_setup(config):
     in_dir = config.whiskey_dir
     in_files = glob.glob('{}/*.root'.format(in_dir))
-    
+
     sub_dict = {
-        'n_jobs': len(in_files), 
-        'out_dir': 'stack-output', 
-        'in_dir': in_dir.rstrip('/'), 
-        'in_ext': '.root', 
-        'routine': 'susy-performance.py tag stack run', 
-        'run_args': '-o {}'.format(config.hist_dir), 
+        'n_jobs': len(in_files),
+        'out_dir': 'stack-output',
+        'in_dir': in_dir.rstrip('/'),
+        'in_ext': '.root',
+        'routine': 'susy-performance.py tag stack run',
+        'run_args': '-o {}'.format(config.hist_dir),
         }
     submit_script = _submit_script.format(**sub_dict)
-    with open(config.script, 'w') as out_script: 
+    with open(config.script, 'w') as out_script:
         out_script.write(submit_script)
-    
 
-def make_setup(config): 
+
+def make_setup(config):
     ds_meta = None
-    if config.update_meta: 
+    if config.update_meta:
         ds_meta = meta.DatasetCache(config.update_meta)
-        for ds_key in ds_meta: 
+        for ds_key in ds_meta:
             ds_meta[ds_key].sum_event_weight = 0.0
             ds_meta[ds_key].n_raw_entries = 0
         collector = meta.MetaTextCollector()
         out_meta = meta.DatasetCache()
-        for textfile in config.input_textfiles: 
+        for textfile in config.input_textfiles:
             ds_key = basename(splitext(textfile)[0]).split('-')[0]
-            with open(textfile) as steering_file: 
+            with open(textfile) as steering_file:
                 files = [l.strip() for l in steering_file.readlines()]
             n_events, total_wt, n_cor = collector.get_recorded_events(files)
             out_meta[ds_key] = ds_meta[ds_key]
             out_meta[ds_key].sum_event_weight += total_wt
             out_meta[ds_key].n_raw_entries += n_events
         out_meta.write(config.update_meta)
-    if config.script: 
+    if config.script:
         run_args = config.update_meta
-        if config.filter_output: 
+        if config.filter_output:
             run_args += ' --filter-output'
         sub_dict = {
-            'n_jobs': len(config.input_textfiles), 
-            'out_dir': 'distill-output', 
-            'in_dir': 'd3pds', 
-            'in_ext': '.txt', 
-            'routine': 'susy-performance.py tag distill', 
-            'run_args': run_args, 
+            'n_jobs': len(config.input_textfiles),
+            'out_dir': 'distill-output',
+            'in_dir': 'd3pds',
+            'in_ext': '.txt',
+            'routine': 'susy-performance.py tag distill',
+            'run_args': run_args,
             }
         submit_script = _submit_script.format(**sub_dict)
-        with open(config.script, 'w') as out_script: 
+        with open(config.script, 'w') as out_script:
             out_script.write(submit_script)
 
-def distill_d3pds(config): 
-    if isfile(config.d3pds): 
-        with open(config.d3pds) as d3pd_file: 
+def distill_d3pds(config):
+    if isfile(config.d3pds):
+        with open(config.d3pds) as d3pd_file:
             files = [l.strip() for l in d3pd_file.readlines()]
         out_file = splitext(basename(config.d3pds))[0] + '.root'
-    else: 
+    else:
         out_file = _ntuple_name_from_ds_name(dirname(config.d3pds))
         files = glob.glob('{}/*'.format(config.d3pds))
     calibration_dir = expanduser(config.calibration)
     btag_env = join(calibration_dir, 'BTagCalibration.env')
-    if not files: 
-        return 
-    if not isdir(config.output_dir): 
+    if not files:
+        return
+    if not isdir(config.output_dir):
         os.mkdir(config.output_dir)
     meta_lookup = meta.DatasetCache(config.meta)
 
@@ -202,132 +202,132 @@ def distill_d3pds(config):
 
     out_path = join(config.output_dir, out_file)
     flags = 'v'             # verbose
-    if not config.filter_output: 
+    if not config.filter_output:
         flags += 'e'        # save all events
-    if _is_atlfast(meta_lookup[ds_key].full_name): 
+    if _is_atlfast(meta_lookup[ds_key].full_name):
         flags += 'f'
-    if _needs_overlap_removal(meta_lookup[ds_key].full_name): 
+    if _needs_overlap_removal(meta_lookup[ds_key].full_name):
         flags += 'h'
     cut_counts = cutflow.cutflow(
-        input_files=files, flags=flags, output_ntuple=out_path, 
+        input_files=files, flags=flags, output_ntuple=out_path,
         btag_cal_file=btag_env, cal_dir=calibration_dir)
     counts_path = splitext(out_path)[0] + '_counts.yml'
     list_counts = [list(c) for c in cut_counts]
-    with open(counts_path,'w') as out_yml: 
+    with open(counts_path,'w') as out_yml:
         out_yml.write(yaml.dump(list_counts))
-    
 
-def aggregate_jet_plots(config): 
+
+def aggregate_jet_plots(config):
     from stop.stack import hfw
     input_dir = config.whiskey_dir
-    if isdir(config.whiskey_dir): 
+    if isdir(config.whiskey_dir):
         whiskey = glob.glob(join(config.whiskey_dir, '*.root'))
-    elif isfile(config.whiskey_dir) and config.whiskey_dir.endswith('.txt'): 
-        with open(config.whiskey_dir) as files: 
+    elif isfile(config.whiskey_dir) and config.whiskey_dir.endswith('.txt'):
+        with open(config.whiskey_dir) as files:
             whiskey = [l.strip() for l in files.readlines()]
-    elif isfile(config.whiskey_dir): 
+    elif isfile(config.whiskey_dir):
         whiskey = [config.whiskey_dir]
     else:
         raise IOError("intput dir '{}' doesn't exist".format(whiskey_dir))
-    if not isdir(config.output_dir): 
+    if not isdir(config.output_dir):
         os.mkdir(config.output_dir)
-    for tup in whiskey: 
+    for tup in whiskey:
         out_hist_name = splitext(basename(tup))[0] + '.h5'
         out_hist_path = join(config.output_dir, out_hist_name)
         region_dict = {
             'name':'alljet',    # the top level in the output
-            'output_name': out_hist_path, 
+            'output_name': out_hist_path,
             'type': 'CONTROL',  # doesn't really matter
-            'hists': 'TAG_EFFICIENCY', 
-            'jet_tag_requirements':['NOTAG'], # require one jet 
+            'hists': 'TAG_EFFICIENCY',
+            'jet_tag_requirements':['NOTAG'], # require one jet
             }
         path = abspath(tup)
-        if not isfile(path): 
+        if not isfile(path):
             raise IOError("{} can't be found".format(path))
         hfw.stacksusy(
             input_file=abspath(tup), region_list=[region_dict], flags='v')
-                      
-def plot_jet_eff(config): 
+
+def plot_jet_eff(config):
     from stop.performance.jeteff import JetEfficiencyPlotter
     from stop.plot.efficiency import EfficiencyPlot, BinnedEfficiencyPlot
-    if not isdir(config.output_dir): 
+    if not isdir(config.output_dir):
         os.mkdir(config.output_dir)
     wt2_error = not config.binomial_error
-    if config.flavor != 'all': 
+    if config.flavor != 'all':
         config.flavor = [config.flavor]
     plotter = EfficiencyPlot
     draw_bins = 'jf'
-    if config.binned: 
+    if config.binned:
         plotter = BinnedEfficiencyPlot
         draw_bins = ''
-    outer_plotter = JetEfficiencyPlotter(do_wt2_error=wt2_error, 
+    outer_plotter = JetEfficiencyPlotter(do_wt2_error=wt2_error,
                                          draw_bins=draw_bins)
     outer_plotter.plot_samples(
-        config.input_hists, out_dir=config.output_dir, flavors=config.flavor, 
+        config.input_hists, out_dir=config.output_dir, flavors=config.flavor,
         plotter=plotter, plot_extension=config.ext)
 
-def jet_eff_ratio(config): 
+def jet_eff_ratio(config):
     from stop.performance.jeteff import JetEffRatioCalc, JetRatioPlotter
     from stop.performance.jeteff import JetRatioDumper
     calc = JetEffRatioCalc()
-    rat_dict = calc.get_ratios(config.numerators, 
-                               config.denominators, 
+    rat_dict = calc.get_ratios(config.numerators,
+                               config.denominators,
                                flavor=config.flavor)
-    if config.plot_dir: 
-        if not isdir(config.plot_dir): 
+    if config.plot_dir:
+        if not isdir(config.plot_dir):
             os.mkdir(config.plot_dir)
 
         plotter = JetRatioPlotter(rat_dict)
         plotter.overlay_denominators(config.plot_dir, config.ext)
 
-    else: 
+    else:
         dumper = JetRatioDumper(rat_dict)
-        if config.ext == '.xml': 
+        if config.ext == '.xml':
             print dumper.as_xml()
-        elif config.ext == '.txt': 
-            for line in dumper.as_raw_text(): 
+        elif config.ext == '.txt':
+            for line in dumper.as_raw_text():
                 print line
-        else: 
+        else:
             print yaml.dump(dumper.as_nested_dict(),
                             default_flow_style=False)
 
-def _is_atlfast(sample): 
+def _is_atlfast(sample):
     sim_re = re.compile('\.e[0-9]+_([as])[0-9]+_')
-    try: 
+    try:
         char = sim_re.search(sample).group(1)
-    except AttributeError: 
+    except AttributeError:
         raise ValueError("can't find type of reco in {}".format(sample))
-    if char == 'a': 
+    if char == 'a':
         return True
-    elif char == 's': 
+    elif char == 's':
         return False
-    else: 
+    else:
         raise ValueError(
             "not sure what kind of sample '{}' is".format(sample))
 
-def _needs_overlap_removal(sample): 
+def _needs_overlap_removal(sample):
     overlaping_sherpa_finder = re.compile('MassiveCBPt0_')
     sherpa_pt_range_finder = re.compile('Pt[0-9]+_[0-9]+')
-    if overlaping_sherpa_finder.search(sample): 
-        if sherpa_pt_range_finder.search(sample): 
-            raise IOError( 
+    if overlaping_sherpa_finder.search(sample):
+        if sherpa_pt_range_finder.search(sample):
+            raise IOError(
                 "can't determine if {} needs pt overlap removal".format(
                     sample))
         return True
     return False
 
-def _ntuple_name_from_ds_name(ds_name): 
+def _ntuple_name_from_ds_name(ds_name):
     bname = basename(ds_name)
     fields = bname.split('.')
-    try: 
+    try:
         type_index = fields.index('mc12_8TeV')
-    except ValueError: 
+    except ValueError:
         raise ValueError("can't find type string in {}".format(bname))
     dsid = fields[type_index + 1]
     sim_name = fields[type_index + 2].split('_')[0]
     return '{}-{}.root'.format(sim_name, dsid)
 
-def _ds_key_from_ds_name(ds_name): 
+def _ds_key_from_ds_name(ds_name):
     bname = basename(ds_name)
     fields = bname.split('.')
     type_index = fields.index('mc12_8TeV')
@@ -346,12 +346,12 @@ _submit_script="""
 
 cd $PBS_O_WORKDIR
 mkdir -p {out_dir}
-echo 'submitted from: ' $PBS_O_WORKDIR 
+echo 'submitted from: ' $PBS_O_WORKDIR
 
 files=($(ls {in_dir}/*{in_ext} | sort))
 
 {routine} ${{files[$PBS_ARRAYID-1]}} {run_args}
 """
 
-if __name__ == '__main__': 
+if __name__ == '__main__':
     run()

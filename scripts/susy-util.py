@@ -1,24 +1,24 @@
 #!/usr/bin/env python2.7
 """
-Top level script for vairous generic data manipulation. 
+Top level script for vairous generic data manipulation.
 """
 
 _meta_help="""
-Top level for routines that print / filter / manipulate meta data. 
-Routines here share common filters. 
+Top level for routines that print / filter / manipulate meta data.
+Routines here share common filters.
 """
 
 _rename_help="""
-Swaps the ds key file names for something more readable. 
+Swaps the ds key file names for something more readable.
 """
 
 _group_help="""
 Groups d3pds into datasets by file. Will break larger datasets into multiple
-outputs. 
+outputs.
 """
 
 _cutflow_help="""
-Gets the aggregated cutflow from lots of files. 
+Gets the aggregated cutflow from lots of files.
 """
 
 _check_help="""
@@ -37,16 +37,16 @@ from scharm.hists import HistNd, HistAdder
 from scharm import meta
 from collections import defaultdict, Counter
 
-def run(): 
+def run():
     config = get_config()
     subs = {
-        'group': group_input_files, 
-        'meta':list_meta_info, 
-        'rename':rename, 
+        'group': group_input_files,
+        'meta':list_meta_info,
+        'rename':rename,
         'cutflow':cutflow}
     subs[config.which](config)
 
-def get_config(): 
+def get_config():
     d = 'default: %(default)s'
     c = "with no argument is '%(const)s'"
 
@@ -66,7 +66,7 @@ def get_config():
         '-d', '--dir-filter', help='only use keys in this dir')
     meta_list.add_argument('meta_file')
     meta_list.add_argument(
-        '-o', '--output-format', default='names', 
+        '-o', '--output-format', default='names',
         choices={'files','meta','names','keys'})
 
     # rename stuff
@@ -78,12 +78,12 @@ def get_config():
     # group stuff
     group = subs.add_parser('group', description=_group_help)
     group.add_argument(
-        'input_dirs', nargs='+', 
+        'input_dirs', nargs='+',
         help='dataset directories, must each have a dsid')
     group.add_argument(
-        '-n', '--n-files-per-job', type=int, default=5, 
+        '-n', '--n-files-per-job', type=int, default=5,
         help='number of root files to put in each out file, ' + d)
-    group.add_argument('-o', '--output-dir', default='batch/d3pds', 
+    group.add_argument('-o', '--output-dir', default='batch/d3pds',
                        help=d)
 
     # cutflow stuff
@@ -92,150 +92,150 @@ def get_config():
 
     return parser.parse_args(sys.argv[1:])
 
-def cutflow(config): 
+def cutflow(config):
     cut_counts = Counter()
-    with open(config.count_files[0]) as first_file: 
+    with open(config.count_files[0]) as first_file:
         cuts = [c[0] for c in yaml.load(first_file)]
     cutset = set(cuts)
-    for f in config.count_files: 
-        with open(f) as count_file: 
+    for f in config.count_files:
+        with open(f) as count_file:
             cut_list = yaml.load(count_file)
         these_cuts = set(c[0] for c in cut_list)
-        if these_cuts - cutset: 
-            if cutset - these_cuts: 
+        if these_cuts - cutset:
+            if cutset - these_cuts:
                 raise ValueError('weird {}'.format(cutset - these_cuts))
             cuts = [c[0] for c in cut_list]
             cutset = set(cuts)
         cut_counts.update(dict(cut_list))
     cut_strlen = max(len(x) for x in cuts) + 1
-    for cut in cuts: 
+    for cut in cuts:
         print '{:>{}}: {}'.format(cut, cut_strlen, cut_counts[cut])
 
-def list_meta_info(config): 
+def list_meta_info(config):
     from scharm.meta import DatasetCache
     meta = DatasetCache(config.meta_file)
     filt_meta = {}
-    filters = [config.physics, config.anti_physics, 
+    filters = [config.physics, config.anti_physics,
                config.name_regex, config.dir_filter]
 
     check_name = lambda x: True
-    if config.name_regex: 
+    if config.name_regex:
         name_re = re.compile(config.name_regex)
-        def check_name(name): 
+        def check_name(name):
             return name_re.search(name)
 
     check_dir = lambda x: True
-    if config.dir_filter: 
+    if config.dir_filter:
         files = glob.glob('{}/*.h5'.format(config.dir_filter))
         files += glob.glob('{}/*.root'.format(config.dir_filter))
         keys = set(splitext(basename(f).split('-')[0])[0] for f in files)
-        def check_dir(key): 
+        def check_dir(key):
             return key in keys
 
-    if any(filters): 
-        for ds_key, ds in meta.iteritems(): 
-            pass_conditions = [ 
-                not config.physics or ds.physics_type == config.physics, 
+    if any(filters):
+        for ds_key, ds in meta.iteritems():
+            pass_conditions = [
+                not config.physics or ds.physics_type == config.physics,
                 not config.anti_physics or (
-                    ds.physics_type != config.anti_physics), 
-                check_name(ds.full_name), 
+                    ds.physics_type != config.anti_physics),
+                check_name(ds.full_name),
                 check_dir(ds.key)
                 ]
-            if all(pass_conditions): 
+            if all(pass_conditions):
                 filt_meta[ds_key] = ds
 
-    else: 
+    else:
         filt_meta = meta
 
-    subopts = {'files': list_files, 'meta': list_meta, 
+    subopts = {'files': list_files, 'meta': list_meta,
                'names':list_names, 'keys': list_keys}
     subopts[config.output_format](config, filt_meta)
 
-def list_files(config, filt_meta): 
-    if not config.dir_filter: 
+def list_files(config, filt_meta):
+    if not config.dir_filter:
         raise ValueError('--dir-filter is required')
-    for ds in filt_meta.values(): 
+    for ds in filt_meta.values():
         files = glob.glob('{}/*{}*'.format(config.dir_filter, ds.key))
-        for f in files: 
+        for f in files:
             print f
 
-def list_names(config, filt_meta): 
-    for ds in filt_meta.values(): 
+def list_names(config, filt_meta):
+    for ds in filt_meta.values():
         print '{}/'.format(ds.full_name)
-def list_meta(config, filt_meta): 
+def list_meta(config, filt_meta):
     meta = {}
-    for ds in filt_meta.values(): 
+    for ds in filt_meta.values():
         meta[ds.key] = ds.yml_dict()
     print yaml.dump(meta)
-def list_keys(config, filt_meta): 
-    for ds in filt_meta.values(): 
+def list_keys(config, filt_meta):
+    for ds in filt_meta.values():
         print ds.key
 
-def rename(config): 
+def rename(config):
     junk_finder = re.compile('_([A-Z0-9]+_)')
     meta_lookup = meta.DatasetCache(config.meta_file)
     rename_map = {}
     used_out = set()
-    for old_name in config.files: 
+    for old_name in config.files:
         old_base, old_ext = splitext(basename(old_name))
-        if old_base in meta_lookup: 
+        if old_base in meta_lookup:
             new_name = meta_lookup[old_base].name
-            try: 
+            try:
                 junk = junk_finder.search(new_name).group(1)
                 new_name = new_name.replace(junk, '')
-            except AttributeError: 
+            except AttributeError:
                 pass
             new_path = join(dirname(old_name), new_name + old_ext)
-            if new_path in used_out: 
+            if new_path in used_out:
                 raise ValueError('rename would overwrite {}'.format(new_path))
             used_out.add(new_path)
             rename_map[old_name] = new_path
-    for old_name, new_name in rename_map.iteritems(): 
-        if config.dummy: 
+    for old_name, new_name in rename_map.iteritems():
+        if config.dummy:
             print '{} --> {}'.format(old_name, new_name)
-        else: 
+        else:
             os.rename(old_name, new_name)
 
-def group_input_files(config): 
+def group_input_files(config):
     from scharm.schema import get_prechar
     files_by_dsid = defaultdict(set)
     dsid_finder = re.compile('mc.._.TeV\.([0-9]{6})\.')
     run_finder = re.compile('data.._.TeV\.([0-9]{8})\.')
-    for in_dir in config.input_dirs: 
+    for in_dir in config.input_dirs:
         prechar = get_prechar(in_dir)
         dsid_match = dsid_finder.search(in_dir)
-        if not dsid_match: 
+        if not dsid_match:
             dsid_match = run_finder.search(in_dir)
-        if not dsid_match: 
+        if not dsid_match:
             raise IOError("can't find dsid for {}".format(in_dir))
         ds_key = prechar + dsid_match.group(1).lstrip('0')
         sub_root_files = set(glob.glob('{}/*.root*'.format(in_dir)))
         files_by_dsid[ds_key] |= sub_root_files
-    
-    if not isdir(config.output_dir): 
+
+    if not isdir(config.output_dir):
         os.makedirs(config.output_dir)
 
-    for dsid, files in files_by_dsid.iteritems(): 
+    for dsid, files in files_by_dsid.iteritems():
         file_list = sorted(files)
         n_files = len(file_list)
         subsets = []
         n_per_job = config.n_files_per_job
-        for iii in xrange(0, n_files, n_per_job): 
+        for iii in xrange(0, n_files, n_per_job):
             subset = file_list[iii:iii+n_per_job]
             subsets.append(subset)
         n_subsets = len(subsets)
         strlen_subsets = len(str(n_subsets))
-        for set_n, subset in enumerate(subsets,1): 
+        for set_n, subset in enumerate(subsets,1):
             out_name = '{}-{:0{}d}of{}.txt'.format(
                 dsid, set_n, strlen_subsets, n_subsets)
-            if n_subsets == 1: 
+            if n_subsets == 1:
                 out_name = '{}.txt'.format(dsid)
             out_path = join(config.output_dir, out_name)
-            with open(out_path,'w') as out_file: 
-                for ds in subset: 
+            with open(out_path,'w') as out_file:
+                for ds in subset:
                     out_file.write(ds + '\n')
-                    
-    
 
-if __name__ == '__main__': 
+
+
+if __name__ == '__main__':
     run()

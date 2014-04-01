@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.7
 """
-Top level script for vairous cross checks. 
+Top level script for vairous cross checks.
 """
 
 _meta_help="""
@@ -8,7 +8,7 @@ Check meta file for missing events
 """
 
 _stext_help="""
-Check susy events textfile. 
+Check susy events textfile.
 """
 
 import argparse, sys
@@ -21,16 +21,16 @@ import warnings
 from stop.meta import DatasetCache
 from collections import Counter
 
-def run(): 
+def run():
     config = get_config()
     subs = {
-        'meta': check_meta, 
+        'meta': check_meta,
         'stext': check_susy_events_file
         }
     subs[config.which](config)
 
 
-def get_config(): 
+def get_config():
     d = 'default: %(default)s'
     c = "with no argument is '%(const)s'"
 
@@ -48,56 +48,56 @@ def get_config():
 
     return parser.parse_args(sys.argv[1:])
 
-def check_susy_events_file(config): 
+def check_susy_events_file(config):
     """
-    For summing over the susy group provided textfile on event counts. 
+    For summing over the susy group provided textfile on event counts.
     """
     datasets = set()
     ds_counts = {}
     repeats = 0
-    with open(config.text_file) as susy_file: 
+    with open(config.text_file) as susy_file:
         running_total = 0
-        for line in susy_file: 
+        for line in susy_file:
             sline = [e.strip() for e in line.split('|')]
-            if len(sline) >= 5: 
+            if len(sline) >= 5:
                 ds_name = sline[4].split()[1]
-                if ds_name.startswith('data12'): 
+                if ds_name.startswith('data12'):
                     dsid = int(ds_name.split('.')[1])
                     total_events = int(sline[3].split()[1])
-                    if dsid in datasets: 
+                    if dsid in datasets:
                         repeats += 1
-                        if total_events != ds_counts[dsid]: 
+                        if total_events != ds_counts[dsid]:
                             prob = 'ACHTUNG: {} != {} in {}'.format(
                                 ds_counts[dsid], total_events, dsid)
                             sys.stderr.write(prob + '\n')
-                                    
-                    else: 
+
+                    else:
                         datasets.add(dsid)
                         running_total += total_events
                     ds_counts[dsid] = total_events
 
     print '{:,} total events in {} datasets ({} repeats)'.format(
         running_total, len(datasets), repeats)
-    if config.meta_file: 
+    if config.meta_file:
         meta_dsids = set()
         data_expected = 0
         data_skimmed = 0
         cache = DatasetCache(config.meta_file)
-        for key, ds in cache.iteritems(): 
+        for key, ds in cache.iteritems():
             keychar = 'd'
-            if key.startswith(keychar): 
+            if key.startswith(keychar):
                 meta_dsids.add(int(key.lstrip(keychar)))
                 data_expected += ds.n_expected_entries
                 data_skimmed += ds.n_raw_entries
         not_in_susy = meta_dsids - datasets
-        def listinate(dsids): 
+        def listinate(dsids):
             return ', '.join(str(i) for i in dsids)
-        if not_in_susy: 
+        if not_in_susy:
             print '{} found in AMI and not susy'.format(
                 listinate(not_in_susy))
 
         not_in_meta = datasets - meta_dsids
-        if not_in_meta: 
+        if not_in_meta:
             print '{} found in susy and not AMI'.format(
                 listinate(not_in_meta))
 
@@ -108,25 +108,25 @@ def check_susy_events_file(config):
             data_skimmed, skim_ami_frac, skim_susy_frac)
 
 def _is_total_line(sline):
-    if not sline[0].startswith('='): 
+    if not sline[0].startswith('='):
         return False
     numbs = sline[0].lstrip('=').split('/')
-    if not len(numbs) == 2: 
+    if not len(numbs) == 2:
         return False
-    if numbs[0] == numbs[1]: 
+    if numbs[0] == numbs[1]:
         return True
     raise ValueError('just fucking shit')
-    
 
-def check_meta(config): 
+
+def check_meta(config):
     type_expected_counter = Counter()
     type_found_counter = Counter()
-    
+
     ds_meta = DatasetCache(config.meta_file)
-    for key, ds in ds_meta.iteritems(): 
+    for key, ds in ds_meta.iteritems():
         expected = ds.n_expected_entries
         found = ds.n_raw_entries
-        if expected != found: 
+        if expected != found:
             temp_str = 'sample {} ({}): expected {:,}, found {:,}\n'
             sys.stderr.write(temp_str.format(
                     ds.key, ds.physics_type, expected, found))
@@ -135,12 +135,12 @@ def check_meta(config):
 
     nameslen = max(len(n) for n in type_expected_counter) + 1
     explen = max(len(str(n)) for n in type_expected_counter.values()) + 1
-    for phys_type in type_expected_counter: 
+    for phys_type in type_expected_counter:
         expected = type_expected_counter[phys_type]
         found = type_found_counter[phys_type]
         print '{:{}}: {:{te}} of {:{te}} ({:.2%})'.format(
-            phys_type, nameslen, found, expected, float(found)/expected, 
+            phys_type, nameslen, found, expected, float(found)/expected,
             te=explen)
 
-if __name__ == '__main__': 
+if __name__ == '__main__':
     run()
