@@ -11,6 +11,7 @@ from scharm.aggregate.sample_selector import SampleSelector
 from scharm.aggregate.file_selector import get_all_files
 from os.path import isfile
 import sys, os
+import yaml
 
 def get_config():
     d = 'default: %(default)s'
@@ -23,6 +24,8 @@ def get_config():
     parser.add_argument('-m','--meta', required=True)
     parser.add_argument('-o','--output', required=True)
     parser.add_argument('-s','--systematic', default='none', help=d)
+    parser.add_argument('-f','--fast', action='store_true',
+                        help="don't use (many) signal points")
     args = parser.parse_args(sys.argv[1:])
     return args
 
@@ -32,9 +35,14 @@ def run():
     all_files = get_all_files(args.files, systematic=args.systematic)
     selected_samples = SampleSelector(args.meta).select_samples(all_files)
 
-    input_maker = fitinputs.FitInputMaker(meta_path=args.meta)
-    yaml_summary = input_maker.make_inputs(all_files)
-    print(yaml_summary)
+    sig_pt = None
+    if args.fast:
+        sig_pt = 'scharm-550-50'
+    input_maker = fitinputs.FitInputMaker(
+        meta_path=args.meta, signal_point=sig_pt)
+    summary = input_maker.make_inputs(all_files)
+    with open(args.output,'w') as out_yml:
+        out_yml.write(yaml.dump(summary))
 
 if __name__ == '__main__':
     run()

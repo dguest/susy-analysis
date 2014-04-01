@@ -1,5 +1,5 @@
 from scharm.aggregate.normalizer import Normalizer
-from collections import defaultdict
+from collections import Counter
 import yaml
 import numpy as np
 
@@ -11,25 +11,54 @@ class FitInputMaker:
     # the sum(weight^2) histograms have a special tag that tells
     # us to multiply by the squared normalization
     _wt2_tag = 'Wt2'
+    _signal_prefix = 'scharm'
 
-    def __init__(self, meta_path, variable='met'):
+    def __init__(self, meta_path, variable='met', signal_point=None):
         self._meta_path = meta_path
         self._variable = variable
+
+        # signal finder (for short test jobs without much signal)
+        if signal_point is None:
+            def finder(proc):
+                return True
+        else:
+            def finder(proc):
+                if proc.startswith(self._signal_prefix):
+                    if proc != signal_point:
+                        return False
+                return True
+        self._sig_finder = finder
 
     def make_inputs(self, hfiles):
         """
         Returns a dictionary for one systematic variation
         """
+        n_key = 'n'
+        err_key = 'err'
         normalizer = Normalizer(self._meta_path, hfiles)
-        counts_dict = defaultdict(dict)
-        for physics_type, hfile, norm in normalizer:
+        counts_dict = Counter()
+        for process, hfile, norm in normalizer:
+            if not self._sig_finder(process):
+                continue
             for region, vargroup in hfile.items():
                 nom_count = _get_count(vargroup[self._variable]) * norm
                 wt_var = self._variable + self._wt2_tag
                 sum_wt2 = _get_count(vargroup[wt_var]) * norm**2
-                counts_dict[region][physics_type] = {
-                    'n': nom_count, 'err': sum_wt2**0.5}
-        return yaml.dump(counts_dict)
+                if nom_count > 0.0:
+                    counts_dict[region,process,n_key] += nom_count
+                    counts_dict[region,process,err_key] += sum_wt2
+
+        rpp = set( (r, p) for r,p,s in counts_dict.keys())
+        reg_dict = {}
+        for reg, proc in rpp:
+            proc_dict = reg_dict.get(reg, {})
+            proc_dict[proc] = [
+                float(counts_dict[reg, proc, n_key]),
+                float(counts_dict[reg, proc, err_key]**0.5)
+                ]
+            reg_dict[reg] = proc_dict
+
+        return reg_dict
 
 #___________________________________________________________________________
 # helpers
@@ -43,7 +72,6 @@ def _get_count(hist):
     Expects 1d n-1 hist as an input (must have 'selection_min' and
     'selection_max' defined).
     """
-    print(hist)
     try:
         if not all(len(hist.attrs[_sel_str + x]) == 1 for x in _mmax):
             raise ValueError('got multi-dim hist, not supported right now')
@@ -69,4 +97,4 @@ def _get_count(hist):
                     value, xpts[idx]))
         return idx + 1
 
-    return arr[bindex(smin):bindex(smax)].sum()
+    return float(arr[bindex(smin):bindex(smax)].sum())
