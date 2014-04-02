@@ -10,7 +10,7 @@ _prefix_replacements = {
     'other': ['QCD','diboson'],
     'top': ['singleTop', 'ttbar']
     }
-_signal_prefix = ['scharm','stop']
+_no_prefix = ['scharm','stop', 'data']
 
 def shorten(name):
     """
@@ -21,7 +21,7 @@ def shorten(name):
         for prefix in prefi:
             if name.startswith(prefix):
                 return short
-    for prefix in _signal_prefix:
+    for prefix in _no_prefix:
         if name.startswith(prefix):
             return None
     raise ValueError("{} doesn't have an identifiable prefix".format(name))

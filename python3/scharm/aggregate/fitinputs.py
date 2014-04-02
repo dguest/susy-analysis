@@ -37,9 +37,10 @@ class FitInputMaker:
         n_key = 'n'
         err_key = 'err'
         normalizer = Normalizer(self._meta_path, hfiles)
+        # step one is to load everything into a flat dict
         counts_dict = Counter()
         for full_process, hfile, norm in normalizer:
-            if not self._sig_finder(process):
+            if not self._sig_finder(full_process):
                 continue
             # rename processes to simplify fit
             process = renamer.shorten(full_process) or full_process
@@ -51,6 +52,7 @@ class FitInputMaker:
                     counts_dict[region,process,n_key] += nom_count
                     counts_dict[region,process,err_key] += sum_wt2
 
+        # step two organizes the flat dict as nested dicts
         rpp = set( (r, p) for r,p,s in counts_dict.keys())
         reg_dict = {}
         for reg, proc in rpp:

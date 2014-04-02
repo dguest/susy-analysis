@@ -40,7 +40,7 @@ def run():
         sig_pt = 'scharm-550-50'
     input_maker = fitinputs.FitInputMaker(
         meta_path=args.meta, signal_point=sig_pt)
-    summary = input_maker.make_inputs(all_files)
+    summary = input_maker.make_inputs(select_samples)
     with open(args.output,'w') as out_yml:
         out_yml.write(yaml.dump(summary))
 
