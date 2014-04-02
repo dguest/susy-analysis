@@ -1,4 +1,5 @@
 from scharm.aggregate.normalizer import Normalizer
+from scharm.aggregate import renamer
 from collections import Counter
 import yaml
 import numpy as np
@@ -37,9 +38,11 @@ class FitInputMaker:
         err_key = 'err'
         normalizer = Normalizer(self._meta_path, hfiles)
         counts_dict = Counter()
-        for process, hfile, norm in normalizer:
+        for full_process, hfile, norm in normalizer:
             if not self._sig_finder(process):
                 continue
+            # rename processes to simplify fit
+            process = renamer.shorten(full_process) or full_process
             for region, vargroup in hfile.items():
                 nom_count = _get_count(vargroup[self._variable]) * norm
                 wt_var = self._variable + self._wt2_tag

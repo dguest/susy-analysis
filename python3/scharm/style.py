@@ -11,9 +11,9 @@ physics_labels = [
     (r'$W \to l \nu$ + b',   'WjetsB','red'),
     (r'$W \to l \nu$ + c',   'WjetsC','yellow'),
     (r'$W \to l \nu$ + u',   'WjetsL','purple'),
-    (r'$Z \to \nu \nu$ + b', 'ZjetsB','orange'),
-    (r'$Z \to \nu \nu$ + c', 'ZjetsC','green'),
-    (r'$Z \to \nu \nu$ + u', 'ZjetsL','m'),
+    (r'$Z$ + b', 'ZjetsB','orange'),
+    (r'$Z$ + c', 'ZjetsC','green'),
+    (r'$Z$ + u', 'ZjetsL','m'),
     # (r'$W$ + jets',             'Wjets','green'),
     (r'Data',                   'data'   , 'black'),
 
