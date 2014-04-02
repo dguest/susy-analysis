@@ -41,8 +41,9 @@ def run():
     input_maker = fitinputs.FitInputMaker(
         meta_path=args.meta, signal_point=sig_pt)
     summary = input_maker.make_inputs(list(selected_samples))
+    out_dict = {args.systematic: summary}
     with open(args.output,'w') as out_yml:
-        out_yml.write(yaml.dump(summary))
+        out_yml.write(yaml.dump(out_dict))
 
 if __name__ == '__main__':
     run()
