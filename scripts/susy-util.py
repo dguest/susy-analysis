@@ -81,7 +81,7 @@ def get_config():
         'input_dirs', nargs='+',
         help='dataset directories, must each have a dsid')
     group.add_argument(
-        '-n', '--n-files-per-job', type=int, default=5,
+        '-g', '--gb-per-job', type=int, default=0.5,
         help='number of root files to put in each out file, ' + d)
     group.add_argument('-o', '--output-dir', default='batch/d3pds',
                        help=d)
@@ -196,6 +196,23 @@ def rename(config):
         else:
             os.rename(old_name, new_name)
 
+# __________________________________________________________________________
+# file grouping stuff (being migrated to a setup script)
+
+def _file_group_gen(files, chunk_size=500e6):
+    tot_size = 0.0
+    out_ntuples = []
+    for path in files:
+        size = os.path.getsize(path)
+        if tot_size + size > chunk_size and out_ntuples:
+            yield out_ntuples
+            tot_size = 0.0
+            out_ntuples = []
+        out_ntuples.append(path)
+        tot_size += size
+    if out_ntuples:
+        yield out_ntuples
+
 def group_input_files(config):
     from scharm.schema import get_prechar
     files_by_dsid = defaultdict(set)
@@ -217,12 +234,10 @@ def group_input_files(config):
 
     for dsid, files in files_by_dsid.iteritems():
         file_list = sorted(files)
-        n_files = len(file_list)
+        random.shuffle(file_list)
         subsets = []
-        n_per_job = config.n_files_per_job
-        for iii in xrange(0, n_files, n_per_job):
-            subset = file_list[iii:iii+n_per_job]
-            subsets.append(subset)
+        for file_group in _file_group_gen(file_list, config.gb_per_job):
+            subsets.append(file_group)
         n_subsets = len(subsets)
         strlen_subsets = len(str(n_subsets))
         for set_n, subset in enumerate(subsets,1):
