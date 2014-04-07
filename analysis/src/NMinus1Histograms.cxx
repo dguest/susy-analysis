@@ -84,6 +84,7 @@ NMinus1Histograms::~NMinus1Histograms() {
 namespace nminus {
   void insert_jets(const std::vector<Jet>&,
 		   std::map<std::string, double>& values);
+  void throw_if_nan(const std::map<std::string, double>& values);
 }
 
 void NMinus1Histograms::fill(const EventObjects& obj) {
@@ -126,6 +127,9 @@ void NMinus1Histograms::fill(const EventObjects& obj) {
     values.insert( { {LLPT, reco.max_lepton_pt}, {MT, reco.mt} } );
   }
   if (m_make_dilep_plots) values.insert({ { MLL, reco.mll} });
+
+  // check for nan values
+  throw_if_nan(values);
   for (auto& hist: m_hists) {
     hist.fill(values, weight);
   }
@@ -149,6 +153,13 @@ namespace nminus {
       jn++;
     }
   } // end insert_jets
+  void throw_if_nan(const std::map<std::string, double>& values) {
+    for (const auto itr: values) {
+      if (std::isnan(itr.second)) {
+	throw std::invalid_argument(itr.first + " is nan");
+      }
+    }
+  }
 }
 
 void NMinus1Histograms::write_to(H5::CommonFG& file) const {

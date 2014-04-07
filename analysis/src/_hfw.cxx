@@ -15,6 +15,11 @@ static unsigned parse_flags(const char* flags);
 // not sure why this can't be templated...
 static bool region_copy(PyObject* list, std::vector<RegionConfig>* regs);
 
+namespace {
+  // add the file an error was thrown in
+  std::string file_err(const std::exception& err, std::string file);
+}
+
 template<typename T>
 static PyObject* py_analysis_alg(PyObject *self, PyObject *args)
 {
@@ -37,16 +42,23 @@ static PyObject* py_analysis_alg(PyObject *self, PyObject *args)
     builder.save();
   }
   catch (const std::runtime_error& e) {
-    PyErr_SetString(PyExc_IOError, e.what());
+    PyErr_SetString(PyExc_IOError, file_err(e, input_file).c_str());
     return NULL;
   }
   catch (const std::logic_error& e) {
-    PyErr_SetString(PyExc_Exception, e.what());
+    PyErr_SetString(PyExc_Exception, file_err(e, input_file).c_str());
     return NULL;
   }
   PyObject* tuple = Py_BuildValue("i", ret_val);
   return tuple;
 }
+
+namespace {
+  std::string file_err(const std::exception& err, std::string file) {
+    return std::string(err.what()) + " (in file: " + file + ")";
+  }
+}
+
 
 // _______________________________________________________________
 // top level copy commands
