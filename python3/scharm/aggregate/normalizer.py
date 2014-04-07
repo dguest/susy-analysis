@@ -5,6 +5,7 @@ import sys
 import re
 import numpy as np
 from collections import Counter
+from tempfile import TemporaryFile
 
 class Normalizer:
     """
@@ -14,7 +15,7 @@ class Normalizer:
         '{}-{stop_mass_gev}-{lsp_mass_gev}-TMF{met_filter_gev:.0f}')
     signal_name_template = '{}-{stop_mass_gev}-{lsp_mass_gev}'
 
-    def __init__(self,meta_path, hfiles, lumi_fb=20.3):
+    def __init__(self,meta_path, hfiles, lumi_fb=20.3, quiet=False):
         self.hfiles = hfiles
         with open(meta_path) as yml:
             self.filter_meta = yaml.load(yml)
@@ -22,6 +23,9 @@ class Normalizer:
         self.signal_prestring = 'scharm'
         self.outstream = sys.stdout
         self.bugstream = sys.stderr
+        if quiet:
+            self.outstream = TemporaryFile()
+            self.bugstream = TemporaryFile()
         self.out_prepend = ''
 
     def _get_matched_signame(self,ds):

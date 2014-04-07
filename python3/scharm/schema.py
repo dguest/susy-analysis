@@ -2,7 +2,8 @@
 misc file naming / path interpenetration stuff
 """
 
-from os.path import join
+from os.path import join, isdir
+from os import listdir
 import re, warnings
 
 dir_key_order = ['stream', 'systematic', 'replacement']
@@ -20,6 +21,16 @@ def test(test_path='this/is/a/path'):
         raise Exception("path schema not working: {} => {}".format(
                 test_path, repath))
     return repath
+
+def get_all_systematics(root_path):
+    """get all the systematics as visible from the directory structure"""
+    all_syst = set()
+    for stream_dir in listdir(root_path):
+        syst_dirs = listdir(stream_dir)
+        if not 'none' in syst_dirs:
+            raise ValueError('no nominal syst found, probably an error')
+        all_syst |= syst_dirs
+    return all_syst
 
 # _______________________________________________________________________
 # data type charicter codes
