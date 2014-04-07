@@ -10,7 +10,7 @@ import yaml
 
 def run():
     config = get_config()
-    subs = {'distill': setup_distill, 'stack': setup_stack,
+    subs = {'stack': setup_stack,
             'hadd': setup_hadd, 'fit': setup_fit, 'ws': setup_workspaces}
     subs[config.which](config)
 
@@ -20,19 +20,6 @@ def get_config():
 
     parser = argparse.ArgumentParser(description=__doc__)
     subs = parser.add_subparsers(dest='which')
-    distil_args = subs.add_parser(
-        'distill', description=setup_distill.__doc__)
-    distil_args.add_argument(
-        'input_textfiles', nargs='+',
-        help='can be produced with susy-utils')
-    distil_args.add_argument('-m', '--meta', required=True)
-    distil_args.add_argument(
-        '-s', '--script', help='build this PBS script ' + d,
-        default='sharktopus.sh')
-    distil_args.add_argument('-p', '--build-prw', action='store_true')
-    distil_args.add_argument('-a', '--aggressive', action='store_true')
-    distil_args.add_argument('-y', '--systematics', action='store_true',
-                             help='enable systematics')
 
     stack_args = subs.add_parser('stack', description=setup_stack.__doc__)
     stack_args.add_argument('input_ntuples')
@@ -305,43 +292,6 @@ def _get_all_ntuples(base_path, chunk_size=1e9):
         tot_size += size
     if out_ntuples:
         yield out_ntuples
-
-def setup_distill(config):
-    """
-    Build the distiller submit script.
-    """
-    input_files = config.input_textfiles
-    in_dir = dirname(input_files[0])
-    sub_dict = {
-        'n_jobs': len(input_files),
-        'out_dir': 'output/distill',
-        'in_dir': in_dir,
-        'in_ext': '.txt',
-        'walltime': '00:03:00:00'
-        }
-
-    systematics = ['NONE']
-    if config.systematics:
-        systematics += [
-            'JESUP', 'JESDOWN', 'JER',
-            'METUP', 'METDOWN', 'METRES'
-            ]
-
-    submit_head = _get_submit_head(**sub_dict)
-
-    with open(config.script, 'w') as out_script:
-        out_script.write(submit_head)
-        for syst in systematics:
-            run_args = [
-                config.meta,
-                '-s {}'.format(syst),
-                '-o ntuples']
-            line_args = {
-                'routine': 'susy-distill.py',
-                'run_args': ' '.join(run_args),
-                }
-            syst_line = _submit_line.format(**line_args)
-            out_script.write(syst_line + '\n')
 
 _short_subhead="""
 #!/usr/bin/env bash

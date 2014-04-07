@@ -75,17 +75,6 @@ def get_config():
     meta_rename.add_argument('files', nargs='+')
     meta_rename.add_argument('-d', '--dummy', action='store_true')
 
-    # group stuff
-    group = subs.add_parser('group', description=_group_help)
-    group.add_argument(
-        'input_dirs', nargs='+',
-        help='dataset directories, must each have a dsid')
-    group.add_argument(
-        '-g', '--gb-per-job', type=int, default=0.5,
-        help='number of root files to put in each out file, ' + d)
-    group.add_argument('-o', '--output-dir', default='batch/d3pds',
-                       help=d)
-
     # cutflow stuff
     cutflow = subs.add_parser('cutflow', description=_cutflow_help)
     cutflow.add_argument('count_files', nargs='+')
@@ -195,62 +184,6 @@ def rename(config):
             print '{} --> {}'.format(old_name, new_name)
         else:
             os.rename(old_name, new_name)
-
-# __________________________________________________________________________
-# file grouping stuff (being migrated to a setup script)
-
-def _file_group_gen(files, chunk_size=500e6):
-    tot_size = 0.0
-    out_ntuples = []
-    for path in files:
-        size = os.path.getsize(path)
-        if tot_size + size > chunk_size and out_ntuples:
-            yield out_ntuples
-            tot_size = 0.0
-            out_ntuples = []
-        out_ntuples.append(path)
-        tot_size += size
-    if out_ntuples:
-        yield out_ntuples
-
-def group_input_files(config):
-    from scharm.schema import get_prechar
-    files_by_dsid = defaultdict(set)
-    dsid_finder = re.compile('mc.._.TeV\.([0-9]{6})\.')
-    run_finder = re.compile('data.._.TeV\.([0-9]{8})\.')
-    for in_dir in config.input_dirs:
-        prechar = get_prechar(in_dir)
-        dsid_match = dsid_finder.search(in_dir)
-        if not dsid_match:
-            dsid_match = run_finder.search(in_dir)
-        if not dsid_match:
-            raise IOError("can't find dsid for {}".format(in_dir))
-        ds_key = prechar + dsid_match.group(1).lstrip('0')
-        sub_root_files = set(glob.glob('{}/*.root*'.format(in_dir)))
-        files_by_dsid[ds_key] |= sub_root_files
-
-    if not isdir(config.output_dir):
-        os.makedirs(config.output_dir)
-
-    for dsid, files in files_by_dsid.iteritems():
-        file_list = sorted(files)
-        random.shuffle(file_list)
-        subsets = []
-        for file_group in _file_group_gen(file_list, config.gb_per_job):
-            subsets.append(file_group)
-        n_subsets = len(subsets)
-        strlen_subsets = len(str(n_subsets))
-        for set_n, subset in enumerate(subsets,1):
-            out_name = '{}-{:0{}d}of{}.txt'.format(
-                dsid, set_n, strlen_subsets, n_subsets)
-            if n_subsets == 1:
-                out_name = '{}.txt'.format(dsid)
-            out_path = join(config.output_dir, out_name)
-            with open(out_path,'w') as out_file:
-                for ds in subset:
-                    out_file.write(ds + '\n')
-
-
 
 if __name__ == '__main__':
     run()
