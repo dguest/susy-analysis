@@ -1,5 +1,7 @@
 #include "EventScalefactors.hh"
 #include "EventScaleEnums.hh"
+#include "common_functions.hh"	// set_branch
+#include "StackerExceptions.hh"
 
 #include <string>
 #include <stdexcept>
@@ -10,14 +12,15 @@ SFBox::SFBox(TTree* tree, const std::string& prefix):
   m_has_variations(true)
 {
   std::string nom_name = prefix;
-  std::string up_name = prefix + "_up";
-  std::string down_name = prefix + "_down";
-  size_t errors = 0;
-  errors += std::abs(tree->SetBranchAddress(nom_name.c_str(), &m_nominal));
-  if (errors) throw std::logic_error("missing branches in " __FILE__);
-  errors += std::abs(tree->SetBranchAddress(up_name.c_str(), &m_up));
-  errors += std::abs(tree->SetBranchAddress(down_name.c_str(), &m_down));
-  if (errors) m_has_variations = false;
+  set_branch(tree, nom_name, &m_nominal);
+  try {
+    std::string up_name = prefix + "_up";
+    std::string down_name = prefix + "_down";
+    set_branch(tree, up_name, &m_up);
+    set_branch(tree, down_name, &m_down);
+  } catch (MissingBranch& err) {
+    m_has_variations = false;
+  }
 }
 float SFBox::get_sf(SystVariation systematic) const{
   if (!m_has_variations && systematic != SystVariation::NONE){
