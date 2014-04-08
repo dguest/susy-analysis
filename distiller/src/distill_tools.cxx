@@ -156,7 +156,7 @@ double get_mt(const std::vector<Electron*>& el,
   // roundoff error may get us negative mt_squared, return zero in that case
   if (mt_squared < 0){
     // require that it be roundoff error and not something weird...
-    assert(mt_squared / dot_part < 1e-3);
+    assert(std::abs(mt_squared / dot_part) < 1e-3);
     return 0;
   }
   return std::sqrt(mt_squared);
