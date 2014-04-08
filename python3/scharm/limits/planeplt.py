@@ -9,10 +9,15 @@ from scipy.interpolate import LinearNDInterpolator
 from matplotlib.lines import Line2D
 from os.path import dirname
 
-class ExclusionPlane(object):
+class ExclusionPlane:
     """Scharm to Charm exclusion plane"""
-    xlim = (0.0,   400.0)
-    ylim = (100.0, 600.0)
+    # plot limits
+    xlim = (100.0, 600.0)
+    ylim = (0.0,   400.0)
+
+    # limits on internal interpolated grid
+    low_x = 80
+    low_y = 0
 
     def __init__(self, threshold=1.0, **argv):
         width = 9.0
@@ -43,27 +48,33 @@ class ExclusionPlane(object):
         self.used_colors.add(the_color)
         return the_color, line_style
 
-    def add_config(self, stop_lsp_ul, label, style=None):
-        """
-        Expects a list of (mass stop, mass lsp, upper limit) tuples.
-        """
-        low_x = 80
-        low_y = 0
-        slu = np.array(stop_lsp_ul)
-        x, y, z = slu.T
-        xmin, xmax = low_x, max(x)
-        ymin, ymax = low_y, max(y)
-        xpts = 100
-        xi = np.linspace(xmin, xmax, xpts)
-        yi = np.linspace(ymin, xmax, xpts * (ymax - ymin) // (xmax - xmin))
+    def _get_interpolated_xyz(self, x, y, z, xlims, ylims, xpts):
+        xmin, xmax = xlims
+        ymin, ymax = ylims
+        xi = np.linspace(*xlims, num=xpts)
+        num_y = xpts * (ymax - ymin) // (xmax - xmin)
+        yi = np.linspace(*ylims, num=num_y)
         xp, yp = np.meshgrid(xi, yi)
 
         pts = np.dstack((x,y)).squeeze()
         lin = LinearNDInterpolator(pts, z)
         interp_points = np.dstack((xp.flatten(), yp.flatten())).squeeze()
         zp = lin(interp_points).reshape(xp.shape)
+        return xp, yp, zp
 
-        zp[np.isnan(zp)] = self._threshold*1.001
+    def add_config(self, stop_lsp_ul, label, style=None):
+        """
+        Expects a list of (mass stop, mass lsp, upper limit) tuples.
+        """
+        slu = np.array(stop_lsp_ul)
+        x, y, z = slu.T
+        xmin, xmax = self.low_x, max(x)
+        ymin, ymax = self.low_y, max(y)
+        xpts = 100
+
+        xp, yp, zp = self._get_interpolated_xyz(
+            x, y, z, (xmin, xmax), (ymin, ymax), xpts)
+        zp[np.isnan(zp) & (yp > self.ylim[0])] = self._threshold*1.001
         extent = [xmin, xmax, ymin, ymax]
         ct_color, ct_style = self._get_style(style)
         draw_opts = dict(color=ct_color, linewidth=self.lw,
@@ -77,6 +88,37 @@ class ExclusionPlane(object):
             inpts = (x > xmin) & (y > ymin)
             self._pts, = self.ax.plot(x[inpts],y[inpts],'.k')
             self._proxy_contour.insert(0,(self._pts, 'signal points'))
+
+    def add_band(self, stop_lsp_low_high):
+        """
+        Expects a list of (mass stop, mass lsp, upper limit) tuples.
+        """
+        x, y, low, high = np.array(stop_lsp_low_high).T
+        xmin, xmax = self.low_x, max(x)
+        ymin, ymax = self.low_y, max(y)
+        xpts = 200
+
+        xp, yp, lowp = self._get_interpolated_xyz(
+            x, y, low, (xmin, xmax), (ymin, ymax), xpts)
+        *nada, highp = self._get_interpolated_xyz(
+            x, y, high, (xmin, xmax), (ymin, ymax), xpts)
+        th = self._threshold
+        zp = np.maximum( (lowp - th), -(highp - th))
+
+        zp[np.isnan(zp)] = 0.001
+        extent = [xmin, xmax, ymin, ymax]
+        draw_opts = dict(color='k', linewidth=self.lw,
+                         linestyle='-')
+        ct = self.ax.contourf(
+            xp, yp, zp, [-1, 0],
+            colors='yellow' )
+        # self.ax.imshow(zp, extent=extent, origin='lower',
+        #                vmin=-0.3,vmax=0.0)
+        if not self._pts:
+            inpts = (x > xmin) & (y > ymin)
+            self._pts, = self.ax.plot(x[inpts],y[inpts],'.k')
+            self._proxy_contour.insert(0,(self._pts, 'signal points'))
+
 
     def add_labels(self):
         self.ax.text(0.7, 0.3,
@@ -93,8 +135,8 @@ class ExclusionPlane(object):
                      transform=self.ax.transAxes, size=24)
 
     def save(self, name):
-        self.ax.set_ylim(*self.xlim)
-        self.ax.set_xlim(*self.ylim)
+        self.ax.set_ylim(*self.ylim)
+        self.ax.set_xlim(*self.xlim)
         leg = self.ax.legend(
             *zip(*self._proxy_contour), fontsize='xx-large',
              loc='upper left', framealpha=0.0, numpoints=1)
