@@ -39,6 +39,7 @@ def run():
 
     # launch a bunch of processes to look at all systematics
     if args.systematic == 'all':
+        dargs['quiet'] = True   # multiprocessing makes a mess of the outputs
         systs = get_all_systematics(args.files)
         syst_args = {x: dargs.copy() for x in systs}
         for syst in systs:
@@ -50,21 +51,26 @@ def run():
             counts_dict.update(subdict)
     # or just do one...
     else:
-        counts_dict = run_systematic(args)
+        counts_dict = run_systematic(dargs)
     with open(dargs['output'],'w') as out_yml:
-        out_yml.write(yaml.dump(out_dict))
+        translated = fitinputs.translate_to_fit_inputs(counts_dict)
+        out_yml.write(yaml.dump(translated))
 
 def run_systematic(args):
     all_files = get_all_files(args['files'], systematic=args['systematic'])
     selected_samples = SampleSelector(args['meta']).select_samples(all_files)
 
     sig_pt = None
+    quiet = args.get('quiet', False)
     if args['fast']:
         sig_pt = 'scharm-550-50'
     input_maker = fitinputs.FitInputMaker(
-        meta_path=args['meta'], signal_point=sig_pt)
+        meta_path=args['meta'], signal_point=sig_pt,
+        quiet=quiet)
     summary = input_maker.make_inputs(list(selected_samples))
     out_dict = {args['systematic']: summary}
+    if quiet:
+        print('done with {}'.format(args['systematic']))
     return out_dict
 
 if __name__ == '__main__':

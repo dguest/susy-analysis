@@ -24,8 +24,8 @@ class Normalizer:
         self.outstream = sys.stdout
         self.bugstream = sys.stderr
         if quiet:
-            self.outstream = TemporaryFile()
-            self.bugstream = TemporaryFile()
+            self.outstream = TemporaryFile('w+')
+            self.bugstream = TemporaryFile('w+')
         self.out_prepend = ''
 
     def _get_matched_signame(self,ds):

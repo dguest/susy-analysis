@@ -6,7 +6,8 @@ import numpy as np
 
 class FitInputMaker:
     """
-    Takes some meta data and hists as an input, produces fit inputs file.
+    Takes some meta data and one systematic as an input.
+    Produces fit inputs dictionary.
     """
 
     # the sum(weight^2) histograms have a special tag that tells
@@ -14,10 +15,11 @@ class FitInputMaker:
     _wt2_tag = 'Wt2'
     _signal_prefix = 'scharm'
 
-    def __init__(self, meta_path, variable='met', signal_point=None):
+    def __init__(self, meta_path, variable='met', signal_point=None,
+                 quiet=False):
         self._meta_path = meta_path
         self._variable = variable
-
+        self._quiet = quiet
         # signal finder (for short test jobs without much signal)
         if signal_point is None:
             def finder(proc):
@@ -34,9 +36,11 @@ class FitInputMaker:
         """
         Returns a dictionary for one systematic variation
         """
+        # these keys are only used by this function
         n_key = 'n'
         err_key = 'err'
-        normalizer = Normalizer(self._meta_path, hfiles)
+
+        normalizer = Normalizer(self._meta_path, hfiles, quiet=self._quiet)
         # step one is to load everything into a flat dict
         counts_dict = Counter()
         for full_process, hfile, norm in normalizer:
@@ -64,6 +68,56 @@ class FitInputMaker:
             reg_dict[reg] = proc_dict
 
         return reg_dict
+
+# __________________________________________________________________________
+# functions to translate from {systematic: {region: {process: yield} } }
+# to something closer to what scharm analysis uses
+
+def translate_to_fit_inputs(yields_dict):
+    """
+    translates the yields directory structure into the structure used
+    as the fitter input
+    """
+    return {
+        'nominal_yields': _nominal_yields(yields_dict['none']),
+        'yield_systematics': _yield_systematics(yields_dict)
+        }
+
+_preselfix = 'presel'
+def _presel_region(reg_name):
+    """find preselection regions"""
+    return reg_name.startswith(_preselfix)
+
+def _drop_stat_uncert(yields):
+    """
+    recursively dig through yields, return only the yield, not the
+    statistical uncertainty. Assumes everything is a dict except for the
+    final yield (which is assumed to be a list.
+    """
+    ret_dict = {}
+    for key, subdict in yields.items():
+        try:
+            ret_dict[key] = [subdict[0]]
+        except KeyError:
+            ret_dict[key] = _drop_stat_uncert(subdict)
+    return ret_dict
+
+def _nominal_yields(yields):
+    """Returns more or less a straight copy, remove preselection maybe"""
+    return {k:v for k, v in yields.items() if not _presel_region(k)}
+
+def _yield_systematics(yields):
+    """returns a reorganized 'yields'"""
+    out = {}
+    for syst, regions in yields.items():
+        if syst == 'none':
+            continue
+        out[syst] = {}
+        for reg_name, processes in regions.items():
+            if _presel_region(reg_name):
+                continue
+            out[syst][reg_name] = _drop_stat_uncert(processes)
+    return out
 
 #___________________________________________________________________________
 # helpers

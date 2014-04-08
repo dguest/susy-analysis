@@ -19,6 +19,7 @@ def get_all_files(root_list, systematic='none'):
 
 def get_files(root_dir, systematic='none', plot_type=None):
     all_files = []
+    stream_level = dir_key_order.index('stream')
     sys_level = dir_key_order.index('systematic')
     # files are stored two directories past the 'replacement' level
     # (the hist type sits in the middle)
@@ -27,7 +28,11 @@ def get_files(root_dir, systematic='none', plot_type=None):
     for root, dirs, files in os.walk(root_dir):
         rpth = relpath(root, root_dir).split('/')
         levels = len([d for d in rpth if d != '.'])
-        if levels == sys_level:
+        if levels == stream_level:
+            # if we're applying systematics, don't look in data streams
+            if systematic != 'none':
+                dirs[:] = [d for d in dirs if d in {'atlfast','fullsim'}]
+        elif levels == sys_level:
             if not systematic in dirs:
                 raise FileNotFoundError(
                     "can't find {} in {}".format(systematic, root))
