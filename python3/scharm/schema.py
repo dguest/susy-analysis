@@ -25,11 +25,18 @@ def test(test_path='this/is/a/path'):
 def get_all_systematics(root_path):
     """get all the systematics as visible from the directory structure"""
     all_syst = set()
-    for stream_dir in listdir(root_path):
-        syst_dirs = listdir(stream_dir)
+    try:
+        subdirs = listdir(root_path)
+    except TypeError:
+        # also works with lists / iterable things
+        for path in root_path:
+            all_syst |= get_all_systematics(path)
+        return all_syst
+    for stream_dir in subdirs:
+        syst_dirs = listdir(join(root_path,stream_dir))
         if not 'none' in syst_dirs:
             raise ValueError('no nominal syst found, probably an error')
-        all_syst |= syst_dirs
+        all_syst.update(syst_dirs)
     return all_syst
 
 # _______________________________________________________________________
