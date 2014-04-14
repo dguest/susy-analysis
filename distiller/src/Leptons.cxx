@@ -19,246 +19,248 @@
 // lepton classes
 
 // -- electron --
-Electron::Electron(const EventElectrons* container, int index): 
+Electron::Electron(const EventElectrons* container, int index):
   m_trigger(false), m_dilep_trigger(false) {
-  const SusyBuffer* buffer = container->m_buffer; 
-  
+  const SusyBuffer* buffer = container->m_buffer;
+
   // calls the susytools electron filler
   m_pass_susy = check_if_electron
-    (index , 
-     *buffer, 
-     *container->m_def, 
-     container->m_flags, 
+    (index ,
+     *buffer,
+     *container->m_def,
+     container->m_flags,
      *container->m_info);
 
-  SUSYObjDef* def = container->m_def; 
-  const TLorentzVector& tlv = def->GetElecTLV(index); 
-  SetPxPyPzE(tlv.Px(), tlv.Py(), tlv.Pz(), tlv.E()); 
+  SUSYObjDef* def = container->m_def;
+  const TLorentzVector& tlv = def->GetElecTLV(index);
+  SetPxPyPzE(tlv.Px(), tlv.Py(), tlv.Pz(), tlv.E());
 
   m_tight_pp = buffer->el_tightPP->at(index);
-  // ACHTUNG: this block is removed until we fix the trackz0pv 
+  // ACHTUNG: this block is removed until we fix the trackz0pv
   // variable in the skims
   m_is_signal = def->IsSignalElectron
-    (index, 
-     m_tight_pp, 
+    (index,
+     m_tight_pp,
      buffer->el_ptcone20 ->at(index),
-     buffer->el_trackd0pv->at(index), 
-     buffer->el_trackz0pv->at(index), 
-     SIGNAL_ELECTRON_ET_CUT, 
-     SIGNAL_ELECTRON_ISO_CUT, 
-     SIGNAL_ELECTRON_D0_CUT, 
+     buffer->el_trackd0pv->at(index),
+     buffer->el_trackz0pv->at(index),
+     SIGNAL_ELECTRON_ET_CUT,
+     SIGNAL_ELECTRON_ISO_CUT,
+     SIGNAL_ELECTRON_D0_CUT,
      SIGNAL_ELECTRON_Z0_CUT);
 
-  m_rel_isolation = buffer->el_ptcone20->at(index) / Pt(); 
-  m_charge = buffer->el_charge->at(index); 
+  m_rel_isolation = buffer->el_ptcone20->at(index) / Pt();
+  m_charge = buffer->el_charge->at(index);
 
-  m_id_sf = def->GetSignalElecSF(
-    buffer->el_cl_eta->at(index), 
-    Pt(), 
-    true,			// recoSF
-    false, 			// idSF
-    false, 			// triggerSF
-    buffer->RunNumber, 
-    SystErr::NONE); 
+  if (m_pass_susy) {
+    m_id_sf = def->GetSignalElecSF(
+      buffer->el_cl_eta->at(index),
+      Pt(),
+      true,			// recoSF
+      false, 			// idSF
+      false, 			// triggerSF
+      buffer->RunNumber,
+      SystErr::NONE);
 
-  // bit of a hack to pull out the uncertainty
-  m_id_sf_unct = def->GetSignalElecSF(
-    buffer->el_cl_eta->at(index), 
-    Pt(), 
-    true,			// recoSF
-    false, 			// idSF
-    false, 			// triggerSF
-    buffer->RunNumber, 
-    SystErr::EEFFUP) - m_id_sf; 
+    // bit of a hack to pull out the uncertainty
+    m_id_sf_unct = def->GetSignalElecSF(
+      buffer->el_cl_eta->at(index),
+      Pt(),
+      true,			// recoSF
+      false, 			// idSF
+      false, 			// triggerSF
+      buffer->RunNumber,
+      SystErr::EEFFUP) - m_id_sf;
+  }
 
   // trigger matching
-  int nothing; 
-  if (Pt() > SINGLE_EL_TRIGGER_PT_MIN) { 
+  int nothing;
+  if (Pt() > SINGLE_EL_TRIGGER_PT_MIN) {
     if (PassedTriggerEF(
-    	  Eta(), Phi(), 
-    	  buffer->trig_EF_el_EF_e24vhi_medium1, 
-    	  nothing, buffer->trig_EF_el_eta->size(), 
-    	  buffer->trig_EF_el_eta, buffer->trig_EF_el_phi)) m_trigger = true; 
-    if (PassedTriggerEF( 
-    	  Eta(), Phi(), 
-    	  buffer->trig_EF_el_EF_e60_medium1, 
-    	  nothing, buffer->trig_EF_el_eta->size(), 
-    	  buffer->trig_EF_el_eta, buffer->trig_EF_el_phi)) m_trigger = true; 
+    	  Eta(), Phi(),
+    	  buffer->trig_EF_el_EF_e24vhi_medium1,
+    	  nothing, buffer->trig_EF_el_eta->size(),
+    	  buffer->trig_EF_el_eta, buffer->trig_EF_el_phi)) m_trigger = true;
+    if (PassedTriggerEF(
+    	  Eta(), Phi(),
+    	  buffer->trig_EF_el_EF_e60_medium1,
+    	  nothing, buffer->trig_EF_el_eta->size(),
+    	  buffer->trig_EF_el_eta, buffer->trig_EF_el_phi)) m_trigger = true;
   }
-  if (Pt() > DOUBLE_EL_TRIGGER_PT_MIN) { 
+  if (Pt() > DOUBLE_EL_TRIGGER_PT_MIN) {
     if (PassedTriggerEF(
-	  Eta(), Phi(), 
-	  buffer->trig_EF_el_EF_2e12Tvh_loose1, 
-	  nothing, buffer->trig_EF_el_eta->size(), 
-	  buffer->trig_EF_el_eta, 
-	  buffer->trig_EF_el_phi)) m_dilep_trigger = true; 
+	  Eta(), Phi(),
+	  buffer->trig_EF_el_EF_2e12Tvh_loose1,
+	  nothing, buffer->trig_EF_el_eta->size(),
+	  buffer->trig_EF_el_eta,
+	  buffer->trig_EF_el_phi)) m_dilep_trigger = true;
   }
 }
-bool Electron::pass_susy() const { 
-  return m_pass_susy; 
+bool Electron::pass_susy() const {
+  return m_pass_susy;
 }
-bool Electron::is_signal() const { 
-  assert(false); 
-  return m_is_signal; 
+bool Electron::is_signal() const {
+  assert(false);
+  return m_is_signal;
 }
 double Electron::rel_isolation() const {
-  return m_rel_isolation; 
+  return m_rel_isolation;
 }
-float Electron::charge() const { 
-  return m_charge; 
+float Electron::charge() const {
+  return m_charge;
 }
-float Electron::id_sf() const { 
-  return m_id_sf; 
+float Electron::id_sf() const {
+  return m_id_sf;
 }
-float Electron::id_sf_err() const { 
-  return m_id_sf_unct; 
+float Electron::id_sf_err() const {
+  return m_id_sf_unct;
 }
-bool Electron::tightpp() const { 
+bool Electron::tightpp() const {
   return m_tight_pp;
 }
-bool Electron::trigger() const { 
+bool Electron::trigger() const {
   return m_trigger;
 }
-bool Electron::dilep_trigger() const { 
+bool Electron::dilep_trigger() const {
   return m_dilep_trigger;
 }
 
-EventElectrons::EventElectrons(const SusyBuffer& buffer, SUSYObjDef& def, 
-			       unsigned flags, const RunInfo& info): 
-  m_buffer(&buffer), 
-  m_def(&def), 
-  m_flags(flags), 
+EventElectrons::EventElectrons(const SusyBuffer& buffer, SUSYObjDef& def,
+			       unsigned flags, const RunInfo& info):
+  m_buffer(&buffer),
+  m_def(&def),
+  m_flags(flags),
   m_info(&info)
 {
-  assert(el_size_check(buffer)); 
-  try { 
-    for (int iii = 0; iii < buffer.el_n; iii++) { 
-      push_back(new Electron(this, iii)); 
+  assert(el_size_check(buffer));
+  try {
+    for (int iii = 0; iii < buffer.el_n; iii++) {
+      push_back(new Electron(this, iii));
     }
   }
-  catch (std::out_of_range& e) { 
-    throw std::out_of_range("out of range in electron constructor"); 
+  catch (std::out_of_range& e) {
+    throw std::out_of_range("out of range in electron constructor");
   }
 }
 
-EventElectrons::~EventElectrons() { 
-  for (iterator itr = begin(); itr != end(); itr++) { 
-    delete *itr; 
+EventElectrons::~EventElectrons() {
+  for (iterator itr = begin(); itr != end(); itr++) {
+    delete *itr;
   }
 }
 
 // -- muon --
 
-Muon::Muon(const EventMuons* container, int index): 
+Muon::Muon(const EventMuons* container, int index):
   m_index(index), m_trigger(false), m_dilep_trigger(false)
-{ 
-  const SusyBuffer* buffer = container->m_buffer; 
+{
+  const SusyBuffer* buffer = container->m_buffer;
 
   // calls the susytools muon filler
-  m_pass_susy = check_if_muon(index, 
-			      *buffer, 
-			      *container->m_def, 
-			      container->m_flags); 
+  m_pass_susy = check_if_muon(index,
+			      *buffer,
+			      *container->m_def,
+			      container->m_flags);
 
-  SUSYObjDef* def = container->m_def; 
-  const TLorentzVector& tlv = def->GetMuonTLV(index); 
-  assert(tlv.Pt() > 0); 
-  SetPxPyPzE(tlv.Px(), tlv.Py(), tlv.Pz(), tlv.E()); 
-  m_isolation = buffer->mu_staco_ptcone20->at(index); 
-  m_charge = buffer->mu_staco_charge->at(index); 
-  float z0 = buffer->mu_staco_z0_exPV->at(index); 
-  float d0 = buffer->mu_staco_d0_exPV->at(index); 
-  m_is_cosmic = def->IsCosmicMuon(z0, d0); 
-  
-  float qoverp = buffer->mu_staco_qoverp_exPV->at(index); 
-  float cov_qoverp = buffer->mu_staco_cov_qoverp_exPV->at(index); 
-  m_is_bad = def->IsBadMuon(qoverp, cov_qoverp); 
+  SUSYObjDef* def = container->m_def;
+  const TLorentzVector& tlv = def->GetMuonTLV(index);
+  assert(tlv.Pt() > 0);
+  SetPxPyPzE(tlv.Px(), tlv.Py(), tlv.Pz(), tlv.E());
+  m_isolation = buffer->mu_staco_ptcone20->at(index);
+  m_charge = buffer->mu_staco_charge->at(index);
+  float z0 = buffer->mu_staco_z0_exPV->at(index);
+  float d0 = buffer->mu_staco_d0_exPV->at(index);
+  m_is_cosmic = def->IsCosmicMuon(z0, d0);
 
-  if (m_pass_susy) { 
-    m_id_sf = def->GetSignalMuonSF(index, SystErr::NONE); 
-    m_id_sf_unct = def->GetSignalMuonSF(index, SystErr::MEFFUP) - m_id_sf; 
+  float qoverp = buffer->mu_staco_qoverp_exPV->at(index);
+  float cov_qoverp = buffer->mu_staco_cov_qoverp_exPV->at(index);
+  m_is_bad = def->IsBadMuon(qoverp, cov_qoverp);
+
+  if (m_pass_susy) {
+    m_id_sf = def->GetSignalMuonSF(index, SystErr::NONE);
+    m_id_sf_unct = def->GetSignalMuonSF(index, SystErr::MEFFUP) - m_id_sf;
   }
   int nothing;
-  if (Pt() > SINGLE_MU_TRIGGER_PT_MIN) { 
+  if (Pt() > SINGLE_MU_TRIGGER_PT_MIN) {
     if (def->MuonHasTriggerMatch(
-    	  Eta(), Phi(), 
-    	  buffer->trig_EF_trigmuonef_EF_mu24i_tight, 
-    	  nothing, nothing, 
-    	  buffer->trig_EF_trigmuonef_track_CB_eta->size(), 
-    	  buffer->trig_EF_trigmuonef_track_CB_eta, 
-    	  buffer->trig_EF_trigmuonef_track_CB_phi, 
-    	  buffer->trig_EF_trigmuonef_track_CB_hasCB)) m_trigger = true; 
+    	  Eta(), Phi(),
+    	  buffer->trig_EF_trigmuonef_EF_mu24i_tight,
+    	  nothing, nothing,
+    	  buffer->trig_EF_trigmuonef_track_CB_eta->size(),
+    	  buffer->trig_EF_trigmuonef_track_CB_eta,
+    	  buffer->trig_EF_trigmuonef_track_CB_phi,
+    	  buffer->trig_EF_trigmuonef_track_CB_hasCB)) m_trigger = true;
     if (def->MuonHasTriggerMatch(
-    	  Eta(), Phi(), 
-    	  buffer->trig_EF_trigmuonef_EF_mu36_tight, 
-    	  nothing, nothing, 
-    	  buffer->trig_EF_trigmuonef_track_CB_eta->size(), 
-    	  buffer->trig_EF_trigmuonef_track_CB_eta, 
-    	  buffer->trig_EF_trigmuonef_track_CB_phi, 
-    	  buffer->trig_EF_trigmuonef_track_CB_hasCB)) m_trigger = true; 
+    	  Eta(), Phi(),
+    	  buffer->trig_EF_trigmuonef_EF_mu36_tight,
+    	  nothing, nothing,
+    	  buffer->trig_EF_trigmuonef_track_CB_eta->size(),
+    	  buffer->trig_EF_trigmuonef_track_CB_eta,
+    	  buffer->trig_EF_trigmuonef_track_CB_phi,
+    	  buffer->trig_EF_trigmuonef_track_CB_hasCB)) m_trigger = true;
   }
   if (Pt() > DOUBLE_MU_TRIGGER_PT_MIN) {
     if (def->MuonHasTriggerMatch(
-	  Eta(), Phi(), 
-	  buffer->trig_EF_trigmuonef_EF_mu18_tight_mu8_EFFS, 
-	  nothing, nothing, 
-	  buffer->trig_EF_trigmuonef_track_CB_eta->size(), 
-	  buffer->trig_EF_trigmuonef_track_CB_eta, 
-	  buffer->trig_EF_trigmuonef_track_CB_phi, 
-	  buffer->trig_EF_trigmuonef_track_CB_hasCB)) m_dilep_trigger = true; 
+	  Eta(), Phi(),
+	  buffer->trig_EF_trigmuonef_EF_mu18_tight_mu8_EFFS,
+	  nothing, nothing,
+	  buffer->trig_EF_trigmuonef_track_CB_eta->size(),
+	  buffer->trig_EF_trigmuonef_track_CB_eta,
+	  buffer->trig_EF_trigmuonef_track_CB_phi,
+	  buffer->trig_EF_trigmuonef_track_CB_hasCB)) m_dilep_trigger = true;
   }
 }
-bool Muon::pass_susy() const { 
-  return m_pass_susy; 
+bool Muon::pass_susy() const {
+  return m_pass_susy;
 }
-double Muon::isolation() const { 
-  return m_isolation; 
+double Muon::isolation() const {
+  return m_isolation;
 }
-int Muon::index() const { 
-  return m_index; 
+int Muon::index() const {
+  return m_index;
 }
-float Muon::charge() const { 
-  return m_charge; 
+float Muon::charge() const {
+  return m_charge;
 }
-float Muon::id_sf() const { 
-  return m_id_sf; 
+float Muon::id_sf() const {
+  return m_id_sf;
 }
-float Muon::id_sf_err() const { 
-  return m_id_sf_unct; 
+float Muon::id_sf_err() const {
+  return m_id_sf_unct;
 }
-bool Muon::cosmic() const { 
-  return m_is_cosmic; 
+bool Muon::cosmic() const {
+  return m_is_cosmic;
 }
-bool Muon::bad() const { 
-  return m_is_bad; 
+bool Muon::bad() const {
+  return m_is_bad;
 }
-bool Muon::trigger() const { 
+bool Muon::trigger() const {
   return m_trigger;
 }
-bool Muon::dilep_trigger() const { 
+bool Muon::dilep_trigger() const {
   return m_dilep_trigger;
 }
 
-EventMuons::EventMuons(const SusyBuffer& buffer, SUSYObjDef& def, 
+EventMuons::EventMuons(const SusyBuffer& buffer, SUSYObjDef& def,
 		       unsigned flags, const RunInfo& info):
-  m_buffer(&buffer), 
-  m_def(&def), 
-  m_flags(flags), 
+  m_buffer(&buffer),
+  m_def(&def),
+  m_flags(flags),
   m_info(&info)
 {
-  try { 
-    for (int iii = 0; iii < buffer.mu_staco_n; iii++) { 
-      push_back(new Muon(this, iii)); 
+  try {
+    for (int iii = 0; iii < buffer.mu_staco_n; iii++) {
+      push_back(new Muon(this, iii));
     }
   }
-  catch (std::out_of_range& e) { 
-    throw std::out_of_range("out of range in muon constructor"); 
+  catch (std::out_of_range& e) {
+    throw std::out_of_range("out of range in muon constructor");
   }
 
 }
-EventMuons::~EventMuons() { 
-  for (iterator itr = begin(); itr != end() ; itr++) { 
-    delete *itr; 
+EventMuons::~EventMuons() {
+  for (iterator itr = begin(); itr != end() ; itr++) {
+    delete *itr;
   }
 }
 
@@ -267,18 +269,18 @@ EventMuons::~EventMuons() {
 bool check_if_electron(int iEl,
 		       const SusyBuffer& buffer,
 		       SUSYObjDef& def,
-		       const unsigned flags, 
+		       const unsigned flags,
 		       const RunInfo& info){
 
-  if (buffer.el_MET_Egamma10NoTau_wet->at(iEl).size() == 0) { 
-    CHECK::throw_size("wet branch entry %i is empty, need %i entry", iEl, 1); 
+  if (buffer.el_MET_Egamma10NoTau_wet->at(iEl).size() == 0) {
+    CHECK::throw_size("wet branch entry %i is empty, need %i entry", iEl, 1);
   }
 
   bool pass_el = def.FillElectron
     (iEl,
      // buffer.RunNumber,
-     buffer.el_eta                   ->at(iEl), 
-     buffer.el_phi                   ->at(iEl), 
+     buffer.el_eta                   ->at(iEl),
+     buffer.el_phi                   ->at(iEl),
      buffer.el_cl_eta                ->at(iEl),
      buffer.el_cl_phi                ->at(iEl),
      buffer.el_cl_E                  ->at(iEl),
@@ -289,17 +291,17 @@ bool check_if_electron(int iEl,
      buffer.el_OQ                    ->at(iEl),
      buffer.el_nPixHits              ->at(iEl),
      buffer.el_nSCTHits              ->at(iEl),
-     buffer.el_MET_Egamma10NoTau_wet->at(iEl).at(0), 
+     buffer.el_MET_Egamma10NoTau_wet->at(iEl).at(0),
      ELECTRON_ET_CUT,			// et cut
      ELECTRON_ETA_CUT
      );
 
-  return pass_el; 
+  return pass_el;
   //info.isAF2
   //NOTE: el_wet set to zero, couldn't match variable in D3PD
 }
 
-bool el_size_check(const SusyBuffer& buffer) { 
+bool el_size_check(const SusyBuffer& buffer) {
   CHECK_SIZE(buffer.el_cl_eta    , buffer.el_n);
   CHECK_SIZE(buffer.el_cl_phi    , buffer.el_n);
   CHECK_SIZE(buffer.el_cl_E      , buffer.el_n);
@@ -310,12 +312,12 @@ bool el_size_check(const SusyBuffer& buffer) {
   CHECK_SIZE(buffer.el_OQ        , buffer.el_n);
   CHECK_SIZE(buffer.el_nPixHits  , buffer.el_n);
   CHECK_SIZE(buffer.el_nSCTHits  , buffer.el_n);
-  CHECK_SIZE(buffer.el_MET_Egamma10NoTau_wet, buffer.el_n); 
+  CHECK_SIZE(buffer.el_MET_Egamma10NoTau_wet, buffer.el_n);
   CHECK_SIZE(buffer.el_tightPP   , buffer.el_n);
   CHECK_SIZE(buffer.el_ptcone20  , buffer.el_n);
-  // CHECK_SIZE(buffer.el_trackd0pv , buffer.el_n); 
-  // CHECK_SIZE(buffer.el_trackz0pv , buffer.el_n); 
-  return true; 
+  // CHECK_SIZE(buffer.el_trackd0pv , buffer.el_n);
+  // CHECK_SIZE(buffer.el_trackz0pv , buffer.el_n);
+  return true;
 }
 
 bool check_if_muon(int iMu,
@@ -333,7 +335,7 @@ bool check_if_muon(int iMu,
      buffer.mu_staco_me_theta_exPV                ->at(iMu),
      buffer.mu_staco_id_theta_exPV                ->at(iMu),
      buffer.mu_staco_id_theta                     ->at(iMu),
-     buffer.mu_staco_charge                       ->at(iMu), 
+     buffer.mu_staco_charge                       ->at(iMu),
      buffer.mu_staco_isCombinedMuon               ->at(iMu),
      buffer.mu_staco_isSegmentTaggedMuon          ->at(iMu),
      buffer.mu_staco_loose                        ->at(iMu),
@@ -345,7 +347,7 @@ bool check_if_muon(int iMu,
      buffer.mu_staco_nSCTHoles                    ->at(iMu),
      buffer.mu_staco_nTRTHits                     ->at(iMu),
      buffer.mu_staco_nTRTOutliers                 ->at(iMu),
-     MUON_PT_CUT, 
+     MUON_PT_CUT,
      MUON_ETA_CUT);
   // NOTE: no muon systematics can be applied right now
 

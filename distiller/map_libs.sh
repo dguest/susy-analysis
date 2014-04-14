@@ -7,7 +7,7 @@ USE_LIBS="
  egammaEvent JetResolution JetUncertainties\
  MissingETUtility MuonEfficiencyCorrections MuonMomentumCorrections\
  PileupReweighting ReweightUtils\
- TauCorrUncert\
+ TauCorrUncert BCHCleaningTool\
  TrigMuonEfficiency ElectronEfficiencyCorrection PATCore TileTripReader"
 
 USE_HEADER="SUSYTools MissingETUtility egammaAnalysisUtils GoodRunsLists\
@@ -21,16 +21,16 @@ then
     echo -n -Wl,-rpath,${lib_path%/}" "
     for l in $USE_LIBS
     do
-	echo -n -l${l}\ 
+	echo -n -l${l}' '
     done
 elif [[ $1 == '-i' ]]
 then
     for i in $USE_HEADER
-    do 
-	echo -n ${ROOTCOREDIR}/../$i\ 
+    do
+	echo -n ${ROOTCOREDIR}/../$i' '
     done
-else 
-    echo "ERROR: $0 needs flag -i or -l" >&2 
-    false 
+else
+    echo "ERROR: $0 needs flag -i or -l" >&2
+    false
 fi
 

@@ -362,8 +362,12 @@ void StopDistiller::setup_susytools() {
   int output_dup = dup(fileno(stdout));
   freopen(out_file.c_str(), "w", stdout);
 
-  m_def->initialize(m_flags & cutflag::is_data,
-		    m_flags & cutflag::is_atlfast);
+  m_def->initialize(
+    m_flags & cutflag::is_data,
+    m_flags & cutflag::is_atlfast,
+    false, // mc12b
+    true  // lepton trigger
+    );
 
   m_event_preselector = new EventPreselector(m_flags, m_info);
   m_btag_calibration = new BtagCalibration(m_info.btag_cal_file,
