@@ -151,7 +151,20 @@ class AmiAugmenter(object):
         tmp_str = '{} (email: {res}) {}' if responsible else '{} {}'
         return tmp_str.format(line, diagnostic, res=responsible)
 
+    def _campaign(self, ldn):
+        responsible = ''
+        # argv=['ListDatasetProvenance']
+        argv=["ListCampaignForDataset"]
+        argv.append("logicalDatasetName={}".format(ldn))
+        try:
+            result = self.client.execute(argv)
+            for row in result.rows():
+                print 'found campaign: {}!'.format(row)
+        except:
+            print 'fail'
+
     def _write_mc_ami_info(self, ds, info, overwrite=False):
+        self._campaign(ds.full_name)
         if not ds.filteff or overwrite:
             filteff_list = ['GenFiltEff_mean', 'approx_GenFiltEff']
             for name in filteff_list: 
