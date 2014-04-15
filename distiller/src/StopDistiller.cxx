@@ -74,7 +74,7 @@ StopDistiller::StopDistiller(const std::vector<std::string>& in,
   m_truth_met_filter(0),
   m_boson_pt_reweighter(0)
 {
-  gErrorIgnoreLevel = kError;
+  gErrorIgnoreLevel = kFatal;
   check_flags();
   setup_streams();
   setup_chain(in);
