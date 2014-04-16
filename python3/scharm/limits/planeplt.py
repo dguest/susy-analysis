@@ -57,9 +57,11 @@ class ExclusionPlane:
         xp, yp = np.meshgrid(xi, yi)
 
         pts = np.dstack((x,y)).squeeze()
-        lin = LinearNDInterpolator(pts, z)
+        lin = LinearNDInterpolator(pts, np.log(z) + 1)
         interp_points = np.dstack((xp.flatten(), yp.flatten())).squeeze()
         zp = lin(interp_points).reshape(xp.shape)
+        # hack to fix points past the diaganal
+        zp[(xp - yp) < 100] = self._threshold*1.1
         return xp, yp, zp
 
     def add_config(self, stop_lsp_ul, label, style=None):
@@ -74,7 +76,7 @@ class ExclusionPlane:
 
         xp, yp, zp = self._get_interpolated_xyz(
             x, y, z, (xmin, xmax), (ymin, ymax), xpts)
-        zp[np.isnan(zp) & (yp > self.ylim[0])] = self._threshold*1.001
+        zp[np.isnan(zp) & (yp > self.ylim[0])] = self._threshold*1.2
         extent = [xmin, xmax, ymin, ymax]
         ct_color, ct_style = self._get_style(style)
         draw_opts = dict(color=ct_color, linewidth=self.lw,
@@ -112,8 +114,8 @@ class ExclusionPlane:
         ct = self.ax.contourf(
             xp, yp, zp, [-1, 0],
             colors='yellow' )
-        # self.ax.imshow(zp, extent=extent, origin='lower',
-        #                vmin=-0.3,vmax=0.0)
+        # self.ax.imshow(lowp, extent=extent, origin='lower',
+        #                vmin=-0.3,vmax=2)
         if not self._pts:
             inpts = (x > xmin) & (y > ymin)
             self._pts, = self.ax.plot(x[inpts],y[inpts],'.k')
