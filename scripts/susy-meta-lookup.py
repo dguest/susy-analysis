@@ -18,6 +18,7 @@ Badly needs a cleanup, should only have functions to:
 import os, sys, re
 from scharm.meta import DatasetCache, MetaFromYamlError
 from scharm.lookup.susylookup import MetaFactory
+from scharm.lookup.highlevel import find_preferred
 from scharm.lookup import overlap
 from scharm.lookup.ami import lookup_ami_stats, sort_ds_fullsim_atlfast
 from scharm.bullshit import FlatProgressMeter
@@ -70,7 +71,7 @@ def _add_build_parser(subs):
     parser.add_argument('--scharm-ext', action='store_true')
     parser.add_argument('-l', '--add-overlap', action='store_true',
                         help=(find_overlap.__doc__ + find_type.__doc__))
-
+    parser.add_argument('-p', '--preferred')
     parser.add_argument('-d','--dump', action='store_true')
     parser.add_argument(
         '-s', '--write-steering', help='rewrite steering file')
@@ -168,6 +169,8 @@ def build(args):
     if args.add_overlap:
         find_overlap(args.steering_file)
         find_type(args.steering_file)
+    if args.preferred:
+        find_preferred(args.steering_file, args.preferred)
 
     if args.write_steering:
         found, missing = get_ds_lists(args.steering_file)
