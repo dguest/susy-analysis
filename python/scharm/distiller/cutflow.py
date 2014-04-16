@@ -1,26 +1,26 @@
 import warnings, tempfile, os, sys
 from os.path import isfile, isdir, expanduser, expandvars, join
 
-class CorruptedCutflow(list): 
+class CorruptedCutflow(list):
     """
-    Normal cutflow list of tuples, but also gives extra info on the 
-    nature of corruption to the input files. 
+    Normal cutflow list of tuples, but also gives extra info on the
+    nature of corruption to the input files.
     """
-    def __init__(self, cutlist, files_used): 
+    def __init__(self, cutlist, files_used):
         super(CorruptedCutflow,self).__init__(cutlist)
         self.files_used = files_used
 
 
-def cutflow(input_files, flags, grl='', output_ntuple='', 
-            btag_cal_file='', cal_dir='', systematic='NONE', 
-            cutflow='NONE', boson_pt_max_mev=-1.0, truth_met_max_mev=-1.0, 
-            pu_config='', pu_lumicalc='', mumet_output_ntuple='', 
-            leptmet_output_ntuple=''): 
+def cutflow(input_files, flags, grl='', output_ntuple='',
+            btag_cal_file='', cal_dir='', systematic='NONE',
+            cutflow='NONE', boson_pt_max_mev=-1.0, truth_met_max_mev=-1.0,
+            pu_config='', pu_lumicalc='', mumet_output_ntuple='',
+            leptmet_output_ntuple=''):
     """
-    Returns a list of pairs: (cut_name, n_passing). If output_ntuple is 
-    given will also write an ntuple. 
+    Returns a list of pairs: (cut_name, n_passing). If output_ntuple is
+    given will also write an ntuple.
 
-    Flags: 
+    Flags:
         a: aggressive --- remove bad files and retry
         b: debug susytools (don't pipe output to /dev/null)
         d: is data
@@ -34,9 +34,9 @@ def cutflow(input_files, flags, grl='', output_ntuple='',
         z: maximum compression
 
 
-    This is a python-level interface for the compiled cutflow routine. 
+    This is a python-level interface for the compiled cutflow routine.
     """
-    if isinstance(input_files, str): 
+    if isinstance(input_files, str):
         input_files = [input_files]
 
     assert isinstance(flags, str)
@@ -45,70 +45,70 @@ def cutflow(input_files, flags, grl='', output_ntuple='',
     assert isinstance(btag_cal_file, str)
     assert isinstance(systematic, str)
 
-    if not input_files: 
+    if not input_files:
         raise IOError("can't run cutflow, input files don't exist")
 
-    grl = _get_fixed_pathname(grl) 
+    grl = _get_fixed_pathname(grl)
     cal_dir = _get_fixed_pathname(cal_dir)
     btag_cal_file = _get_fixed_pathname(btag_cal_file)
-                
-    input_dict = { 
-        'grl': grl, 
-        'btag_cal_dir':cal_dir, 
-        'btag_cal_file':btag_cal_file, 
-        'systematic':systematic, 
-        'cutflow_type': cutflow, 
-        'boson_pt_max_mev': boson_pt_max_mev, 
-        'truth_met_max_mev': truth_met_max_mev, 
-        'pu_config': pu_config, 
-        'pu_lumicalc': _get_fixed_pathname(pu_lumicalc), 
-        'out_ntuple': output_ntuple, 
+
+    input_dict = {
+        'grl': grl,
+        'btag_cal_dir':cal_dir,
+        'btag_cal_file':btag_cal_file,
+        'systematic':systematic,
+        'cutflow_type': cutflow,
+        'boson_pt_max_mev': boson_pt_max_mev,
+        'truth_met_max_mev': truth_met_max_mev,
+        'pu_config': pu_config,
+        'pu_lumicalc': _get_fixed_pathname(pu_lumicalc),
+        'out_ntuple': output_ntuple,
         'mumet_out_ntuple': mumet_output_ntuple,
         'leptmet_out_ntuple': leptmet_output_ntuple,
         }
-    if 'a' in flags: 
+    if 'a' in flags:
         return _aggressive_distill(
             input_files, input_dict, flags)
-    else: 
-        with BullshitFilter(): 
-            from scharm.distiller import _distiller 
+    else:
+        with BullshitFilter():
+            from scharm.distiller import _distiller
 
         return _distiller._distiller(
             input_files, input_dict, flags)
 
 
-class BullshitFilter(object): 
+class BullshitFilter(object):
     """
-    Workaround filter for annoying and worthless ROOT errors. 
+    Workaround filter for annoying and worthless ROOT errors.
     """
-    def __init__(self, veto_words={'TClassTable'}): 
+    def __init__(self, veto_words={'TClassTable'}):
         self.veto_words = set(veto_words)
         self.temp = tempfile.NamedTemporaryFile()
-    def __enter__(self): 
+    def __enter__(self):
         sys.stdout.flush()
         sys.stderr.flush()
         self.old_out, self.old_err = os.dup(1), os.dup(2)
         os.dup2(self.temp.fileno(), 1)
         os.dup2(self.temp.fileno(), 2)
-    def __exit__(self, exe_type, exe_val, tb): 
+    def __exit__(self, exe_type, exe_val, tb):
         sys.stdout.flush()
         sys.stderr.flush()
         os.dup2(self.old_out, 1)
         os.dup2(self.old_err, 2)
         self.temp.seek(0)
-        for line in self.temp: 
+        for line in self.temp:
             veto = set(line.split()) & self.veto_words
-            if not veto: 
+            if not veto:
                 sys.stderr.write(line)
 
-def _aggressive_distill(input_files, input_dict, flags): 
-    with BullshitFilter(): 
-        import _distiller 
-    try: 
+def _aggressive_distill(input_files, input_dict, flags):
+    with BullshitFilter():
+        import _distiller
+    try:
         cut_out = _distiller._distiller(
             input_files, input_dict, flags)
-    except RuntimeError as er: 
-        if 'bad file:' in str(er): 
+    except RuntimeError as er:
+        if 'bad file:' in str(er):
             bad_file = str(er).split(':')[-1].strip()
             remaining_files = [f for f in input_files if f != bad_file]
             if remaining_files:
@@ -116,38 +116,38 @@ def _aggressive_distill(input_files, input_dict, flags):
                 cutlist = _aggressive_distill(
                     remaining_files, input_dict, flags)
                 return CorruptedCutflow(cutlist, remaining_files)
-            else: 
+            else:
                 warnings.warn('removed last file in ds: {}'.format(
                         input_files))
-        raise 
+        raise
 
     return cut_out
 
 def _get_fixed_pathname(orig_path):
-    if not orig_path: 
+    if not orig_path:
         return ''
     expanded = expandvars(expanduser(orig_path))
-    if isdir(expanded): 
-        if not expanded.endswith('/'): 
+    if isdir(expanded):
+        if not expanded.endswith('/'):
             expanded += '/'
-    elif not isfile(expanded): 
+    elif not isfile(expanded):
         raise IOError("requested file '{}' can't be found".format(expanded))
     return expanded
 
-        
-def make_perf_ntuple(input_file, flags, output_ntuple=''): 
+
+def make_perf_ntuple(input_file, flags, output_ntuple=''):
     """
     makes a performance ntuple from input_file, supposed to be compatible
     with JETNET training / testing stuff
     """
     _cutflow._make_perf_ntuple(input_file, flags, output_ntuple)
-                              
 
-def print_raw_cutflow(input_file): 
+
+def print_raw_cutflow(input_file):
     """
     prints the raw cutflow, descending in n passing cut
     """
     cut_counts = cutflow(input_file, 'vs')
     sorted_counts = sorted(cut_counts, key=lambda cut: cut[1], reverse=True)
-    for name, count in sorted_counts: 
+    for name, count in sorted_counts:
         print '{:>20}: {}'.format(name,count)
