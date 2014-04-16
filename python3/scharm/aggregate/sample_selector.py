@@ -25,7 +25,7 @@ class Sample:
 
 class SampleSelector:
     """
-    Select FS vs AFII samples
+    Select FS vs AFII samples. Constructed with file paths (not files)
     """
     def __init__(self, meta_file):
         self.min_ratio_to_select_atlfast = 1.0
@@ -35,17 +35,24 @@ class SampleSelector:
     def _get_selected(self, one_dsid):
         """
         return the samples we want from a dict corresponding to one dsid
+        expects a dictionary of Samples, keyed by the id char
         """
         has_afii = 'a' in one_dsid
         has_fs = 's' in one_dsid
         if has_afii and has_fs:
+
+            # select a sample based on stats
             fullsim = one_dsid['a'].stats
             afii = one_dsid['s'].stats
             min_ratio = self.min_ratio_to_select_atlfast
-            if one_dsid['a'].stats / one_dsid['s'].stats > min_ratio:
-                yield one_dsid['a']
-            else:
-                yield one_dsid['s']
+            def getstat(char):
+                return one_dsid[char].stats
+            take_atlfast = getstat('a') / getstat('s') > min_ratio:
+            sel_char = 'a' if take_atlfast else 's'
+
+            # return the selected sample
+            yield one_dsid[sel_char]
+            # ...and all the other samples
             for char in one_dsid:
                 if char not in 'as':
                     yield one_dsid[char]
@@ -78,4 +85,15 @@ class SampleSelector:
             if sample_key in select_keys:
                 yield path
 
+# _________________________________________________________________________
+# helper functions
+def _get_char_from_ds_name(sample):
+    import re
+    sim_re = re.compile('\.e[0-9]+_([as])[0-9]+_')
+    try:
+         return sim_re.search(sample).group(1)
+    except AttributeError:
+        raise ValueError("can't find type of reco in {}".format(sample))
 
+def _get_dsid(sample):
+    return int(sample.split('.')[1])
