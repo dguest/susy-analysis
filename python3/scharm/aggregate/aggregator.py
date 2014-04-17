@@ -33,28 +33,32 @@ class HistDict(dict):
         - bottom dir is cut / region
         - all middle dirs are the variable name
     """
-    def __init__(self, file_name='', filt=None, physics_set=None,
+    def __init__(self, file_name='', filt=None, sig_prefix='scharm',
+                 sig_points=[],
                  cut_set=None, var_blacklist=None):
         if not file_name:
             return None
         with h5py.File(file_name,'r') as infile:
-            for path in self._list_paths(infile):
-                if filt:
-                    if not filt in path:
+            for proc, var_grp in infile.items():
+                if proc.startswith(sig_prefix):
+                    if proc not in sig_points:
                         continue
-                spl = path.split('/')
-                physics = spl[1]
-                if physics_set and physics not in physics_set:
-                    continue
-                if var_blacklist and set(spl[2:-1]) & var_blacklist:
-                    continue
-                variable = '/'.join(spl[2:-1])
-                cut = spl[-1]
-                if cut_set and cut not in cut_set:
-                    continue
-                nametup = (physics, variable, cut)
-                hist = infile[path]
-                self[nametup] = HistNd(hist)
+                for subpath in self._list_paths(var_grp):
+                    path = proc + subpath
+                    if filt:
+                        if not filt in path:
+                            continue
+                    spl = path.split('/')
+                    physics = spl[0]
+                    if var_blacklist and set(spl[1:-1]) & var_blacklist:
+                        continue
+                    variable = '/'.join(spl[1:-1])
+                    cut = spl[-1]
+                    if cut_set and cut not in cut_set:
+                        continue
+                    nametup = (physics, variable, cut)
+                    hist = infile[path]
+                    self[nametup] = HistNd(hist)
 
     def __setitem__(self, key, value):
         if len(key) != 3 or not all(isinstance(k,str) for k in key):

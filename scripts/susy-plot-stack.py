@@ -24,6 +24,8 @@ def get_config():
         '--ext', help='plot extensions, ' + d, default='.pdf')
     parser.add_argument('-o', '--output-dir',
                         help=d, default='plots')
+    parser.add_argument('-t','--theme', choices={'dan','sbot','brimstone'},
+                        default='dan')
 
     args = parser.parse_args(sys.argv[1:])
     return args
@@ -37,13 +39,11 @@ def run_plotmill(args):
     from scharm.aggregate.aggregator import HistDict
     config = _get_config_info(args.steering_file)
     aggregates = [args.aggregate]
-    used_physics = config['backgrounds']['used'] + ['data']
-    if args.signal_points:
-        used_physics.extend(args.signal_points)
     plots_dict = {}
     for agg_file in aggregates:
         print('loading {}'.format(agg_file))
-        hists = HistDict(agg_file,args.filt, physics_set=used_physics,
+        hists = HistDict(agg_file,args.filt, sig_points=args.signal_points,
+                         sig_prefix='scharm',
                          var_blacklist={'truth'})
         plots_dict.update(hists)
 
@@ -53,7 +53,7 @@ def run_plotmill(args):
         'lumi_fb': config['misc']['lumi_fb'],
         'base_dir': args.output_dir,
         'output_ext': args.ext,
-        'used_backgrounds': config['backgrounds']['used'],
+        'theme': args.theme,
         }
 
     do_log = args.scale == 'log'
@@ -88,7 +88,6 @@ def _get_config_info(steering_file):
             bgs.append('Zjets' + ch)
         config = {
             'misc': { 'lumi_fb': 20.3 },
-            'backgrounds': {'used': bgs },
             }
         return config
     else:

@@ -26,13 +26,14 @@ def make_plots(plots_dict, misc_info, log=False):
     h2print.print_plots(*sort_data_mc(hist2_dict))
 
 
-class HistConverter(object):
+class HistConverter:
     """
     convert from NdHist to several Hist1d or Hist2d.
     """
     def __init__(self, misc_info):
         self.lumi_fb = misc_info['lumi_fb']
         self.appended_evt_str = r': {:.1f} Evt'
+        self._style = style.get_type_dict(misc_info['theme'])
 
     def h1dict_from_histn(self, pvc, histn):
         """
@@ -55,7 +56,7 @@ class HistConverter(object):
     def hist1_from_histn(self, pvc, histn):
         physics, variable, cut = pvc
         is_signal = physics.startswith('scharm')
-        if physics not in style.type_dict and not is_signal:
+        if physics not in self._style and not is_signal:
             raise ValueError("what the fuck is {}?".format(pvc))
 
         assert len(histn.axes) == 1
@@ -121,8 +122,8 @@ class HistConverter(object):
         max_bins = style.rebinning.get(cut,30)
         hist.rebin(max_bins=max_bins)
         try:
-            hist.color = style.type_dict[physics].color
-            hist.title = style.type_dict[physics].tex
+            hist.color = self._style[physics].color
+            hist.title = self._style[physics].tex
         except KeyError:
             hist.color = None
             hist.title = physics

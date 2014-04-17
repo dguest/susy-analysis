@@ -2,28 +2,101 @@ import re
 _inf = float('inf')
 # __________________________________________________________________________
 # sample / stack labeling stuff
-physics_labels = [
-    (r'diboson',                'diboson','pink'),
-    (r'QCD',                    'QCD','c'),
-    (r'single $t$',             'singleTop','teal'),
-    (r'$t\bar{t}$',             'ttbar','b'),
-    (r'$t\bar{t} + V$',         'ttbarV','brown'),
-    (r'$W \to l \nu$ + b',   'WjetsB','red'),
-    (r'$W \to l \nu$ + c',   'WjetsC','yellow'),
-    (r'$W \to l \nu$ + u',   'WjetsL','purple'),
-    (r'$Z$ + b', 'ZjetsB','orange'),
-    (r'$Z$ + c', 'ZjetsC','green'),
-    (r'$Z$ + u', 'ZjetsL','m'),
-    # (r'$W$ + jets',             'Wjets','green'),
-    (r'Data',                   'data'   , 'black'),
 
-    ('charm','charm','g'),
-    ('bottom','bottom','red'),
-    ('light','light','blue'),
-    ('tau','tau','pink'),
-    ('other','other','orange'),
+class StackStyle:
+    def __init__(self, tex_name, label, color):
+        self.tex = tex_name
+        self.lable = label
+        self.color = color
 
-    ]
+def get_type_dict(theme='dan'):
+    if theme in _theme_names:
+        theme = _theme_names[theme]
+    return {l: StackStyle(t,l,c) for t,l,c in _get_labels(theme)}
+
+# define the themes here
+_dan_detail = {
+    'diboson':'pink',
+    'QCD':'c',
+    'singleTop': 'teal',
+    'ttbar':'b',
+    'ttbarV':'brown',
+    'WjetsB':'red',
+    'WjetsC':'yellow',
+    'WjetsL':'purple',
+    'ZjetsB':'orange',
+    'ZjetsC':'green',
+    'ZjetsL':'m',
+    }
+
+_dan_theme = _dan_detail.copy()
+_dan_theme.update( {
+        'other':'pink',
+        'Wjets':'yellow',
+        'Zjets':'green',
+        'top':'blue',
+        })
+
+_brimstone = _dan_detail.copy()
+_brimstone.update( {
+        'other':'yellow',
+        'Wjets':'FireBrick',
+        'Zjets':'Maroon',
+        'top':'OrangeRed'
+        })
+
+_sbot_theme = {
+    'diboson':'pink',
+    'QCD':'c',
+    'singleTop': 'teal',
+    'ttbar':'b',
+    'ttbarV':'brown',
+    'WjetsB':'red',
+    'WjetsC':'yellow',
+    'WjetsL':'purple',
+    'ZjetsB':'orange',
+    'ZjetsC':'green',
+    'ZjetsL':'m',
+
+    'other':(0.800,0.400,0.000),
+    'Wjets':(0.200,0.200,0.800),
+    'Zjets':(0.000,0.000,0.400),
+    'top'  :(0.000,1.000,0.000),
+    }
+
+_theme_names = {'dan':_dan_theme, 'sbot': _sbot_theme,
+                'brimstone': _brimstone}
+
+def _get_labels(theme):
+    def get_theme(texname, name):
+        return texname, name, theme[name]
+    return [
+        get_theme(r'diboson',           'diboson'),
+        get_theme(r'QCD',               'QCD'),
+        get_theme(r'single $t$',        'singleTop'),
+        get_theme(r'$t\bar{t}$',        'ttbar'),
+        get_theme(r'$t\bar{t} + V$',    'ttbarV'),
+        get_theme(r'$W \to l \nu$ + b', 'WjetsB'),
+        get_theme(r'$W \to l \nu$ + c', 'WjetsC'),
+        get_theme(r'$W \to l \nu$ + u', 'WjetsL'),
+        get_theme(r'$Z$ + b',           'ZjetsB'),
+        get_theme(r'$Z$ + c',           'ZjetsC'),
+        get_theme(r'$Z$ + u',           'ZjetsL'),
+
+        (r'Data',               'data'   , 'black'),
+
+        ('charm','charm','g'),
+        ('bottom','bottom','red'),
+        ('light','light','blue'),
+        ('tau','tau','pink'),
+        ('other','other','orange'),
+
+        # colors from the sbottom analysis
+        get_theme(r'other'     , 'other'),
+        get_theme(r'$W$ + jets', 'Wjets'),
+        get_theme(r'$Z$ + jets', 'Zjets'),
+        get_theme(r'top'       , 'top'  ),
+        ]
 
 def texify_sr(sr_name):
     sr_name = sr_name.replace('-',r'\,')
@@ -41,13 +114,6 @@ def cr_sort(key):
         return '1' + key
     return ''.join(splkey[::-1])
 
-class StackStyle(object):
-    def __init__(self, tex_name, label, color):
-        self.tex = tex_name
-        self.lable = label
-        self.color = color
-
-type_dict = {l: StackStyle(t,l,c) for t,l,c in physics_labels}
 
 # __________________________________________________________________________
 # axis labeling stuff
