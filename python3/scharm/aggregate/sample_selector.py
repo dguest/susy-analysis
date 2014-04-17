@@ -1,6 +1,7 @@
 from os.path import basename, splitext
 from collections import defaultdict
 import yaml
+import warnings
 
 def _key_from_path(path):
     return splitext(basename(path))[0]
@@ -20,6 +21,7 @@ class Sample:
         self.type_char = ds_key[0]
         self.path = ds_path
         self.key = ds_key
+        self.preferred = this_samp.get('preferred', False)
         if self.stats == 0 and self.type_char not in 'jem':
             raise ValueError('no expected entries in {}'.format(ds_key))
 
@@ -27,10 +29,19 @@ class SampleSelector:
     """
     Select FS vs AFII samples. Constructed with file paths (not files)
     """
+    # usually decide based on counts, but if we take a large fraction
+    # of the lower stats samples (because they are 'preferred') we
+    # want a warning.
+    max_low_stat_fraction = 0.5
+
     def __init__(self, meta_file):
         self.min_ratio_to_select_atlfast = 1.0
         with open(meta_file) as yml:
             self.meta_dict = yaml.load(yml)
+
+        # checks to make sure we're not taking too many lot stat samples
+        self.low_stats_taken = 0
+        self.total_stat_checked = 0
 
     def _get_selected(self, one_dsid):
         """
@@ -42,12 +53,9 @@ class SampleSelector:
         if has_afii and has_fs:
 
             # select a sample based on stats
-            fullsim = one_dsid['a'].stats
-            afii = one_dsid['s'].stats
-            min_ratio = self.min_ratio_to_select_atlfast
-            def getstat(char):
-                return one_dsid[char].stats
-            take_atlfast = getstat('a') / getstat('s') > min_ratio:
+            fullsim = one_dsid['a']
+            afii = one_dsid['s']
+            take_atlfast = self._should_take_atlfast(afii, fullsim)
             sel_char = 'a' if take_atlfast else 's'
 
             # return the selected sample
@@ -58,6 +66,31 @@ class SampleSelector:
                     yield one_dsid[char]
         else:
             yield from one_dsid.values()
+
+    def _should_take_atlfast(self, afii, fullsim):
+        """expects afii and fullsim Samples"""
+        self.total_stat_checked += 1 # count total checks
+        min_ratio = self.min_ratio_to_select_atlfast
+        stats_want_afii = afii.stats / fullsim.stats > min_ratio
+        has_pref = afii.preferred or fullsim.preferred
+        if not has_pref:
+            return stats_want_afii
+        else:
+            if afii.preferred and fullsim.preferred:
+                raise ValueError('both afii and fullsim prefered')
+            if afii.preferred == stats_want_afii:
+                return True
+
+            # print a warning if we're chaniging too many
+            self.low_stats_taken += 1
+            return afii.preferred
+
+    def _stat_check(self):
+        """check to make sure we didn't take too many lot stats"""
+        frac = self.low_stats_taken / self.total_stat_checked
+        if frac > self.max_low_stat_fraction:
+            warnings.warn('took {:.0%} low stat samples'.format(frac),
+                          stacklevel=3)
 
     def _select_keys(self, sample_list):
         by_dsid_and_char = defaultdict(dict)
@@ -74,6 +107,7 @@ class SampleSelector:
         select_keys = self._select_keys(sample_list)
         for key in select_keys:
             yield self.meta_dict[key]['full_name']
+        self._stat_check()
 
     def select_samples(self, sample_list):
         """
@@ -84,6 +118,7 @@ class SampleSelector:
             sample_key = _key_from_path(path)
             if sample_key in select_keys:
                 yield path
+        self._stat_check()
 
 # _________________________________________________________________________
 # helper functions
