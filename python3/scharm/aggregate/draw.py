@@ -50,6 +50,14 @@ class Stack:
         self._sm_total = 0.0
         # for setting plot upper limit with selection applied
         self._upper_limit = 0.0
+        # scale up y axis when the legends get big
+        self._scaleup = 1.0
+        self._cut_color = 'r'
+        self._cut_fill = (0.9, 0, 0, 0.2)
+
+    def set_selection_colors(self, line, face):
+        self._cut_color = line
+        self._cut_fill = face
 
     def _set_xlab(self, name):
         if self.ratio:
@@ -155,8 +163,8 @@ class Stack:
         if not self._selection:
             return
         low, high = self._selection
-        fill_args = dict(facecolor=(0.9, 0, 0, 0.2), linestyle=None)
-        line_args = dict(color='r', linewidth=2)
+        fill_args = dict(facecolor=self._cut_fill, linestyle=None)
+        line_args = dict(color=self._cut_color, linewidth=2)
         inf = float('inf')
         xlow, xhigh = self._x_limits
         if low != -inf:
@@ -247,8 +255,8 @@ class Stack:
     def add_legend(self):
         tstring = 'SM total: {}'.format(_legstr(self._sm_total))
         tartist = Line2D((0,1),(0,0), color='k')
-        bg_legs = reversed(self._bg_proxy_legs)
-        all_legs = chain(self._proxy_legs,[(tartist, tstring)], bg_legs)
+        bg_legs = self._bg_proxy_legs[::-1]
+        all_legs = self._proxy_legs + [(tartist, tstring)] + bg_legs
         proxies = zip(*all_legs)
         legend = self.ax.legend(*proxies, numpoints=1, ncol=2)
         if legend:
@@ -259,6 +267,12 @@ class Stack:
                 0.02, 0.8, self.lumi_str.format(self.lumi),
                 transform=self.ax.transAxes, size=16)
 
+        # crude guess for how many legends fit
+        max_fitting = 24 if self.ratio else 34
+        n_leg = len(all_legs)
+        frac_consumed = min(n_leg / max_fitting, 0.9)
+        self._scaleup = 1 / (1 - frac_consumed)
+
     def save(self, name):
         if self._x_limits is None:
             return
@@ -267,10 +281,10 @@ class Stack:
         self.ax.set_xlim(*self._x_limits)
         if self.ax.get_yscale() != 'log':
             ymax = self.ax.get_ylim()[1]
-            self.ax.set_ylim(0,ymax * 2)
+            self.ax.set_ylim(0,ymax * self._scaleup)
         else:
             ymin, ymax = self.ax.get_ylim()
-            self.ax.set_ylim(ymin, ymax**2)
+            self.ax.set_ylim(ymin, ymax**self._scaleup)
 
         self.fig.tight_layout(pad=0.3, h_pad=0.3, w_pad=0.3)
 

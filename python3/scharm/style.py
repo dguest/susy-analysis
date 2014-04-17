@@ -14,6 +14,17 @@ def get_type_dict(theme='dan'):
         theme = _theme_names[theme]
     return {l: StackStyle(t,l,c) for t,l,c in _get_labels(theme)}
 
+def get_selection_color(theme):
+    """for selection plots"""
+    if theme in _theme_names:
+        theme = _theme_names[theme]
+    return theme.get('cut_line','k'), theme.get('cut_fill',(0,0,0,0.2))
+
+def get_signal_colors(theme):
+    if theme in _theme_names:
+        theme = _theme_names[theme]
+    return theme.get('signal_list', 'kcmy')
+
 # define the themes here
 _dan_detail = {
     'diboson':'pink',
@@ -42,7 +53,10 @@ _brimstone.update( {
         'other':'yellow',
         'Wjets':'FireBrick',
         'Zjets':'Maroon',
-        'top':'OrangeRed'
+        'top':'OrangeRed',
+        'cut_line':'r',
+        'cut_fill': (0.9, 0, 0, 0.2),
+        'signal_list': list('kr') + ['orange'],
         })
 _brony = _dan_detail.copy()
 _brony.update( {
@@ -50,6 +64,9 @@ _brony.update( {
         'Wjets':'DeepPink',
         'Zjets':'MediumSpringGreen',
         'top':'Orchid',
+        'cut_line': (1,0,1),
+        'cut_fill': (1,0,1,0.2),
+        'signal_list': list('cmy'),
         })
 
 _sbot_theme = {

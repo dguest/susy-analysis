@@ -33,7 +33,8 @@ class HistConverter:
     def __init__(self, misc_info):
         self.lumi_fb = misc_info['lumi_fb']
         self.appended_evt_str = r': {:.1f} Evt'
-        self._style = style.get_type_dict(misc_info['theme'])
+        theme = misc_info['theme']
+        self._style = style.get_type_dict(theme)
 
     def h1dict_from_histn(self, pvc, histn):
         """
@@ -164,6 +165,9 @@ class StackPlotPrinter(object):
         self.lumi = options['lumi_fb']
         self.log = False
         self.verbose = True
+        theme = options['theme']
+        self._selection_colors = style.get_selection_color(theme)
+        self._signal_colors = style.get_signal_colors(theme)
 
     def print_plots(self, stack_data, stack_mc_lists, signal_hists={}):
         plot_dir = self.plot_dir
@@ -181,6 +185,7 @@ class StackPlotPrinter(object):
                 else:
                     print('making {}'.format(save_name))
             stack = Stack(ratio=has_ratio)
+            stack.colors = self._signal_colors
             stack.lumi = self.lumi
             if self.log:
                 stack.y_min = 0.1
@@ -190,6 +195,7 @@ class StackPlotPrinter(object):
                 stack.add_signals(signal_hists[id_tup])
             if id_tup in stack_data:
                 stack.add_data(stack_data[id_tup])
+            stack.set_selection_colors(*self._selection_colors)
             stack.add_legend()
             if not isdir(save_dir):
                 os.makedirs(save_dir)
