@@ -137,8 +137,9 @@ class Stack:
                 color = hist.color
             else:
                 color = next(color_itr)
-            style = color + '--'
-            plt_handle, = self.ax.plot(x_vals,y_vals,style, linewidth=3.0)
+            style = '--'
+            plt_handle, = self.ax.plot(
+                x_vals,y_vals,style, linewidth=3.0, color=color)
             self._proxy_legs.append( (plt_handle, self._get_legstr(hist)))
 
             # TODO: fix this (right now the dimensions of the array

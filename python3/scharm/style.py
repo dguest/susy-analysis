@@ -66,7 +66,7 @@ _brony.update( {
         'top':'Orchid',
         'cut_line': (1,0,1),
         'cut_fill': (1,0,1,0.2),
-        'signal_list': list('cmy'),
+        'signal_list': ['DarkOrchid', 'DarkCyan', 'HotPink'],
         })
 
 _sbot_theme = {
