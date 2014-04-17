@@ -24,7 +24,8 @@ def get_config():
         '--ext', help='plot extensions, ' + d, default='.pdf')
     parser.add_argument('-o', '--output-dir',
                         help=d, default='plots')
-    parser.add_argument('-t','--theme', choices={'dan','sbot','brimstone'},
+    parser.add_argument('-t','--theme',
+                        choices={'dan','sbot','brimstone','brony'},
                         default='dan')
 
     args = parser.parse_args(sys.argv[1:])

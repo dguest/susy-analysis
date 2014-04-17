@@ -44,6 +44,13 @@ _brimstone.update( {
         'Zjets':'Maroon',
         'top':'OrangeRed'
         })
+_brony = _dan_detail.copy()
+_brony.update( {
+        'other':'LightBlue',
+        'Wjets':'DeepPink',
+        'Zjets':'MediumSpringGreen',
+        'top':'Orchid',
+        })
 
 _sbot_theme = {
     'diboson':'pink',
@@ -65,7 +72,7 @@ _sbot_theme = {
     }
 
 _theme_names = {'dan':_dan_theme, 'sbot': _sbot_theme,
-                'brimstone': _brimstone}
+                'brimstone': _brimstone, 'brony':_brony}
 
 def _get_labels(theme):
     def get_theme(texname, name):
