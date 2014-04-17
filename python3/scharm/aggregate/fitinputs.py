@@ -20,6 +20,7 @@ class FitInputMaker:
         self._meta_path = meta_path
         self._variable = variable
         self._quiet = quiet
+
         # signal finder (for short test jobs without much signal)
         if signal_point is None:
             def finder(proc):

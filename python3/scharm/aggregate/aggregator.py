@@ -1,6 +1,7 @@
 import yaml
 from scharm.hists import HistNd
 from scharm.aggregate.normalizer import Normalizer
+from scharm.aggregate import renamer
 from os.path import basename, splitext, isfile
 import h5py
 import sys
@@ -92,11 +93,12 @@ class SampleAggregator:
     # us to multiply by the squared normalization
     wt2_tag = 'Wt2'
 
-    def __init__(self,meta_path, hfiles, variables):
+    def __init__(self,meta_path, hfiles, variables, breakdown=False):
         self._normalizer = Normalizer(meta_path, hfiles)
         self.variables = variables
         self._plots_dict = HistDict()
         self._check_variables(variables)
+        self._breakdown = breakdown
 
     def _check_variables(self, variables):
         if variables == 'all':
@@ -121,7 +123,12 @@ class SampleAggregator:
 
     def aggregate(self):
         plots_dict = HistDict()
-        for physics_type, hfile, normalization in self._normalizer:
+        for process, hfile, normalization in self._normalizer:
+
+            # consolidate the samples (as they are in sbottom)
+            if not self._breakdown:
+                process = renamer.shorten(process) or process
+
             for region, vargroup in hfile.items():
                 if self.variables == 'all':
                     variables = _get_all_variables(vargroup)
@@ -135,7 +142,7 @@ class SampleAggregator:
                         wt_norm = normalization
 
                     h5hist = vargroup[variable]
-                    idx_tuple = (physics_type, variable, region)
+                    idx_tuple = (process, variable, region)
                     if idx_tuple in plots_dict:
                         # if this hist already exists we only need the
                         # numpy array

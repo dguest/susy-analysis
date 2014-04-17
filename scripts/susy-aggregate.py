@@ -30,6 +30,8 @@ def get_config():
     parser.add_argument('-s','--systematic', default='none', help=d)
     parser.add_argument('-d','--dump', action='store_true',
                         help='dump samples used (and quit)')
+    parser.add_argument('-b','--breakdown', action='store_true',
+                        help='store breakdown of backgrounds')
     args = parser.parse_args(sys.argv[1:])
     return args
 
@@ -61,6 +63,7 @@ def run():
         meta_path=args.meta,
         hfiles=list(selected_samples),
         variables='all',
+        breakdown=args.breakdown,
         )
     # aggregator.bugstream = tempfile.TemporaryFile()
     # aggregator.out_prepend = 'systamatic: {} '.format(systematic)
