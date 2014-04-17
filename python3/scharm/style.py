@@ -56,7 +56,7 @@ _brimstone.update( {
         'top':'OrangeRed',
         'cut_line':'r',
         'cut_fill': (0.9, 0, 0, 0.2),
-        'signal_list': list('kr') + ['orange'],
+        'signal_list': ['black','gold','orange','red'],
         })
 _brony = _dan_detail.copy()
 _brony.update( {
