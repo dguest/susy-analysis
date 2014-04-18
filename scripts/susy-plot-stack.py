@@ -27,6 +27,8 @@ def get_config():
     parser.add_argument('-t','--theme',
                         choices={'dan','sbot','brimstone','brony'},
                         default='dan')
+    parser.add_argument('--serial', action='store_true',
+                        help='disable multiprocess')
 
     args = parser.parse_args(sys.argv[1:])
     return args
@@ -55,6 +57,7 @@ def run_plotmill(args):
         'base_dir': args.output_dir,
         'output_ext': args.ext,
         'theme': args.theme,
+        'serial': args.serial,
         }
 
     do_log = args.scale == 'log'

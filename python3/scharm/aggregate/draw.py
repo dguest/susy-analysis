@@ -142,11 +142,6 @@ class Stack:
                 x_vals,y_vals,style, linewidth=3.0, color=color)
             self._proxy_legs.append( (plt_handle, self._get_legstr(hist)))
 
-            # TODO: fix this (right now the dimensions of the array
-            # don't match the ones from data)
-            # self._upper_limit = np.maximum(
-            #     self._upper_limit, hist.get_xy_center_pts())
-
     def _get_min_plotable(self, y_vals):
         plot_vals = np.array(y_vals)
         if self.y_min is not None:

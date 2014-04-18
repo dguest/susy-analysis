@@ -8,6 +8,7 @@ from os.path import isdir, join
 from scharm.aggregate.draw import Stack, Hist2d, Hist1d
 import os
 from itertools import chain
+from concurrent.futures import ProcessPoolExecutor as Executor
 
 def make_plots(plots_dict, misc_info, log=False):
     hist1_dict = {}
@@ -158,48 +159,99 @@ def sort_data_mc(hist1_dict):
 
     return stack_data, lists, signals
 
-class StackPlotPrinter(object):
+# __________________________________________________________________________
+# 1d plot printer
+
+class StackPlotPrinter:
+    """
+    Makes all the stack plots. Uses an Executor to multiprocess.
+    """
     def __init__(self, options):
         self.plot_dir = options['base_dir']
         self.ext = options['output_ext']
         self.lumi = options['lumi_fb']
+        self.serial = options.get('serial', False)
         self.log = False
         self.verbose = True
         theme = options['theme']
         self._selection_colors = style.get_selection_color(theme)
         self._signal_colors = style.get_signal_colors(theme)
 
-    def print_plots(self, stack_data, stack_mc_lists, signal_hists={}):
-        plot_dir = self.plot_dir
-        for id_tup in stack_mc_lists.keys():
-            variable, cut = id_tup
-            save_dir = join(plot_dir, cut)
-            save_base = join(save_dir, variable)
-            if self.log:
-                save_base += '_log'
-            save_name = save_base + self.ext
-            has_ratio = id_tup in stack_data
-            if self.verbose:
-                if has_ratio:
-                    print('making ratio {}'.format(save_name))
-                else:
-                    print('making {}'.format(save_name))
-            stack = Stack(ratio=has_ratio)
-            stack.colors = self._signal_colors
-            stack.lumi = self.lumi
-            if self.log:
-                stack.y_min = 0.1
-                stack.ax.set_yscale('log')
-            stack.add_backgrounds(stack_mc_lists[id_tup])
-            if id_tup in signal_hists:
-                stack.add_signals(signal_hists[id_tup])
-            if id_tup in stack_data:
-                stack.add_data(stack_data[id_tup])
-            stack.set_selection_colors(*self._selection_colors)
-            stack.add_legend()
+    def _info_generator(self, data, mc, signal):
+        for id_tup in mc.keys():
+            obj = StackInfo()
+
+            obj.variable, obj.cut = id_tup
+            obj.bgs = mc[id_tup]
+            obj.signals = signal.get(id_tup)
+            obj.data = data.get(id_tup)
+
+            obj.plot_dir = self.plot_dir
+            obj.log = self.log
+            obj.ext = self.ext
+            obj.verbose = self.verbose
+            obj.signal_colors = self._signal_colors
+            obj.lumi = self.lumi
+            obj.selection_colors = self._selection_colors
+            save_dir = join(self.plot_dir, obj.cut)
             if not isdir(save_dir):
                 os.makedirs(save_dir)
-            stack.save(save_name)
+            yield obj
+
+    def print_plots(self, stack_data, stack_mc_lists, signal_hists={}):
+        """
+        All inputs should be dicts keyed by (variable, selection).
+
+        signal_hists and stack_mc_lists are lists of Hist1d, stack_data
+        is one Hist1d.
+        """
+        gen = self._info_generator(stack_data, stack_mc_lists, signal_hists)
+        if not self.serial:
+            with Executor() as exe:
+                exe.map(_print_plot, gen)
+        else:
+            for obj in gen:
+                _print_plot(obj)
+
+class StackInfo:
+    """Minimal class, just holds info for a plot"""
+    pass
+
+def _print_plot(obj):
+    """the actual printing function for StackPlotPrinter"""
+    variable, cut = obj.variable, obj.cut
+    plot_dir = obj.plot_dir
+
+    save_dir = join(plot_dir, cut)
+    save_base = join(save_dir, variable)
+    if obj.log:
+        save_base += '_log'
+    save_name = save_base + obj.ext
+    has_ratio = bool(obj.data)
+    if obj.verbose:
+        if has_ratio:
+            print('making ratio {}'.format(save_name))
+        else:
+            print('making {}'.format(save_name))
+    stack = Stack(ratio=has_ratio)
+    stack.colors = obj.signal_colors
+    stack.lumi = obj.lumi
+    if obj.log:
+        stack.y_min = 0.1
+        stack.ax.set_yscale('log')
+    stack.add_backgrounds(obj.bgs)
+    if obj.signals:
+        stack.add_signals(obj.signals)
+    if obj.data:
+        stack.add_data(obj.data)
+    stack.set_selection_colors(*obj.selection_colors)
+    stack.add_legend()
+    if not isdir(save_dir):
+        os.makedirs(save_dir)
+    stack.save(save_name)
+
+# __________________________________________________________________________
+# 2d plot printer
 
 class H2Printer(object):
     def __init__(self, options):
