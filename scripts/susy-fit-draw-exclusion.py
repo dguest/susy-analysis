@@ -9,33 +9,46 @@ import yaml
 def run():
     d = 'default: %(default)s'
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('ul_file')
+    parser.add_argument('cls_file')
     parser.add_argument('-o', '--output-plot', default='plane.pdf')
     parser.add_argument('-b', '--band-region')
+    parser.add_argument('-f', '--filter-stop', action='store_true')
     args = parser.parse_args(sys.argv[1:])
     _make_exclusion_plane(args)
 
-def _make_exclusion_plane(args):
-    with open(args.ul_file) as ul_yml:
-        ul_dict = yaml.load(ul_yml)
+def _only_scharm_mass(cls_dict):
+    """filter out the stop cross-check points"""
+    filt = {}
+    for config, points in cls_dict.items():
+        filt[config] = []
+        for pt in points:
+            if pt['scharm_mass'] - pt['lsp_mass'] > 90:
+                filt[config].append(pt)
+    return filt
 
-    ex_plane = planeplt.ExclusionPlane(threshold=1.0)
+def _make_exclusion_plane(args):
+    with open(args.cls_file) as cls_yml:
+        cls_dict = yaml.load(cls_yml)
+        if args.filter_stop:
+            cls_dict = _only_scharm_mass(cls_dict)
+
+    ex_plane = planeplt.CLsExclusionPlane()
     ex_plane.lw = 1.5
-    lims_list = []
+    cls_list = []
     if args.band_region:
-        for sp in ul_dict[args.band_region]:
+        for sp in cls_dict[args.band_region]:
             sch, lsp = sp['scharm_mass'], sp['lsp_mass']
-            low, high = sp['lower'], sp['upper']
-            lims_list.append( (sch, lsp, low, high))
-        ex_plane.add_band(lims_list)
+            low, high = sp['cls_down_1_sigma'], sp['cls_up_1_sigma']
+            cls_list.append( (sch, lsp, low, high))
+        ex_plane.add_band(cls_list)
 
     # add middle band
     def get_tup(x):
-        return (x['scharm_mass'], x['lsp_mass'], x['mean'])
-    for conf_name, ul_list in ul_dict.items():
-        ul_tup = [get_tup(x) for x in ul_list]
+        return (x['scharm_mass'], x['lsp_mass'], x['cls_exp'])
+    for conf_name, cls_list in cls_dict.items():
+        cls_tup = [get_tup(x) for x in cls_list]
         style = '-k' if conf_name == args.band_region else None
-        ex_plane.add_config(ul_tup,conf_name, style=style)
+        ex_plane.add_config(cls_tup,conf_name, style=style)
 
     ex_plane.save(args.output_plot)
 

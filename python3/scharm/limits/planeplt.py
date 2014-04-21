@@ -9,7 +9,7 @@ from scipy.interpolate import LinearNDInterpolator
 from matplotlib.lines import Line2D
 from os.path import dirname
 
-class ExclusionPlane:
+class CLsExclusionPlane:
     """Scharm to Charm exclusion plane"""
     # plot limits
     xlim = (100.0, 600.0)
@@ -19,7 +19,7 @@ class ExclusionPlane:
     low_x = 80
     low_y = 0
 
-    def __init__(self, threshold=1.0, **argv):
+    def __init__(self, threshold=0.05, **argv):
         width = 9.0
         height = width*argv.get('aspect_ratio',8.0/width)
         self.figure = Figure(figsize=(width,height))
@@ -48,34 +48,20 @@ class ExclusionPlane:
         self.used_colors.add(the_color)
         return the_color, line_style
 
-    def _get_interpolated_xyz(self, x, y, z, xlims, ylims, xpts):
-        xmin, xmax = xlims
-        ymin, ymax = ylims
-        xi = np.linspace(*xlims, num=xpts)
-        num_y = xpts * (ymax - ymin) // (xmax - xmin)
-        yi = np.linspace(*ylims, num=num_y)
-        xp, yp = np.meshgrid(xi, yi)
 
-        pts = np.dstack((x,y)).squeeze()
-        lin = LinearNDInterpolator(pts, np.log(z) + 1)
-        interp_points = np.dstack((xp.flatten(), yp.flatten())).squeeze()
-        zp = lin(interp_points).reshape(xp.shape)
-        # hack to fix points past the diaganal
-        zp[(xp - yp) < 100] = self._threshold*1.1
-        return xp, yp, zp
-
-    def add_config(self, stop_lsp_ul, label, style=None):
+    def add_config(self, stop_lsp_cls, label, style=None):
         """
         Expects a list of (mass stop, mass lsp, upper limit) tuples.
         """
-        slu = np.array(stop_lsp_ul)
+        slu = np.array(stop_lsp_cls)
         x, y, z = slu.T
         xmin, xmax = self.low_x, max(x)
         ymin, ymax = self.low_y, max(y)
         xpts = 100
 
-        xp, yp, zp = self._get_interpolated_xyz(
+        xp, yp, zp = _get_interpolated_xyz(
             x, y, z, (xmin, xmax), (ymin, ymax), xpts)
+        zp[(xp - yp) < 100] = self._threshold*1.1
         zp[np.isnan(zp) & (yp > self.ylim[0])] = self._threshold*1.2
         extent = [xmin, xmax, ymin, ymax]
         ct_color, ct_style = self._get_style(style)
@@ -100,9 +86,9 @@ class ExclusionPlane:
         ymin, ymax = self.low_y, max(y)
         xpts = 200
 
-        xp, yp, lowp = self._get_interpolated_xyz(
+        xp, yp, lowp = _get_interpolated_xyz(
             x, y, low, (xmin, xmax), (ymin, ymax), xpts)
-        *nada, highp = self._get_interpolated_xyz(
+        *nada, highp = _get_interpolated_xyz(
             x, y, high, (xmin, xmax), (ymin, ymax), xpts)
         th = self._threshold
         zp = np.maximum( (lowp - th), -(highp - th))
@@ -149,3 +135,21 @@ class ExclusionPlane:
             os.makedirs(pl_dir)
         self.canvas.print_figure(name, bbox_inches='tight')
 
+
+def _get_interpolated_xyz(x, y, z, xlims, ylims, xpts, log=True):
+    xmin, xmax = xlims
+    ymin, ymax = ylims
+    xi = np.linspace(*xlims, num=xpts)
+    num_y = xpts * (ymax - ymin) // (xmax - xmin)
+    yi = np.linspace(*ylims, num=num_y)
+    xp, yp = np.meshgrid(xi, yi)
+
+    pts = np.dstack((x,y)).squeeze()
+    # take a log transform?
+    lin = LinearNDInterpolator(pts, np.log(z) if log else z)
+    interp_points = np.dstack((xp.flatten(), yp.flatten())).squeeze()
+    zp = lin(interp_points).reshape(xp.shape)
+    # transform back
+    if log:
+        zp = np.exp(zp)
+    return xp, yp, zp
