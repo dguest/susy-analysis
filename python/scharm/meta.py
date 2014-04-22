@@ -48,6 +48,7 @@ class Dataset(object):
 
         self.physics_type = ''
         self.meta_sources = set()
+        self.preferred = False
 
         self.n_corrupted_files = 0
         self.overlap = {}
@@ -209,7 +210,7 @@ class Dataset(object):
         for key, value in yml_dict.items(): 
             if not hasattr(self, key): 
                 raise MetaFromYamlError("{} isn't a member of {}".format(
-                        key, self.__name__))
+                        key, type(self).__name__))
             if hasattr(self,key) and isinstance(getattr(self, key), set): 
                 value = set(value)
             elif key == 'full_name': 

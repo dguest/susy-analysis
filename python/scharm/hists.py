@@ -5,7 +5,8 @@ import bisect
 import warnings
 from h5py import Group, Dataset
 
-warnings.warn("hists are being migrated to py3k", FutureWarning)
+warnings.warn("hists are being migrated to py3k", FutureWarning,
+              stacklevel=2)
 
 class Hist1d(object): 
     """

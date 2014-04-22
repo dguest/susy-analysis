@@ -33,14 +33,12 @@ import re, glob
 import yaml
 import warnings
 from itertools import chain
-from scharm.hists import HistNd, HistAdder
 from scharm import meta
 from collections import defaultdict, Counter
 
 def run():
     config = get_config()
     subs = {
-        'group': group_input_files,
         'meta':list_meta_info,
         'rename':rename,
         'cutflow':cutflow}
