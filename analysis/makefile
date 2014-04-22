@@ -72,7 +72,6 @@ GEN_OBJ     := HistBuilder.o Jet.o SkimCounts.o ObjectFactory.o
 GEN_OBJ     += JetBuffer.o BtagBuffer.o
 GEN_OBJ     += BtagConfig.o RegionConfig.o Flavor.o
 GEN_OBJ     += EventObjects.o
-GEN_OBJ     += RegionEventFilter.o
 GEN_OBJ     += EventScalefactors.o
 GEN_OBJ     += NMinusHist.o
 
@@ -82,18 +81,7 @@ GEN_OBJ     += SignalSelection.o CR1LSelection.o
 GEN_OBJ     += OSDFSelection.o OSSFSelection.o
 GEN_OBJ     += CRZSelection.o
 
-# b-tagging selectors (not used?)
-GEN_OBJ     += OrderedJetTagFilter.o UnorderedJetTagFilter.o
-
 GEN_OBJ     += NMinus1Histograms.o
-# NOTE: these aren't used any more, could probably remove
-GEN_OBJ     += Region2dKinematicHistograms.o
-GEN_OBJ     += RegionJetEfficiencyHistograms.o
-GEN_OBJ     += RegionBosonPtHistograms.o
-GEN_OBJ     += RegionHistograms.o
-
-# these are also probably not used any more
-GEN_OBJ     += Jet2DHists.o Jet1DHists.o TruthJetHists.o
 
 # more common functions
 GEN_OBJ     += common_functions.o hdf_helpers.o
