@@ -5,10 +5,10 @@
 #include <stdexcept>
 #include <string>
 
-namespace { 
+namespace {
   // for debugging
   std::string stream_name(reg::Stream);
-  
+
   // stream overlap removal logic
   bool passes_overlap(reg::Stream, bool el_trig, bool mu_trig);
 }
@@ -35,7 +35,7 @@ namespace trig {
   }
 
   // trigger for the W and t control regions
-  bool pass_single_lepton_trigger(const EventRecoParameters& reco, 
+  bool pass_single_lepton_trigger(const EventRecoParameters& reco,
 				  reg::Stream stream){
     bool mu_trig = reco.pass_single_mu_trigger;
     bool el_trig = reco.pass_single_el_trigger;
@@ -59,11 +59,11 @@ namespace trig {
 
 }
 
-namespace { 
+namespace {
 #define NAME_STREAM(name) case Stream::name: return #name
-  std::string stream_name(reg::Stream str) { 
+  std::string stream_name(reg::Stream str) {
     using namespace reg;
-    switch (str) { 
+    switch (str) {
       NAME_STREAM(ELECTRON);
       NAME_STREAM(MUON);
       NAME_STREAM(JET);
@@ -74,13 +74,13 @@ namespace {
   }
 #undef NAME_STREAM
 
-  bool passes_overlap(reg::Stream stream, bool el_trig, bool mu_trig) { 
-    if (stream == reg::Stream::SIMULATED) { 
+  bool passes_overlap(reg::Stream stream, bool el_trig, bool mu_trig) {
+    if (stream == reg::Stream::SIMULATED) {
       return mu_trig || el_trig;
     }
-    if (stream == reg::Stream::MUON) { 
+    if (stream == reg::Stream::MUON) {
       return mu_trig && !el_trig;
-    } else if (stream == reg::Stream::ELECTRON ) { 
+    } else if (stream == reg::Stream::ELECTRON ) {
       return el_trig;
     }
     throw std::invalid_argument(
