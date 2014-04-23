@@ -41,7 +41,6 @@ class Dataset(object):
         self.kfactor = 0
         self.filteff = 0
 
-        self.n_raw_entries = 0
         self.total_xsec_fb = 0
         self.n_expected_entries = 0
         self.sum_event_weight = 0.0
@@ -64,73 +63,6 @@ class Dataset(object):
         self.d3pds = []
         self.skim_paths = {}
 
-    @property
-    def bugs(self):
-        warn("trying to remove bugs field", FutureWarning, stacklevel=2)
-        return self._bugs
-    @bugs.setter
-    def bugs(self, value):
-        warn("trying to remove bugs field", FutureWarning, stacklevel=2)
-        self._bugs = value
-
-    def __add__(self, other):
-        warn("trying to remove file info from dataset meta", FutureWarning,
-             stacklevel=2);
-        for key in self.merge_required_match:
-            if not getattr(self, key) == getattr(other, key):
-                raise ValueError(
-                    "mismatch in {}: tried to add {} to {}".format(
-                        key, getattr(self,key), getattr(other,key)))
-
-        new = Dataset()
-        for key in self.merge_safe_to_copy:
-            new.__dict__[key] = copy.deepcopy(self.__dict__[key])
-        new.n_raw_entries = self.n_raw_entries + other.n_raw_entries
-        new.sum_event_weight = self.sum_event_weight + other.sum_event_weight
-        new.d3pds = self.d3pds + other.d3pds
-        new.n_corrupted_files = (
-            self.n_corrupted_files + other.n_corrupted_files)
-
-        subsets = set()
-        def add_subsets(sub, subsets):
-            if isinstance(sub, int):
-                subsets.add(sub)
-            else:
-                subsets |= sub
-        add_subsets(self.subset_index, subsets)
-        add_subsets(other.subset_index, subsets)
-        if len(subsets) == new.total_subsets:
-            subsets = 'merged'
-        new.subset_index = subsets
-        return new
-
-    def split(self, n_subsets):
-        warn("trying to remove file info from dataset meta, this will go",
-             FutureWarning, stacklevel=2)
-        """
-        Splits the dataset meta, dividing d3pds among the subsets.
-        """
-        if self.skim_paths or self.n_corrupted_files:
-            raise NotImplementedError(
-                "don't know how to split post-distiller ds")
-        subsets = []
-        for n in xrange(n_subsets):
-            subset = copy.deepcopy(self)
-            subset.d3pds = []
-            subset.subset_index = n
-            subset.total_subsets = n_subsets
-            subsets.append(subset)
-        for n, d3pd in enumerate(self.d3pds):
-            subsets[n % n_subsets].d3pds.append(d3pd)
-        return {s.key: s for s in subsets}
-
-    @property
-    def effective_luminosity_fb(self):
-        warn("we're going to remove this accesser, "
-             "use get_effective_luminosity_fb()", FutureWarning,
-             stacklevel=2)
-
-        return self.get_effective_luminosity_fb()
     def get_effective_luminosity_fb(self):
         if not self.total_xsec_fb:
             error = "no cross section for {}: {}".format(
@@ -138,9 +70,6 @@ class Dataset(object):
             raise ArithmeticError(error)
 
         sum_evt_wt = self.sum_event_weight
-        if not sum_evt_wt:
-            warn("using raw entries as a proxy for sumed event weight")
-            sum_evt_wt = self.n_raw_entries
 
         if not self.kfactor and not self.filteff:
             eff_lumi = sum_evt_wt / self.total_xsec_fb

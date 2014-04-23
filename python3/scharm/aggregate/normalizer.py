@@ -138,7 +138,7 @@ class StatsCounter:
     Counters to keep track of the number of expected events vs the number of
     events actually found
     """
-    out_str = '{pt}: {ex} of {fo} ({ra:.2%})\n'
+    out_str = '{pt}: {fo} of {ex} ({ra:.2%})\n'
     def __init__(self):
         self._expected_entries = Counter()
         self._found_entries = Counter()

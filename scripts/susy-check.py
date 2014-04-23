@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3.3
 """
 Top level script for vairous cross checks.
 """
@@ -18,8 +18,9 @@ import os
 import re
 import yaml
 import warnings
-from stop.meta import DatasetCache
+# from stop.meta import DatasetCache
 from collections import Counter
+from h5py import File
 
 def run():
     config = get_config()
@@ -40,6 +41,7 @@ def get_config():
     # check meta
     metacheck = subs.add_parser('meta', description=_meta_help)
     metacheck.add_argument('meta_file')
+    metacheck.add_argument('hist_files', nargs='+')
 
     # check susy-events file
     susy_text_check = subs.add_parser('stext', description=_stext_help)
@@ -76,14 +78,14 @@ def check_susy_events_file(config):
                         running_total += total_events
                     ds_counts[dsid] = total_events
 
-    print '{:,} total events in {} datasets ({} repeats)'.format(
-        running_total, len(datasets), repeats)
+    print('{:,} total events in {} datasets ({} repeats)'.format(
+        running_total, len(datasets), repeats))
     if config.meta_file:
         meta_dsids = set()
         data_expected = 0
         data_skimmed = 0
         cache = DatasetCache(config.meta_file)
-        for key, ds in cache.iteritems():
+        for key, ds in cache.items():
             keychar = 'd'
             if key.startswith(keychar):
                 meta_dsids.add(int(key.lstrip(keychar)))
@@ -93,19 +95,19 @@ def check_susy_events_file(config):
         def listinate(dsids):
             return ', '.join(str(i) for i in dsids)
         if not_in_susy:
-            print '{} found in AMI and not susy'.format(
-                listinate(not_in_susy))
+            print('{} found in AMI and not susy'.format(
+                listinate(not_in_susy)))
 
         not_in_meta = datasets - meta_dsids
         if not_in_meta:
-            print '{} found in susy and not AMI'.format(
-                listinate(not_in_meta))
+            print('{} found in susy and not AMI'.format(
+                listinate(not_in_meta)))
 
         skim_ami_frac = float(data_skimmed) / float(data_expected)
         skim_susy_frac = float(data_skimmed) / float(running_total)
-        print 'expected from AMI: {:,}'.format(data_expected)
-        print 'skimmed: {:,} ({:.1%} AMI, {:.1%} SUSY)'.format(
-            data_skimmed, skim_ami_frac, skim_susy_frac)
+        print('expected from AMI: {:,}'.format(data_expected))
+        print('skimmed: {:,} ({:.1%} AMI, {:.1%} SUSY)'.format(
+            data_skimmed, skim_ami_frac, skim_susy_frac))
 
 def _is_total_line(sline):
     if not sline[0].startswith('='):
@@ -118,29 +120,34 @@ def _is_total_line(sline):
     raise ValueError('just fucking shit')
 
 
+_err_str = 'sample {} ({}): expected {:,}, found {:,} ({:.0%})\n'
 def check_meta(config):
     type_expected_counter = Counter()
     type_found_counter = Counter()
 
-    ds_meta = DatasetCache(config.meta_file)
-    for key, ds in ds_meta.iteritems():
-        expected = ds.n_expected_entries
-        found = ds.n_raw_entries
+    with open(config.meta_file) as yml:
+        ds_meta = yaml.load(yml)
+    for file_name in config.hist_files:
+        key = basename(file_name).split('.')[0]
+        ds = ds_meta[key]
+        expected = ds['n_expected_entries']
+        proc_type = ds['physics_type']
+        with File(file_name,'r') as h5file:
+            found = h5file.attrs['total_events']
         if expected != found:
-            temp_str = 'sample {} ({}): expected {:,}, found {:,}\n'
-            sys.stderr.write(temp_str.format(
-                    ds.key, ds.physics_type, expected, found))
-        type_found_counter[ds.physics_type] += found
-        type_expected_counter[ds.physics_type] += expected
+             sys.stderr.write(_err_str.format(
+                    key, proc_type, expected, found, found / expected))
+        type_found_counter[proc_type] += found
+        type_expected_counter[proc_type] += expected
 
     nameslen = max(len(n) for n in type_expected_counter) + 1
     explen = max(len(str(n)) for n in type_expected_counter.values()) + 1
     for phys_type in type_expected_counter:
         expected = type_expected_counter[phys_type]
         found = type_found_counter[phys_type]
-        print '{:{}}: {:{te}} of {:{te}} ({:.2%})'.format(
+        print('{:{}}: {:{te}} of {:{te}} ({:.2%})'.format(
             phys_type, nameslen, found, expected, float(found)/expected,
-            te=explen)
+            te=explen))
 
 if __name__ == '__main__':
     run()
