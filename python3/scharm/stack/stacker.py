@@ -54,7 +54,7 @@ class Stacker:
             dist_settings['systematic'] = systematic
 
         # only save wt2 hists for the 'nominal' (none) systematic
-        dist_settings['save_wt2'] = bool(
+        regdic['save_wt2'] = bool(
             dist_settings['systematic'].upper() == 'NONE')
 
         # Whatever systematic we apply, we have to shift the base directory..
