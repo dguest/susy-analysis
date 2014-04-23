@@ -121,6 +121,9 @@ def _is_total_line(sline):
 
 _err_str = 'sample {} ({}): expected {:,}, found {:,} ({:.0%})\n'
 _proc_key = 'physics_type'      # used in the meta files
+_n_expected_key = 'n_expected_entries' # also meta file
+_total_key = 'total_events'     # set by SkimCounts in analysis
+_collection_total_key = 'total_collection_tree' # also SkimCounts
 def check_meta(config):
     type_expected_counter = Counter()
     type_found_counter = Counter()
@@ -130,10 +133,10 @@ def check_meta(config):
     for file_name in config.hist_files:
         key = basename(file_name).split('.')[0]
         ds = ds_meta[key]
-        expected = ds.get('n_expected_entries',0)
+        expected = ds.get(_n_expected_key,0)
         proc_type = ds.get(_proc_key, 'data')
         with File(file_name,'r') as h5file:
-            found = h5file.attrs['total_events']
+            found = h5file.attrs[_total_key]
         if expected != found:
              sys.stderr.write(_err_str.format(
                     key, proc_type, expected, found, found / expected))
@@ -155,21 +158,21 @@ def _check_for_missing_datasets(ds_meta, files):
 
     files_by_proc = defaultdict(set)
     for fi in files:
-        key = basename(file_name).split('.')[0]
-        process = ds_meta.get(_proc_key, 'data')
-        dsid = int(key[1:])
-        files_by_proc[process] |= dsid
+        key = basename(fi).split('.')[0]
+        process = ds_meta[key].get(_proc_key, 'data')
+        files_by_proc[process, key[0]].add(key)
 
     all_by_proc = defaultdict(set)
     for key, ds_info in ds_meta.items():
-        dsid = int(key[1:])
-        all_by_proc[ds_info.get(_proc_key, 'data')] |= dsid
-    for proc, ids in files_by_proc.items():
+        char = key[0]
+        all_by_proc[ds_info.get(_proc_key, 'data'), char].add(key)
+    for proc, keys in files_by_proc.items():
         if proc == 'data':
             continue
-        missing = all_by_proc[proc] - ids
+        missing = all_by_proc[proc] - keys
         if missing:
-            print('oh dear', proc, missing)
+            print("missing {} '{}', files: {f}".format(
+                    *proc, f=', '.join(missing)))
 
 if __name__ == '__main__':
     run()
