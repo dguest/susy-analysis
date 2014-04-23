@@ -13,6 +13,7 @@ public:
   void write_to(H5::H5Location&) const;
 private:
   long long m_total_events;
+  long long m_total_ct;
   double m_total_event_weight;
   bool m_has_total_event_weight;
 };
