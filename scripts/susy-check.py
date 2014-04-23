@@ -130,8 +130,8 @@ def check_meta(config):
     for file_name in config.hist_files:
         key = basename(file_name).split('.')[0]
         ds = ds_meta[key]
-        expected = ds['n_expected_entries']
-        proc_type = ds['physics_type']
+        expected = ds.get('n_expected_entries',0)
+        proc_type = ds.get('physics_type', 'data')
         with File(file_name,'r') as h5file:
             found = h5file.attrs['total_events']
         if expected != found:
