@@ -5,12 +5,12 @@ from scharm.bullshit import make_dir_if_none
 
 class Stacker:
     """
-    Constructed  with a regions dict. Runs the stacking routine when 
+    Constructed  with a regions dict. Runs the stacking routine when
     hist_from_ntuple is called.
     """
     data_prepend = 'jem'
     mc_prepend = 'sa'
-    def __init__(self, regions_dict, base_dir): 
+    def __init__(self, regions_dict, base_dir):
         self._regions = regions_dict
         self.dummy = False
         self.flags = set()
@@ -20,28 +20,28 @@ class Stacker:
         self.bugstream = sys.stderr
         self.base_dir = base_dir
     @property
-    def verbose(self): 
+    def verbose(self):
         return self._verbose
     @verbose.setter
-    def verbose(self, value): 
+    def verbose(self, value):
         self._verbose = value
         if value:
             self.flags |= set('v')
-        else: 
+        else:
             self.flags -= set('v')
 
-    def _ismc(self, ntuple_name): 
+    def _ismc(self, ntuple_name):
         first = ntuple_name.split('/')[-1][0]
-        if first in self.data_prepend: 
+        if first in self.data_prepend:
             return False
-        elif first in self.mc_prepend: 
+        elif first in self.mc_prepend:
             return True
-        else: 
+        else:
             raise ValueError(
                 "not sure what '{}' does as ntuple prepend in '{}'".format(
                     first, ntuple_name))
 
-    def _setup_region_dict(self, name, reg, ntuple, systematic): 
+    def _setup_region_dict(self, name, reg, ntuple, systematic):
         regdic = reg.get_config_dict()
         regdic['systematic'] = systematic.upper()
         regdic['name'] = name
@@ -65,7 +65,7 @@ class Stacker:
         make_dir_if_none(full_out_dir)
         histname = '{}.h5'.format(basename(splitext(ntuple)[0]))
         full_out_path = join(full_out_dir, histname)
-        if isfile(full_out_path): 
+        if isfile(full_out_path):
             os.remove(full_out_path)
 
         # some options for the stacker are pulled from the input file path
@@ -84,71 +84,71 @@ class Stacker:
         regions = []
         dis = schema.distiller_settings_from_dir(dirname(ntuple))
 
-        def stcheck(reg): 
+        def stcheck(reg):
             """
             Check to make sure this region is supposed to run on
             this stream.
             """
             stream = dis['stream']
-            if stream in {'atlfast', 'fullsim'}: 
+            if stream in {'atlfast', 'fullsim'}:
                 return True
             checks = {
-                'lepton': stream in {'electron', 'muon'}, 
-                'jet': stream == 'jet', 
+                'lepton': stream in {'electron', 'muon'},
+                'jet': stream == 'jet',
                 'all': True}
             return checks[reg.stream]
 
-        for name, reg in self._regions.items(): 
+        for name, reg in self._regions.items():
             needed_replacement = dis['replacement'] == reg.replacement
-            if not stcheck(reg) or not needed_replacement: 
+            if not stcheck(reg) or not needed_replacement:
                 continue
-            for systematic in systematics: 
+            for systematic in systematics:
                 needed_syst = self._ismc(ntuple) or systematic == 'NONE'
                 if needed_syst:
                     regdic = self._setup_region_dict(
                         name, reg, ntuple, systematic)
-                    if regdic: 
+                    if regdic:
                         regions.append(regdic)
 
-        if regions: 
+        if regions:
             self._print_progress(tuple_n, systematics)
             self._run(ntuple, regions)
-            if tuple_n == self.total_ntuples - 1: 
+            if tuple_n == self.total_ntuples - 1:
                 self.outstream.write('\n')
             return 1
-        else: 
+        else:
             return 0
 
-    def _print_progress(self, tuple_n, systematics): 
+    def _print_progress(self, tuple_n, systematics):
         print_req = [
-            not self.verbose, 
-            self.outstream.isatty(), 
-            isinstance(tuple_n,int), 
-            self.total_ntuples, 
+            not self.verbose,
+            self.outstream.isatty(),
+            isinstance(tuple_n,int),
+            self.total_ntuples,
             ]
         if all(print_req):
             n_syst = len(systematics)
-            if n_syst == 1: 
+            if n_syst == 1:
                 tag = systematics[0]
                 prline = '\rstacking {} ({:4} of {})'.format(
                     tag, tuple_n, self.total_ntuples)
-            else: 
+            else:
                 prline = '\rstacking {} systematics ({:4} of {})'.format(
                     n_syst, tuple_n,self.total_ntuples)
             self.outstream.write(prline)
             self.outstream.flush()
 
-    def _run(self, ntuple, regions): 
-        if self.dummy: 
+    def _run(self, ntuple, regions):
+        if self.dummy:
             print(ntuple)
-            for reg in regions: 
+            for reg in regions:
                 print(reg)
-            return 
+            return
         from scharm.stack.hfw import stacksusy
         flags = ''.join(self.flags)
-        if basename(ntuple).startswith('d'): 
+        if basename(ntuple).startswith('d'):
             flags += 'd'
-        if not isfile(ntuple): 
+        if not isfile(ntuple):
             raise IOError(3,"doesn't exist",ntuple)
         stacksusy(ntuple, regions, flags=flags)
-        
+

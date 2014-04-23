@@ -4,11 +4,11 @@ import numpy as np
 from stop.stattest import binomial_interval, efficiency_error
 from stop.hists import HistToBinsConverter
 
-class EfficiencyPlot(object): 
+class EfficiencyPlot(object):
     """
-    Plots the efficiency of several distributions overlayed. 
+    Plots the efficiency of several distributions overlayed.
     """
-    def __init__(self, y_range, x_range=None, bins=None, max_bins=150): 
+    def __init__(self, y_range, x_range=None, bins=None, max_bins=150):
         self.y_range = y_range
         self.fig = Figure(figsize=(8,6))
         self.canvas = FigureCanvas(self.fig)
@@ -18,34 +18,34 @@ class EfficiencyPlot(object):
         self.x_range = x_range
         self.max_bins = max_bins
 
-    def _error_from_num_denom(self, num, denom, num_wt2, denom_wt2): 
+    def _error_from_num_denom(self, num, denom, num_wt2, denom_wt2):
         """
-        Propagate errors assuming num is a subset of denom. 
+        Propagate errors assuming num is a subset of denom.
         """
-        p = num 
-        f = denom - num 
+        p = num
+        f = denom - num
         f_wt2 = denom_wt2 - num_wt2
         p_wt2 = num_wt2
-        if np.any(f_wt2 < 0.0): 
+        if np.any(f_wt2 < 0.0):
             raise ValueError('negative fail counts in some bins')
 
         return efficiency_error(p, f, p_wt2, f_wt2)
 
-    def _rebin(self, num): 
-        if len(num) > self.max_bins and len(num) % 2 == 0: 
+    def _rebin(self, num):
+        if len(num) > self.max_bins and len(num) % 2 == 0:
             new_num = num.reshape((-1,2)).sum(1)
             # call self recursively until rebinning is done
             return self._rebin(new_num)
         return num
 
-    def add_efficiency(self, num, denom, extent, name='', color=None, 
-                       num_wt2=None, denom_wt2=None): 
+    def add_efficiency(self, num, denom, extent, name='', color=None,
+                       num_wt2=None, denom_wt2=None):
         """
         Adds efficiency num / denom. If no wt2 arrays are given, calculates
         binomial errors. Otherwise uses linear error propagation (assuming
-        num is a subset of denom). 
+        num is a subset of denom).
 
-        Overflow bins should not be included. 
+        Overflow bins should not be included.
         """
         num = self._rebin(num)
         denom = self._rebin(denom)
@@ -58,73 +58,73 @@ class EfficiencyPlot(object):
         # remove the points where the denominator is zero
         valid = denom > 0.0
         # also remove points outside x-range
-        if self.x_range: 
+        if self.x_range:
             valid &= x_vals > self.x_range[0]
             valid &= x_vals < self.x_range[1]
         x_vals = x_vals[valid]
         num = num[valid]
         denom = denom[valid]
         ratio = num / denom
-        if num_wt2 is not None and denom_wt2 is not None: 
+        if num_wt2 is not None and denom_wt2 is not None:
             num_wt2 = num_wt2[valid]
             denom_wt2 = denom_wt2[valid]
             err = self._error_from_num_denom(num, denom, num_wt2, denom_wt2)
             low = ratio - err
             high = ratio + err
-        else: 
+        else:
             low, high = binomial_interval(num, denom) / denom
-        
+
         # force within window
         ratio[ratio > self.y_range[1]] = self.y_range[1]
         high[high > self.y_range[1]] = self.y_range[1]
-        low[low <= self.y_range[0]] = self.y_range[0] 
+        low[low <= self.y_range[0]] = self.y_range[0]
         low[np.isnan(low)] = 0.0
 
         err_down = ratio - low
         err_up = high - ratio
-        if not color: 
+        if not color:
             color = next(self._color_itr)
         line, cap, notsure = self.ax.errorbar(
-            x_vals, ratio, ms=10, fmt='.', mfc=color, mec=color, 
-            ecolor=color, 
+            x_vals, ratio, ms=10, fmt='.', mfc=color, mec=color,
+            ecolor=color,
             yerr=[err_down, err_up])
-        if name: 
+        if name:
             self.legends.append( (line, name))
-        
-    def save(self, name): 
-        if self.legends: 
+
+    def save(self, name):
+        if self.legends:
             legend = self.ax.legend(*zip(*self.legends), numpoints=1)
             legend.get_frame().set_linewidth(0)
             legend.get_frame().set_alpha(0)
         self.ax.set_ylim(*self.y_range)
         self.fig.savefig(name, bbox_inches='tight')
 
-class BinnedEfficiencyPlot(EfficiencyPlot): 
+class BinnedEfficiencyPlot(EfficiencyPlot):
     """
-    Like the EfficiencyPlot, but with custom bins. With no bins should 
+    Like the EfficiencyPlot, but with custom bins. With no bins should
     default to the EfficiencyPlot binning (not yet, but someday)
     """
-    def __init__(self, y_range, x_range=None, bins=None, **argv): 
+    def __init__(self, y_range, x_range=None, bins=None, **argv):
         super(BinnedEfficiencyPlot, self).__init__(y_range, x_range, **argv)
         self.bins = bins
-        if not self.bins: 
+        if not self.bins:
             raise ValueError("we need bins for now, none set")
 
-    def add_efficiency(self, num, denom, extent, name='', color=None, 
-                       num_wt2=None, denom_wt2=None): 
+    def add_efficiency(self, num, denom, extent, name='', color=None,
+                       num_wt2=None, denom_wt2=None):
         """
         Adds efficiency num / denom. If no wt2 arrays are given, calculates
         binomial errors. Otherwise uses linear error propagation (assuming
-        num is a subset of denom). 
+        num is a subset of denom).
 
-        Overflow bins should not be included. 
+        Overflow bins should not be included.
         """
 
         binner = HistToBinsConverter(self.bins)
-        def get_binned(counts, do_x=False): 
+        def get_binned(counts, do_x=False):
             uf, x, xer, y, of = binner.get_bin_counts(
                 counts, extent, overflows_included=False)
-            if do_x: 
+            if do_x:
                 return x, xer, y
             else:
                 return y
@@ -135,45 +135,45 @@ class BinnedEfficiencyPlot(EfficiencyPlot):
         denom_wt2 = get_binned(denom_wt2)
 
         # remove the points where the denominator is zero
-        valid = denom > 0.0 
+        valid = denom > 0.0
         x_vals = x_vals[valid]
         x_err = x_err[valid]
         num = num[valid]
         denom = denom[valid]
         ratio = num / denom
-        if num_wt2 is not None and denom_wt2 is not None: 
+        if num_wt2 is not None and denom_wt2 is not None:
             num_wt2 = num_wt2[valid]
             denom_wt2 = denom_wt2[valid]
             err = self._error_from_num_denom(num, denom, num_wt2, denom_wt2)
             low = ratio - err
             high = ratio + err
-        else: 
+        else:
             low, high = binomial_interval(num, denom) / denom
-        
+
         # force within window
         ratio[ratio > self.y_range[1]] = self.y_range[1]
         high[high > self.y_range[1]] = self.y_range[1]
-        low[low <= self.y_range[0]] = self.y_range[0] 
+        low[low <= self.y_range[0]] = self.y_range[0]
         low[np.isnan(low)] = 0.0
 
         err_down = ratio - low
         err_up = high - ratio
-        if not color: 
+        if not color:
             color = next(self._color_itr)
         line, cap, notsure = self.ax.errorbar(
-            x_vals, ratio, ms=10, fmt='.', mfc=color, mec=color, 
-            ecolor=color, 
+            x_vals, ratio, ms=10, fmt='.', mfc=color, mec=color,
+            ecolor=color,
             yerr=[err_down, err_up], xerr=x_err)
-        if name: 
+        if name:
             self.legends.append( (line, name))
-        
-class RatioPlot(object): 
+
+class RatioPlot(object):
     """
-    Probably a good general purpose plotter... 
+    Probably a good general purpose plotter...
     """
     _colors = ['black','red','blue','green','purple', 'cyan']
-    def __init__(self, y_range=(0.5, 1.5) , legend_title=None, 
-                 color_function=None): 
+    def __init__(self, y_range=(0.5, 1.5) , legend_title=None,
+                 color_function=None):
         self.fig = Figure(figsize=(8,6))
         self.canvas = FigureCanvas(self.fig)
         self.y_range = y_range
@@ -183,22 +183,22 @@ class RatioPlot(object):
         self.legends = []
         self.legend_title = legend_title
         self.color_function = color_function
-    def add_ratio(self, ratio_dict, name='', color=None): 
-        if not color: 
-            if self.color_function: 
+    def add_ratio(self, ratio_dict, name='', color=None):
+        if not color:
+            if self.color_function:
                 color = self.color_function(name)
-            else: 
+            else:
                 color = next(self.color_itr)
         line, cap, unsure = self.ax.errorbar(
-            ratio_dict['x_center'], ratio_dict['y_center'], ms=10, 
-            fmt='.', mfc=color, mec=color, ecolor=color, 
+            ratio_dict['x_center'], ratio_dict['y_center'], ms=10,
+            fmt='.', mfc=color, mec=color, ecolor=color,
             yerr=ratio_dict['y_error'], xerr=ratio_dict['x_error'])
-        if name: 
+        if name:
             self.legends.append( (line, name))
 
-    def save(self, name): 
-        if self.legends: 
-            legend = self.ax.legend(*zip(*self.legends), numpoints=1, 
+    def save(self, name):
+        if self.legends:
+            legend = self.ax.legend(*zip(*self.legends), numpoints=1,
                                      title=self.legend_title)
             legend.get_frame().set_linewidth(0)
             legend.get_frame().set_alpha(0)

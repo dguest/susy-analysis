@@ -5,11 +5,11 @@ scale_factor_systematics = ['NONE'] + [
     part + shift for part in _shift_sf for shift in ['UP','DOWN']
     ]
 
-def get_systematics(ntuple): 
+def get_systematics(ntuple):
     tld = dirname(ntuple).split('/')[-1]
     syst = tld.upper()
-    if syst == 'NONE': 
+    if syst == 'NONE':
         return scale_factor_systematics
-    else: 
+    else:
         return [syst]
 
