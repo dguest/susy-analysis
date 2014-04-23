@@ -24,13 +24,6 @@ def hadd(config):
         weights_dict = {}
         if config.norm:
             raise ValueError("normalization not currently supported...")
-        # NOTE: this was commented out because we're phasing out the meta
-        #       wrapper.
-            # lookup = meta.DatasetCache(config.norm)
-            # for in_file in good_files:
-            #     file_key = basename(splitext(in_file)[0])
-            #     eff_lumi = lookup[file_key].get_effective_luminosity_fb()
-            #     weights_dict[in_file] = 1.0/eff_lumi
         _hadd(good_files, config.output, weights_dict, fast=config.fast)
 
 def _get_good_files(input_hists):
@@ -116,9 +109,7 @@ def _hadd(good_files, output, weights_dict={}, fast=False):
     with h5py.File(good_files[0],'r') as base_h5:
         weight = weights_dict.get(good_files[0],1.0)
         hadder = HistAdder(base_h5, weight=weight, wt2_ext='Wt2')
-        # TODO: move these counters into a class
-        sum_wt = base_h5.attrs.get('total_event_weight', 0)
-        total_evt = base_h5.attrs.get('total_events', 0)
+        counter = EventCounter(base_h5)
     for add_file in good_files[1:]:
         if not isfile(add_file):
             raise IOError("{} doesn't exist".format(add_file))
@@ -126,22 +117,37 @@ def _hadd(good_files, output, weights_dict={}, fast=False):
             weight = weights_dict.get(add_file, None)
             with h5py.File(add_file,'r') as add_h5:
                 hadder.fast_add(add_h5, weight=weight)
-                sum_wt += add_h5.attrs.get('total_event_weight', 0)
-                total_evt += add_h5.attrs.get('total_events', 0)
+                counter.add_file(add_h5)
         else:
             weight = weights_dict.get(add_file, 1.0)
             with h5py.File(add_file,'r') as add_h5:
                 hadder.add(add_h5, weight=weight)
-                sum_wt += add_h5.attrs.get('total_event_weight', 0)
-                total_evt += add_h5.attrs.get('total_events', 0)
+                counter.add_file(add_h5)
     if output:
         with h5py.File(output,'w') as out_file:
             hadder.write_to(out_file)
-            out_file.attrs['total_events'] = total_evt
-            if sum_wt:
-                out_file.attrs['total_event_weight'] = sum_wt
+            counter.write_to(out_file)
     else:
         hadder.dump()
+
+# __________________________________________________________________________
+# counter class
+class EventCounter:
+    """keep track of various event counts"""
+    _count_keys = ['total_events', 'total_collection_tree']
+    def __init__(self, base_h5):
+        self._counts = {}
+        for key in self._count_keys:
+            self._counts[key] = base_h5.attrs.get(key, 0)
+        for key, count in base_h5.attrs.items():
+            if key not in self._count_keys:
+                self._counts[key] = count
+    def add_file(self, add_h5):
+        for key in self._counts:
+            self._counts[key] += add_h5.attrs.get(key, 0)
+    def write_to(self, out_file):
+        for key, count in self._counts.items():
+            out_file.attrs[key] = count
 
 # ___________________________________________________________________________
 # HistAdder class

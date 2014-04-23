@@ -51,10 +51,11 @@ class FitInputMaker:
             process = renamer.shorten(full_process) or full_process
             for region, vargroup in hfile.items():
                 nom_count = _get_count(vargroup[self._variable]) * norm
-                wt_var = self._variable + self._wt2_tag
-                sum_wt2 = _get_count(vargroup[wt_var]) * norm**2
                 if nom_count > 0.0:
                     counts_dict[region,process,n_key] += nom_count
+                wt_var = self._variable + self._wt2_tag
+                if wt_var in vargroup and nom_count > 0.0:
+                    sum_wt2 = _get_count(vargroup[wt_var]) * norm**2
                     counts_dict[region,process,err_key] += sum_wt2
 
         # step two organizes the flat dict as nested dicts
@@ -62,10 +63,10 @@ class FitInputMaker:
         reg_dict = {}
         for reg, proc in rpp:
             proc_dict = reg_dict.get(reg, {})
-            proc_dict[proc] = [
-                float(counts_dict[reg, proc, n_key]),
-                float(counts_dict[reg, proc, err_key]**0.5)
-                ]
+            proc_dict[proc] = [ float(counts_dict[reg, proc, n_key]) ]
+            if (reg, proc, err_key) in counts_dict:
+                proc_dict[proc].append(
+                    float(counts_dict[reg, proc, err_key]**0.5))
             reg_dict[reg] = proc_dict
 
         return reg_dict
