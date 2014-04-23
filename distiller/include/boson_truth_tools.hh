@@ -1,8 +1,8 @@
 #ifndef BOSON_TRUTH_TOOLS_HH
 #define BOSON_TRUTH_TOOLS_HH
 
-class McParticleBuffer; 
+class McParticleBuffer;
 
-float get_boson_truth_pt(const McParticleBuffer& buffer); 
+float get_boson_truth_pt(const McParticleBuffer& buffer);
 
-#endif 
+#endif

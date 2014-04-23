@@ -1,6 +1,6 @@
 #ifndef SYSTEMATICS_HH
 #define SYSTEMATICS_HH
-namespace systematic { 
-  enum Systematic { NONE, JESUP, JESDOWN, JER, METUP, METDOWN, METRES}; 
+namespace systematic {
+  enum Systematic { NONE, JESUP, JESDOWN, JER, METUP, METDOWN, METRES};
 }
-#endif 
+#endif

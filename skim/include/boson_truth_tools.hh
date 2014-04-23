@@ -4,14 +4,14 @@
 #include <stdexcept>
 #include <string>
 
-class SusyBuffer; 
+class SusyBuffer;
 
-float get_boson_truth_pt(const SusyBuffer& buffer); 
+float get_boson_truth_pt(const SusyBuffer& buffer);
 
-class BosonError: public std::range_error 
+class BosonError: public std::range_error
 {
 public:
-  BosonError(const std::string& what); 
-}; 
+  BosonError(const std::string& what);
+};
 
-#endif 
+#endif

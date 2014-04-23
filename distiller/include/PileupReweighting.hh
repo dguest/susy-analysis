@@ -1,28 +1,28 @@
 #ifndef PILEUPREWEIGHTING_HH
 #define PILEUPREWEIGHTING_HH
 
-class SusyBuffer; 
-class RunInfo; 
-namespace Root { 
-  class TPileupReweighting; 
+class SusyBuffer;
+class RunInfo;
+namespace Root {
+  class TPileupReweighting;
 }
 
-#include <string> 
+#include <string>
 
-class PileupReweighting 
+class PileupReweighting
 {
-public: 
-  PileupReweighting(const RunInfo&, unsigned run_flags); 
-  PileupReweighting(PileupReweighting&) = delete; 
-  PileupReweighting& operator=(PileupReweighting&) = delete; 
-  ~PileupReweighting(); 
-  float get_pileup_weight(const SusyBuffer&); 
+public:
+  PileupReweighting(const RunInfo&, unsigned run_flags);
+  PileupReweighting(PileupReweighting&) = delete;
+  PileupReweighting& operator=(PileupReweighting&) = delete;
+  ~PileupReweighting();
+  float get_pileup_weight(const SusyBuffer&);
   unsigned random_run_number(unsigned) const;
-  void write_to(const std::string& file_name); 
-private: 
-  Root::TPileupReweighting* m_prw; 
-  bool m_generate; 
-}; 
+  void write_to(const std::string& file_name);
+private:
+  Root::TPileupReweighting* m_prw;
+  bool m_generate;
+};
 
 
-#endif 
+#endif

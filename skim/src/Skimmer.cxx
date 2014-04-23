@@ -7,7 +7,7 @@
 #include "TChain.h"
 #include "TFile.h"
 #include "TError.h"
-#include "TROOT.h"  
+#include "TROOT.h"
 #include "TParameter.h"
 #include "TH1.h"
 
@@ -15,195 +15,195 @@
 #include <cmath>
 #include <memory>
 
-namespace { 
-  bool hasTriggerRequirements(const Triggers&, const Met&); 
-  bool hasWillsTriggers(const Triggers& tr, const Met& met); 
-  void dumpMissing(const SusyBuffer& buffer); 
-  long long entriesInTree(const std::string& file, 
-			  const std::string& tree_name); 
+namespace {
+  bool hasTriggerRequirements(const Triggers&, const Met&);
+  bool hasWillsTriggers(const Triggers& tr, const Met& met);
+  void dumpMissing(const SusyBuffer& buffer);
+  long long entriesInTree(const std::string& file,
+			  const std::string& tree_name);
 }
 
-Skimmer::Skimmer(const std::vector<std::string>& vars): 
-  m_chain(0), 
-  m_variables(vars), 
-  m_skimmed_var_prefix("skimmed_"), 
-  m_chain_name("susy"), 
-  m_collection_tree_name("CollectionTree"), 
-  m_collection_tree_events(0), 
+Skimmer::Skimmer(const std::vector<std::string>& vars):
+  m_chain(0),
+  m_variables(vars),
+  m_skimmed_var_prefix("skimmed_"),
+  m_chain_name("susy"),
+  m_collection_tree_name("CollectionTree"),
+  m_collection_tree_events(0),
   m_fast(false)
-{ 
-  m_chain = new TChain(m_chain_name.c_str(), m_chain_name.c_str()); 
+{
+  m_chain = new TChain(m_chain_name.c_str(), m_chain_name.c_str());
 }
 
-Skimmer::~Skimmer() { 
+Skimmer::~Skimmer() {
   // dont' really know the proper cleanup for root anything...
-  delete m_chain; 
+  delete m_chain;
 }
 
-void Skimmer::runFast() { 
-  m_fast = true; 
+void Skimmer::runFast() {
+  m_fast = true;
 }
 
-void Skimmer::addFile(const std::string& file_name) 
-{ 
-  if (!entriesInTree(file_name, m_chain_name)) { 
-    printf("empty tree in %s, skipping...\n", file_name.c_str()); 
-    return; 
+void Skimmer::addFile(const std::string& file_name)
+{
+  if (!entriesInTree(file_name, m_chain_name)) {
+    printf("empty tree in %s, skipping...\n", file_name.c_str());
+    return;
   }
-  m_chain->Add(file_name.c_str(), -1); 
-  m_collection_tree_events += entriesInTree(file_name, 
-					    m_collection_tree_name); 
+  m_chain->Add(file_name.c_str(), -1);
+  m_collection_tree_events += entriesInTree(file_name,
+					    m_collection_tree_name);
 }
 
-void Skimmer::makeSkim(const std::string& out_file_name) { 
+void Skimmer::makeSkim(const std::string& out_file_name) {
 
-  TFile output_file(out_file_name.c_str(), "recreate"); 
-  TTree* out_tree = new TTree("susy","susy"); 
-  printf("making skim %s\n", out_file_name.c_str()); 
-  output_file.cd(); 
+  TFile output_file(out_file_name.c_str(), "recreate");
+  TTree* out_tree = new TTree("susy","susy");
+  printf("making skim %s\n", out_file_name.c_str());
+  output_file.cd();
 
-  // this block to shut root up before running the copy 
-  int old_error_level = gErrorIgnoreLevel; 
-  // gErrorIgnoreLevel = kFatal; 
-  try { 
-    copyVariablesTo(out_tree, &output_file); 
-  } catch (TolerableDataError& err) { 
-    printf("Tolerable error: %s\n",err.what()); 
+  // this block to shut root up before running the copy
+  int old_error_level = gErrorIgnoreLevel;
+  // gErrorIgnoreLevel = kFatal;
+  try {
+    copyVariablesTo(out_tree, &output_file);
+  } catch (TolerableDataError& err) {
+    printf("Tolerable error: %s\n",err.what());
   }
-  gErrorIgnoreLevel = old_error_level; 
+  gErrorIgnoreLevel = old_error_level;
 
-  out_tree->Write(); 
+  out_tree->Write();
 }
 
 // ----- private ----
 
-std::string Skimmer::pfx(const std::string& word) { 
-  return m_skimmed_var_prefix + word; 
+std::string Skimmer::pfx(const std::string& word) {
+  return m_skimmed_var_prefix + word;
 }
 
-void Skimmer::copyVariablesTo(TTree* output_tree, TFile* file) { 
+void Skimmer::copyVariablesTo(TTree* output_tree, TFile* file) {
   m_chain->SetBranchStatus("*", 0);
-  SusyBuffer buffer(*m_chain, m_variables); 
-  buffer.setPassThrough(*output_tree); 
+  SusyBuffer buffer(*m_chain, m_variables);
+  buffer.setPassThrough(*output_tree);
 
-  float event_wt = 0; 
-  float boson_pt = -1.0; 
+  float event_wt = 0;
+  float boson_pt = -1.0;
 
   // this only exists to check if the return code is usually negative
   // (i.e. no bosons are being found)
   long long n_bosons = 0;
   if (buffer.hasMc()) {
-    output_tree->Branch(pfx("mcevt_weight").c_str(), &event_wt); 
-    output_tree->Branch(pfx("boson_pt").c_str(), &boson_pt); 
+    output_tree->Branch(pfx("mcevt_weight").c_str(), &event_wt);
+    output_tree->Branch(pfx("boson_pt").c_str(), &boson_pt);
   }
 
-  SummaryParameters summary(buffer.hasMc()); 
-  
-  const int n_entries = m_chain->GetEntries(); 
-  summary.total_events = n_entries; 
-  summary.collection_tree_events = m_collection_tree_events; 
-  for (int entry_n = 0; entry_n < n_entries; entry_n++) { 
-    m_chain->GetEntry(entry_n); 
-    // buffer.dump(); 
-    if (summary.has_mc) { 
-      boson_pt = get_boson_truth_pt(buffer); 
+  SummaryParameters summary(buffer.hasMc());
+
+  const int n_entries = m_chain->GetEntries();
+  summary.total_events = n_entries;
+  summary.collection_tree_events = m_collection_tree_events;
+  for (int entry_n = 0; entry_n < n_entries; entry_n++) {
+    m_chain->GetEntry(entry_n);
+    // buffer.dump();
+    if (summary.has_mc) {
+      boson_pt = get_boson_truth_pt(buffer);
       if (boson_pt > 0) n_bosons++;
-      event_wt = buffer.mcevt_weight->at(0).at(0); 
-      summary.total_event_weight += event_wt; 
+      event_wt = buffer.mcevt_weight->at(0).at(0);
+      summary.total_event_weight += event_wt;
     }
-    bool trigger = hasWillsTriggers(buffer.triggers, buffer.met); 
-    // bool trigger = hasTriggerRequirements(buffer.triggers, buffer.met); 
-    if (trigger) { 
-      summary.skimmed_events++; 
-      output_tree->Fill(); 
+    bool trigger = hasWillsTriggers(buffer.triggers, buffer.met);
+    // bool trigger = hasTriggerRequirements(buffer.triggers, buffer.met);
+    if (trigger) {
+      summary.skimmed_events++;
+      output_tree->Fill();
     }
-    if (m_fast) break; 
+    if (m_fast) break;
   }
   // EW samples _should_ have 100% bosons, require 90% for safety
   if (n_bosons > n_entries * 0.9) summary.has_bosons = true;
-  if (file) { 
-    summary.writeTo(*file); 
+  if (file) {
+    summary.writeTo(*file);
   }
-  dumpMissing(buffer); 
-  output_tree->ResetBranchAddresses(); 
+  dumpMissing(buffer);
+  output_tree->ResetBranchAddresses();
 
 }
 
-namespace { 
-  long long entriesInTree(const std::string& fname, const std::string& tree){ 
-    std::unique_ptr<TFile> file(TFile::Open(fname.c_str())); 
+namespace {
+  long long entriesInTree(const std::string& fname, const std::string& tree){
+    std::unique_ptr<TFile> file(TFile::Open(fname.c_str()));
     if (!file) throw std::runtime_error("no file: " + fname);
-    if (!file->IsOpen() || file->IsZombie()) { 
-      throw std::runtime_error("bad file: " + fname); 
+    if (!file->IsOpen() || file->IsZombie()) {
+      throw std::runtime_error("bad file: " + fname);
     }
-    TTree* the_tree = dynamic_cast<TTree*>(file->Get(tree.c_str())); 
-    if (!the_tree) { 
-      throw std::runtime_error("missing tree " + tree + " in " + fname); 
-    } 
-    return the_tree->GetEntries(); 
+    TTree* the_tree = dynamic_cast<TTree*>(file->Get(tree.c_str()));
+    if (!the_tree) {
+      throw std::runtime_error("missing tree " + tree + " in " + fname);
+    }
+    return the_tree->GetEntries();
   }
 
-  bool hasTriggerRequirements(const Triggers& tr, const Met& met) { 
+  bool hasTriggerRequirements(const Triggers& tr, const Met& met) {
     // ACHTUNG: should update these with some thresholds on reco quantities
-    if (tr.EF_mu18_tight_mu8_EFFS || 
-    	tr.EF_mu24i_tight || 
+    if (tr.EF_mu18_tight_mu8_EFFS ||
+    	tr.EF_mu24i_tight ||
     	tr.EF_mu36_tight ||
     	tr.EF_e24vhi_medium1 ||
     	tr.EF_e60_medium1 ||
-    	tr.EF_2e12Tvh_loose1) { 
-      return true; 
+    	tr.EF_2e12Tvh_loose1) {
+      return true;
     }
-    constexpr float threshold2 = std::pow(skim::MET_REQUIREMENT,2); 
-    float met_x2 = std::pow(met.etx - met.muon_etx,2); 
-    float met_y2 = std::pow(met.ety - met.muon_ety,2); 
+    constexpr float threshold2 = std::pow(skim::MET_REQUIREMENT,2);
+    float met_x2 = std::pow(met.etx - met.muon_etx,2);
+    float met_y2 = std::pow(met.ety - met.muon_ety,2);
     if (
-      tr.EF_xe80_tclcw_tight || 
-      tr.EF_xe80T_tclcw_loose || 
+      tr.EF_xe80_tclcw_tight ||
+      tr.EF_xe80T_tclcw_loose ||
       tr.EF_xe80_tclcw_loose ||
-      false) { 
-      if (met_x2 + met_y2 > threshold2) { 
-    	return true; 
+      false) {
+      if (met_x2 + met_y2 > threshold2) {
+    	return true;
       }
     }
-    return false; 
+    return false;
   }
-  void dumpMissing(const SusyBuffer& buffer) { 
+  void dumpMissing(const SusyBuffer& buffer) {
 
-    std::set<std::string> missing = buffer.getMissingBranches(); 
-    if (missing.size() > 0) puts("======= missing branches ======="); 
-    for (const auto itr: missing) { 
-      puts(itr.c_str()); 
+    std::set<std::string> missing = buffer.getMissingBranches();
+    if (missing.size() > 0) puts("======= missing branches =======");
+    for (const auto itr: missing) {
+      puts(itr.c_str());
     }
   }
   // these should work fine, if I remember to set the fucking things...
-  bool hasWillsTriggers(const Triggers& tr, const Met& met) { 
+  bool hasWillsTriggers(const Triggers& tr, const Met& met) {
     if (
       tr.EF_xe80T_tclcw_loose ||
-      tr.EF_xe80_tclcw_loose || 
+      tr.EF_xe80_tclcw_loose ||
       tr.EF_xe80T_tclcw || // not sure if needed
-      tr.EF_xe80_tclcw_tight || 
-      tr.EF_e24vhi_medium1 || 
-      tr.EF_2e12Tvh_loose1 || 
-      tr.EF_mu18_tight_mu8_EFFS || 
-      tr.EF_mu24i_tight || 
+      tr.EF_xe80_tclcw_tight ||
+      tr.EF_e24vhi_medium1 ||
+      tr.EF_2e12Tvh_loose1 ||
+      tr.EF_mu18_tight_mu8_EFFS ||
+      tr.EF_mu24i_tight ||
       tr.EF_e60_medium1 ||
       tr.EF_mu36_tight ||
-      false) { 	// false here just to make above lines consistent 
-      return true; 
+      false) { 	// false here just to make above lines consistent
+      return true;
     }
-    return false; 
+    return false;
   }
 
 }
 
-SummaryParameters::SummaryParameters(bool has_mc) : 
-  total_event_weight(0), 
+SummaryParameters::SummaryParameters(bool has_mc) :
+  total_event_weight(0),
   collection_tree_events(0),
-  total_events(0), 
-  skimmed_events(0), 
-  has_bosons(has_mc), 
+  total_events(0),
+  skimmed_events(0),
+  has_bosons(has_mc),
   has_mc(has_mc)
-{ 
+{
 }
 
 namespace {
@@ -213,14 +213,14 @@ namespace {
   }
 }
 
-void SummaryParameters::writeTo(TFile& file) const { 
-  TParameter<long long> events("total_events", total_events); 
-  TParameter<long long> skimmed("skimmed_events", skimmed_events); 
-  TParameter<long long> col_tree("collection_tree_events", 
-				 collection_tree_events); 
-  file.WriteTObject(&events); 
-  file.WriteTObject(&skimmed); 
-  file.WriteTObject(&col_tree); 
+void SummaryParameters::writeTo(TFile& file) const {
+  TParameter<long long> events("total_events", total_events);
+  TParameter<long long> skimmed("skimmed_events", skimmed_events);
+  TParameter<long long> col_tree("collection_tree_events",
+				 collection_tree_events);
+  file.WriteTObject(&events);
+  file.WriteTObject(&skimmed);
+  file.WriteTObject(&col_tree);
 
   TH1D entry_hist("skim_counts", "skim_counts", 3, 0, 3);
   setBin(1, total_events, "total_events", entry_hist);
@@ -228,11 +228,11 @@ void SummaryParameters::writeTo(TFile& file) const {
   setBin(3, collection_tree_events, "collection_tree_events", entry_hist);
   file.WriteTObject(&entry_hist);
 
-  if (has_mc) { 
-    TParameter<double> skim_total("total_event_weight", total_event_weight); 
+  if (has_mc) {
+    TParameter<double> skim_total("total_event_weight", total_event_weight);
     TParameter<bool> bosons_found("bosons_found", has_bosons);
-    file.WriteTObject(&skim_total); 
-    file.WriteTObject(&bosons_found); 
+    file.WriteTObject(&skim_total);
+    file.WriteTObject(&bosons_found);
 
     TH1D mc_hist("mc_counts","mc_counts", 1, 0, 1);
     setBin(1, total_event_weight, "total_event_weight", mc_hist);

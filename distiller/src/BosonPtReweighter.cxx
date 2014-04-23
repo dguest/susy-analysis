@@ -2,7 +2,7 @@
 #include "boson_truth_tools.hh"
 #include "McParticleBuffer.hh"
 
-namespace { 
+namespace {
 
   // pulled from Mainz repo: http://butler.physik.uni-mainz.de/viewcvs/SUSYMainzAna/GlobalAna.cpp?view=markup&revision=1.378&root=ATLAS+Mainz+CVS+Repository#l757
   const float fac=98064.772811754417/95042.398788381863;
@@ -22,11 +22,11 @@ namespace {
   }
 }
 
-float BosonPtReweighter::get_boson_weight(const McParticleBuffer& buff) { 
-  float pt_gev = get_boson_truth_pt(buff) / 1e3; 
-  return ReweightWZ(pt_gev); 
+float BosonPtReweighter::get_boson_weight(const McParticleBuffer& buff) {
+  float pt_gev = get_boson_truth_pt(buff) / 1e3;
+  return ReweightWZ(pt_gev);
 }
 
-float BosonPtReweighter::get_boson_pt(const McParticleBuffer& buffer) { 
-  return get_boson_truth_pt(buffer); 
+float BosonPtReweighter::get_boson_pt(const McParticleBuffer& buffer) {
+  return get_boson_truth_pt(buffer);
 }

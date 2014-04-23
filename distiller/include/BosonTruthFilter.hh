@@ -1,18 +1,18 @@
 #ifndef BOSON_TRUTH_FILTER_HH
 #define BOSON_TRUTH_FILTER_HH
 
-class McParticleBuffer; 
+class McParticleBuffer;
 
-class BosonTruthFilter 
+class BosonTruthFilter
 {
-public: 
-  BosonTruthFilter(double threshold_mev); 
-  bool is_over_threshold(const McParticleBuffer& ); 
-  int get_n_lt_2_lepton_events() const; 
-private: 
-  double m_threshold_mev; 
-  int m_lt_2_lepton_events; 
-  int m_2_lepton_events; 
-}; 
+public:
+  BosonTruthFilter(double threshold_mev);
+  bool is_over_threshold(const McParticleBuffer& );
+  int get_n_lt_2_lepton_events() const;
+private:
+  double m_threshold_mev;
+  int m_lt_2_lepton_events;
+  int m_2_lepton_events;
+};
 
-#endif 
+#endif

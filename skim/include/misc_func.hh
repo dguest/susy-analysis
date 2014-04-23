@@ -4,20 +4,20 @@
 #include <string>
 #include <stdexcept>
 
-class TTree; 
+class TTree;
 
-void setOrThrow(TTree& chain, const std::string& name, void* variable); 
+void setOrThrow(TTree& chain, const std::string& name, void* variable);
 
 class MissingBranchError: public std::runtime_error
 {
-public: 
-  MissingBranchError(const std::string&); 
-}; 
+public:
+  MissingBranchError(const std::string&);
+};
 
 class TolerableDataError: public std::runtime_error
 {
-public: 
-  TolerableDataError(const std::string&); 
-}; 
+public:
+  TolerableDataError(const std::string&);
+};
 
 #endif

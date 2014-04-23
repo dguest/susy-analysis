@@ -3,6 +3,6 @@
 
 #include <utility>
 
-std::pair<size_t,size_t> test_overlap_removal(); 
+std::pair<size_t,size_t> test_overlap_removal();
 
-#endif 
+#endif

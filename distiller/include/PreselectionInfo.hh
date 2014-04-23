@@ -3,11 +3,11 @@
 
 #include "typedefs.hh"
 
-struct PreselectionInfo 
+struct PreselectionInfo
 {
   ull_t bits;
   float pileup_weight;
   float trigger_sf;
 };
 
-#endif 
+#endif
