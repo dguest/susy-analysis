@@ -14,6 +14,7 @@ RegionConfig::RegionConfig() :
   hists(reg::HISTMILL),
   tagger(btag::Tagger::ERROR),
   boson_pt_correction(reg::NO_PT_CORRECTION),
-  stream(reg::Stream::ERROR)
+  stream(reg::Stream::ERROR),
+  save_wt2(false)
 {
 }

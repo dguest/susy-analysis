@@ -52,11 +52,9 @@ NMinus1Histograms
 
   using namespace nminus;
   const auto sel = get_selections(config);
-  // save wt^2 for the met hist so we can use it for limit setting
-  m_hists.emplace_back(
-    Axis{MET, N_BINS, 0.0, MAX_ENERGY, EUNIT}, sel, hist::wt2);
-  // other hists don't need wt2 info... or... do... they....
-  const auto hf = hist::wt2;
+  // save wt^2 for _some_ hists (those with no systematic applied)
+  const auto hf = config.save_wt2 ? hist::wt2 : 0;
+  m_hists.emplace_back(Axis{MET, N_BINS, 0.0, MAX_ENERGY, EUNIT}, sel, hf);
   m_hists.emplace_back(
     Axis{NSJET, SJET_RANGE, -0.5, SJET_RANGE - 0.5}, sel, hf);
   m_hists.emplace_back(Axis{DPHI, 80, 0.0, 3.2}, sel, hf);

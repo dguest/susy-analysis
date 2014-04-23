@@ -95,6 +95,7 @@ static bool safe_copy(PyObject* dict, RegionConfig& region)
   COPY(tagger);
   COPY(jet_tag_assignment);
   COPY(boson_pt_correction);
+  REQUIRE(save_wt2);
 
 #undef REQUIRE
 #undef COPY
@@ -123,6 +124,13 @@ static bool safe_copy(PyObject* value, long& dest) {
   long the_int = PyLong_AsLong(value);
   if (PyErr_Occurred()) return false;
   dest = the_int;
+  return true;
+}
+
+static bool safe_copy(PyObject* value, bool& dest) {
+  bool the_bool = PyLong_AsLong(value);
+  if (PyErr_Occurred()) return false;
+  dest = the_bool;
   return true;
 }
 

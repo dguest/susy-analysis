@@ -3,7 +3,7 @@ from os.path import join, isdir, basename, splitext, isfile, dirname
 from scharm import schema
 from scharm.bullshit import make_dir_if_none
 
-class Stacker(object): 
+class Stacker:
     """
     Constructed  with a regions dict. Runs the stacking routine when 
     hist_from_ntuple is called.
@@ -52,6 +52,10 @@ class Stacker(object):
         # systematic).
         if systematic != 'NONE':
             dist_settings['systematic'] = systematic
+
+        # only save wt2 hists for the 'nominal' (none) systematic
+        dist_settings['save_wt2'] = bool(
+            dist_settings['systematic'].upper() == 'NONE')
 
         # Whatever systematic we apply, we have to shift the base directory..
         mid_path = schema.dir_from_distiller_settings(

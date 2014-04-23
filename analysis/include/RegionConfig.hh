@@ -24,6 +24,7 @@ struct RegionConfig
   btag::Tagger tagger;
   reg::BosonPtCorrection boson_pt_correction;
   reg::Stream stream;
+  bool save_wt2;
   RegionConfig();
 };
 
