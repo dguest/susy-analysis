@@ -127,7 +127,7 @@ namespace {
     // we could handle the tag inversion somewhere else, but for now
     // it seems easier to invert here, at risk of (worst case) doubling
     // the number of taggers we have to define.
-    // if (m_inverted) err *= -1.0; 	
+    // if (m_inverted) err *= -1.0;
 
     TagSF var = get_var(flavor, syst);
     // invert non-passing tags

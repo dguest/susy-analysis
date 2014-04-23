@@ -6,6 +6,9 @@ import argparse, sys
 from scharm.aggregate import histadd
 
 def run():
+    import numpy
+    numpy.seterr(all='raise')
+
     config = get_config()
     histadd.hadd(config)
 

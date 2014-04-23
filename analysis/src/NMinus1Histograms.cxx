@@ -98,11 +98,16 @@ void NMinus1Histograms::fill(const EventObjects& obj) {
 
   double weight = obj.weight;
   if (! (m_build_flags & buildflag::is_data)) {
+    // TODO: move this into a function, it should work fine with the region
+    // config and the EventObjects
     // --- apply scalefactors ---
     auto syst = m_region_config->systematic;
     size_t n_jets = std::min(2UL, obj.jets.size());
     for (size_t jn = 0; jn < n_jets; jn++) {
-      weight *= obj.jets.at(jn).get_scalefactor(syst);
+      auto jet_wt = obj.jets.at(jn).get_scalefactor(syst);
+      // hack to deal with jets outside |eta| > 2.5
+      if (std::isinf(jet_wt)) jet_wt = 1.0;
+      weight *= jet_wt;
     }
     weight *= obj.event_scalefactors->get_sf(EventSyst::ELECTRON, syst);
     weight *= obj.event_scalefactors->get_sf(EventSyst::MUON, syst);
