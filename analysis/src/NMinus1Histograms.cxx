@@ -173,6 +173,10 @@ void NMinus1Histograms::write_to(H5::CommonFG& file) const {
 }
 
 namespace nminus {
+
+  // _______________________________________________________________________
+  // cut adding fucntions (shouldn't call each other)
+
   std::map<std::string, Selection> get_common_selection(
     const RegionConfig& cfg) {
 
@@ -209,72 +213,113 @@ namespace nminus {
       sel.insert({jantiu(jn), {antiu, INFINITY, miss} });
     }
   }
+  void add_1l_cuts(std::map<std::string, Selection>& sel) {
+    using namespace cr1l;
+    sel.insert(
+      {
+	{MT, {M_T_MIN, M_T_MAX} },
+	{MCT, {SR_MCT_MIN, INFINITY} },
+	  });
+  }
+  void add_sf_cuts(std::map<std::string, Selection>& sel) {
+    using namespace crsf;
+    sel.insert(
+      {
+	{LLPT, {LEPTON_PT_MIN, INFINITY} },
+	{MLL, {M_LL_MIN, M_LL_MAX} },
+	  });
+  }
+  void add_df_cuts(std::map<std::string, Selection>& sel) {
+    using namespace crdf;
+    sel.insert(
+      {
+	{MLL, {M_LL_MIN, INFINITY} },
+	  });
+  }
+  void add_sr_cuts(std::map<std::string, Selection>& sel) {
+    sel.insert( {
+	{MCT, {SR_MCT_MIN, INFINITY} },
+	{MET_EFF, {MET_EFF_MIN, INFINITY} },
+	{MCC, {M_CC_MIN, INFINITY} },
+	{DPHI, {MIN_DPHI_JET_MET, INFINITY} },
+	  });
+  }
+  void add_presel_cuts(std::map<std::string, Selection>& sel) {
+    // this case has phantom cuts to indicate where SR cuts _would_ be
+    const auto PHANTOM = Selection::Missing::PHANTOM;
+    sel.insert({
+	{DPHI, {MIN_DPHI_JET_MET, INFINITY} },
+	{MCT, {SR_MCT_MIN, INFINITY, PHANTOM} },
+	{MET_EFF, {MET_EFF_MIN, INFINITY, PHANTOM} },
+	{MCC, {M_CC_MIN, INFINITY, PHANTOM} },
+	{DPHI, {MIN_DPHI_JET_MET, INFINITY, PHANTOM} },
+	  });
+  }
+
+  // ______________________________________________________________________
+  // top level selection builder (calls the above functions)
 
   std::map<std::string, Selection> get_selections(const RegionConfig& cfg)
   {
     auto sel = get_common_selection(cfg);
-    const auto PHANTOM = Selection::Missing::PHANTOM;
     switch (cfg.selection) {
     case reg::Selection::SIGNAL: {
-      sel.insert( {
-	  {MCT, {SR_MCT_MIN, INFINITY} },
-	  {MET_EFF, {MET_EFF_MIN, INFINITY} },
-	  {MCC, {M_CC_MIN, INFINITY} },
-	  {DPHI, {MIN_DPHI_JET_MET, INFINITY} },
-	});
+      add_sr_cuts(sel);
       add_tagging_cuts(sel);
       return sel;
     }
+      // tagged control selections
+    case reg::Selection::CR_W: {
+      add_tagging_cuts(sel);
+      add_1l_cuts(sel);
+      return sel;
+    }
+    case reg::Selection::CR_Z: {
+      add_sf_cuts(sel);
+      add_tagging_cuts(sel);
+      return sel;
+    }
+    case reg::Selection::CR_T: {
+      add_df_cuts(sel);
+      add_tagging_cuts(sel);
+      return sel;
+    }
+
+      // untagged control selections
     case reg::Selection::CR_1L: {
-      using namespace cr1l;
-      sel.insert(
-	{
-	  {MT, {M_T_MIN, M_T_MAX} },
-	  {MCT, {SR_MCT_MIN, INFINITY} },
-	});
-      add_tagging_cuts(sel);
+      add_1l_cuts(sel);
       return sel;
     }
-    case reg::Selection::CR_Z: 	// intentional fallthrough
     case reg::Selection::CR_SF: {
-      using namespace crsf;
-      sel.insert(
-	{
-	  {LLPT, {LEPTON_PT_MIN, INFINITY} },
-	  {MLL, {M_LL_MIN, M_LL_MAX} },
-	});
-      add_tagging_cuts(sel);
+      add_sf_cuts(sel);
       return sel;
     }
     case reg::Selection::CR_DF: {
-      using namespace crdf;
-      sel.insert(
-	{
-	  {MLL, {M_LL_MIN, INFINITY} },
-	});
-      add_tagging_cuts(sel);
+      add_df_cuts(sel);
       return sel;
     }
-      // this case has phantom cuts to indicate where SR cuts _would_ be
-    case reg::Selection::QUALITY_EVENT:
-      sel.insert({
-	  {DPHI, {MIN_DPHI_JET_MET, INFINITY} },
-	  {MCT, {SR_MCT_MIN, INFINITY, PHANTOM} },
-	  {MET_EFF, {MET_EFF_MIN, INFINITY, PHANTOM} },
-	  {MCC, {M_CC_MIN, INFINITY, PHANTOM} },
-	  {DPHI, {MIN_DPHI_JET_MET, INFINITY, PHANTOM} },
-	    });
+
+    case reg::Selection::QUALITY_EVENT: {
+      add_presel_cuts(sel);
       return sel;
+    }
+
     default: throw std::invalid_argument("unknown selection in " __FILE__);
     }
   }
   ISelection* selection_factory(const RegionConfig& cfg) {
     switch (cfg.selection) {
     case reg::Selection::SIGNAL: return new NMinusSignalSelection(cfg);
+
+    case reg::Selection::CR_W:	// fallthrough
     case reg::Selection::CR_1L: return new NMinusCR1LSelection(cfg);
-    case reg::Selection::CR_SF: return new NMinusOSSFSelection(cfg);
-    case reg::Selection::CR_Z: return new NMinusCRZSelection(cfg);
+
+    case reg::Selection::CR_Z:	// fallthrough
+    case reg::Selection::CR_SF: return new NMinusCRZSelection(cfg);
+
+    case reg::Selection::CR_T:	// fallthrough
     case reg::Selection::CR_DF: return new NMinusOSDFSelection(cfg);
+
     case reg::Selection::QUALITY_EVENT: return new QualityEventSelection(cfg);
     default: throw std::invalid_argument("unknown selection in " __FILE__);
     }

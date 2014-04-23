@@ -145,10 +145,17 @@ static bool safe_copy(PyObject* value, reg::Selection& dest) {
   using namespace reg;
 
   NAME_TO_PREFIXED(Selection, SIGNAL);
+
+  // tagged selections
+  NAME_TO_PREFIXED(Selection, CR_Z);
+  NAME_TO_PREFIXED(Selection, CR_W);
+  NAME_TO_PREFIXED(Selection, CR_T);
+
+  // untagged (maybe also looser)
   NAME_TO_PREFIXED(Selection, CR_1L);
   NAME_TO_PREFIXED(Selection, CR_SF);
-  NAME_TO_PREFIXED(Selection, CR_Z);
   NAME_TO_PREFIXED(Selection, CR_DF);
+
   NAME_TO_PREFIXED(Selection, QUALITY_EVENT);
 
   std::string problem = "got undefined selection: " + name;
