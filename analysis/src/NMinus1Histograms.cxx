@@ -273,8 +273,8 @@ namespace nminus {
     }
       // tagged control selections
     case reg::Selection::CR_W: {
-      add_tagging_cuts(sel);
       add_1l_cuts(sel);
+      add_tagging_cuts(sel);
       return sel;
     }
     case reg::Selection::CR_Z: {
