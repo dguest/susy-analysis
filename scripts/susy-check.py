@@ -18,8 +18,7 @@ import os
 import re
 import yaml
 import warnings
-# from stop.meta import DatasetCache
-from collections import Counter
+from collections import Counter, defaultdict
 from h5py import File
 
 def run():
@@ -121,6 +120,7 @@ def _is_total_line(sline):
 
 
 _err_str = 'sample {} ({}): expected {:,}, found {:,} ({:.0%})\n'
+_proc_key = 'physics_type'      # used in the meta files
 def check_meta(config):
     type_expected_counter = Counter()
     type_found_counter = Counter()
@@ -131,7 +131,7 @@ def check_meta(config):
         key = basename(file_name).split('.')[0]
         ds = ds_meta[key]
         expected = ds.get('n_expected_entries',0)
-        proc_type = ds.get('physics_type', 'data')
+        proc_type = ds.get(_proc_key, 'data')
         with File(file_name,'r') as h5file:
             found = h5file.attrs['total_events']
         if expected != found:
@@ -148,6 +148,28 @@ def check_meta(config):
         print('{:{}}: {:{te}} of {:{te}} ({:.2%})'.format(
             phys_type, nameslen, found, expected, float(found)/expected,
             te=explen))
+
+    _check_for_missing_datasets(ds_meta, config.hist_files)
+
+def _check_for_missing_datasets(ds_meta, files):
+
+    files_by_proc = defaultdict(set)
+    for fi in files:
+        key = basename(file_name).split('.')[0]
+        process = ds_meta.get(_proc_key, 'data')
+        dsid = int(key[1:])
+        files_by_proc[process] |= dsid
+
+    all_by_proc = defaultdict(set)
+    for key, ds_info in ds_meta.items():
+        dsid = int(key[1:])
+        all_by_proc[ds_info.get(_proc_key, 'data')] |= dsid
+    for proc, ids in files_by_proc.items():
+        if proc == 'data':
+            continue
+        missing = all_by_proc[proc] - ids
+        if missing:
+            print('oh dear', proc, missing)
 
 if __name__ == '__main__':
     run()
