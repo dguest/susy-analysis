@@ -6,6 +6,12 @@ from os.path import join, isdir
 from os import listdir
 import re, warnings
 
+# extension for sum(wt^2) plots
+wt2_ext = 'Wt2'
+
+# __________________________________________________________________________
+# path / systematic / replacement mappings
+
 dir_key_order = ['stream', 'systematic', 'replacement']
 
 def distiller_settings_from_dir(path):

@@ -2,11 +2,12 @@
 Top level drawing routines for stack plots.
 """
 
-import numpy as np
 from scharm import style, hists
+from scharm.schema import wt2_ext
 from os.path import isdir, join
 from scharm.aggregate.draw import Stack, Hist2d, Hist1d
 import os
+import numpy as np
 from itertools import chain
 from concurrent.futures import ProcessPoolExecutor as Executor
 
@@ -44,9 +45,13 @@ class HistConverter:
         """
         physics, variable, cut = pvc
         hdict = {}
+        # TODO: come up with a more clever way to include the stat error
+        # for right now we're ignoring it
+        if variable.endswith(wt2_ext):
+            return hdict
         if len(histn.axes) == 1:
             # for the simple case call the simple 1d formatter
-            hdict[pvc] = self.hist1_from_histn(pvc, histn=histn)
+            hdict[pvc] = self._hist1_from_histn(pvc, histn=histn)
             return hdict
         for ax_name, axis in histn.axes.items():
             xy_tup = histn.project_1d(axis.name)
@@ -55,7 +60,7 @@ class HistConverter:
                 xy_tup, axis.units , pvc)
         return hdict
 
-    def hist1_from_histn(self, pvc, histn):
+    def _hist1_from_histn(self, pvc, histn):
         physics, variable, cut = pvc
         is_signal = physics.startswith('scharm')
         if physics not in self._style and not is_signal:
