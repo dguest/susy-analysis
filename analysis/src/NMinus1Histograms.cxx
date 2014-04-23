@@ -38,9 +38,11 @@ NMinus1Histograms
   m_make_lepton_plots(false),
   m_make_dilep_plots(false)
 {
-  std::set<reg::Selection> onelep_regions {reg::Selection::CR_1L};
+  std::set<reg::Selection> onelep_regions {
+    reg::Selection::CR_1L, reg::Selection::CR_W};
   std::set<reg::Selection> dilep_regions {
-    reg::Selection::CR_SF, reg::Selection::CR_DF, reg::Selection::CR_Z,
+    reg::Selection::CR_SF, reg::Selection::CR_DF,
+      reg::Selection::CR_Z, reg::Selection::CR_T,
       reg::Selection::QUALITY_EVENT};
   auto lepton_regions(onelep_regions);
   lepton_regions.insert(dilep_regions.begin(), dilep_regions.end());
