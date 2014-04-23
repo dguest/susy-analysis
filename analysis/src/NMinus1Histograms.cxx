@@ -55,25 +55,28 @@ NMinus1Histograms
   // save wt^2 for the met hist so we can use it for limit setting
   m_hists.emplace_back(
     Axis{MET, N_BINS, 0.0, MAX_ENERGY, EUNIT}, sel, hist::wt2);
-  // other hists don't need wt2 info
-  m_hists.emplace_back(Axis{NSJET, SJET_RANGE, -0.5, SJET_RANGE - 0.5}, sel);
-  m_hists.emplace_back(Axis{DPHI, 80, 0.0, 3.2}, sel);
-  m_hists.emplace_back(Axis{MCT, N_BINS, 0.0, MAX_ENERGY, EUNIT}, sel);
-  m_hists.emplace_back(Axis{MET_EFF, N_BINS, 0, 1.0}, sel);
-  m_hists.emplace_back(Axis{MCC, N_BINS, 0.0, MAX_ENERGY, EUNIT}, sel);
+  // other hists don't need wt2 info... or... do... they....
+  const auto hf = hist::wt2;
+  m_hists.emplace_back(
+    Axis{NSJET, SJET_RANGE, -0.5, SJET_RANGE - 0.5}, sel, hf);
+  m_hists.emplace_back(Axis{DPHI, 80, 0.0, 3.2}, sel, hf);
+  m_hists.emplace_back(Axis{MCT, N_BINS, 0.0, MAX_ENERGY, EUNIT}, sel, hf);
+  m_hists.emplace_back(Axis{MET_EFF, N_BINS, 0, 1.0}, sel, hf);
+  m_hists.emplace_back(Axis{MCC, N_BINS, 0.0, MAX_ENERGY, EUNIT}, sel, hf);
   for (int jn: {0,1,2}) {
-    m_hists.emplace_back(Axis{jeta(jn), 112, -2.8, 2.8}, sel);
-    m_hists.emplace_back(Axis{jpt(jn), N_BINS, 0, MAX_ENERGY, EUNIT}, sel);
-    m_hists.emplace_back(Axis{jantib(jn), 300, -7.5, 7.5}, sel);
-    m_hists.emplace_back(Axis{jantiu(jn), 300, -7.5, 7.5}, sel);
+    m_hists.emplace_back(Axis{jeta(jn), 112, -2.8, 2.8}, sel, hf);
+    m_hists.emplace_back(Axis{jpt(jn), N_BINS, 0, MAX_ENERGY, EUNIT},
+			 sel, hf);
+    m_hists.emplace_back(Axis{jantib(jn), 300, -7.5, 7.5}, sel, hf);
+    m_hists.emplace_back(Axis{jantiu(jn), 300, -7.5, 7.5}, sel, hf);
   }
 
   if (m_make_lepton_plots) {
-    m_hists.emplace_back(Axis{LLPT, N_BINS, 0.0, 500_GeV, EUNIT}, sel);
-    m_hists.emplace_back(Axis{MT, N_BINS, 0.0, 500_GeV, EUNIT}, sel);
+    m_hists.emplace_back(Axis{LLPT, N_BINS, 0.0, 500_GeV, EUNIT}, sel, hf);
+    m_hists.emplace_back(Axis{MT, N_BINS, 0.0, 500_GeV, EUNIT}, sel, hf);
   }
   if (m_make_dilep_plots) {
-    m_hists.emplace_back(Axis{MLL, 200, 0.0, 200_GeV, EUNIT}, sel);
+    m_hists.emplace_back(Axis{MLL, 200, 0.0, 200_GeV, EUNIT}, sel, hf);
   }
 }
 
