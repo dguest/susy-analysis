@@ -10,6 +10,7 @@ public:
   SkimReport();
   void add_files(const std::vector<std::string>&);
   int total_entries() const;
+  int total_collection_tree() const;
   int total_errors() const;
   int total_files() const;
   int empty_files() const;
@@ -20,6 +21,7 @@ private:
   bool m_is_data;
   double m_sum_evt_weight;
   int m_total_entries;
+  int m_sum_collection_tree;
   int m_n_errors;
   int m_n_files;
   int m_n_empty;

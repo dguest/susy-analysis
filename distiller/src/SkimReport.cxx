@@ -10,6 +10,7 @@ SkimReport::SkimReport():
   m_is_data(false),
   m_sum_evt_weight(0),
   m_total_entries(0),
+  m_sum_collection_tree(0),
   m_n_errors(0),
   m_n_files(0),
   m_n_empty(0)
@@ -26,6 +27,7 @@ void SkimReport::add_files(const std::vector<std::string>& files)
 }
 
 int SkimReport::total_entries() const {return m_total_entries; }
+int SkimReport::total_collection_tree() const {return m_sum_collection_tree;}
 int SkimReport::total_errors() const {return m_n_errors; }
 int SkimReport::total_files() const {return m_n_files;}
 int SkimReport::empty_files() const {return m_n_empty;}
@@ -38,6 +40,12 @@ void SkimReport::increment_with_file(const std::string& file_name){
     m_n_errors++;
     return;
   }
+  auto* collection_tree = dynamic_cast<TParameter<long long>*>(
+    file.Get("collection_tree_events"));
+  if (collection_tree) {
+    m_sum_collection_tree += collection_tree->GetVal();
+  }
+
   auto* events = dynamic_cast<TParameter<long long>*>(
     file.Get("total_events"));
   auto* skimmed = dynamic_cast<TParameter<long long>*>(

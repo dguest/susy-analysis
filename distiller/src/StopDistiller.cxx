@@ -546,6 +546,8 @@ void StopDistiller::print_progress(int entry_n, std::ostream& stream) {
 namespace {
   void add_skim_report(const SkimReport& report, outtree::OutTree& tree) {
     tree.add_ll_parameter("total_events", report.total_entries());
+    tree.add_ll_parameter("total_collection_tree",
+			  report.total_collection_tree());
     if (!report.is_data()) {
       tree.add_double_parameter(
 	"total_event_weight", report.sum_evt_weight());
