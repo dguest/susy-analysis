@@ -31,6 +31,7 @@ def get_config():
                         help='dump samples used (and quit)')
     parser.add_argument('-b','--breakdown', action='store_true',
                         help='store breakdown of backgrounds')
+    parser.add_argument('-q', '--quiet', action='store_true')
     args = parser.parse_args(sys.argv[1:])
     return args
 
@@ -63,6 +64,7 @@ def run():
         hfiles=list(selected_samples),
         variables='all',
         breakdown=args.breakdown,
+        quiet=args.quiet,
         )
     aggregator.aggregate()
     agg_name = args.output

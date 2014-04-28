@@ -97,8 +97,9 @@ class SampleAggregator:
     # us to multiply by the squared normalization
     wt2_tag = 'Wt2'
 
-    def __init__(self,meta_path, hfiles, variables, breakdown=False):
-        self._normalizer = Normalizer(meta_path, hfiles)
+    def __init__(self,meta_path, hfiles, variables, breakdown=False,
+                 quiet=False):
+        self._normalizer = Normalizer(meta_path, hfiles, quiet=quiet)
         self.variables = variables
         self._plots_dict = HistDict()
         self._check_variables(variables)
