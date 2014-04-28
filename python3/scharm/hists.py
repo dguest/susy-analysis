@@ -300,6 +300,9 @@ class HistNd(object):
             new._array = other + self._array
         return new
 
+    def __sub__(self, other):
+        return self + (-1 * other)
+
     # # ACHTUNG: __radd__ causes problems with ndarrays by allowing ndarrays
     # # to build ndarrays of hists (or something...)
     # def __radd__(self, other):

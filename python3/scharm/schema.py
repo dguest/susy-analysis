@@ -8,6 +8,10 @@ import re, warnings
 
 # extension for sum(wt^2) plots
 wt2_ext = 'Wt2'
+# extension for systematic error^2 plots
+sys2_ext = 'Syst2'
+
+nominal_syst = 'none'
 
 # __________________________________________________________________________
 # path / systematic / replacement mappings
@@ -40,7 +44,7 @@ def get_all_systematics(root_path):
         return all_syst
     for stream_dir in subdirs:
         syst_dirs = listdir(join(root_path,stream_dir))
-        if not 'none' in syst_dirs:
+        if not nominal_syst in syst_dirs:
             raise ValueError('no nominal syst found, probably an error')
         all_syst.update(syst_dirs)
     return all_syst

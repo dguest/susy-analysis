@@ -20,7 +20,7 @@ class HistDict(dict):
             return None
         with h5py.File(file_name,'r') as infile:
             for proc, var_grp in infile.items():
-                if proc.startswith(sig_prefix):
+                if sig_prefix is not None and proc.startswith(sig_prefix):
                     if proc not in sig_points:
                         continue
                 for subpath in self._list_paths(var_grp):
