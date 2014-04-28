@@ -38,7 +38,7 @@ def setup_aggregate(config):
         'n_jobs': len(systs),
         'out_dir': 'output/aggregate',
         'walltime': '00:03:00:00',
-        'odir': 'config.out_dir',
+        'odir': config.out_dir,
         }
 
     submit_head = _get_submit_head(**sub_dict)
