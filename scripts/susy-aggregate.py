@@ -1,11 +1,10 @@
 #!/usr/bin/env python3.3
 """
 uses run / mc meta data and ntuples files to produce stacks.
-
-When running in kinematic_stat mode, --fast or --all results in a yaml file.
 """
 
-_files_help="can specify either a root directory or a set of files"
+_files_help = "can specify either a root directory or a set of files"
+_systematics_help = "add in dominant experimental systematics"
 
 import argparse
 from scharm.aggregate import aggregator as agg
@@ -65,17 +64,11 @@ def run():
         variables='all',
         breakdown=args.breakdown,
         )
-    # aggregator.bugstream = tempfile.TemporaryFile()
-    # aggregator.out_prepend = 'systamatic: {} '.format(systematic)
     aggregator.aggregate()
-    # aggregator.bugstream.seek(0)
-    # for line in aggregator.bugstream:
-    #     print line
     agg_name = args.output
     if isfile(agg_name):
         os.remove(agg_name)
     aggregator.write(agg_name)
-
 
 if __name__ == '__main__':
     run()

@@ -174,25 +174,3 @@ def _get_all_variables(group, prepend=''):
         newvals = _get_all_variables(subgroup, name)
         variables += newvals
     return variables
-
-def _get_superregion(region):
-    """
-    Strip off the electron and muon postfixes for regions which are filled
-    by stream, so we can combine them.
-    """
-    for end in ['_electron','_muon']:
-        if region.endswith(end):
-            return region[:-len(end)]
-        return region
-
-class MissingCacheError(IOError):
-    """
-    This is supposed to get thrown if something isn't in the cache.
-    Not currently used.
-    """
-    def __init__(self,variable, physics, what=''):
-        self.variable = variable
-        self.physics = physics
-        if not what:
-            what = 'var: {}, in {} sample missing'.format(variable, physics)
-        super(MissingCacheError,self).__init__(what)
