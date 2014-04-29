@@ -26,6 +26,7 @@ class Region:
             'boson_pt_correction', 'NO_PT_CORRECTION')
         self.replacement = yaml_dict.get('replacement','normal')
         self.max_signal_jets = yaml_dict.get('max_signal_jets', 999)
+        self.tagger = yaml_dict['tagger']
 
     def get_yaml_dict(self):
         """
@@ -51,13 +52,14 @@ class Region:
             'type': self.type.upper(),
             'hists': self.hists.upper(),
             'boson_pt_correction': self.boson_pt_correction,
+            'tagger': self.tagger.upper(),
             }
         return config_dict
 
 # ___________________________________________________________________________
 # sbottom definitions
 
-_sbottom_cr = {'CR_1L', 'CR_DF', 'CR_SF'}
+_sbottom_cr = {'CR_W', 'CR_T', 'CR_Z'}
 def sbottom_regions():
     """
     return sbottom regions as a yml file
@@ -70,9 +72,9 @@ def sbottom_regions():
     return sbottom
 
 def _sbottom_region(version, stream):
-    lj =  {'SIGNAL': 130, 'CR_1L': 130, 'CR_SF': 50,  'CR_DF': 130}[version]
-    met = {'SIGNAL': 150, 'CR_1L': 100, 'CR_SF': 100, 'CR_DF': 100}[version]
-    rpl = 'leptmet' if version == 'CR_SF' else 'normal'
+    lj =  {'SIGNAL': 130, 'CR_W': 130, 'CR_Z': 50,  'CR_T': 130}[version]
+    met = {'SIGNAL': 150, 'CR_W': 100, 'CR_Z': 100, 'CR_T': 100}[version]
+    rpl = 'leptmet' if version == 'CR_Z' else 'normal'
     return _build_kinematic_region(version, lj, met, rpl, stream)
 
 def _build_kinematic_region(version, lj, met, rpl='normal', stream='jet'):
@@ -87,6 +89,7 @@ def _build_kinematic_region(version, lj, met, rpl='normal', stream='jet'):
         'replacement': rpl,
         'stream': stream,
         'boson_pt_correction': 'MARKS',
+        'tagger': 'JFC',
         }
     return default_dict
 
@@ -96,24 +99,3 @@ def _build_kinematic_region(version, lj, met, rpl='normal', stream='jet'):
 class RegionConfigError(ValueError):
     def __init__(self, message):
         super(RegionConfigError,self).__init__(message)
-
-def _get_tagger(jet_tags, tagger):
-    """
-    Figure out the tagger based on the tags used.
-    """
-    jfc_tags = {j for j in jet_tags if j.startswith('JFC')}
-    non_jfc = set(jet_tags) - jfc_tags - set(['NOTAG'])
-    if tagger:
-        if jfc_tags or non_jfc:
-            raise RegionConfigError(
-                "should only specify tagger when op are given")
-        return tagger
-
-    if jfc_tags and non_jfc:
-        raise RegionConfigError(
-            "can't be mixing taggers (right now), tried to use {}".format(
-                ', '.join(set(jet_tags))))
-    if jfc_tags:
-        return 'JFC'
-    else:
-        return 'CNN'

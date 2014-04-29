@@ -10,6 +10,7 @@ try:
         reg_dict['name'] = name
         reg_dict['output_name'] = 'nminus.h5'
         reg_dict['stream'] = 'FULLSIM'
+        reg_dict['save_wt2'] = True
         return reg_dict
     all_cuts = [named_region(x,d) for x,d in sbr().items()]
 except ImportError: 
