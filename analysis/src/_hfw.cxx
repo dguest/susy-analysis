@@ -90,10 +90,8 @@ static bool safe_copy(PyObject* dict, RegionConfig& region)
   REQUIRE(second_jet_pt);
   COPY(met);
   REQUIRE(max_signal_jets);
-  COPY(jet_tag_requirements);
   COPY(hists);
-  COPY(tagger);
-  COPY(jet_tag_assignment);
+  REQUIRE(tagger);
   COPY(boson_pt_correction);
   REQUIRE(save_wt2);
 
@@ -159,11 +157,6 @@ static bool safe_copy(PyObject* value, reg::Selection& dest) {
   NAME_TO_PREFIXED(Selection, CR_W);
   NAME_TO_PREFIXED(Selection, CR_T);
 
-  // untagged (maybe also looser)
-  NAME_TO_PREFIXED(Selection, CR_1L);
-  NAME_TO_PREFIXED(Selection, CR_SF);
-  NAME_TO_PREFIXED(Selection, CR_DF);
-
   NAME_TO_PREFIXED(Selection, QUALITY_EVENT);
 
   std::string problem = "got undefined selection: " + name;
@@ -201,57 +194,19 @@ static bool safe_copy(PyObject* value, reg::Stream& dest) {
     }		 \
   } while (0)
 
-
-static bool safe_copy(PyObject* value, btag::OperatingPoint& dest) {
-  char* charname = PyUnicode_AsUTF8(value);
-  if (PyErr_Occurred()) return false;
-  std::string name(charname);
-  using namespace btag;
-
-  NAME_TO_PREFIXED(OperatingPoint, NOTAG);
-  NAME_TO_PREFIXED(OperatingPoint, LOOSE);
-  NAME_TO_PREFIXED(OperatingPoint, MEDIUM);
-  NAME_TO_PREFIXED(OperatingPoint, TIGHT);
-  NAME_TO_PREFIXED(OperatingPoint, ANTILOOSE);
-
-  NAME_TO_PREFIXED(OperatingPoint, JFC_LOOSE);
-  NAME_TO_PREFIXED(OperatingPoint, JFC_MEDIUM);
-  NAME_TO_PREFIXED(OperatingPoint, JFC_TIGHT);
-  NAME_TO_PREFIXED(OperatingPoint, JFC_ANTILOOSE);
-
-  std::string problem = "got undefined op: " + name;
-  PyErr_SetString(PyExc_ValueError,problem.c_str());
-  return false;
-}
-
 static bool safe_copy(PyObject* value, btag::Tagger& dest) {
   char* charname = PyUnicode_AsUTF8(value);
   if (PyErr_Occurred()) return false;
   std::string name(charname);
   using namespace btag;
 
-  NAME_TO_PREFIXED(Tagger, CNN);
+  NAME_TO_PREFIXED(Tagger, NONE);
   NAME_TO_PREFIXED(Tagger, JFC);
 
   std::string problem = "got undefined tagger: " + name;
   PyErr_SetString(PyExc_ValueError,problem.c_str());
   return false;
 }
-
-static bool safe_copy(PyObject* value, btag::Assignment& dest) {
-  char* charname = PyUnicode_AsUTF8(value);
-  if (PyErr_Occurred()) return false;
-  std::string name(charname);
-  using namespace btag;
-
-  NAME_TO_PREFIXED(Assignment, PT_ORDERED);
-  NAME_TO_PREFIXED(Assignment, TAG_ORDERED);
-
-  std::string problem = "got undefined tagging assignment: " + name;
-  PyErr_SetString(PyExc_ValueError,problem.c_str());
-  return false;
-}
-
 
 static bool safe_copy(PyObject* value, reg::Type& dest) {
   char* charname = PyUnicode_AsUTF8(value);

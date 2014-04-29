@@ -38,11 +38,9 @@ NMinus1Histograms
   m_make_lepton_plots(false),
   m_make_dilep_plots(false)
 {
-  std::set<reg::Selection> onelep_regions {
-    reg::Selection::CR_1L, reg::Selection::CR_W};
+  std::set<reg::Selection> onelep_regions {reg::Selection::CR_W};
   std::set<reg::Selection> dilep_regions {
-    reg::Selection::CR_SF, reg::Selection::CR_DF,
-      reg::Selection::CR_Z, reg::Selection::CR_T,
+    reg::Selection::CR_Z, reg::Selection::CR_T,
       reg::Selection::QUALITY_EVENT};
   auto lepton_regions(onelep_regions);
   lepton_regions.insert(dilep_regions.begin(), dilep_regions.end());
@@ -100,21 +98,27 @@ void NMinus1Histograms::fill(const EventObjects& obj) {
   if (! (m_build_flags & buildflag::is_data)) {
     // TODO: move this into a function, it should work fine with the region
     // config and the EventObjects
+
     // --- apply scalefactors ---
     auto syst = m_region_config->systematic;
-    size_t n_jets = std::min(2UL, obj.jets.size());
-    for (size_t jn = 0; jn < n_jets; jn++) {
-      auto jet_wt = obj.jets.at(jn).get_scalefactor(syst);
-      // hack to deal with jets outside |eta| > 2.5
-      if (std::isinf(jet_wt)) jet_wt = 1.0;
-      weight *= jet_wt;
+
+    if (m_region_config->tagger == btag::Tagger::JFC) {
+      size_t n_jets = std::min(2UL, obj.jets.size());
+      for (size_t jn = 0; jn < n_jets; jn++) {
+	auto jet_wt = obj.jets.at(jn).get_scalefactor(syst);
+	// hack to deal with jets outside |eta| > 2.5
+	if (std::isinf(jet_wt)) jet_wt = 1.0;
+	weight *= jet_wt;
+      }
     }
     weight *= obj.event_scalefactors->get_sf(EventSyst::ELECTRON, syst);
     weight *= obj.event_scalefactors->get_sf(EventSyst::MUON, syst);
     if (m_region_config->boson_pt_correction == reg::MARKS) {
       weight *= obj.marks_boson_pt_weight;
     }
+
     // --- end of scalefactors ---
+
   }
 
   const TVector2& met = obj.met;
@@ -181,7 +185,7 @@ void NMinus1Histograms::write_to(H5::CommonFG& file) const {
 }
 
 namespace nminus {
-
+  void add_tagging_cuts(std::map<std::string, Selection>& sel);
   // _______________________________________________________________________
   // cut adding fucntions (shouldn't call each other)
 
@@ -195,6 +199,7 @@ namespace nminus {
       {jpt(1), {cfg.second_jet_pt, INFINITY, Selection::Missing::ACCEPT} },
       {MET, {cfg.met, INFINITY} },
     };
+
     // SJET_RANGE goes from -0.5, so we only show a limit if the max jets
     // are < the range (i.e. 0 to 7 is a range of 8, don't show if max is 8)
     if (cfg.max_signal_jets < SJET_RANGE) {
@@ -205,6 +210,13 @@ namespace nminus {
 	" the 'infinite' value of " + std::to_string(SJET_INF_THRESHOLD));
     } else {
       sel[NSJET] = {MIN_SIGNAL_JETS - 0.5, INFINITY};
+    }
+
+    // add tagging cuts
+    if (cfg.tagger == btag::Tagger::JFC) {
+      add_tagging_cuts(sel);
+    } else if (cfg.tagger != btag::Tagger::NONE) {
+      throw std::invalid_argument("tagger isn't going to work");
     }
     return sel;
   }
@@ -273,36 +285,18 @@ namespace nminus {
     switch (cfg.selection) {
     case reg::Selection::SIGNAL: {
       add_sr_cuts(sel);
-      add_tagging_cuts(sel);
       return sel;
     }
-      // tagged control selections
+      // control / validation regions
     case reg::Selection::CR_W: {
       add_1l_cuts(sel);
-      add_tagging_cuts(sel);
       return sel;
     }
     case reg::Selection::CR_Z: {
       add_sf_cuts(sel);
-      add_tagging_cuts(sel);
       return sel;
     }
     case reg::Selection::CR_T: {
-      add_df_cuts(sel);
-      add_tagging_cuts(sel);
-      return sel;
-    }
-
-      // untagged control selections
-    case reg::Selection::CR_1L: {
-      add_1l_cuts(sel);
-      return sel;
-    }
-    case reg::Selection::CR_SF: {
-      add_sf_cuts(sel);
-      return sel;
-    }
-    case reg::Selection::CR_DF: {
       add_df_cuts(sel);
       return sel;
     }
@@ -318,16 +312,9 @@ namespace nminus {
   ISelection* selection_factory(const RegionConfig& cfg) {
     switch (cfg.selection) {
     case reg::Selection::SIGNAL: return new NMinusSignalSelection(cfg);
-
-    case reg::Selection::CR_W:	// fallthrough
-    case reg::Selection::CR_1L: return new NMinusCR1LSelection(cfg);
-
-    case reg::Selection::CR_Z:	// fallthrough
-    case reg::Selection::CR_SF: return new NMinusCRZSelection(cfg);
-
-    case reg::Selection::CR_T:	// fallthrough
-    case reg::Selection::CR_DF: return new NMinusOSDFSelection(cfg);
-
+    case reg::Selection::CR_W: return new NMinusCR1LSelection(cfg);
+    case reg::Selection::CR_Z: return new NMinusCRZSelection(cfg);
+    case reg::Selection::CR_T: return new NMinusOSDFSelection(cfg);
     case reg::Selection::QUALITY_EVENT: return new QualityEventSelection(cfg);
     default: throw std::invalid_argument("unknown selection in " __FILE__);
     }
