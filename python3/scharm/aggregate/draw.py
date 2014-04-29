@@ -126,6 +126,20 @@ class Stack:
             last_plot = tmp_sum
             self._sm_total += float(hist)
 
+    def add_syst2(self, hist_list):
+        sum_syst2 = None
+        for hist in hist_list:
+            if sum_syst2 is None:
+                sum_syst2 = hist
+            else:
+                sum_syst2 += hist
+        x_vals, y_vals = sum_syst2.get_xy_step_pts()
+        rel_sys_err = y_vals**0.5 / self._y_sum_step
+        if self.ratio:
+            self.ratio.fill_between(
+                x_vals, 1 - rel_sys_err, 1 + rel_sys_err,
+                facecolor=self._cut_fill)
+
     def add_signals(self, hist_list):
         color_itr = iter(self.colors)
         for hist in hist_list:

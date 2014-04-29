@@ -3,7 +3,7 @@ Top level drawing routines for stack plots.
 """
 
 from scharm import style, hists
-from scharm.schema import wt2_ext
+from scharm.schema import wt2_ext, sys2_ext
 from os.path import isdir, join
 from scharm.aggregate.draw import Stack, Hist2d, Hist1d
 import os
@@ -17,7 +17,13 @@ def make_plots(plots_dict, misc_info, log=False):
     converter = HistConverter(misc_info)
     converter.appended_evt_str = None
     for tup, hist in plots_dict.items():
-        hist1_dict.update(converter.h1dict_from_histn(tup, histn=hist))
+        proc, var, reg = tup
+        if var.endswith(wt2_ext) or var.endswith(sys2_ext):
+            continue
+        sys_tup = (proc, var + sys2_ext, reg)
+        stat_tup = (proc, var + wt2_ext, reg)
+        for addr in [tup, sys_tup, stat_tup]:
+            hist1_dict.update(converter.h1dict_from_histn(addr, histn=hist))
         hist2_dict.update(converter.h2dict_from_histn(tup, histn=hist))
 
     printer = StackPlotPrinter(misc_info)
@@ -45,10 +51,6 @@ class HistConverter:
         """
         physics, variable, cut = pvc
         hdict = {}
-        # TODO: come up with a more clever way to include the stat error
-        # for right now we're ignoring it
-        if variable.endswith(wt2_ext):
-            return hdict
         if len(histn.axes) == 1:
             # for the simple case call the simple 1d formatter
             hdict[pvc] = self._hist1_from_histn(pvc, histn=histn)
@@ -123,8 +125,12 @@ class HistConverter:
 
         hist = Hist1d(y_vals, extent, x_label=x_label, x_units=x_units,
                       y_label='Events')
-        if variable in style.crop_vars:
-            hist.crop(*style.crop_vars[variable])
+        crop_var = variable
+        for ext in wt2_ext, sys2_ext:
+            if variable.endswith(ext):
+                crop_var = variable[:-len(ext)]
+        if crop_var in style.crop_vars:
+            hist.crop(*style.crop_vars[crop_var])
         hist.selection = selection
         max_bins = style.rebinning.get(cut,30)
         hist.rebin(max_bins=max_bins)
@@ -183,11 +189,21 @@ class StackPlotPrinter:
         self._signal_colors = style.get_signal_colors(theme)
 
     def _info_generator(self, data, mc, signal):
-        for id_tup in mc.keys():
+        keys = []
+        for key in mc.keys():
+            bads = [key[0].endswith(wt2_ext), key[0].endswith(sys2_ext)]
+            if not any(bads):
+                keys.append(key)
+
+        for id_tup in keys:
+            def ap_var(suffix):
+                return id_tup[0] + suffix, id_tup[1]
             obj = StackInfo()
 
             obj.variable, obj.cut = id_tup
             obj.bgs = mc[id_tup]
+            obj.wt2 = mc[ap_var(wt2_ext)]
+            obj.syst2 = mc[ap_var(sys2_ext)]
             obj.signals = signal.get(id_tup)
             obj.data = data.get(id_tup)
 
@@ -249,6 +265,10 @@ def _print_plot(obj):
         stack.add_signals(obj.signals)
     if obj.data:
         stack.add_data(obj.data)
+    if obj.syst2 and obj.wt2:
+        stack.add_syst2(obj.syst2 + obj.wt2)
+    if obj.wt2:
+        stack.add_syst2(obj.wt2)
     stack.set_selection_colors(*obj.selection_colors)
     stack.add_legend()
     if not isdir(save_dir):
