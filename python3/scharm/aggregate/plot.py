@@ -273,6 +273,7 @@ def _print_plot(obj):
     stack.add_legend()
     if not isdir(save_dir):
         os.makedirs(save_dir)
+    style.customize_stack(stack, variable)
     stack.save(save_name)
 
 # __________________________________________________________________________

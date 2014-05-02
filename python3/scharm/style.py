@@ -184,7 +184,8 @@ _fuzzy_matches = [
     _make_jet_matcher('eta', r'$\eta$'),
     _make_jet_matcher('pt', r'$p_{\mathrm{T}}$', 'GeV'),
     _make_jet_matcher('antib', r'JFC $\log (c / b)$'),
-    _make_jet_matcher('antiu', r'JFC $\log (c / u)$')
+    _make_jet_matcher('antiu', r'JFC $\log (c / u)$'),
+    _make_jet_matcher('flavor_truth_label', r'flavor truth label'),
     ]
 
 _shorthand = dict(
@@ -225,6 +226,14 @@ crop_vars = {
     'n_signal_jets': (1.5, 10.5),
 }
 
+# ________________________________________________________________________
+# misc top level stack plotting tweaks
+
+def customize_stack(stack, var_name):
+    if var_name.endswith('flavor_truth_label'):
+        stack.ax.set_xticks([0, 1, 2, 3])
+        stack.ax.set_xticklabels(['light', 'charm', 'bottom', 'tau'])
+        stack.ax.set_ylabel('Jets')
 # ________________________________________________________________________
 # rebinning
 rebinning = {
