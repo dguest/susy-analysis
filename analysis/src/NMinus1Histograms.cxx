@@ -8,6 +8,7 @@
 #include "CRZSelection.hh"
 #include "QualityEventSelection.hh"
 #include "typedefs.hh"
+#include "Flavor.hh"
 #include "RegionConfig.hh"
 #include "EventObjects.hh"
 #include "EventScalefactors.hh"
@@ -65,6 +66,9 @@ NMinus1Histograms
 			 sel, hf);
     m_hists.emplace_back(Axis{jantib(jn), 300, -7.5, 7.5}, sel, hf);
     m_hists.emplace_back(Axis{jantiu(jn), 300, -7.5, 7.5}, sel, hf);
+    if (config.stream == reg::Stream::SIMULATED) {
+      m_hists.emplace_back(Axis{jftl(jn), 4, -0.5, 3.5}, sel, hf);
+    }
   }
 
   if (m_make_lepton_plots) {
@@ -85,6 +89,8 @@ NMinus1Histograms::~NMinus1Histograms() {
 namespace nminus {
   void insert_jets(const std::vector<Jet>&,
 		   std::map<std::string, double>& values);
+  void insert_jet_ftl(const std::vector<Jet>&,
+		      std::map<std::string, double>& values);
   void throw_if_nan(const std::map<std::string, double>& values);
 }
 
@@ -95,7 +101,9 @@ void NMinus1Histograms::fill(const EventObjects& obj) {
   if (!m_selection->pass(obj)) return;
 
   double weight = obj.weight;
-  if (! (m_build_flags & buildflag::is_data)) {
+  // TODO: use the stream and remove build_flags
+  bool is_mc = !(m_build_flags & buildflag::is_data);
+  if (is_mc) {
     // TODO: move this into a function, it should work fine with the region
     // config and the EventObjects
 
@@ -134,6 +142,7 @@ void NMinus1Histograms::fill(const EventObjects& obj) {
   };
 
   insert_jets(obj.jets, values);
+  if (is_mc) insert_jet_ftl(obj.jets, values);
 
   if (m_make_lepton_plots) {
     values.insert( { {LLPT, reco.max_lepton_pt}, {MT, reco.mt} } );
@@ -165,6 +174,26 @@ namespace nminus {
       jn++;
     }
   } // end insert_jets
+  int condensed_ftl(Flavor flavor) {
+    switch(flavor) {
+    case Flavor::LIGHT: return 0;
+    case Flavor::CHARM: return 1;
+    case Flavor::BOTTOM: return 2;
+    case Flavor::TAU: return 3;
+    default: throw std::invalid_argument("bad ftl");
+    }
+  }
+  void insert_jet_ftl(const std::vector<Jet>& jets,
+		      std::map<std::string, double>& values) {
+    int jn = 0;
+    for (const auto& jet: jets) {
+      Flavor flavor = jet.flavor_truth_label();
+      int flav_bin = condensed_ftl(flavor);
+      values[jftl(jn)] = flav_bin;
+
+      jn++;
+    }
+  }
   void throw_if_nan(const std::map<std::string, double>& values) {
     for (const auto itr: values) {
       if (std::isnan(itr.second)) {
@@ -332,7 +361,9 @@ namespace nminus {
   std::string jantiu(int jn) {
     return "j" + std::to_string(jn) + "_antiu";
   }
-
+  std::string jftl(int jn) {
+    return "j" + std::to_string(jn) + "_" + FTL;
+  }
 
 
 }

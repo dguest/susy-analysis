@@ -36,12 +36,15 @@ namespace nminus {
   const std::string MT = "mass_t";
   const std::string MLL = "mass_ll";
   const std::string NSJET = "n_signal_jets";
+  // used by the jet naming routines
+  const std::string FTL = "flavor_truth_label";
 
   // naming functions
   std::string jeta(int jn);
   std::string jpt(int jn);
   std::string jantib(int jn);
   std::string jantiu(int jn);
+  std::string jftl(int jn);
 
 };
 
