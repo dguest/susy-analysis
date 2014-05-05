@@ -27,9 +27,9 @@ namespace object {
   Muons control_muons(const Muons& muons) {
     Muons out;
     for (auto mu: muons) {
-      bool control_pt = mu->Pt() > CONTROL_MUON_PT;
-      bool iso = mu->isolation() < CONTROL_MUON_ISOLATION;
-      if ( control_pt && iso ) {
+      // bool control_pt = mu->Pt() > CONTROL_MUON_PT;
+      // bool iso = mu->isolation() < CONTROL_MUON_ISOLATION;
+      if ( mu->is_signal() ) {
 	out.push_back(mu);
       }
     }

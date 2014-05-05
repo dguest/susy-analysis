@@ -132,7 +132,12 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br):
   SET(fChain,mu_staco_pt);
   SET(fChain,mu_staco_eta);
   SET(fChain,mu_staco_phi);
-  SET(fChain,mu_staco_ptcone20);
+  // SET(fChain,mu_staco_ptcone20);
+  SET(fChain,mu_staco_ptcone30_trkelstyle);
+  SET(fChain,mu_staco_etcone30);
+  SET(fChain,mu_staco_trackIPEstimate_d0_unbiasedpvunbiased);
+  SET(fChain,mu_staco_trackIPEstimate_z0_unbiasedpvunbiased);
+  SET(fChain,mu_staco_trackIPEstimate_sigd0_unbiasedpvunbiased);
   SET(fChain,mu_staco_charge);
   SET(fChain,mu_staco_isCombinedMuon);
   SET(fChain,mu_staco_isSegmentTaggedMuon);

@@ -57,7 +57,8 @@ class Muon: public TLorentzVector
 public:
   Muon(const EventMuons* container, int index);
   bool pass_susy() const;
-  double isolation() const;
+  bool is_signal() const;
+  // double isolation() const;
   int index() const;
   float charge() const;
   float id_sf() const;
@@ -68,7 +69,8 @@ public:
   bool dilep_trigger() const;
 private:
   bool m_pass_susy;
-  double m_isolation;
+  bool m_signal;
+  // double m_isolation;
   int m_index;
   float m_charge;
   float m_id_sf;

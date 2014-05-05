@@ -168,7 +168,20 @@ Muon::Muon(const EventMuons* container, int index):
   const TLorentzVector& tlv = def->GetMuonTLV(index);
   assert(tlv.Pt() > 0);
   SetPxPyPzE(tlv.Px(), tlv.Py(), tlv.Pz(), tlv.E());
-  m_isolation = buffer->mu_staco_ptcone20->at(index);
+
+  IsSignalMuonExpCutArgs muon_exp_args;
+  muon_exp_args.ptcut(MUON_PT_CUT); // 'baseline' pt cut
+
+  m_signal = def->IsSignalMuonExp(
+    index,
+    buffer->vx_nTracks,
+    buffer->mu_staco_ptcone30_trkelstyle->at(index),
+    buffer->mu_staco_etcone30->at(index),
+    buffer->mu_staco_trackIPEstimate_d0_unbiasedpvunbiased->at(index),
+    buffer->mu_staco_trackIPEstimate_z0_unbiasedpvunbiased->at(index),
+    buffer->mu_staco_trackIPEstimate_sigd0_unbiasedpvunbiased->at(index),
+    SignalIsoExp::TightIso,
+    muon_exp_args);
   m_charge = buffer->mu_staco_charge->at(index);
   float z0 = buffer->mu_staco_z0_exPV->at(index);
   float d0 = buffer->mu_staco_d0_exPV->at(index);
@@ -215,8 +228,8 @@ Muon::Muon(const EventMuons* container, int index):
 bool Muon::pass_susy() const {
   return m_pass_susy;
 }
-double Muon::isolation() const {
-  return m_isolation;
+bool Muon::is_signal() const {
+  return m_signal;
 }
 int Muon::index() const {
   return m_index;

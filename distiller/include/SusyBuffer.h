@@ -118,7 +118,12 @@ public :
   std::vector<float>   *mu_staco_pt;
   std::vector<float>   *mu_staco_eta;
   std::vector<float>   *mu_staco_phi;
-  std::vector<float>   *mu_staco_ptcone20;
+  // std::vector<float>   *mu_staco_ptcone20;
+  std::vector<float>   *mu_staco_ptcone30_trkelstyle;
+  std::vector<float>   *mu_staco_etcone30;
+  std::vector<float>   *mu_staco_trackIPEstimate_d0_unbiasedpvunbiased;
+  std::vector<float>   *mu_staco_trackIPEstimate_z0_unbiasedpvunbiased;
+  std::vector<float>   *mu_staco_trackIPEstimate_sigd0_unbiasedpvunbiased;
   std::vector<float>   *mu_staco_charge;
   std::vector<int>     *mu_staco_isCombinedMuon;
   std::vector<int>     *mu_staco_isSegmentTaggedMuon;
