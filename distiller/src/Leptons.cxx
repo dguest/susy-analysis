@@ -102,7 +102,6 @@ bool Electron::pass_susy() const {
   return m_pass_susy;
 }
 bool Electron::is_signal() const {
-  assert(false);
   return m_is_signal;
 }
 // double Electron::rel_isolation() const {
