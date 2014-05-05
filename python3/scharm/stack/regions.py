@@ -69,6 +69,7 @@ def sbottom_regions():
         sbottom[cr.lower()] =  _sbottom_region(cr,'lepton')
     sbottom['preselection'] = _build_kinematic_region(
         'QUALITY_EVENT', 50, 150, stream='all')
+    sbottom['met'] = _build_kinematic_region('VR_MET', lj=50, met=150)
     return sbottom
 
 def _sbottom_region(version, stream):

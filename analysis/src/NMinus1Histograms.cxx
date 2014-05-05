@@ -7,6 +7,7 @@
 #include "OSSFSelection.hh"
 #include "CRZSelection.hh"
 #include "QualityEventSelection.hh"
+#include "MetSelection.hh"
 #include "typedefs.hh"
 #include "Flavor.hh"
 #include "RegionConfig.hh"
@@ -329,7 +330,7 @@ namespace nminus {
       add_df_cuts(sel);
       return sel;
     }
-
+    case reg::Selection::VR_MET: // fallthrough
     case reg::Selection::QUALITY_EVENT: {
       add_presel_cuts(sel);
       return sel;
@@ -345,6 +346,7 @@ namespace nminus {
     case reg::Selection::CR_Z: return new NMinusCRZSelection(cfg);
     case reg::Selection::CR_T: return new NMinusOSDFSelection(cfg);
     case reg::Selection::QUALITY_EVENT: return new QualityEventSelection(cfg);
+    case reg::Selection::VR_MET: return new MetSelection(cfg);
     default: throw std::invalid_argument("unknown selection in " __FILE__);
     }
   }

@@ -76,7 +76,7 @@ GEN_OBJ     += EventScalefactors.o
 GEN_OBJ     += NMinusHist.o
 
 # selection classes
-GEN_OBJ     += QualityEventSelection.o
+GEN_OBJ     += QualityEventSelection.o MetSelection.o
 GEN_OBJ     += SignalSelection.o CR1LSelection.o
 GEN_OBJ     += OSDFSelection.o OSSFSelection.o
 GEN_OBJ     += CRZSelection.o
