@@ -5,29 +5,29 @@
 
 Analysis::Uncertainty get_unct(btag::Uncertainty);
 
+// TODO: simplify this, we never actually use both CNN and JFC at the same
+// time and never will. Could probably just replace it with the scharm
+// cutflow class.
+
 BtagCalibration::BtagCalibration(std::string clb_file,
 				 std::string file_path):
   m_cnn(0),
-  m_jet_author("AntiKt4TopoLCJVF")
+  m_jet_author("AntiKt4TopoLCJVF0_5")
 {
   using namespace btag;
   if (clb_file.size() && file_path.size()) {
-    m_cnn = new CDI("JetFitterCOMBCharm", clb_file, file_path);
+    m_cnn = new CDI("JetFitterCharm", clb_file, file_path);
   }
-  m_ops[CNN_LOOSE] = "-1_0_0_0";
-  m_ops[CNN_MEDIUM] = "-1_0_-0_82";
-  m_ops[CNN_TIGHT] = "-1_0_1_0";
+  m_ops[CNN_LOOSE] = "-0_9_NONE";
+  m_ops[CNN_MEDIUM] = "-0_9_0_95";
   m_interfaces[CNN_LOOSE] = m_cnn;
   m_interfaces[CNN_MEDIUM] = m_cnn;
-  m_interfaces[CNN_TIGHT] = m_cnn;
 
   // ACHTUNG: these are hacks until we get a better CDI
   m_ops[JFC_LOOSE] = m_ops[CNN_LOOSE];
   m_ops[JFC_MEDIUM] = m_ops[CNN_MEDIUM];
-  m_ops[JFC_TIGHT] = m_ops[CNN_TIGHT];
   m_interfaces[JFC_LOOSE] = m_cnn;
   m_interfaces[JFC_MEDIUM] = m_cnn;
-  m_interfaces[JFC_TIGHT] = m_cnn;
 
   if (m_cnn) {
     check_cdi();
@@ -130,7 +130,8 @@ void BtagCalibration::check_cdi() const {
     if (! m_cnn->getBinnedScaleFactors(m_jet_author,
 				       get_label(btag::B),
 				       itr->second)) {
-      throw std::runtime_error("btag calibration information not found");
+      throw std::runtime_error(
+	"btag calibration information not found for " + itr->second);
     }
   }
 }

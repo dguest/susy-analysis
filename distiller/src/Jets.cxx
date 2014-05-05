@@ -153,10 +153,8 @@ void SelectedJet::set_flavor_tag(const BtagCalibration* cal){
       m_flavor_truth_label);
     throw std::runtime_error(err);
   }
-  set_flavor_tag(flavor, btag::CNN_TIGHT, cal);
   set_flavor_tag(flavor, btag::CNN_MEDIUM, cal);
   set_flavor_tag(flavor, btag::CNN_LOOSE, cal);
-  set_flavor_tag(flavor, btag::JFC_TIGHT, cal);
   set_flavor_tag(flavor, btag::JFC_MEDIUM, cal);
   set_flavor_tag(flavor, btag::JFC_LOOSE, cal);
 }
