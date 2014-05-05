@@ -15,7 +15,7 @@ public:
   Electron(const EventElectrons* container, int index);
   bool pass_susy() const;
   bool is_signal() const;
-  double rel_isolation() const;
+  // double rel_isolation() const;
   int index() const;
   float charge() const;
   float id_sf() const;
@@ -26,7 +26,7 @@ public:
 private:
   bool m_pass_susy;
   bool m_is_signal;
-  double m_rel_isolation;
+  // double m_rel_isolation;
   int m_index;
   float m_charge;
   float m_id_sf;

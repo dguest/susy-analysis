@@ -36,20 +36,22 @@ Electron::Electron(const EventElectrons* container, int index):
   SetPxPyPzE(tlv.Px(), tlv.Py(), tlv.Pz(), tlv.E());
 
   m_tight_pp = buffer->el_tightPP->at(index);
-  // ACHTUNG: this block is removed until we fix the trackz0pv
-  // variable in the skims
-  m_is_signal = def->IsSignalElectron
+
+  IsSignalElectronExpCutArgs signal_el_exp_args;
+  signal_el_exp_args.etcut(ELECTRON_ET_CUT); // 'baseline' pt cut
+  m_is_signal = def->IsSignalElectronExp
     (index,
      m_tight_pp,
-     buffer->el_ptcone20 ->at(index),
-     buffer->el_trackd0pv->at(index),
-     buffer->el_trackz0pv->at(index),
-     SIGNAL_ELECTRON_ET_CUT,
-     SIGNAL_ELECTRON_ISO_CUT,
-     SIGNAL_ELECTRON_D0_CUT,
-     SIGNAL_ELECTRON_Z0_CUT);
+     buffer->vx_nTracks,
+     buffer->el_ptcone30 ->at(index),
+     buffer->el_topoEtcone30_corrected->at(index),
+     buffer->el_trackIPEstimate_d0_unbiasedpvunbiased->at(index),
+     buffer->el_trackIPEstimate_z0_unbiasedpvunbiased->at(index),
+     buffer->el_trackIPEstimate_sigd0_unbiasedpvunbiased->at(index),
+     SignalIsoExp::TightIso,
+     signal_el_exp_args);
 
-  m_rel_isolation = buffer->el_ptcone20->at(index) / Pt();
+  // m_rel_isolation = buffer->el_ptcone20->at(index) / Pt();
   m_charge = buffer->el_charge->at(index);
 
   if (m_pass_susy) {
@@ -103,9 +105,9 @@ bool Electron::is_signal() const {
   assert(false);
   return m_is_signal;
 }
-double Electron::rel_isolation() const {
-  return m_rel_isolation;
-}
+// double Electron::rel_isolation() const {
+//   return m_rel_isolation;
+// }
 float Electron::charge() const {
   return m_charge;
 }
@@ -314,7 +316,7 @@ bool el_size_check(const SusyBuffer& buffer) {
   CHECK_SIZE(buffer.el_nSCTHits  , buffer.el_n);
   CHECK_SIZE(buffer.el_MET_Egamma10NoTau_wet, buffer.el_n);
   CHECK_SIZE(buffer.el_tightPP   , buffer.el_n);
-  CHECK_SIZE(buffer.el_ptcone20  , buffer.el_n);
+  CHECK_SIZE(buffer.el_ptcone30  , buffer.el_n);
   // CHECK_SIZE(buffer.el_trackd0pv , buffer.el_n);
   // CHECK_SIZE(buffer.el_trackz0pv , buffer.el_n);
   return true;

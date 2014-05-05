@@ -110,10 +110,15 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br):
   SET(fChain,el_OQ);
   SET(fChain,el_mediumPP);
   SET(fChain,el_tightPP); // for IsSignal
-  SET(fChain,el_ptcone20); // for IsSignal
+  // SET(fChain,el_ptcone20); // for IsSignal
+  SET(fChain,el_ptcone30); // for IsSignal
+  SET(fChain,el_topoEtcone30_corrected); // for IsSignal
+  SET(fChain,el_trackIPEstimate_d0_unbiasedpvunbiased); // for IsSignal
+  SET(fChain,el_trackIPEstimate_z0_unbiasedpvunbiased); // for IsSignal
+  SET(fChain,el_trackIPEstimate_sigd0_unbiasedpvunbiased); // for IsSignal
   // ACHTUNG: these were removed because of a bad skim...
-  SET(fChain,el_trackd0pv); // for IsSignal
-  SET(fChain,el_trackz0pv); // for IsSignal
+  // SET(fChain,el_trackd0pv); // for IsSignal
+  // SET(fChain,el_trackz0pv); // for IsSignal
   SET(fChain,el_charge);
   SET(fChain,el_cl_E);
   SET(fChain,el_cl_eta);

@@ -13,10 +13,11 @@ namespace object {
   Electrons control_electrons(const Electrons& electrons) {
     Electrons out;
     for (auto el: electrons) {
-      bool tight_pp = el->tightpp();
-      bool control_pt = el->Pt() > CONTROL_ELECTRON_PT;
-      bool rel_iso = el->rel_isolation() < CONTROL_ELECTRON_REL_ISOLATION;
-      if (control_pt && tight_pp && rel_iso) {
+      // bool tight_pp = el->tightpp();
+      // bool control_pt = el->Pt() > CONTROL_ELECTRON_PT;
+      // bool rel_iso = el->rel_isolation() < CONTROL_ELECTRON_REL_ISOLATION;
+      bool pass_signal_exp = el->is_signal();
+      if (pass_signal_exp) {
 	out.push_back(el);
       }
     }
