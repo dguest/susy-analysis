@@ -125,6 +125,10 @@ def setup_distill(config, input_files):
             'JESUP', 'JESDOWN', 'JER',
             'METUP', 'METDOWN', 'METRES'
             ]
+        ud_systs = [
+            'EGZEE', 'EGMAT', 'EGPS', 'EGLOW', 'EGRES',
+            'MMS', 'MID', 'MSCALE']
+        systematics += [s + e for s in ud_systs for e in ['UP','DOWN']]
 
     submit_head = _get_submit_head(**sub_dict)
 
