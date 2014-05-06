@@ -164,7 +164,10 @@ echo 'submitted from: ' $PBS_O_WORKDIR
 
 """
 
-_submit_head = _short_subhead + "files=($(ls {in_dir}/*{in_ext} | sort))\n"
+# do fullsim first
+_sortstr = "sed 's/^s/0/' | sort | sed 's/^0/s/' | sort"
+_file_getter = "files=($(ls {in_dir}/*{in_ext} | " + _sortstr + "))\n"
+_submit_head = _short_subhead + _file_getter
 
 def _get_submit_head(n_jobs, out_dir, short=False, **args):
     default_args = dict(
