@@ -12,8 +12,6 @@ import re
 import yaml
 import warnings
 
-_sys_choices = {'NONE', 'JESUP', 'JESDOWN', 'JER',
-                'METUP', 'METDOWN', 'METRES'}
 def _get_config():
     d = 'default: %(default)s'
     c = "with no argument is '%(const)s'"
@@ -25,8 +23,7 @@ def _get_config():
         '-o', '--output-dir', default='ntuples',
         help='where the outputs go, ' + d)
     parser.add_argument(
-        '-s', '--systematic', choices=_sys_choices,
-        help=d, default='NONE')
+        '-s', '--systematic', help=d, default='NONE')
     parser.add_argument(
         '-c', '--calibration', default='~/calibration', help=d)
     parser.add_argument('-i', '--more-info', action='store_true')
