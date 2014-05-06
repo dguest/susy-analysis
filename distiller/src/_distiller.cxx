@@ -162,6 +162,8 @@ static bool safe_copy(PyObject* value, std::string& dest) {
     }						\
   } while (false)
 
+// black magic!
+#define TRY_UD(value) TRY_VAL(value ## UP); TRY_VAL(value ## DOWN)
 
 static bool safe_copy(PyObject* value, systematic::Systematic& dest) {
   char* sysname = PyString_AsString(value);
@@ -177,12 +179,22 @@ static bool safe_copy(PyObject* value, systematic::Systematic& dest) {
   TRY_VAL(METDOWN);
   TRY_VAL(METRES);
 
+  TRY_UD(EGZEE);
+  TRY_UD(EGMAT);
+  TRY_UD(EGPS);
+  TRY_UD(EGLOW);
+  TRY_UD(EGRES);
+  TRY_UD(MMS);
+  TRY_UD(MID);
+  TRY_UD(MSCALE);
+
   std::string problem = "got undefined systematic: " + name;
   PyErr_SetString(PyExc_ValueError,problem.c_str());
   return false;
 
 }
 #undef TRY_VAL
+#undef TRY_UD
 
 #define TRY_VAL(NAMESPACE, value)		\
   do {					\

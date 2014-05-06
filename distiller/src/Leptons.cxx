@@ -13,7 +13,8 @@
 #include "SUSYTools/SUSYObjDef.h"
 #include "egammaAnalysisUtils/egammaTriggerMatching.h"
 
-
+// forward declare of smearing translator
+SystErr::Syste get_susytools_syste(systematic::Systematic);
 
 //______________________________________________________________
 // lepton classes
@@ -367,3 +368,28 @@ bool check_if_muon(int iMu,
 
 }
 
+// smearing translator
+SystErr::Syste get_susytools_syste(systematic::Systematic syst){
+  switch (syst) {
+
+#define STANDARD(SYSNAME) \
+  case systematic::SYSNAME ## UP: return SystErr::SYSNAME ## UP;	\
+  case systematic::SYSNAME ## DOWN: return SystErr::SYSNAME ## DOWN
+
+#define RPLLOWDOWN(SYSNAME) \
+  case systematic::SYSNAME ## UP: return SystErr::SYSNAME ## UP;	\
+  case systematic::SYSNAME ## DOWN: return SystErr::SYSNAME ## LOW
+
+    STANDARD(EGZEE);
+    STANDARD(EGMAT);
+    STANDARD(EGPS);
+    STANDARD(EGLOW);
+    STANDARD(EGRES);
+    RPLLOWDOWN(MMS);
+    RPLLOWDOWN(MID);
+    RPLLOWDOWN(MSCALE);
+
+  default: return SystErr::NONE;
+
+  }
+}
