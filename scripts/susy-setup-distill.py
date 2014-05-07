@@ -33,8 +33,10 @@ def get_config():
         default='sharktopus.sh')
     parser.add_argument('-p', '--build-prw', action='store_true')
     parser.add_argument('-a', '--aggressive', action='store_true')
-    parser.add_argument('-y', '--systematics', action='store_true',
+    syslev = parser.add_mutually_exclusive_group()
+    syslev.add_argument('-y', '--systematics', action='store_true',
                         help='enable systematics')
+    syslev.add_argument('--all-systematics', action='store_true')
     return parser.parse_args(sys.argv[1:])
 
 def run():
@@ -116,19 +118,17 @@ def setup_distill(config, input_files):
         'out_dir': 'output/distill',
         'in_dir': in_dir,
         'in_ext': '.txt',
-        'walltime': '00:03:00:00'
+        'walltime': '00:08:00:00'
         }
 
     systematics = ['NONE']
-    if config.systematics:
-        systematics += [
-            'JESUP', 'JESDOWN', 'JER',
-            'METUP', 'METDOWN', 'METRES'
-            ]
-        ud_systs = [
-            'EGZEE', 'EGMAT', 'EGPS', 'EGLOW', 'EGRES',
-            'MMS', 'MID', 'MSCALE']
-        systematics += [s + e for s in ud_systs for e in ['UP','DOWN']]
+    ud_systs = []
+    if config.systematics or config.all_systematics:
+        systematics += ['JER','METRES']
+        ud_systs += ['JES', 'MET','EGZEE', 'EGLOW', 'MSCALE']
+    if config.all_systematics:
+        ud_systs += ['EGMAT', 'EGPS', 'EGRES', 'MMS', 'MID']
+    systematics += [s + e for s in ud_systs for e in ['UP','DOWN']]
 
     submit_head = _get_submit_head(**sub_dict)
 

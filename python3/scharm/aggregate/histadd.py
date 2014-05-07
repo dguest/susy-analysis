@@ -100,7 +100,7 @@ def _get_missing_subfiles(file_group):
         if not len(total_set) == 1:
             gname = file_group[0].split('-')[0]
             raise IOError('two totals ({}) found for {}'.format(
-                    ', '.join(total_set), gname))
+                    ', '.join(str(x) for x in total_set), gname))
         if not len(numbers) == total:
             return set(range(1, total + 1)) - numbers
         return []
