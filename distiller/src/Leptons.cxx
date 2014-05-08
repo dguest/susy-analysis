@@ -162,7 +162,7 @@ Muon::Muon(const EventMuons* container, int index):
   m_pass_susy = check_if_muon(index,
 			      *buffer,
 			      *container->m_def,
-			      container->m_flags);
+			      *container->m_info);
 
   SUSYObjDef* def = container->m_def;
   const TLorentzVector& tlv = def->GetMuonTLV(index);
@@ -260,7 +260,6 @@ EventMuons::EventMuons(const SusyBuffer& buffer, SUSYObjDef& def,
 		       unsigned flags, const RunInfo& info):
   m_buffer(&buffer),
   m_def(&def),
-  m_flags(flags),
   m_info(&info)
 {
   try {
@@ -308,7 +307,8 @@ bool check_if_electron(int iEl,
      buffer.el_nSCTHits              ->at(iEl),
      buffer.el_MET_Egamma10NoTau_wet->at(iEl).at(0),
      ELECTRON_ET_CUT,			// et cut
-     ELECTRON_ETA_CUT
+     ELECTRON_ETA_CUT,
+     get_susytools_syste(info.systematic)
      );
 
   return pass_el;
@@ -338,7 +338,7 @@ bool el_size_check(const SusyBuffer& buffer) {
 bool check_if_muon(int iMu,
 		   const SusyBuffer& buffer,
 		   SUSYObjDef& def,
-		   const unsigned flags){
+		   const RunInfo& info){
 
   return def.FillMuon
     (iMu,
@@ -363,7 +363,9 @@ bool check_if_muon(int iMu,
      buffer.mu_staco_nTRTHits                     ->at(iMu),
      buffer.mu_staco_nTRTOutliers                 ->at(iMu),
      MUON_PT_CUT,
-     MUON_ETA_CUT);
+     MUON_ETA_CUT,
+     get_susytools_syste(info.systematic)
+);
   // NOTE: no muon systematics can be applied right now
 
 }

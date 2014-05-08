@@ -92,7 +92,6 @@ private:
   EventMuons(const EventMuons&) {};
   const SusyBuffer* m_buffer;
   SUSYObjDef* m_def;
-  unsigned m_flags;
   const RunInfo* m_info;
   friend class Muon;
 };
@@ -109,7 +108,7 @@ bool el_size_check(const SusyBuffer& buffer);
 bool check_if_muon(int iMu,
 		   const SusyBuffer& buffer,
 		   SUSYObjDef& def,
-		   const unsigned flags);
+		   const RunInfo& info);
 
 
 #endif // LEPTONS_H

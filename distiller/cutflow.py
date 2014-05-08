@@ -34,7 +34,7 @@ for config in configs:
         btag_cal_file='~/calibration/BTagCalibration.env',
         cal_dir='~/calibration',
         systematic='NONE',
-        # systematic='METUP',
+        # systematic='MSCALEDOWN',
         cutflow=config,
         pu_config='~/calibration/pu_config.prw.root',
         pu_lumicalc='~/calibration/pu_lumicalc.root')
