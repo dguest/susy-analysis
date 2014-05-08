@@ -9,7 +9,6 @@ int run(const char* input_file) {
 
   RegionConfig test;
   test.name = "test-histmill";
-  test.jet_tag_requirements = {btag::JFC_MEDIUM, btag::JFC_LOOSE, btag::JFC_LOOSE};
   test.leading_jet_pt = 1000;
   test.met = 1000;
   test.systematic = syst::NONE;
