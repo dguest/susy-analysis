@@ -3,6 +3,8 @@
 #include "ISelection.hh"
 #include "SignalSelection.hh"
 #include "CR1LSelection.hh"
+#include "CR1ESelection.hh"
+#include "CR1MSelection.hh"
 #include "OSDFSelection.hh"
 #include "OSSFSelection.hh"
 #include "CRZSelection.hh"
@@ -40,7 +42,8 @@ NMinus1Histograms
   m_make_lepton_plots(false),
   m_make_dilep_plots(false)
 {
-  std::set<reg::Selection> onelep_regions {reg::Selection::CR_W};
+  std::set<reg::Selection> onelep_regions {
+    reg::Selection::CR_W, reg::Selection::CR_1E, reg::Selection::CR_1M};
   std::set<reg::Selection> dilep_regions {
     reg::Selection::CR_Z, reg::Selection::CR_T,
       reg::Selection::QUALITY_EVENT};
@@ -318,6 +321,8 @@ namespace nminus {
       return sel;
     }
       // control / validation regions
+    case reg::Selection::CR_1E:	// fallthrough
+    case reg::Selection::CR_1M:	// fallthrough
     case reg::Selection::CR_W: {
       add_1l_cuts(sel);
       return sel;
@@ -343,6 +348,8 @@ namespace nminus {
     switch (cfg.selection) {
     case reg::Selection::SIGNAL: return new NMinusSignalSelection(cfg);
     case reg::Selection::CR_W: return new NMinusCR1LSelection(cfg);
+    case reg::Selection::CR_1E: return new NMinusCR1ESelection(cfg);
+    case reg::Selection::CR_1M: return new NMinusCR1MSelection(cfg);
     case reg::Selection::CR_Z: return new NMinusCRZSelection(cfg);
     case reg::Selection::CR_T: return new NMinusOSDFSelection(cfg);
     case reg::Selection::QUALITY_EVENT: return new QualityEventSelection(cfg);

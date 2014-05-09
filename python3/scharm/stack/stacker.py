@@ -94,8 +94,9 @@ class Stacker:
                 return True
             checks = {
                 'lepton': stream in {'electron', 'muon'},
-                'jet': stream == 'jet',
                 'all': True}
+            if not reg.stream in checks:
+                return reg.stream == stream
             return checks[reg.stream]
 
         for name, reg in self._regions.items():
