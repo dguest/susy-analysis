@@ -5,6 +5,7 @@ build fit input files
 
 _files_help="can specify either a root directory or a set of files"
 _syst_help="'all' will run all systematics"
+_vr_prefix_help="don't include regions with this (validation) prefix"
 
 import argparse
 from scharm.aggregate import fitinputs
@@ -28,6 +29,7 @@ def get_config():
     parser.add_argument('-o','--output', required=True)
     parser.add_argument('-s','--systematic', default='none',
                         help=(_syst_help + ', ' + d))
+    parser.add_argument('-v','--vr-prefix', default='vr', help=d)
     parser.add_argument('-f','--fast', action='store_true',
                         help="don't use (many) signal points")
     args = parser.parse_args(sys.argv[1:])
@@ -66,7 +68,7 @@ def run_systematic(args):
         sig_pt = 'scharm-550-50'
     input_maker = fitinputs.FitInputMaker(
         meta_path=args['meta'], signal_point=sig_pt,
-        quiet=quiet)
+        quiet=quiet, veto_region_prefix=args['vr_prefix'])
     summary = input_maker.make_inputs(list(selected_samples))
     out_dict = {args['systematic']: summary}
     if quiet:

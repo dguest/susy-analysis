@@ -16,10 +16,11 @@ class FitInputMaker:
     _signal_prefix = 'scharm'
 
     def __init__(self, meta_path, variable='met', signal_point=None,
-                 quiet=False):
+                 quiet=False, veto_region_prefix=None):
         self._meta_path = meta_path
         self._variable = variable
         self._quiet = quiet
+        self._vrp = veto_region_prefix
 
         # signal finder (for short test jobs without much signal)
         if signal_point is None:
@@ -50,6 +51,8 @@ class FitInputMaker:
             # rename processes to simplify fit
             process = renamer.shorten(full_process) or full_process
             for region, vargroup in hfile.items():
+                if self._vrp and region.startswith(self._vrp):
+                    continue
                 nom_count = _get_count(vargroup[self._variable]) * norm
                 if nom_count > 0.0:
                     counts_dict[region,process,n_key] += nom_count
