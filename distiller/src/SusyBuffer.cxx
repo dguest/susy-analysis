@@ -57,7 +57,7 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br):
   SET(fChain,trig_EF_el_phi);
 
   SET(fChain,trig_EF_trigmuonef_EF_mu18_tight_mu8_EFFS);
-  SET(fChain,trig_EF_trigmuonef_EF_mu24i_tight); 	
+  SET(fChain,trig_EF_trigmuonef_EF_mu24i_tight);
   SET(fChain,trig_EF_trigmuonef_EF_mu36_tight);
   SET(fChain,trig_EF_trigmuonef_track_CB_eta);
   SET(fChain,trig_EF_trigmuonef_track_CB_phi);
