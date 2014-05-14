@@ -98,39 +98,23 @@ namespace nminus {
   void throw_if_nan(const std::map<std::string, double>& values);
 }
 
+namespace {
+  // weighting, only apply to mc
+  double get_mc_weight(const RegionConfig&, const EventObjects& obj);
+}
+
+
 void NMinus1Histograms::fill(const EventObjects& obj) {
 
   const EventRecoParameters& reco = obj.reco;
   if (!reco.pass_event_quality) return;
   if (!m_selection->pass(obj)) return;
 
-  double weight = obj.weight;
   // TODO: use the stream and remove build_flags
+  double weight = 1.0;
   bool is_mc = !(m_build_flags & buildflag::is_data);
   if (is_mc) {
-    // TODO: move this into a function, it should work fine with the region
-    // config and the EventObjects
-
-    // --- apply scalefactors ---
-    auto syst = m_region_config->systematic;
-
-    if (m_region_config->tagger == btag::Tagger::JFC) {
-      size_t n_jets = std::min(2UL, obj.jets.size());
-      for (size_t jn = 0; jn < n_jets; jn++) {
-	auto jet_wt = obj.jets.at(jn).get_scalefactor(syst);
-	// hack to deal with jets outside |eta| > 2.5
-	if (std::isinf(jet_wt)) jet_wt = 1.0;
-	weight *= jet_wt;
-      }
-    }
-    weight *= obj.event_scalefactors->get_sf(EventSyst::ELECTRON, syst);
-    weight *= obj.event_scalefactors->get_sf(EventSyst::MUON, syst);
-    if (m_region_config->boson_pt_correction == reg::MARKS) {
-      weight *= obj.marks_boson_pt_weight;
-    }
-
-    // --- end of scalefactors ---
-
+    weight = get_mc_weight(*m_region_config, obj);
   }
 
   const TVector2& met = obj.met;
@@ -160,6 +144,37 @@ void NMinus1Histograms::fill(const EventObjects& obj) {
   }
 }
 
+namespace {
+  // weighting, only apply to mc
+  double get_mc_weight(const RegionConfig& config, const EventObjects& obj){
+
+    double weight = obj.weight;
+    auto syst = config.systematic;
+
+    // apply the tagging SF
+    size_t n_jets_tagged = 0;
+    if (config.tagger == btag::Tagger::JFC) {
+      n_jets_tagged = 2;
+    } else if (config.tagger == btag::Tagger::JFC_LEADING_JET) {
+      n_jets_tagged = 1;
+    }
+    size_t n_jets = std::min(n_jets_tagged, obj.jets.size());
+    for (size_t jn = 0; jn < n_jets; jn++) {
+      auto jet_wt = obj.jets.at(jn).get_scalefactor(syst);
+      // hack to deal with jets outside |eta| > 2.5
+      if (std::isinf(jet_wt)) jet_wt = 1.0;
+      weight *= jet_wt;
+    }
+
+    // apply the lepton SF, etc
+    weight *= obj.event_scalefactors->get_sf(EventSyst::ELECTRON, syst);
+    weight *= obj.event_scalefactors->get_sf(EventSyst::MUON, syst);
+    if (config.boson_pt_correction == reg::MARKS) {
+      weight *= obj.marks_boson_pt_weight;
+    }
+    return weight;
+  } // end get_weight
+}
 
 namespace nminus {
   void insert_jets(const std::vector<Jet>& jets,
@@ -218,7 +233,8 @@ void NMinus1Histograms::write_to(H5::CommonFG& file) const {
 }
 
 namespace nminus {
-  void add_tagging_cuts(std::map<std::string, Selection>& sel);
+  void add_tagging_cuts(std::map<std::string, Selection>& sel,
+			int n_tagged = 2);
   // _______________________________________________________________________
   // cut adding fucntions (shouldn't call each other)
 
@@ -246,19 +262,22 @@ namespace nminus {
     }
 
     // add tagging cuts
-    if (cfg.tagger == btag::Tagger::JFC) {
-      add_tagging_cuts(sel);
+    if (cfg.tagger == btag::Tagger::JFC_LEADING_JET) {
+      add_tagging_cuts(sel, 1);
+    } else if (cfg.tagger == btag::Tagger::JFC) {
+      add_tagging_cuts(sel, 2);
     } else if (cfg.tagger != btag::Tagger::NONE) {
       throw std::invalid_argument("tagger isn't going to work");
     }
     return sel;
   }
-  void add_tagging_cuts(std::map<std::string, Selection>& sel) {
+  void add_tagging_cuts(std::map<std::string, Selection>& sel,
+			int n_tagged) {
     // accept events where these jets are missing
     // (they will be rejected by the njet cut anyway)
     auto miss = Selection::Missing::ACCEPT;
     // add tagging cuts (use of `insert` prevents overwrite)
-    for (auto jn: {0,1} ) {
+    for (auto jn = 0; jn < n_tagged; jn++) {
       const auto& antib = btag::JFC_MEDIUM_ANTI_B_CUT;
       const auto& antiu = btag::JFC_MEDIUM_ANTI_U_CUT;
       sel.insert({jeta(jn), {-btag::TAG_ETA, btag::TAG_ETA, miss}});
