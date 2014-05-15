@@ -27,8 +27,10 @@ NMinusCR1ESelection::~NMinusCR1ESelection() {
 bool NMinusCR1ESelection::pass(const EventObjects& obj) const {
   const EventRecoParameters& reco = obj.reco;
 
-  // check trigger
-  if (!trig::pass_single_lepton_trigger(reco, m_stream)) return false;
+  // check trigger (veto things with muon trigger)
+  bool el_trig = reco.pass_single_el_trigger;
+  bool mu_trig = reco.pass_single_mu_trigger;
+  if (!el_trig || mu_trig) return false;
 
   // check object counts
   auto veto_leptons = reco.n_baseline_electrons;
