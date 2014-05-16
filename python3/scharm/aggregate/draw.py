@@ -23,11 +23,12 @@ class Stack:
     """
     This is for drawing.
     """
-    lumi_str = '$\int\ \mathcal{{L}}\ dt\ =\ {:.1f}\ $fb$^{{-1}}$'
+    lumi_str = '$\int\ \mathcal{{L}}\ dt\ =\ ${:.1f} fb$^{{-1}}$'
     syserr_name = 'systematic'
     staterr_name = 'statistical'
     toterr_name = 'total'
     ratio_grid_color = (0,0,0,0.2)
+    label_font_size = 16
     def __init__(self, ratio=False, exclude_zeros=True,
                  selection_colors=('r',(0.9, 0, 0, 0.2))):
         self._exclude_zeros = exclude_zeros
@@ -45,7 +46,7 @@ class Stack:
             grid = GridSpec(2,1, height_ratios=[3,1])
             self.ax = self.fig.add_subplot(grid[0])
             self.ratio = self.fig.add_subplot(grid[1],sharex=self.ax)
-            self.ratio.set_ylabel('Data / SM')# y=0.98, va='top')
+            self.ratio.set_ylabel('Data / SM', fontsize=self.label_font_size)
             locator = MaxNLocator(5, prune='upper')
             self.ratio.get_yaxis().set_major_locator(locator)
         self._selection = None
@@ -80,7 +81,8 @@ class Stack:
                 "probably don't want that".format(name, xlabel))
 
         if not xlabel:
-            axes.set_xlabel(name, x=0.98, ha='right')
+            axes.set_xlabel(name, x=0.98, ha='right',
+                            fontsize=self.label_font_size)
 
     def _get_legstr(self, hist):
         title = hist.title.replace('scharm-','')
@@ -108,7 +110,8 @@ class Stack:
 
             ylabel = self.ax.get_ylabel()
             if not ylabel:
-                self.ax.set_ylabel(hist.y_label, y=0.98,ha='right')
+                self.ax.set_ylabel(hist.y_label, y=0.98, ha='right',
+                                   fontsize=self.label_font_size)
             self._set_xlab(hist.x_label)
 
             fill_color = hist.color
