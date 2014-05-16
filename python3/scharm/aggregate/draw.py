@@ -344,7 +344,7 @@ def _legstr(hval):
     prec = 1 if coif < 10 else 0
     return '{:.{p}f}{}'.format(coif, char, p=prec)
 
-def _get_mc_error_bands(hist_list, y_sum_step):
+def _get_mc_error_bands(hist_list, y_sum_step, nan_proxy_val=100.0):
     """internal function in Stack, gets the error bars for ratio plots"""
     sum_syst2 = None
     for hist in hist_list:
@@ -355,7 +355,7 @@ def _get_mc_error_bands(hist_list, y_sum_step):
     x_vals, y_vals = sum_syst2.get_xy_step_pts()
     rel_sys_err = y_vals**0.5 / y_sum_step
     inf_vals = np.isinf(rel_sys_err) | np.isnan(rel_sys_err)
-    rel_sys_err[inf_vals] = 100.0 # ugly, but we'll never go this big
+    rel_sys_err[inf_vals] = nan_proxy_val
     return x_vals, rel_sys_err
 
 class Hist1d(object):

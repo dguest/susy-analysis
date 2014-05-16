@@ -40,6 +40,10 @@ def run():
 def run_plotmill(args):
     from scharm.aggregate import plot
     from scharm.aggregate.aggregator import HistDict
+
+    from numpy import seterr
+    seterr(divide='ignore')
+
     config = _get_config_info(args.steering_file)
     aggregates = [args.aggregate]
     plots_dict = {}
