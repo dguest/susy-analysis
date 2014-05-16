@@ -23,7 +23,8 @@ class Stack:
     This is for drawing.
     """
     lumi_str = '$\int\ \mathcal{{L}}\ dt\ =\ {:.1f}\ \mathrm{{fb}}^{{-1}}$'
-    def __init__(self, ratio=False, exclude_zeros=True):
+    def __init__(self, ratio=False, exclude_zeros=True,
+                 selection_colors=('r',(0.9, 0, 0, 0.2))):
         self._exclude_zeros = exclude_zeros
         self.fig = Figure(figsize=(8,6))
         self.canvas = FigureCanvas(self.fig)
@@ -52,10 +53,9 @@ class Stack:
         self._upper_limit = 0.0
         # scale up y axis when the legends get big
         self._scaleup = 1.0
-        self._cut_color = 'r'
-        self._cut_fill = (0.9, 0, 0, 0.2)
+        self._set_selection_colors(*selection_colors)
 
-    def set_selection_colors(self, line, face):
+    def _set_selection_colors(self, line, face):
         self._cut_color = line
         self._cut_fill = face
 
@@ -127,18 +127,19 @@ class Stack:
             self._sm_total += float(hist)
 
     def add_syst2(self, hist_list):
-        sum_syst2 = None
-        for hist in hist_list:
-            if sum_syst2 is None:
-                sum_syst2 = hist
-            else:
-                sum_syst2 += hist
-        x_vals, y_vals = sum_syst2.get_xy_step_pts()
-        rel_sys_err = y_vals**0.5 / self._y_sum_step
+        x_vals, rel_sys_err = _get_mc_error_bands(
+            hist_list, self._y_sum_step)
         if self.ratio:
             self.ratio.fill_between(
                 x_vals, 1 - rel_sys_err, 1 + rel_sys_err,
-                facecolor=self._cut_fill)
+                facecolor=self._cut_fill, color=self._cut_color)
+
+    def add_wt2(self, hist_list):
+        x_vals, rel_stat_err = _get_mc_error_bands(
+            hist_list, self._y_sum_step)
+        if self.ratio:
+            self.ratio.plot(x_vals, 1 - rel_stat_err, 'k--')
+            self.ratio.plot(x_vals, 1 + rel_stat_err, 'k--')
 
     def add_signals(self, hist_list):
         color_itr = iter(self.colors)
@@ -313,6 +314,18 @@ def _legstr(hval):
     coif = hval / 10**(exp*3)
     prec = 1 if coif < 10 else 0
     return '{:.{p}f}{}'.format(coif, char, p=prec)
+
+def _get_mc_error_bands(hist_list, y_sum_step):
+    """internal function in Stack, gets the error bars for ratio plots"""
+    sum_syst2 = None
+    for hist in hist_list:
+        if sum_syst2 is None:
+            sum_syst2 = hist
+        else:
+            sum_syst2 += hist
+    x_vals, y_vals = sum_syst2.get_xy_step_pts()
+    rel_sys_err = y_vals**0.5 / y_sum_step
+    return x_vals, rel_sys_err
 
 class Hist1d(object):
     """

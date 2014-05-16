@@ -23,7 +23,9 @@ def make_plots(plots_dict, misc_info, log=False):
         sys_tup = (proc, var + sys2_ext, reg)
         stat_tup = (proc, var + wt2_ext, reg)
         for addr in [tup, sys_tup, stat_tup]:
-            hist1_dict.update(converter.h1dict_from_histn(addr, histn=hist))
+            if addr in plots_dict:
+                hist1_dict.update(converter.h1dict_from_histn(
+                        addr, histn=plots_dict[addr]))
         hist2_dict.update(converter.h2dict_from_histn(tup, histn=hist))
 
     printer = StackPlotPrinter(misc_info)
@@ -254,7 +256,7 @@ def _print_plot(obj):
             print('making ratio {}'.format(save_name))
         else:
             print('making {}'.format(save_name))
-    stack = Stack(ratio=has_ratio)
+    stack = Stack(ratio=has_ratio, selection_colors=obj.selection_colors)
     stack.colors = obj.signal_colors
     stack.lumi = obj.lumi
     if obj.log:
@@ -265,11 +267,13 @@ def _print_plot(obj):
         stack.add_signals(obj.signals)
     if obj.data:
         stack.add_data(obj.data)
-    if obj.syst2 and obj.wt2:
-        stack.add_syst2(obj.syst2 + obj.wt2)
+    # add the mc error bars
+    if obj.syst2:
+        stack.add_syst2(obj.syst2)
+        if obj.wt2:
+            stack.add_syst2(obj.syst2 + obj.wt2)
     if obj.wt2:
-        stack.add_syst2(obj.wt2)
-    stack.set_selection_colors(*obj.selection_colors)
+        stack.add_wt2(obj.wt2)
     stack.add_legend()
     if not isdir(save_dir):
         os.makedirs(save_dir)
