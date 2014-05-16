@@ -8,6 +8,7 @@ from matplotlib.gridspec import GridSpec
 from matplotlib.ticker import MaxNLocator, LogLocator
 from matplotlib.ticker import LogFormatterMathtext, LogFormatter
 from matplotlib.lines import Line2D
+from matplotlib.patches import Rectangle
 import numpy as np
 from itertools import chain
 from scharm import errorbars
@@ -22,7 +23,11 @@ class Stack:
     """
     This is for drawing.
     """
-    lumi_str = '$\int\ \mathcal{{L}}\ dt\ =\ {:.1f}\ \mathrm{{fb}}^{{-1}}$'
+    lumi_str = '$\int\ \mathcal{{L}}\ dt\ =\ {:.1f}\ $fb$^{{-1}}$'
+    syserr_name = 'systematic'
+    staterr_name = 'statistical'
+    toterr_name = 'total'
+    ratio_grid_color = (0,0,0,0.2)
     def __init__(self, ratio=False, exclude_zeros=True,
                  selection_colors=('r',(0.9, 0, 0, 0.2))):
         self._exclude_zeros = exclude_zeros
@@ -30,6 +35,7 @@ class Stack:
         self.canvas = FigureCanvas(self.fig)
         self.lumi = None
         self.ratio_max = 2.0
+        self.ratio_font_size = 10
         self.colors = list('kc') + ['purple', 'orange']
         self.y_min = None
         if not ratio:
@@ -47,6 +53,7 @@ class Stack:
         self._y_sum = 0.0
         self._proxy_legs = []
         self._bg_proxy_legs = []
+        self._rat_legs = []     # for ratio plot
         self._x_limits = None
         self._sm_total = 0.0
         # for setting plot upper limit with selection applied
@@ -132,14 +139,26 @@ class Stack:
         if self.ratio:
             self.ratio.fill_between(
                 x_vals, 1 - rel_sys_err, 1 + rel_sys_err,
-                facecolor=self._cut_fill, color=self._cut_color)
+                color=self._cut_fill, linewidth=0.0)
+            proxy = Rectangle(
+                (0, 0), 1, 1, fc=self._cut_fill, ec='none')
+            self._rat_legs.append((proxy, self.syserr_name))
 
     def add_wt2(self, hist_list):
         x_vals, rel_stat_err = _get_mc_error_bands(
             hist_list, self._y_sum_step)
         if self.ratio:
-            self.ratio.plot(x_vals, 1 - rel_stat_err, 'k--')
-            self.ratio.plot(x_vals, 1 + rel_stat_err, 'k--')
+            self.ratio.plot(x_vals, 1 - rel_stat_err, 'k:')
+            ln, = self.ratio.plot(x_vals, 1 + rel_stat_err, 'k:')
+            self._rat_legs.append( (ln, self.staterr_name) )
+
+    def add_total2(self, hist_list):
+        x_vals, rel_err = _get_mc_error_bands(
+            hist_list, self._y_sum_step)
+        if self.ratio:
+            self.ratio.plot(x_vals, 1 - rel_err, color=self._cut_color)
+            ln, = self.ratio.plot(x_vals, 1 + rel_err, color=self._cut_color)
+            self._rat_legs.append( (ln, self.toterr_name) )
 
     def add_signals(self, hist_list):
         color_itr = iter(self.colors)
@@ -224,10 +243,10 @@ class Stack:
                 bound_y, ms=10, fmt='r.',
                 yerr=[bound_down, bound_up])
 
-
-        self.ratio.axhline(y=1, linestyle='--', color='k')
-        self.ratio.axhline(y=0.5, linestyle=':', color='k')
-        self.ratio.axhline(y=1.5, linestyle=':', color='k')
+        # add lines showing 1, 0.5, 1.5
+        self.ratio.axhline(y=1, linestyle='-', color=self.ratio_grid_color)
+        self.ratio.axhline(y=0.5, linestyle='--', color=self.ratio_grid_color)
+        self.ratio.axhline(y=1.5, linestyle='--', color=self.ratio_grid_color)
 
     def add_data(self, hist):
         x_vals, y_vals = hist.get_xy_center_pts()
@@ -284,6 +303,10 @@ class Stack:
         frac_consumed = min(n_leg / max_fitting, 0.9)
         self._scaleup = 1 / (1 - frac_consumed)
 
+        if self._rat_legs:
+            lg = self.ratio.legend(
+                *zip(*self._rat_legs), fontsize=self.ratio_font_size)
+
     def save(self, name):
         if self._x_limits is None:
             return
@@ -325,6 +348,8 @@ def _get_mc_error_bands(hist_list, y_sum_step):
             sum_syst2 += hist
     x_vals, y_vals = sum_syst2.get_xy_step_pts()
     rel_sys_err = y_vals**0.5 / y_sum_step
+    inf_vals = np.isinf(rel_sys_err) | np.isnan(rel_sys_err)
+    rel_sys_err[inf_vals] = 100.0 # ugly, but we'll never go this big
     return x_vals, rel_sys_err
 
 class Hist1d(object):

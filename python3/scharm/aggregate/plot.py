@@ -270,10 +270,10 @@ def _print_plot(obj):
     # add the mc error bars
     if obj.syst2:
         stack.add_syst2(obj.syst2)
-        if obj.wt2:
-            stack.add_syst2(obj.syst2 + obj.wt2)
     if obj.wt2:
         stack.add_wt2(obj.wt2)
+        if obj.syst2:
+            stack.add_total2(obj.syst2 + obj.wt2)
     stack.add_legend()
     if not isdir(save_dir):
         os.makedirs(save_dir)
