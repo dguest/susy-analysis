@@ -42,17 +42,18 @@ def run_plotmill(args):
     from scharm.aggregate.aggregator import HistDict
 
     from numpy import seterr
-    seterr(divide='ignore')
+    seterr(invalid='ignore', divide='ignore')
 
     config = _get_config_info(args.steering_file)
     aggregates = [args.aggregate]
     plots_dict = {}
     for agg_file in aggregates:
-        print('loading {}'.format(agg_file))
+        print('loading {}...'.format(agg_file), end='', flush=True)
         hists = HistDict(agg_file,args.filt, sig_points=args.signal_points,
                          sig_prefix='scharm',
                          var_blacklist={'truth'})
         plots_dict.update(hists)
+        print('done')
 
     needed = _get_signal_finder(args.signal_points)
     plots_dict = {k:v for k,v in plots_dict.items() if needed(k)}
