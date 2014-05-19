@@ -11,8 +11,8 @@
 #include "RegionConfig.hh"
 
 #include <string>
+#include <iomanip>
 #include <stdexcept>
-#include <boost/format.hpp>
 #include <algorithm>
 #include <iostream>
 #include <ostream>
@@ -67,8 +67,8 @@ int HistBuilder::build() {
 
   for (int entry = 0; entry < n_entries; entry++) {
     if (one_percent && (entry % one_percent == 0 || entry == n_entries - 1)){
-      outstream << boost::format("\r%i of %i (%.1f%%) processed") %
-    	entry % n_entries % ( entry / one_percent);
+      outstream << entry << " of " << n_entries << " (" <<
+	std::setprecision(0) << entry / one_percent << " ) processed";
       outstream.flush();
       if (m_build_flags & buildflag::short_run && entry) break;
     }
