@@ -20,7 +20,6 @@ from scharm.meta import DatasetCache, MetaFromYamlError
 from scharm.lookup.susylookup import MetaFactory
 from scharm.lookup.highlevel import find_preferred
 from scharm.lookup import overlap
-from scharm.lookup.ami import lookup_ami_stats, sort_ds_fullsim_atlfast
 from scharm.bullshit import FlatProgressMeter
 import argparse, ConfigParser
 from tempfile import TemporaryFile
@@ -94,6 +93,7 @@ def run():
     {'build':build, 'choose':choose}[args.which](args)
 
 def choose(args):
+    from scharm.lookup.ami import lookup_ami_stats, sort_ds_fullsim_atlfast
     if args.cached:
         with open(args.cached) as yml:
             sets = yaml.load(yml)

@@ -47,7 +47,7 @@ class Dataset(object):
 
         self.physics_type = ''
         self.meta_sources = set()
-        self.preferred = False
+        self.preferred = None   # True or False
 
         self.n_corrupted_files = 0
         self.overlap = {}
