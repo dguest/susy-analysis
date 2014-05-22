@@ -23,7 +23,7 @@ def get_config():
 
     stack_args = subs.add_parser('stack', description=setup_stack.__doc__)
     stack_args.add_argument('input_ntuples')
-    stack_args.add_argument('-y', '--steering', required=True)
+    stack_args.add_argument('-y', '--regions', required=True)
     stack_args.add_argument('-s', '--script', help='build this, ' + d,
                             default='crocosaurus.sh')
     stack_args.add_argument('-o', '--output-name',
@@ -259,7 +259,7 @@ def setup_stack(config):
         line_args = {
             'routine': 'susy-stack.py',
             'run_args': '{} --mode {} -o {}'.format(
-                config.steering, mode, config.hists_dir),
+                config.regions, mode, config.hists_dir),
             }
         return _submit_line.format(**line_args) + '\n'
 
