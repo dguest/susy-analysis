@@ -49,6 +49,10 @@ class Stack:
             self.ratio.set_ylabel('Data / SM', fontsize=self.label_font_size)
             locator = MaxNLocator(5, prune='upper')
             self.ratio.get_yaxis().set_major_locator(locator)
+            self.ratio.tick_params(
+                labelsize=self.label_font_size, which='both')
+        self.ax.tick_params(labelsize=self.label_font_size, which='both')
+
         self._selection = None
         self._y_sum_step = 0.0
         self._y_sum = 0.0
