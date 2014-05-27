@@ -184,8 +184,7 @@ namespace bits {
     if ( (evt_q_req & bits) == evt_q_req ) out |= pass::event_quality;
 
     // composite triggers
-    const auto met_trigger_bits = (
-      EF_xe80_tclcw_loose | EF_xe80T_tclcw_loose | EF_xe80_tclcw_tight);
+    const auto met_trigger_bits = EF_xe80_tclcw_tight;
     if ( met_trigger_bits & bits) out |= met_trigger;
 
     if ( two_el_match & bits) {
