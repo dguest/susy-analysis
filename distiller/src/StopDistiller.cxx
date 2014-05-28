@@ -50,7 +50,7 @@ namespace {
 			const SusyBuffer& buffer,
 			unsigned branches);
   // used for the cutflow (this is normally calculated in another routine)
-  double total_event_weight(const EventObjects& obj);
+  double reco_event_weight(const EventObjects& obj);
 }
 
 StopDistiller::StopDistiller(const std::vector<std::string>& in,
@@ -167,7 +167,10 @@ std::vector<std::pair<std::string, double> > StopDistiller::get_cutflow_vec(
   typedef std::pair<std::string, double> Cut;
   Cut total_events(std::make_pair("total_events",
 				  m_skim_report->total_entries()));
+  Cut wt_total(std::make_pair("total_event_weight",
+			      m_skim_report->sum_evt_weight()));
   std::vector<Cut> cutflow_vec = m_cutflow->get();
+  cutflow_vec.insert(cutflow_vec.begin(),wt_total);
   cutflow_vec.insert(cutflow_vec.begin(),total_events);
   if (n_error) {
     cutflow_vec.push_back(std::make_pair("read_errors",n_error));
@@ -242,10 +245,6 @@ void StopDistiller::fill_event_output(const EventObjects& obj,
 				      const TVector2& alt_met,
 				      outtree::OutTree& out_tree,
 				      BitmapCutflow* cutflow) const {
-
-  // ACHTUNG: this is saved as the pileup weight, should fix that...
-  const float combined_mc_wt = obj.prec.pileup_weight * obj.prec.trigger_sf;
-
   const ObjectComposites par(obj, met, alt_met);
   // ----- object selection is done now, from here is filling outputs ---
 
@@ -259,22 +258,21 @@ void StopDistiller::fill_event_output(const EventObjects& obj,
   pass_bits |= bits::bad_tile_bits(met, obj.preselected_jets);
   pass_bits |= bits::compound_bits(pass_bits);
 
-  // save bools to cutflow and out tree
-  if (cutflow) cutflow->fill(pass_bits, total_event_weight(obj));
-
   // start filling out_tree here
   out_tree.clear_buffer();
 
   out_tree.pass_bits = pass_bits;
   out_tree.event_number = m_susy_buffer->EventNumber;
-  out_tree.pileup_weight = combined_mc_wt;
+  out_tree.pileup_weight = obj.prec.pileup_weight;
 
   // main event copy function
   copy_event(obj, par, alt_met, out_tree);
 
+  float mcevt_wt = 1.0;
   if ( m_flags & cutflag::truth ) {
     copy_cjet_truth(out_tree, obj.signal_jets);
     copy_event_truth(out_tree, *m_susy_buffer, m_flags);
+    mcevt_wt = m_susy_buffer->mc_event_weight;
   }
 
   if (m_boson_pt_reweighter) {
@@ -296,6 +294,8 @@ void StopDistiller::fill_event_output(const EventObjects& obj,
     out_tree.fill();
   }
 
+  // save bools to cutflow and out tree
+  if (cutflow) cutflow->fill(pass_bits, mcevt_wt * reco_event_weight(obj));
 }
 
 
@@ -564,11 +564,11 @@ namespace {
     out_tree.mc_event_weight = buffer.mc_event_weight;
   }
 
-  double total_event_weight(const EventObjects& obj) {
+  double reco_event_weight(const EventObjects& obj) {
     double obj_sf = 1.0;
     for (auto jet: obj.leading_jets){
       if (jet->has_truth()) {
-	obj_sf *= jet->scale_factor(btag::JFC_MEDIUM).first;
+    	obj_sf *= jet->scale_factor(btag::JFC_MEDIUM).first;
       }
     }
     for (auto el: obj.control_electrons) {
@@ -577,8 +577,7 @@ namespace {
     for (auto mu: obj.control_muons) {
       obj_sf *= mu->id_sf();
     }
-    const double obj_wt = obj.prec.pileup_weight * obj.prec.trigger_sf;
-    return obj_wt * obj_sf;
+    return obj_sf * obj.prec.pileup_weight;
   }
 
 }
