@@ -13,11 +13,11 @@ xsec = 357.354819775
 lumi = 20.3
 filteff = 0.37804
 wt_total = 50000
-# MET80
-filteff = 0.37855
-# MET300
-filteff = 0.09768
-wt_total = 20000
+# # MET80
+# filteff = 0.37855
+# # MET300
+# filteff = 0.09768
+# wt_total = 20000
 
 cf_multiple = xsec * lumi * filteff / wt_total
 print cf_multiple
