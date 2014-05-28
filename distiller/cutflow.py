@@ -7,6 +7,21 @@ flags = 'vbgzfc'
 # flags += 'u'                    # generate pu reweighting file
 configs = ['SIGNAL']
 files = []
+
+# 400_200_MET180 info (183440)
+xsec = 357.354819775
+lumi = 20.3
+filteff = 0.37804
+wt_total = 50000
+# MET80
+filteff = 0.37855
+# MET300
+filteff = 0.09768
+wt_total = 20000
+
+cf_multiple = xsec * lumi * filteff / wt_total
+print cf_multiple
+
 if len(sys.argv) > 1:
     if sys.argv[1] == 'all':
         files = sys.argv[2:]
