@@ -370,6 +370,8 @@ namespace nminus {
     case reg::Selection::CR_1E: return new NMinusCR1ESelection(cfg);
     case reg::Selection::CR_1M: return new NMinusCR1MSelection(cfg);
     case reg::Selection::CR_Z: return new NMinusCRZSelection(cfg);
+    case reg::Selection::CR_Z_2L: return new NMinusZ2LSelection(cfg);
+    case reg::Selection::CR_Z_1L: return new NMinusZ1LSelection(cfg);
     case reg::Selection::CR_T: return new NMinusOSDFSelection(cfg);
     case reg::Selection::QUALITY_EVENT: return new QualityEventSelection(cfg);
     case reg::Selection::VR_MET: return new MetSelection(cfg);

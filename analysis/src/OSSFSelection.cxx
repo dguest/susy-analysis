@@ -7,23 +7,50 @@
 #include <stdexcept>
 
 // _______________________________________________________________________
-// loose
+// 2 lepton trigger version
 
-NMinusOSSFSelection::NMinusOSSFSelection(const RegionConfig& reg):
+NMinusZ2LSelection::NMinusZ2LSelection(const RegionConfig& reg):
   m_stream(reg.stream)
 {
   trig::throw_if_not_lepstream(m_stream);
 }
 
-NMinusOSSFSelection::~NMinusOSSFSelection() {
+NMinusZ2LSelection::~NMinusZ2LSelection() {
 
 }
 
-bool NMinusOSSFSelection::pass(const EventObjects& obj) const {
+bool NMinusZ2LSelection::pass(const EventObjects& obj) const {
   const EventRecoParameters& reco = obj.reco;
 
   // check trigger
   if (!trig::pass_two_lepton_trigger(reco, m_stream)) return false;
+
+  if (!reco.pass_ossf) return false;
+
+  // check object counts
+  if (reco.n_baseline_electrons + reco.n_baseline_muons != 2) return false;
+
+  return true;
+}
+
+// _______________________________________________________________________
+// 1 lepton trigger version
+
+NMinusZ1LSelection::NMinusZ1LSelection(const RegionConfig& reg):
+  m_stream(reg.stream)
+{
+  trig::throw_if_not_lepstream(m_stream);
+}
+
+NMinusZ1LSelection::~NMinusZ1LSelection() {
+
+}
+
+bool NMinusZ1LSelection::pass(const EventObjects& obj) const {
+  const EventRecoParameters& reco = obj.reco;
+
+  // check trigger
+  if (!trig::pass_single_lepton_trigger(reco, m_stream)) return false;
 
   if (!reco.pass_ossf) return false;
 

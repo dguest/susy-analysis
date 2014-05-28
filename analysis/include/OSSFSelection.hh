@@ -6,10 +6,19 @@
 
 struct RegionConfig;
 
-class NMinusOSSFSelection : public ISelection {
+class NMinusZ2LSelection : public ISelection {
 public:
-  NMinusOSSFSelection(const RegionConfig&);
-  virtual ~NMinusOSSFSelection();
+  NMinusZ2LSelection(const RegionConfig&);
+  virtual ~NMinusZ2LSelection();
+  virtual bool pass(const EventObjects&) const;
+private:
+  reg::Stream m_stream;
+};
+
+class NMinusZ1LSelection : public ISelection {
+public:
+  NMinusZ1LSelection(const RegionConfig&);
+  virtual ~NMinusZ1LSelection();
   virtual bool pass(const EventObjects&) const;
 private:
   reg::Stream m_stream;
@@ -22,7 +31,7 @@ public:
   virtual ~OSSFSelection();
   virtual bool pass(const EventObjects&) const;
 private:
-  NMinusOSSFSelection m_nminus;
+  NMinusZ2LSelection m_nminus;
 };
 
 #endif
