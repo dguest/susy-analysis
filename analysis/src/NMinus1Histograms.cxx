@@ -17,6 +17,7 @@
 #include "EventScalefactors.hh"
 #include "constants_scharmcuts.hh"
 #include "constants_tagging.hh"
+#include "region_logic.hh"
 
 #include "Histogram.hh"
 
@@ -42,16 +43,8 @@ NMinus1Histograms
   m_make_lepton_plots(false),
   m_make_dilep_plots(false)
 {
-  std::set<reg::Selection> onelep_regions {
-    reg::Selection::CR_W, reg::Selection::CR_1E, reg::Selection::CR_1M};
-  std::set<reg::Selection> dilep_regions {
-    reg::Selection::CR_Z, reg::Selection::CR_T,
-      reg::Selection::QUALITY_EVENT};
-  auto lepton_regions(onelep_regions);
-  lepton_regions.insert(dilep_regions.begin(), dilep_regions.end());
-
-  if (lepton_regions.count(config.selection)) m_make_lepton_plots = true;
-  if (dilep_regions.count(config.selection)) m_make_dilep_plots = true;
+  if (reg::lepton_region(config.selection)) m_make_lepton_plots = true;
+  if (reg::twolep_region(config.selection)) m_make_dilep_plots = true;
 
   using namespace nminus;
   const auto sel = get_selections(config);
@@ -346,6 +339,8 @@ namespace nminus {
       add_1l_cuts(sel);
       return sel;
     }
+    case reg::Selection::CR_Z_1L: // fallthrough
+    case reg::Selection::CR_Z_2L: // fallthrough
     case reg::Selection::CR_Z: {
       add_sf_cuts(sel);
       return sel;
@@ -375,6 +370,9 @@ namespace nminus {
     case reg::Selection::CR_T: return new NMinusOSDFSelection(cfg);
     case reg::Selection::QUALITY_EVENT: return new QualityEventSelection(cfg);
     case reg::Selection::VR_MET: return new MetSelection(cfg);
+
+    case reg::Selection::ERROR: throw std::invalid_argument(
+      "region selection is ERROR");
     default: throw std::invalid_argument("unknown selection in " __FILE__);
     }
   }

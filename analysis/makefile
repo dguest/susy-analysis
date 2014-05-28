@@ -86,7 +86,7 @@ GEN_OBJ     += NMinus1Histograms.o
 
 # more common functions
 GEN_OBJ     += common_functions.o hdf_helpers.o
-GEN_OBJ     += trigger_logic.o
+GEN_OBJ     += trigger_logic.o region_logic.o
 GEN_OBJ     += StackerExceptions.o
 GEN_OBJ     += histogram_factory.o
 EXE_OBJ     := $(GEN_OBJ) unit-test.o
