@@ -14,7 +14,7 @@ def get_config():
     parser.add_argument('aggregate')
     parser.add_argument('steering_file', nargs='?')
     parser.add_argument('--scale', choices={'log','linear', 'both'},
-                        default='log', help=d)
+                        default='both', help=d)
     parser.add_argument(
         '--filt', help='not really sure what this does... should fix it')
     parser.add_argument(
@@ -26,7 +26,7 @@ def get_config():
                         help=d, default='plots')
     parser.add_argument('-t','--theme',
                         choices={'dan','sbot','brimstone','brony'},
-                        default='dan')
+                        default='brimstone')
     parser.add_argument('--serial', action='store_true',
                         help='disable multiprocess')
 
