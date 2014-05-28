@@ -41,7 +41,7 @@ static PyObject* py_distiller(PyObject *self,
   unsigned flags = get_flags(flags_str);
   if (info.systematic != systematic::NONE) flags |= cutflag::disable_sf_err;
 
-  typedef std::vector<std::pair<std::string, int> > CCOut;
+  typedef std::vector<std::pair<std::string, double> > CCOut;
   CCOut pass_numbers;
   try {
     StopDistiller distiller(input_files, info, flags);
@@ -60,7 +60,7 @@ static PyObject* py_distiller(PyObject *self,
   for (auto itr = pass_numbers.begin();
        itr != pass_numbers.end();
        itr++){
-    PyObject* tuple = Py_BuildValue("si", itr->first.c_str(), itr->second);
+    PyObject* tuple = Py_BuildValue("sf", itr->first.c_str(), itr->second);
     if(PyList_Append(out_list,tuple)) {
       return NULL;
     }

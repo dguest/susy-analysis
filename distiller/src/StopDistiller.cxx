@@ -49,7 +49,8 @@ namespace {
   void copy_event_truth(outtree::OutTree& out_tree,
 			const SusyBuffer& buffer,
 			unsigned branches);
-
+  // used for the cutflow (this is normally calculated in another routine)
+  double total_event_weight(const EventObjects& obj);
 }
 
 StopDistiller::StopDistiller(const std::vector<std::string>& in,
@@ -160,10 +161,10 @@ StopDistiller::Cutflow StopDistiller::run_cutflow() {
   return get_cutflow_vec(n_error);
 }
 
-std::vector<std::pair<std::string, int> > StopDistiller::get_cutflow_vec(
+std::vector<std::pair<std::string, double> > StopDistiller::get_cutflow_vec(
   int n_error) const {
 
-  typedef std::pair<std::string, int> Cut;
+  typedef std::pair<std::string, double> Cut;
   Cut total_events(std::make_pair("total_events",
 				  m_skim_report->total_entries()));
   std::vector<Cut> cutflow_vec = m_cutflow->get();
@@ -259,7 +260,7 @@ void StopDistiller::fill_event_output(const EventObjects& obj,
   pass_bits |= bits::compound_bits(pass_bits);
 
   // save bools to cutflow and out tree
-  if (cutflow) cutflow->fill(pass_bits);
+  if (cutflow) cutflow->fill(pass_bits, total_event_weight(obj));
 
   // start filling out_tree here
   out_tree.clear_buffer();
@@ -404,6 +405,7 @@ namespace {
       return strm.str();
     }
   }
+
 }
 
 void StopDistiller::setup_cutflow(CutflowType cutflow) {
@@ -528,9 +530,6 @@ void StopDistiller::setup_cutflow(CutflowType cutflow) {
   }
 }
 
-namespace {
-}
-
 void StopDistiller::print_progress(int entry_n, std::ostream& stream) {
   if (m_one_percent) {
     if (( entry_n % m_one_percent == 0) || entry_n == m_n_entries - 1 ) {
@@ -564,4 +563,22 @@ namespace {
     }
     out_tree.mc_event_weight = buffer.mc_event_weight;
   }
+
+  double total_event_weight(const EventObjects& obj) {
+    double obj_sf = 1.0;
+    for (auto jet: obj.leading_jets){
+      if (jet->has_truth()) {
+	obj_sf *= jet->scale_factor(btag::JFC_MEDIUM).first;
+      }
+    }
+    for (auto el: obj.control_electrons) {
+      obj_sf *= el->id_sf();
+    }
+    for (auto mu: obj.control_muons) {
+      obj_sf *= mu->id_sf();
+    }
+    const double obj_wt = obj.prec.pileup_weight * obj.prec.trigger_sf;
+    return obj_wt * obj_sf;
+  }
+
 }

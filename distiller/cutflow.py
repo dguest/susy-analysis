@@ -39,4 +39,4 @@ for config in configs:
         pu_config='~/calibration/pu_config.prw.root',
         pu_lumicalc='~/calibration/pu_lumicalc.root')
     for key, value in values:
-        print '{:20}: {}'.format(key, value)
+        print '{:20}: {:.1f}'.format(key, value)

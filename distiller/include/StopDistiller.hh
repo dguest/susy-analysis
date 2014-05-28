@@ -27,7 +27,7 @@ class TVector2;
 class StopDistiller
 {
 public:
-  typedef std::vector<std::pair<std::string, int> > Cutflow;
+  typedef std::vector<std::pair<std::string, double> > Cutflow;
   StopDistiller(const std::vector<std::string>& in,
 		const RunInfo& info, unsigned flags);
   ~StopDistiller();
@@ -47,7 +47,7 @@ private:
   void setup_outputs();
   void setup_cutflow(CutflowType config);
 
-  std::vector<std::pair<std::string, int> > get_cutflow_vec(int errs) const;
+  std::vector<std::pair<std::string, double> > get_cutflow_vec(int errs) const;
   // called within process_event
   void fill_event_output(const EventObjects&, const TVector2& met,
 			 const TVector2& alt_met,
