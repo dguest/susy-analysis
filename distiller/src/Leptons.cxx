@@ -62,7 +62,11 @@ Electron::Electron(const EventElectrons* container, int index):
   // asking for one trigger, we should probably only apply one trig match
   if (m_pass_susy) {
     int run_number = buffer->RunNumber;
-    // int run_number = 200841;
+    //int run_number = 200841; // from xiaoxiao
+    // int run_number = 195848; // some fullsim sample we have
+    // int run_number = 195847; // ttbar sample
+    // weird thing is that the default calibration file only seems to
+    // work in the 200804_999999 run numbers
     bool use_trigger = false;
     m_id_sf = def->GetSignalElecSF(
       buffer->el_cl_eta->at(index),
