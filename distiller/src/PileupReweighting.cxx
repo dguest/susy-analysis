@@ -15,7 +15,12 @@ PileupReweighting::PileupReweighting(const RunInfo& info, unsigned run_flags):
   } else {
     m_prw->SetDefaultChannel(0); // this is what Brett does
     m_prw->AddConfigFile(info.pu_config);
-    m_prw->SetDataScaleFactors(1/1.11); // What Brett, Jan do
+
+    // this is taken from:
+    // twiki.cern.ch/twiki/bin/view/AtlasProtected/ExtendedPileupReweighting#Recipe_A_MC12a_Pileup_Reweightin
+    // and confirmed by Alex.
+    m_prw->SetDataScaleFactors(1/1.09);
+
     m_prw->AddLumiCalcFile(info.pu_lumicalc);
     m_prw->MergeMCRunNumbers(195847,195848);
     m_prw->SetUnrepresentedDataAction(2);
