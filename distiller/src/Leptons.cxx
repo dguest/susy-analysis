@@ -55,11 +55,14 @@ Electron::Electron(const EventElectrons* container, int index):
   // m_rel_isolation = buffer->el_ptcone20->at(index) / Pt();
   m_charge = buffer->el_charge->at(index);
 
+  // The egamma group recommends stacking the reco and id SF, see
+  // https://twiki.cern.ch/twiki/bin/view/AtlasProtected/TElectronEfficiencyCorrectionTool
+  // this is also what Xiaoxiao did in the 1L analysis
   if (m_pass_susy) {
     m_id_sf = def->GetSignalElecSF(
       buffer->el_cl_eta->at(index),
       Pt(),
-      false,			// recoSF
+      true,			// recoSF
       true, 			// idSF (Tight)
       false, 			// triggerSF
       buffer->RunNumber,
@@ -69,7 +72,7 @@ Electron::Electron(const EventElectrons* container, int index):
     m_id_sf_unct = def->GetSignalElecSF(
       buffer->el_cl_eta->at(index),
       Pt(),
-      false,			// recoSF
+      true,			// recoSF
       true, 			// idSF
       false, 			// triggerSF
       buffer->RunNumber,
