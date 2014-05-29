@@ -59,8 +59,8 @@ Electron::Electron(const EventElectrons* container, int index):
     m_id_sf = def->GetSignalElecSF(
       buffer->el_cl_eta->at(index),
       Pt(),
-      true,			// recoSF
-      false, 			// idSF
+      false,			// recoSF
+      true, 			// idSF (Tight)
       false, 			// triggerSF
       buffer->RunNumber,
       SystErr::NONE);
@@ -69,8 +69,8 @@ Electron::Electron(const EventElectrons* container, int index):
     m_id_sf_unct = def->GetSignalElecSF(
       buffer->el_cl_eta->at(index),
       Pt(),
-      true,			// recoSF
-      false, 			// idSF
+      false,			// recoSF
+      true, 			// idSF
       false, 			// triggerSF
       buffer->RunNumber,
       SystErr::EEFFUP) - m_id_sf;
