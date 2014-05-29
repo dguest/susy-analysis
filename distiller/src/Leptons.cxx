@@ -61,13 +61,16 @@ Electron::Electron(const EventElectrons* container, int index):
   // The triggerSF may be overkill: in some dilepton regions we're only
   // asking for one trigger, we should probably only apply one trig match
   if (m_pass_susy) {
+    int run_number = buffer->RunNumber;
+    // int run_number = 200841;
+    bool use_trigger = false;
     m_id_sf = def->GetSignalElecSF(
       buffer->el_cl_eta->at(index),
       Pt(),
       true,			// recoSF
       true, 			// idSF (Tight)
-      true, 			// triggerSF
-      buffer->RunNumber,
+      use_trigger, 			// triggerSF
+      run_number,
       SystErr::NONE);
 
     // bit of a hack to pull out the uncertainty
@@ -76,8 +79,8 @@ Electron::Electron(const EventElectrons* container, int index):
       Pt(),
       true,			// recoSF
       true, 			// idSF
-      true, 			// triggerSF
-      buffer->RunNumber,
+      use_trigger, 			// triggerSF
+      run_number,
       SystErr::EEFFUP) - m_id_sf;
   }
 

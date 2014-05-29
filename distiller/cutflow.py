@@ -19,6 +19,8 @@ wt_total = 50000
 # filteff = 0.09768
 # wt_total = 20000
 
+lumicalc = 'pu_lumicalc.root'
+
 cf_multiple = xsec * lumi * filteff / wt_total
 print cf_multiple
 
@@ -52,6 +54,6 @@ for config in configs:
         # systematic='MSCALEDOWN',
         cutflow=config,
         pu_config='~/calibration/pu_config.prw.root',
-        pu_lumicalc='~/calibration/pu_lumicalc.root')
+        pu_lumicalc='~/calibration/' + lumicalc)
     for key, value in values:
         print '{:20}: {:.1f}'.format(key, value)
