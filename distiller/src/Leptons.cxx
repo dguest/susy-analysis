@@ -57,14 +57,16 @@ Electron::Electron(const EventElectrons* container, int index):
 
   // The egamma group recommends stacking the reco and id SF, see
   // https://twiki.cern.ch/twiki/bin/view/AtlasProtected/TElectronEfficiencyCorrectionTool
-  // this is also what Xiaoxiao did in the 1L analysis
+  // this is also what Xiaoxiao did in the 1L analysis.
+  // The triggerSF may be overkill: in some dilepton regions we're only
+  // asking for one trigger, we should probably only apply one trig match
   if (m_pass_susy) {
     m_id_sf = def->GetSignalElecSF(
       buffer->el_cl_eta->at(index),
       Pt(),
       true,			// recoSF
       true, 			// idSF (Tight)
-      false, 			// triggerSF
+      true, 			// triggerSF
       buffer->RunNumber,
       SystErr::NONE);
 
@@ -74,7 +76,7 @@ Electron::Electron(const EventElectrons* container, int index):
       Pt(),
       true,			// recoSF
       true, 			// idSF
-      false, 			// triggerSF
+      true, 			// triggerSF
       buffer->RunNumber,
       SystErr::EEFFUP) - m_id_sf;
   }
