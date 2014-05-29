@@ -35,7 +35,7 @@ PreselectionInfo EventPreselector::get_preselection_info(
 
   unsigned run_number = buffer.RunNumber;
   if (m_prw) {
-    run_number = m_prw->random_run_number(buffer.RunNumber);
+    run_number = m_prw->random_run_number(buffer);
   }
 
   float trigger_sf = 1.0;
@@ -67,7 +67,7 @@ PreselectionInfo EventPreselector::get_preselection_info(
   }
 
   float prw = m_prw ? m_prw->get_pileup_weight(buffer) : 1.0;
-  return {pass_bits, prw, trigger_sf};
+  return {pass_bits, prw, trigger_sf, run_number};
 }
 
 ull_t EventPreselector::get_presel_bits(const SusyBuffer& buffer,

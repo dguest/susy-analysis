@@ -4,6 +4,7 @@
 #include "constants.hh"
 
 static const float ELECTRON_ET_CUT = 7*GeV;
+static const float ELECTRON_MIN_CALIBRATED_TRIG_PT = 25*GeV;
 static const float ELECTRON_ETA_CUT = 2.47;
 
 // use these? (not any more, with the new susytools el def)

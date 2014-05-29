@@ -15,11 +15,12 @@ EventObjects::EventObjects(
   m_all_electrons(0),
   m_all_muons(0)
 {
-  m_all_jets = new EventJets(buf, def, flags, info);
-  m_all_electrons = new EventElectrons(buf, def, flags, info);
-  m_all_muons = new EventMuons(buf, def, flags, info);
-
   prec = presel.get_preselection_info(buf, def);
+
+  m_all_jets = new EventJets(buf, def, flags, info);
+  m_all_electrons = new EventElectrons(
+    buf, def, flags, info, prec.random_run);
+  m_all_muons = new EventMuons(buf, def, flags, info);
 }
 
 void EventObjects::do_overlap_removal(CutCounter& ob_counts) {

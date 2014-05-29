@@ -12,7 +12,7 @@ struct RunInfo;
 class Electron: public TLorentzVector
 {
 public:
-  Electron(const EventElectrons* container, int index);
+  Electron(const EventElectrons* container, int index, int random_run);
   bool pass_susy() const;
   bool is_signal() const;
   // double rel_isolation() const;
@@ -40,7 +40,7 @@ class EventElectrons: public std::vector<Electron*>
 {
 public:
   EventElectrons(const SusyBuffer& buffer, SUSYObjDef& def,
-		 unsigned flags, const RunInfo& info);
+		 unsigned flags, const RunInfo& info, int random_run);
   ~EventElectrons();
 private:
   EventElectrons() {};

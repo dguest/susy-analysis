@@ -34,8 +34,10 @@ PileupReweighting::~PileupReweighting() {
   m_prw = 0;
 }
 
-unsigned PileupReweighting::random_run_number(unsigned mc_run) const {
-  return m_prw->GetRandomRunNumber(mc_run);
+unsigned PileupReweighting::random_run_number(const SusyBuffer& buf) const {
+  m_prw->SetRandomSeed(
+    314159 + buf.mc_channel_number * 2718 + buf.EventNumber);
+  return m_prw->GetRandomRunNumber(buf.RunNumber);
 }
 
 float PileupReweighting::get_pileup_weight(const SusyBuffer& buffer) {

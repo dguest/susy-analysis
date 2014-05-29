@@ -8,6 +8,7 @@ struct PreselectionInfo
   ull_t bits;
   float pileup_weight;
   float trigger_sf;
+  unsigned random_run;
 };
 
 #endif

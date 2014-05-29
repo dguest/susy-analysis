@@ -20,7 +20,7 @@ SystErr::Syste get_susytools_syste(systematic::Systematic);
 // lepton classes
 
 // -- electron --
-Electron::Electron(const EventElectrons* container, int index):
+Electron::Electron(const EventElectrons* container, int index, int random_run):
   m_trigger(false), m_dilep_trigger(false) {
   const SusyBuffer* buffer = container->m_buffer;
 
@@ -61,20 +61,17 @@ Electron::Electron(const EventElectrons* container, int index):
   // The triggerSF may be overkill: in some dilepton regions we're only
   // asking for one trigger, we should probably only apply one trig match
   if (m_pass_susy) {
-    int run_number = buffer->RunNumber;
     //int run_number = 200841; // from xiaoxiao
     // int run_number = 195848; // some fullsim sample we have
     // int run_number = 195847; // ttbar sample
-    // weird thing is that the default calibration file only seems to
-    // work in the 200804_999999 run numbers
-    bool use_trigger = false;
+    bool use_trigger = Pt() > ELECTRON_MIN_CALIBRATED_TRIG_PT;
     m_id_sf = def->GetSignalElecSF(
       buffer->el_cl_eta->at(index),
       Pt(),
       true,			// recoSF
       true, 			// idSF (Tight)
       use_trigger, 			// triggerSF
-      run_number,
+      random_run,
       SystErr::NONE);
 
     // bit of a hack to pull out the uncertainty
@@ -84,7 +81,7 @@ Electron::Electron(const EventElectrons* container, int index):
       true,			// recoSF
       true, 			// idSF
       use_trigger, 			// triggerSF
-      run_number,
+      random_run,
       SystErr::EEFFUP) - m_id_sf;
   }
 
@@ -140,7 +137,8 @@ bool Electron::dilep_trigger() const {
 }
 
 EventElectrons::EventElectrons(const SusyBuffer& buffer, SUSYObjDef& def,
-			       unsigned flags, const RunInfo& info):
+			       unsigned flags, const RunInfo& info,
+			       int random_run):
   m_buffer(&buffer),
   m_def(&def),
   m_flags(flags),
@@ -149,7 +147,7 @@ EventElectrons::EventElectrons(const SusyBuffer& buffer, SUSYObjDef& def,
   assert(el_size_check(buffer));
   try {
     for (int iii = 0; iii < buffer.el_n; iii++) {
-      push_back(new Electron(this, iii));
+      push_back(new Electron(this, iii, random_run));
     }
   }
   catch (std::out_of_range& e) {
