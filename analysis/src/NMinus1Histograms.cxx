@@ -126,7 +126,7 @@ void NMinus1Histograms::fill(const EventObjects& obj) {
   if (is_mc) insert_jet_ftl(obj.jets, values);
 
   if (m_make_lepton_plots) {
-    values.insert( { {LLPT, reco.max_lepton_pt}, {MT, reco.mt} } );
+    values.insert( { {LLPT, reco.first_lepton_pt}, {MT, reco.mt} } );
   }
   if (m_make_dilep_plots) values.insert({ { MLL, reco.mll} });
 

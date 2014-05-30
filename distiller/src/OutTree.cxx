@@ -319,7 +319,10 @@ namespace outtree {
     MAKE_BRANCH(tree, mll);
     MAKE_BRANCH(tree, htx);
 
-    MAKE_BRANCH(tree, max_lepton_pt);
+    MAKE_BRANCH(tree, first_lepton_pt);
+    MAKE_BRANCH(tree, second_lepton_pt);
+    MAKE_BRANCH(tree, first_lepton_pdgid);
+    MAKE_BRANCH(tree, second_lepton_pdgid);
   }
 
   void EvtParameters::clear() {
@@ -338,7 +341,10 @@ namespace outtree {
     mll = -1;
     htx = -1;
 
-    max_lepton_pt = -1;
+    first_lepton_pt = -1;
+    second_lepton_pt = -1;
+    first_lepton_pdgid = 0;
+    second_lepton_pdgid = 0;
   }
 
 

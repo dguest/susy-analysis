@@ -91,7 +91,7 @@ bool OSSFSelection::pass(const EventObjects& obj) const {
   if (reco.mll > M_LL_MAX) return false;
   if (reco.mll < M_LL_MIN) return false;
 
-  if (reco.max_lepton_pt < LEPTON_PT_MIN) return false;
+  if (reco.first_lepton_pt < LEPTON_PT_MIN) return false;
   if (reco.mcc < M_CC_MIN) return false;
 
 

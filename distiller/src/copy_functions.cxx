@@ -10,10 +10,12 @@
 #include "TVector2.h"
 
 #include <cassert>
+#include <algorithm>
 
 namespace {
-  float get_max_lepton_pt(const std::vector<Muon*>&,
-			  const std::vector<Electron*>&);
+  void copy_lepton_info(const std::vector<Muon*>&,
+			const std::vector<Electron*>&,
+			outtree::EvtParameters&);
 }
 
 // ______________________________________________________________
@@ -35,8 +37,6 @@ void copy_event(const EventObjects& obj,
   out_tree.par.mt = par.mass_t;
   out_tree.par.mll = par.mass_ll;
   out_tree.par.htx = par.htx;
-  out_tree.par.max_lepton_pt = get_max_lepton_pt(
-    obj.control_muons, obj.control_electrons);
 
   copy_met(out_tree, met);
   copy_leading_jet_info(obj.signal_jets, out_tree);
@@ -115,15 +115,31 @@ void copy_cjet_truth(outtree::OutTree& out_tree,
 // helpers
 
 namespace {
-  float get_max_lepton_pt(const std::vector<Muon*>& mus,
-			  const std::vector<Electron*>& els) {
-    double max = -1;
-    for (const auto& el: els) {
-      max = std::max(max, el->Pt());
-    }
-    for (const auto& mu: mus) {
-      max = std::max(max, mu->Pt());
-    }
-    return max;
+  typedef std::pair<TLorentzVector*, int> PartId;
+  bool lower_pt(const PartId& p1, const PartId& p2){
+    // check to make sure everything is a real pdgid
+    assert(std::abs(p1.second) > 0);
+    return p1.first->Pt() < p2.first->Pt();
   }
+  void copy_lepton_info(const std::vector<Muon*>& mus,
+			const std::vector<Electron*>& els,
+			outtree::EvtParameters& par) {
+    std::vector<PartId> particles;
+    for (auto el: els) particles.emplace_back(el, -11*el->charge());
+    for (auto mu: mus) particles.emplace_back(mu, -13*mu->charge());
+    if (particles.size() == 0) return;
+
+    std::sort(particles.begin(), particles.end(), lower_pt);
+
+    auto part_riter = particles.rbegin();
+    par.first_lepton_pt = part_riter->first->Pt();
+    par.first_lepton_pdgid = part_riter->second;
+    part_riter++;
+
+    if (part_riter == particles.rend()) return;
+    par.second_lepton_pt = part_riter->first->Pt();
+    par.second_lepton_pdgid = part_riter->second;
+
+  }
+
 }

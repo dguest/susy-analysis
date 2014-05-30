@@ -244,7 +244,15 @@ namespace {
     SET_PARAMETER(tree, mll);
     SET_PARAMETER(tree, htx);
 
-    SET_PARAMETER(tree, max_lepton_pt);
+    try {
+      SET_PARAMETER(tree, first_lepton_pt);
+    } catch (MissingBranch& err) {
+      set_branch(tree, "max_lepton_pt", &re.first_lepton_pt);
+    }
+    SET_PARAMETER(tree, first_lepton_pdgid);
+
+    SET_PARAMETER(tree, second_lepton_pt);
+    SET_PARAMETER(tree, second_lepton_pdgid);
 
 #undef SET_PARAMETER
 

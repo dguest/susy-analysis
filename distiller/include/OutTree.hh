@@ -67,7 +67,10 @@ namespace outtree {
     float mll;
     float htx;
 
-    float max_lepton_pt;
+    float first_lepton_pt;
+    float second_lepton_pt;
+    int first_lepton_pdgid;
+    int second_lepton_pdgid;
   };
 
   struct SFBox
