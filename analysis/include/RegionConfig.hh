@@ -13,6 +13,7 @@ struct RegionConfig
   reg::Selection selection;
   double leading_jet_pt;
   double second_jet_pt;
+  double mct;
   double met;
   long max_signal_jets;
   syst::Systematic systematic;

@@ -239,8 +239,9 @@ namespace nminus {
     std::map<std::string, Selection> sel = {
       {jpt(0), {cfg.leading_jet_pt, INFINITY, Selection::Missing::ACCEPT} },
       {jpt(1), {cfg.second_jet_pt, INFINITY, Selection::Missing::ACCEPT} },
-      {MET, {cfg.met, INFINITY} },
     };
+    if (cfg.met > 0.0) sel[MET] = {cfg.met, INFINITY};
+    if (cfg.mct > 0.0) sel[MCT] = {cfg.mct, INFINITY};
 
     // SJET_RANGE goes from -0.5, so we only show a limit if the max jets
     // are < the range (i.e. 0 to 7 is a range of 8, don't show if max is 8)
@@ -283,7 +284,6 @@ namespace nminus {
     sel.insert(
       {
 	{MT, {M_T_MIN, M_T_MAX} },
-	{MCT, {SR_MCT_MIN, INFINITY} },
 	  });
   }
   void add_sf_cuts(std::map<std::string, Selection>& sel) {
@@ -303,7 +303,6 @@ namespace nminus {
   }
   void add_sr_cuts(std::map<std::string, Selection>& sel) {
     sel.insert( {
-	{MCT, {SR_MCT_MIN, INFINITY} },
 	{MET_EFF, {MET_EFF_MIN, INFINITY} },
 	{MCC, {M_CC_MIN, INFINITY} },
 	{DPHI, {MIN_DPHI_JET_MET, INFINITY} },

@@ -5,6 +5,7 @@ RegionConfig::RegionConfig() :
   selection(reg::Selection::ERROR),
   leading_jet_pt(0),
   second_jet_pt(0),
+  mct(-1),
   met(0),
   max_signal_jets(-1),
   systematic(syst::NONE),
