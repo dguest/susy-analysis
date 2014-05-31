@@ -15,14 +15,21 @@ def get_config():
     c = "with no argument is '%(const)s'"
 
     parser = argparse.ArgumentParser(description=__doc__)
-
     parser.add_argument('steering_file')
+    action = parser.add_mutually_exclusive_group()
+    action.add_argument('-c','--counts', action='store_true')
     return parser.parse_args(sys.argv[1:])
 
 def dump_regions(config):
     with open(config.steering_file) as steering_yml:
         config_dict = yaml.load(steering_yml)
     regions = {k:Region(v) for k, v in config_dict['regions'].items()}
+    if config.counts:
+        print(len(regions))
+    else:
+        _print_regions(regions)
+
+def _print_regions(regions):
     for name, reg in regions.items():
         print(name, end=':\n')
         for key, val in reg.get_config_dict().items():
