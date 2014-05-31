@@ -262,7 +262,8 @@ namespace nminus {
     // add tagging cuts
     if (cfg.tagger == btag::Tagger::JFC_LEADING_JET) {
       add_tagging_cuts(sel, 1);
-    } else if (cfg.tagger == btag::Tagger::JFC) {
+    } else if (cfg.tagger == btag::Tagger::JFC ||
+	       cfg.tagger == btag::Tagger::JFC_NO_SF) {
       add_tagging_cuts(sel, 2);
     } else if (cfg.tagger != btag::Tagger::NONE) {
       throw std::invalid_argument("tagger isn't going to work");

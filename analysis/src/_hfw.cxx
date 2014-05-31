@@ -209,6 +209,7 @@ static bool safe_copy(PyObject* value, btag::Tagger& dest) {
   NAME_TO_PREFIXED(Tagger, NONE);
   NAME_TO_PREFIXED(Tagger, JFC);
   NAME_TO_PREFIXED(Tagger, JFC_LEADING_JET);
+  NAME_TO_PREFIXED(Tagger, JFC_NO_SF);
 
   std::string problem = "got undefined tagger: " + name;
   PyErr_SetString(PyExc_ValueError,problem.c_str());
