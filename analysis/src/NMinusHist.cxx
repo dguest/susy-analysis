@@ -12,19 +12,19 @@
 
 namespace nminus {
 
-  Selection::Selection() :
+  Window::Window() :
     min(std::numeric_limits<double>::quiet_NaN()),
     max(std::numeric_limits<double>::quiet_NaN()),
     missing(Missing::THROW)
   {
   }
-  Selection::Selection(double mn, double mx, Missing miss):
+  Window::Window(double mn, double mx, Missing miss):
     min(mn), max(mx), missing(miss)
   {
   }
 
   NMinusHist::NMinusHist(const Axis& axis,
-			 const std::map<std::string,Selection>& selection,
+			 const std::map<std::string,Window>& selection,
 			 unsigned flags):
     m_histogram(new Histogram({axis}, flags)),
     m_name(axis.name),
@@ -41,7 +41,7 @@ namespace nminus {
     for (const auto& sel: selection) {
       assert(sel.second.min < sel.second.max);
       bool is_this_cut = (sel.first == axis.name);
-      bool is_phantom = (sel.second.missing == Selection::Missing::PHANTOM);
+      bool is_phantom = (sel.second.missing == Window::Missing::PHANTOM);
       if ( !is_this_cut && !is_phantom) {
 	m_cuts.push_back(sel);
       }
@@ -69,9 +69,9 @@ namespace nminus {
       // skip cut if the value is missing
       if (!values.count(cut_variable)) {
 	switch (cut.second.missing) {
-	case Selection::Missing::ACCEPT: continue;
-	case Selection::Missing::REJECT: return;
-	case Selection::Missing::THROW: throw std::invalid_argument(
+	case Window::Missing::ACCEPT: continue;
+	case Window::Missing::REJECT: return;
+	case Window::Missing::THROW: throw std::invalid_argument(
 	  "required selection " + cut_variable + " is missing");
 	default: throw std::logic_error("never go here");
 	}
@@ -96,7 +96,7 @@ namespace nminus {
   // ____________________________________________________________________
   // private
   void NMinusHist::add_selection(H5::DataSet& the_hist) const {
-    bool is_phantom = (m_selection.missing == Selection::Missing::PHANTOM);
+    bool is_phantom = (m_selection.missing == Window::Missing::PHANTOM);
     std::string sel_str = is_phantom ? "phantom_selection" : "selection";
     h5::write_attr_vec(the_hist, sel_str + "_min",
 		       std::vector<double>{m_selection.min});

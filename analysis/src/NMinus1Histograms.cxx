@@ -20,9 +20,8 @@
 #include <cassert>
 #include <set>
 
-
 namespace nminus {
-  std::map<std::string, Selection> get_selections(const RegionConfig&);
+  std::map<std::string, Window> get_selections(const RegionConfig&);
 }
 
 NMinus1Histograms
@@ -221,19 +220,19 @@ void NMinus1Histograms::write_to(H5::CommonFG& file) const {
 }
 
 namespace nminus {
-  void add_tagging_cuts(std::map<std::string, Selection>& sel,
+  void add_tagging_cuts(std::map<std::string, Window>& sel,
 			int n_tagged = 2);
   // _______________________________________________________________________
   // cut adding fucntions (shouldn't call each other)
 
-  std::map<std::string, Selection> get_common_selection(
+  std::map<std::string, Window> get_common_selection(
     const RegionConfig& cfg) {
 
     // basic kinematics (jets don't have to exist to pass this cut, but
     // the events will fail the n_jet selection)
-    std::map<std::string, Selection> sel = {
-      {jpt(0), {cfg.leading_jet_pt, INFINITY, Selection::Missing::ACCEPT} },
-      {jpt(1), {cfg.second_jet_pt, INFINITY, Selection::Missing::ACCEPT} },
+    std::map<std::string, Window> sel = {
+      {jpt(0), {cfg.leading_jet_pt, INFINITY, Window::Missing::ACCEPT} },
+      {jpt(1), {cfg.second_jet_pt, INFINITY, Window::Missing::ACCEPT} },
     };
     if (cfg.met > 0.0) sel[MET] = {cfg.met, INFINITY};
     if (cfg.mct > 0.0) sel[MCT] = {cfg.mct, INFINITY};
@@ -261,11 +260,11 @@ namespace nminus {
     }
     return sel;
   }
-  void add_tagging_cuts(std::map<std::string, Selection>& sel,
+  void add_tagging_cuts(std::map<std::string, Window>& sel,
 			int n_tagged) {
     // accept events where these jets are missing
     // (they will be rejected by the njet cut anyway)
-    auto miss = Selection::Missing::ACCEPT;
+    auto miss = Window::Missing::ACCEPT;
     // add tagging cuts (use of `insert` prevents overwrite)
     for (auto jn = 0; jn < n_tagged; jn++) {
       const auto& antib = btag::JFC_MEDIUM_ANTI_B_CUT;
@@ -275,14 +274,14 @@ namespace nminus {
       sel.insert({jantiu(jn), {antiu, INFINITY, miss} });
     }
   }
-  void add_1l_cuts(std::map<std::string, Selection>& sel) {
+  void add_1l_cuts(std::map<std::string, Window>& sel) {
     using namespace cr1l;
     sel.insert(
       {
 	{MT, {M_T_MIN, M_T_MAX} },
 	  });
   }
-  void add_sf_cuts(std::map<std::string, Selection>& sel) {
+  void add_sf_cuts(std::map<std::string, Window>& sel) {
     using namespace crsf;
     sel.insert(
       {
@@ -290,23 +289,23 @@ namespace nminus {
 	{MLL, {M_LL_MIN, M_LL_MAX} },
 	  });
   }
-  void add_df_cuts(std::map<std::string, Selection>& sel) {
+  void add_df_cuts(std::map<std::string, Window>& sel) {
     using namespace crdf;
     sel.insert(
       {
 	{MLL, {M_LL_MIN, INFINITY} },
 	  });
   }
-  void add_sr_cuts(std::map<std::string, Selection>& sel) {
+  void add_sr_cuts(std::map<std::string, Window>& sel) {
     sel.insert( {
 	{MET_EFF, {MET_EFF_MIN, INFINITY} },
 	{MCC, {M_CC_MIN, INFINITY} },
 	{DPHI, {MIN_DPHI_JET_MET, INFINITY} },
 	  });
   }
-  void add_presel_cuts(std::map<std::string, Selection>& sel) {
+  void add_presel_cuts(std::map<std::string, Window>& sel) {
     // this case has phantom cuts to indicate where SR cuts _would_ be
-    const auto PHANTOM = Selection::Missing::PHANTOM;
+    const auto PHANTOM = Window::Missing::PHANTOM;
     sel.insert({
 	{DPHI, {MIN_DPHI_JET_MET, INFINITY} },
 	{MCT, {SR_MCT_MIN, INFINITY, PHANTOM} },
@@ -319,7 +318,7 @@ namespace nminus {
   // ______________________________________________________________________
   // top level selection builder (calls the above functions)
 
-  std::map<std::string, Selection> get_selections(const RegionConfig& cfg)
+  std::map<std::string, Window> get_selections(const RegionConfig& cfg)
   {
     auto sel = get_common_selection(cfg);
     switch (cfg.selection) {

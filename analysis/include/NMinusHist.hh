@@ -15,10 +15,10 @@ namespace H5 {
 namespace nminus {
   const std::string WT2_POSTFIX = "Wt2";
 
-  struct Selection {
+  struct Window {
     enum class Missing {REJECT, ACCEPT, THROW, PHANTOM};
-    Selection();
-    Selection(double, double, Missing = Missing::THROW);
+    Window();
+    Window(double, double, Missing = Missing::THROW);
     double min;
     double max;
     Missing missing;
@@ -26,7 +26,7 @@ namespace nminus {
   class NMinusHist {
   public:
     // NOTE: could generalize this by making it an initalizer list
-    NMinusHist(const Axis&, const std::map<std::string, Selection>&,
+    NMinusHist(const Axis&, const std::map<std::string, Window>&,
 	       unsigned flags = 0); // flags are passed to ndhist
     ~NMinusHist();
     NMinusHist(NMinusHist&) = delete;
@@ -38,10 +38,10 @@ namespace nminus {
     void add_selection(H5::DataSet&) const;
     Histogram* m_histogram;
     // NOTE: generalization would also require something new here
-    Selection m_selection;
+    Window m_selection;
     std::string m_name;
     bool m_save_wt2;
-    std::vector<std::pair<std::string,Selection> > m_cuts;
+    std::vector<std::pair<std::string,Window> > m_cuts;
   };
 }
 

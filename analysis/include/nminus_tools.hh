@@ -4,6 +4,8 @@
 class ISelection;
 class RegionConfig;
 
+#include <map>
+
 namespace nminus {
   ISelection* selection_factory(const RegionConfig& config);
 }
