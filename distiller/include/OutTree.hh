@@ -168,6 +168,7 @@ namespace outtree {
     float pileup_weight;
     SFBox el_sf;
     SFBox mu_sf;
+    SFBox lepton_trig_sf;
 
     float boson_child_pt;
     float boson_child_phi;

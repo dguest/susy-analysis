@@ -61,10 +61,8 @@ Electron::Electron(const EventElectrons* container, int index, int random_run):
   // The triggerSF may be overkill: in some dilepton regions we're only
   // asking for one trigger, we should probably only apply one trig match
   if (m_pass_susy) {
-    //int run_number = 200841; // from xiaoxiao
-    // int run_number = 195848; // some fullsim sample we have
-    // int run_number = 195847; // ttbar sample
-    bool use_trigger = Pt() > ELECTRON_MIN_CALIBRATED_TRIG_PT;
+    // bool use_trigger = Pt() > ELECTRON_MIN_CALIBRATED_TRIG_PT;
+    bool use_trigger = false;	// we do this with the trig match tool
     m_id_sf = def->GetSignalElecSF(
       buffer->el_cl_eta->at(index),
       Pt(),
@@ -201,10 +199,15 @@ Muon::Muon(const EventMuons* container, int index):
   float cov_qoverp = buffer->mu_staco_cov_qoverp_exPV->at(index);
   m_is_bad = def->IsBadMuon(qoverp, cov_qoverp);
 
+  m_is_combined = buffer->mu_staco_isCombinedMuon->at(index);
+
   if (m_pass_susy) {
     m_id_sf = def->GetSignalMuonSF(index, SystErr::NONE);
     m_id_sf_unct = def->GetSignalMuonSF(index, SystErr::MEFFUP) - m_id_sf;
   }
+
+  // --- trigger matching ---
+
   int nothing;
   if (Pt() > SINGLE_MU_TRIGGER_PT_MIN) {
     if (def->MuonHasTriggerMatch(
@@ -258,6 +261,9 @@ bool Muon::cosmic() const {
 }
 bool Muon::bad() const {
   return m_is_bad;
+}
+bool Muon::combined() const {
+  return m_is_combined;
 }
 bool Muon::trigger() const {
   return m_trigger;
@@ -375,8 +381,7 @@ bool check_if_muon(int iMu,
      MUON_PT_CUT,
      MUON_ETA_CUT,
      get_susytools_syste(info.systematic)
-);
-  // NOTE: no muon systematics can be applied right now
+      );
 
 }
 

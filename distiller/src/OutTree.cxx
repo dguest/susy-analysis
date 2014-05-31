@@ -62,6 +62,7 @@ namespace outtree {
 		   int n_jets):
     el_sf(flags),
     mu_sf(flags),
+    lepton_trig_sf(flags),
     m_evt_bools(flags),
     m_file(0),
     m_tree(0)
@@ -104,6 +105,7 @@ namespace outtree {
       }
       el_sf.set_branches(m_tree, "el_");
       mu_sf.set_branches(m_tree, "mu_");
+      lepton_trig_sf.set_branches(m_tree, "lepton_trig_");
     }
 
     for (int i = 0; i < n_jets; i++) {

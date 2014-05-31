@@ -218,6 +218,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   EventObjects obj(*m_susy_buffer, *m_def, m_flags, m_info,
 		   *m_event_preselector);
   obj.do_overlap_removal(*m_object_counter);
+  obj.compute_trigger_sf(*m_def);
   // ---- must calibrate signal jets for b-tagging ----
   calibrate_jets(obj.signal_jets, m_btag_calibration);
 

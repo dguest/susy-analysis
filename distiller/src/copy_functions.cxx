@@ -6,6 +6,7 @@
 #include "ObjectComposites.hh"
 #include "btag_defs.hh"
 #include "cutflag.hh"
+#include "trigger_sf.hh"
 
 #include "TVector2.h"
 
@@ -16,6 +17,7 @@ namespace {
   void copy_lepton_info(const std::vector<Muon*>&,
 			const std::vector<Electron*>&,
 			outtree::EvtParameters&);
+  void copy_trigger_sf(const TriggerSF&, outtree::SFBox&);
 }
 
 // ______________________________________________________________
@@ -40,10 +42,13 @@ void copy_event(const EventObjects& obj,
 
   copy_met(out_tree, met);
   copy_leading_jet_info(obj.signal_jets, out_tree);
+  copy_lepton_info(obj.control_muons, obj.control_electrons, out_tree.par);
 
   copy_id_vec_to_box(obj.control_electrons, out_tree.el_sf);
   copy_id_vec_to_box(obj.control_muons, out_tree.mu_sf);
-
+  if (obj.get_trigger_sf()) {
+    copy_trigger_sf(*obj.get_trigger_sf(), out_tree.lepton_trig_sf);
+  }
 }
 
 //_________________________________________________________________
@@ -140,6 +145,12 @@ namespace {
     par.second_lepton_pt = part_riter->first->Pt();
     par.second_lepton_pdgid = part_riter->second;
 
+  }
+
+  void copy_trigger_sf(const TriggerSF& sf, outtree::SFBox& sfb) {
+    sfb.nominal = sf.nominal;
+    sfb.up = sf.lepton.up;
+    sfb.down = sf.lepton.down;
   }
 
 }

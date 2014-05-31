@@ -65,6 +65,7 @@ public:
   float id_sf_err() const;
   bool cosmic() const;
   bool bad() const;
+  bool combined() const;
   bool trigger() const;
   bool dilep_trigger() const;
 private:
@@ -77,6 +78,7 @@ private:
   float m_id_sf_unct;
   bool m_is_cosmic;
   bool m_is_bad;
+  bool m_is_combined;
   bool m_trigger;
   bool m_dilep_trigger;
 };

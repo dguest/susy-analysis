@@ -6,6 +6,7 @@
 #include "constants_distiller.hh"
 #include "object_selection.hh"
 #include "EventPreselector.hh"
+#include "trigger_sf.hh"
 
 EventObjects::EventObjects(
   const SusyBuffer& buf, SUSYObjDef& def,
@@ -13,7 +14,9 @@ EventObjects::EventObjects(
 
   m_all_jets(0),
   m_all_electrons(0),
-  m_all_muons(0)
+  m_all_muons(0),
+
+  m_trigger_sf(0)
 {
   prec = presel.get_preselection_info(buf, def);
 
@@ -21,6 +24,17 @@ EventObjects::EventObjects(
   m_all_electrons = new EventElectrons(
     buf, def, flags, info, prec.random_run);
   m_all_muons = new EventMuons(buf, def, flags, info);
+}
+
+EventObjects::~EventObjects() {
+  delete m_all_jets;
+  delete m_all_electrons;
+  delete m_all_muons;
+  delete m_trigger_sf;
+  m_all_jets = 0;
+  m_all_electrons = 0;
+  m_all_muons = 0;
+  m_trigger_sf = 0;
 }
 
 void EventObjects::do_overlap_removal(CutCounter& ob_counts) {
@@ -67,15 +81,15 @@ void EventObjects::do_overlap_removal(CutCounter& ob_counts) {
   leading_jets.assign(signal_jets.begin(), signal_jets.begin() + n_leading);
 }
 
-
-EventObjects::~EventObjects() {
-  delete m_all_jets;
-  delete m_all_electrons;
-  delete m_all_muons;
-  m_all_jets = 0;
-  m_all_electrons = 0;
-  m_all_muons = 0;
+void EventObjects::compute_trigger_sf(SUSYObjDef& def) {
+  assert(!m_trigger_sf);
+  m_trigger_sf = new TriggerSF(get_lepton_trigger_sf(def, *this));
 }
+
+TriggerSF* EventObjects::get_trigger_sf() const {
+  return m_trigger_sf;
+}
+
 
 SelectedJet* EventObjects::electron_jet() const {
   if (control_electrons.size() == 1) {
