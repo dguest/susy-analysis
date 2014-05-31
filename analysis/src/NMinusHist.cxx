@@ -7,21 +7,10 @@
 #include <vector>
 #include <map>
 #include <string>
-#include <limits>
 #include <cassert>
+#include <limits>
 
 namespace nminus {
-
-  Window::Window() :
-    min(std::numeric_limits<double>::quiet_NaN()),
-    max(std::numeric_limits<double>::quiet_NaN()),
-    missing(Missing::THROW)
-  {
-  }
-  Window::Window(double mn, double mx, Missing miss):
-    min(mn), max(mx), missing(miss)
-  {
-  }
 
   NMinusHist::NMinusHist(const Axis& axis,
 			 const std::map<std::string,Window>& selection,

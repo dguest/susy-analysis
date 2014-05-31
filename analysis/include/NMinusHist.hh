@@ -1,6 +1,8 @@
 #ifndef NMINUS_HIST_HH
 #define NMINUS_HIST_HH
 
+#include "Window.hh"
+
 #include <string>
 #include <vector>
 #include <map>
@@ -15,14 +17,6 @@ namespace H5 {
 namespace nminus {
   const std::string WT2_POSTFIX = "Wt2";
 
-  struct Window {
-    enum class Missing {REJECT, ACCEPT, THROW, PHANTOM};
-    Window();
-    Window(double, double, Missing = Missing::THROW);
-    double min;
-    double max;
-    Missing missing;
-  };
   class NMinusHist {
   public:
     // NOTE: could generalize this by making it an initalizer list

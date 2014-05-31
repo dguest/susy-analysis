@@ -21,7 +21,7 @@
 #include <set>
 
 namespace nminus {
-  std::map<std::string, Window> get_selections(const RegionConfig&);
+  std::map<std::string, Window> get_windows(const RegionConfig&);
 }
 
 NMinus1Histograms
@@ -37,7 +37,7 @@ NMinus1Histograms
   if (reg::twolep_region(config.selection)) m_make_dilep_plots = true;
 
   using namespace nminus;
-  const auto sel = get_selections(config);
+  const auto sel = get_windows(config);
   // save wt^2 for _some_ hists (those with no systematic applied)
   const auto hf = config.save_wt2 ? hist::wt2 : 0;
   m_hists.emplace_back(Axis{MET, N_BINS, 0.0, MAX_ENERGY, EUNIT}, sel, hf);
@@ -318,7 +318,7 @@ namespace nminus {
   // ______________________________________________________________________
   // top level selection builder (calls the above functions)
 
-  std::map<std::string, Window> get_selections(const RegionConfig& cfg)
+  std::map<std::string, Window> get_windows(const RegionConfig& cfg)
   {
     auto sel = get_common_selection(cfg);
     switch (cfg.selection) {
