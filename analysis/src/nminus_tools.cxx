@@ -18,47 +18,6 @@
 #include <stdexcept>
 #include <cmath>
 
-namespace nminus {
-  // _______________________________________________________________________
-  // naming functions
-  std::string jeta(int jn) {
-    return "j" + std::to_string(jn) + "_eta";
-  }
-  std::string jpt(int jn) {
-    return "j" + std::to_string(jn) + "_pt";
-  }
-  std::string jantib(int jn) {
-    return "j" + std::to_string(jn) + "_antib";
-  }
-  std::string jantiu(int jn) {
-    return "j" + std::to_string(jn) + "_antiu";
-  }
-  std::string jftl(int jn) {
-    return "j" + std::to_string(jn) + "_" + FTL;
-  }
-
-  // _______________________________________________________________________
-  // selection factory
-  ISelection* selection_factory(const RegionConfig& cfg) {
-    switch (cfg.selection) {
-    case reg::Selection::SIGNAL: return new NMinusSignalSelection(cfg);
-    case reg::Selection::CR_W: return new NMinusCR1LSelection(cfg);
-    case reg::Selection::CR_1E: return new NMinusCR1ESelection(cfg);
-    case reg::Selection::CR_1M: return new NMinusCR1MSelection(cfg);
-    case reg::Selection::CR_Z: return new NMinusCRZSelection(cfg);
-    case reg::Selection::CR_Z_2L: return new NMinusZ2LSelection(cfg);
-    case reg::Selection::CR_Z_1L: return new NMinusZ1LSelection(cfg);
-    case reg::Selection::CR_T: return new NMinusOSDFSelection(cfg);
-    case reg::Selection::QUALITY_EVENT: return new QualityEventSelection(cfg);
-    case reg::Selection::VR_MET: return new MetSelection(cfg);
-
-    case reg::Selection::ERROR: throw std::invalid_argument(
-      "region selection is ERROR");
-    default: throw std::invalid_argument("unknown selection in " __FILE__);
-    }
-  }
-
-}
 
 // ________________________________________________________________________
 // local utility functions
@@ -200,6 +159,45 @@ namespace nminus {
       return sel;
     }
 
+    default: throw std::invalid_argument("unknown selection in " __FILE__);
+    }
+  }
+
+  // _______________________________________________________________________
+  // naming functions
+  std::string jeta(int jn) {
+    return "j" + std::to_string(jn) + "_eta";
+  }
+  std::string jpt(int jn) {
+    return "j" + std::to_string(jn) + "_pt";
+  }
+  std::string jantib(int jn) {
+    return "j" + std::to_string(jn) + "_antib";
+  }
+  std::string jantiu(int jn) {
+    return "j" + std::to_string(jn) + "_antiu";
+  }
+  std::string jftl(int jn) {
+    return "j" + std::to_string(jn) + "_" + FTL;
+  }
+
+  // _______________________________________________________________________
+  // selection factory
+  ISelection* selection_factory(const RegionConfig& cfg) {
+    switch (cfg.selection) {
+    case reg::Selection::SIGNAL: return new NMinusSignalSelection(cfg);
+    case reg::Selection::CR_W: return new NMinusCR1LSelection(cfg);
+    case reg::Selection::CR_1E: return new NMinusCR1ESelection(cfg);
+    case reg::Selection::CR_1M: return new NMinusCR1MSelection(cfg);
+    case reg::Selection::CR_Z: return new NMinusCRZSelection(cfg);
+    case reg::Selection::CR_Z_2L: return new NMinusZ2LSelection(cfg);
+    case reg::Selection::CR_Z_1L: return new NMinusZ1LSelection(cfg);
+    case reg::Selection::CR_T: return new NMinusOSDFSelection(cfg);
+    case reg::Selection::QUALITY_EVENT: return new QualityEventSelection(cfg);
+    case reg::Selection::VR_MET: return new MetSelection(cfg);
+
+    case reg::Selection::ERROR: throw std::invalid_argument(
+      "region selection is ERROR");
     default: throw std::invalid_argument("unknown selection in " __FILE__);
     }
   }

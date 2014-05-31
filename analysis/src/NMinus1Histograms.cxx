@@ -72,6 +72,8 @@ NMinus1Histograms::~NMinus1Histograms() {
 
 
 namespace nminus {
+  std::map<std::string, double> get_reco_map(
+    const EventRecoParameters& reco, const TVector2& met);
   void insert_jets(const std::vector<Jet>&,
 		   std::map<std::string, double>& values);
   void insert_jet_ftl(const std::vector<Jet>&,
@@ -101,18 +103,9 @@ void NMinus1Histograms::fill(const EventObjects& obj) {
   const TVector2& met = obj.met;
 
   using namespace nminus;
-  std::map<std::string, double> values{
-    {NSJET, reco.n_signal_jets},
-    {MET, met.Mod()},
-    {DPHI, reco.min_jetmet_dphi},
-    {MCT, reco.mct},
-    {MET_EFF, reco.met_eff},
-    {MCC, reco.mcc},
-  };
-
+  auto values = get_reco_map(reco, met);
   insert_jets(obj.jets, values);
   if (is_mc) insert_jet_ftl(obj.jets, values);
-
   if (m_make_lepton_plots) {
     values.insert( { {LLPT, reco.first_lepton_pt}, {MT, reco.mt} } );
   }
@@ -124,6 +117,20 @@ void NMinus1Histograms::fill(const EventObjects& obj) {
   throw_if_nan(values);
   for (auto& hist: m_hists) {
     hist.fill(values, weight);
+  }
+}
+
+namespace nminus {
+  std::map<std::string, double> get_reco_map(
+    const EventRecoParameters& reco, const TVector2& met){
+    return {
+      {NSJET, reco.n_signal_jets},
+      {MET, met.Mod()},
+      {DPHI, reco.min_jetmet_dphi},
+      {MCT, reco.mct},
+      {MET_EFF, reco.met_eff},
+      {MCC, reco.mcc},
+	};
   }
 }
 
@@ -216,6 +223,3 @@ void NMinus1Histograms::write_to(H5::CommonFG& file) const {
 
 }
 
-namespace nminus {
-
-}
