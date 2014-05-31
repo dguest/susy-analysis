@@ -73,6 +73,7 @@ NMinus1Histograms
     m_hists.emplace_back(Axis{MT, N_BINS, 0.0, 500_GeV, EUNIT}, sel, hf);
   }
   if (m_make_dilep_plots) {
+    m_hists.emplace_back(Axis{SLPT, N_BINS, 0.0, 400_GeV, EUNIT}, sel, hf);
     m_hists.emplace_back(Axis{MLL, 200, 0.0, 200_GeV, EUNIT}, sel, hf);
   }
 }
@@ -128,7 +129,9 @@ void NMinus1Histograms::fill(const EventObjects& obj) {
   if (m_make_lepton_plots) {
     values.insert( { {LLPT, reco.first_lepton_pt}, {MT, reco.mt} } );
   }
-  if (m_make_dilep_plots) values.insert({ { MLL, reco.mll} });
+  if (m_make_dilep_plots) {
+    values.insert({ {MLL, reco.mll}, {SLPT, reco.second_lepton_pt}});
+  }
 
   // check for nan values
   throw_if_nan(values);

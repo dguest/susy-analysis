@@ -33,6 +33,7 @@ namespace nminus {
   const std::string MET_EFF = "met_eff";
   const std::string MCC = "mass_cc";
   const std::string LLPT = "leading_lepton_pt";
+  const std::string SLPT = "second_lepton_pt";
   const std::string MT = "mass_t";
   const std::string MLL = "mass_ll";
   const std::string NSJET = "n_signal_jets";
