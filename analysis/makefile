@@ -83,6 +83,7 @@ GEN_OBJ     += OSDFSelection.o OSSFSelection.o
 GEN_OBJ     += CRZSelection.o
 
 GEN_OBJ     += NMinus1Histograms.o
+GEN_OBJ     += nminus_tools.o
 
 # more common functions
 GEN_OBJ     += common_functions.o hdf_helpers.o

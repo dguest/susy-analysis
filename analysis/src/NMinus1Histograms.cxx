@@ -1,15 +1,6 @@
 #include "NMinus1Histograms.hh"
 #include "HistBuilderFlags.hh"
 #include "ISelection.hh"
-#include "SignalSelection.hh"
-#include "CR1LSelection.hh"
-#include "CR1ESelection.hh"
-#include "CR1MSelection.hh"
-#include "OSDFSelection.hh"
-#include "OSSFSelection.hh"
-#include "CRZSelection.hh"
-#include "QualityEventSelection.hh"
-#include "MetSelection.hh"
 #include "typedefs.hh"
 #include "Flavor.hh"
 #include "RegionConfig.hh"
@@ -18,6 +9,7 @@
 #include "constants_scharmcuts.hh"
 #include "constants_tagging.hh"
 #include "region_logic.hh"
+#include "nminus_tools.hh"
 
 #include "Histogram.hh"
 
@@ -31,7 +23,6 @@
 
 namespace nminus {
   std::map<std::string, Selection> get_selections(const RegionConfig&);
-  ISelection* selection_factory(const RegionConfig&);
 }
 
 NMinus1Histograms
@@ -359,24 +350,6 @@ namespace nminus {
       return sel;
     }
 
-    default: throw std::invalid_argument("unknown selection in " __FILE__);
-    }
-  }
-  ISelection* selection_factory(const RegionConfig& cfg) {
-    switch (cfg.selection) {
-    case reg::Selection::SIGNAL: return new NMinusSignalSelection(cfg);
-    case reg::Selection::CR_W: return new NMinusCR1LSelection(cfg);
-    case reg::Selection::CR_1E: return new NMinusCR1ESelection(cfg);
-    case reg::Selection::CR_1M: return new NMinusCR1MSelection(cfg);
-    case reg::Selection::CR_Z: return new NMinusCRZSelection(cfg);
-    case reg::Selection::CR_Z_2L: return new NMinusZ2LSelection(cfg);
-    case reg::Selection::CR_Z_1L: return new NMinusZ1LSelection(cfg);
-    case reg::Selection::CR_T: return new NMinusOSDFSelection(cfg);
-    case reg::Selection::QUALITY_EVENT: return new QualityEventSelection(cfg);
-    case reg::Selection::VR_MET: return new MetSelection(cfg);
-
-    case reg::Selection::ERROR: throw std::invalid_argument(
-      "region selection is ERROR");
     default: throw std::invalid_argument("unknown selection in " __FILE__);
     }
   }
