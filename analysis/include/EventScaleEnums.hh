@@ -2,6 +2,6 @@
 #define EVENT_SCALE_ENUMS_HH
 
 enum class SystVariation { NONE, UP, DOWN};
-enum class EventSyst { ELECTRON, MUON};
+enum class EventSyst { ELECTRON, MUON, LEPTRIG};
 
 #endif

@@ -38,15 +38,18 @@ float SFBox::get_sf(SystVariation systematic) const{
 
 EventScalefactors::EventScalefactors(TTree* tree):
   m_el_sf(new SFBox(tree, "el_sf")),
-  m_mu_sf(new SFBox(tree, "mu_sf"))
+  m_mu_sf(new SFBox(tree, "mu_sf")),
+  m_lepton_trig_sf(new SFBox(tree, "lepton_trig_sf"))
 {
 }
 
 EventScalefactors::~EventScalefactors() {
   delete m_el_sf;
   delete m_mu_sf;
+  delete m_lepton_trig_sf;
   m_el_sf = 0;
   m_mu_sf = 0;
+  m_lepton_trig_sf = 0;
 }
 
 float EventScalefactors::get_sf(EventSyst lept, syst::Systematic sys) const
@@ -55,17 +58,20 @@ float EventScalefactors::get_sf(EventSyst lept, syst::Systematic sys) const
   switch (sys) {
   case syst::ELUP:
   case syst::MUUP:
+  case syst::LEPTRIGUP:
     box_syst = SystVariation::UP;
     break;
   case syst::ELDOWN:
   case syst::MUDOWN:
+  case syst::LEPTRIGDOWN:
     box_syst = SystVariation::DOWN;
   default: box_syst = SystVariation::NONE;
   }
   switch (lept){
   case EventSyst::ELECTRON: return m_el_sf->get_sf(box_syst);
   case EventSyst::MUON: return m_mu_sf->get_sf(box_syst);
+  case EventSyst::LEPTRIG: return m_lepton_trig_sf->get_sf(box_syst);
   default:
-    throw std::logic_error("unknown lepton in " __FILE__);
+    throw std::logic_error("unknown scalefactor in " __FILE__);
   }
 }

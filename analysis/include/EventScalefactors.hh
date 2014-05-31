@@ -34,6 +34,7 @@ public:
 private:
   SFBox* m_el_sf;
   SFBox* m_mu_sf;
+  SFBox* m_lepton_trig_sf;
 };
 
 #endif
