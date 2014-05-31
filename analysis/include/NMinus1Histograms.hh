@@ -47,6 +47,10 @@ namespace nminus {
   std::string jantiu(int jn);
   std::string jftl(int jn);
 
+  // ACHTUNG: figure out a strategy to plot the SF
+  // const std::string TAGSF = "tag_sf";
+  // std::string jtagsf(int jn);
+
 };
 
 class NMinus1Histograms:
