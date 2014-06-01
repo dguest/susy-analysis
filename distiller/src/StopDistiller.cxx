@@ -186,7 +186,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   obj.compute_trigger_sf(*m_def);
   obj.make_electron_jet_collection(m_btag_calibration);
   // ---- must calibrate signal jets for b-tagging ----
-  calibrate_jets(obj.signal_jets, m_btag_calibration);
+  calibrate_jets(obj.signal_jets(), m_btag_calibration);
 
   const Mets mets(*m_susy_buffer, *m_def, obj.susy_muon_idx,
 		  sum_muon_pt(obj.control_muons),
@@ -255,7 +255,7 @@ void StopDistiller::fill_event_output(const EventObjects& obj,
 
   float mcevt_wt = 1.0;
   if ( m_flags & cutflag::truth ) {
-    copy_cjet_truth(out_tree, obj.signal_jets);
+    copy_cjet_truth(out_tree, obj.signal_jets());
     copy_event_truth(out_tree, *m_susy_buffer, m_flags);
     mcevt_wt = m_susy_buffer->mc_event_weight;
   }
@@ -590,7 +590,7 @@ namespace {
 
   double reco_event_weight(const EventObjects& obj) {
     double obj_sf = 1.0;
-    for (auto jet: obj.leading_jets){
+    for (auto jet: obj.leading_jets()){
       if (jet->has_truth()) {
     	obj_sf *= jet->scale_factor(btag::JFC_MEDIUM).first;
       }

@@ -69,30 +69,31 @@ void EventObjects::do_overlap_removal(CutCounter& ob_counts) {
 
   good_jets = object::remove_bad_jets(after_overlap_jets);
   ob_counts["good_jets"] += good_jets.size();
-  signal_jets = object::signal_jets(good_jets);
+  m_signal_jets = object::signal_jets(good_jets);
   control_electrons = object::control_electrons(after_overlap_electrons);
   control_muons = object::control_muons(after_overlap_muons);
 
-  ob_counts["signal_jets"] += signal_jets.size();
+  ob_counts["signal_jets"] += m_signal_jets.size();
   ob_counts["control_el"] += control_electrons.size();
   ob_counts["control_mu"] += control_muons.size();
 
-  const int n_leading = std::min(signal_jets.size(), N_SR_JETS);
-  leading_jets.assign(signal_jets.begin(), signal_jets.begin() + n_leading);
+  const int n_leading = std::min(m_signal_jets.size(), N_SR_JETS);
+  m_leading_jets.assign(
+    m_signal_jets.begin(), m_signal_jets.begin() + n_leading);
 }
 
 void EventObjects::make_electron_jet_collection(const BtagCalibration* cal){
-  signal_jets_eljet = signal_jets;
+  m_signal_jets_eljet = m_signal_jets;
   auto* eljet = electron_jet();
   if (eljet) {
     eljet->set_flavor_tag(cal);
-    signal_jets_eljet.push_back(eljet);
-    std::sort(signal_jets_eljet.begin(), signal_jets_eljet.end(),
+    m_signal_jets_eljet.push_back(eljet);
+    std::sort(m_signal_jets_eljet.begin(), m_signal_jets_eljet.end(),
 	      object::has_higher_pt);
   }
-  const int n_leading = std::min(signal_jets_eljet.size(), N_SR_JETS);
-  leading_jets_eljet.assign(
-    signal_jets_eljet.begin(), signal_jets_eljet.begin() + n_leading);
+  const int n_leading = std::min(m_signal_jets_eljet.size(), N_SR_JETS);
+  m_leading_jets_eljet.assign(
+    m_signal_jets_eljet.begin(), m_signal_jets_eljet.begin() + n_leading);
 }
 
 void EventObjects::compute_trigger_sf(SUSYObjDef& def) {
@@ -104,6 +105,21 @@ TriggerSF* EventObjects::get_trigger_sf() const {
   return m_trigger_sf;
 }
 
+const std::vector<SelectedJet*>&
+EventObjects::signal_jets(JetRep jr)
+  const {
+  assert(jr == JetRep::NONE);
+  return m_signal_jets;
+}
+const std::vector<SelectedJet*>&
+EventObjects::leading_jets(JetRep jr)
+  const {
+  assert(jr == JetRep::NONE);
+  return m_leading_jets;
+}
+
+// _______________________________________________________________________
+// private
 
 SelectedJet* EventObjects::electron_jet() const {
   if (control_electrons.size() == 1) {
