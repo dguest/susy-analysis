@@ -38,6 +38,7 @@ private:
   typedef std::vector<SelectedJet*> Jets;
   // top level function called on each event
   void process_event(int entry_n, std::ostream&);
+  bool is_overlaping_event() const;
 
   // various setup
   void check_flags();
@@ -47,12 +48,13 @@ private:
   void setup_outputs();
   void setup_cutflow(CutflowType config);
 
-  std::vector<std::pair<std::string, double> > get_cutflow_vec(int errs) const;
   // called within process_event
-  void fill_event_output(const EventObjects&, const TVector2& met,
+  void fill_event_output(const EventObjects&,
+			 const TVector2& met,
 			 const TVector2& alt_met,
 			 outtree::OutTree&, BitmapCutflow* = 0) const;
 
+  std::vector<std::pair<std::string, double> > get_cutflow_vec(int errs) const;
   void print_progress(int entry_n, std::ostream&);
   RunInfo m_info;
   const unsigned m_flags;

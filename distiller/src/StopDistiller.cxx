@@ -119,6 +119,9 @@ StopDistiller::~StopDistiller() {
   delete m_boson_pt_reweighter;
 }
 
+// _______________________________________________________________________
+// main looping function
+
 StopDistiller::Cutflow StopDistiller::run_cutflow() {
   m_n_entries = m_chain->GetEntries();
   if (m_flags & cutflag::cutflow) m_n_entries = std::min(
@@ -161,36 +164,9 @@ StopDistiller::Cutflow StopDistiller::run_cutflow() {
   return get_cutflow_vec(n_error);
 }
 
-std::vector<std::pair<std::string, double> > StopDistiller::get_cutflow_vec(
-  int n_error) const {
 
-  typedef std::pair<std::string, double> Cut;
-  Cut total_events(std::make_pair("total_events",
-				  m_skim_report->total_entries()));
-  Cut wt_total(std::make_pair("total_event_weight",
-			      m_skim_report->sum_evt_weight()));
-  std::vector<Cut> cutflow_vec = m_cutflow->get();
-  cutflow_vec.insert(cutflow_vec.begin(),wt_total);
-  cutflow_vec.insert(cutflow_vec.begin(),total_events);
-  if (n_error) {
-    cutflow_vec.push_back(std::make_pair("read_errors",n_error));
-  }
-  int n_empty_files = m_skim_report->empty_files();
-  if (n_empty_files) {
-    cutflow_vec.push_back(
-      std::make_pair("files_no_summary", n_empty_files));
-  }
-  auto obj_counts = m_object_counter->get_ordered_cuts();
-  for (auto cut: obj_counts) {
-    cutflow_vec.push_back(cut);
-  }
-  if (m_boson_truth_filter) {
-    int n_lt_2_lepton = m_boson_truth_filter->get_n_lt_2_lepton_events();
-    cutflow_vec.push_back(std::make_pair("lt_2_lepton", n_lt_2_lepton));
-  }
-  return cutflow_vec;
-
-}
+// _______________________________________________________________________
+// process event
 
 void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   assert(m_susy_buffer);
@@ -199,18 +175,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   }
   m_chain->GetEntry(evt_n);
 
-  if (m_boson_truth_filter) {
-    if (m_boson_truth_filter->is_over_threshold(
-	  m_susy_buffer->mc_particles)) {
-      return;
-    }
-  }
-  if (m_truth_met_filter) {
-    if (m_truth_met_filter->is_over_threshold(m_susy_buffer)) {
-      return;
-    }
-  }
-
+  if (is_overlaping_event()) return;
   // the sequence of the next few lines is important:
   // SUSYObjDef requires that leptons are filled before met
   m_def->Reset();
@@ -219,6 +184,7 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
 		   *m_event_preselector);
   obj.do_overlap_removal(*m_object_counter);
   obj.compute_trigger_sf(*m_def);
+  obj.make_electron_jet_collection(m_btag_calibration);
   // ---- must calibrate signal jets for b-tagging ----
   calibrate_jets(obj.signal_jets, m_btag_calibration);
 
@@ -241,6 +207,26 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
 		    lept_cutflow);
 }
 
+// mc overlap removal
+bool StopDistiller::is_overlaping_event() const {
+  if (m_boson_truth_filter) {
+    if (m_boson_truth_filter->is_over_threshold(
+	  m_susy_buffer->mc_particles)) {
+      return true;
+    }
+  }
+  if (m_truth_met_filter) {
+    if (m_truth_met_filter->is_over_threshold(m_susy_buffer)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+
+//_________________________________________________________________________
+// event output (one for each ntuple)
+
 void StopDistiller::fill_event_output(const EventObjects& obj,
 				      const TVector2& met,
 				      const TVector2& alt_met,
@@ -254,8 +240,6 @@ void StopDistiller::fill_event_output(const EventObjects& obj,
   pass_bits |= bits::object_composit_bits(par);
   pass_bits |= bits::event_object_bits(obj);
   pass_bits |= bits::met_bits(alt_met);
-  // ACHTUNG: the "bad tile" veto is using standard met for qcd rejection
-  // (Will seems to agree that we should do this)
   pass_bits |= bits::bad_tile_bits(met, obj.preselected_jets);
   pass_bits |= bits::compound_bits(pass_bits);
 
@@ -299,6 +283,8 @@ void StopDistiller::fill_event_output(const EventObjects& obj,
   if (cutflow) cutflow->fill(pass_bits, mcevt_wt * reco_event_weight(obj));
 }
 
+// _______________________________________________________________________
+// misc setup
 
 void StopDistiller::check_flags() {
   if (m_flags & cutflag::is_data ) {
@@ -408,6 +394,9 @@ namespace {
   }
 
 }
+
+// ________________________________________________________________________
+// cutflows
 
 void StopDistiller::setup_cutflow(CutflowType cutflow) {
 
@@ -529,6 +518,40 @@ void StopDistiller::setup_cutflow(CutflowType cutflow) {
     return;
   }
   }
+}
+
+// ________________________________________________________________________
+// other utils
+
+std::vector<std::pair<std::string, double> > StopDistiller::get_cutflow_vec(
+  int n_error) const {
+
+  typedef std::pair<std::string, double> Cut;
+  Cut total_events(std::make_pair("total_events",
+				  m_skim_report->total_entries()));
+  Cut wt_total(std::make_pair("total_event_weight",
+			      m_skim_report->sum_evt_weight()));
+  std::vector<Cut> cutflow_vec = m_cutflow->get();
+  cutflow_vec.insert(cutflow_vec.begin(),wt_total);
+  cutflow_vec.insert(cutflow_vec.begin(),total_events);
+  if (n_error) {
+    cutflow_vec.push_back(std::make_pair("read_errors",n_error));
+  }
+  int n_empty_files = m_skim_report->empty_files();
+  if (n_empty_files) {
+    cutflow_vec.push_back(
+      std::make_pair("files_no_summary", n_empty_files));
+  }
+  auto obj_counts = m_object_counter->get_ordered_cuts();
+  for (auto cut: obj_counts) {
+    cutflow_vec.push_back(cut);
+  }
+  if (m_boson_truth_filter) {
+    int n_lt_2_lepton = m_boson_truth_filter->get_n_lt_2_lepton_events();
+    cutflow_vec.push_back(std::make_pair("lt_2_lepton", n_lt_2_lepton));
+  }
+  return cutflow_vec;
+
 }
 
 void StopDistiller::print_progress(int entry_n, std::ostream& stream) {

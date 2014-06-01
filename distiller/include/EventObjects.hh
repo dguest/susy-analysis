@@ -18,6 +18,7 @@ class EventMuons;
 class EventElectrons;
 class EventPreselector;
 class TriggerSF;
+class BtagCalibration;
 
 struct EventObjects {
   EventObjects(const SusyBuffer&, SUSYObjDef& def, unsigned, const RunInfo&,
@@ -25,8 +26,8 @@ struct EventObjects {
   EventObjects(EventObjects&) = delete;
   EventObjects& operator=(EventObjects&) = delete;
   ~EventObjects();
-  SelectedJet* electron_jet() const;
   void do_overlap_removal(CutCounter&);
+  void make_electron_jet_collection(const BtagCalibration* cal);
   void compute_trigger_sf(SUSYObjDef& def);
   TriggerSF* get_trigger_sf() const;
 
@@ -42,11 +43,13 @@ struct EventObjects {
 
   std::vector<SelectedJet*> good_jets;
   std::vector<SelectedJet*> signal_jets;
+  std::vector<SelectedJet*> signal_jets_eljet;
   std::vector<Electron*> control_electrons;
   std::vector<Muon*> control_muons;
 
   std::vector<int> susy_muon_idx;
   std::vector<SelectedJet*> leading_jets;
+  std::vector<SelectedJet*> leading_jets_eljet;
 
   PreselectionInfo prec;
 
@@ -55,6 +58,7 @@ private:
   EventElectrons* m_all_electrons;
   EventMuons* m_all_muons;
   TriggerSF* m_trigger_sf;
+  SelectedJet* electron_jet() const;
 };
 
 #endif

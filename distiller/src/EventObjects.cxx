@@ -81,6 +81,20 @@ void EventObjects::do_overlap_removal(CutCounter& ob_counts) {
   leading_jets.assign(signal_jets.begin(), signal_jets.begin() + n_leading);
 }
 
+void EventObjects::make_electron_jet_collection(const BtagCalibration* cal){
+  signal_jets_eljet = signal_jets;
+  auto* eljet = electron_jet();
+  if (eljet) {
+    eljet->set_flavor_tag(cal);
+    signal_jets_eljet.push_back(eljet);
+    std::sort(signal_jets_eljet.begin(), signal_jets_eljet.end(),
+	      object::has_higher_pt);
+  }
+  const int n_leading = std::min(signal_jets_eljet.size(), N_SR_JETS);
+  leading_jets_eljet.assign(
+    signal_jets_eljet.begin(), signal_jets_eljet.begin() + n_leading);
+}
+
 void EventObjects::compute_trigger_sf(SUSYObjDef& def) {
   assert(!m_trigger_sf);
   m_trigger_sf = new TriggerSF(get_lepton_trigger_sf(def, *this));
