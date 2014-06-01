@@ -117,8 +117,13 @@ def _get_outputs(config, out_file):
         bullshit.make_dir_if_none(out_dir)
         return join(out_dir, out_file)
 
-    return {'output_ntuple': make_output('normal'),
-            'leptmet_output_ntuple': make_output('leptmet')}
+    return {
+        'output_ntuple': make_output('normal'),
+        'leptmet_output_ntuple': make_output('leptmet'),
+        'mumet_output_ntuple': make_output('mumet'),
+        'eljet_out_ntuple': make_output('eljet'),
+        'eljet_mumet_out_ntuple': make_output('eljetmumet')
+        }
 
 def _dump_settings(settings_dict, flags):
     print "running with flags '{}'".format(flags)

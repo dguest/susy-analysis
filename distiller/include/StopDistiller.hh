@@ -73,9 +73,14 @@ private:
   SusyBuffer* m_susy_buffer;
   SUSYObjDef* m_def;
   EventPreselector* m_event_preselector;
+
+  // produce lots of output trees at once
   outtree::OutTree* m_out_tree;
   outtree::OutTree* m_mumet_out_tree;
   outtree::OutTree* m_leptmet_out_tree;
+  outtree::OutTree* m_eljet_out_tree;
+  outtree::OutTree* m_eljet_mumet_out_tree;
+
   BitmapCutflow* m_cutflow;
   CutCounter* m_object_counter;
   BtagCalibration* m_btag_calibration;

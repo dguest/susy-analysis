@@ -69,6 +69,8 @@ StopDistiller::StopDistiller(const std::vector<std::string>& in,
   m_out_tree(0),
   m_mumet_out_tree(0),
   m_leptmet_out_tree(0),
+  m_eljet_out_tree(0),
+  m_eljet_mumet_out_tree(0),
   m_cutflow(0),
   m_btag_calibration(0),
   m_boson_truth_filter(0),
@@ -103,7 +105,7 @@ StopDistiller::~StopDistiller() {
   delete m_skim_report;
   delete m_susy_buffer;
   if (m_def) {
-    m_def->finalize();
+    m_def->finalize();		// don't think this actually does anything
     delete m_def;
   }
 
@@ -207,11 +209,15 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   fill_event_output(
     obj, mets.nominal, mets.nominal, JetRep::NONE, *m_out_tree, nom_cutflow);
   fill_event_output(
-    obj, mets.nominal, mets.muon, JetRep::ELJET, *m_mumet_out_tree,
+    obj, mets.nominal, mets.lepton , JetRep::NONE, *m_leptmet_out_tree,
+    lept_cutflow);
+  fill_event_output(
+    obj, mets.nominal, mets.muon   , JetRep::NONE, *m_mumet_out_tree);
+  fill_event_output(
+    obj, mets.nominal, mets.nominal, JetRep::ELJET, *m_eljet_out_tree,
     eljet_cutflow);
   fill_event_output(
-    obj, mets.nominal, mets.lepton, JetRep::NONE, *m_leptmet_out_tree,
-    lept_cutflow);
+    obj, mets.nominal, mets.muon   , JetRep::ELJET, *m_eljet_mumet_out_tree);
 }
 
 // mc overlap removal
@@ -374,12 +380,17 @@ void StopDistiller::setup_susytools() {
 }
 
 void StopDistiller::setup_outputs() {
+  const std::string tree_name = "evt_tree";
   m_out_tree = new outtree::OutTree(
-    m_info.out_ntuple, "evt_tree", m_flags, N_JETS_TO_SAVE);
+    m_info.out_ntuple, tree_name, m_flags, N_JETS_TO_SAVE);
   m_mumet_out_tree = new outtree::OutTree(
-    m_info.mumet_out_ntuple, "evt_tree", m_flags, N_JETS_TO_SAVE);
+    m_info.mumet_out_ntuple, tree_name, m_flags, N_JETS_TO_SAVE);
   m_leptmet_out_tree = new outtree::OutTree(
-    m_info.leptmet_out_ntuple, "evt_tree", m_flags, N_JETS_TO_SAVE);
+    m_info.leptmet_out_ntuple, tree_name, m_flags, N_JETS_TO_SAVE);
+  m_eljet_out_tree = new outtree::OutTree(
+    m_info.eljet_out_ntuple, tree_name, m_flags, N_JETS_TO_SAVE);
+  m_eljet_mumet_out_tree = new outtree::OutTree(
+    m_info.eljet_mumet_out_ntuple, tree_name, m_flags, N_JETS_TO_SAVE);
 
   m_object_counter = new CutCounter;
 }

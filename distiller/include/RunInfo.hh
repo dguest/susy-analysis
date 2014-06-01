@@ -18,6 +18,8 @@ struct RunInfo {
   std::string out_ntuple;
   std::string mumet_out_ntuple;
   std::string leptmet_out_ntuple;
+  std::string eljet_out_ntuple;
+  std::string eljet_mumet_out_ntuple;
   RunInfo();
 };
 
