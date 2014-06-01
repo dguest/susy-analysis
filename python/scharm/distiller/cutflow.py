@@ -11,11 +11,9 @@ class CorruptedCutflow(list):
         self.files_used = files_used
 
 
-def cutflow(input_files, flags, grl='', output_ntuple='',
-            btag_cal_file='', cal_dir='', systematic='NONE',
-            cutflow='NONE', boson_pt_max_mev=-1.0, truth_met_max_mev=-1.0,
-            pu_config='', pu_lumicalc='', mumet_output_ntuple='',
-            leptmet_output_ntuple=''):
+def cutflow(input_files, flags, grl='',
+            btag_cal_file='', cal_dir='',
+            pu_config='', pu_lumicalc='', **more_args):
     """
     Returns a list of pairs: (cut_name, n_passing). If output_ntuple is
     given will also write an ntuple.
@@ -43,7 +41,6 @@ def cutflow(input_files, flags, grl='', output_ntuple='',
     assert isinstance(grl, str)
     assert isinstance(cal_dir, str)
     assert isinstance(btag_cal_file, str)
-    assert isinstance(systematic, str)
 
     if not input_files:
         raise IOError("can't run cutflow, input files don't exist")
@@ -54,18 +51,12 @@ def cutflow(input_files, flags, grl='', output_ntuple='',
 
     input_dict = {
         'grl': grl,
-        'btag_cal_dir':cal_dir,
         'btag_cal_file':btag_cal_file,
-        'systematic':systematic,
-        'cutflow_type': cutflow,
-        'boson_pt_max_mev': boson_pt_max_mev,
-        'truth_met_max_mev': truth_met_max_mev,
-        'pu_config': pu_config,
+        'btag_cal_dir':cal_dir,
         'pu_lumicalc': _get_fixed_pathname(pu_lumicalc),
-        'out_ntuple': output_ntuple,
-        'mumet_out_ntuple': mumet_output_ntuple,
-        'leptmet_out_ntuple': leptmet_output_ntuple,
+        'pu_config': _get_fixed_pathname(pu_config),
         }
+    input_dict.update(more_args)
     if 'a' in flags:
         return _aggressive_distill(
             input_files, input_dict, flags)
