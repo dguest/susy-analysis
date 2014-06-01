@@ -12,10 +12,11 @@ class EventObjects;
 class ObjectComposites;
 
 #include "btag_defs.hh"
+#include "enums_replacement.hh"
 #include <vector>
 
 // ---- copy functions ----
-void copy_event(const EventObjects&, const ObjectComposites&,
+void copy_event(const EventObjects&, JetRep, const ObjectComposites&,
 		const TVector2&, outtree::OutTree&);
 
 // the above calls the below

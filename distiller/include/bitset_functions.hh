@@ -10,6 +10,7 @@ class EventObjects;
 class Mets;
 
 #include "typedefs.hh"
+#include "enums_replacement.hh"
 
 #include <vector>
 
@@ -18,7 +19,7 @@ class Mets;
 // master of all objects
 namespace bits {
   // mother of all event object checkers
-  ull_t event_object_bits(const EventObjects& obj);
+  ull_t event_object_bits(const EventObjects& obj, JetRep rep);
   // called within the above function
   ull_t signal_jet_bits(const std::vector<SelectedJet*>& signal_jets);
   ull_t control_lepton_bits(const std::vector<Electron*>&,

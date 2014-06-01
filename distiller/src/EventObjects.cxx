@@ -108,13 +108,13 @@ TriggerSF* EventObjects::get_trigger_sf() const {
 const std::vector<SelectedJet*>&
 EventObjects::signal_jets(JetRep jr)
   const {
-  assert(jr == JetRep::NONE);
+  if (jr == JetRep::ELJET) return m_signal_jets_eljet;
   return m_signal_jets;
 }
 const std::vector<SelectedJet*>&
 EventObjects::leading_jets(JetRep jr)
   const {
-  assert(jr == JetRep::NONE);
+  if (jr == JetRep::ELJET) return m_leading_jets_eljet;
   return m_leading_jets;
 }
 

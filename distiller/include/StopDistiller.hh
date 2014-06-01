@@ -4,6 +4,7 @@
 #include <string>
 #include "RunInfo.hh"		// could we remove this struct?
 #include "typedefs.hh"
+#include "enums_replacement.hh"
 
 class SmartChain;
 class SkimReport;
@@ -52,6 +53,7 @@ private:
   void fill_event_output(const EventObjects&,
 			 const TVector2& met,
 			 const TVector2& alt_met,
+			 const JetRep replacement,
 			 outtree::OutTree&, BitmapCutflow* = 0) const;
 
   std::vector<std::pair<std::string, double> > get_cutflow_vec(int errs) const;

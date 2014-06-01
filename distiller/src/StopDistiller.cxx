@@ -184,9 +184,11 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
 		   *m_event_preselector);
   obj.do_overlap_removal(*m_object_counter);
   obj.compute_trigger_sf(*m_def);
+  // NOTE: must calibrate signal jets for b-tagging
+  // here we calibrate the electron jet first, then add the other signal jets
+  // could probably simplify this by just calibrating the Electron Jets
   obj.make_electron_jet_collection(m_btag_calibration);
-  // ---- must calibrate signal jets for b-tagging ----
-  calibrate_jets(obj.signal_jets(), m_btag_calibration);
+  calibrate_jets(obj.signal_jets(JetRep::NONE), m_btag_calibration);
 
   const Mets mets(*m_susy_buffer, *m_def, obj.susy_muon_idx,
 		  sum_muon_pt(obj.control_muons),
@@ -195,16 +197,21 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
 
   BitmapCutflow* nom_cutflow = 0;
   BitmapCutflow* lept_cutflow = 0;
-  if (m_info.cutflow_type == CutflowType::CRZ) {
-    lept_cutflow = m_cutflow;
-  } else {
-    nom_cutflow = m_cutflow;
+  BitmapCutflow* eljet_cutflow = 0;
+  switch (m_info.cutflow_type){
+  case CutflowType::CRZ: lept_cutflow = m_cutflow; break;
+  case CutflowType::CRW: eljet_cutflow = m_cutflow; break;
+  default: nom_cutflow = m_cutflow;
   }
-  fill_event_output(obj, mets.nominal, mets.nominal, *m_out_tree,
-		    nom_cutflow);
-  fill_event_output(obj, mets.nominal, mets.muon, *m_mumet_out_tree);
-  fill_event_output(obj, mets.nominal, mets.lepton, *m_leptmet_out_tree,
-		    lept_cutflow);
+
+  fill_event_output(
+    obj, mets.nominal, mets.nominal, JetRep::NONE, *m_out_tree, nom_cutflow);
+  fill_event_output(
+    obj, mets.nominal, mets.muon, JetRep::ELJET, *m_mumet_out_tree,
+    eljet_cutflow);
+  fill_event_output(
+    obj, mets.nominal, mets.lepton, JetRep::NONE, *m_leptmet_out_tree,
+    lept_cutflow);
 }
 
 // mc overlap removal
@@ -230,15 +237,16 @@ bool StopDistiller::is_overlaping_event() const {
 void StopDistiller::fill_event_output(const EventObjects& obj,
 				      const TVector2& met,
 				      const TVector2& alt_met,
+				      const JetRep rep,
 				      outtree::OutTree& out_tree,
 				      BitmapCutflow* cutflow) const {
-  const ObjectComposites par(obj, met, alt_met);
+  const ObjectComposites par(obj, met, alt_met, rep);
   // ----- object selection is done now, from here is filling outputs ---
 
   // --- fill bits ---
   ull_t pass_bits = obj.prec.bits;
   pass_bits |= bits::object_composit_bits(par);
-  pass_bits |= bits::event_object_bits(obj);
+  pass_bits |= bits::event_object_bits(obj, rep);
   pass_bits |= bits::met_bits(alt_met);
   pass_bits |= bits::bad_tile_bits(met, obj.preselected_jets);
   pass_bits |= bits::compound_bits(pass_bits);
@@ -251,11 +259,11 @@ void StopDistiller::fill_event_output(const EventObjects& obj,
   out_tree.pileup_weight = obj.prec.pileup_weight;
 
   // main event copy function
-  copy_event(obj, par, alt_met, out_tree);
+  copy_event(obj, rep, par, alt_met, out_tree);
 
   float mcevt_wt = 1.0;
   if ( m_flags & cutflag::truth ) {
-    copy_cjet_truth(out_tree, obj.signal_jets());
+    copy_cjet_truth(out_tree, obj.signal_jets(rep));
     copy_event_truth(out_tree, *m_susy_buffer, m_flags);
     mcevt_wt = m_susy_buffer->mc_event_weight;
   }
@@ -590,7 +598,7 @@ namespace {
 
   double reco_event_weight(const EventObjects& obj) {
     double obj_sf = 1.0;
-    for (auto jet: obj.leading_jets()){
+    for (auto jet: obj.leading_jets(JetRep::NONE)){
       if (jet->has_truth()) {
     	obj_sf *= jet->scale_factor(btag::JFC_MEDIUM).first;
       }

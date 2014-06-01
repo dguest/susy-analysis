@@ -32,8 +32,8 @@ struct EventObjects {
   void make_electron_jet_collection(const BtagCalibration* cal);
   void compute_trigger_sf(SUSYObjDef& def);
   TriggerSF* get_trigger_sf() const;
-  const std::vector<SelectedJet*>& signal_jets(JetRep = JetRep::NONE) const;
-  const std::vector<SelectedJet*>& leading_jets(JetRep = JetRep::NONE) const;
+  const std::vector<SelectedJet*>& signal_jets(JetRep) const;
+  const std::vector<SelectedJet*>& leading_jets(JetRep) const;
 
   std::vector<SelectedJet*> preselected_jets;
   std::vector<Electron*> preselected_electrons;

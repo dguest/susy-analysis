@@ -22,11 +22,11 @@ namespace {
 
 // ______________________________________________________________
 // master copy for event
-void copy_event(const EventObjects& obj,
+void copy_event(const EventObjects& obj, JetRep rep,
 		const ObjectComposites& par,
 		const TVector2& met, outtree::OutTree& out_tree) {
   out_tree.par.n_preselected_jets = obj.preselected_jets.size();
-  out_tree.par.n_signal_jets = obj.signal_jets().size();
+  out_tree.par.n_signal_jets = obj.signal_jets(rep).size();
   out_tree.par.n_baseline_electrons = obj.after_overlap_electrons.size();
   out_tree.par.n_baseline_muons = obj.after_overlap_muons.size();
   out_tree.par.n_signal_electrons = obj.control_electrons.size();
@@ -41,7 +41,7 @@ void copy_event(const EventObjects& obj,
   out_tree.par.htx = par.htx;
 
   copy_met(out_tree, met);
-  copy_leading_jet_info(obj.signal_jets(), out_tree);
+  copy_leading_jet_info(obj.signal_jets(rep), out_tree);
   copy_lepton_info(obj.control_muons, obj.control_electrons, out_tree.par);
 
   copy_id_vec_to_box(obj.control_electrons, out_tree.el_sf);

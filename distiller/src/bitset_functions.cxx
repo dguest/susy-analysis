@@ -20,8 +20,8 @@ namespace bits {
 
   // --- event object bits ----
   // main function
-  ull_t event_object_bits(const EventObjects& obj) {
-    ull_t pass_bits = signal_jet_bits(obj.signal_jets());
+  ull_t event_object_bits(const EventObjects& obj, JetRep rep) {
+    ull_t pass_bits = signal_jet_bits(obj.signal_jets(rep));
     pass_bits |= pass::cosmic_muon | pass::bad_muon;
     for (auto mu: obj.preselected_muons) {
       if (mu->bad() ) pass_bits &=~ pass::bad_muon;
@@ -30,7 +30,7 @@ namespace bits {
       if (mu->cosmic() ) pass_bits &=~ pass::cosmic_muon;
     }
 
-    if (pass_chf_check(obj.signal_jets())) pass_bits |= pass::jet_chf;
+    if (pass_chf_check(obj.signal_jets(rep))) pass_bits |= pass::jet_chf;
     pass_bits |= control_lepton_bits(obj.control_electrons,
 				     obj.control_muons);
 
