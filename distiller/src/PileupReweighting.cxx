@@ -41,11 +41,7 @@ unsigned PileupReweighting::random_run_number(const SusyBuffer& buf) const {
 }
 
 float PileupReweighting::get_pileup_weight(const SusyBuffer& buffer) {
-  // apply hack from Will Butt's twiki:
-  // https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/ExtendedPileupReweighting#Recipe_A_MC12a_Pileup_Reweightin
-  // sets some values from 1 to 0
-  bool need_hack = buffer.lbn==1 && int(buffer.averageIntPerXing+0.5)==1;
-  float avx = need_hack ? 0.0 : buffer.averageIntPerXing;
+  float avx = buffer.average_int_per_xing();
 
   if (m_generate) {
     m_prw->Fill(

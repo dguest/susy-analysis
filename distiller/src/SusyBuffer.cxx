@@ -226,6 +226,14 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br):
 
 }
 
+float SusyBuffer::average_int_per_xing() const {
+  bool isSimulation = has_truth();
+  // taken from https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/ExtendedPileupReweighting#Recipe_A_MC12a_Pileup_Reweightin
+  return (
+    isSimulation && lbn==1 && int(averageIntPerXing+0.5)==1) ?
+    0. : averageIntPerXing;
+}
+
 void SusyBuffer::set_mc_branches(SmartChain* chain,
 				 const unsigned br,
 				 std::string jc)

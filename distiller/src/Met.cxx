@@ -61,7 +61,7 @@ namespace {
       buffer.MET_Egamma10NoTau_CellOut_sumet, //CellOut
       buffer.MET_CellOut_Eflow_STVF_etx,
       buffer.MET_CellOut_Eflow_STVF_ety,
-      buffer.MET_CellOut_Eflow_STVF_sumet,		
+      buffer.MET_CellOut_Eflow_STVF_sumet,
       buffer.MET_Egamma10NoTau_RefGamma_etx,
       buffer.MET_Egamma10NoTau_RefGamma_ety,
       buffer.MET_Egamma10NoTau_RefGamma_sumet,
@@ -71,7 +71,7 @@ namespace {
       buffer.mu_staco_ms_phi,
       buffer.mu_staco_charge,
       buffer.mu_staco_energyLossPar,
-      buffer.averageIntPerXing,
+      buffer.average_int_per_xing(),
       SUSYMet::Default,
       systematic);
 

@@ -45,7 +45,7 @@ public :
   std::vector<std::vector<float> >* trig_EF_trigmuonef_track_CB_phi;
   std::vector<std::vector<int> >* trig_EF_trigmuonef_track_CB_hasCB;
 
-  float         averageIntPerXing;
+  float average_int_per_xing() const;
   unsigned        larError;
   unsigned        tileError;
   unsigned        coreFlags;
@@ -211,6 +211,7 @@ private:
   void set_mc_branches(SmartChain* chain, const unsigned br,
 		       std::string jc);
   bool m_has_truth;
+  float        averageIntPerXing;
 };
 
 #endif

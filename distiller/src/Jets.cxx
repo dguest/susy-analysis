@@ -307,14 +307,14 @@ namespace {
       buffer.jet_ActiveAreaPz->at(iJet),
       buffer.jet_ActiveAreaE->at(iJet),
       buffer.Eventshape_rhoKt4LC,
-      buffer.averageIntPerXing,
+      buffer.average_int_per_xing(),
       buffer.vx_nTracks);
 
     def.ApplyJetSystematics(
       iJet,
       buffer.jet_constscale_eta        ->at(iJet),
       flavor_truth_label,
-      buffer.averageIntPerXing,
+      buffer.average_int_per_xing(),
       buffer.vx_nTracks,
       get_susytools_systematic(info.systematic));
 
