@@ -12,7 +12,7 @@ SUSY_INC      := $(shell ./map_libs.sh -i)
 
 #  set search path
 vpath %.o    $(BIN)
-vpath %.cxx  $(SRC) 
+vpath %.cxx  $(SRC)
 vpath %.hh   $(INC) $(SUSY_INC)
 vpath %.h    $(INC) $(SUSY_INC)
 vpath %Dict.h $(DICT)
@@ -41,7 +41,7 @@ CXXFLAGS     := -O2 -Wall -fPIC -I$(INC) $(SUSY_INC:%=-I%) -g -std=c++11
 LDFLAGS      := -Wl,-no-undefined
 LIBS         := $(shell ./map_libs.sh -l)
 
-# rootstuff 
+# rootstuff
 CXXFLAGS     += $(ROOTCFLAGS)
 LDFLAGS      += $(ROOTLDFLAGS)
 LIBS         += $(ROOTLIBS)
@@ -63,7 +63,7 @@ T_DICTS     := $(TOBJ:.o=Dict.o)
 GEN_OBJ     := distill_tools.o bitset_functions.o
 GEN_OBJ     += Jets.o Leptons.o Met.o EventObjects.o ObjectComposites.o
 GEN_OBJ     += boson_truth_tools.o BosonPtReweighter.o
-GEN_OBJ     += OutTree.o OutputFilter.o 
+GEN_OBJ     += OutTree.o OutputFilter.o
 GEN_OBJ     += BitmapCutflow.o CutCounter.o
 GEN_OBJ     += object_selection.o copy_functions.o
 GEN_OBJ     += BosonTruthFilter.o TruthMetFilter.o
@@ -72,8 +72,8 @@ GEN_OBJ     += EventPreselector.o StopDistiller.o CheckSize.o
 GEN_OBJ     += BtagCalibration.o Grl.o RunInfo.o PileupReweighting.o
 GEN_OBJ     += trigger_sf.o
 GEN_OBJ     += mctlib.o
-GEN_OBJ     += unit_tests.o
-EXE_OBJ     := $(GEN_OBJ) $(T_DICTS) $(TOBJ) 
+GEN_OBJ     += unit_tests.o exceptions.o
+EXE_OBJ     := $(GEN_OBJ) $(T_DICTS) $(TOBJ)
 PYLIB_OBJ   := $(GEN_OBJ) $(T_DICTS) $(TOBJ)
 
 PY_OBJ       := _distiller.o
@@ -85,7 +85,7 @@ PY_OUT_PATH  := ../python/scharm/distiller/$(PY_OBJ:.o=.so)
 ALLOUTPUT    := $(PY_OUT_PATH) unit-test
 ALLOUTPUT    += $(BITDEFS)
 
-all: $(ALLOUTPUT) 
+all: $(ALLOUTPUT)
 
 cutflow: $(EXE_OBJ:%=$(BIN)/%)
 	@echo "linking $^ --> $@"
@@ -104,20 +104,20 @@ $(BITDEFS): EventBits.hh
 # --------------------------------------------------
 
 # python object compile
-$(BIN)/_%.o: _%.cxx 
+$(BIN)/_%.o: _%.cxx
 	@echo compiling python object $@
 	@mkdir -p $(BIN)
-	@$(CXX) -c $(CXXFLAGS) $(PY_FLAGS) $< -o $@ 
+	@$(CXX) -c $(CXXFLAGS) $(PY_FLAGS) $< -o $@
 
-# root dictionary generation 
+# root dictionary generation
 $(DICT)/%Dict.cxx: %.h LinkDef.hh
 	@echo making dict $@
 	@mkdir -p $(DICT)
-	@rm -f $(DICT)/$*Dict.h $(DICT)/$*Dict.cxx 
-	@rootcint $@ -c $(INC)/$*.h	
+	@rm -f $(DICT)/$*Dict.h $(DICT)/$*Dict.cxx
+	@rootcint $@ -c $(INC)/$*.h
 	@sed -i 's,#include "$(INC)/\(.*\)",#include "\1",g' $(DICT)/$*Dict.h
 
-$(BIN)/%Dict.o: $(DICT)/%Dict.cxx 
+$(BIN)/%Dict.o: $(DICT)/%Dict.cxx
 	@mkdir -p $(BIN)
 	@echo compiling dict $@
 	@$(CXX) $(CXXFLAGS) $(ROOTCFLAGS) -c $< -o $@
@@ -139,14 +139,14 @@ endif
 $(BIN)/%.d: %.cxx
 	@echo making dependencies for $<
 	@mkdir -p $(BIN)
-	@$(CXX) $(DEPFLAGS) $< -o $@ 
+	@$(CXX) $(DEPFLAGS) $< -o $@
 
 # clean
 .PHONY : clean rmdep
-CLEANLIST     = *~ *.o *.o~ *.d core 
+CLEANLIST     = *~ *.o *.o~ *.d core
 clean:
 	rm -fr $(CLEANLIST) $(CLEANLIST:%=$(BIN)/%) $(CLEANLIST:%=$(DEP)/%)
 	rm -fr $(BIN) $(ALLOUTPUT) $(DICT)
 
-rmdep: 
+rmdep:
 	rm -f $(DEP)/*.d

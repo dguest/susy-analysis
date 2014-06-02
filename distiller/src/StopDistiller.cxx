@@ -26,6 +26,7 @@
 #include "EventBits.hh"
 #include "ObjectComposites.hh"
 #include "constants_distiller.hh"
+#include "exceptions.hh"
 
 #include <iostream>
 #include <fstream>
@@ -143,10 +144,9 @@ StopDistiller::Cutflow StopDistiller::run_cutflow() {
   for (int evt_n = 0; evt_n < m_n_entries; evt_n++) {
     try {
       process_event(evt_n, debug_stream);
-    } catch (EventReadError& e) {
+    } catch (TolerableError& e) {
       n_error++;
-    }
-    catch (std::logic_error& e) {
+    } catch (std::logic_error& e) {
       std::string err = "logic error in " + m_chain->get_current_file() +
     	", event " + std::to_string(evt_n) + ": " + e.what();
       throw std::logic_error(err);
@@ -214,8 +214,8 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   fill(mets.nominal, JetRep::NONE , m_out_tree, nom_cutflow);
   fill(mets.lepton , JetRep::NONE , m_leptmet_out_tree, lept_cutflow);
   fill(mets.muon   , JetRep::NONE , m_mumet_out_tree);
-  // fill(mets.nominal, JetRep::ELJET, m_eljet_out_tree, eljet_cutflow);
-  // fill(mets.muon   , JetRep::ELJET, m_eljet_mumet_out_tree);
+  fill(mets.nominal, JetRep::ELJET, m_eljet_out_tree, eljet_cutflow);
+  fill(mets.muon   , JetRep::ELJET, m_eljet_mumet_out_tree);
 }
 
 // mc overlap removal

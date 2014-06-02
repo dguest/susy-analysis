@@ -1,10 +1,7 @@
 #include "CheckSize.hh"
+#include "exceptions.hh"
 #include <stdexcept>
 
-EventReadError::EventReadError(std::string msg) throw():
-  std::runtime_error(msg)
-{
-}
 
 void CHECK::throw_size(const std::string& br_name, int expected, int actual){
   if (expected != actual){

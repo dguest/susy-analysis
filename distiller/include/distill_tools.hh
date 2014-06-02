@@ -18,7 +18,6 @@ class Electron;
 #include "btag_defs.hh"
 #include "constants_distiller.hh"
 
-
 // --- utility functions
 
 TVector2 get_boson_child_pt(const std::vector<Electron*>&,
