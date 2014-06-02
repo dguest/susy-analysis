@@ -214,8 +214,8 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   fill(mets.nominal, JetRep::NONE , m_out_tree, nom_cutflow);
   fill(mets.lepton , JetRep::NONE , m_leptmet_out_tree, lept_cutflow);
   fill(mets.muon   , JetRep::NONE , m_mumet_out_tree);
-  fill(mets.nominal, JetRep::ELJET, m_eljet_out_tree, eljet_cutflow);
-  fill(mets.muon   , JetRep::ELJET, m_eljet_mumet_out_tree);
+  // fill(mets.nominal, JetRep::ELJET, m_eljet_out_tree, eljet_cutflow);
+  // fill(mets.muon   , JetRep::ELJET, m_eljet_mumet_out_tree);
 }
 
 // mc overlap removal
