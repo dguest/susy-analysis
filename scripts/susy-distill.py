@@ -121,8 +121,8 @@ def _get_outputs(config, out_file):
         'out_ntuple': make_output('normal'),
         'leptmet_out_ntuple': make_output('leptmet'),
         'mumet_out_ntuple': make_output('mumet'),
-        # 'eljet_out_ntuple': make_output('eljet'),
-        # 'eljet_mumet_out_ntuple': make_output('eljetmumet')
+        'eljet_out_ntuple': make_output('eljet'),
+        'eljet_mumet_out_ntuple': make_output('eljetmumet')
         }
 
 def _dump_settings(settings_dict, flags):
