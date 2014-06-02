@@ -6,6 +6,7 @@
 #include "constants_lepton.hh"
 #include <cassert>
 #include <vector>
+#include <cmath>
 
 // TODO: move leptons into leptons, jets into jets?
 
@@ -94,8 +95,9 @@ namespace object {
   }
 
   SelectedJet* get_leptojet(const Jets& jets, const TLorentzVector& lepton){
+    assert(jets.size() != 0);
     SelectedJet* nearest_jet = 0;
-    float min_delta_r = 10;
+    float min_delta_r = INFINITY;
     for (auto j_itr: jets) {
       float delta_r = lepton.DeltaR(*j_itr);
       if (delta_r < min_delta_r) {
