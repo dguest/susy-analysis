@@ -188,7 +188,7 @@ SusyBuffer::SusyBuffer(SmartChain *fChain, const unsigned br):
   try {
     fChain->SetBranch(jc + "_sumPtTrk", &jet_sumPtTrk);
     fChain->fake_set(jc + "_sumPtTrk_pv0_500MeV"); // may need later
-  } catch (const MissingBranchError& err) {	
+  } catch (const MissingBranchError& err) {
     fChain->SetBranch(jc + "_sumPtTrk_pv0_500MeV", &jet_sumPtTrk);
   }
 
