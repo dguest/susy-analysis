@@ -435,12 +435,14 @@ void StopDistiller::setup_cutflow(CutflowType cutflow) {
     m_cutflow->add("bad_tile"          , pass::bad_tile      );
     m_cutflow->add("lar_error"        , pass::lar_error          );
     m_cutflow->add("energy_wt_time", pass::energy_wt_time);
-    m_cutflow->add("core"        , pass::core          );
+    m_cutflow->add("tcc_reset"        , pass::core          );
+    m_cutflow->add("chf_cut"     , pass::jet_chf);
     m_cutflow->add("cosmic_muon" , pass::cosmic_muon);
     m_cutflow->add("bad_muon"    , pass::bad_muon);
-    m_cutflow->add("zero_lepton"           , pass::zero_lepton    );
+    // m_cutflow->add("muon_veto"           , pass::muon_veto    );
+    // m_cutflow->add("electron_veto"           , pass::electron_veto    );
+    // m_cutflow->add("zero_lepton"           , pass::zero_lepton    );
     m_cutflow->add("lepton_veto"           , pass::lepton_veto    );
-    m_cutflow->add("chf_cut"     , pass::jet_chf);
     m_cutflow->add("met_150" , pass::met150    );
     m_cutflow->add(cat("n_jet_",N_SR_JETS) , pass::n_jet          );
     m_cutflow->add(cat("j1_", CUTFLOW_JET1_PT), pass::cutflow_leading);
@@ -606,18 +608,19 @@ namespace {
   }
 
   double reco_event_weight(const EventObjects& obj) {
+    // return 1.0;
     double obj_sf = 1.0;
-    for (auto jet: obj.leading_jets(JetRep::NONE)){
-      if (jet->has_truth()) {
-    	obj_sf *= jet->scale_factor(btag::JFC_MEDIUM).first;
-      }
-    }
-    for (auto el: obj.control_electrons) {
-      obj_sf *= el->id_sf();
-    }
-    for (auto mu: obj.control_muons) {
-      obj_sf *= mu->id_sf();
-    }
+    // for (auto jet: obj.leading_jets(JetRep::NONE)){
+    //   if (jet->has_truth()) {
+    // 	obj_sf *= jet->scale_factor(btag::JFC_MEDIUM).first;
+    //   }
+    // }
+    // for (auto el: obj.control_electrons) {
+    //   obj_sf *= el->id_sf();
+    // }
+    // for (auto mu: obj.control_muons) {
+    //   obj_sf *= mu->id_sf();
+    // }
     return obj_sf * obj.prec.pileup_weight;
   }
 
