@@ -83,10 +83,31 @@ def translate_to_fit_inputs(yields_dict):
     translates the yields directory structure into the structure used
     as the fitter input
     """
+    nom = _nominal_yields(yields_dict['none'])
+    syst = _yield_systematics(yields_dict)
+
+    # run through and remove variations that don't vary
+    kill_list = []
+    for systname, regdict in syst.items():
+        _cleansyst(regdict, nom)
+
     return {
-        'nominal_yields': _nominal_yields(yields_dict['none']),
-        'yield_systematics': _yield_systematics(yields_dict)
+        'nominal_yields': nom,
+        'yield_systematics': syst
         }
+
+def _cleansyst(regdict, nom):
+    """remove entries that are identical to nominal"""
+    kill_list = []
+    for regname, procdict in regdict.items():
+        for procname, counts in procdict.items():
+            nom_counts = nom[regname].get(procname)
+            if not nom_counts or counts[0] == nom_counts[0]:
+                kill_list.append((regname, procname))
+    for reg, proc in kill_list:
+        del regdict[reg][proc]
+        if not regdict[reg]:
+            del regdict[reg]
 
 _preselfix = 'presel'
 def _presel_region(reg_name):
