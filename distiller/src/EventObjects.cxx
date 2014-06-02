@@ -124,6 +124,8 @@ EventObjects::leading_jets(JetRep jr)
 SelectedJet* EventObjects::electron_jet() const {
   if (control_electrons.size() == 1) {
     auto control_el = control_electrons.at(0);
+    // ACHTUNG: this sometimes returns NULL (if there are no jets, which is
+    // weird...)
     return object::get_leptojet(*m_all_jets, *control_el);
   } else {
     return 0;

@@ -97,7 +97,7 @@ namespace object {
   }
 
   SelectedJet* get_leptojet(const Jets& jets, const TLorentzVector& lepton){
-    if (jets.size() == 0) throw NoJetMatchError();
+    if (jets.size() == 0) return 0;
     SelectedJet* nearest_jet = 0;
     float min_delta_r = INFINITY;
     for (auto j_itr: jets) {
