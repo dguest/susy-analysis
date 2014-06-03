@@ -441,8 +441,8 @@ void StopDistiller::setup_cutflow(CutflowType cutflow) {
     m_cutflow->add("bad_muon"    , pass::bad_muon);
     // m_cutflow->add("muon_veto"           , pass::muon_veto    );
     // m_cutflow->add("electron_veto"           , pass::electron_veto    );
-    // m_cutflow->add("zero_lepton"           , pass::zero_lepton    );
-    m_cutflow->add("lepton_veto"           , pass::lepton_veto    );
+    m_cutflow->add("muon_veto"           , pass::muon_veto    );
+    m_cutflow->add("electron_veto"           , pass::electron_veto    );
     m_cutflow->add("met_150" , pass::met150    );
     m_cutflow->add(cat("n_jet_",N_SR_JETS) , pass::n_jet          );
     m_cutflow->add(cat("j1_", CUTFLOW_JET1_PT), pass::cutflow_leading);
@@ -471,7 +471,7 @@ void StopDistiller::setup_cutflow(CutflowType cutflow) {
     m_cutflow->add("cosmic_muon" , pass::cosmic_muon);
     m_cutflow->add("bad_muon"    , pass::bad_muon);
     m_cutflow->add("pass_1l", pass::one_lepton);
-    m_cutflow->add("lepton_veto"        , pass::lepton_veto);
+    // m_cutflow->add("lepton_veto"        , pass::lepton_veto);
     m_cutflow->add("chf_cut"     , pass::jet_chf);
     m_cutflow->add("met_100" , pass::met100    );
     m_cutflow->add(cat("n_jet_",N_SR_JETS) , pass::n_jet          );
@@ -497,7 +497,7 @@ void StopDistiller::setup_cutflow(CutflowType cutflow) {
     m_cutflow->add("cosmic_muon" , pass::cosmic_muon);
     m_cutflow->add("bad_muon"    , pass::bad_muon);
     m_cutflow->add("ossf"           , pass::ossf    );
-    m_cutflow->add("lepton_veto"        , pass::lepton_veto);
+    // m_cutflow->add("lepton_veto"        , pass::lepton_veto);
     m_cutflow->add("chf_cut"     , pass::jet_chf);
     m_cutflow->add("met_100" , pass::met100    );
     m_cutflow->add(cat("n_jet_",N_SR_JETS) , pass::n_jet          );
@@ -524,7 +524,7 @@ void StopDistiller::setup_cutflow(CutflowType cutflow) {
     m_cutflow->add("cosmic_muon" , pass::cosmic_muon);
     m_cutflow->add("bad_muon"    , pass::bad_muon);
     m_cutflow->add("two_lepton"        , pass::two_lepton);
-    m_cutflow->add("lepton_veto"        , pass::lepton_veto);
+    // m_cutflow->add("lepton_veto"        , pass::lepton_veto);
     m_cutflow->add("osdf", pass::osdf);
     m_cutflow->add("chf_cut"     , pass::jet_chf);
     m_cutflow->add("met_50" , pass::met50 );

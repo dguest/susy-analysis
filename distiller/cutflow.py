@@ -58,4 +58,4 @@ for config in configs:
         pu_config='~/calibration/pu_config.prw.root',
         pu_lumicalc='~/calibration/' + lumicalc)
     for key, value in values:
-        print '{:20}: {:.1f}'.format(key, value)
+        print '{:20}: {:.3f}'.format(key, value)
