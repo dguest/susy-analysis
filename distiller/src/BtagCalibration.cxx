@@ -92,7 +92,7 @@ BtagCalibration::applied_factor(const JetTagFactorInputs& tf_inputs,
 				btag::OperatingPoint tagger,
 				btag::Uncertainty uncertainty) const {
   if (std::abs(tf_inputs.eta) > btag::TAG_ETA_MAX) {
-    return {0.0, INFINITY};
+    return {1.0, INFINITY};
   }
   if (pass_anti_b(tf_inputs, tagger) && pass_anti_u(tf_inputs, tagger)) {
     return pass_factor(tf_inputs.pt, tf_inputs.eta, tf_inputs.flavor,

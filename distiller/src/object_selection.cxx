@@ -44,8 +44,8 @@ namespace object {
     for (auto jet_itr: jets){
       auto& jet = *jet_itr;
       bool is_low_pt = jet.Pt() < jet::PRESELECTION_PT;
-      bool is_good_eta = std::abs(jet.Eta()) < jet::PRESELECTION_ETA;
-      if (!is_low_pt && is_good_eta) {
+      // bool is_good_eta = std::abs(jet.Eta()) < jet::PRESELECTION_ETA;
+      if (!is_low_pt) {
 	out.push_back(jet_itr);
       }
     }

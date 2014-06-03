@@ -610,11 +610,11 @@ namespace {
   double reco_event_weight(const EventObjects& obj) {
     // return 1.0;
     double obj_sf = 1.0;
-    // for (auto jet: obj.leading_jets(JetRep::NONE)){
-    //   if (jet->has_truth()) {
-    // 	obj_sf *= jet->scale_factor(btag::JFC_MEDIUM).first;
-    //   }
-    // }
+    for (auto jet: obj.leading_jets(JetRep::NONE)){
+      if (jet->has_truth()) {
+    	obj_sf *= jet->scale_factor(btag::JFC_MEDIUM).first;
+      }
+    }
     // for (auto el: obj.control_electrons) {
     //   obj_sf *= el->id_sf();
     // }

@@ -7,9 +7,9 @@ namespace jet {
   static const float SUSYTOOLS_PT_CUT = 20*GeV;
   static const float SUSYTOOLS_ETA_CUT = 10;
   static const float PRESELECTION_PT = 20*GeV;
-  static const float PRESELECTION_ETA = 2.8;
+  static const float PRESELECTION_ETA = 2.8; // removed 3 Jun 14
   static const float SIGNAL_PT_CUT = 20*GeV;
-  static const float SIGNAL_ETA_CUT = 2.8;
+  static const float SIGNAL_ETA_CUT = 2.5;
 
   // jvf cuts: require a jvf above these values unless one of the below
   // "ignore" thresholds is met. These are used in the signal jet selection.
