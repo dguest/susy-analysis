@@ -207,15 +207,17 @@ void StopDistiller::process_event(int evt_n, std::ostream& dbg_stream) {
   }
 
   auto fill = [&](
-    const TVector2& altmet, JetRep jr, outtree::OutTree* ot,
+    const TVector2& altmet, JetRep jr, outtree::OutTree& ot,
     BitmapCutflow* cf = 0){
-    if (ot) fill_event_output(obj, mets.nominal, altmet, jr, *ot, cf);
+    if (ot.is_open()) {
+      fill_event_output(obj, mets.nominal, altmet, jr, ot, cf);
+    }
   };
-  fill(mets.nominal, JetRep::NONE , m_out_tree, nom_cutflow);
-  fill(mets.lepton , JetRep::NONE , m_leptmet_out_tree, lept_cutflow);
-  fill(mets.muon   , JetRep::NONE , m_mumet_out_tree);
-  fill(mets.nominal, JetRep::ELJET, m_eljet_out_tree, eljet_cutflow);
-  fill(mets.muon   , JetRep::ELJET, m_eljet_mumet_out_tree);
+  fill(mets.nominal, JetRep::NONE , *m_out_tree, nom_cutflow);
+  fill(mets.lepton , JetRep::NONE , *m_leptmet_out_tree, lept_cutflow);
+  fill(mets.muon   , JetRep::NONE , *m_mumet_out_tree);
+  fill(mets.nominal, JetRep::ELJET, *m_eljet_out_tree, eljet_cutflow);
+  fill(mets.muon   , JetRep::ELJET, *m_eljet_mumet_out_tree);
 }
 
 // mc overlap removal

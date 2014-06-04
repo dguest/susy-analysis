@@ -65,7 +65,7 @@ def distill_d3pds(config):
         cut_counts = cutflow.cutflow(
             input_files=files,
             flags=flags,
-            cutflow_type='NONE',
+            cutflow_type='SIGNAL',
             **add_dict)
 
     _write_cutflow(cut_counts, add_dict['out_ntuple'])
@@ -120,9 +120,9 @@ def _get_outputs(config, out_file):
     return {
         'out_ntuple': make_output('normal'),
         'leptmet_out_ntuple': make_output('leptmet'),
-        'mumet_out_ntuple': make_output('mumet'),
-        'eljet_out_ntuple': make_output('eljet'),
-        'eljet_mumet_out_ntuple': make_output('eljetmumet')
+        # 'mumet_out_ntuple': make_output('mumet'),
+        # 'eljet_out_ntuple': make_output('eljet'),
+        # 'eljet_mumet_out_ntuple': make_output('eljetmumet')
         }
 
 def _dump_settings(settings_dict, flags):

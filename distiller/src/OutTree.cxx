@@ -180,6 +180,10 @@ namespace outtree {
     if (m_file) m_file->WriteTObject(&par);
   }
 
+  bool OutTree::is_open() const {
+    return m_file;
+  }
+
   // ----------------- Jet -------------------
 
   Jet::Jet() {
