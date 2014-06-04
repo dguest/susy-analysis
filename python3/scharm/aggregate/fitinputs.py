@@ -54,10 +54,9 @@ class FitInputMaker:
                 if self._vrp and region.startswith(self._vrp):
                     continue
                 nom_count = _get_count(vargroup[self._variable]) * norm
-                if nom_count > 0.0:
-                    counts_dict[region,process,n_key] += nom_count
+                counts_dict[region,process,n_key] += nom_count
                 wt_var = self._variable + self._wt2_tag
-                if wt_var in vargroup and nom_count > 0.0:
+                if wt_var in vargroup:
                     sum_wt2 = _get_count(vargroup[wt_var]) * norm**2
                     counts_dict[region,process,err_key] += sum_wt2
 
@@ -129,8 +128,15 @@ def _drop_stat_uncert(yields):
     return ret_dict
 
 def _nominal_yields(yields):
-    """Returns more or less a straight copy, remove preselection maybe"""
-    return {k:v for k, v in yields.items() if not _presel_region(k)}
+    """strip out regions with zero yield"""
+    trim = {k:v for k, v in yields.items() if not _presel_region(k)}
+    out = {}
+    for reg_name, procs in trim.items():
+        out[reg_name] = {}
+        for proc_name, proc_yield in procs.items():
+            if proc_yield[0] > 0.0:
+                out[reg_name][proc_name] = proc_yield
+    return out
 
 def _yield_systematics(yields):
     """returns a reorganized 'yields'"""
