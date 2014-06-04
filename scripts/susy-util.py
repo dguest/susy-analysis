@@ -89,8 +89,6 @@ def cutflow(config):
             cut_list = yaml.load(count_file)
         these_cuts = set(c[0] for c in cut_list)
         if these_cuts - cutset:
-            if cutset - these_cuts:
-                raise ValueError('weird {}'.format(cutset - these_cuts))
             cuts = [c[0] for c in cut_list]
             cutset = set(cuts)
         cut_counts.update(dict(cut_list))
