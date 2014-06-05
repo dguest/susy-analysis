@@ -21,6 +21,7 @@
 #include "BosonPtReweighter.hh"
 #include "CheckSize.hh"
 #include "CutCounter.hh"
+#include "TriggerSF.hh"
 
 #include "cutflag.hh"
 #include "EventBits.hh"
@@ -611,19 +612,27 @@ namespace {
   }
 
   double reco_event_weight(const EventObjects& obj) {
-    // return 1.0;
+
     double obj_sf = 1.0;
+    // c-tagging
     for (auto jet: obj.leading_jets(JetRep::NONE)){
       if (jet->has_truth()) {
     	obj_sf *= jet->scale_factor(btag::JFC_MEDIUM).first;
       }
     }
-    // for (auto el: obj.control_electrons) {
-    //   obj_sf *= el->id_sf();
-    // }
-    // for (auto mu: obj.control_muons) {
-    //   obj_sf *= mu->id_sf();
-    // }
+
+    // lepton id
+    for (auto el: obj.control_electrons) {
+      obj_sf *= el->id_sf();
+    }
+    for (auto mu: obj.control_muons) {
+      obj_sf *= mu->id_sf();
+    }
+
+    // lepton trigger
+    obj_sf *= obj.get_trigger_sf()->nominal;
+
+    // pileup
     return obj_sf * obj.prec.pileup_weight;
   }
 

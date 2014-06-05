@@ -6,7 +6,7 @@
 #include "ObjectComposites.hh"
 #include "btag_defs.hh"
 #include "cutflag.hh"
-#include "trigger_sf.hh"
+#include "TriggerSF.hh"
 
 #include "TVector2.h"
 

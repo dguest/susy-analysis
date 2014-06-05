@@ -6,7 +6,7 @@
 #include "constants_distiller.hh"
 #include "object_selection.hh"
 #include "EventPreselector.hh"
-#include "trigger_sf.hh"
+#include "TriggerSF.hh"
 
 EventObjects::EventObjects(
   const SusyBuffer& buf, SUSYObjDef& def,

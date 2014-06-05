@@ -1,4 +1,4 @@
-#include "trigger_sf.hh"
+#include "TriggerSF.hh"
 
 #include "EventObjects.hh"
 #include "Leptons.hh"
