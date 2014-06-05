@@ -56,7 +56,7 @@ def distill_d3pds(config):
         if config.systematic != 'NONE' or config.build_prw:
             return
 
-    _dump_settings(add_dict, flags)
+    # _dump_settings(add_dict, flags)
 
     if config.test:
         cut_counts = [('test',1)]
