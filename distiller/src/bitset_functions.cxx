@@ -39,10 +39,15 @@ namespace bits {
     const int n_sig_el = obj.control_electrons.size();
     const int n_sig_mu = obj.control_muons.size();
     const int total_sig_leptons = n_sig_el + n_sig_mu;
+    const int total_leptons = n_el + n_mu;
     if (n_mu == 0) pass_bits |= pass::muon_veto;
     if (n_el == 0) pass_bits |= pass::electron_veto;
-    if (total_sig_leptons == 1) pass_bits |= pass::one_lepton;
-    if (total_sig_leptons == 2) pass_bits |= pass::two_lepton;
+    if (total_sig_leptons == 1 && total_leptons == 1){
+      pass_bits |= pass::one_lepton;
+    }
+    if (total_sig_leptons == 2 && total_leptons == 2){
+      pass_bits |= pass::two_lepton;
+    }
     if (obj.veto_jets.size() == 0) pass_bits |= pass::jet_clean;
 
     pass_bits |= trigger_match_bits(obj.control_electrons,
