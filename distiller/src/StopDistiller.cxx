@@ -487,7 +487,8 @@ void StopDistiller::setup_cutflow(CutflowType cutflow) {
   }
   case CutflowType::CRZ: {
     m_cutflow->add("GRL"                   , pass::grl            );
-    m_cutflow->add("trigger", pass::two_el_trigger | pass::two_mu_trigger);
+    m_cutflow->add("lepton_trigger" , lept_trigger);
+    m_cutflow->add("matched_trigger" , match_trigger);
     m_cutflow->add("primary_vertex"        , pass::vxp_gt_4trk    );
     m_cutflow->add("bad_jet_veto"          , pass::jet_clean      );
     m_cutflow->add("tile_trip"        , pass::tile_trip          );
@@ -496,11 +497,11 @@ void StopDistiller::setup_cutflow(CutflowType cutflow) {
     m_cutflow->add("lar_error"        , pass::lar_error          );
     m_cutflow->add("energy_wt_time", pass::energy_wt_time);
     m_cutflow->add("core"        , pass::core          );
+    m_cutflow->add("chf_cut"     , pass::jet_chf);
     m_cutflow->add("cosmic_muon" , pass::cosmic_muon);
     m_cutflow->add("bad_muon"    , pass::bad_muon);
+    m_cutflow->add("two_lepton"        , pass::two_lepton);
     m_cutflow->add("ossf"           , pass::ossf    );
-    // m_cutflow->add("lepton_veto"        , pass::lepton_veto);
-    m_cutflow->add("chf_cut"     , pass::jet_chf);
     m_cutflow->add("met_100" , pass::met100    );
     m_cutflow->add(cat("n_jet_",N_SR_JETS) , pass::n_jet          );
     m_cutflow->add("j1_50", pass::j1_50);
@@ -523,12 +524,12 @@ void StopDistiller::setup_cutflow(CutflowType cutflow) {
     m_cutflow->add("lar_error"        , pass::lar_error          );
     m_cutflow->add("energy_wt_time", pass::energy_wt_time);
     m_cutflow->add("core"        , pass::core          );
+    m_cutflow->add("chf_cut"     , pass::jet_chf);
     m_cutflow->add("cosmic_muon" , pass::cosmic_muon);
     m_cutflow->add("bad_muon"    , pass::bad_muon);
     m_cutflow->add("two_lepton"        , pass::two_lepton);
     // m_cutflow->add("lepton_veto"        , pass::lepton_veto);
     m_cutflow->add("osdf", pass::osdf);
-    m_cutflow->add("chf_cut"     , pass::jet_chf);
     m_cutflow->add("met_50" , pass::met50 );
     m_cutflow->add(cat("n_jet_",N_SR_JETS) , pass::n_jet          );
     m_cutflow->add("j1_50", pass::j1_50);

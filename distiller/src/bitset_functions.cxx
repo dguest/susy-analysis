@@ -158,15 +158,14 @@ namespace bits {
   }
 
   // --- other bits ---
-  ull_t met_bits(const TVector2& mets){
+  ull_t met_bits(const TVector2& met){
     ull_t pass_bits = 0;
-    if (mets.Mod() > FILTER_MET) {
+    if (met.Mod() > FILTER_MET) {
       pass_bits |= pass::met;
     }
-    if (mets.Mod() > 50*GeV) pass_bits |= pass::met50;
-    if (mets.Mod() > 100*GeV) pass_bits |= pass::met100;
-    if (mets.Mod() > 150*GeV) pass_bits |= pass::met150;
-
+    if (met.Mod() > 50*GeV) pass_bits |= pass::met50;
+    if (met.Mod() > 100*GeV) pass_bits |= pass::met100;
+    if (met.Mod() > 150*GeV) pass_bits |= pass::met150;
     return pass_bits;
   }
 

@@ -5,7 +5,7 @@ import sys, glob, os
 
 flags = 'vbgzfc'
 # flags += 'u'                    # generate pu reweighting file
-configs = ['CRW']
+configs = ['CRZ']
 files = []
 
 # 400_200_MET180 info (183440)
@@ -45,8 +45,8 @@ for config in configs:
     values = cutflow.cutflow(
         files, flags=flags,
         grl='~/calibration/grl.xml',
-        out_ntuple='py-output.root',
-        # leptmet_out_ntuple='py-output-leptmet.root',
+        # out_ntuple='py-output.root',
+        leptmet_out_ntuple='py-output-leptmet.root',
         # mumet_out_ntuple='py-output-mumet.root',
         # eljet_out_ntuple='py-output-eljet.root',
         # eljet_mumet_out_ntuple='py-output-mumet-eljet.root',
