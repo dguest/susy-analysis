@@ -75,7 +75,7 @@ ull_t EventPreselector::get_presel_bits(const SusyBuffer& buffer,
   ull_t pass_bits = 0;
   if ( m_flags & cutflag::is_data ) {
     if(buffer.larError != 2)  pass_bits |= pass::lar_error;
-    if(!buffer.tileError) pass_bits |= pass::tile_error;
+    if(buffer.tileError != 2) pass_bits |= pass::tile_error;
     if ( (buffer.coreFlags & 0x40000) == 0) pass_bits |= pass::core;
     if (m_grl) {
       if (m_grl->has_lb(buffer.RunNumber, buffer.lbn))
