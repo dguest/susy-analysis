@@ -23,7 +23,7 @@ class Sample:
         self.key = ds_key
         self.preferred = this_samp.get('preferred', False)
         if self.stats == 0 and self.type_char not in 'jem':
-            raise ValueError('no expected entries in {}'.format(ds_key))
+            warnings.warn('no expected entries in {}'.format(ds_key))
 
 class SampleSelector:
     """
