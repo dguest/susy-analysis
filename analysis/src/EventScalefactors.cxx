@@ -59,12 +59,11 @@ float EventScalefactors::get_sf(EventSyst lept, syst::Systematic sys) const
   case syst::ELUP:
   case syst::MUUP:
   case syst::LEPTRIGUP:
-    box_syst = SystVariation::UP;
-    break;
+    box_syst = SystVariation::UP; break;
   case syst::ELDOWN:
   case syst::MUDOWN:
   case syst::LEPTRIGDOWN:
-    box_syst = SystVariation::DOWN;
+    box_syst = SystVariation::DOWN; break;
   default: box_syst = SystVariation::NONE;
   }
   switch (lept){
