@@ -4,6 +4,9 @@ from collections import Counter
 import yaml
 import numpy as np
 
+_up_var_prefix = 'up'
+_down_var_prefix = 'down'
+
 class FitInputMaker:
     """
     Takes some meta data and one systematic as an input.
@@ -84,29 +87,48 @@ def translate_to_fit_inputs(yields_dict):
     """
     nom = _nominal_yields(yields_dict['none'])
     syst = _yield_systematics(yields_dict)
-
+    symsys, asymsys = _sort_sym_asym(syst)
     # run through and remove variations that don't vary
-    kill_list = []
-    for systname, regdict in syst.items():
-        _cleansyst(regdict, nom)
+    for syst_name in symsys:
+        _cleansyst(syst[syst_name], nom)
+    for syst_name in asymsys:
+        dn_syst = syst_name + _down_var_prefix
+        up_syst = syst_name + _up_var_prefix
+        _cleansyst(syst[dn_syst], nom, other_sys=syst[up_syst])
 
     return {
         'nominal_yields': nom,
         'yield_systematics': syst
         }
 
-def _cleansyst(regdict, nom):
-    """remove entries that are identical to nominal"""
+def _cleansyst(regdict, nom, other_sys=None):
+    """
+    remove entries that are identical to nominal. If other_sys is given,
+    will only remove the entries where _both_ are identical.
+    """
     kill_list = []
     for regname, procdict in regdict.items():
         for procname, counts in procdict.items():
-            nom_counts = nom[regname].get(procname)
-            if not nom_counts or counts[0] == nom_counts[0]:
-                kill_list.append((regname, procname))
-    for reg, proc in kill_list:
-        del regdict[reg][proc]
-        if not regdict[reg]:
-            del regdict[reg]
+            nomcount = nom[regname].get(procname)
+            def isnom(ct):
+                return (not nomcount) or (nomcount[0] == ct[0])
+            if other_sys:
+                other_count = other_sys[regname][procname]
+                if isnom(other_count) and isnom(counts):
+                    kill_list.append((regname, procname))
+            else:
+                if isnom(counts):
+                    kill_list.append((regname, procname))
+
+    def clean(region_dict):
+        for reg, proc in kill_list:
+            del region_dict[reg][proc]
+            if not region_dict[reg]:
+                del region_dict[reg]
+
+    clean(regdict)
+    if other_sys:
+        clean(other_sys)
 
 _preselfix = 'presel'
 def _presel_region(reg_name):
@@ -117,7 +139,7 @@ def _drop_stat_uncert(yields):
     """
     recursively dig through yields, return only the yield, not the
     statistical uncertainty. Assumes everything is a dict except for the
-    final yield (which is assumed to be a list.
+    final yield (which is assumed to be a list).
     """
     ret_dict = {}
     for key, subdict in yields.items():
@@ -150,6 +172,18 @@ def _yield_systematics(yields):
                 continue
             out[syst][reg_name] = _drop_stat_uncert(processes)
     return out
+
+def _sort_sym_asym(yields):
+    """takes output from _yield_systematics, gets sym / asym keys"""
+    uvp = _up_var_prefix
+    dvp = _down_var_prefix
+    udvar = {y[:-len(uvp)] for y in yields if y.endswith(uvp)}
+    udvar_dn_check = {y[:-len(dvp)] for y in yields if y.endswith(dvp)}
+    if udvar != udvar_dn_check:
+        raise ValueError('found unmatched up ({}) or down ({})'.format(
+                ', '.join(udvar), ', '.join(udvar_dn_check)))
+    sym_keys = {x + y for x in udvar for y in [dvp, uvp]}
+    return set(yields.keys()) - sym_keys, udvar
 
 #___________________________________________________________________________
 # helpers
