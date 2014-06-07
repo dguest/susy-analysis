@@ -39,7 +39,7 @@ def run():
 
 def run_plotmill(args):
     from scharm.aggregate import plot
-    from scharm.aggregate.aggregator import HistDict
+    from scharm.aggregate.aggschema import HistDict
 
     from numpy import seterr
     seterr(invalid='ignore', divide='ignore')

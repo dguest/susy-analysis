@@ -289,6 +289,23 @@ class Stack:
         # TODO: fix this, the dims don't match the backgrounds
         # self._upper_limit = np.maximum(self._upper_limit, highs)
 
+    def _add_pr_crap(self):
+        if self.lumi:
+            self.ax.text(
+                0.02, 0.85, self.lumi_str.format(self.lumi),
+                transform=self.ax.transAxes, size=self.label_font_size)
+
+        vert = 0.56 if self.ratio else 0.66
+        atl_lable_args = dict(
+            # x=0.15, y=0.7,
+            x=0.7, y=vert,
+            style='italic', transform=self.ax.transAxes,
+            size=self.label_font_size + 4)
+        self.ax.text(s='ATLAS', weight='bold',
+                     horizontalalignment='right', **atl_lable_args)
+        self.ax.text(s=' INTERNAL',
+                     horizontalalignment='left', **atl_lable_args)
+
     def add_legend(self):
         tstring = 'SM total: {}'.format(_legstr(self._sm_total))
         tartist = Line2D((0,1),(0,0), color='k')
@@ -299,10 +316,6 @@ class Stack:
         if legend:
             legend.get_frame().set_linewidth(0)
             legend.get_frame().set_alpha(0)
-        if self.lumi:
-            self.ax.text(
-                0.02, 0.8, self.lumi_str.format(self.lumi),
-                transform=self.ax.transAxes, size=16)
 
         # crude guess for how many legends fit
         max_fitting = 24 if self.ratio else 34
@@ -314,8 +327,10 @@ class Stack:
             lg = self.ratio.legend(
                 *zip(*self._rat_legs), fontsize=self.ratio_font_size,
                  ncol=3, loc='lower right', borderaxespad=0.0)
-            lg.get_frame().set_linewidth(0)
-            lg.get_frame().set_alpha(0)
+            # lg.get_frame().set_linewidth(0)
+            # lg.get_frame().set_alpha(0)
+
+        self._add_pr_crap()
 
     def save(self, name):
         if self._x_limits is None:
