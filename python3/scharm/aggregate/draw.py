@@ -296,6 +296,9 @@ class Stack:
             self.ax.text(
                 0.02, 0.85, self.lumi_str.format(self.lumi),
                 transform=self.ax.transAxes, size=self.label_font_size)
+            self.ax.text(
+                0.05, 0.75, r'$\sqrt{s} = $ 8 TeV',
+                transform=self.ax.transAxes, size=self.label_font_size)
 
         vert = 0.56 if self.ratio else 0.66
         atl_lable_args = dict(
