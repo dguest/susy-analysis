@@ -29,6 +29,8 @@ class Stack:
     toterr_name = 'total'
     ratio_grid_color = (0,0,0,0.2)
     label_font_size = 16
+    # confidence interval for data
+    data_ci = 1 - math.erf( (1/2)**0.5) # 1 sigma
     def __init__(self, ratio=False, exclude_zeros=True,
                  selection_colors=('r',(0.9, 0, 0, 0.2))):
         self._exclude_zeros = exclude_zeros
@@ -257,7 +259,7 @@ class Stack:
 
     def add_data(self, hist):
         x_vals, y_vals = hist.get_xy_center_pts()
-        lows, highs = errorbars.poisson_interval(y_vals)
+        lows, highs = errorbars.poisson_interval(y_vals, self.data_ci)
 
         if self.ratio and np.any(self._y_sum):
             self._add_ratio(x_vals, y_vals, lows, highs)
