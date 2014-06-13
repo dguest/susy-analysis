@@ -54,7 +54,12 @@ class CLsExclusionPlane:
         """
         Expects a list of (mass stop, mass lsp, upper limit) tuples.
         """
-        slu = np.array(stop_lsp_cls)
+        point_lables = None
+        if len(stop_lsp_cls[0]) > 3:
+            byvar = list(zip(*stop_lsp_cls))
+            stop_lsp_cls = zip(*byvar[:3])
+            point_lables = byvar[3]
+        slu = np.array(list(stop_lsp_cls))
         x, y, z = slu.T
         xmin, xmax = self.low_x, max(x)
         ymin, ymax = self.low_y, max(y)
@@ -73,10 +78,24 @@ class CLsExclusionPlane:
             colors=ct_color, linewidths=self.lw, linestyles=ct_style )
         self._proxy_contour.append(
             ( Line2D((0,0),(0,1), **draw_opts), str(label)) )
-        if not self._pts:
+        if point_lables:
+            self._add_point_labels(x, y, point_lables)
+        elif not self._pts:
             inpts = (x > xmin) & (y > ymin)
             self._pts, = self.ax.plot(x[inpts],y[inpts],'.k')
             self._proxy_contour.insert(0,(self._pts, 'signal points'))
+
+    def _add_point_labels(self, x, y, point_lables):
+        xy = {l: [] for l in point_lables}
+        for x, y, lab in zip(x, y, point_lables):
+            xy[lab].append((x, y))
+        for lab, ptlist in sorted(xy.items()):
+            x, y = np.array(ptlist).T
+            inpts = (x > self.low_x) & (y > self.low_y)
+            pts, = self.ax.plot(x[inpts], y[inpts], '.', label=lab,
+                                markersize=20)
+            self._proxy_contour.append((pts, lab))
+        self._pts = True
 
     def add_band(self, stop_lsp_low_high, color=None):
         """

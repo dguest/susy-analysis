@@ -11,10 +11,14 @@ def run():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('cls_file')
     parser.add_argument('-o', '--output-plot', default='plane.pdf')
-    parser.add_argument('-b', '--band-region')
     parser.add_argument('-f', '--filter-stop', action='store_true')
+    dowhat = parser.add_mutually_exclusive_group()
+    dowhat.add_argument('-b', '--band-region')
+    dowhat.add_argument('--best', action='store_true')
     args = parser.parse_args(sys.argv[1:])
-    if args.band_region:
+    if args.best:
+        _max_exclusion_plane(args)
+    elif args.band_region:
         _make_exclusion_plane(args)
     else:
         _multi_exclusion_plane(args)
@@ -54,6 +58,31 @@ def _make_exclusion_plane(args):
         ex_plane.add_config(cls_tup,conf_name, style=style)
 
     ex_plane.save(args.output_plot)
+
+def _max_exclusion_plane(args):
+    with open(args.cls_file) as cls_yml:
+        cls_dict = yaml.load(cls_yml)
+        if args.filter_stop:
+            cls_dict = _only_scharm_mass(cls_dict)
+
+    ex_plane = planeplt.CLsExclusionPlane()
+    ex_plane.lw = 1.5
+    point_dict = {}
+    for conf_name, cls_list in sorted(cls_dict.items()):
+        for sp in cls_list:
+            sch, lsp = sp['scharm_mass'], sp['lsp_mass']
+            low, high = sp['cls_down_1_sigma'], sp['cls_up_1_sigma']
+            expt = sp['cls_exp']
+            if not (sch, lsp) in point_dict or point_dict[sch, lsp][0] > expt:
+                point_dict[sch, lsp] = (expt, low, high, conf_name)
+
+    cls_list = [ (x[0], x[1], y[0], y[3]) for x,y in point_dict.items()]
+    band_list = [ (x[0], x[1], y[1], y[2]) for x,y in point_dict.items()]
+    ex_plane.add_config(cls_list, 'best expected', '-k')
+    ex_plane.add_band(band_list)
+
+    ex_plane.save(args.output_plot)
+
 
 def _multi_exclusion_plane(args):
     with open(args.cls_file) as cls_yml:
