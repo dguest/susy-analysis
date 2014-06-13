@@ -80,7 +80,7 @@ class FitInputMaker:
 # functions to translate from {systematic: {region: {process: yield} } }
 # to something closer to what scharm analysis uses
 
-def translate_to_fit_inputs(yields_dict):
+def translate_to_fit_inputs(yields_dict, clean=True):
     """
     translates the yields directory structure into the structure used
     as the fitter input
@@ -89,12 +89,13 @@ def translate_to_fit_inputs(yields_dict):
     syst = _yield_systematics(yields_dict)
     symsys, asymsys = _sort_sym_asym(syst)
     # run through and remove variations that don't vary
-    for syst_name in symsys:
-        _cleansyst(syst[syst_name], nom)
-    for syst_name in asymsys:
-        dn_syst = syst_name + _down_var_prefix
-        up_syst = syst_name + _up_var_prefix
-        _cleansyst(syst[dn_syst], nom, other_sys=syst[up_syst])
+    if clean:
+        for syst_name in symsys:
+            _cleansyst(syst[syst_name], nom)
+        for syst_name in asymsys:
+            dn_syst = syst_name + _down_var_prefix
+            up_syst = syst_name + _up_var_prefix
+            _cleansyst(syst[dn_syst], nom, other_sys=syst[up_syst])
 
     return {
         'nominal_yields': nom,
@@ -111,7 +112,7 @@ def _cleansyst(regdict, nom, other_sys=None):
         for procname, counts in procdict.items():
             nomcount = nom[regname].get(procname)
             def isnom(ct):
-                return (not nomcount) or (nomcount[0] == ct[0])
+                return (not nomcount) # or (nomcount[0] == ct[0])
             if other_sys:
                 other_count = other_sys[regname][procname]
                 if isnom(other_count) and isnom(counts):
