@@ -7,6 +7,7 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg as FigCanvas
 from scharm.style import vdict, hdict
 from scipy.interpolate import LinearNDInterpolator
 from matplotlib.lines import Line2D
+from matplotlib.colors import colorConverter
 from os.path import dirname
 
 class CLsExclusionPlane:
@@ -36,7 +37,7 @@ class CLsExclusionPlane:
         self._pts = None
         self._threshold = threshold
 
-    def _get_style(self, style_string):
+    def _get_style(self, style_string=''):
         if not style_string:
             for color in self.colors:
                 if not color in self.used_colors:
@@ -77,7 +78,7 @@ class CLsExclusionPlane:
             self._pts, = self.ax.plot(x[inpts],y[inpts],'.k')
             self._proxy_contour.insert(0,(self._pts, 'signal points'))
 
-    def add_band(self, stop_lsp_low_high):
+    def add_band(self, stop_lsp_low_high, color=None):
         """
         Expects a list of (mass stop, mass lsp, upper limit) tuples.
         """
@@ -95,11 +96,17 @@ class CLsExclusionPlane:
 
         zp[np.isnan(zp)] = 0.001
         extent = [xmin, xmax, ymin, ymax]
-        draw_opts = dict(color='k', linewidth=self.lw,
+        draw_opts = dict(color=None, linewidth=self.lw,
                          linestyle='-')
+
+        if not color:
+            color = colorConverter.to_rgba('yellow')
+        else:
+            color = colorConverter.to_rgba(color, alpha=0.2)
+
         ct = self.ax.contourf(
             xp, yp, zp, [-1, 0],
-            colors='yellow' )
+            colors=[color])
         # self.ax.imshow(lowp, extent=extent, origin='lower',
         #                vmin=-0.3,vmax=2)
         if not self._pts:
