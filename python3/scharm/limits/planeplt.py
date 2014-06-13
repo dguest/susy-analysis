@@ -89,11 +89,12 @@ class CLsExclusionPlane:
         xy = {l: [] for l in point_lables}
         for x, y, lab in zip(x, y, point_lables):
             xy[lab].append((x, y))
-        for lab, ptlist in sorted(xy.items()):
+        for (lab, ptlist), color in zip(sorted(xy.items()), self.colors):
             x, y = np.array(ptlist).T
             inpts = (x > self.low_x) & (y > self.low_y)
-            pts, = self.ax.plot(x[inpts], y[inpts], '.', label=lab,
-                                markersize=20)
+            pts, = self.ax.plot(
+                x[inpts], y[inpts], '.', label=lab, color=color,
+                markersize=20)
             self._proxy_contour.append((pts, lab))
         self._pts = True
 
