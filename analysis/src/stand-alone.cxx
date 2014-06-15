@@ -14,19 +14,23 @@ int run(const char* input_file) {
   test.systematic = syst::NONE;
   test.output_name = "stant-alone-out.h5";
   test.type = reg::CONTROL;
-  test.hists = reg::HISTMILL;
+  test.hists = reg::NMINUS;
+  test.selection = reg::Selection::SIGNAL;
+  test.stream = reg::Stream::SIMULATED;
+  test.tagger = btag::Tagger::JFC;
+  test.max_signal_jets = 999;
   regions.push_back(test);
 
   int syst_num = 0;
   for (auto systematic: {syst::ELUP, syst::CUP}) {
-    for (auto hists: {reg::HISTMILL, reg::KINEMATIC_STAT}) {
-      RegionConfig syst_reg = test;
-      syst_reg.name = "syst" + std::to_string(syst_num);
-      syst_reg.systematic = systematic;
-      syst_reg.hists = hists;
-      regions.push_back(syst_reg);
-      syst_num++;
-    }
+    // for (auto hists: {reg::NMINUS}) {
+    RegionConfig syst_reg = test;
+    syst_reg.name = "syst" + std::to_string(syst_num);
+    syst_reg.systematic = systematic;
+    // syst_reg.hists = hists;
+    regions.push_back(syst_reg);
+    syst_num++;
+    // }
   }
 
   HistBuilder builder(input_file, buildflag::verbose | buildflag::short_run);

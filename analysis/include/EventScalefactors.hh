@@ -29,12 +29,20 @@ public:
   ~EventScalefactors();
   EventScalefactors(const EventScalefactors&) = delete;
   EventScalefactors& operator=(const EventScalefactors&) = delete;
-  // TODO: wrap this in a function that multiplies all the event sf
-  float get_sf(EventSyst lept, syst::Systematic syst) const;
+  const SFBox* get_box(EventSyst) const;
+
+  // convenience method for single systematic
+  float get_sf(syst::Systematic syst) const;
 private:
   SFBox* m_el_sf;
   SFBox* m_mu_sf;
   SFBox* m_lepton_trig_sf;
 };
+
+// ________________________________________________________________________
+// functions to grab info about variations
+SystVariation sf_direction(syst::Systematic);
+EventSyst sf_type(syst::Systematic);
+bool is_sf_systematic(syst::Systematic);
 
 #endif

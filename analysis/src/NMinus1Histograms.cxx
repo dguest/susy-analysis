@@ -157,9 +157,7 @@ namespace {
     }
 
     // apply the lepton SF, etc
-    weight *= obj.event_scalefactors->get_sf(EventSyst::ELECTRON, syst);
-    weight *= obj.event_scalefactors->get_sf(EventSyst::MUON, syst);
-    weight *= obj.event_scalefactors->get_sf(EventSyst::LEPTRIG, syst);
+    weight *= obj.event_scalefactors->get_sf(syst);
     if (config.boson_pt_correction == reg::MARKS) {
       weight *= obj.marks_boson_pt_weight;
     }

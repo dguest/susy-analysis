@@ -4,6 +4,7 @@
 #include "StackerExceptions.hh"
 
 #include <string>
+#include <set>
 #include <stdexcept>
 
 #include "TTree.h"
@@ -52,25 +53,61 @@ EventScalefactors::~EventScalefactors() {
   m_lepton_trig_sf = 0;
 }
 
-float EventScalefactors::get_sf(EventSyst lept, syst::Systematic sys) const
-{
-  SystVariation box_syst;
-  switch (sys) {
-  case syst::ELUP:
-  case syst::MUUP:
-  case syst::LEPTRIGUP:
-    box_syst = SystVariation::UP; break;
-  case syst::ELDOWN:
-  case syst::MUDOWN:
-  case syst::LEPTRIGDOWN:
-    box_syst = SystVariation::DOWN; break;
-  default: box_syst = SystVariation::NONE;
-  }
+const SFBox* EventScalefactors::get_box(EventSyst lept) const {
   switch (lept){
-  case EventSyst::ELECTRON: return m_el_sf->get_sf(box_syst);
-  case EventSyst::MUON: return m_mu_sf->get_sf(box_syst);
-  case EventSyst::LEPTRIG: return m_lepton_trig_sf->get_sf(box_syst);
-  default:
-    throw std::logic_error("unknown scalefactor in " __FILE__);
+  case EventSyst::ELECTRON: return m_el_sf;
+  case EventSyst::MUON: return m_mu_sf;
+  case EventSyst::LEPTRIG: return m_lepton_trig_sf;
+  default: return 0;
   }
+}
+
+float EventScalefactors::get_sf(syst::Systematic syst) const {
+  float sf = 1.0;
+  const SFBox* varied = 0;
+  if (is_sf_systematic(syst)) varied = get_box(sf_type(syst));
+  for (SFBox* box: {m_el_sf, m_mu_sf, m_lepton_trig_sf} ) {
+    if (box == varied) {
+      sf *= box->get_sf(sf_direction(syst));
+    } else {
+      sf *= box->get_sf(SystVariation::NONE);
+    }
+  }
+  return sf;
+}
+
+// ________________________________________________________________________
+// functions to grab info about variations
+
+namespace {
+  const std::set<syst::Systematic> up_type_syst = {
+    syst::ELUP, syst::MUUP, syst::LEPTRIGUP};
+  const std::set<syst::Systematic> down_type_syst = {
+    syst::ELDOWN, syst::MUDOWN, syst::LEPTRIGDOWN};
+
+  const std::set<syst::Systematic> el_syst = {
+    syst::ELUP, syst::ELDOWN};
+  const std::set<syst::Systematic> mu_syst = {
+    syst::MUUP, syst::MUDOWN};
+  const std::set<syst::Systematic> trig_syst = {
+    syst::LEPTRIGUP, syst::LEPTRIGDOWN};
+
+}
+
+SystVariation sf_direction(syst::Systematic sys)
+{
+  if (up_type_syst.count(sys)) return SystVariation::UP;
+  else if (down_type_syst.count(sys)) return SystVariation::DOWN;
+  else return SystVariation::NONE;
+}
+
+EventSyst sf_type(syst::Systematic sys) {
+  if (el_syst.count(sys)) return EventSyst::ELECTRON;
+  if (mu_syst.count(sys)) return EventSyst::MUON;
+  if (trig_syst.count(sys)) return EventSyst::LEPTRIG;
+  throw std::logic_error("non-sf systematic");
+}
+
+bool is_sf_systematic(syst::Systematic sys) {
+  return up_type_syst.count(sys) || down_type_syst.count(sys);
 }
