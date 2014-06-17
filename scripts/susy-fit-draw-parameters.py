@@ -41,8 +41,10 @@ def _plot_mu_parameters(pdict, outinfo):
     for x, y in sorted(pdict.items()):
         if x.startswith('mu_'):
             pars.append( (x.split('_',1)[1], y ))
+        elif x == 'Lumi':
+            pars.append((x,y))
     xlab, xpos, ypos, yerr = _get_lab_x_y_err(pars)
-    fig = Figure(figsize=(3, 4))
+    fig = Figure(figsize=(4, 4))
     canvas = FigCanvas(fig)
     ax = fig.add_subplot(1,1,1)
     ax.set_xlim(0, len(xlab))
