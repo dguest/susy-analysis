@@ -19,6 +19,9 @@ def _get_lab_x_y_err(pars):
         yerr[parnum] = after['error']
     return xlab, xpos, ypos, yerr
 
+# ___________________________________________________________________________
+# for mu parameters
+
 def plot_mu_parameters(pdict, outinfo):
     from matplotlib.figure import Figure
     from matplotlib.backends.backend_agg import FigureCanvasAgg as FigCanvas
@@ -47,6 +50,22 @@ def plot_mu_parameters(pdict, outinfo):
     canvas.print_figure(
         join(outdir, 'mu' + outinfo['ext']))
 
+# __________________________________________________________________________
+# for alpha parameters
+
+_alpha_names = {
+    'jes':'JES',
+    'jer':'JER',
+    'el':r'$e$ ID',
+    'mu':r'$\mu$ ID',
+    'mscale':r'$\mu$ scale',
+    'egzee':r'$e\,Z \to ee$',
+    'eglow':r'$e$ low',
+    'leptrig':r'$\ell$ trig',
+    'met':r'$E_{\rm T}^{\rm miss}$ scale',
+    'metres':r'$E_{\rm T}^{\rm miss}$ res',
+    }
+
 def _sort_alpha(pdict):
     """return dict sorted by type of systematic, along with division index"""
     tagging = []
@@ -57,7 +76,7 @@ def _sort_alpha(pdict):
         if not longkey.startswith('alpha_'):
             continue
         key = longkey.split('_',1)[1]
-        kv = (key, val)
+        kv = (_alpha_names.get(key,key), val)
         if key in 'bcut':
             tagging.append(kv)
         elif key in ['el', 'mu', 'egzee', 'mscale', 'eglow']:
@@ -94,7 +113,7 @@ def plot_alpha_parameters(pdict, outinfo):
     ax.set_xticklabels(xlab)
     ax.tick_params(labelsize=_txt_size)
     for lab in ax.get_xticklabels():
-        lab.set_rotation(30)
+        lab.set_rotation(60)
 
     outdir = outinfo['outdir']
     if not isdir(outdir):
