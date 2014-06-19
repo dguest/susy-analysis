@@ -10,7 +10,7 @@ import time
 import sys, os
 import yaml
 import itertools
-from scharm.postfit import split_to_planes, numpy_plane_from_dict
+from scharm.limits.postfit import split_to_planes, numpy_plane_from_dict
 import h5py
 import numpy as np
 from scharm.bullshit import FlatProgressMeter
