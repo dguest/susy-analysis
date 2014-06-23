@@ -54,6 +54,8 @@ def plot_mu_parameters(pdict, outinfo):
 # for alpha parameters
 
 _alpha_names = {
+    'u': 'light',
+    't': r'$\tau$',
     'jes':'JES',
     'jer':'JER',
     'el':r'$e$ ID',
@@ -79,7 +81,7 @@ def _sort_alpha(pdict):
         kv = (_alpha_names.get(key,key), val)
         if key in 'bcut':
             tagging.append(kv)
-        elif key in ['el', 'mu', 'egzee', 'mscale', 'eglow']:
+        elif key in ['el', 'mu', 'egzee', 'mscale', 'eglow', 'leptrig']:
             lep.append(kv)
         elif key.startswith('je'):
             jet.append(kv)
