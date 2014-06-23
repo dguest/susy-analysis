@@ -62,6 +62,7 @@ def get_config():
         '--name-regex', help='filter full dataset name')
     meta_filters.add_argument(
         '-d', '--dir-filter', help='only use keys in this dir')
+    meta_filters.add_argument('--preferred', action='store_true')
     meta_list.add_argument('meta_file')
     meta_list.add_argument(
         '-o', '--output-format', default='names',
@@ -101,7 +102,7 @@ def list_meta_info(config):
     meta = DatasetCache(config.meta_file)
     filt_meta = {}
     filters = [config.physics, config.anti_physics,
-               config.name_regex, config.dir_filter]
+               config.name_regex, config.dir_filter, config.preferred]
 
     check_name = lambda x: True
     if config.name_regex:
@@ -124,7 +125,8 @@ def list_meta_info(config):
                 not config.anti_physics or (
                     ds.physics_type != config.anti_physics),
                 check_name(ds.full_name),
-                check_dir(ds.key)
+                check_dir(ds.key),
+                not config.preferred or ds.preferred,
                 ]
             if all(pass_conditions):
                 filt_meta[ds_key] = ds
