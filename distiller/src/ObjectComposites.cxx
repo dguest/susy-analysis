@@ -16,9 +16,10 @@ ObjectComposites::ObjectComposites(const EventObjects& obj,
     obj.signal_jets(rep), alt_met, DPHI_JET_MET_NJET);
   mass_eff = alt_met.Mod() + scalar_sum_pt(obj.leading_jets(rep));
   met_eff = alt_met.Mod() / mass_eff;
+  // mct uses the "normal" met, so as not to double-count the leptons
   mass_ct = obj.signal_jets(rep).size() >= 2 ?
     get_mctcorr(*obj.signal_jets(rep).at(0), *obj.signal_jets(rep).at(1),
-		obj.control_electrons, obj.control_muons, alt_met) : -1;
+		obj.control_electrons, obj.control_muons, met) : -1;
   mass_cc = obj.signal_jets(rep).size() >= 2 ?
     (*obj.signal_jets(rep).at(0) + *obj.signal_jets(rep).at(1)).M() : -1;
   // mt should use the "normal" met, but the others all use "alt met"
