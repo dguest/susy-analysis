@@ -54,7 +54,12 @@ scharm = {
     'scharm-signal-ext': _scharm_ext_no_xchk
     }
 stop = {
-    'stop-signal': range(157851, 157908+1) + range(176270, 176320+1)
+    'stop-signal': (
+        range(157851, 157908+1) + range(176266, 176320+1) +
+        # check this last one, may be some missing (it was pulled from will's
+        # "edge of scharm" points)
+        range(183364, 183417+1))
+
     }
 
 variations = {
