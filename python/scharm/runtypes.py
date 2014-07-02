@@ -53,6 +53,9 @@ scharm = {
     'scharm-signal': range(183424,183474+1),
     'scharm-signal-ext': _scharm_ext_no_xchk
     }
+stop = {
+    'stop-signal': range(157851, 157908+1) + range(176270, 176320+1)
+    }
 
 variations = {
     # truth level... maybe not for now

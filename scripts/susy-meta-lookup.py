@@ -24,6 +24,7 @@ from scharm.bullshit import FlatProgressMeter
 import argparse, ConfigParser
 from tempfile import TemporaryFile
 import yaml
+from itertools import chain
 
 def _get_parser():
     parser = argparse.ArgumentParser(
@@ -206,6 +207,7 @@ def find_type(name):
     """
     from scharm.runtypes import wills_samples
     from scharm.runtypes import scharm as scharm_dict
+    from scharm.runtypes import stop
     used_samples = {}
 
     # add background samples
@@ -216,7 +218,7 @@ def find_type(name):
 
     # add signal samples
     signal_samples = set()
-    for rng in scharm_dict.itervalues():
+    for rng in chain(scharm_dict.itervalues(), stop.itervalues()):
         signal_samples |= set(rng)
     used_samples['signal'] = signal_samples
 
