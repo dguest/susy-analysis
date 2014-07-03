@@ -5,7 +5,7 @@ namespace {
   std::set<reg::Selection> onelep_regions {
     reg::Selection::CR_W, reg::Selection::CR_1E, reg::Selection::CR_1M};
   std::set<reg::Selection> dilep_regions {
-    reg::Selection::CR_Z, reg::Selection::CR_Z_1L, reg::Selection::CR_Z_2L,
+    reg::Selection::CR_Z_AL, reg::Selection::CR_Z_1L, reg::Selection::CR_Z_2L,
       reg::Selection::CR_T,
       reg::Selection::QUALITY_EVENT};
 }

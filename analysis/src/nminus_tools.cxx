@@ -145,7 +145,7 @@ namespace nminus {
     }
     case reg::Selection::CR_Z_1L: // fallthrough
     case reg::Selection::CR_Z_2L: // fallthrough
-    case reg::Selection::CR_Z: {
+    case reg::Selection::CR_Z_AL: {
       add_sf_cuts(sel);
       return sel;
     }
@@ -189,7 +189,7 @@ namespace nminus {
     case reg::Selection::CR_W: return new NMinusCR1LSelection(cfg);
     case reg::Selection::CR_1E: return new NMinusCR1ESelection(cfg);
     case reg::Selection::CR_1M: return new NMinusCR1MSelection(cfg);
-    case reg::Selection::CR_Z: return new NMinusCRZSelection(cfg);
+    case reg::Selection::CR_Z_AL: return new NMinusCRZSelection(cfg);
     case reg::Selection::CR_Z_2L: return new NMinusZ2LSelection(cfg);
     case reg::Selection::CR_Z_1L: return new NMinusZ1LSelection(cfg);
     case reg::Selection::CR_T: return new NMinusOSDFSelection(cfg);
