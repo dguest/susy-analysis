@@ -24,9 +24,9 @@ def get_config():
         '--ext', help='plot extensions, ' + d, default='.pdf')
     parser.add_argument('-o', '--output-dir',
                         help=d, default='plots')
-    parser.add_argument('-t','--theme',
-                        choices={'dan','sbot','brimstone','brony'},
-                        default='brimstone')
+    parser.add_argument(
+        '-t','--theme', choices={'dan','sbot','brimstone','brony'},
+        default='brimstone', help=d)
     parser.add_argument('--serial', action='store_true',
                         help='disable multiprocess')
 

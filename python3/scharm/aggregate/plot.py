@@ -165,10 +165,10 @@ def sort_data_mc(hist1_dict):
             lists[variable, cut].append(hist)
 
     for tup in lists:
-        try:
-            lists[tup].sort(key=float)
-        except TypeError:
-            pass
+        lists[tup].sort(key=float)
+
+    for tup in signals:
+        signals[tup].sort(key=str)
 
     return stack_data, lists, signals
 
