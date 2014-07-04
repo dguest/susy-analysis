@@ -22,7 +22,7 @@ def _get_args():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         'fit_parameters', help=_fit_parameters_help, nargs='?')
-    parser.add_argument('-o','--plot-directory', default='fitplots')
+    parser.add_argument('-o','--plot-directory', default='bg_fit')
     parser.add_argument('-e','--ext', default='.pdf', help='plot type')
     return parser.parse_args()
 
