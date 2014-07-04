@@ -9,6 +9,7 @@ from scipy.interpolate import LinearNDInterpolator
 from matplotlib.lines import Line2D
 from matplotlib.colors import colorConverter
 from os.path import dirname
+import os
 
 class CLsExclusionPlane:
     """Scharm to Charm exclusion plane"""
@@ -158,7 +159,7 @@ class CLsExclusionPlane:
         # may be able to use these to positon lables
         # (x1, y1),(x2,y2) = leg.get_bbox_to_anchor().get_points()
         pl_dir = dirname(name)
-        if pl_dir:
+        if pl_dir and not os.path.isdir(pl_dir):
             os.makedirs(pl_dir)
         self.canvas.print_figure(name, bbox_inches='tight')
 
