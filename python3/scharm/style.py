@@ -86,6 +86,7 @@ _sbot_theme = {
     'Wjets':(0.200,0.200,0.800),
     'Zjets':(0.000,0.000,0.400),
     'top'  :(0.000,1.000,0.000),
+    'signal_list': ['orange','red'],
     }
 
 _theme_names = {'dan':_dan_theme, 'sbot': _sbot_theme,
@@ -221,9 +222,11 @@ _ax_labels = {
 # NOTE: this is "plot level" units, the cropping is done _after_
 #       units are converted
 crop_vars = {
+    'met': (0, 600),
     'mass_ct': (0, 500),
     'mass_ll': (40, 140),
-    'j1_pt': (0, 500),
+    'j0_pt': (0, 600),
+    'j1_pt': (0, 300),
     'j2_pt': (0, 200),
     'n_signal_jets': (1.5, 10.5),
     'mass_t': (0, 200),
