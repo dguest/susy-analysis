@@ -57,7 +57,9 @@ NMinus1Histograms
 
   if (m_make_lepton_plots) {
     m_hists.emplace_back(Axis{LLPT, N_BINS, 0.0, 500_GeV, EUNIT}, sel, hf);
-    m_hists.emplace_back(Axis{MT, N_BINS, 0.0, 500_GeV, EUNIT}, sel, hf);
+    if (!m_make_dilep_plots) {
+      m_hists.emplace_back(Axis{MT, N_BINS, 0.0, 500_GeV, EUNIT}, sel, hf);
+    }
   }
   if (m_make_dilep_plots) {
     m_hists.emplace_back(Axis{SLPT, N_BINS, 0.0, 400_GeV, EUNIT}, sel, hf);
