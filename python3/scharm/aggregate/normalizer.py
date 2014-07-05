@@ -34,20 +34,21 @@ class Normalizer:
         physics type.
         """
         finder = re.compile('Scharm_dir_([0-9]+)_([0-9]+)_MET([0-9]+)')
-
-        try:
-            found = finder.search(ds).group
-        except AttributeError:
-            return None
-        generator_info = {
-                'stop_mass_gev': int(found(1)),
-                'lsp_mass_gev': int(found(2)),
-                'met_filter_gev': found(3),
-                }
-
-        namestring = self.signal_name_template
-        return namestring.format(self.signal_prestring,
-                                 **generator_info)
+        stop_finder = re.compile('stopToCharmLSP_t(\d+)_n(\d+)_MET(\d+)')
+        stop_finder2 = re.compile('directCC_(\d+)_(\d+)')
+        for finder in [finder, stop_finder, stop_finder2]:
+            try:
+                found = finder.search(ds).group
+                generator_info = {
+                    'stop_mass_gev': int(found(1)),
+                    'lsp_mass_gev': int(found(2)),
+                    }
+                namestring = self.signal_name_template
+                return namestring.format(self.signal_prestring,
+                                         **generator_info)
+            except AttributeError:
+                pass
+        return None
 
     def _get_physics_type(self, file_meta):
         full_name = file_meta['full_name']
