@@ -204,10 +204,12 @@ _ax_labels = {
     'mttop': VariableStyle(r'$m_{\mathrm{T}}^t$', 'GeV'),
     'htx': VariableStyle(r'$H_{\mathrm{T}3}$'),
     'jetmet_dphi': VariableStyle(
-        r'$\min_{i = \{1,2,3\}}\left(\Delta \phi (j_{i}, '
-        r'E_{\mathrm{T}}^{\mathrm{miss}})\right)$'),
+        r'$\min_{i = \{1,2,3\}}\Delta \phi (j_{i}, '
+        r'E_{\mathrm{T}}^{\mathrm{miss}})$'),
     'leading_lepton_pt': VariableStyle(
         r'Leading Lepton $p_{\mathrm{T}}$', 'GeV'),
+    'second_lepton_pt': VariableStyle(
+        r'Second Lepton $p_{\mathrm{T}}$', 'GeV'),
     'mass_t': VariableStyle('$m_{\mathrm{T}}$', 'GeV', (0,200)),
     'mass_cc': VariableStyle('$m_{cc}$', 'GeV'),
     'mass_ll': VariableStyle('$m_{\ell \ell}$', 'GeV', (0,200)),
@@ -224,6 +226,9 @@ crop_vars = {
     'j1_pt': (0, 500),
     'j2_pt': (0, 200),
     'n_signal_jets': (1.5, 10.5),
+    'mass_t': (0, 200),
+    'leading_lepton_pt': (0, 350),
+    'second_lepton_pt': (0, 150),
 }
 
 # ________________________________________________________________________
