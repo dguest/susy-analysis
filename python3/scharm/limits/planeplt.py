@@ -9,7 +9,7 @@ from scipy.interpolate import LinearNDInterpolator
 from matplotlib.lines import Line2D
 from matplotlib.colors import colorConverter
 from os.path import dirname
-import os
+import os, math
 
 class CLsExclusionPlane:
     """Scharm to Charm exclusion plane"""
@@ -20,6 +20,11 @@ class CLsExclusionPlane:
     # limits on internal interpolated grid
     low_x = 80
     low_y = 0
+
+    # physical constants relating to the kinematic bounds
+    _w_mass = 80.385
+    _t_mass = 173.3
+    _kinbound_alpha = 0.3
 
     def __init__(self, threshold=0.05, **argv):
         width = 9.0
@@ -150,9 +155,42 @@ class CLsExclusionPlane:
                      horizontalalignment='left',
                      transform=self.ax.transAxes, size=24)
 
+    def _add_kinematic_bounds(self):
+        """adds lines indicating where stop -> charm decays are allowed"""
+        xl = self.xlim
+        yl = self.ylim
+        x_pts = np.array([0, max(xl[1], xl[1])])
+
+        alpha = self._kinbound_alpha
+        bound_style = dict(color='k', alpha=0.3)
+        y_pts_f = x_pts
+        y_pts_w = x_pts - self._w_mass
+        self.ax.plot(x_pts, y_pts_f, **bound_style)
+        self.ax.plot(x_pts, y_pts_w, **bound_style)
+
+    def _add_kinbound_text(self):
+        """adds text on the kinematic bounds"""
+        # calculate rotation (use point 1,1 to get angle
+        p0 = self.ax.transData.transform_point((0,0))
+        p1 = self.ax.transData.transform_point((1,1))
+        pd = p1 - p0
+        slope_deg = math.degrees(math.atan2(pd[1], pd[0]))
+
+        px, py = 200, 212
+        text_style = dict(
+            ha='left', va='bottom', rotation=slope_deg,
+            color=(0,0,0,self._kinbound_alpha))
+        upper_text = (
+            r'$\Delta m \equiv m_{c} - m_{\rm lsp} < 0$ (forbidden)')
+        self.ax.text(px, py, upper_text, **text_style)
+        lower_text = r'$\Delta m < m_W + m_c$ ($\tilde{t} \to c + \chi$)'
+        self.ax.text(px + self._w_mass, py, lower_text , **text_style)
+
     def save(self, name):
+        self._add_kinematic_bounds()
         self.ax.set_ylim(*self.ylim)
         self.ax.set_xlim(*self.xlim)
+        self._add_kinbound_text()
         leg = self.ax.legend(
             *zip(*self._proxy_contour), fontsize='xx-large',
              loc='upper left', framealpha=0.0, numpoints=1)

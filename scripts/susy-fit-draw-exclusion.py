@@ -15,9 +15,11 @@ def run():
     dowhat = parser.add_mutually_exclusive_group()
     dowhat.add_argument('-b', '--band-region')
     dowhat.add_argument('--best', action='store_true')
+    dowhat.add_argument('--best-regions', action='store_true',
+                        help='show which region is used for each point')
     args = parser.parse_args(sys.argv[1:])
-    if args.best:
-        _max_exclusion_plane(args)
+    if args.best or args.best_regions:
+        _max_exclusion_plane(args, show_regions=args.best_regions)
     elif args.band_region:
         _make_exclusion_plane(args)
     else:
@@ -59,7 +61,11 @@ def _make_exclusion_plane(args):
 
     ex_plane.save(args.output_plot)
 
-def _max_exclusion_plane(args):
+def _max_exclusion_plane(args, show_regions=False):
+    """
+    Exclusion plane using the "best" region for each point. With show_regions
+    will show what region that is.
+    """
     with open(args.cls_file) as cls_yml:
         cls_dict = yaml.load(cls_yml)
         if args.filter_stop:
@@ -76,9 +82,13 @@ def _max_exclusion_plane(args):
             if not (sch, lsp) in point_dict or point_dict[sch, lsp][0] > expt:
                 point_dict[sch, lsp] = (expt, low, high, conf_name)
 
-    cls_list = [ (x[0], x[1], y[0], y[3]) for x,y in point_dict.items()]
-    band_list = [ (x[0], x[1], y[1], y[2]) for x,y in point_dict.items()]
+    if show_regions:
+        cls_list = [ (x[0], x[1], y[0], y[3]) for x,y in point_dict.items()]
+    else:
+        cls_list = [ (x[0], x[1], y[0]) for x,y in point_dict.items()]
     ex_plane.add_config(cls_list, 'best expected', '-k')
+
+    band_list = [ (x[0], x[1], y[1], y[2]) for x,y in point_dict.items()]
     ex_plane.add_band(band_list)
 
     ex_plane.save(args.output_plot)
