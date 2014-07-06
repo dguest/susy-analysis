@@ -2,6 +2,7 @@
 """
 Top level for routines to draw excluded contour.
 """
+_best_help = 'use best cls value from all regions'
 import argparse, sys
 from scharm.limits import planeplt
 import yaml
@@ -14,7 +15,7 @@ def run():
     parser.add_argument('-f', '--filter-stop', action='store_true')
     dowhat = parser.add_mutually_exclusive_group()
     dowhat.add_argument('-b', '--band-region')
-    dowhat.add_argument('--best', action='store_true')
+    dowhat.add_argument('--best', action='store_true', help=_best_help)
     dowhat.add_argument('--best-regions', action='store_true',
                         help='show which region is used for each point')
     args = parser.parse_args(sys.argv[1:])
@@ -113,7 +114,8 @@ def _multi_exclusion_plane(args):
             band_tups.append( (sch, lsp, low, high))
             line_tups.append( (sch, lsp, sp['cls_exp']) )
         ex_plane.add_config(line_tups, conf_name, style=color)
-        ex_plane.add_band(band_tups, color=color)
+        if len(sort_cls) <= 3:
+            ex_plane.add_band(band_tups, color=color)
 
     ex_plane.save(args.output_plot)
 
