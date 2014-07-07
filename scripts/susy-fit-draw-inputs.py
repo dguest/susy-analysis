@@ -82,8 +82,6 @@ def _plot_counts(counts, out_file):
         ax.plot(x_vals, dn_vals, 'v', color=color)
 
     ax.tick_params(labelsize=_txt_size)
-    for lab in ax.get_xticklabels():
-        lab.set_rotation(20)
     leg = ax.legend(
         numpoints=1, ncol=8, borderaxespad=0.0, loc='upper left',
         handletextpad=0, columnspacing=1, framealpha=0.5)
