@@ -11,7 +11,7 @@ from collections import Counter
 _txt_size = 16
 _summed_bg = ['Wjets', 'Zjets', 'top', 'other']
 _def_regions = ['cr_z', 'signal_mct150', 'cr_t', 'cr_w_mct150']
-_def_syst = ['jes', 'b', 'c', 'u', 't', 'mu', 'el', 'leptrig']
+_def_syst = ['jes', 'b', 'c', 'u', 't', 'mu', 'el', 'leptrig', 'met']
 
 def _get_args():
     """input parser"""
@@ -21,8 +21,7 @@ def _get_args():
     parser.add_argument('-r','--regions', nargs='+', default=_def_regions)
     parser.add_argument(
         '-s','--systematics', nargs='+', default=_def_syst, help=d)
-    parser.add_argument('-o','--plot-directory', default='test')
-    parser.add_argument('-e','--ext', default='.pdf', help='plot type')
+    parser.add_argument('-o','--plot-name', default='test')
     return parser.parse_args()
 
 def run():
@@ -38,13 +37,14 @@ def run():
         regs, nom, down, up, data = _arrays_from_counters(counts)
         systs[syst] = (regs, nom, down, up, data)
 
-    odir = args.plot_directory
+    ofile = args.plot_name
+    odir = os.path.dirname(ofile)
     if not os.path.isdir(odir):
         os.mkdir(odir)
-    _plot_counts(systs, args.plot_directory, args.ext)
+    _plot_counts(systs, ofile)
 
-_syst_colors = list('rgbcmk') + ['orange', 'teal', 'purple']
-def _plot_counts(counts, out_dir, ext):
+_syst_colors = list('rgbcmk') + ['orange', 'purple', 'brown']
+def _plot_counts(counts, out_file):
     from matplotlib.figure import Figure
     from matplotlib.backends.backend_agg import FigureCanvasAgg as FigCanvas
     from numpy import arange
@@ -83,7 +83,7 @@ def _plot_counts(counts, out_dir, ext):
 
     ax.tick_params(labelsize=_txt_size)
     for lab in ax.get_xticklabels():
-        lab.set_rotation(60)
+        lab.set_rotation(20)
     leg = ax.legend(
         numpoints=1, ncol=8, borderaxespad=0.0, loc='upper left',
         handletextpad=0, columnspacing=1, framealpha=0.5)
@@ -92,8 +92,7 @@ def _plot_counts(counts, out_dir, ext):
     ylims = ax.get_ylim()
     ax.set_ylim(ylims[0], (ylims[1] - ylims[0]) *0.2 + ylims[1])
     fig.tight_layout(pad=0.3, h_pad=0.3, w_pad=0.3)
-    canvas.print_figure(
-        os.path.join(out_dir, 'test' + ext), bboxinches='tight')
+    canvas.print_figure(out_file, bboxinches='tight')
 
 def _get_counts(inputs_dict, regions, syst):
     """returns counts as a tuple of Counters, (nom, down, up, data)"""
