@@ -134,6 +134,25 @@ class Normalizer:
             self.outstream.write('\n')
         stats.write_to(self.bugstream)
 
+    def byid(self):
+        """iterates, gets (dsid, file, normalization)"""
+
+        numfiles = len(self.hfiles)
+        for filenum, f in enumerate(self.hfiles):
+            self._print_prog(filenum, numfiles)
+            meta_name = basename(splitext(f)[0])
+
+            file_meta = self.filter_meta[meta_name]
+            if self._check_for_bugs(file_meta):
+                continue
+
+            scaler_fact = self._get_hist_scaler(file_meta)
+            dsid = meta_name[1:]
+
+            with h5py.File(f,'r') as hfile:
+                norm = scaler_fact(hfile)
+                yield int(dsid), hfile, norm
+
 class StatsCounter:
     """
     Counters to keep track of the number of expected events vs the number of

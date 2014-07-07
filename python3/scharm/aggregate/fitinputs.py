@@ -1,5 +1,6 @@
 from scharm.aggregate.normalizer import Normalizer
 from scharm.aggregate import renamer
+from scharm.aggregate.histread import get_count
 from collections import Counter
 import yaml
 import numpy as np
@@ -56,11 +57,11 @@ class FitInputMaker:
             for region, vargroup in hfile.items():
                 if self._vrp and region.startswith(self._vrp):
                     continue
-                nom_count = _get_count(vargroup[self._variable]) * norm
+                nom_count = get_count(vargroup[self._variable]) * norm
                 counts_dict[region,process,n_key] += nom_count
                 wt_var = self._variable + self._wt2_tag
                 if wt_var in vargroup:
-                    sum_wt2 = _get_count(vargroup[wt_var]) * norm**2
+                    sum_wt2 = get_count(vargroup[wt_var]) * norm**2
                     counts_dict[region,process,err_key] += sum_wt2
 
         # step two organizes the flat dict as nested dicts
@@ -189,38 +190,3 @@ def _sort_sym_asym(yields):
 #___________________________________________________________________________
 # helpers
 
-# constants from the histogram schema
-_sel_str = 'selection_'
-_mmax = ['min', 'max']
-
-def _get_count(hist):
-    """
-    Expects 1d n-1 hist as an input (must have 'selection_min' and
-    'selection_max' defined).
-    """
-    try:
-        if not all(len(hist.attrs[_sel_str + x]) == 1 for x in _mmax):
-            raise ValueError('got multi-dim hist, not supported right now')
-        smin, smax = [hist.attrs[_sel_str + x ][0] for x in _mmax]
-        emin, emax = [hist.attrs[x][0] for x in _mmax]
-    except KeyError:
-        raise KeyError('missing attributes. Valid keys: {}'.format(
-                ', '.join(hist.attrs)) )
-    arr = np.array(hist)
-    nxpts = arr.size - 1
-    xpts = np.linspace(emin, emax, num=nxpts)
-
-    def bindex(value):
-        """get the index of the input `value`"""
-        if value == np.inf:
-            return arr.size
-        elif value == -np.inf:
-            return 0
-        idx = np.abs(xpts - value).argmin()
-        rel_err = abs( (xpts[idx] - value) / (xpts[-1] - xpts[0]))
-        if rel_err > 0.001:
-            raise ValueError('selection mismatch: {} != {}'.format(
-                    value, xpts[idx]))
-        return idx + 1
-
-    return float(arr[bindex(smin):bindex(smax)].sum())
