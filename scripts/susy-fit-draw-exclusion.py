@@ -18,6 +18,7 @@ def run():
     dowhat.add_argument('--best', action='store_true', help=_best_help)
     dowhat.add_argument('--best-regions', action='store_true',
                         help='show which region is used for each point')
+    dowhat.add_argument('--heatmap', action='store_true')
     args = parser.parse_args(sys.argv[1:])
     if args.best or args.best_regions:
         _max_exclusion_plane(args, show_regions=args.best_regions)
@@ -58,7 +59,7 @@ def _make_exclusion_plane(args):
     for conf_name, cls_list in sorted(cls_dict.items()):
         cls_tup = [get_tup(x) for x in cls_list]
         style = '-k' if conf_name == args.band_region else None
-        ex_plane.add_config(cls_tup,conf_name, style=style)
+        ex_plane.add_config(cls_tup,conf_name, style=style, )
 
     ex_plane.save(args.output_plot)
 
@@ -105,6 +106,8 @@ def _multi_exclusion_plane(args):
     ex_plane.lw = 1.5
     colors = list('rgbmc') + ['orange']
     sort_cls = sorted(cls_dict.items())
+    if args.heatmap and len(cls_dict) > 1:
+        raise ValueError("can't do heatmaps for more than one contour")
     for color, (conf_name, cls_list) in zip(colors, sort_cls):
         band_tups = []
         line_tups = []
@@ -113,8 +116,9 @@ def _multi_exclusion_plane(args):
             low, high = sp['cls_down_1_sigma'], sp['cls_up_1_sigma']
             band_tups.append( (sch, lsp, low, high))
             line_tups.append( (sch, lsp, sp['cls_exp']) )
-        ex_plane.add_config(line_tups, conf_name, style=color)
-        if len(sort_cls) <= 3:
+        ex_plane.add_config(line_tups, conf_name, style=color,
+                            heatmap=args.heatmap)
+        if len(sort_cls) <= 3 and not args.heatmap:
             ex_plane.add_band(band_tups, color=color)
 
     ex_plane.save(args.output_plot)

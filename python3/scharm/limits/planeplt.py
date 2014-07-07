@@ -56,7 +56,7 @@ class CLsExclusionPlane:
         return the_color, line_style
 
 
-    def add_config(self, stop_lsp_cls, label, style=None):
+    def add_config(self, stop_lsp_cls, label, style=None, heatmap=False):
         """
         Expects a list of (mass stop, mass lsp, upper limit) tuples.
         """
@@ -73,7 +73,6 @@ class CLsExclusionPlane:
 
         xp, yp, zp = _get_interpolated_xyz(
             x, y, z, (xmin, xmax), (ymin, ymax), xpts)
-        zp[(xp - yp) < 100] = self._threshold*1.1
         zp[np.isnan(zp) & (yp > self.ylim[0])] = self._threshold*1.2
         extent = [xmin, xmax, ymin, ymax]
         ct_color, ct_style = self._get_style(style)
@@ -82,6 +81,10 @@ class CLsExclusionPlane:
         ct = self.ax.contour(
             xp, yp, zp, [self._threshold],
             colors=ct_color, linewidths=self.lw, linestyles=ct_style )
+        if heatmap:
+            self.ax.imshow(zp, extent=extent, origin='lower',
+                           # vmin=-2,vmax=2,
+                           )
         self._proxy_contour.append(
             ( Line2D((0,0),(0,1), **draw_opts), str(label)) )
         if point_lables:
