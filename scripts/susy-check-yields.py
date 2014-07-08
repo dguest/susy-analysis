@@ -12,6 +12,7 @@ from scharm.aggregate.normalizer import Normalizer
 from scharm.aggregate import histread
 
 def run():
+    # _dump_counts({(43, 'smag'): dict(w=20, n=8)})
     args = get_args()
     h5_files = _get_files(args.h5_files)
     quiet = not args.verbose
@@ -22,7 +23,9 @@ def run():
     for dsid, hfile, norm in normalizer.byid():
         all_ids.append(dsid)
         for region in args.regions:
-            counts[dsid,region] = histread.get_counts(hfile[region]['met'])
+            weighted_counts = histread.get_counts(hfile[region]['met'])
+            counts[dsid,region] = {
+                'w': weighted_counts, 'n': weighted_counts * norm}
 
     _dump_counts(counts)
 
@@ -37,6 +40,7 @@ def get_args():
 
 
 def _dump_counts(counts):
+    """counts should be a dictionary of counts, keyed by (dsid, region)"""
     ids = set()
     regions = set()
     for dsid, region in counts:
@@ -44,11 +48,11 @@ def _dump_counts(counts):
         regions.add(region)
 
     sreg = sorted(regions)
-    fmt_string = '{:10} ' + '{:12.2f} '*len(sreg)
+    fmt_string = '{:10} | ' + '{:12.2f} {:12.2f} | '*len(sreg)
     for dsid in sorted(ids):
         fmt_list = [dsid]
         for region in sreg:
-            fmt_list.append(counts[dsid,region])
+            fmt_list += [counts[dsid,region][x] for x in 'wn']
         print(fmt_string.format(*fmt_list))
 
 def _get_files(fandd):
