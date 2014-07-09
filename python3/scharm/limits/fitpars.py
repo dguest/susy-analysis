@@ -22,14 +22,14 @@ def _get_lab_x_y_err(pars):
 # ___________________________________________________________________________
 # for mu parameters
 
-def plot_mu_parameters(pdict, outinfo):
+def plot_mu_parameters(pdict, outinfo, lumi=False):
     from matplotlib.figure import Figure
     from matplotlib.backends.backend_agg import FigureCanvasAgg as FigCanvas
     pars = []
     for x, y in sorted(pdict.items()):
         if x.startswith('mu_'):
             pars.append( (x.split('_',1)[1], y ))
-        elif x == 'Lumi':
+        elif x == 'Lumi' and lumi:
             pars.append((x,y))
     xlab, xpos, ypos, yerr = _get_lab_x_y_err(pars)
     fig = Figure(figsize=(4, 4))
