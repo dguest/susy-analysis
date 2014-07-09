@@ -11,7 +11,12 @@ from collections import Counter
 _txt_size = 16
 _summed_bg = ['Wjets', 'Zjets', 'top', 'other']
 _def_regions = ['cr_z', 'signal_mct150', 'cr_t', 'cr_w_mct150']
-_def_syst = ['jes', 'b', 'c', 'u', 't', 'mu', 'el', 'leptrig', 'met']
+_def_syst = ['jes', 'b', 'c', 'u', 't']
+_sys_names = {'jes':'JES', 't':r'$\tau$', 'u':'light'}
+_reg_names = {
+    'cr_t': 'CRT', 'cr_w_mct150': 'CRW',
+    'signal_mct150': r'SR ($m_{\rm CT} > 150$)',
+    'cr_z': 'CRZ'}
 
 def _get_args():
     """input parser"""
@@ -49,7 +54,7 @@ def _plot_counts(counts, out_file):
     from matplotlib.backends.backend_agg import FigureCanvasAgg as FigCanvas
     from numpy import arange
 
-    fig = Figure(figsize=(8, 4))
+    fig = Figure(figsize=(8, 3))
     canvas = FigCanvas(fig)
     ax = fig.add_subplot(1,1,1)
 
@@ -60,7 +65,7 @@ def _plot_counts(counts, out_file):
     sysw = 0.5
     syst_increment = sysw / (len(counts) - 1)
     syst_initial = -sysw / 2
-    sys_num = {x:n for n, x in enumerate(counts.keys())}
+    sys_num = {x:n for n, x in enumerate(sorted(counts.keys()))}
     def get_offset(syst):
         return syst_initial + sys_num[syst] * syst_increment
 
@@ -71,13 +76,14 @@ def _plot_counts(counts, out_file):
                 color=(0,0,0,1))
 
     ax.set_xticks(x_vals_base)
-    ax.set_xticklabels(ex_regs)
+    ax.set_xticklabels([_reg_names.get(x,x) for x in ex_regs])
     for sysnm, (regions, nom, down, up, data) in counts.items():
         x_vals = x_vals_base + get_offset(sysnm)
         color = _syst_colors[sys_num[sysnm]]
         ax.set_xlim(0, len(regions))
         up_vals = up / nom
-        ax.plot(x_vals, up_vals , '^', color=color, label=sysnm)
+        ax.plot(x_vals, up_vals , '^', color=color,
+                label=_sys_names.get(sysnm, sysnm))
         dn_vals = down / nom
         ax.plot(x_vals, dn_vals, 'v', color=color)
 
