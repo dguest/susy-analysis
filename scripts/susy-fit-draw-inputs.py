@@ -12,7 +12,8 @@ _txt_size = 16
 _summed_bg = ['Wjets', 'Zjets', 'top', 'other']
 _def_regions = ['cr_z', 'signal_mct150', 'cr_t', 'cr_w_mct150']
 _def_syst = ['jes', 'b', 'c', 'u', 't']
-_sys_names = {'jes':'JES', 't':r'$\tau$', 'u':'light'}
+_sys_names = {'jes':'JES', 't':r'tag $\tau$', 'u':'tag light',
+              'b':r'tag $b$', 'c':r'tag $c$'}
 _reg_names = {
     'cr_t': 'CRT', 'cr_w_mct150': 'CRW',
     'signal_mct150': r'SR ($m_{\rm CT} > 150$)',
