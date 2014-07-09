@@ -78,7 +78,7 @@ def _plot_counts(counts, out_file):
 
     ax.set_xticks(x_vals_base)
     ax.set_xticklabels([_reg_names.get(x,x) for x in ex_regs])
-    for sysnm, (regions, nom, down, up, data) in counts.items():
+    for sysnm, (regions, nom, down, up, data) in sorted(counts.items()):
         x_vals = x_vals_base + get_offset(sysnm)
         color = _syst_colors[sys_num[sysnm]]
         ax.set_xlim(0, len(regions))
@@ -96,6 +96,7 @@ def _plot_counts(counts, out_file):
     ax.axhline(1, linestyle='--', color=(0,0,0,0.5))
     ylims = ax.get_ylim()
     ax.set_ylim(ylims[0], (ylims[1] - ylims[0]) *0.2 + ylims[1])
+    ax.set_ylabel('Variation / Nominal')
     fig.tight_layout(pad=0.3, h_pad=0.3, w_pad=0.3)
     canvas.print_figure(out_file, bboxinches='tight')
 
