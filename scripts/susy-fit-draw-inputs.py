@@ -27,7 +27,7 @@ def _get_args():
     parser.add_argument('-r','--regions', nargs='+', default=_def_regions)
     parser.add_argument(
         '-s','--systematics', nargs='+', default=_def_syst, help=d)
-    parser.add_argument('-o','--plot-name', default='test')
+    parser.add_argument('-o','--plot-name', default='test.pdf', help=d)
     return parser.parse_args()
 
 def run():
@@ -45,7 +45,7 @@ def run():
 
     ofile = args.plot_name
     odir = os.path.dirname(ofile)
-    if not os.path.isdir(odir):
+    if odir and not os.path.isdir(odir):
         os.mkdir(odir)
     _plot_counts(systs, ofile)
 
