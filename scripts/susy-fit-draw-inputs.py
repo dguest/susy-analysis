@@ -70,11 +70,10 @@ def _plot_counts(counts, out_file):
     def get_offset(syst):
         return syst_initial + sys_num[syst] * syst_increment
 
-    # TODO: use error bars here (need to pass in the stat uncertainty)
     x_vals_base = arange(len(ex_regs)) + 0.5
-    for xval, yval in zip(x_vals_base, ex_data / ex_nom):
-        ax.plot([xval - sysw / 2, xval + sysw / 2], [yval, yval],
-                color=(0,0,0,1))
+    ax.errorbar(
+        x_vals_base, ex_data / ex_nom, yerr=ex_data**0.5/ ex_nom,
+        fmt='o', color='k', label='data')
 
     ax.set_xticks(x_vals_base)
     ax.set_xticklabels([_reg_names.get(x,x) for x in ex_regs])
