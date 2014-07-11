@@ -60,7 +60,8 @@ class Region:
 # ___________________________________________________________________________
 # sbottom definitions
 
-_sbottom_cr = {'CR_W', 'CR_T', 'CR_Z'}
+_crz = 'CR_Z_1L'
+_sbottom_cr = {'CR_W', 'CR_T', _crz}
 def sbottom_regions():
     """
     return sbottom regions as a yml file
@@ -70,13 +71,14 @@ def sbottom_regions():
         sbottom[cr.lower()] =  _sbottom_region(cr,'lepton')
     sbottom['preselection'] = _build_kinematic_region(
         'QUALITY_EVENT', 50, 150, stream='all')
+    sbottom['preselection']['tagger'] = 'NONE'
     sbottom['met'] = _build_kinematic_region('VR_MET', lj=50, met=150)
     return sbottom
 
 def _sbottom_region(version, stream):
-    lj =  {'SIGNAL': 130, 'CR_W': 130, 'CR_Z': 50,  'CR_T': 130}[version]
-    met = {'SIGNAL': 150, 'CR_W': 100, 'CR_Z': 100, 'CR_T': 100}[version]
-    rpl = 'leptmet' if version == 'CR_Z' else 'normal'
+    lj =  {'SIGNAL': 130, 'CR_W': 130, _crz: 50,  'CR_T': 130}[version]
+    met = {'SIGNAL': 150, 'CR_W': 100, _crz: 100, 'CR_T': 100}[version]
+    rpl = 'leptmet' if version == _crz else 'normal'
     return _build_kinematic_region(version, lj, met, rpl, stream)
 
 def _build_kinematic_region(version, lj, met, rpl='normal', stream='jet'):

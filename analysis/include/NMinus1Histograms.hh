@@ -15,9 +15,8 @@ class ISelection;
 namespace nminus {
   const size_t N_BINS = 100;
   const double MAX_ENERGY = 1_TeV;
-  // for now the upstream filters remove events with less than 2 signal
-  // jets (may break code here to allow fewer)
-
+  // key for saving event weight (used in axis label / save)
+  const std::string EVT_WT = "event_weight";
 };
 
 class NMinus1Histograms:
@@ -39,6 +38,7 @@ private:
   bool m_make_dilep_plots;
 
   std::vector<nminus::NMinusHist> m_hists;
+  nminus::NMinusHist* m_weight_hist;
 };
 
 

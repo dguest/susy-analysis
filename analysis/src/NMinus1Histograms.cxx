@@ -28,7 +28,8 @@ NMinus1Histograms
   m_selection(nminus::selection_factory(config)),
   m_build_flags(flags),
   m_make_lepton_plots(false),
-  m_make_dilep_plots(false)
+  m_make_dilep_plots(false),
+  m_weight_hist(0)
 {
   if (reg::lepton_region(config.selection)) m_make_lepton_plots = true;
   if (reg::twolep_region(config.selection)) m_make_dilep_plots = true;
@@ -37,6 +38,7 @@ NMinus1Histograms
   const auto sel = get_windows(config);
   // save wt^2 for _some_ hists (those with no systematic applied)
   const auto hf = config.save_wt2 ? hist::wt2 : 0;
+  bool is_sim = (config.stream == reg::Stream::SIMULATED);
   m_hists.emplace_back(Axis{MET, N_BINS, 0.0, MAX_ENERGY, EUNIT}, sel, hf);
   m_hists.emplace_back(
     Axis{NSJET, SJET_RANGE, -0.5, SJET_RANGE - 0.5}, sel, hf);
@@ -50,9 +52,7 @@ NMinus1Histograms
 			 sel, hf);
     m_hists.emplace_back(Axis{jantib(jn), 300, -7.5, 7.5}, sel, hf);
     m_hists.emplace_back(Axis{jantiu(jn), 300, -7.5, 7.5}, sel, hf);
-    if (config.stream == reg::Stream::SIMULATED) {
-      m_hists.emplace_back(Axis{jftl(jn), 4, -0.5, 3.5}, sel, hf);
-    }
+    if (is_sim) m_hists.emplace_back(Axis{jftl(jn), 4, -0.5, 3.5}, sel, hf);
   }
 
   if (m_make_lepton_plots) {
@@ -65,11 +65,15 @@ NMinus1Histograms
     m_hists.emplace_back(Axis{SLPT, N_BINS, 0.0, 400_GeV, EUNIT}, sel, hf);
     m_hists.emplace_back(Axis{MLL, 200, 0.0, 200_GeV, EUNIT}, sel, hf);
   }
+  if (is_sim) {
+    m_weight_hist = new NMinusHist(Axis{EVT_WT, 200, 0.0, 2.0}, sel);
+  }
 }
 
 NMinus1Histograms::~NMinus1Histograms() {
   delete m_selection;
   delete m_region_config;
+  delete m_weight_hist;
 }
 
 
@@ -119,6 +123,10 @@ void NMinus1Histograms::fill(const EventObjects& obj) {
   throw_if_nan(values);
   for (auto& hist: m_hists) {
     hist.fill(values, weight);
+  }
+  if (m_weight_hist) {
+    values[EVT_WT] = weight;
+    m_weight_hist->fill(values, 1.0);
   }
 }
 
@@ -220,6 +228,7 @@ void NMinus1Histograms::write_to(H5::CommonFG& file) const {
   for (const auto& hist: m_hists) {
     hist.write_to(region);
   }
+  if (m_weight_hist) m_weight_hist->write_to(region);
 
 }
 
