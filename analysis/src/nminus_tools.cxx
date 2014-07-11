@@ -43,6 +43,8 @@ namespace {
     };
     if (cfg.met > 0.0) sel[MET] = {cfg.met, INFINITY};
     if (cfg.mct > 0.0) sel[MCT] = {cfg.mct, INFINITY};
+    if (cfg.first_lepton_pt > 0.0) sel[LLPT] = {
+	cfg.first_lepton_pt, INFINITY};
 
     // SJET_RANGE goes from -0.5, so we only show a limit if the max jets
     // are < the range (i.e. 0 to 7 is a range of 8, don't show if max is 8)
@@ -93,7 +95,7 @@ namespace {
     using namespace crsf;
     sel.insert(
       {
-	{LLPT, {LEPTON_PT_MIN, INFINITY} },
+	// {LLPT, {LEPTON_PT_MIN, INFINITY} },
 	{MLL, {M_LL_MIN, M_LL_MAX} },
 	  });
   }

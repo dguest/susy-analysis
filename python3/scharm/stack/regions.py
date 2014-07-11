@@ -47,6 +47,8 @@ class Region:
             'selection': self.selection.upper(),
             'leading_jet_pt': self.kinematics['leading_jet_gev']*1e3,
             'second_jet_pt': self.kinematics.get('second_jet_gev', 50)*1e3,
+            'first_lepton_pt': self.kinematics.get(
+                'first_lepton_pt_gev', -1)*1e3,
             'met': self.kinematics['met_gev']*1e3,
             'mct': self.kinematics.get('mct_gev',-1)*1e3,
             'max_signal_jets': self.max_signal_jets,
