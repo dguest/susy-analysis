@@ -372,6 +372,34 @@ namespace {
     case JESUP: return SystErr::JESUP;
     case JESDOWN: return SystErr::JESDOWN;
     case JER: return SystErr::JER;
+
+#define CP_UD(name, stool_name)				\
+      case name ## UP: return SystErr::stool_name ## Up;	\
+    case name ## DOWN: return SystErr::stool_name ## Down
+
+      CP_UD(JENP1, EffectiveNP_1_);
+      CP_UD(JENP2, EffectiveNP_2_);
+      CP_UD(JENP3, EffectiveNP_3_);
+      CP_UD(JENP4, EffectiveNP_4_);
+      CP_UD(JENP5, EffectiveNP_5_);
+      CP_UD(JENP6, EffectiveNP_6_);
+
+      CP_UD(JICALM, EtaIntercalibration_Modelling_);
+      CP_UD(JICALS, EtaIntercalibration_StatAndMethod_);
+
+      CP_UD(JSP, SingleParticle_HighPt_);
+      CP_UD(JNC, RelativeNonClosure_Pythia8_);
+      CP_UD(JPUMU, PileupOffsetTermMu);
+      CP_UD(JPUNPV, PileupOffsetTermNPV);
+      CP_UD(JPUPT, PileupPtTerm);
+      CP_UD(JPURHO, PileupRhoTopology);
+      CP_UD(JCB, CloseBy);
+      CP_UD(JFLAVCOMP, FlavorCompUncert);
+      CP_UD(JFLAVRESP, FlavorResponseUncert);
+      CP_UD(JBJES, BJes);
+
+
+#undef CP_UD
     default:
       return SystErr::NONE;
     }

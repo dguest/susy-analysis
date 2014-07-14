@@ -190,6 +190,26 @@ static bool safe_copy(PyObject* value, systematic::Systematic& dest) {
   TRY_UD(MID);
   TRY_UD(MSCALE);
 
+  // jes breakdown
+  TRY_UD(JENP1);
+  TRY_UD(JENP2);
+  TRY_UD(JENP3);
+  TRY_UD(JENP4);
+  TRY_UD(JENP5);
+  TRY_UD(JENP6);
+  TRY_UD(JICALM);
+  TRY_UD(JICALS);
+  TRY_UD(JSP);
+  TRY_UD(JNC);
+  TRY_UD(JPUMU);
+  TRY_UD(JPUNPV);
+  TRY_UD(JPUPT);
+  TRY_UD(JPURHO);
+  TRY_UD(JCB);
+  TRY_UD(JFLAVCOMP);
+  TRY_UD(JFLAVRESP);
+  TRY_UD(JBJES);
+
   std::string problem = "got undefined systematic: " + name;
   PyErr_SetString(PyExc_ValueError,problem.c_str());
   return false;
