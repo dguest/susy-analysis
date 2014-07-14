@@ -37,6 +37,7 @@ def get_config():
     syslev.add_argument('-y', '--systematics', action='store_true',
                         help='enable systematics')
     syslev.add_argument('--all-systematics', action='store_true')
+    syslev.add_argument('--jes-systematics', action='store_true')
     return parser.parse_args(sys.argv[1:])
 
 def run():
@@ -123,11 +124,19 @@ def setup_distill(config, input_files):
 
     systematics = ['NONE']
     ud_systs = []
-    if config.systematics or config.all_systematics:
+    base_syst_trig = [
+        config.systematics, config.all_systematics, config.jes_systematics]
+    if any(base_syst_trig):
         systematics += ['JER','METRES']
         ud_systs += ['JES', 'MET','EGZEE', 'EGLOW', 'MSCALE']
     if config.all_systematics:
         ud_systs += ['EGMAT', 'EGPS', 'EGRES', 'MMS', 'MID']
+    if config.all_systematics or config.jes_systematics:
+        ud_systs += ['JENP{}'.format(x + 1) for x in range(6)]
+        ud_systs += ['JPU' + x for x in ['MU', 'NPV', 'PT', 'RHO']]
+        ud_systs += ['JICALM', 'JICALS', 'JSP', 'JNC', 'JCB',
+                     'JFLAVCOMP', 'JFLAVRESP', 'JBJES']
+
     systematics += [s + e for s in ud_systs for e in ['UP','DOWN']]
 
     submit_head = _get_submit_head(**sub_dict)
