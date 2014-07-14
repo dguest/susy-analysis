@@ -24,8 +24,10 @@ def run():
     for dsid, hfile, norm in normalizer.byid():
         for region in args.regions:
             weighted_counts = histread.get_count(hfile[region]['met'])
+            raw_counts = histread.get_count(hfile[region]['event_weight'])
             counts[dsid,region] = {
-                'w': weighted_counts, 'n': weighted_counts * norm}
+                'w': weighted_counts, 'n': weighted_counts * norm,
+                'r': raw_counts}
 
     _dump_counts(counts)
 
@@ -48,16 +50,16 @@ def _dump_counts(counts):
         regions.add(region)
 
     sreg = sorted(regions)
-    fmt_tmp = '{:>10} | ' + '{XXX} {XXX} | '*len(sreg)
+    fmt_tmp = '{:>10} | ' + '{XXX} {XXX} {XXX} | '*len(sreg)
     fmt_string = fmt_tmp.replace('XXX', ':12.2f')
     reg_args = [''] + sreg
-    print(fmt_tmp.replace('XXX} {XXX', ':^25').format(*reg_args))
-    title_args = ['dsid'] + ['weighted', 'normed']*len(sreg)
+    print(fmt_tmp.replace('XXX} {XXX} {XXX', ':^38').format(*reg_args))
+    title_args = ['dsid'] + ['normed', 'weighted', 'raw']*len(sreg)
     print(fmt_tmp.replace('XXX', ':>12').format(*title_args))
     for dsid in sorted(ids):
         fmt_list = [dsid]
         for region in sreg:
-            fmt_list += [counts[dsid,region][x] for x in 'wn']
+            fmt_list += [counts[dsid,region][x] for x in 'nwr']
         print(fmt_string.format(*fmt_list))
 
 def _get_files(fandd):
