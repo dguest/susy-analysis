@@ -318,6 +318,7 @@ namespace outtree {
     MAKE_BRANCH(tree, n_signal_muons);
 
     MAKE_BRANCH(tree, min_jetmet_dphi);
+    MAKE_BRANCH(tree, lepmet_dphi);
     MAKE_BRANCH(tree, met_eff);
     MAKE_BRANCH(tree, mct);
     MAKE_BRANCH(tree, mcc);
@@ -340,6 +341,7 @@ namespace outtree {
     n_signal_muons = -1;
 
     min_jetmet_dphi = -1;
+    lepmet_dphi = -1;
     met_eff = -1;
     mct = -1;
     mcc = -1;

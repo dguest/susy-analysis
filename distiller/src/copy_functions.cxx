@@ -16,6 +16,7 @@
 namespace {
   void copy_lepton_info(const std::vector<Muon*>&,
 			const std::vector<Electron*>&,
+			const TVector2& met,
 			outtree::EvtParameters&);
   void copy_trigger_sf(const TriggerSF&, outtree::SFBox&);
 }
@@ -42,7 +43,8 @@ void copy_event(const EventObjects& obj, JetRep rep,
 
   copy_met(out_tree, met);
   copy_leading_jet_info(obj.signal_jets(rep), out_tree);
-  copy_lepton_info(obj.control_muons, obj.control_electrons, out_tree.par);
+  copy_lepton_info(obj.control_muons, obj.control_electrons,
+		   met, out_tree.par);
 
   copy_id_vec_to_box(obj.control_electrons, out_tree.el_sf);
   copy_id_vec_to_box(obj.control_muons, out_tree.mu_sf);
@@ -128,6 +130,7 @@ namespace {
   }
   void copy_lepton_info(const std::vector<Muon*>& mus,
 			const std::vector<Electron*>& els,
+			const TVector2& met,
 			outtree::EvtParameters& par) {
     std::vector<PartId> particles;
     for (auto el: els) particles.emplace_back(el, -11*el->charge());
@@ -137,8 +140,10 @@ namespace {
     std::sort(particles.begin(), particles.end(), lower_pt);
 
     auto part_riter = particles.rbegin();
-    par.first_lepton_pt = part_riter->first->Pt();
+    const auto lpart = *part_riter->first;
+    par.first_lepton_pt = lpart.Pt();
     par.first_lepton_pdgid = part_riter->second;
+    par.lepmet_dphi = std::abs(lpart.Vect().XYvector().DeltaPhi(met));
     part_riter++;
 
     if (part_riter == particles.rend()) return;

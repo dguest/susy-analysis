@@ -373,6 +373,8 @@ namespace {
     case JESDOWN: return SystErr::JESDOWN;
     case JER: return SystErr::JER;
 
+      // JES breakdown
+
 #define CP_UD(name, stool_name)				\
       case name ## UP: return SystErr::stool_name ## Up;	\
     case name ## DOWN: return SystErr::stool_name ## Down

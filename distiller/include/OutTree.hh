@@ -60,6 +60,7 @@ namespace outtree {
     int n_signal_muons;
 
     float min_jetmet_dphi;
+    float lepmet_dphi;
     float met_eff;
     float mct;
     float mcc;
