@@ -611,6 +611,7 @@ namespace {
     out_tree.mc_event_weight = buffer.mc_event_weight;
   }
 
+  // this is only used in the cutflow
   double reco_event_weight(const EventObjects& obj) {
 
     double obj_sf = 1.0;
@@ -630,7 +631,7 @@ namespace {
     }
 
     // lepton trigger
-    obj_sf *= obj.get_trigger_sf()->nominal;
+    // obj_sf *= obj.get_trigger_sf()->nominal;
 
     // pileup
     return obj_sf * obj.prec.pileup_weight;
