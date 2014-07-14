@@ -66,7 +66,9 @@ float EventScalefactors::get_sf(syst::Systematic syst) const {
   float sf = 1.0;
   const SFBox* varied = 0;
   if (is_sf_systematic(syst)) varied = get_box(sf_type(syst));
-  for (SFBox* box: {m_el_sf, m_mu_sf, m_lepton_trig_sf} ) {
+  // ACHTUNG: hack!
+  // 14 Jul 2014: this was commented out to agree with Oxford
+  for (SFBox* box: {m_el_sf, m_mu_sf /*, m_lepton_trig_sf */} ) {
     if (box == varied) {
       sf *= box->get_sf(sf_direction(syst));
     } else {
