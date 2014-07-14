@@ -449,7 +449,7 @@ void StopDistiller::setup_cutflow(CutflowType cutflow) {
     m_cutflow->add("met_150" , pass::met150    );
     m_cutflow->add(cat("n_jet_",N_SR_JETS) , pass::n_jet          );
     m_cutflow->add(cat("j1_", CUTFLOW_JET1_PT), pass::cutflow_leading);
-    m_cutflow->add("j2_50", pass::j2_50);
+    m_cutflow->add("j2_100", pass::j2_100);
     // m_cutflow->add(cat("j3_veto_", CUTFLOW_JET3_PT_VETO), pass::cutflow_jet3);
     m_cutflow->add("dphi_jetmet_min"       , pass::dphi_jetmet_min);
     m_cutflow->add("met_eff"               , pass::met_eff);

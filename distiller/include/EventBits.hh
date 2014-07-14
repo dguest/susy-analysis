@@ -78,6 +78,7 @@ namespace pass {
   const ull_t one_mu_match       = 1ULL << 52;
 
   // random cutflow
+  const ull_t j2_100             = 1ULL << 53;
   const ull_t mumet50            = 1ULL << 54;
   const ull_t met50              = 1ULL << 55;
   const ull_t met100             = 1ULL << 56;

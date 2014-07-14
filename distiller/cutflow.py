@@ -5,7 +5,7 @@ import sys, glob, os
 
 flags = 'vbgzfc'
 # flags += 'u'                    # generate pu reweighting file
-configs = ['CRT']
+configs = ['SIGNAL']
 files = []
 
 # 400_200_MET180 info (183440)

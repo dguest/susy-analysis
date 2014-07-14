@@ -89,6 +89,7 @@ namespace bits {
     if (jets.size() >= 2){
       auto j2pt = jets.at(1)->Pt();
       if ( j2pt > 50*GeV) pass_bits |= pass::j2_50;
+      if ( j2pt > 100*GeV) pass_bits |= pass::j2_100;
     }
     if (jets.size() < 3 || jets.at(2)->Pt() < CUTFLOW_JET3_PT_VETO) {
       pass_bits |= pass::cutflow_jet3;
