@@ -1,6 +1,9 @@
+"""
+Functions to calculate sum of squares for the systematic variatons.
+"""
 from scharm.aggregate.aggschema import HistDict
-# from scharm.hists import HistNd
 from scharm.schema import nominal_syst, sys2_ext, wt2_ext
+from scharm.schema import remove_minor_systematics
 
 def _get_base_hist_tuples(syst_hists):
     base_tuples = set()
@@ -12,11 +15,12 @@ def _get_base_hist_tuples(syst_hists):
     return base_tuples
 
 def make_syst_aggregate(files, output_file):
+    """expects 'files' to be keyed by systematic"""
     # set sig_prefix to None to pass through all signals
     syst_hists = HistDict(files[nominal_syst], sig_prefix=None)
     base_hist_names = _get_base_hist_tuples(syst_hists)
     variations = set(files) - set([nominal_syst])
-    for var in variations:
+    for var in remove_minor_systematics(variations):
         print('adding {}'.format(var))
         var_hists = HistDict(files[var])
         for bs_key in base_hist_names:

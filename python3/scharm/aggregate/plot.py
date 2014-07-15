@@ -204,7 +204,7 @@ class StackPlotPrinter:
 
             obj.variable, obj.cut = id_tup
             obj.bgs = mc[id_tup]
-            obj.wt2 = mc[ap_var(wt2_ext)]
+            obj.wt2 = mc.get(ap_var(wt2_ext))
             obj.syst2 = mc[ap_var(sys2_ext)]
             obj.signals = signal.get(id_tup)
             obj.data = data.get(id_tup)

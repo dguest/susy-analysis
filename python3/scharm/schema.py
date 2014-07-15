@@ -14,6 +14,25 @@ sys2_ext = 'Syst2'
 nominal_syst = 'none'
 
 # __________________________________________________________________________
+# systematic definitions
+
+def remove_minor_systematics(systematics):
+    """
+    return iterator that only uses 'major' systematics, i.e. no JES
+    breakdown. Works by removing the 'breakdown' systematics.
+    """
+    # TODO: unify this list with the one in susy-setup-distill.py
+    filt_regexes = [
+        re.compile('jenp[0-9](up|down)'),
+        re.compile('jpu(mu|npv|pt|rho)(up|down)'),
+        re.compile('jical[ms](up|down)'),
+        re.compile('j(sp|nc|cp|flavcomp|flavresp|bjes)(up|down)'),
+        ]
+    for syst in systematics:
+        if not any(x.search(syst) for x in filt_regexes):
+            yield syst
+
+# __________________________________________________________________________
 # path / systematic / replacement mappings
 
 dir_key_order = ['stream', 'systematic', 'replacement']
