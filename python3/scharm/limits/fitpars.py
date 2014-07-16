@@ -1,5 +1,6 @@
 from os.path import join, isdir
 import os, itertools
+from scharm.limits.limitsty import alpha_names
 
 _eb_style = dict(linewidth=2, color='k', fmt='o')
 _hline_style = dict(linestyle='--', color='k')
@@ -53,21 +54,6 @@ def plot_mu_parameters(pdict, outinfo, lumi=False):
 # __________________________________________________________________________
 # for alpha parameters
 
-_alpha_names = {
-    'u': 'light',
-    't': r'$\tau$',
-    'jes':'JES',
-    'jer':'JER',
-    'el':r'$e$ ID',
-    'mu':r'$\mu$ ID',
-    'mscale':r'$\mu$ scale',
-    'egzee':r'$e\,Z \to ee$',
-    'eglow':r'$e$ low',
-    'leptrig':r'$\ell$ trig',
-    'met':r'$E_{\rm T}^{\rm miss}$ scale',
-    'metres':r'$E_{\rm T}^{\rm miss}$ res',
-    }
-
 def _sort_alpha(pdict):
     """return dict sorted by type of systematic, along with division index"""
     tagging = []
@@ -78,7 +64,7 @@ def _sort_alpha(pdict):
         if not longkey.startswith('alpha_'):
             continue
         key = longkey.split('_',1)[1]
-        kv = (_alpha_names.get(key,key), val)
+        kv = (alpha_names.get(key,key), val)
         if key in 'bcut':
             tagging.append(kv)
         elif key in ['el', 'mu', 'egzee', 'mscale', 'eglow', 'leptrig']:

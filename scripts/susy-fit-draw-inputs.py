@@ -7,6 +7,7 @@ import argparse
 import sys, os
 import yaml
 from collections import Counter
+from scharm.limits.limitsty import alpha_names, reg_names
 
 _txt_size = 16
 _summed_bg = ['Wjets', 'Zjets', 'top', 'other']
@@ -20,14 +21,6 @@ _sys_lists = {
     'jesnp': ['jenp1', 'jenp2', 'jenp3', 'jenp4', 'jenp5', 'jenp6'],
     'jesflav': ['jbjes', 'jflavcomp', 'jflavresp'],
     }
-
-_sys_names = {'jes':'JES', 't':r'tag $\tau$', 'u':'tag light',
-              'b':r'tag $b$', 'c':r'tag $c$'}
-_reg_names = {
-    'cr_t': 'CRT', 'cr_w_mct150': 'CRW',
-    'signal_mct150': r'SR ($m_{\rm CT} > 150$)',
-    'cr_w_mct150_l1pt50': r'CRW ($p_{\rm T}^{\ell_{1}} > 50$)',
-    'cr_z': 'CRZ'}
 
 def _get_args():
     """input parser"""
@@ -94,14 +87,14 @@ def _plot_counts(counts, out_file):
         fmt='o', color='k', label='data')
 
     ax.set_xticks(x_vals_base)
-    ax.set_xticklabels([_reg_names.get(x,x) for x in ex_regs])
+    ax.set_xticklabels([reg_names.get(x,x) for x in ex_regs])
     for sysnm, (regions, nom, down, up, data) in sorted(counts.items()):
         x_vals = x_vals_base + get_offset(sysnm)
         color = _syst_colors[sys_num[sysnm]]
         ax.set_xlim(0, len(regions))
         up_vals = up / nom
         ax.plot(x_vals, up_vals , '^', color=color,
-                label=_sys_names.get(sysnm, sysnm))
+                label=alpha_names.get(sysnm, sysnm))
         dn_vals = down / nom
         ax.plot(x_vals, dn_vals, 'v', color=color)
 
