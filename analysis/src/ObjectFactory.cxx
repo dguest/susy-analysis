@@ -237,6 +237,7 @@ namespace {
     SET_PARAMETER(tree, n_signal_muons);
 
     SET_PARAMETER(tree, min_jetmet_dphi);
+    SET_PARAMETER(tree, lepmet_dphi);
     SET_PARAMETER(tree, met_eff);
     SET_PARAMETER(tree, mct);
     SET_PARAMETER(tree, mcc);

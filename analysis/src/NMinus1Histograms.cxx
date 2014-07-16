@@ -57,6 +57,7 @@ NMinus1Histograms
 
   if (m_make_lepton_plots) {
     m_hists.emplace_back(Axis{LLPT, N_BINS, 0.0, 500_GeV, EUNIT}, sel, hf);
+    m_hists.emplace_back(Axis{LEP_DPHI, 80, 0.0, 3.2}, sel, hf);
     if (!m_make_dilep_plots) {
       m_hists.emplace_back(Axis{MT, N_BINS, 0.0, 500_GeV, EUNIT}, sel, hf);
     }
@@ -137,6 +138,7 @@ namespace nminus {
       {NSJET, reco.n_signal_jets},
       {MET, met.Mod()},
       {DPHI, reco.min_jetmet_dphi},
+      {LEP_DPHI, reco.lepmet_dphi},
       {MCT, reco.mct},
       {MET_EFF, reco.met_eff},
       {MCC, reco.mcc},

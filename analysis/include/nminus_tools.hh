@@ -22,6 +22,7 @@ namespace nminus {
   // names for internal use (and saving)
   const std::string MET = "met";
   const std::string DPHI = "jetmet_dphi";
+  const std::string LEP_DPHI = "lepmet_dphi";
   const std::string MCT = "mass_ct";
   const std::string MET_EFF = "met_eff";
   const std::string MCC = "mass_cc";
