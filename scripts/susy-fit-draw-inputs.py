@@ -10,23 +10,35 @@ from collections import Counter
 
 _txt_size = 16
 _summed_bg = ['Wjets', 'Zjets', 'top', 'other']
-_def_regions = ['cr_z', 'signal_mct150', 'cr_t', 'cr_w_mct150']
+_def_regions = ['cr_z', 'signal_mct150', 'cr_t', 'cr_w_mct150_l1pt50']
 _def_syst = ['jes', 'b', 'c', 'u', 't']
+_sys_lists = {
+    'default': _def_syst,
+    'jesbd': [
+        'jcb', 'jicalm', 'jicals', 'jpumu',
+        'jpunpv', 'jpupt', 'jpurho', 'jsp'], #, 'jnc'
+    'jesnp': ['jenp1', 'jenp2', 'jenp3', 'jenp4', 'jenp5', 'jenp6'],
+    'jesflav': ['jbjes', 'jflavcomp', 'jflavresp'],
+    }
+
 _sys_names = {'jes':'JES', 't':r'tag $\tau$', 'u':'tag light',
               'b':r'tag $b$', 'c':r'tag $c$'}
 _reg_names = {
     'cr_t': 'CRT', 'cr_w_mct150': 'CRW',
     'signal_mct150': r'SR ($m_{\rm CT} > 150$)',
+    'cr_w_mct150_l1pt50': r'CRW ($p_{\rm T}^{\ell_{1}} > 50$)',
     'cr_z': 'CRZ'}
 
 def _get_args():
     """input parser"""
     d = 'default: %(default)s'
+    syst_help = d + ' allowed expansions: {}'.format(
+        ', '.join(_sys_lists.keys()))
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('fit_inputs')
     parser.add_argument('-r','--regions', nargs='+', default=_def_regions)
     parser.add_argument(
-        '-s','--systematics', nargs='+', default=_def_syst, help=d)
+        '-s','--systematics', nargs='+', default=_def_syst, help=syst_help)
     parser.add_argument('-o','--plot-name', default='test.pdf', help=d)
     return parser.parse_args()
 
@@ -36,10 +48,16 @@ def run():
     with open(args.fit_inputs) as yml:
         inputs_dict = yaml.load(yml)
 
-    systs = {}
+    plot_systs = []
     for syst in args.systematics:
-        counts = _get_counts(
-            inputs_dict, args.regions, syst)
+        if syst in _sys_lists:
+            plot_systs += _sys_lists[syst]
+        else:
+            plot_systs.append(syst)
+
+    systs = {}
+    for syst in plot_systs:
+        counts = _get_counts(inputs_dict, args.regions, syst)
         regs, nom, down, up, data = _arrays_from_counters(counts)
         systs[syst] = (regs, nom, down, up, data)
 
@@ -49,7 +67,7 @@ def run():
         os.mkdir(odir)
     _plot_counts(systs, ofile)
 
-_syst_colors = list('rgbcmk') + ['orange', 'purple', 'brown']
+_syst_colors = list('rgbcmk') + ['orange', 'purple', 'brown', 'white']
 def _plot_counts(counts, out_file):
     from matplotlib.figure import Figure
     from matplotlib.backends.backend_agg import FigureCanvasAgg as FigCanvas
@@ -94,7 +112,8 @@ def _plot_counts(counts, out_file):
 
     ax.axhline(1, linestyle='--', color=(0,0,0,0.5))
     ylims = ax.get_ylim()
-    ax.set_ylim(ylims[0], (ylims[1] - ylims[0]) *0.2 + ylims[1])
+    # ax.set_ylim(ylims[0], (ylims[1] - ylims[0]) *0.2 + ylims[1])
+    ax.set_ylim(0.8, 1.3)
     ax.set_ylabel('Variation / Nominal')
     fig.tight_layout(pad=0.3, h_pad=0.3, w_pad=0.3)
     canvas.print_figure(out_file, bboxinches='tight')
@@ -108,7 +127,8 @@ def _get_counts(inputs_dict, regions, syst):
     nup = syst + 'up'
     ndn = syst + 'down'
     if any(x not in systs for x in [nup, ndn]):
-        raise ValueError("couldn't find up / down systematics")
+        raise ValueError("couldn't find up / down systematics for {}".format(
+                syst))
 
     reg_up_counter = Counter()
     reg_dn_counter = Counter()
