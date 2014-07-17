@@ -15,6 +15,8 @@ import re
 from os.path import isdir, join, dirname
 from shutil import rmtree
 
+from scharm.schema import get_jes_variations
+
 def get_config():
     d = 'default: %(default)s'
     c = "with no argument is '%(const)s'"
@@ -132,10 +134,7 @@ def setup_distill(config, input_files):
     if config.all_systematics:
         ud_systs += ['EGMAT', 'EGPS', 'EGRES', 'MMS', 'MID']
     if config.all_systematics or config.jes_systematics:
-        ud_systs += ['JENP{}'.format(x + 1) for x in range(6)]
-        ud_systs += ['JPU' + x for x in ['MU', 'NPV', 'PT', 'RHO']]
-        ud_systs += ['JICALM', 'JICALS', 'JSP', 'JNC', 'JCB',
-                     'JFLAVCOMP', 'JFLAVRESP', 'JBJES']
+        ud_systs += get_jes_variations()
 
     systematics += [s + e for s in ud_systs for e in ['UP','DOWN']]
 

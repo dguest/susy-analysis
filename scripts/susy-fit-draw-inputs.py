@@ -12,7 +12,7 @@ from scharm.limits.limitsty import alpha_names, reg_names
 _txt_size = 16
 _summed_bg = ['Wjets', 'Zjets', 'top', 'other']
 _def_regions = ['cr_z', 'signal_mct150', 'cr_t', 'cr_w_mct150_l1pt50']
-_def_syst = ['jes', 'b', 'c', 'u', 't']
+_def_syst = ['jer','jes', 'b', 'c', 'u', 't']
 _sys_lists = {
     'default': _def_syst,
     'jesbd': [
@@ -50,8 +50,8 @@ def run():
 
     systs = {}
     for syst in plot_systs:
-        counts = _get_counts(inputs_dict, args.regions, syst)
-        regs, nom, down, up, data = _arrays_from_counters(counts)
+        regs, nom, down, up, data = _get_counts(
+            inputs_dict, args.regions, syst)
         systs[syst] = (regs, nom, down, up, data)
 
     ofile = args.plot_name
@@ -100,7 +100,7 @@ def _plot_counts(counts, out_file):
 
     ax.tick_params(labelsize=_txt_size)
     leg = ax.legend(
-        numpoints=1, ncol=8, borderaxespad=0.0, loc='upper left',
+        numpoints=1, ncol=4, borderaxespad=0.0, loc='upper left',
         handletextpad=0, columnspacing=1, framealpha=0.5)
 
     ax.axhline(1, linestyle='--', color=(0,0,0,0.5))
@@ -139,24 +139,43 @@ def _get_counts(inputs_dict, regions, syst):
                 raise KeyError("can't find {} {}".format(region, bg))
         data_counter[region] = yields[region].get('data',[float('NaN')])[0]
 
-    return reg_nom_counter, reg_dn_counter, reg_up_counter, data_counter
+    return _arrays_from_counters(
+        reg_nom_counter, reg_dn_counter, reg_up_counter, data_counter)
 
 def _get_sym_counts(inputs_dict, regions, syst):
+    import numpy as np
     yields = inputs_dict['nominal_yields']
     systs = inputs_dict['yield_systematics']
     nom_counter = Counter()
     alt_counter = Counter()
+    data_counter = {}
     for region in regions:
         for bg in _summed_bg:
             def get_yld(dic, reg, bg):
                 return dic[reg].get(bg, [0])[0]
             nom_counter[region] += get_yld(yields,region,bg)
             alt_counter[region] += get_yld(systs[syst],region,bg)
+        data_counter[region] = yields[region].get('data',[float('NaN')])[0]
 
-    raise NotImplementedError('fuck')
+    sreg = sorted(regions)
+    n_reg = len(regions)
+    nom_array = np.zeros(n_reg)
+    alt_array = np.zeros(n_reg)
+    data_array = np.zeros(n_reg)
+    for idx, reg in enumerate(sreg):
+        nom_array[idx] = nom_counter[reg]
+        alt_array[idx] = alt_counter[reg]
+        data_array[idx] = data_counter[reg]
+    diff = np.abs(nom_array - alt_array)
+    down = nom_array - 0.5*diff
+    up = nom_array + 0.5*diff
+    return sreg, nom_array, down, up, data_array
 
-def _arrays_from_counters(counters):
-    """takes dicts, returns (region_list, nominal, down, up)"""
+def _arrays_from_counters(*counters):
+    """
+    Takes dicts, returns (region_list, nominal, down, up).
+    Meant to handle the asym counts only.
+    """
     from numpy import zeros
     nom, down, up, data = counters
     regions = list(sorted(nom.keys()))

@@ -1,6 +1,7 @@
 from os.path import join, isdir
 import os, itertools
 from scharm.limits.limitsty import alpha_names
+from scharm.schema import get_jes_variations
 
 _eb_style = dict(linewidth=2, color='k', fmt='o')
 _hline_style = dict(linestyle='--', color='k')
@@ -56,6 +57,9 @@ def plot_mu_parameters(pdict, outinfo, lumi=False):
 
 def _sort_alpha(pdict):
     """return dict sorted by type of systematic, along with division index"""
+    jes_variations = [x.lower() for x in get_jes_variations()]
+    jes_variations += ['jes', 'jer']
+
     tagging = []
     jet = []
     lep = []
@@ -69,7 +73,7 @@ def _sort_alpha(pdict):
             tagging.append(kv)
         elif key in ['el', 'mu', 'egzee', 'mscale', 'eglow', 'leptrig']:
             lep.append(kv)
-        elif key.startswith('je'):
+        elif key in jes_variations:
             jet.append(kv)
         else:
             other.append(kv)
@@ -101,7 +105,7 @@ def plot_alpha_parameters(pdict, outinfo):
     ax.set_xticklabels(xlab)
     ax.tick_params(labelsize=_txt_size)
     for lab in ax.get_xticklabels():
-        lab.set_rotation(60)
+        lab.set_rotation(60 if len(xlab) < 10 else 90)
 
     outdir = outinfo['outdir']
     if not isdir(outdir):

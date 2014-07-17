@@ -16,6 +16,14 @@ nominal_syst = 'none'
 # __________________________________________________________________________
 # systematic definitions
 
+def get_jes_variations():
+    """returns a list of (all caps) jes variations"""
+    ud_systs = ['JENP{}'.format(x + 1) for x in range(6)]
+    ud_systs += ['JPU' + x for x in ['MU', 'NPV', 'PT', 'RHO']]
+    ud_systs += ['JICALM', 'JICALS', 'JSP', 'JNC', 'JCB',
+                 'JFLAVCOMP', 'JFLAVRESP', 'JBJES']
+    return ud_systs
+
 def remove_minor_systematics(systematics):
     """
     return iterator that only uses 'major' systematics, i.e. no JES
