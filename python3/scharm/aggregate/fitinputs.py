@@ -113,7 +113,7 @@ def _cleansyst(regdict, nom, other_sys=None):
         for procname, counts in procdict.items():
             nomcount = nom[regname].get(procname)
             def isnom(ct):
-                return (not nomcount) # or (nomcount[0] == ct[0])
+                return (not nomcount) or (nomcount[0] == ct[0])
             if other_sys:
                 other_count = other_sys[regname][procname]
                 if isnom(other_count) and isnom(counts):
