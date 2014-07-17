@@ -12,7 +12,7 @@ from scharm.limits.limitsty import alpha_names, reg_names
 _txt_size = 16
 _summed_bg = ['Wjets', 'Zjets', 'top', 'other']
 _def_regions = ['cr_z', 'signal_mct150', 'cr_t', 'cr_w_mct150_l1pt50']
-_def_syst = ['jer','jes', 'b', 'c', 'u', 't']
+_def_syst = ['jer','jes','met','metres', 'b', 'c', 'u', 't']
 _sys_lists = {
     'default': _def_syst,
     'jesbd': [
@@ -100,8 +100,8 @@ def _plot_counts(counts, out_file):
 
     ax.tick_params(labelsize=_txt_size)
     leg = ax.legend(
-        numpoints=1, ncol=4, borderaxespad=0.0, loc='upper left',
-        handletextpad=0, columnspacing=1, framealpha=0.5)
+        numpoints=1, ncol=5, borderaxespad=0.0, loc='upper left',
+        handletextpad=0, columnspacing=1, framealpha=0.5, fontsize=10)
 
     ax.axhline(1, linestyle='--', color=(0,0,0,0.5))
     ylims = ax.get_ylim()
