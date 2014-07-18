@@ -31,4 +31,8 @@ namespace cr1l {
   const float M_T_MIN = 40_GeV;
   const float M_T_MAX = 100_GeV;
 }
+
+namespace vr {
+  const float VR_MCT_MAX = 130_GeV;
+}
 #endif

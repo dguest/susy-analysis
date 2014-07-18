@@ -80,7 +80,7 @@ GEN_OBJ     += QualityEventSelection.o MetSelection.o
 GEN_OBJ     += SignalSelection.o CR1LSelection.o
 GEN_OBJ     += CR1ESelection.o CR1MSelection.o
 GEN_OBJ     += OSDFSelection.o OSSFSelection.o
-GEN_OBJ     += CRZSelection.o
+GEN_OBJ     += CRZSelection.o VRMCTSelection.o
 
 GEN_OBJ     += Window.o
 GEN_OBJ     += NMinus1Histograms.o
