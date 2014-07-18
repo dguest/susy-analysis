@@ -19,7 +19,7 @@ except ImportError:
             'name': 'sr',
             'output_name': 'nminus.h5',
             'hists':'NMINUS',
-            'selection':'SIGNAL',
+            'selection':'VR_MCT',
             'type': 'SIGNAL',
             'jet_tag_requirements': ['JFC_MEDIUM','JFC_MEDIUM'],
             'tagger':'JFC',

@@ -8,6 +8,7 @@
 #include "OSDFSelection.hh"
 #include "OSSFSelection.hh"
 #include "CRZSelection.hh"
+#include "VRMCTSelection.hh"
 #include "QualityEventSelection.hh"
 #include "MetSelection.hh"
 
@@ -134,6 +135,7 @@ namespace nminus {
   {
     auto sel = get_common_selection(cfg);
     switch (cfg.selection) {
+    case reg::Selection::VR_MCT: // fallthrough
     case reg::Selection::SIGNAL: {
       add_sr_cuts(sel);
       return sel;
@@ -197,6 +199,7 @@ namespace nminus {
     case reg::Selection::CR_T: return new NMinusOSDFSelection(cfg);
     case reg::Selection::QUALITY_EVENT: return new QualityEventSelection(cfg);
     case reg::Selection::VR_MET: return new MetSelection(cfg);
+    case reg::Selection::VR_MCT: return new NMinusVRMCTSelection(cfg);
 
     case reg::Selection::ERROR: throw std::invalid_argument(
       "region selection is ERROR");

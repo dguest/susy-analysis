@@ -75,6 +75,7 @@ def sbottom_regions():
         'QUALITY_EVENT', 50, 150, stream='all')
     sbottom['preselection']['tagger'] = 'NONE'
     sbottom['met'] = _build_kinematic_region('VR_MET', lj=50, met=150)
+    sbottom['vr_mct'] = _build_kinematic_region('VR_MCT', lj=130, met=150)
     return sbottom
 
 def _sbottom_region(version, stream):
@@ -84,7 +85,7 @@ def _sbottom_region(version, stream):
     return _build_kinematic_region(version, lj, met, rpl, stream)
 
 def _build_kinematic_region(version, lj, met, rpl='normal', stream='jet'):
-    control_regions = _sbottom_cr | {'QUALITY_EVENT'}
+    control_regions = _sbottom_cr | {'QUALITY_EVENT', 'VR_MCT'}
     default_dict = {
         'selection': version,
         'type': 'signal' if version not in control_regions else 'control',
