@@ -8,6 +8,10 @@ SRC          := src
 INC          := include
 DICT         := dict
 
+SELECTION_SUBDIR := selection
+SELECTION_SRC := $(SRC)/$(SELECTION_SUBDIR)
+SELECTION_INC := $(INC)/$(SELECTION_SUBDIR)
+
 # --- HACKS ----
 CXXFLAG_HACKS := -Wno-literal-suffix #hdf5 header sets this off
 
@@ -26,8 +30,7 @@ ND_HIST_SO       := $(ND_HIST_LIB)/libndhist.so
 #  set search path
 vpath %.o    $(BIN)
 vpath %.cxx  $(SRC)
-vpath %.hh   $(INC)
-vpath %.h    $(INC)
+vpath %Selection.cxx $(SELECTION_SRC)
 
 # --- load in root config
 ROOTCFLAGS    := $(shell root-config --cflags)
@@ -50,7 +53,7 @@ CXXFLAGS     += ${CXXFLAG_HACKS}
 LIBS         := -L$(ND_HIST_LIB) -Wl,-rpath,$(ND_HIST_LIB) -lndhist
 LDFLAGS      := -Wl,-no-undefined
 
-CXXFLAGS     += -I$(HDF_PATH)/include
+CXXFLAGS     += -I$(HDF_PATH)/include -I$(SELECTION_INC)
 LIBS         += -L$(HDF_PATH)/lib -Wl,-rpath,$(HDF_PATH)/lib
 
 # --- HDF5 needed for hist saving
