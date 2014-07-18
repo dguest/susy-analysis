@@ -431,11 +431,8 @@ class Hist1d(object):
     def __float__(self):
         # if there's a selection, we only return the sum of the selected
         if self.selection:
-            if self._prebin_array is None:
-                arr = self._array
-            else:
-                arr = self._prebin_array
-
+            pre, cur = self._prebin_array, self._array
+            arr = pre if pre is not None else cur
             slow, shigh = self.selection
             bindex = self._get_bindexer()
             return arr[bindex(slow):bindex(shigh)].sum()
@@ -481,7 +478,9 @@ class Hist1d(object):
             self._y_label, x_per_bin, units=self._x_units)
 
     def scale(self, factor):
-        self._array = self._array * factor
+        self._array *= factor
+        if self._prebin_array is not None:
+            self._prebin_array *= factor
 
     def rebin(self, max_bins):
         n_bins = self._array.size - 2
