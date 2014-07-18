@@ -93,15 +93,22 @@ def translate_to_fit_inputs(yields_dict, clean=True):
     if clean:
         for syst_name in symsys:
             _cleansyst(syst[syst_name], nom)
+            _rm_if_empty(syst, syst_name)
         for syst_name in asymsys:
             dn_syst = syst_name + _down_var_prefix
             up_syst = syst_name + _up_var_prefix
             _cleansyst(syst[dn_syst], nom, other_sys=syst[up_syst])
+            _rm_if_empty(syst, dn_syst)
+            _rm_if_empty(syst, up_syst)
 
     return {
         'nominal_yields': nom,
         'yield_systematics': syst
         }
+
+def _rm_if_empty(dic, key):
+    if not dic[key]:
+        del dic[key]
 
 def _cleansyst(regdict, nom, other_sys=None):
     """
@@ -125,8 +132,7 @@ def _cleansyst(regdict, nom, other_sys=None):
     def clean(region_dict):
         for reg, proc in kill_list:
             del region_dict[reg][proc]
-            if not region_dict[reg]:
-                del region_dict[reg]
+            _rm_if_empty(region_dict, reg)
 
     clean(regdict)
     if other_sys:
