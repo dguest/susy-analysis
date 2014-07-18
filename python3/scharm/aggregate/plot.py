@@ -11,7 +11,7 @@ import numpy as np
 from itertools import chain
 from concurrent.futures import ProcessPoolExecutor as Executor
 
-def make_plots(plots_dict, misc_info, log=False):
+def make_plots(plots_dict, misc_info, log=False, mu_dict={}):
     hist1_dict = {}
     hist2_dict = {}
     converter = HistConverter(misc_info)
@@ -28,11 +28,9 @@ def make_plots(plots_dict, misc_info, log=False):
                         addr, histn=plots_dict[addr]))
         hist2_dict.update(converter.h2dict_from_histn(tup, histn=hist))
 
-    printer = StackPlotPrinter(misc_info)
-    printer.log = log
+    printer = StackPlotPrinter(misc_info, log=log, mu_dict=mu_dict)
     printer.print_plots(*sort_data_mc(hist1_dict))
     h2print = H2Printer(misc_info)
-    h2print.log = log
     h2print.print_plots(*sort_data_mc(hist2_dict))
 
 
@@ -136,6 +134,7 @@ class HistConverter:
         hist.selection = selection
         max_bins = style.rebinning.get(cut,30)
         hist.rebin(max_bins=max_bins)
+        hist.process = physics
         try:
             hist.color = self._style[physics].color
             hist.title = self._style[physics].tex
@@ -179,16 +178,17 @@ class StackPlotPrinter:
     """
     Makes all the stack plots. Uses an Executor to multiprocess.
     """
-    def __init__(self, options):
+    def __init__(self, options, log=False, mu_dict={}):
         self.plot_dir = options['base_dir']
         self.ext = options['output_ext']
         self.lumi = options['lumi_fb']
         self.serial = options.get('serial', False)
-        self.log = False
+        self.log = log
         self.verbose = True
         theme = options['theme']
         self._selection_colors = style.get_selection_color(theme)
         self._signal_colors = style.get_signal_colors(theme)
+        self._mu_dict = mu_dict
 
     def _info_generator(self, data, mc, signal):
         keys = []
@@ -204,7 +204,7 @@ class StackPlotPrinter:
 
             obj.variable, obj.cut = id_tup
             obj.bgs = mc[id_tup]
-            obj.wt2 = mc.get(ap_var(wt2_ext))
+            obj.wt2 = mc.get(ap_var(wt2_ext), {})
             obj.syst2 = mc[ap_var(sys2_ext)]
             obj.signals = signal.get(id_tup)
             obj.data = data.get(id_tup)
@@ -216,6 +216,7 @@ class StackPlotPrinter:
             obj.signal_colors = self._signal_colors
             obj.lumi = self.lumi
             obj.selection_colors = self._selection_colors
+            obj.mu_dict = self._mu_dict
             save_dir = join(self.plot_dir, obj.cut)
             if not isdir(save_dir):
                 os.makedirs(save_dir)
@@ -238,18 +239,46 @@ class StackPlotPrinter:
 
 class StackInfo:
     """Minimal class, just holds info for a plot"""
-    pass
+    def scale(self):
+        """dummy scale function does nothing, can be monkey patched"""
+        pass
 
+    def get_save_name(self):
+        variable, cut = self.variable, self.cut
+        save_dir = join(self.plot_dir, cut)
+        save_base = join(save_dir, variable)
+        if self.log:
+            save_base += '_log'
+        if self.mu_dict:
+            save_base += '_afterFit'
+        return save_base + self.ext
+
+def _scale_stack_info(info):
+    """Scales the StackInfo object in place"""
+    new = info
+    if not new.mu_dict:
+        return
+    def scale(hist, sumsq=False):
+        mu_scale, mu_err = new.mu_dict.get(hist.process, (None, None))
+        if mu_scale is not None:
+            if sumsq:
+                mu_scale **= 2
+            hist.scale(mu_scale)
+    for bg in new.bgs:
+        scale(bg)
+    for wt2 in new.wt2:
+        scale(wt2, True)
+    for syst2 in new.syst2:
+        scale(syst2, True)
+
+StackInfo.scale = _scale_stack_info
+
+# __________________________________________________________________________
+# printing function
 def _print_plot(obj):
     """the actual printing function for StackPlotPrinter"""
-    variable, cut = obj.variable, obj.cut
-    plot_dir = obj.plot_dir
-
-    save_dir = join(plot_dir, cut)
-    save_base = join(save_dir, variable)
-    if obj.log:
-        save_base += '_log'
-    save_name = save_base + obj.ext
+    obj.scale()
+    save_name = obj.get_save_name()
     has_ratio = bool(obj.data)
     if obj.verbose:
         if has_ratio:
@@ -275,9 +304,9 @@ def _print_plot(obj):
         if obj.syst2:
             stack.add_total2(obj.syst2 + obj.wt2)
     stack.add_legend()
-    if not isdir(save_dir):
-        os.makedirs(save_dir)
-    style.customize_stack(stack, variable)
+    if not isdir(obj.plot_dir):
+        os.makedirs(obj.plot_dir)
+    style.customize_stack(stack, obj.variable)
     stack.save(save_name)
 
 # __________________________________________________________________________
