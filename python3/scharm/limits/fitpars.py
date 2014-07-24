@@ -1,4 +1,4 @@
-from os.path import join, isdir
+from os.path import join
 import os, itertools
 from scharm.limits.limitsty import alpha_names, reg_names
 from scharm.schema import get_jes_variations
@@ -78,8 +78,6 @@ def plot_mu_parameters(pdict, outinfo, lumi=False):
     ax.set_xticklabels(xlab)
     ax.tick_params(labelsize=_txt_size)
     outdir = outinfo['outdir']
-    if not isdir(outdir):
-        os.mkdir(outdir)
     fig.tight_layout(pad=0.3, h_pad=0.3, w_pad=0.3)
     canvas.print_figure(
         join(outdir, 'mu' + outinfo['ext']))
@@ -123,9 +121,6 @@ def plot_alpha_parameters(pdict, outinfo):
         lab.set_rotation(60 if len(xlab) < 10 else 90)
 
     outdir = outinfo['outdir']
-    if not isdir(outdir):
-        os.mkdir(outdir)
-
     fig.tight_layout(pad=0.3, h_pad=0.3, w_pad=0.3)
     canvas.print_figure(
         join(outdir, 'alpha' + outinfo['ext']), bboxinches='tight')
@@ -172,7 +167,7 @@ def _add_numbers(ax, matrix):
     maxval = np.max(matrix[matrix < 1.0])
     minval = np.min(matrix)
     valrg = maxval - minval
-    text_args = dict(fontsize=7, ha='center', va='center')
+    text_args = dict(fontsize=6, ha='center', va='center')
     for binx, biny in _xyiter(matrix):
         val = matrix[binx, biny]
         # hackish way to make some values different colors
@@ -180,7 +175,7 @@ def _add_numbers(ax, matrix):
             col = 'k'
         else:
             col = 'w'
-        ax.text(binx, biny, '{:.2f}'.format(val), color=col, **text_args)
+        ax.text(binx, biny, '{:.0f}'.format(val*100), color=col, **text_args)
 
 def plot_corr_matrix(pars, outinfo):
     """correlation matrix plotter"""
@@ -215,6 +210,7 @@ def plot_corr_matrix(pars, outinfo):
     divider = make_axes_locatable(ax)
     cax = divider.append_axes("right", size="5%", pad=0.05)
     cb = Colorbar(ax=cax, mappable=im)
+    # cb.set_label(r'Correlation Coefficient $\times$ 100', ha='left')
     _add_numbers(ax, matrix)
 
     for lab in ax.get_xticklabels():

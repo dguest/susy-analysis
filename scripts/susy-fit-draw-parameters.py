@@ -6,6 +6,8 @@ _fit_parameters_help = "yaml file produced by susy-fit-results.py"
 
 import argparse
 import sys, yaml
+from os.path import isdir
+from os import mkdir
 from scharm.limits.fitpars import plot_mu_parameters, plot_alpha_parameters
 from scharm.limits.fitpars import plot_corr_matrix
 
@@ -14,6 +16,8 @@ def run():
     args = _get_args()
     pars_dict = _get_fit_pars(args.fit_parameters)
     outinfo = dict(ext=args.ext, outdir=args.plot_directory)
+    if not isdir(args.plot_directory):
+        mkdir(args.plot_directory)
     plot_mu_parameters(pars_dict, outinfo, lumi=args.lumi)
     plot_alpha_parameters(pars_dict, outinfo)
     plot_corr_matrix(pars_dict, outinfo)
