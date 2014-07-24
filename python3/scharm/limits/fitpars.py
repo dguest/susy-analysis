@@ -22,6 +22,7 @@ def _get_lab_x_y_err(pars):
     return xlab, xpos, ypos, yerr
 
 def _sort_labels(labels):
+    """return sorted lables, together with the division indexes"""
     jes_variations = [x.lower() for x in get_jes_variations()]
     jes_variations += ['jes', 'jer']
     tagging = []
@@ -43,8 +44,14 @@ def _sort_labels(labels):
         else:
             other.append(longkey)
     # stick the lists together, sorted
-    return list(itertools.chain.from_iterable(
-            [sorted(x) for x in [tagging, jet, lep, other, mu]]))
+    lists = [tagging, jet, lep, other, mu]
+    idxs = [len(lists[0])]
+    for l in lists[1:]:
+        idxs.append(idxs[-1] + len(l))
+
+    full_list = list(itertools.chain.from_iterable(
+            [sorted(x) for x in lists]))
+    return full_list, idxs
 
 # ___________________________________________________________________________
 # for mu parameters
@@ -82,32 +89,15 @@ def plot_mu_parameters(pdict, outinfo, lumi=False):
 
 def _sort_alpha(pdict):
     """return dict sorted by type of systematic, along with division index"""
-    jes_variations = [x.lower() for x in get_jes_variations()]
-    jes_variations += ['jes', 'jer']
-
-    tagging = []
-    jet = []
-    lep = []
-    other = []
-    for longkey, val in pdict.items():
+    slab, idxs = _sort_labels(pdict.keys())
+    alphas = []
+    for longkey in slab:
         if not longkey.startswith('alpha_'):
             continue
         key = longkey.split('_',1)[1]
-        kv = (alpha_names.get(key,key), val)
-        if key in 'bcut':
-            tagging.append(kv)
-        elif key in ['el', 'mu', 'egzee', 'mscale', 'eglow', 'leptrig']:
-            lep.append(kv)
-        elif key in jes_variations:
-            jet.append(kv)
-        else:
-            other.append(kv)
-    # stick the lists together, sorted
-    lists = [sorted(x) for x in [tagging, jet, lep, other]]
-    idxs = [len(tagging)]
-    for l in lists[1:]:
-        idxs.append(idxs[-1] + len(l))
-    return list(itertools.chain(*lists)), idxs
+        val = pdict[longkey]
+        alphas.append((alpha_names.get(key,key), val))
+    return alphas, idxs
 
 def plot_alpha_parameters(pdict, outinfo):
     from matplotlib.figure import Figure
@@ -166,7 +156,7 @@ def _xyiter(matrix):
 
 def _sort_matrix(labels, matrix):
     """Reorders a correlation matrix"""
-    lsort = _sort_labels(labels)
+    lsort, _ = _sort_labels(labels)
 
     # build new matrix
     new_idx = [lsort.index(x) for x in labels]
