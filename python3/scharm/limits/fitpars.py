@@ -150,13 +150,13 @@ def _rename_corr_var(name):
     return name
 
 def _xyiter(matrix):
+    """iterate through all the bins of an nd array"""
     xyitr = [range(x) for x in matrix.shape]
-    for binx, biny in itertools.product(*xyitr):
-        yield binx, biny
+    yield from itertools.product(*xyitr)
 
 def _sort_matrix(labels, matrix):
     """Reorders a correlation matrix"""
-    lsort, _ = _sort_labels(labels)
+    lsort, idx = _sort_labels(labels)
 
     # build new matrix
     new_idx = [lsort.index(x) for x in labels]
@@ -165,9 +165,10 @@ def _sort_matrix(labels, matrix):
         newx = new_idx[binx]
         newy = new_idx[biny]
         new_mat[newx, newy] = matrix[binx, biny]
-    return lsort, new_mat
+    return lsort, new_mat, idx
 
 def _add_numbers(ax, matrix):
+    """add the value of the correlation in each cell as text"""
     maxval = np.max(matrix[matrix < 1.0])
     minval = np.min(matrix)
     valrg = maxval - minval
@@ -191,7 +192,7 @@ def plot_corr_matrix(pars, outinfo):
 
     labels = pars['correlation_matrix']['parameters']
     matrix = np.array(pars['correlation_matrix']['matrix'])
-    labels, matrix = _sort_matrix(labels, matrix)
+    labels, matrix, lab_groups = _sort_matrix(labels, matrix)
     short_labels = [_rename_corr_var(x) for x in labels]
     maxval = np.max(matrix[matrix < 1.0])
 
@@ -208,6 +209,9 @@ def plot_corr_matrix(pars, outinfo):
     ax.xaxis.tick_bottom()
     ax.set_yticks(tickpos)
     ax.set_yticklabels(short_labels)
+    for line in lab_groups:
+        ax.axvline(line - 0.5, color='k')
+        ax.axhline(line - 0.5, color='k')
     divider = make_axes_locatable(ax)
     cax = divider.append_axes("right", size="5%", pad=0.05)
     cb = Colorbar(ax=cax, mappable=im)
