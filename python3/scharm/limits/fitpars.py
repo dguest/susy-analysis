@@ -21,6 +21,31 @@ def _get_lab_x_y_err(pars):
         yerr[parnum] = after['error']
     return xlab, xpos, ypos, yerr
 
+def _sort_labels(labels):
+    jes_variations = [x.lower() for x in get_jes_variations()]
+    jes_variations += ['jes', 'jer']
+    tagging = []
+    jet = []
+    lep = []
+    other = []
+    mu = []
+    for longkey in labels:
+        if not longkey.startswith('alpha_'):
+            mu.append(longkey)
+            continue
+        key = longkey.split('_',1)[1]
+        if key in 'bcut':
+            tagging.append(longkey)
+        elif key in ['el', 'mu', 'egzee', 'mscale', 'eglow', 'leptrig']:
+            lep.append(longkey)
+        elif key in jes_variations:
+            jet.append(longkey)
+        else:
+            other.append(longkey)
+    # stick the lists together, sorted
+    return list(itertools.chain.from_iterable(
+            [sorted(x) for x in [tagging, jet, lep, other, mu]]))
+
 # ___________________________________________________________________________
 # for mu parameters
 
@@ -134,17 +159,30 @@ def _rename_corr_var(name):
         return name[len(mu):]
     return name
 
-def _sort_matrix(lables, matrix):
+def _xyiter(matrix):
+    xyitr = [range(x) for x in matrix.shape]
+    for binx, biny in itertools.product(*xyitr):
+        yield binx, biny
+
+def _sort_matrix(labels, matrix):
     """Reorders a correlation matrix"""
-    pass
+    lsort = _sort_labels(labels)
+
+    # build new matrix
+    new_idx = [lsort.index(x) for x in labels]
+    new_mat = np.zeros(matrix.shape)
+    for binx, biny in _xyiter(matrix):
+        newx = new_idx[binx]
+        newy = new_idx[biny]
+        new_mat[newx, newy] = matrix[binx, biny]
+    return lsort, new_mat
 
 def _add_numbers(ax, matrix):
     maxval = np.max(matrix[matrix < 1.0])
     minval = np.min(matrix)
     valrg = maxval - minval
     text_args = dict(fontsize=7, ha='center', va='center')
-    xyitr = [range(x) for x in matrix.shape]
-    for binx, biny in itertools.product(*xyitr):
+    for binx, biny in _xyiter(matrix):
         val = matrix[binx, biny]
         # hackish way to make some values different colors
         if (val - minval) / valrg > 0.3:
@@ -163,7 +201,8 @@ def plot_corr_matrix(pars, outinfo):
 
     labels = pars['correlation_matrix']['parameters']
     matrix = np.array(pars['correlation_matrix']['matrix'])
-    short_lables = [_rename_corr_var(x) for x in labels]
+    labels, matrix = _sort_matrix(labels, matrix)
+    short_labels = [_rename_corr_var(x) for x in labels]
     maxval = np.max(matrix[matrix < 1.0])
 
     fig = Figure(figsize=(8, 8))
@@ -175,10 +214,10 @@ def plot_corr_matrix(pars, outinfo):
 
     tickpos = np.linspace(0, len(labels) - 1, len(labels))
     ax.set_xticks(tickpos)
-    ax.set_xticklabels(short_lables)
+    ax.set_xticklabels(short_labels)
     ax.xaxis.tick_bottom()
     ax.set_yticks(tickpos)
-    ax.set_yticklabels(short_lables)
+    ax.set_yticklabels(short_labels)
     divider = make_axes_locatable(ax)
     cax = divider.append_axes("right", size="5%", pad=0.05)
     cb = Colorbar(ax=cax, mappable=im)
