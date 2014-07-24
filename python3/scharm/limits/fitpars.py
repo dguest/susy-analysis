@@ -1,14 +1,14 @@
 from os.path import join, isdir
 import os, itertools
-from scharm.limits.limitsty import alpha_names
+from scharm.limits.limitsty import alpha_names, reg_names
 from scharm.schema import get_jes_variations
+import numpy as np
 
 _eb_style = dict(linewidth=2, color='k', fmt='o')
 _hline_style = dict(linestyle='--', color='k')
 _txt_size = 16
 
 def _get_lab_x_y_err(pars):
-    import numpy as np
     npars = len(pars)
     xpos = np.arange(0.5, npars + 0.5)
     ypos = np.zeros(npars)
@@ -114,4 +114,80 @@ def plot_alpha_parameters(pdict, outinfo):
     fig.tight_layout(pad=0.3, h_pad=0.3, w_pad=0.3)
     canvas.print_figure(
         join(outdir, 'alpha' + outinfo['ext']), bboxinches='tight')
+
+# __________________________________________________________________________
+# correlation matrix
+
+def _rename_corr_var(name):
+    alp = 'alpha_'
+    if name.startswith(alp):
+        trunc = name[len(alp):]
+        return alpha_names.get(trunc, trunc)
+    gstat = 'gamma_stat_'
+    stattail = '_bin_0'
+    if name.startswith(gstat):
+        trunc = name[len(gstat):-len(stattail)]
+        name = reg_names.get(trunc, trunc)
+        return name + " Stat"
+    mu = 'mu_'
+    if name.startswith(mu):
+        return name[len(mu):]
+    return name
+
+def _sort_matrix(lables, matrix):
+    """Reorders a correlation matrix"""
+    pass
+
+def _add_numbers(ax, matrix):
+    maxval = np.max(matrix[matrix < 1.0])
+    minval = np.min(matrix)
+    valrg = maxval - minval
+    text_args = dict(fontsize=7, ha='center', va='center')
+    xyitr = [range(x) for x in matrix.shape]
+    for binx, biny in itertools.product(*xyitr):
+        val = matrix[binx, biny]
+        # hackish way to make some values different colors
+        if (val - minval) / valrg > 0.3:
+            col = 'k'
+        else:
+            col = 'w'
+        ax.text(binx, biny, '{:.2f}'.format(val), color=col, **text_args)
+
+def plot_corr_matrix(pars, outinfo):
+    """correlation matrix plotter"""
+    from matplotlib.figure import Figure
+    from matplotlib.backends.backend_agg import FigureCanvasAgg as FigCanvas
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
+    from matplotlib.colorbar import Colorbar
+    from matplotlib.pyplot import get_cmap
+
+    labels = pars['correlation_matrix']['parameters']
+    matrix = np.array(pars['correlation_matrix']['matrix'])
+    short_lables = [_rename_corr_var(x) for x in labels]
+    maxval = np.max(matrix[matrix < 1.0])
+
+    fig = Figure(figsize=(8, 8))
+    fig.subplots_adjust(bottom=0.2)
+    canvas = FigCanvas(fig)
+    ax = fig.add_subplot(1,1,1)
+    im = ax.matshow(matrix, vmax=maxval, cmap=get_cmap('hot'))
+    im.get_cmap().set_over('grey', 1.0)
+
+    tickpos = np.linspace(0, len(labels) - 1, len(labels))
+    ax.set_xticks(tickpos)
+    ax.set_xticklabels(short_lables)
+    ax.xaxis.tick_bottom()
+    ax.set_yticks(tickpos)
+    ax.set_yticklabels(short_lables)
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+    cb = Colorbar(ax=cax, mappable=im)
+    _add_numbers(ax, matrix)
+
+    for lab in ax.get_xticklabels():
+        lab.set_rotation(90)
+    fig.tight_layout(pad=1.0, h_pad=0.3, w_pad=1.0)
+    canvas.print_figure(
+        join(outinfo['outdir'], 'cor_matrix' + outinfo['ext']),
+        bboxinches='tight')
 

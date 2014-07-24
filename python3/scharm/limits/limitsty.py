@@ -16,8 +16,8 @@ alpha_names = {
     'leptrig':r'$\ell$ trig',
     'met':r'$E_{\rm T}^{\rm miss}$ scale',
     'metres':r'$E_{\rm T}^{\rm miss}$ res',
-    'jcb': r'Close By',
 
+    'jcb': r'Close By',
     'jbjes': r'$b$ JES',
     'jflavcomp': 'Flavor Comp',
     'jflavresp': 'Flavor Resp',
