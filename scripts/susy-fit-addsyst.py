@@ -9,8 +9,10 @@ _yld_key = 'yield_systematics'
 _rel_key = 'relative_systematics'
 
 def get_config():
+    d = 'default: %(default)s'
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('fit_inputs')
+    parser.add_argument('--met-trig-error', type=float, default=0.02, help=d)
     return parser.parse_args()
 
 def run():
@@ -18,7 +20,7 @@ def run():
     with open(args.fit_inputs, 'r+') as yml:
         yields_dict = yaml.load(yml)
         _add_qcd(yields_dict)
-        _add_mettrig(yields_dict)
+        _add_mettrig(yields_dict, error=args.met_trig_error)
         yml.truncate(0)
         yml.seek(0)
         yml.write(yaml.dump(yields_dict))
@@ -34,7 +36,10 @@ def _add_qcd(yields_dict):
         yields_dict['nominal_yields'][sr]['QCD'] = [count, count]
 
 def _add_mettrig(yields_dict, error=0.01):
-    """adds a 1% uncertainty to all the signal regions"""
+    """
+    adds an uncertainty to all the signal regions to account for the trigger
+    error.
+    """
     nom = yields_dict[_nom_key]
     srs = [x for x in nom if x.startswith('signal_')]
     relsyst = yields_dict.setdefault(_rel_key, {})
