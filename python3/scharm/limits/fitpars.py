@@ -30,6 +30,7 @@ def _sort_labels(labels):
     lep = []
     other = []
     mu = []
+    theory = []
     for longkey in labels:
         if not longkey.startswith('alpha_'):
             mu.append(longkey)
@@ -41,10 +42,12 @@ def _sort_labels(labels):
             lep.append(longkey)
         elif key in jes_variations:
             jet.append(longkey)
+        elif 'Theory' in key or key in ['signal_isr']:
+            theory.append(longkey)
         else:
             other.append(longkey)
     # stick the lists together, sorted
-    lists = [tagging, jet, lep, other, mu]
+    lists = [x for x in [tagging, jet, lep, other, theory, mu] if x]
     idxs = [len(lists[0])]
     for l in lists[1:]:
         idxs.append(idxs[-1] + len(l))

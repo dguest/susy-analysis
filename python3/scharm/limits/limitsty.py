@@ -16,6 +16,11 @@ alpha_names = {
     'leptrig':r'$\ell$ trig',
     'met':r'$E_{\rm T}^{\rm miss}$ scale',
     'metres':r'$E_{\rm T}^{\rm miss}$ res',
+    'mettrig':r'$E_{\rm T}^{\rm miss}$ trig',
+    'topTheory': 'top theory',
+    'WTheory': r'$W$ theory',
+    'ZTheory': r'$Z$ theory',
+    'signal_isr': 'signal isr',
 
     'jcb': r'Close By',
     'jbjes': r'$b$ JES',
