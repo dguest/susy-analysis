@@ -164,7 +164,7 @@ def sort_data_mc(hist1_dict):
             lists[variable, cut].append(hist)
 
     for tup in lists:
-        lists[tup].sort(key=_get_lightness)
+        lists[tup].sort(key=float)
 
     for tup in signals:
         signals[tup].sort(key=str)
