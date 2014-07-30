@@ -165,19 +165,21 @@ def _sort_matrix(labels, matrix):
         new_mat[newx, newy] = matrix[binx, biny]
     return lsort, new_mat, idx
 
-def _add_numbers(ax, matrix):
-    """add the value of the correlation in each cell as text"""
+def _add_numbers(ax, matrix, image, threshold=0.25):
+    """
+    Add the value of the correlation in each cell as text.
+    Boxes with overall brightness lower than `threshold` are colored
+    white.
+    """
     maxval = np.max(matrix[matrix < 1.0])
     minval = np.min(matrix)
     valrg = maxval - minval
     text_args = dict(fontsize=6, ha='center', va='center')
     for binx, biny in _xyiter(matrix):
         val = matrix[binx, biny]
-        # hackish way to make some values different colors
-        if (val - minval) / valrg > 0.3:
-            col = 'k'
-        else:
-            col = 'w'
+        # use white in the dark squares
+        greyval = sum(image.to_rgba(val)[:3]) / 3
+        col = 'w' if greyval < threshold else 'k'
         ax.text(binx, biny, '{:.0f}'.format(val*100), color=col, **text_args)
 
 def plot_corr_matrix(pars, outinfo):
@@ -214,7 +216,7 @@ def plot_corr_matrix(pars, outinfo):
     cax = divider.append_axes("right", size="5%", pad=0.05)
     cb = Colorbar(ax=cax, mappable=im)
     # cb.set_label(r'Correlation Coefficient $\times$ 100', ha='left')
-    _add_numbers(ax, matrix)
+    _add_numbers(ax, matrix, im)
 
     for lab in ax.get_xticklabels():
         lab.set_rotation(90)
