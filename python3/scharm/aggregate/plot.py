@@ -164,12 +164,17 @@ def sort_data_mc(hist1_dict):
             lists[variable, cut].append(hist)
 
     for tup in lists:
-        lists[tup].sort(key=float)
+        lists[tup].sort(key=_get_lightness)
 
     for tup in signals:
         signals[tup].sort(key=str)
 
     return stack_data, lists, signals
+
+def _get_lightness(hist1d):
+    """returns the sum of the of the histogram RGB, useful for sorting"""
+    from matplotlib.colors import colorConverter
+    return sum(colorConverter.to_rgb(hist1d.color))
 
 # __________________________________________________________________________
 # 1d plot printer

@@ -382,7 +382,7 @@ def _get_mc_error_bands(hist_list, y_sum_step, nan_proxy_val=100.0):
     rel_sys_err[inf_vals] = nan_proxy_val
     return x_vals, rel_sys_err
 
-class Hist1d(object):
+class Hist1d:
     """
     class to organize 1d hists from np arrays
     """
