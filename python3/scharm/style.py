@@ -42,10 +42,11 @@ _dan_detail = {
 
 _dan_theme = _dan_detail.copy()
 _dan_theme.update( {
-        'other':'pink',
+        'other':'orange',
         'Wjets':'yellow',
         'Zjets':'green',
         'top':'blue',
+        'signal_list': ['purple', 'cyan'],
         })
 
 _brimstone = _dan_detail.copy()
