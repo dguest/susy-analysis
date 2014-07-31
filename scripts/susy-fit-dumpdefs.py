@@ -3,7 +3,7 @@
 Dump some defs as twikitable
 """
 from scharm.limits.limitsty import alpha_names as alp
-import re
+import re, math
 
 def twikify(string):
     new = ''
@@ -16,11 +16,30 @@ def twikify(string):
             new += char
     return new
 
-if __name__ == '__main__':
-    # twikify = re.compile('\$(.*)\$')
-
+def get_pairs():
     skeys = sorted(alp)
+
+    pairs = []
     for one in skeys:
         translated = alp[one]
         repd = twikify(translated)
-        print('|', one, '|', repd, '|')
+        pairs.append( (one, repd))
+    return pairs
+
+if __name__ == '__main__':
+
+    pairs = get_pairs()
+    cols = 4
+    el = ['']
+    print(' | '.join(el + ['*int*','*trans*']*cols + el))
+    nrow = math.ceil(len(pairs) / cols)
+    for row in range(nrow):
+        vals = ['']
+        for col in range(cols):
+            try:
+                pair = pairs[row + col*nrow]
+            except IndexError:
+                pair = ['']*2
+            vals += pair
+        vals += el
+        print(' | '.join(vals))
