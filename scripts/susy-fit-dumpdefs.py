@@ -31,7 +31,7 @@ if __name__ == '__main__':
     pairs = get_pairs()
     cols = 4
     el = ['']
-    print(' | '.join(el + ['*int*','*trans*']*cols + el))
+    print(' | '.join(el + ['*int*','*disp*', '']*cols + el))
     nrow = math.ceil(len(pairs) / cols)
     for row in range(nrow):
         vals = ['']
@@ -41,5 +41,6 @@ if __name__ == '__main__':
             except IndexError:
                 pair = ['']*2
             vals += pair
+            vals += el
         vals += el
         print(' | '.join(vals))
