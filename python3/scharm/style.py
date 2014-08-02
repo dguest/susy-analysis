@@ -45,7 +45,9 @@ _dan_theme.update( {
         'other':'orange',
         'Wjets':'yellow',
         'Zjets':'green',
-        'top':'blue',
+        # 'top':'blue',
+        'top': (0.4,0.4,1.0),
+        # 'top':(0x33/255,0x33/255,0xCC/255), # sbottom Wjets
         'signal_list': ['purple', 'cyan'],
         })
 
