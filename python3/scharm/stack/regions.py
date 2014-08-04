@@ -76,6 +76,7 @@ def sbottom_regions():
     sbottom['preselection']['tagger'] = 'NONE'
     sbottom['met'] = _build_kinematic_region('VR_MET', lj=50, met=150)
     sbottom['vr_mct'] = _build_kinematic_region('VR_MCT', lj=130, met=150)
+    sbottom['vr_mcc'] = _build_kinematic_region('VR_MCC', lj=130, met=150)
     return sbottom
 
 def _sbottom_region(version, stream):

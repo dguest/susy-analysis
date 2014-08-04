@@ -33,6 +33,7 @@ namespace cr1l {
 }
 
 namespace vr {
-  const float VR_MCT_MAX = 130_GeV;
+  const float VR_MCT_MAX = 150_GeV;
+  const float VR_MCC_MAX = 200_GeV;
 }
 #endif

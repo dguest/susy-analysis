@@ -166,6 +166,7 @@ static bool safe_copy(PyObject* value, reg::Selection& dest) {
   NAME_TO_PREFIXED(Selection, QUALITY_EVENT);
   NAME_TO_PREFIXED(Selection, VR_MET);
   NAME_TO_PREFIXED(Selection, VR_MCT);
+  NAME_TO_PREFIXED(Selection, VR_MCC);
 
   std::string problem = "got undefined selection: " + name;
   PyErr_SetString(PyExc_ValueError,problem.c_str());
