@@ -29,6 +29,7 @@ class Stack:
     toterr_name = 'total'
     ratio_grid_color = (0,0,0,0.2)
     label_font_size = 16
+    magic_sig_str = 'scharm-'
     # confidence interval for data
     data_ci = 1 - math.erf( (1/2)**0.5) # 1 sigma
     def __init__(self, ratio=False, exclude_zeros=True,
@@ -91,8 +92,16 @@ class Stack:
                             fontsize=self.label_font_size)
 
     def _get_legstr(self, hist):
-        title = hist.title.replace('scharm-','')
+        if hist.title.startswith(self.magic_sig_str):
+            title = hist.title.replace(self.magic_sig_str,'')
+            # vals = [int(x) for x in hist.title.split('-')[1:3]]
+            # title_tmp = (r'$m_{{ \tilde{{c}} }} = $ {},'
+            #              r' $m_{{ \rm lsp }} = $ {}')
+            # title = title_tmp.format(*vals)
+        else:
+            title = hist.title
         hval = float(hist)
+        # return title
         return '{}: {}'.format(title, _legstr(hval))
 
     def _set_xlims(self, hist):
