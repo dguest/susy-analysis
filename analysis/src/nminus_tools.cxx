@@ -115,6 +115,12 @@ namespace {
 	{DPHI, {MIN_DPHI_JET_MET, INFINITY} },
 	  });
   }
+  void add_vr_mcc_cuts(std::map<std::string, Window>& sel) {
+    sel.insert( {
+	{MET_EFF, {MET_EFF_MIN, INFINITY} },
+	{DPHI, {MIN_DPHI_JET_MET, INFINITY} },
+	  });
+  }
   void add_presel_cuts(std::map<std::string, Window>& sel) {
     // this case has phantom cuts to indicate where SR cuts _would_ be
     const auto PHANTOM = Window::Missing::PHANTOM;
@@ -137,7 +143,6 @@ namespace nminus {
     auto sel = get_common_selection(cfg);
     switch (cfg.selection) {
     case reg::Selection::VR_MCT: // fallthrough
-    case reg::Selection::VR_MCC: // fallthrough
     case reg::Selection::SIGNAL: {
       add_sr_cuts(sel);
       return sel;
@@ -162,6 +167,10 @@ namespace nminus {
     case reg::Selection::VR_MET: // fallthrough
     case reg::Selection::QUALITY_EVENT: {
       add_presel_cuts(sel);
+      return sel;
+    }
+    case reg::Selection::VR_MCC: {
+      add_vr_mcc_cuts(sel);
       return sel;
     }
 
