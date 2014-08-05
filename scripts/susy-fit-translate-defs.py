@@ -4,36 +4,46 @@ Plotting routine for the fit results (which are produced as a yaml file).
 """
 
 import argparse, sys, tempfile
-from scharm.limits.limitsty import alpha_names
+from scharm.limits.limitsty import long_alpha_names, mu_names
 
 _transdics = {
-    'mu\_': alpha_names
+    'alpha\_': long_alpha_names,
+    'mu\_': mu_names,
     }
-
 def _transline(line):
     for head, dic in _transdics.items():
-        if line.startswith(exthead):
-            stem = line[len(exthead):].split('&').strip()
-            return dic.get(stem,stem)
-
+        if line.startswith(head):
+            stem = line[len(head):].split('&')[0].strip()
+            rest = line.split('&')[1:]
+            return ' & '.join([dic.get(stem,stem)] + rest)
+    return line
 
 def run():
     """top level routine"""
     args = _get_args()
     pars_file = _get_fit_pars(args.tex_file)
-    if not args.tex_file:
-        out_file = sys.stdout
+    if args.tex_file and args.in_place:
+        out = tempfile.TemporaryFile('w+')
     else:
-        out = tempfile.TemporaryFile()
+        if args.in_place:
+            sys.exit('need a file to change in place')
+        out = sys.stdout
     for line in pars_file:
+        out.write(_transline(line))
+
+    if args.in_place:
+        pars_file.seek(0)
+        pars_file.truncate()
+        out.seek(0)
+        for line in out:
+            pars_file.write(line)
 
 def _get_args():
     """input parser"""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         'tex_file', help='any tex file', nargs='?')
-    parser.add_argument('-e','--ext', default='.pdf', help='plot type')
-    parser.add_argument('-l','--lumi', action='store_true')
+    parser.add_argument('-i', '--in-place', action='store_true')
     return parser.parse_args()
 
 def _get_fit_pars(fit_parameters):
