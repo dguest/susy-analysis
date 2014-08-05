@@ -39,7 +39,8 @@ for iii in range(6):
     alpha_names['jenp{}'.format(np)] = 'Eff NP {}'.format(np)
 
 reg_names = {
-    'cr_t': 'CRT', 'cr_w_mct150': 'CRW',
+    'cr_t': 'CRT',
+    'cr_w_mct150': 'CRW', 'cr_w': 'CRW',
     'signal_mct150': r'SR ($m_{\rm CT} > 150$)',
     'cr_w_mct150_l1pt50': r'CRW ($p_{\rm T}^{\ell_{1}} > 50$)',
     'cr_z': 'CRZ'}
