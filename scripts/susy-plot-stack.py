@@ -27,7 +27,7 @@ def get_config():
                         help=d, default='plots')
     parser.add_argument(
         '-t','--theme', choices={'dan','sbot','brimstone','brony'},
-        default='brimstone', help=d)
+        default='dan', help=d)
     parser.add_argument('--serial', action='store_true',
                         help='disable multiprocess')
 
