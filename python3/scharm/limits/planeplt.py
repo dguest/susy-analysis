@@ -61,6 +61,7 @@ class CLsExclusionPlane:
         Expects a list of (mass stop, mass lsp, upper limit) tuples.
         """
         point_lables = None
+        stop_lsp_cls, _ = _remove_bads(stop_lsp_cls)
         if len(stop_lsp_cls[0]) > 3:
             byvar = list(zip(*stop_lsp_cls))
             stop_lsp_cls = zip(*byvar[:3])
@@ -111,6 +112,7 @@ class CLsExclusionPlane:
         """
         Expects a list of (mass stop, mass lsp, upper limit) tuples.
         """
+        stop_lsp_low_high, _ = _remove_bads(stop_lsp_low_high)
         x, y, low, high = np.array(stop_lsp_low_high).T
         xmin, xmax = self.low_x, max(x)
         ymin, ymax = self.low_y, max(y)
@@ -222,3 +224,13 @@ def _get_interpolated_xyz(x, y, z, xlims, ylims, xpts, log=True):
     if log:
         zp = np.exp(zp)
     return xp, yp, zp
+
+def _remove_bads(args, baddex=2):
+    """returns two lists, of good and bad (test = -1.0) points"""
+    goods = []
+    bads = []
+    for vals in args:
+        cls = vals[baddex]
+        applist = bads if cls == -1.0 else goods
+        applist.append(vals)
+    return goods, bads
