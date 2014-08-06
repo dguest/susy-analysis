@@ -41,6 +41,7 @@ class SampleAggregator:
         self._plots_dict = HistDict()
         self._check_variables(variables)
         self._breakdown = breakdown
+        self._renamer = renamer.Renamer()
 
     def _check_variables(self, variables):
         if variables == 'all':
@@ -69,7 +70,7 @@ class SampleAggregator:
 
             # consolidate the samples (as they are in sbottom)
             if not self._breakdown:
-                process = renamer.shorten(process) or process
+                process = self._renamer.shorten(process) or process
 
             for region, vargroup in hfile.items():
                 if self.variables == 'all':

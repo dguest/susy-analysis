@@ -12,16 +12,27 @@ _prefix_replacements = {
     }
 _no_prefix = ['scharm','stop', 'data']
 
-def shorten(name):
+class Renamer:
     """
-    finds and returns the short name for the argument. Returns 'None' for
-    signal points. Throw ValueError if no match is found.
+    Class to rename physics processes to whatever they will be in the
+    fit and plots.
     """
-    for short, prefi in _prefix_replacements.items():
-        for prefix in prefi:
+    def __init__(self, no_bundle={}):
+        self._pass_through = set(no_bundle)
+    def shorten(self, name):
+        """
+        finds and returns the short name for the argument. Returns
+        'None' for signal points. Throw ValueError if no match is
+        found.
+        """
+        if name in self._pass_through:
+            return name
+        for short, prefi in _prefix_replacements.items():
+            for prefix in prefi:
+                if name.startswith(prefix):
+                    return short
+        for prefix in _no_prefix:
             if name.startswith(prefix):
-                return short
-    for prefix in _no_prefix:
-        if name.startswith(prefix):
-            return None
-    raise ValueError("{} doesn't have an identifiable prefix".format(name))
+                return None
+        raise ValueError(
+            "{} doesn't have an identifiable prefix".format(name))

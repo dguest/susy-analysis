@@ -8,6 +8,10 @@ import numpy as np
 _up_var_prefix = 'up'
 _down_var_prefix = 'down'
 
+# some things shouldn't be renamed, we want to decide what to do
+# with them in the fit
+_nobundle = {'singleTop'}
+
 class FitInputMaker:
     """
     Takes some meta data and one systematic as an input.
@@ -18,13 +22,13 @@ class FitInputMaker:
     # us to multiply by the squared normalization
     _wt2_tag = 'Wt2'
     _signal_prefix = 'scharm'
-
     def __init__(self, meta_path, variable='met', signal_point=None,
-                 quiet=False, veto_region_prefix=None):
+                 quiet=False, veto_region_prefix=None, no_bundle=_nobundle):
         self._meta_path = meta_path
         self._variable = variable
         self._quiet = quiet
         self._vrp = veto_region_prefix
+        self._renamer = renamer.Renamer(no_bundle=no_bundle)
 
         # signal finder (for short test jobs without much signal)
         if signal_point is None:
@@ -53,7 +57,7 @@ class FitInputMaker:
             if not self._sig_finder(full_process):
                 continue
             # rename processes to simplify fit
-            process = renamer.shorten(full_process) or full_process
+            process = self._renamer.shorten(full_process) or full_process
             for region, vargroup in hfile.items():
                 if self._vrp and region.startswith(self._vrp):
                     continue
