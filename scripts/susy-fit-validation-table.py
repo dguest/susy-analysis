@@ -88,11 +88,12 @@ def _dump_table(out_lines, out=sys.stdout):
     if not max(lens) == min(lens):
         raise ValueError('line lengths: {}'.format(lens))
     tablen = max(lens)
-    out.write(r'\begin{tabular}{' + '|'.join('c'*tablen) + '}' '\n')
+    out.write(r'\begin{tabular}{|' + '|'.join('c'*tablen) + '|}' '\n')
     for sec in out_lines:
         out.write(r'\hline' '\n')
         for line in sec:
-            out.write(' & '.join(line) + r'\\' '\n')
+            out.write(' & '.join(line) + r' \\' '\n')
+    out.write(r'\hline' '\n')
     out.write(r'\end{tabular}' '\n')
 
 def _get_pars(parameters_dict, prefix='mu_'):
