@@ -4,6 +4,7 @@
 import argparse, sys
 import yaml
 from collections import Counter
+from scharm.limits import limitsty
 
 _nom_key = 'nominal_yields'
 _yld_key = 'yield_systematics'
@@ -36,9 +37,10 @@ def run():
     data_list = _get_data_list(nom_yields, args.regions)
     mc_expt, tot = _get_mc_expected_lists(nom_yields, args.regions)
     mc_fit, tot_fit = _get_mc_expected_lists(nom_yields, args.regions, mus)
+    reg_names = _get_regnames(args.regions)
     out_lines = [
         [
-            [r'{\bf channel}'] + args.regions,
+            [r'{\bf channel}'] + reg_names,
             ],
         [
             data_list,
@@ -53,6 +55,12 @@ def run():
         mc_expt,
         ]
     _dump_table(out_lines)
+
+def _get_regnames(regions):
+    reg_names = []
+    for region in regions:
+        reg_names.append(limitsty.reg_names.get(region, region))
+    return reg_names
 
 def _dump_table(out_lines, out=sys.stdout):
     lens = [len(x) for y in out_lines for x in y]
