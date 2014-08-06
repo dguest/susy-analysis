@@ -13,6 +13,10 @@ _sig_key = 'scharm-'
 
 # None means don't show that process
 _proc_heads = {'QCD': None, 'data': None}
+# some are renamed for simplicity
+_renamed_procs = {
+    'singleTop': 'top',
+    }
 
 def get_config():
     d = 'default: %(default)s'
@@ -31,7 +35,8 @@ def run():
     with open(args.fit_parameters) as yml:
         parameters = yaml.load(yml)
 
-    nom_yields = yields_dict[_nom_key]
+    raw_nom_yields = yields_dict[_nom_key]
+    nom_yields = _combine_yields(raw_nom_yields)
 
     mus = _get_pars(parameters, prefix='mu_')
     data_list = _get_data_list(nom_yields, args.regions)
@@ -55,6 +60,22 @@ def run():
         mc_expt,
         ]
     _dump_table(out_lines)
+
+def _combine_yields(noms):
+    """combine the yields according to how they are fit"""
+    combined = {}
+    for region, procdic in noms.items():
+        comb_procs = combined.setdefault(region, {})
+        for proc, vals in procdic.items():
+            newproc = _renamed_procs.get(proc, proc)
+            if newproc not in comb_procs:
+                comb_procs[newproc] = vals
+            else:
+                val, err = comb_procs[newproc]
+                val += vals[0]
+                err = (vals[1]**2 + err**2)**0.5
+                comb_procs[newproc] = (val, err)
+    return combined
 
 def _get_regnames(regions):
     reg_names = []
