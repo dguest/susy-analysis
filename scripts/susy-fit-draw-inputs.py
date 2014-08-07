@@ -41,6 +41,7 @@ def run():
     with open(args.fit_inputs) as yml:
         inputs_dict = yaml.load(yml)
 
+    # allow adding of systematic groups from _sys_lists
     plot_systs = []
     for syst in args.systematics:
         if syst in _sys_lists:
