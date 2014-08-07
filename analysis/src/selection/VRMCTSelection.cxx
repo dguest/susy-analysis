@@ -30,6 +30,10 @@ bool NMinusVRMCTSelection::pass(const EventObjects& obj) const {
   // keep signal regions blind
   if (reco.mct > vr::VR_MCT_MAX) return false;
 
+  // also blind the low met region to keep people from asking about
+  // multijet stuff
+  if (obj.met.Mod() < vr::VR_MET_MIN) return false;
+
   return true;
 }
 

@@ -42,8 +42,8 @@ ROOTLDFLAGS   := $(shell root-config --ldflags)
 PY_CONFIG := python3.3-config
 
 PY_FLAGS :=   $(shell $(PY_CONFIG) --includes)
-PY_LIB   := -L$(shell $(PY_CONFIG) --prefix)/lib
-PY_LIB   +=   $(shell $(PY_CONFIG) --libs)
+PY_LIBS   := -L$(shell $(PY_CONFIG) --prefix)/lib
+PY_LIBS   +=   $(shell $(PY_CONFIG) --libs)
 
 
 # --- set compiler and flags (roll c options and include paths together)
@@ -66,7 +66,7 @@ LIBS         += $(ROOTLIBS)
 
 # pystuff (roll the linking options and libraries together)
 PY_LDFLAGS := $(LDFLAGS)
-PY_LDFLAGS += $(PY_LIB)
+PY_LDFLAGS += $(PY_LIBS)
 PY_LDFLAGS += -shared
 
 # ---- define objects
@@ -101,20 +101,25 @@ PYLIB_OBJ   := $(GEN_OBJ)
 STAND_ALONE_OBJ     := $(GEN_OBJ) stand-alone.o
 
 PY_OBJ       := _hfw.o
-PY_LIB       := ../python3/scharm/stack/_hfw.so
+PY_SO        := ../python3/scharm/stack/_hfw.so
+PY_SO_PROD   := ../python3/scharm/stack/_hfw_prod.so
 
 
 ALLOBJ       := $(GEN_OBJ) $(PY_OBJ) unit-test.o
 
-ALLOUTPUT    := $(PY_LIB) unit-test stand-alone
+ALLOUTPUT    := $(PY_SO) unit-test stand-alone
 
 # ---- all the building stuff
 
 BUILD_SEQUENCE_DUMMY := initial-build-sequence
 LINK_SEQUENCE_DUMMY := final-linking-sequence
 NDHIST_DUMMY := build-ndhist
-.PHONY: $(LINK_SEQUENCE) $(LINK_LIST) $(NDHIST_DUMMY)
+.PHONY: $(LINK_SEQUENCE_DUMMY) $(LINK_SEQUENCE_DUMMY) $(NDHIST_DUMMY)
+
 all: $(BUILD_SEQUENCE_DUMMY)
+prod: $(BUILD_SEQUENCE_DUMMY)
+	@cp $(PY_SO) $(PY_SO_PROD)
+	@echo copied library to production
 
 ALL_OBJ_PATHS := $(ALL_OBJ:%=$(BIN)/%)
 
@@ -139,8 +144,8 @@ stand-alone: $(STAND_ALONE_PATHS) $(ND_HIST_SO)
 	@$(CXX) -o $@ $(STAND_ALONE_PATHS) $(LIBS) $(LDFLAGS)
 
 PYLIB_PATHS := $(PYLIB_OBJ:%=$(BIN)/%) $(PY_OBJ:%=$(BIN)/%)
-$(PY_LIB): $(PYLIB_PATHS) $(ND_HIST_SO)
-	@mkdir -p $(shell dirname $(PY_LIB))
+$(PY_SO): $(PYLIB_PATHS) $(ND_HIST_SO)
+	@mkdir -p $(shell dirname $(PY_SO))
 	@echo "linking $^ --> $@"
 	@$(CXX) -o $@ $(PYLIB_PATHS) $(LIBS) $(PY_LDFLAGS)
 
@@ -177,7 +182,7 @@ $(DEP)/%.d: %.cxx
 .PHONY : clean rmdep
 CLEANLIST     = *~ *.o *.o~ *.d core
 clean:
-	rm -fr $(BIN) $(ALLOUTPUT) $(DICT)
+	rm -fr $(BIN) $(ALLOUTPUT) $(DICT) $(PY_SO_PROD)
 	@$(MAKE) -C $(ND_HIST_DIR) clean --no-print-directory
 
 rmdep:
