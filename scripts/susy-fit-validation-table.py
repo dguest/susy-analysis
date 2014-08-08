@@ -37,6 +37,7 @@ def run():
 
     raw_nom_yields = yields_dict[_nom_key]
     nom_yields = _combine_yields(raw_nom_yields)
+    syst_yields = _combine_systs(yields_dict[_yld_key], raw_nom_yields)
 
     mus = _get_pars(parameters, prefix='mu_')
     data_list = _get_data_list(nom_yields, args.regions)
@@ -71,11 +72,32 @@ def _combine_yields(noms):
             if newproc not in comb_procs:
                 comb_procs[newproc] = vals
             else:
-                val, err = comb_procs[newproc]
-                val += vals[0]
-                err = (vals[1]**2 + err**2)**0.5
-                comb_procs[newproc] = (val, err)
+                newvals = comb_procs[newproc]
+                newvals[0] += vals[0]
+                if len(newvals) > 1:
+                    newvals[1] = (vals[1]**2 + newvals[1]**2)**0.5
+
     return combined
+
+def _combine_systs(systs, nominal):
+    comb_systs = {}
+    # start by looping through all the systematics
+    for syst, regdic in systs.items():
+        comb_regs = comb_systs.setdefault(syst, {})
+        # start looping over nominal here, since we want a systematic
+        # for any nominal leaf
+        for region, procdic in nominal.items():
+            comb_procs = comb_regs.setdefault(region, {})
+            for proc, nomvals in procdic.items():
+                newproc = _renamed_procs.get(proc, proc)
+                # pull the region systematic yield, or just use the nominal
+                sys_val = regdic.get(region,{}).get(proc,nomvals)[0]
+                print(sys_val)
+                if newproc not in comb_procs:
+                    comb_procs[newproc] = [sys_val]
+                else:
+                    comb_procs[newproc][0] += sys_val
+    return comb_systs
 
 def _get_regnames(regions):
     reg_names = []

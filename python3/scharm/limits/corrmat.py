@@ -7,10 +7,6 @@ _cormat_key = 'correlation_matrix'
 _par_key = 'parameters'
 _mat_key = 'matrix'
 
-_nom_key = 'nominal_yields'
-_yld_key = 'yield_systematics'
-_rel_key = 'relative_systematics'
-
 class CorrelationMatrix:
     """Wrapper to do correlation stuff"""
     def __init__(self, varlist, array_like):
@@ -40,15 +36,15 @@ def test():
     print(err)
     return err
 
-def get_sample_rel_error(yields, region, process, systs):
+def get_sample_rel_error(nom, systs, rels, region, process, systs):
     """
     retruns a dic of relative errors
     """
-    nom_yield = yields[_nom_key][region][process][0]
+    nom_yield = nom[region][process][0]
 
     def get_or_nom(syst):
         try:
-            return yields[_yld_key][syst][region][process][0]
+            return systs[syst][region][process][0]
         except KeyError:
             return nom_yield
 
@@ -65,7 +61,7 @@ def get_sample_rel_error(yields, region, process, systs):
     def get_rel_error(syst):
         """return the relative error, properly"""
         try:
-            bg_rels = yields[_rel_key][syst][region]
+            bg_rels = rels[syst][region]
             # try to get the sample specific one
             try:
                 bg_rels = bg_rels[process]
@@ -75,9 +71,10 @@ def get_sample_rel_error(yields, region, process, systs):
             return 0
 
     rel_in = yields.get(rel_key,{})
-    rel_systs = {}              # filled from missing yield systs
+    rel_systs = {}
 
-    yld_syst_names = set(yields[_yld_key])
+    # the actual filling starts here
+    yld_syst_names = set(systs)
     for syst in systs:
         if syst in yld_syst_names:
             rel_systs[syst] = get_symmetric_error(syst)
