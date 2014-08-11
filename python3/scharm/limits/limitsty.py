@@ -88,9 +88,9 @@ for iii in range(6):
 # mu parameters
 
 mu_names = {
-    'Wjets': r'$W$ + jets normalization',
-    'Zjets': r'$Z$ + jets normalization',
-    'top': r'top normalization',
+    'Wjets': r'$W$ + jets',
+    'Zjets': r'$Z$ + jets',
+    'top': r'top',
     }
 
 # ___________________________________________________________________________

@@ -1,21 +1,40 @@
 #!/usr/bin/env python3.3
 """
-Plotting routine for the fit results (which are produced as a yaml file).
+Translate yields / systematics tables to have better names
 """
 
-import argparse, sys, tempfile
-from scharm.limits.limitsty import long_alpha_names, mu_names
+import argparse, sys, tempfile, re
+from scharm.limits.limitsty import long_alpha_names, mu_names, reg_names
 
 _transdics = {
     'alpha\_': long_alpha_names,
-    'mu\_': mu_names,
+    'mu\_': {k:v + ' normalization' for k, v in mu_names.items()},
     }
+
+def _transgamma(line):
+    head, *tail = line.split('&')
+    for region, long_name in reg_names.items():
+        esc_name = region.replace('_',r'\_')
+        if r'_stat\_' + esc_name in head:
+            return long_name + ' stat error' + ' & '.join(tail)
+
 def _transline(line):
     for head, dic in _transdics.items():
         if line.startswith(head):
             stem = line[len(head):].split('&')[0].strip()
             rest = line.split('&')[1:]
             return ' & '.join([dic.get(stem,stem)] + rest)
+    if 'Uncertainty of channel' in line or line.startswith(r'{\bf  channel}'):
+        head, mail = line.split('&',1)
+        mid, *tail = mail.partition(r'\\')
+        oldregs = mid.split('&')
+        def transreg(reg):
+            return reg_names.get(reg.replace(r'\_','_').strip(), reg)
+        newregs = [transreg(x) for x in oldregs]
+        return ' & '.join([head.strip()] + newregs) + ' '.join(tail) + '\n'
+    if line.startswith(r'gamma\_'):
+        return ''
+        # return _transgamma(line)
     return line
 
 def run():
