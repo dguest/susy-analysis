@@ -77,6 +77,7 @@ GEN_OBJ     += BtagConfig.o RegionConfig.o Flavor.o
 GEN_OBJ     += EventObjects.o
 GEN_OBJ     += EventScalefactors.o
 GEN_OBJ     += NMinusHist.o
+GEN_OBJ     += Lepton.o LeptonBuffer.o
 
 # selection classes
 GEN_OBJ     += QualityEventSelection.o MetSelection.o
