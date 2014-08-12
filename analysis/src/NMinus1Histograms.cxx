@@ -44,6 +44,8 @@ NMinus1Histograms
     Axis{NSJET, SJET_RANGE, -0.5, SJET_RANGE - 0.5}, sel, hf);
   m_hists.emplace_back(Axis{DPHI, 80, 0.0, 3.2}, sel, hf);
   m_hists.emplace_back(Axis{MCT, N_BINS, 0.0, MAX_ENERGY, EUNIT}, sel, hf);
+  m_hists.emplace_back(
+    Axis{MCT_UNCORR, N_BINS, 0.0, MAX_ENERGY, EUNIT}, sel, hf);
   m_hists.emplace_back(Axis{MET_EFF, N_BINS, 0, 1.0}, sel, hf);
   m_hists.emplace_back(Axis{MCC, N_BINS, 0.0, MAX_ENERGY, EUNIT}, sel, hf);
   for (int jn: {0,1,2}) {
@@ -140,6 +142,7 @@ namespace nminus {
       {DPHI, reco.min_jetmet_dphi},
       {LEP_DPHI, reco.lepmet_dphi},
       {MCT, reco.mct},
+      {MCT_UNCORR, reco.mct_uncorr},
       {MET_EFF, reco.met_eff},
       {MCC, reco.mcc},
 	};

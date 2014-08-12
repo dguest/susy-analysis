@@ -240,16 +240,13 @@ namespace {
     SET_PARAMETER(tree, lepmet_dphi);
     SET_PARAMETER(tree, met_eff);
     SET_PARAMETER(tree, mct);
+    SET_PARAMETER(tree, mct_uncorr);
     SET_PARAMETER(tree, mcc);
     SET_PARAMETER(tree, mt);
     SET_PARAMETER(tree, mll);
     SET_PARAMETER(tree, htx);
 
-    try {
-      SET_PARAMETER(tree, first_lepton_pt);
-    } catch (MissingBranch& err) {
-      set_branch(tree, "max_lepton_pt", &re.first_lepton_pt);
-    }
+    SET_PARAMETER(tree, first_lepton_pt);
     SET_PARAMETER(tree, first_lepton_pdgid);
 
     SET_PARAMETER(tree, second_lepton_pt);
