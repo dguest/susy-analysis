@@ -7,6 +7,7 @@
 
 #include "TVector2.h"
 #include "Jet.hh"
+#include "Lepton.hh"
 #include <vector>
 // #include <unordered_map>
 #include "typedefs.hh"
@@ -25,6 +26,7 @@ struct EventObjects
   int subleading_cjet_pos;
   int n_signal_jets;
   std::vector<Jet> jets;
+  std::vector<Lepton> leptons;
   EventScalefactors* event_scalefactors;
   float true_boson_pt;
   float marks_boson_pt_weight;

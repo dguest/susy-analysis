@@ -28,10 +28,10 @@ struct EventRecoParameters {
   float mll;
   float htx;
 
-  float first_lepton_pt;
-  int first_lepton_pdgid;
-  float second_lepton_pt;
-  int second_lepton_pdgid;
+  // float first_lepton_pt;
+  // int first_lepton_pdgid;
+  // float second_lepton_pt;
+  // int second_lepton_pdgid;
 };
 
 #endif

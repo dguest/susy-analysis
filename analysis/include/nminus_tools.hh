@@ -27,13 +27,16 @@ namespace nminus {
   const std::string MCT_UNCORR = "mass_ct_uncorr";
   const std::string MET_EFF = "met_eff";
   const std::string MCC = "mass_cc";
-  const std::string LLPT = "leading_lepton_pt";
-  const std::string SLPT = "second_lepton_pt";
+  const std::string DPHI_CC = "dphi_cc";
+  const std::string DR_CC = "dr_cc";
+  const std::string DPHI_LL = "dphi_ll";
+  const std::string DPHI_ANY = "dphi_any";
   const std::string MT = "mass_t";
   const std::string MLL = "mass_ll";
   const std::string NSJET = "n_signal_jets";
-  // used by the jet naming routines
+  // used by the jet / lep naming routines
   const std::string FTL = "flavor_truth_label";
+  const std::string MET_DPHI = "met_dphi";
 
   // naming functions
   std::string jeta(int jn);
@@ -41,6 +44,10 @@ namespace nminus {
   std::string jantib(int jn);
   std::string jantiu(int jn);
   std::string jftl(int jn);
+  std::string jmetdphi(int jn);
+
+  std::string lpt(int ln);
+  std::string lmetdphi(int jn);
 
   // ACHTUNG: figure out a strategy to plot the SF
   // const std::string TAGSF = "tag_sf";

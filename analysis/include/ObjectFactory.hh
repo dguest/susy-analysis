@@ -14,6 +14,8 @@
 
 class Jet;
 class JetBuffer;
+class Lepton;
+class LeptonBuffer;
 class TTree;
 class TFile;
 class TVector2;
@@ -50,6 +52,7 @@ public:
   bool is_data() const;
   void entry(int);
   std::vector<Jet> jets() const;
+  std::vector<Lepton> leptons() const;
   // TODO: fix this, we're not storing met systematics in the tree any more
   TVector2 met(syst::Systematic = syst::NONE) const;
   ull_t bits() const;
@@ -67,6 +70,7 @@ private:
   TTree* m_tree;
   TFile* m_file;
   std::vector<JetBuffer*> m_jet_buffers;
+  std::vector<LeptonBuffer*> m_lepton_buffers;
 
   std::unordered_map<int, MetBuffer*> m_met;
 

@@ -45,7 +45,7 @@ namespace {
     };
     if (cfg.met > 0.0) sel[MET] = {cfg.met, INFINITY};
     if (cfg.mct > 0.0) sel[MCT] = {cfg.mct, INFINITY};
-    if (cfg.first_lepton_pt > 0.0) sel[LLPT] = {
+    if (cfg.first_lepton_pt > 0.0) sel[lpt(0)] = {
 	cfg.first_lepton_pt, INFINITY};
 
     // SJET_RANGE goes from -0.5, so we only show a limit if the max jets
@@ -177,23 +177,48 @@ namespace nminus {
     default: throw std::invalid_argument("unknown selection in " __FILE__);
     }
   }
+}
 
+namespace {
+  std::string jpfx(int jn) {
+    return "j" + std::to_string(jn);
+  }
+  std::string lpfx(int ln) {
+    // hack for backward compatibility
+    if (ln == 0 || ln == 1) {
+      return (ln == 0) ? "leading_lepton" : "second_lepton";
+    }
+    return "l" + std::to_string(ln);
+  }
+}
+
+namespace nminus {
   // _______________________________________________________________________
   // naming functions
   std::string jeta(int jn) {
-    return "j" + std::to_string(jn) + "_eta";
+    return jpfx(jn) + "_eta";
   }
   std::string jpt(int jn) {
-    return "j" + std::to_string(jn) + "_pt";
+    return jpfx(jn) + "_pt";
   }
   std::string jantib(int jn) {
-    return "j" + std::to_string(jn) + "_antib";
+    return jpfx(jn) + "_antib";
   }
   std::string jantiu(int jn) {
-    return "j" + std::to_string(jn) + "_antiu";
+    return jpfx(jn) + "_antiu";
   }
   std::string jftl(int jn) {
-    return "j" + std::to_string(jn) + "_" + FTL;
+    return jpfx(jn) + "_" + FTL;
+  }
+  std::string jmetdphi(int jn) {
+    return jpfx(jn) + "_" + MET_DPHI;
+  }
+
+  std::string lpt(int ln) {
+    return lpfx(ln) + "_pt";
+  }
+  std::string lmetdphi(int ln) {
+    return lpfx(ln) + "_" + MET_DPHI;
   }
 
   // _______________________________________________________________________

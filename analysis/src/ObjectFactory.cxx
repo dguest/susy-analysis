@@ -1,6 +1,8 @@
 #include "ObjectFactory.hh"
 #include "Jet.hh"
 #include "JetBuffer.hh"
+#include "Lepton.hh"
+#include "LeptonBuffer.hh"
 #include "BtagBuffer.hh"
 #include "BtagConfig.hh"
 #include "EventScalefactors.hh"
@@ -74,11 +76,13 @@ ObjectFactory::ObjectFactory(const std::string& root_file, int n_jets) :
     m_ioflags |= ioflag::no_truth;
   }
 
-  // set_branch(m_tree,"htx", &m_htx);
   for (int ji = 0; ji < n_jets; ji++) {
     std::string base_name = "jet" + std::to_string(ji) + "_";
     m_jet_buffers.push_back(new JetBuffer);
     m_jet_buffers.back()->set_buffer(m_tree, base_name);
+  }
+  for (auto lepbase: {"first_lepton_", "second_lepton_"}) {
+    m_lepton_buffers.push_back(new LeptonBuffer(m_tree, lepbase));
   }
   if (m_tree->GetBranch("truth_boson_pt_weight")) {
     m_tree->SetBranchAddress("truth_boson_pt_weight", &m_boson_pt_weight);
@@ -92,6 +96,10 @@ ObjectFactory::ObjectFactory(const std::string& root_file, int n_jets) :
 ObjectFactory::~ObjectFactory()
 {
   for (auto itr: m_jet_buffers) {
+    delete itr;
+    itr = 0;
+  }
+  for (auto itr: m_lepton_buffers) {
     delete itr;
     itr = 0;
   }
@@ -139,6 +147,17 @@ std::vector<Jet> ObjectFactory::jets() const {
   }
 
   return jets_out;
+}
+
+std::vector<Lepton> ObjectFactory::leptons() const {
+  std::vector<Lepton> leptons;
+  for (auto lep_buffer: m_lepton_buffers) {
+    if (!lep_buffer->has_lepton()) {
+      return leptons;
+    }
+    leptons.emplace_back(lep_buffer->lepton());
+  }
+  return leptons;
 }
 
 TVector2 ObjectFactory::met(syst::Systematic sy) const  {
@@ -246,11 +265,11 @@ namespace {
     SET_PARAMETER(tree, mll);
     SET_PARAMETER(tree, htx);
 
-    SET_PARAMETER(tree, first_lepton_pt);
-    SET_PARAMETER(tree, first_lepton_pdgid);
+    // SET_PARAMETER(tree, first_lepton_pt);
+    // SET_PARAMETER(tree, first_lepton_pdgid);
 
-    SET_PARAMETER(tree, second_lepton_pt);
-    SET_PARAMETER(tree, second_lepton_pdgid);
+    // SET_PARAMETER(tree, second_lepton_pt);
+    // SET_PARAMETER(tree, second_lepton_pdgid);
 
 #undef SET_PARAMETER
 
