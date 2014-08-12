@@ -41,6 +41,7 @@ double get_mctcorr(const TLorentzVector& v1, const TLorentzVector& v2,
 		   const std::vector<Electron*>& el,
 		   const std::vector<Muon*>& mu,
 		   const TVector2& vmet);
+double get_mct(const TLorentzVector& v1, const TLorentzVector& v2);
 
 double get_mt(const std::vector<Electron*>& , const std::vector<Muon*>& ,
 	      const TVector2& );

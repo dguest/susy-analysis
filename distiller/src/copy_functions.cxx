@@ -17,7 +17,7 @@ namespace {
   void copy_lepton_info(const std::vector<Muon*>&,
 			const std::vector<Electron*>&,
 			const TVector2& met,
-			outtree::EvtParameters&);
+			outtree::OutTree&);
   void copy_trigger_sf(const TriggerSF&, outtree::SFBox&);
 }
 
@@ -36,6 +36,7 @@ void copy_event(const EventObjects& obj, JetRep rep,
   out_tree.par.min_jetmet_dphi = par.min_jetmet_dphi;
   out_tree.par.met_eff = par.met_eff;
   out_tree.par.mct = par.mass_ct;
+  out_tree.par.mct_uncorr = par.mass_ct_uncorr;
   out_tree.par.mcc = par.mass_cc;
   out_tree.par.mt = par.mass_t;
   out_tree.par.mll = par.mass_ll;
@@ -44,7 +45,7 @@ void copy_event(const EventObjects& obj, JetRep rep,
   copy_met(out_tree, met);
   copy_leading_jet_info(obj.signal_jets(rep), out_tree);
   copy_lepton_info(obj.control_muons, obj.control_electrons,
-		   met, out_tree.par);
+		   met, out_tree);
 
   copy_id_vec_to_box(obj.control_electrons, out_tree.el_sf);
   copy_id_vec_to_box(obj.control_muons, out_tree.mu_sf);
@@ -123,6 +124,7 @@ void copy_cjet_truth(outtree::OutTree& out_tree,
 
 namespace {
   typedef std::pair<TLorentzVector*, int> PartId;
+
   bool lower_pt(const PartId& p1, const PartId& p2){
     // check to make sure everything is a real pdgid
     assert(std::abs(p1.second) > 0);
@@ -131,7 +133,7 @@ namespace {
   void copy_lepton_info(const std::vector<Muon*>& mus,
 			const std::vector<Electron*>& els,
 			const TVector2& met,
-			outtree::EvtParameters& par) {
+			outtree::OutTree& otree) {
     std::vector<PartId> particles;
     for (auto el: els) particles.emplace_back(el, -11*el->charge());
     for (auto mu: mus) particles.emplace_back(mu, -13*mu->charge());
@@ -140,15 +142,21 @@ namespace {
     std::sort(particles.begin(), particles.end(), lower_pt);
 
     auto part_riter = particles.rbegin();
+    // first copy the lepmet dphi (for legacy use)
     const auto lpart = *part_riter->first;
-    par.first_lepton_pt = lpart.Pt();
-    par.first_lepton_pdgid = part_riter->second;
-    par.lepmet_dphi = std::abs(lpart.Vect().XYvector().DeltaPhi(met));
-    part_riter++;
+    otree.par.lepmet_dphi = std::abs(lpart.Vect().XYvector().DeltaPhi(met));
 
+    // here's the copy code for the leptons
+    auto lcopy = [](const PartId& pitr, outtree::Lepton& lep){
+      lep.pt = pitr.first->Pt();
+      lep.eta = pitr.first->Eta();
+      lep.phi = pitr.first->Phi();
+      lep.pdgid = pitr.second;
+    };
+    lcopy(*part_riter, otree.first_lepton);
+    part_riter++;
     if (part_riter == particles.rend()) return;
-    par.second_lepton_pt = part_riter->first->Pt();
-    par.second_lepton_pdgid = part_riter->second;
+    lcopy(*part_riter, otree.second_lepton);
 
   }
 

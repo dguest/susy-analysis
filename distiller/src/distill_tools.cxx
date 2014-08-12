@@ -133,6 +133,14 @@ double get_mctcorr(const TLorentzVector& tv1, const TLorentzVector& tv2,
   return mct_object.mctcorr(v1, v2, vds, ptm, 8e6, 0.0);
 }
 
+double get_mct(const TLorentzVector& tv1, const TLorentzVector& tv2)
+{
+  mctlib mct_object;
+  double v1[4] =  {tv1.E(), tv1.Px(), tv1.Py(), tv1.Pz()};
+  double v2[4] =  {tv2.E(), tv2.Px(), tv2.Py(), tv2.Pz()};
+  return mct_object.mct(v1, v2);
+}
+
 double get_mt(const std::vector<Electron*>& el,
 	      const std::vector<Muon*>& mu, const TVector2& met) {
   const double nothing = -1;

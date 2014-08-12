@@ -63,15 +63,16 @@ namespace outtree {
     float lepmet_dphi;
     float met_eff;
     float mct;
+    float mct_uncorr;
     float mcc;
     float mt;
     float mll;
     float htx;
 
-    float first_lepton_pt;
-    float second_lepton_pt;
-    int first_lepton_pdgid;
-    int second_lepton_pdgid;
+    // float first_lepton_pt;
+    // float second_lepton_pt;
+    // int first_lepton_pdgid;
+    // int second_lepton_pdgid;
   };
 
   struct SFBox
@@ -138,6 +139,22 @@ namespace outtree {
     void clear();
   };
 
+  class Lepton
+  {
+  public:
+    Lepton();
+    Lepton(Lepton&) = delete;
+    Lepton& operator=(Lepton&) = delete;
+    float pt;
+    float eta;
+    float phi;
+    int pdgid;
+  private:
+    friend class OutTree;
+    void set_branches(TTree*, std::string prefix);
+    void clear();
+  };
+
   class OutTree
   {
   public:
@@ -178,6 +195,8 @@ namespace outtree {
     float truth_boson_pt;
 
     std::vector<outtree::Jet*> jets;
+    Lepton first_lepton;
+    Lepton second_lepton;
   private:
     void init(const unsigned flags = 0, int n_jets = 3);
     EvtBools m_evt_bools;

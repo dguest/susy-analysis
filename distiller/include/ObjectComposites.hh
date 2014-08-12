@@ -15,6 +15,7 @@ struct ObjectComposites {
   double mass_eff;
   double met_eff;
   double mass_ct;
+  double mass_ct_uncorr;
   double mass_cc;
   double mass_t;
   double mass_ll;

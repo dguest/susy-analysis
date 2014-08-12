@@ -113,6 +113,8 @@ namespace outtree {
       std::string jetname = "jet" + std::to_string(i) + "_";
       jets.at(i)->set_branches(m_tree, jetname, flags);
     }
+    first_lepton.set_branches(m_tree, "first_lepton_");
+    second_lepton.set_branches(m_tree, "second_lepton_");
 
     MAKE_BRANCH(m_tree, boson_child_pt);
     MAKE_BRANCH(m_tree, boson_child_phi);
@@ -143,6 +145,8 @@ namespace outtree {
     for (auto itr = jets.begin(); itr != jets.end(); itr++) {
       (*itr)->clear();
     }
+    first_lepton.clear();
+    second_lepton.clear();
     el_sf.clear();
     mu_sf.clear();
     boson_child_pt = -1;
@@ -221,6 +225,22 @@ namespace outtree {
 
     jfc_medium.clear();
     jfc_loose.clear();
+  }
+
+  // ----------------------- Lepton ----------------------
+  Lepton::Lepton() {
+  }
+  void Lepton::set_branches(TTree* tree, std::string prefix) {
+    tree->Branch((prefix + "pt").c_str(), &pt);
+    tree->Branch((prefix + "eta").c_str(), &pt);
+    tree->Branch((prefix + "phi").c_str(), &pt);
+    tree->Branch((prefix + "pdgid").c_str(), &pdgid);
+  }
+  void Lepton::clear(){
+    pt = -1;
+    eta = -10;
+    phi = -10;
+    pdgid = 0;
   }
 
   // ----------------------- ScaleFactor -----------------
@@ -321,15 +341,16 @@ namespace outtree {
     MAKE_BRANCH(tree, lepmet_dphi);
     MAKE_BRANCH(tree, met_eff);
     MAKE_BRANCH(tree, mct);
+    MAKE_BRANCH(tree, mct_uncorr);
     MAKE_BRANCH(tree, mcc);
     MAKE_BRANCH(tree, mt);
     MAKE_BRANCH(tree, mll);
     MAKE_BRANCH(tree, htx);
 
-    MAKE_BRANCH(tree, first_lepton_pt);
-    MAKE_BRANCH(tree, second_lepton_pt);
-    MAKE_BRANCH(tree, first_lepton_pdgid);
-    MAKE_BRANCH(tree, second_lepton_pdgid);
+    // MAKE_BRANCH(tree, first_lepton_pt);
+    // MAKE_BRANCH(tree, second_lepton_pt);
+    // MAKE_BRANCH(tree, first_lepton_pdgid);
+    // MAKE_BRANCH(tree, second_lepton_pdgid);
   }
 
   void EvtParameters::clear() {
@@ -344,15 +365,16 @@ namespace outtree {
     lepmet_dphi = -1;
     met_eff = -1;
     mct = -1;
+    mct_uncorr = -1;
     mcc = -1;
     mt = -1;
     mll = -1;
     htx = -1;
 
-    first_lepton_pt = -1;
-    second_lepton_pt = -1;
-    first_lepton_pdgid = 0;
-    second_lepton_pdgid = 0;
+    // first_lepton_pt = -1;
+    // second_lepton_pt = -1;
+    // first_lepton_pdgid = 0;
+    // second_lepton_pdgid = 0;
   }
 
 
