@@ -33,8 +33,9 @@ namespace nminus {
     Histogram* m_histogram;
     // NOTE: generalization would also require something new here
     Window m_selection;
-    std::string m_name;
-    bool m_save_wt2;
+    const std::string m_name;
+    const bool m_save_wt2;
+    const bool m_cut_on_xvariable;
     std::vector<std::pair<std::string,Window> > m_cuts;
   };
 }

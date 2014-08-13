@@ -17,7 +17,8 @@ namespace nminus {
 			 unsigned flags):
     m_histogram(new Histogram({axis}, flags)),
     m_name(axis.name),
-    m_save_wt2(flags & hist::wt2)
+    m_save_wt2(flags & hist::wt2),
+    m_cut_on_xvariable(selection.count(axis.name))
   {
     m_histogram->set_wt_ext(WT2_POSTFIX);
     auto inf = std::numeric_limits<double>::infinity();
@@ -44,13 +45,22 @@ namespace nminus {
     m_selection(std::move(old.m_selection)),
     m_name(std::move(old.m_name)),
     m_save_wt2(old.m_save_wt2),
+    m_cut_on_xvariable(old.m_cut_on_xvariable),
     m_cuts(std::move(old.m_cuts))
   {
     std::swap(m_histogram, old.m_histogram);
   }
   void NMinusHist::fill(const std::map<std::string, double>& values,
 			double weight) {
-    if (!values.count(m_name)) return;
+    // If the vairable is missing from the input map, we can ignore this
+    // fill, _unless_ this is a variable we're cutting on...
+    if (!values.count(m_name)) {
+      bool throw_if_missing = m_selection.missing == Window::Missing::THROW;
+      if (m_cut_on_xvariable && throw_if_missing){
+	throw std::invalid_argument("x axis var " + m_name  + " missing");
+      }
+      return;
+    }
     for (const auto& cut: m_cuts) {
 
       const auto& cut_variable = cut.first;
