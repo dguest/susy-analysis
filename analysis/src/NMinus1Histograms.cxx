@@ -39,41 +39,42 @@ NMinus1Histograms
   // save wt^2 for _some_ hists (those with no systematic applied)
   const auto hf = config.save_wt2 ? hist::wt2 : 0;
   bool is_sim = (config.stream == reg::Stream::SIMULATED);
-  m_hists.emplace_back(Axis{MET, N_BINS, 0.0, MAX_ENERGY, EUNIT}, sel, hf);
-  m_hists.emplace_back(
-    Axis{NSJET, SJET_RANGE, -0.5, SJET_RANGE - 0.5}, sel, hf);
-  m_hists.emplace_back(Axis{DPHI, 80, 0.0, 3.2}, sel, hf);
-  m_hists.emplace_back(Axis{DPHI_CC, 80, 0.0, 3.2}, sel, hf);
-  m_hists.emplace_back(Axis{DR_CC, 200, 0.0, 8.0}, sel, hf);
-  m_hists.emplace_back(Axis{DPHI_ANY, 80, 0.0, 3.2}, sel, hf);
-  m_hists.emplace_back(Axis{MCT, N_BINS, 0.0, MAX_ENERGY, EUNIT}, sel, hf);
-  m_hists.emplace_back(
-    Axis{MCT_UNCORR, N_BINS, 0.0, MAX_ENERGY, EUNIT}, sel, hf);
-  m_hists.emplace_back(Axis{MET_EFF, N_BINS, 0, 1.0}, sel, hf);
-  m_hists.emplace_back(Axis{MCC, N_BINS, 0.0, MAX_ENERGY, EUNIT}, sel, hf);
+
+  auto add_hist = [this, &sel, &hf](Axis ax) {
+    this->m_hists.emplace_back(ax, sel, hf);
+  };
+  add_hist(Axis{MET, N_BINS, 0.0, MAX_ENERGY, EUNIT});
+  add_hist(Axis{NSJET, SJET_RANGE, -0.5, SJET_RANGE - 0.5});
+  add_hist(Axis{DPHI, 80, 0.0, 3.2});
+  add_hist(Axis{DPHI_CC, 80, 0.0, 3.2});
+  add_hist(Axis{DR_CC, 200, 0.0, 8.0});
+  add_hist(Axis{DPHI_ANY, 80, 0.0, 3.2});
+  add_hist(Axis{MCT, N_BINS, 0.0, MAX_ENERGY, EUNIT});
+  add_hist(Axis{MCT_UNCORR, N_BINS, 0.0, MAX_ENERGY, EUNIT});
+  add_hist(Axis{MET_EFF, N_BINS, 0, 1.0});
+  add_hist(Axis{MCC, N_BINS, 0.0, MAX_ENERGY, EUNIT});
   for (int jn: {0,1,2}) {
-    m_hists.emplace_back(Axis{jeta(jn), 112, -2.8, 2.8}, sel, hf);
-    m_hists.emplace_back(Axis{jpt(jn), N_BINS, 0, MAX_ENERGY, EUNIT},
-			 sel, hf);
-    m_hists.emplace_back(Axis{jantib(jn), 300, -7.5, 7.5}, sel, hf);
-    m_hists.emplace_back(Axis{jantiu(jn), 300, -7.5, 7.5}, sel, hf);
-    m_hists.emplace_back(Axis{jmetdphi(jn), 80, 0.0, 3.2}, sel, hf);
-    if (is_sim) m_hists.emplace_back(Axis{jftl(jn), 4, -0.5, 3.5}, sel, hf);
+    add_hist(Axis{jeta(jn), 112, -2.8, 2.8});
+    add_hist(Axis{jpt(jn), N_BINS, 0, MAX_ENERGY, EUNIT});
+    add_hist(Axis{jantib(jn), 300, -7.5, 7.5});
+    add_hist(Axis{jantiu(jn), 300, -7.5, 7.5});
+    add_hist(Axis{jmetdphi(jn), 80, 0.0, 3.2});
+    if (is_sim) add_hist(Axis{jftl(jn), 4, -0.5, 3.5});
   }
 
   if (m_make_lepton_plots) {
-    m_hists.emplace_back(Axis{lpt(0), N_BINS, 0.0, 500_GeV, EUNIT}, sel, hf);
-    m_hists.emplace_back(Axis{lmetdphi(0), 80, 0.0, 3.2}, sel, hf);
-    m_hists.emplace_back(Axis{LEP_DPHI, 80, 0.0, 3.2}, sel, hf);
-    m_hists.emplace_back(Axis{DPHI_LL, 80, 0.0, 3.2}, sel, hf);
+    add_hist(Axis{lpt(0), N_BINS, 0.0, 500_GeV, EUNIT});
+    add_hist(Axis{lmetdphi(0), 80, 0.0, 3.2});
+    add_hist(Axis{LEP_DPHI, 80, 0.0, 3.2});
+    add_hist(Axis{DPHI_LL, 80, 0.0, 3.2});
     if (!m_make_dilep_plots) {
-      m_hists.emplace_back(Axis{MT, N_BINS, 0.0, 500_GeV, EUNIT}, sel, hf);
+      add_hist(Axis{MT, N_BINS, 0.0, 500_GeV, EUNIT});
     }
   }
   if (m_make_dilep_plots) {
-    m_hists.emplace_back(Axis{lpt(1), N_BINS, 0.0, 400_GeV, EUNIT}, sel, hf);
-    m_hists.emplace_back(Axis{MLL, 200, 0.0, 200_GeV, EUNIT}, sel, hf);
-    m_hists.emplace_back(Axis{lmetdphi(1), 80, 0.0, 3.2}, sel, hf);
+    add_hist(Axis{lpt(1), N_BINS, 0.0, 400_GeV, EUNIT});
+    add_hist(Axis{MLL, 200, 0.0, 200_GeV, EUNIT});
+    add_hist(Axis{lmetdphi(1), 80, 0.0, 3.2});
   }
   if (is_sim) {
     m_weight_hist = new NMinusHist(Axis{EVT_WT, 200, 0.0, 2.0}, sel);
