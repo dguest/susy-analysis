@@ -128,17 +128,17 @@ void NMinus1Histograms::fill(const EventObjects& obj) {
   auto values = get_reco_map(reco, met);
   insert_jets(obj.jets, met, values);
   if (is_mc) insert_jet_ftl(obj.jets, values);
-  if (m_make_lepton_plots) {
-    values.insert( { {MT, reco.mt} } );
-  }
-  if (m_make_dilep_plots) {
-    values.insert({ {MLL, reco.mll} });
-  }
+
+  // TODO: move these to the insert_leptons function
+  if (m_make_lepton_plots) values[MT] = reco.mt;
+  if (m_make_dilep_plots) values[MLL] = reco.mll;
+
   insert_leptons(obj.leptons, met, values);
   values[DPHI_ANY] = get_dphi_any(obj.jets, obj.leptons, met);
 
   // check for nan values
   throw_if_nan(values);
+
   for (auto& hist: m_hists) {
     hist.fill(values, weight);
   }
