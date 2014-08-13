@@ -12,7 +12,7 @@ int run(const char* input_file) {
   test.leading_jet_pt = 1000;
   test.met = 1000;
   test.systematic = syst::NONE;
-  test.output_name = "stant-alone-out.h5";
+  test.output_name = "stand-alone-out.h5";
   test.type = reg::CONTROL;
   test.hists = reg::NMINUS;
   test.selection = reg::Selection::SIGNAL;
