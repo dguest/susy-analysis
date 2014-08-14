@@ -232,8 +232,8 @@ namespace outtree {
   }
   void Lepton::set_branches(TTree* tree, std::string prefix) {
     tree->Branch((prefix + "pt").c_str(), &pt);
-    tree->Branch((prefix + "eta").c_str(), &pt);
-    tree->Branch((prefix + "phi").c_str(), &pt);
+    tree->Branch((prefix + "eta").c_str(), &eta);
+    tree->Branch((prefix + "phi").c_str(), &phi);
     tree->Branch((prefix + "pdgid").c_str(), &pdgid);
   }
   void Lepton::clear(){
