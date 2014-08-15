@@ -183,10 +183,10 @@ def _make_jet_matcher(match_token, tex_str, units=''):
     return matcher
 
 _shorthand = dict(
-    met=r'E_{\mathrm{T}}^{\mathrm{miss}}',
-    met_eff=r'E_{\mathrm{T}, \mathrm{eff}}^{\mathrm{miss}}',
+    met=r'E_{\rm T}^{\rm miss}',
+    met_eff=r'E_{\rm T, eff}^{\rm miss}',
     pt=r'p_{\mathrm{T}}',
-    meff=r'\sum_{i = \{1,2\} } p_{\mathrm{T}}^i'
+    meff=r'\sum_{i = \{1,2\} } p_{\rm T}^i'
 )
 def _sh(string):
     """replace shorthand in some string"""
@@ -196,7 +196,7 @@ def _sh(string):
 # variable name
 _fuzzy_matches = [
     _make_jet_matcher('eta', r'$\eta$'),
-    _make_jet_matcher('pt', r'$p_{\mathrm{T}}$', 'GeV'),
+    _make_jet_matcher('pt', r'$p_{\rm T}$', 'GeV'),
     _make_jet_matcher('antib', r'JFC $\log (c / b)$'),
     _make_jet_matcher('antiu', r'JFC $\log (c / u)$'),
     _make_jet_matcher('flavor_truth_label', r'flavor truth label'),
@@ -205,14 +205,14 @@ _fuzzy_matches = [
 
 
 _ax_labels = {
-    'met' : VariableStyle(r'$E_{\mathrm{T}}^{\mathrm{miss}}$', 'GeV'),
+    'met' : VariableStyle(_sh(r'${met}$'), 'GeV'),
     'met_eff' : VariableStyle(
         _sh(r'${met_eff} \equiv {met} / \left[ {meff} + {met} \right]$')),
-    'mttop': VariableStyle(r'$m_{\mathrm{T}}^t$', 'GeV'),
-    'htx': VariableStyle(r'$H_{\mathrm{T}3}$'),
+    'mttop': VariableStyle(r'$m_{\rm T}^t$', 'GeV'),
+    'htx': VariableStyle(r'$H_{\rm T3}$'),
     'jetmet_dphi': VariableStyle(
         r'$\min_{i = \{1,2,3\}}\Delta \phi (j_{i}, '
-        r'E_{\mathrm{T}}^{\mathrm{miss}})$'),
+        r'E_{\rm T}^{\rm miss})$'),
 
     'leading_lepton_pt': VariableStyle(
         r'Leading Lepton $p_{\mathrm{T}}$', 'GeV'),
@@ -223,14 +223,14 @@ _ax_labels = {
     'second_lepton_met_dphi': VariableStyle(
         _sh(r'Second Lepton $\Delta \phi({met},\ell)$')),
 
-    'mass_t': VariableStyle('$m_{\mathrm{T}}$', 'GeV', (0,200)),
+    'mass_t': VariableStyle(r'$m_{\rm T}$', 'GeV', (0,200)),
     'mass_cc': VariableStyle('$m_{cc}$', 'GeV'),
     'mass_ll': VariableStyle('$m_{\ell \ell}$', 'GeV', (0,200)),
-    'mass_ct': VariableStyle('$m_{\mathrm{CT}}$', 'GeV'),
-    'mass_ct_uncorr': VariableStyle(r'$m_{\mathrm{CT}}^{\rm raw}$', 'GeV'),
+    'mass_ct': VariableStyle(r'$m_{\rm CT}$', 'GeV'),
+    'mass_ct_uncorr': VariableStyle(r'$m_{\rm CT}^{\rm raw}$', 'GeV'),
     'dphi_any': VariableStyle(
         r'$\min_{v \in \{j_1, j_2, j_3, \ell_1, \ell_2 \} }\Delta \phi (v, '
-        r'E_{\mathrm{T}}^{\mathrm{miss}})$'),
+        r'E_{\rm T}^{\rm miss})$'),
     'dphi_cc': VariableStyle('$\Delta \phi (j_1, j_2)$'),
     'dphi_ll': VariableStyle('$\Delta \phi (\ell_1, \ell_2)$'),
     'dr_cc': VariableStyle('$\Delta R (j_1, j_2)$'),
