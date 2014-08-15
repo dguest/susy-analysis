@@ -227,6 +227,7 @@ _ax_labels = {
     'mass_cc': VariableStyle('$m_{cc}$', 'GeV'),
     'mass_ll': VariableStyle('$m_{\ell \ell}$', 'GeV', (0,200)),
     'mass_ct': VariableStyle('$m_{\mathrm{CT}}$', 'GeV'),
+    'mass_ct_uncorr': VariableStyle(r'$m_{\mathrm{CT}}^{\rm raw}$', 'GeV'),
     'dphi_any': VariableStyle(
         r'$\min_{v \in \{j_1, j_2, j_3, \ell_1, \ell_2 \} }\Delta \phi (v, '
         r'E_{\mathrm{T}}^{\mathrm{miss}})$'),
