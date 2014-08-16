@@ -5,6 +5,7 @@ import argparse, sys
 import yaml
 import bisect
 from scharm.limits.systparser import SystParser
+from scharm.limits.systparser import combine_overalls, get_standard_extrap
 
 _nom_key = 'nominal_yields'
 _yld_key = 'yield_systematics'
@@ -25,12 +26,11 @@ def get_config():
 def run():
     args = get_config()
     with open(args.willfile) as willfile:
-        will_parser = SystParser(willfile)
-    will_parser.dump()
-    sys.exit()
+        will_records = SystParser(willfile).records
 
     with open(args.fit_inputs, 'r+') as yml:
         yields_dict = yaml.load(yml)
+        _add_will_systs(yields_dict, will_records)
         _add_qcd(yields_dict)
         _add_mettrig(yields_dict, error=args.met_trig_error)
         _add_signal_isr(yields_dict)
@@ -38,6 +38,12 @@ def run():
         yml.truncate(0)
         yml.seek(0)
         yml.write(yaml.dump(yields_dict))
+
+def _add_will_systs(yields_dict, will_records):
+    will_uddic = combine_overalls(get_standard_extrap(will_records))
+    for thing in will_uddic.items():
+        print(thing)
+    raise Exception('work do here')
 
 def _add_qcd(yields_dict):
     sr_qcd = {
