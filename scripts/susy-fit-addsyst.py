@@ -1,9 +1,10 @@
 #!/usr/bin/env python3.3
 """Add qcd, other systematics I'm not computing to the fit inputs"""
 
-import argparse
+import argparse, sys
 import yaml
 import bisect
+from scharm.limits.systparser import SystParser
 
 _nom_key = 'nominal_yields'
 _yld_key = 'yield_systematics'
@@ -16,12 +17,18 @@ def get_config():
     d = 'default: %(default)s'
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('fit_inputs')
+    parser.add_argument('willfile')
     parser.add_argument('--met-trig-error', type=float, default=0.02, help=d)
     parser.add_argument('--misc-syst', help=_misc_syst_help)
     return parser.parse_args()
 
 def run():
     args = get_config()
+    with open(args.willfile) as willfile:
+        will_parser = SystParser(willfile)
+    will_parser.dump()
+    sys.exit()
+
     with open(args.fit_inputs, 'r+') as yml:
         yields_dict = yaml.load(yml)
         _add_qcd(yields_dict)
