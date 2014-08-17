@@ -23,7 +23,7 @@ def _transline(line):
         if line.startswith(head):
             stem = line[len(head):].split('&')[0].strip()
             rest = line.split('&')[1:]
-            return ' & '.join([dic.get(stem,stem)] + rest)
+            return ' & '.join([dic.get(stem.replace(r'\_','_'),stem)] + rest)
     if 'Uncertainty of channel' in line or line.startswith(r'{\bf  channel}'):
         head, mail = line.split('&',1)
         mid, *tail = mail.partition(r'\\')
