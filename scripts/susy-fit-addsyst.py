@@ -45,11 +45,9 @@ def run():
 def _add_will_systs(yields_dict, will_records):
     will_uddic = combine_overalls(get_standard_extrap(will_records))
     relsyst = yields_dict.setdefault(_rel_key,{})
-    # ACHTUNG: this shouldn't be the same for every process, make
-    # one for each process!
-    overall_theory = relsyst.setdefault('overall_theory',{})
     for (proc, region), ud in will_uddic.items():
-        overall_theory.setdefault(region, {})[proc] = ud
+        proc_theory = relsyst.setdefault('theory_' + proc,{})
+        proc_theory.setdefault(region, {})[proc] = ud
 
 def _add_flat_other(yields_dict, flat_syst):
     all_regions = set(yields_dict[_nom_key])

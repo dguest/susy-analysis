@@ -10,6 +10,7 @@ _proc_from_will = {'ttst':'top'}
 
 # translate will's region names to mine
 _reg_from_will = {'CR' + x.upper(): 'cr_' + x for x in 'wzt'}
+_reg_from_will.update({'VRmCC':'vr_mcc', 'VRmCT':'vr_mct'})
 for mct in [150, 200, 250]:
     _reg_from_will['mCT>{}'.format(mct)] = 'signal_mct{}'.format(mct)
 
