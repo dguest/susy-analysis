@@ -10,6 +10,7 @@ from scharm.limits.systparser import combine_overalls, get_standard_extrap
 _nom_key = 'nominal_yields'
 _yld_key = 'yield_systematics'
 _rel_key = 'relative_systematics'
+# used to pick out signal samples from the other SM backgrounds
 _sig_key = 'scharm-'
 
 _misc_syst_help = 'update with an arbitrary dictionary (will overwrite)'
@@ -20,6 +21,7 @@ def get_config():
     parser.add_argument('fit_inputs')
     parser.add_argument('willfile')
     parser.add_argument('--met-trig-error', type=float, default=0.02, help=d)
+    parser.add_argument('--flat-other-error', type=float, default=0.5, help=d)
     parser.add_argument('--misc-syst', help=_misc_syst_help)
     return parser.parse_args()
 
@@ -31,6 +33,7 @@ def run():
     with open(args.fit_inputs, 'r+') as yml:
         yields_dict = yaml.load(yml)
         _add_will_systs(yields_dict, will_records)
+        _add_flat_other(yields_dict, args.flat_other_error)
         _add_qcd(yields_dict)
         _add_mettrig(yields_dict, error=args.met_trig_error)
         _add_signal_isr(yields_dict)
@@ -41,9 +44,19 @@ def run():
 
 def _add_will_systs(yields_dict, will_records):
     will_uddic = combine_overalls(get_standard_extrap(will_records))
-    for thing in will_uddic.items():
-        print(thing)
-    raise Exception('work do here')
+    relsyst = yields_dict.setdefault(_rel_key,{})
+    # ACHTUNG: this shouldn't be the same for every process, make
+    # one for each process!
+    overall_theory = relsyst.setdefault('overall_theory',{})
+    for (proc, region), ud in will_uddic.items():
+        overall_theory.setdefault(region, {})[proc] = ud
+
+def _add_flat_other(yields_dict, flat_syst):
+    all_regions = set(yields_dict[_nom_key])
+    region_entry = {'other': [1 - flat_syst, 1 + flat_syst]}
+    relsyst = yields_dict.setdefault(_rel_key,{}).setdefault('flat_other',{})
+    for region in all_regions:
+        relsyst[region] = region_entry
 
 def _add_qcd(yields_dict):
     sr_qcd = {

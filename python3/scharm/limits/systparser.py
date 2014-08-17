@@ -88,7 +88,7 @@ def get_standard_extrap(records):
             yield rec
 
 def combine_overalls(records, translate=True):
-    """takes SysRecords, returns {(process, region):(down, up),...}"""
+    """takes SysRecords, returns {(process, region):[down, up],...}"""
     ups = {}
     dns = {}
     for rec in records:
@@ -107,5 +107,5 @@ def combine_overalls(records, translate=True):
     for keytup in allkey:
         proc, reg = keytup
         newkey = ptran.get(proc,proc), rtran.get(reg,reg)
-        outdic[newkey] = 1 - dns[keytup], 1 + ups[keytup]
+        outdic[newkey] = [1 - dns[keytup], 1 + ups[keytup]]
     return outdic
