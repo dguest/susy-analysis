@@ -10,8 +10,8 @@ from collections import Counter
 from scharm.limits.limitsty import alpha_names, reg_names
 
 _txt_size = 16
-_summed_bg = ['Wjets', 'Zjets', 'top', 'other']
-_def_regions = ['cr_z', 'signal_mct150', 'cr_t', 'cr_w_mct150_l1pt50']
+_summed_bg = ['Wjets', 'Zjets', 'top', 'singleTop', 'other']
+_def_regions = ['cr_z', 'signal_mct150', 'cr_t', 'cr_w']
 _def_syst = ['jer','jes','met','metres', 'b', 'c', 'u', 't']
 _sys_lists = {
     'default': _def_syst,
@@ -131,7 +131,8 @@ def _get_counts(inputs_dict, regions, syst):
     for region in regions:
         for bg in _summed_bg:
             def get_yld(dic, reg, bg):
-                return dic[reg].get(bg, [0])[0]
+                nom = yields[reg].get(bg,[0])[0]
+                return dic[reg].get(bg, [nom])[0]
             try:
                 reg_nom_counter[region] += get_yld(yields,region,bg)
                 reg_up_counter[region] += get_yld(systs[nup],region,bg)
@@ -153,7 +154,8 @@ def _get_sym_counts(inputs_dict, regions, syst):
     for region in regions:
         for bg in _summed_bg:
             def get_yld(dic, reg, bg):
-                return dic[reg].get(bg, [0])[0]
+                nom = yields[reg].get(bg,[0])[0]
+                return dic[reg].get(bg, [nom])[0]
             nom_counter[region] += get_yld(yields,region,bg)
             alt_counter[region] += get_yld(systs[syst],region,bg)
         data_counter[region] = yields[region].get('data',[float('NaN')])[0]
