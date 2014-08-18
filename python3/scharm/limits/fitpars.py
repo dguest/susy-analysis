@@ -1,6 +1,6 @@
 from os.path import join
 import os, itertools
-from scharm.limits.limitsty import alpha_names, reg_names
+from scharm.limits.limitsty import alpha_names, reg_names, mu_names
 from scharm.schema import get_jes_variations
 import numpy as np
 
@@ -42,7 +42,7 @@ def _sort_labels(labels):
             lep.append(longkey)
         elif key in jes_variations:
             jet.append(longkey)
-        elif 'Theory' in key or key in ['signal_isr']:
+        elif key.startswith('theory_') or key in ['signal_isr']:
             theory.append(longkey)
         else:
             other.append(longkey)
@@ -144,7 +144,8 @@ def _rename_corr_var(name):
         return name + " Stat"
     mu = 'mu_'
     if name.startswith(mu):
-        return name[len(mu):]
+        trunc = name[len(mu):]
+        return r'$\mu$ ' + mu_names.get(trunc, trunc)
     return name
 
 def _xyiter(matrix):

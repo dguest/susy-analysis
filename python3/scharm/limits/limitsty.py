@@ -20,7 +20,7 @@ alpha_names = {
     'met':r'$E_{\rm T}^{\rm miss}$ scale',
     'metres':r'$E_{\rm T}^{\rm miss}$ res',
     'mettrig':r'$E_{\rm T}^{\rm miss}$ trig',
-    'flat_other': "flat ``other''",
+    'flat_other': "flat other",
     'theory_top': 'top theory',
     'theory_Wjets': r'$W$ theory',
     'theory_Zjets': r'$Z$ theory',
