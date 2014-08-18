@@ -235,6 +235,9 @@ def setup_stack(config):
     """
     Sets up textfiles and shell script to run histograming via susy-stack.
     One histogram file will be created for each input ntuple.
+
+    NOTE: makes use of random shuffling to put files in jobs,
+    NOT deterministic!
     """
     all_files = list(_get_all_ntuples(config.input_ntuples))
 
