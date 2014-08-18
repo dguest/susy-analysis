@@ -73,8 +73,15 @@ def _add_mettrig(yields_dict, error=0.01):
     adds an uncertainty to all the signal regions to account for the trigger
     error.
     """
+    def need_mettrig(regname):
+        mettrig_conditions = [
+            regname.startswith('signal_'),
+            regname in ['vr_mct', 'vr_mcc'],
+            ]
+        return any(mettrig_conditions)
+
     nom = yields_dict[_nom_key]
-    srs = [x for x in nom if x.startswith('signal_')]
+    srs = [x for x in nom if need_mettrig(x)]
     relsyst = yields_dict.setdefault(_rel_key, {})
     mettrig = relsyst.setdefault('mettrig', {})
     for sr in srs:
