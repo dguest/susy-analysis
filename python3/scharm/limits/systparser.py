@@ -85,6 +85,10 @@ class SysRecord:
 def get_standard_extrap(records):
     reg_from_proc = dict(_proc_with_reg)
     for rec in records:
+        # Don't extrapolate to ourselves (this is nonzero in Will's
+        # files because of statistical error?)
+        if rec.region == rec.base_region:
+            continue
         if rec.base_region == reg_from_proc.get(rec.process):
             yield rec
 
