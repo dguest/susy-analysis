@@ -7,6 +7,7 @@
 #include "btag_defs.hh"
 #include "cutflag.hh"
 #include "TriggerSF.hh"
+#include "ScaleFactor.hh"
 
 #include "TVector2.h"
 
@@ -19,6 +20,7 @@ namespace {
 			const TVector2& met,
 			outtree::OutTree&);
   void copy_trigger_sf(const TriggerSF&, outtree::SFBox&);
+  void copy_sf(const ScaleFactor& sf, outtree::SFBox&);
 }
 
 // ______________________________________________________________
@@ -42,6 +44,7 @@ void copy_event(const EventObjects& obj, JetRep rep,
   out_tree.par.mll = par.mass_ll;
   out_tree.par.htx = par.htx;
 
+  copy_sf(obj.prec.pileup_weight, out_tree.pileup_sf);
   copy_met(out_tree, met);
   copy_leading_jet_info(obj.signal_jets(rep), out_tree);
   copy_lepton_info(obj.control_muons, obj.control_electrons,
@@ -165,5 +168,9 @@ namespace {
     sfb.up = sf.lepton.up;
     sfb.down = sf.lepton.down;
   }
-
+  void copy_sf(const ScaleFactor& sf, outtree::SFBox& sbf) {
+    sfb.nominal = sf.nominal;
+    sfb.up = sf.up;
+    sfb.down = sf.down;
+  }
 }

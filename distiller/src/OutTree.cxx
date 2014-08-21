@@ -60,6 +60,7 @@ namespace outtree {
 
   OutTree::OutTree(std::string file, std::string tree, const unsigned flags,
 		   int n_jets):
+    pileup_sf(flags),
     el_sf(flags),
     mu_sf(flags),
     lepton_trig_sf(flags),
@@ -89,7 +90,6 @@ namespace outtree {
     MAKE_BRANCH(m_tree, event_number);
 
     if ( flags & cutflag::truth) {
-      MAKE_BRANCH(m_tree, pileup_weight);
       MAKE_BRANCH(m_tree, hfor_type);
       MAKE_BRANCH(m_tree, truth_leading_cjet_pos);
       MAKE_BRANCH(m_tree, truth_subleading_cjet_pos);
@@ -131,8 +131,6 @@ namespace outtree {
     hfor_type = -2;
     event_number = 0;
 
-    pileup_weight = -1;
-
     truth_leading_cjet_pos = -1;
     truth_subleading_cjet_pos = -1;
     truth_n_cjet = 0;
@@ -147,6 +145,7 @@ namespace outtree {
     }
     first_lepton.clear();
     second_lepton.clear();
+    pileup_sf.clear();
     el_sf.clear();
     mu_sf.clear();
     boson_child_pt = -1;

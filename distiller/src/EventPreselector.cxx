@@ -9,6 +9,7 @@
 #include "SUSYTools/SUSYObjDef.h"
 #include "constants_preselection.hh"
 #include "PreselectionInfo.hh"
+#include "ScaleFactor.hh"
 
 EventPreselector::EventPreselector(unsigned flags, const RunInfo& info) :
   m_flags(flags),
@@ -66,7 +67,7 @@ PreselectionInfo EventPreselector::get_preselection_info(
     pass_bits |= pass::vxp_gt_4trk;
   }
 
-  float prw = m_prw ? m_prw->get_pileup_weight(buffer) : 1.0;
+  ScaleFactor prw = m_prw ? m_prw->get_pileup_weight(buffer) : {1.0,1.0,1.0};
   return {pass_bits, prw, trigger_sf, run_number};
 }
 

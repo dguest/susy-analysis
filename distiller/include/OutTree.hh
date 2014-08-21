@@ -184,7 +184,7 @@ namespace outtree {
     int spart1_pdgid;
     int spart2_pdgid;
 
-    float pileup_weight;
+    SFBox pileup_sf;
     SFBox el_sf;
     SFBox mu_sf;
     SFBox lepton_trig_sf;

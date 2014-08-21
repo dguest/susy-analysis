@@ -263,7 +263,6 @@ void StopDistiller::fill_event_output(const EventObjects& obj,
 
   out_tree.pass_bits = pass_bits;
   out_tree.event_number = m_susy_buffer->EventNumber;
-  out_tree.pileup_weight = obj.prec.pileup_weight;
 
   // main event copy function
   copy_event(obj, rep, par, alt_met, out_tree);

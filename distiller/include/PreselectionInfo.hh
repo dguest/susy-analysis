@@ -2,11 +2,12 @@
 #define PRESELECTIONINFO_HH
 
 #include "typedefs.hh"
+#include "ScaleFactor.hh"
 
 struct PreselectionInfo
 {
   ull_t bits;
-  float pileup_weight;
+  ScaleFactor pileup_weight;
   float trigger_sf;
   unsigned random_run;
 };

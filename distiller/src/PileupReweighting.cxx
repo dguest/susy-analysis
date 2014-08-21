@@ -3,6 +3,7 @@
 #include "RunInfo.hh"
 #include "PileupReweighting/TPileupReweighting.h"
 #include "cutflag.hh"
+#include "ScaleFactor.hh"
 
 PileupReweighting::PileupReweighting(const RunInfo& info, unsigned run_flags):
   m_prw(0)
@@ -40,17 +41,23 @@ unsigned PileupReweighting::random_run_number(const SusyBuffer& buf) const {
   return m_prw->GetRandomRunNumber(buf.RunNumber);
 }
 
-float PileupReweighting::get_pileup_weight(const SusyBuffer& buffer) {
+ScaleFactor PileupReweighting::get_pileup_weight(const SusyBuffer& buffer) {
   float avx = buffer.average_int_per_xing();
 
   if (m_generate) {
     m_prw->Fill(
       buffer.RunNumber, buffer.mc_channel_number,
       buffer.mc_event_weight, avx);
-    return 1.0;
+    return {1.0,1.0,1.0};
   } else {
-    return m_prw->GetCombinedWeight(
+    ScaleFactor sf;
+    sf.nominal = m_prw->GetCombinedWeight(
       buffer.RunNumber, buffer.mc_channel_number,avx);
+    sf.down = sf.nominal = m_prw->GetCombinedWeight(
+      buffer.RunNumber, buffer.mc_channel_number,avx * (1 - PU_MU_ERR));
+    sf.up = sf.nominal = m_prw->GetCombinedWeight(
+      buffer.RunNumber, buffer.mc_channel_number,avx * (1 + PU_MU_ERR));
+    return sf;
   }
 }
 
