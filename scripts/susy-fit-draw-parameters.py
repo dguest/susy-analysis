@@ -29,7 +29,7 @@ def _get_args():
         'fit_parameters', help=_fit_parameters_help, nargs='?')
     parser.add_argument('-o','--plot-directory', default='bg_fit')
     parser.add_argument('-e','--ext', default='.pdf', help='plot type')
-    parser.add_argument('-l','--lumi', action='store_true')
+    parser.add_argument('-n','--no-lumi', action='store_false', dest='lumi')
     return parser.parse_args()
 
 def _get_fit_pars(fit_parameters):

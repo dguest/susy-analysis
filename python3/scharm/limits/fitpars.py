@@ -28,6 +28,7 @@ def _sort_labels(labels):
     tagging = []
     jet = []
     lep = []
+    met = []
     other = []
     mu = []
     theory = []
@@ -44,10 +45,12 @@ def _sort_labels(labels):
             jet.append(longkey)
         elif key.startswith('theory_') or key in ['signal_isr']:
             theory.append(longkey)
+        elif key.startswith('met'):
+            met.append(longkey)
         else:
             other.append(longkey)
     # stick the lists together, sorted
-    lists = [x for x in [tagging, jet, lep, other, theory, mu] if x]
+    lists = [x for x in [tagging, jet, lep, met, theory, other, mu] if x]
     idxs = [len(lists[0])]
     for l in lists[1:]:
         idxs.append(idxs[-1] + len(l))
