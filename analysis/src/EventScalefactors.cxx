@@ -40,7 +40,8 @@ float SFBox::get_sf(SystVariation systematic) const{
 EventScalefactors::EventScalefactors(TTree* tree):
   m_el_sf(new SFBox(tree, "el_sf")),
   m_mu_sf(new SFBox(tree, "mu_sf")),
-  m_lepton_trig_sf(new SFBox(tree, "lepton_trig_sf"))
+  m_lepton_trig_sf(new SFBox(tree, "lepton_trig_sf")),
+  m_pileup_sf(new SFBox(tree, "pileup_sf"))
 {
 }
 
@@ -48,9 +49,11 @@ EventScalefactors::~EventScalefactors() {
   delete m_el_sf;
   delete m_mu_sf;
   delete m_lepton_trig_sf;
+  delete m_pileup_sf;
   m_el_sf = 0;
   m_mu_sf = 0;
   m_lepton_trig_sf = 0;
+  m_pileup_sf = 0;
 }
 
 const SFBox* EventScalefactors::get_box(EventSyst lept) const {
@@ -58,6 +61,7 @@ const SFBox* EventScalefactors::get_box(EventSyst lept) const {
   case EventSyst::ELECTRON: return m_el_sf;
   case EventSyst::MUON: return m_mu_sf;
   case EventSyst::LEPTRIG: return m_lepton_trig_sf;
+  case EventSyst::PU: return m_pileup_sf;
   default: return 0;
   }
 }
@@ -68,7 +72,7 @@ float EventScalefactors::get_sf(syst::Systematic syst) const {
   if (is_sf_systematic(syst)) varied = get_box(sf_type(syst));
   // ACHTUNG: hack!
   // 14 Jul 2014: this was commented out to agree with Oxford
-  for (SFBox* box: {m_el_sf, m_mu_sf /*, m_lepton_trig_sf */} ) {
+  for (SFBox* box: {m_el_sf, m_mu_sf, m_pileup_sf /*, m_lepton_trig_sf */} ) {
     if (box == varied) {
       sf *= box->get_sf(sf_direction(syst));
     } else {
@@ -83,9 +87,9 @@ float EventScalefactors::get_sf(syst::Systematic syst) const {
 
 namespace {
   const std::set<syst::Systematic> up_type_syst = {
-    syst::ELUP, syst::MUUP, syst::LEPTRIGUP};
+    syst::ELUP, syst::MUUP, syst::LEPTRIGUP, syst::PUUP};
   const std::set<syst::Systematic> down_type_syst = {
-    syst::ELDOWN, syst::MUDOWN, syst::LEPTRIGDOWN};
+    syst::ELDOWN, syst::MUDOWN, syst::LEPTRIGDOWN, syst::PUDOWN};
 
   const std::set<syst::Systematic> el_syst = {
     syst::ELUP, syst::ELDOWN};
@@ -93,6 +97,8 @@ namespace {
     syst::MUUP, syst::MUDOWN};
   const std::set<syst::Systematic> trig_syst = {
     syst::LEPTRIGUP, syst::LEPTRIGDOWN};
+  const std::set<syst::Systematic> pu_syst = {
+    syst::PUUP, syst::PUDOWN};
 
 }
 
@@ -107,6 +113,7 @@ EventSyst sf_type(syst::Systematic sys) {
   if (el_syst.count(sys)) return EventSyst::ELECTRON;
   if (mu_syst.count(sys)) return EventSyst::MUON;
   if (trig_syst.count(sys)) return EventSyst::LEPTRIG;
+  if (pu_syst.count(sys)) return EventSyst::PU;
   throw std::logic_error("non-sf systematic");
 }
 

@@ -70,7 +70,6 @@ ObjectFactory::ObjectFactory(const std::string& root_file, int n_jets) :
     set_branch(m_tree,"truth_leading_cjet_pos", &m_leading_cjet_pos);
     set_branch(m_tree,"truth_subleading_cjet_pos", &m_subleading_cjet_pos);
     set_branch(m_tree,"mc_event_weight", &m_mc_event_weight);
-    set_branch(m_tree,"pileup_weight", &m_pileup_weight);
     m_evt_sf = new EventScalefactors(m_tree);
   } catch (MissingBranch& err) {
     m_ioflags |= ioflag::no_truth;
@@ -177,7 +176,7 @@ double ObjectFactory::event_weight() const
   if (m_ioflags & ioflag::no_truth) {
     return 1.0;
   }
-  float base = m_mc_event_weight * m_pileup_weight;
+  float base = m_mc_event_weight;
   return base;
 }
 float ObjectFactory::marks_boson_pt_weight() const {
