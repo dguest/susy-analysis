@@ -81,7 +81,7 @@ def run_stacker(config):
         stacker.run_multisys(
             ntuple, systematics, tuple_n=tuple_n)
 
-_shift_sf = list('BCUT') + ['EL','MU','LEPTRIG']
+_shift_sf = list('BCUT') + ['EL','MU','LEPTRIG','PU']
 scale_factor_systematics = ['NONE'] + [
     part + shift for part in _shift_sf for shift in ['UP','DOWN']
     ]
