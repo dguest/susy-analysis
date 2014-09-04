@@ -633,7 +633,7 @@ namespace {
     // obj_sf *= obj.get_trigger_sf()->nominal;
 
     // pileup
-    return obj_sf * obj.prec.pileup_weight;
+    return obj_sf * obj.prec.pileup_weight.nominal;
   }
 
 }

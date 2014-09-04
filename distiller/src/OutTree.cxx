@@ -103,6 +103,7 @@ namespace outtree {
 	MAKE_BRANCH(m_tree, truth_boson_pt_weight);
 	MAKE_BRANCH(m_tree, truth_boson_pt);
       }
+      pileup_sf.set_branches(m_tree, "pileup_");
       el_sf.set_branches(m_tree, "el_");
       mu_sf.set_branches(m_tree, "mu_");
       lepton_trig_sf.set_branches(m_tree, "lepton_trig_");

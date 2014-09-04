@@ -67,7 +67,8 @@ PreselectionInfo EventPreselector::get_preselection_info(
     pass_bits |= pass::vxp_gt_4trk;
   }
 
-  ScaleFactor prw = m_prw ? m_prw->get_pileup_weight(buffer) : {1.0,1.0,1.0};
+  ScaleFactor prw = m_prw ?
+    m_prw->get_pileup_weight(buffer) : ScaleFactor{1.0,1.0,1.0};
   return {pass_bits, prw, trigger_sf, run_number};
 }
 

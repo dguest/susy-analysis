@@ -9,7 +9,9 @@ namespace Root {
 }
 
 // mu offset used to calculate pileup error
-static const float PU_MU_ERR = 0.1;
+// from https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/InDetTrackingPerformanceGuidelines#Pile_up_rescaling
+static const float PU_MU_BASE = 1.09;
+static const float PU_MU_ERR = 0.04;
 
 #include <string>
 
@@ -25,6 +27,8 @@ public:
   void write_to(const std::string& file_name);
 private:
   Root::TPileupReweighting* m_prw;
+  Root::TPileupReweighting* m_prw_down;
+  Root::TPileupReweighting* m_prw_up;
   bool m_generate;
 };
 

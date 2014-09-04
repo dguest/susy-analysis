@@ -6,6 +6,6 @@ struct ScaleFactor
   double nominal;
   double down;
   double up;
-}
+};
 
 #endif

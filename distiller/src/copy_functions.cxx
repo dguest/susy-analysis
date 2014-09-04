@@ -168,7 +168,7 @@ namespace {
     sfb.up = sf.lepton.up;
     sfb.down = sf.lepton.down;
   }
-  void copy_sf(const ScaleFactor& sf, outtree::SFBox& sbf) {
+  void copy_sf(const ScaleFactor& sf, outtree::SFBox& sfb) {
     sfb.nominal = sf.nominal;
     sfb.up = sf.up;
     sfb.down = sf.down;
