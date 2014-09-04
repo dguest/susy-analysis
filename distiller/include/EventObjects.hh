@@ -5,6 +5,7 @@
 
 #include "PreselectionInfo.hh"
 #include "enums_replacement.hh"
+#include "systematic_defs.hh"
 
 #include <vector>
 
@@ -63,6 +64,7 @@ private:
   EventElectrons* m_all_electrons;
   EventMuons* m_all_muons;
   TriggerSF* m_trigger_sf;
+  systematic::Systematic m_systematic;
   SelectedJet* electron_jet() const;
 };
 

@@ -130,7 +130,7 @@ def setup_distill(config, input_files):
         config.systematics, config.all_systematics, config.jes_systematics]
     if any(base_syst_trig):
         systematics += ['JER','METRES']
-        ud_systs += ['JES', 'MET','EGZEE', 'EGLOW', 'MSCALE']
+        ud_systs += ['JES', 'MET','EGZEE', 'EGLOW', 'MSCALE', 'JVF']
     if config.all_systematics:
         ud_systs += ['EGMAT', 'EGPS', 'EGRES', 'MMS', 'MID']
     if config.all_systematics or config.jes_systematics:

@@ -14,6 +14,7 @@ namespace jet {
   // jvf cuts: require a jvf above these values unless one of the below
   // "ignore" thresholds is met. These are used in the signal jet selection.
   static const float JVF_CUT = 0.5;
+  static const float JVF_SYSTEMATIC_VARIATION = 0.03;
   static const float PT_IGNORE_JVF = 50*GeV;
   static const float ETA_IGNORE_JFV = 2.4;
 

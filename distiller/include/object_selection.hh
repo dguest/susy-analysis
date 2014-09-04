@@ -1,6 +1,8 @@
 #ifndef OBJECT_SELECTION_HH
 #define OBJECT_SELECTION_HH
 
+#include "systematic_defs.hh"
+
 #include <vector>
 #include <cassert>
 class Electron;
@@ -18,7 +20,7 @@ namespace object {
   Muons control_muons(const Muons&);
   Jets preselection_jets(const Jets&);
   Jets bad_jets(const Jets&);
-  Jets signal_jets(const Jets&);
+  Jets signal_jets(const Jets&, systematic::Systematic);
   Jets remove_bad_jets(const Jets&);
 
   bool has_lower_pt(const TLorentzVector*, const TLorentzVector*);

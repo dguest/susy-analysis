@@ -189,6 +189,7 @@ static bool safe_copy(PyObject* value, systematic::Systematic& dest) {
   TRY_UD(MMS);
   TRY_UD(MID);
   TRY_UD(MSCALE);
+  TRY_UD(JVF);
 
   // jes breakdown
   TRY_UD(JENP1);

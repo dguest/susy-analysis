@@ -16,7 +16,9 @@ EventObjects::EventObjects(
   m_all_electrons(0),
   m_all_muons(0),
 
-  m_trigger_sf(0)
+  m_trigger_sf(0),
+
+  m_systematic(info.systematic)
 {
   prec = presel.get_preselection_info(buf, def);
 
@@ -69,7 +71,7 @@ void EventObjects::do_overlap_removal(CutCounter& ob_counts) {
 
   good_jets = object::remove_bad_jets(after_overlap_jets);
   ob_counts["good_jets"] += good_jets.size();
-  m_signal_jets = object::signal_jets(good_jets);
+  m_signal_jets = object::signal_jets(good_jets, m_systematic);
   control_electrons = object::control_electrons(after_overlap_electrons);
   control_muons = object::control_muons(after_overlap_muons);
 

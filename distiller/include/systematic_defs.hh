@@ -10,6 +10,8 @@ namespace systematic {
     EGLOWUP, EGLOWDOWN, EGRESUP, EGRESDOWN,
     // muon systematics
     MMSDOWN, MMSUP, MIDDOWN, MIDUP, MSCALEDOWN, MSCALEUP,
+    // jet vertex fraction
+    JVFUP, JVFDOWN,
 
     // === JES breakdown ===
     // Effective NP

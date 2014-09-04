@@ -1,4 +1,5 @@
 #include "object_selection.hh"
+#include "systematic_defs.hh"
 #include "constants_distiller.hh"
 #include "constants_jet.hh"
 #include "Jets.hh"
@@ -74,8 +75,14 @@ namespace object {
     }
     return out;
   }
-  Jets signal_jets(const Jets& jets) {
+  Jets signal_jets(const Jets& jets, systematic::Systematic syst) {
     Jets out;
+    float jvf_cut = jet::JVF_CUT;
+    if (syst == systematic::JVFDOWN) {
+      jvf_cut -= jet::JVF_SYSTEMATIC_VARIATION;
+    } else if (syst == systematic::JVFUP) {
+      jvf_cut += jet::JVF_SYSTEMATIC_VARIATION;
+    }
     for (auto jet_itr: jets){
       const SelectedJet& jet = *jet_itr;
       const float abs_eta = std::abs(jet.Eta());
@@ -83,7 +90,7 @@ namespace object {
       bool ok_eta = abs_eta < jet::SIGNAL_ETA_CUT;
 
       bool no_tracks = jet.jvf() < -0.5;
-      bool ok_jvf_frac = jet.jvf() > jet::JVF_CUT;
+      bool ok_jvf_frac = jet.jvf() > jvf_cut;
       bool ignore_jvf = (jet.Pt() > jet::PT_IGNORE_JVF ||
 			 abs_eta > jet::ETA_IGNORE_JFV);
 
