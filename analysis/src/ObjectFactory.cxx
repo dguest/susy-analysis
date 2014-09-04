@@ -43,7 +43,6 @@ ObjectFactory::ObjectFactory(const std::string& root_file, int n_jets) :
   m_leading_cjet_pos(-1),
   m_subleading_cjet_pos(-1),
   m_mc_event_weight(0.0/0.0),
-  m_pileup_weight(0.0/0.0),
   m_boson_pt_weight(0.0/0.0),
   m_boson_pt(0.0/0.0),
   m_ioflags(0),
