@@ -37,6 +37,7 @@ def run():
         _add_qcd(yields_dict)
         _add_mettrig(yields_dict, error=args.met_trig_error)
         _add_signal_isr(yields_dict)
+        _add_signal_xsec(yields_dict)
         _add_misc(yields_dict, args.misc_syst)
         yml.truncate(0)
         yml.seek(0)
@@ -98,6 +99,13 @@ def _add_misc(yields_dict, misc):
         new_dict = yaml.load(yml)
     yields_dict[_rel_key].update(new_dict[_rel_key])
 
+def _signal_regions_and_points_iterator(yields_dict):
+    """yields (region, signal_name) pairs for all signal"""
+    for region, procs in yields_dict[_nom_key].items():
+        for proc in procs:
+            if proc.startswith(_sig_key):
+                yield region, proc
+
 def _add_signal_isr(yields_dict):
     """Add an isr systematic (taken from sbottom) to the signal points"""
 
@@ -116,18 +124,55 @@ def _add_signal_isr(yields_dict):
         idx = bisect.bisect(dm_vals, dm) - 1
         return ret_vals[idx]
 
-    nomv = yields_dict[_nom_key].values()
-    all_sigp = {x for y in nomv for x in y if x.startswith(_sig_key)}
-    all_sr = {x for x in yields_dict[_nom_key] if x.startswith('signal_')}
-
     isr_syst = {}
-    for sigp in all_sigp:
+    for sr, sigp in _signal_regions_and_points_iterator(yields_dict):
         isr_val = get_isr(sigp)
         variation = [1.0 - isr_val, 1.0 + isr_val]
-        for sr in all_sr:
-            isr_syst.setdefault(sr,{})[sigp] = variation
+        isr_syst.setdefault(sr,{})[sigp] = variation
 
     yields_dict[_rel_key]['signal_isr'] = isr_syst
+
+def _add_signal_xsec(yields_dict):
+    """
+    Add the signal xsec uncertainty as a function of the scharm mass.
+    Taken from the INT note
+    """
+    import numpy as np
+    # Taken from the INT note
+    unct_vs_mscharm = [
+        (100, 16.2),
+        (150, 15.7),
+        (200, 15.0),
+        (250, 14.8),
+        (300, 14.8),
+        (350, 14.5),
+        (400, 14.4),
+        (450, 14.2),
+        (500, 15.0),
+        (550, 15.8),
+        (600, 16.6),
+        (650, 17.6),
+        (700, 18.4),
+        (750, 19.4),
+        (800, 20.8),
+        (850, 22.1),
+        (900, 24.2),
+        (950, 26.1),
+        (1000, 27.9)
+        ]
+    xp, yp = zip(*unct_vs_mscharm)
+    def get_unct(sig_name):
+        prefix, msusy, mlsp = sig_name.split('-')
+        susy_mass = int(msusy)
+        return np.interp(susy_mass, xp, yp) / 100
+
+    xsec_dict = {}
+    for region, point in _signal_regions_and_points_iterator(yields_dict):
+        xsec_var = get_unct(point)
+        variation = [1.0 - xsec_var, 1.0 + xsec_var]
+        xsec_dict.setdefault(region, {})[point] = variation
+
+    yields_dict[_rel_key]['signal_xsec'] = xsec_dict
 
 if __name__ == '__main__':
     run()
