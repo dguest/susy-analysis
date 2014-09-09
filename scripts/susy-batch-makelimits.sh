@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+OUTDIR=fit_figs_and_tables
+
 if [[ -z $1 ]]
 then
     echo need file 1>&2
@@ -31,15 +33,16 @@ function makelim() {
 	echo making limits for $2
 	susy-fit-workspace.py $1 -o $2/workspaces -c $2/configuration.yml $ee
     fi
-    local CLSFILE=$2/cls.yml
+    mkdir -p $OUTDIR/$2
+    local CLSFILE=$OUTDIR/$2/cls.yml
     if [[ ! -f $CLSFILE ]]
 	then
 	susy-fit-runfit.py $2/workspaces -o $CLSFILE $ee
     fi
     echo drawing $CLSFILE
-    susy-fit-draw-exclusion.py $CLSFILE -o $2/exclusion_overlay.pdf
+    susy-fit-draw-exclusion.py $CLSFILE -o $OUTDIR/$2/exclusion_overlay.pdf
     susy-fit-draw-exclusion.py $CLSFILE --best-regions \
-	-o $2/exclusion_best.pdf
+	-o $OUTDIR/$2/exclusion_best.pdf
     echo done limits for $2
 }
 function makebg() {
@@ -54,14 +57,14 @@ function makepars() {
 
     for bgfit in $2/workspaces/**/background_*_afterFit.root
     do
-	odir=$2/$(dirname ${bgfit#*/workspaces/})
+	odir=$OUTDIR/$2/$(dirname ${bgfit#*/workspaces/})
 	if [[ $3 ]] ; then regs='-r '$3 ; fi
 	if [[ $4 ]]
 	then
 	    odir=$odir/$4
-	    mkdir -p $odir
 	fi
 	echo "making systables in $odir"
+	mkdir -p $odir
 	susy-fit-systable.sh $bgfit -o $odir $regs $ee
 	pars=$odir/fit-parameters.yml
 	susy-fit-results.py $bgfit | tee $pars | susy-fit-draw-parameters.py \
@@ -71,18 +74,23 @@ function makepars() {
 }
 
 # run full fit
-if ! makelim $1 full-exclusion ; then exit 1 ; fi
-if ! makebg $1 full-exclusion ; then exit 1 ; fi
-if ! makepars $1 full-exclusion ; then exit 1 ; fi
+if ! makelim $1 full_exclusion ; then exit 1 ; fi
+if ! makebg $1 full_exclusion ; then exit 1 ; fi
+if ! makepars $1 full_exclusion ; then exit 1 ; fi
 
 # run systematics comparison
-if ! makelim $1 compare-systematics ; then exit 1 ; fi
-if ! makebg $1 compare-systematics ; then exit 1 ; fi
-if ! makepars $1 compare-systematics ; then exit 1 ; fi
+if ! makelim $1 compare_systematics ; then exit 1 ; fi
+if ! makebg $1 compare_systematics ; then exit 1 ; fi
+if ! makepars $1 compare_systematics ; then exit 1 ; fi
+
+# run crw comparison
+if ! makelim $1 compare_systematics ; then exit 1 ; fi
+if ! makebg $1 compare_systematics ; then exit 1 ; fi
+if ! makepars $1 compare_systematics ; then exit 1 ; fi
 
 # run validation / sr plotting stuff
 SIGREGIONS=signal_mct150,signal_mct200,signal_mct250
-if ! makebg $1 vrcr ; then exit 1 ; fi
-if ! makepars $1 vrcr vr_mct,vr_mcc vr_fit ; then exit 1 ; fi
-if ! makepars $1 vrcr $SIGREGIONS sr_fit ; then exit 1 ; fi
+if ! makebg $1 vrsr ; then exit 1 ; fi
+if ! makepars $1 vrsr vr_mct,vr_mcc vr_fit ; then exit 1 ; fi
+if ! makepars $1 vrsr $SIGREGIONS sr_fit ; then exit 1 ; fi
 
