@@ -26,6 +26,11 @@ class CLsExclusionPlane:
     _t_mass = 173.3
     _kinbound_alpha = 0.3
 
+    # labels
+    lsp = r'\tilde{\chi}_1^0'
+    scharm = r'\tilde{c}_1'
+    stop = r'\tilde{t}_1'
+
     def __init__(self, threshold=0.05, **argv):
         width = 9.0
         height = width*argv.get('aspect_ratio',8.0/width)
@@ -34,8 +39,8 @@ class CLsExclusionPlane:
         self.ax = self.figure.add_subplot(1,1,1)
         self.ax.grid(True)
         self.ax.tick_params(labelsize=16)
-        self.ax.set_ylabel(r'$m_{\mathrm{lsp}}$ [GeV]', **vdict)
-        self.ax.set_xlabel(r'$m_{\tilde{c}}$ [GeV]', **hdict)
+        self.ax.set_ylabel(r'$m_{{ {} }}$ [GeV]'.format(self.lsp), **vdict)
+        self.ax.set_xlabel(r'$m_{{ {} }}$ [GeV]'.format(self.scharm), **hdict)
         self.colors = list('rgbmc') + ['orange']
         self.used_colors = set()
         self._proxy_contour = []
@@ -186,9 +191,12 @@ class CLsExclusionPlane:
             ha='left', va='bottom', rotation=slope_deg,
             color=(0,0,0,self._kinbound_alpha))
         upper_text = (
-            r'$\Delta m \equiv m_{c} - m_{\rm lsp} < 0$ (forbidden)')
+            r'$\Delta m \equiv m_{{ {} }} - m_{{ {} }} <'
+            r' 0$ (forbidden)').format(self.scharm, self.lsp)
         self.ax.text(px, py, upper_text, **text_style)
-        lower_text = r'$\Delta m < m_W + m_c$ ($\tilde{t} \to c + \chi$)'
+        lower_text = (
+            r'$\Delta m < m_W + m_c$ '
+            r'(${} \to c + {}$)').format(self.stop, self.lsp)
         self.ax.text(px + self._w_mass, py, lower_text , **text_style)
 
     def save(self, name):
