@@ -84,9 +84,9 @@ if ! makebg $1 compare_systematics ; then exit 1 ; fi
 if ! makepars $1 compare_systematics ; then exit 1 ; fi
 
 # run crw comparison
-if ! makelim $1 compare_systematics ; then exit 1 ; fi
-if ! makebg $1 compare_systematics ; then exit 1 ; fi
-if ! makepars $1 compare_systematics ; then exit 1 ; fi
+if ! makelim $1 compare_crw ; then exit 1 ; fi
+if ! makebg $1 compare_crw ; then exit 1 ; fi
+if ! makepars $1 compare_crw ; then exit 1 ; fi
 
 # run validation / sr plotting stuff
 SIGREGIONS=signal_mct150,signal_mct200,signal_mct250
