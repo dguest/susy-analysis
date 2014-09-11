@@ -20,8 +20,8 @@ def run():
     outinfo = dict(ext=args.ext, outdir=args.plot_directory)
     if not isdir(args.plot_directory):
         mkdir(args.plot_directory)
-    # plot_mu_parameters(pars_dict, outinfo, lumi=args.lumi)
-    # plot_alpha_parameters(pars_dict, outinfo)
+    plot_mu_parameters(pars_dict, outinfo, lumi=args.lumi)
+    plot_alpha_parameters(pars_dict, outinfo)
     plot_corr_matrix(pars_dict, outinfo, crop=args.crop_corr)
 
 def _get_args():

@@ -57,7 +57,8 @@ def _sort_labels(labels):
 
     full_list = list(itertools.chain.from_iterable(
             [sorted(x) for x in lists]))
-    return full_list, idxs
+    # we don't care about the last index, it's just the length of the list
+    return full_list, idxs[:-1]
 
 # ___________________________________________________________________________
 # for mu parameters
@@ -205,11 +206,11 @@ def plot_corr_matrix(pars, outinfo, crop=False):
     labels, matrix, lab_groups = _sort_matrix(labels, matrix)
     short_xlabels = short_ylabels = [_rename_corr_var(x) for x in labels]
     if crop:                    # chop off all but the mu on the y axis
-        short_ylabels = short_ylabels[lab_groups[-2]:]
-        matrix = matrix[:,lab_groups[-2]:]
+        short_ylabels = short_ylabels[lab_groups[-1]:]
+        matrix = matrix[:,lab_groups[-1]:]
     maxval = np.max(matrix[matrix < 1.0])
 
-    fig = Figure(figsize=(8, 8))
+    fig = Figure(figsize=(8, 3 if crop else 8))
     fig.subplots_adjust(bottom=0.2)
     canvas = FigCanvas(fig)
     ax = fig.add_subplot(1,1,1)
