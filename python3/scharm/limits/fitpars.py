@@ -186,7 +186,13 @@ def _add_numbers(ax, matrix, image, threshold=0.25):
         col = 'w' if greyval < threshold else 'k'
         ax.text(binx, biny, '{:.0f}'.format(val*100), color=col, **text_args)
 
-def plot_corr_matrix(pars, outinfo):
+def _set_corr_ticks(axis, labels):
+    """set ticks for correlation matrix"""
+    tickpos = np.linspace(0, len(labels) - 1, len(labels))
+    axis.set_ticks(tickpos)
+    axis.set_ticklabels(labels)
+
+def plot_corr_matrix(pars, outinfo, crop=False):
     """correlation matrix plotter"""
     from matplotlib.figure import Figure
     from matplotlib.backends.backend_agg import FigureCanvasAgg as FigCanvas
@@ -197,29 +203,33 @@ def plot_corr_matrix(pars, outinfo):
     labels = pars['correlation_matrix']['parameters']
     matrix = np.array(pars['correlation_matrix']['matrix'])
     labels, matrix, lab_groups = _sort_matrix(labels, matrix)
-    short_labels = [_rename_corr_var(x) for x in labels]
+    short_xlabels = short_ylabels = [_rename_corr_var(x) for x in labels]
+    if crop:                    # chop off all but the mu on the y axis
+        short_ylabels = short_ylabels[lab_groups[-2]:]
+        matrix = matrix[:,lab_groups[-2]:]
     maxval = np.max(matrix[matrix < 1.0])
 
     fig = Figure(figsize=(8, 8))
     fig.subplots_adjust(bottom=0.2)
     canvas = FigCanvas(fig)
     ax = fig.add_subplot(1,1,1)
-    im = ax.matshow(matrix, vmax=maxval, cmap=get_cmap('hot'))
+    im = ax.matshow(matrix.T, vmax=maxval, cmap=get_cmap('hot'))
     im.get_cmap().set_over('grey', 1.0)
 
-    tickpos = np.linspace(0, len(labels) - 1, len(labels))
-    ax.set_xticks(tickpos)
-    ax.set_xticklabels(short_labels)
-    ax.xaxis.tick_bottom()
-    ax.set_yticks(tickpos)
-    ax.set_yticklabels(short_labels)
+    _set_corr_ticks(ax.xaxis, short_xlabels)
+    _set_corr_ticks(ax.yaxis, short_ylabels)
     for line in lab_groups:
         ax.axvline(line - 0.5, color='k')
-        ax.axhline(line - 0.5, color='k')
+        if not crop:
+            ax.axhline(line - 0.5, color='k')
     divider = make_axes_locatable(ax)
-    cax = divider.append_axes("right", size="5%", pad=0.05)
-    cb = Colorbar(ax=cax, mappable=im)
-    # cb.set_label(r'Correlation Coefficient $\times$ 100', ha='left')
+    if crop:
+        cax = divider.append_axes("bottom", size="30%", pad=0.05)
+        cb = Colorbar(ax=cax, mappable=im, orientation='horizontal')
+    else:
+        ax.xaxis.tick_bottom()
+        cax = divider.append_axes("right", size="5%", pad=0.05)
+        cb = Colorbar(ax=cax, mappable=im)
     _add_numbers(ax, matrix, im)
 
     for lab in ax.get_xticklabels():

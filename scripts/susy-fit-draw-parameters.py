@@ -3,6 +3,8 @@
 Plotting routine for the fit results (which are produced as a yaml file).
 """
 _fit_parameters_help = "yaml file produced by susy-fit-results.py"
+_full_correlation_help = ('plot full correlation matrix (rather than just '
+                          'correlations with mu parameters)')
 
 import argparse
 import sys, yaml
@@ -18,9 +20,9 @@ def run():
     outinfo = dict(ext=args.ext, outdir=args.plot_directory)
     if not isdir(args.plot_directory):
         mkdir(args.plot_directory)
-    plot_mu_parameters(pars_dict, outinfo, lumi=args.lumi)
-    plot_alpha_parameters(pars_dict, outinfo)
-    plot_corr_matrix(pars_dict, outinfo)
+    # plot_mu_parameters(pars_dict, outinfo, lumi=args.lumi)
+    # plot_alpha_parameters(pars_dict, outinfo)
+    plot_corr_matrix(pars_dict, outinfo, crop=args.crop_corr)
 
 def _get_args():
     """input parser"""
@@ -30,6 +32,9 @@ def _get_args():
     parser.add_argument('-o','--plot-directory', default='bg_fit')
     parser.add_argument('-e','--ext', default='.pdf', help='plot type')
     parser.add_argument('-n','--no-lumi', action='store_false', dest='lumi')
+    parser.add_argument(
+        '-f','--full-correlation', action='store_false', dest='crop_corr',
+        help=_full_correlation_help)
     return parser.parse_args()
 
 def _get_fit_pars(fit_parameters):
