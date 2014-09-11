@@ -24,7 +24,7 @@ def _get_lab_x_y_err(pars):
 def _sort_labels(labels):
     """return sorted lables, together with the division indexes"""
     jes_variations = [x.lower() for x in get_jes_variations()]
-    jes_variations += ['jes', 'jer']
+    jes_variations += ['jes', 'jer', 'jvf']
     tagging = []
     jet = []
     lep = []
