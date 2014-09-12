@@ -3,6 +3,7 @@
 Top level for routines to draw excluded contour.
 """
 _best_help = 'use best cls value from all regions'
+_regions_help = 'only plot a subset of regions'
 import argparse, sys
 from scharm.limits import planeplt
 import yaml
@@ -12,7 +13,7 @@ def run():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('cls_file')
     parser.add_argument('-o', '--output-plot', default='plane.pdf')
-    parser.add_argument('-f', '--filter-stop', action='store_true')
+    parser.add_argument('-r', '--regions', help=_regions_help, nargs='+')
     dowhat = parser.add_mutually_exclusive_group()
     dowhat.add_argument('-b', '--band-region')
     dowhat.add_argument('--best', action='store_true', help=_best_help)
@@ -27,21 +28,25 @@ def run():
     else:
         _multi_exclusion_plane(args)
 
-def _only_scharm_mass(cls_dict):
-    """filter out the stop cross-check points"""
-    filt = {}
-    for config, points in cls_dict.items():
-        filt[config] = []
-        for pt in points:
-            if pt['scharm_mass'] - pt['lsp_mass'] > 90:
-                filt[config].append(pt)
-    return filt
+def _load_subset(cls_file, subset):
+    """
+    load only a subset of the cls entries, checking to make sure they
+    all exist
+    """
+    with open(cls_file) as cls_yml:
+        cls_dict = yaml.load(cls_yml)
+
+    if not subset:
+        return cls_dict
+
+    try:
+        return {x:cls_dict[x] for x in subset}
+    except KeyError as err:
+        keys = ', '.join(cls_dict.keys())
+        raise ValueError('{} not in {}'.format(err.args[0], keys))
 
 def _make_exclusion_plane(args):
-    with open(args.cls_file) as cls_yml:
-        cls_dict = yaml.load(cls_yml)
-        if args.filter_stop:
-            cls_dict = _only_scharm_mass(cls_dict)
+    cls_dict = _load_subset(args.cls_file, args.regions)
 
     ex_plane = planeplt.CLsExclusionPlane()
     ex_plane.lw = 1.5
@@ -68,10 +73,7 @@ def _max_exclusion_plane(args, show_regions=False):
     Exclusion plane using the "best" region for each point. With show_regions
     will show what region that is.
     """
-    with open(args.cls_file) as cls_yml:
-        cls_dict = yaml.load(cls_yml)
-        if args.filter_stop:
-            cls_dict = _only_scharm_mass(cls_dict)
+    cls_dict = _load_subset(args.cls_file, args.regions)
 
     ex_plane = planeplt.CLsExclusionPlane()
     ex_plane.lw = 1.5
@@ -97,10 +99,7 @@ def _max_exclusion_plane(args, show_regions=False):
 
 
 def _multi_exclusion_plane(args):
-    with open(args.cls_file) as cls_yml:
-        cls_dict = yaml.load(cls_yml)
-        if args.filter_stop:
-            cls_dict = _only_scharm_mass(cls_dict)
+    cls_dict = _load_subset(args.cls_file, args.regions)
 
     ex_plane = planeplt.CLsExclusionPlane()
     ex_plane.lw = 1.5
