@@ -19,6 +19,7 @@ Options:
  -o <out_dir>  set output dir, default $OUTDIR
  -t            run test
  -h, --help    print help
+ -z            tar and zip when finished
 EOF
 }
 
@@ -29,6 +30,7 @@ do
 	-h) doc; exit 1;;
 	-o) shift; OUTDIR=$1; shift;;
 	-t) ee=-h; shift;;
+	-z) ZIP=1; shift;;
 	*)
 	    if [[ -n $input ]]
 		then
@@ -138,3 +140,9 @@ if ! makebg $input vrsr ; then exit 1 ; fi
 if ! makepars $input vrsr vr_mct,vr_mcc vr_fit ; then exit 1 ; fi
 if ! makepars $input vrsr $SIGREGIONS sr_fit ; then exit 1 ; fi
 
+# zip up result
+if [[ $ZIP ]]
+then
+    echo zipping
+    tar czf ${OUTDIR}.tgz $OUTDIR
+fi
