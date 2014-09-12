@@ -205,7 +205,7 @@ def plot_corr_matrix(pars, outinfo, crop=False):
     matrix = np.array(pars['correlation_matrix']['matrix'])
     labels, matrix, lab_groups = _sort_matrix(labels, matrix)
     short_xlabels = short_ylabels = [_rename_corr_var(x) for x in labels]
-    if crop:                    # chop off all but the mu on the y axis
+    if crop and len(lab_groups) > 0: # chop off all but the mu on the y axis
         short_ylabels = short_ylabels[lab_groups[-1]:]
         matrix = matrix[:,lab_groups[-1]:]
     maxval = np.max(matrix[matrix < 1.0])
