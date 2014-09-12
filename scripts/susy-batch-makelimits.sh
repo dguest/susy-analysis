@@ -1,15 +1,56 @@
 #!/usr/bin/env bash
 
+# _______________________________________________________________________
+# usage and parsing
+
+usage() {
+    echo "${0##*/} [-ht] [-o <output_dir>] <fit inputs>" >&2
+}
+
 OUTDIR=fit_figs_and_tables
 
-if [[ -z $1 ]]
+doc() {
+    usage
+    cat <<EOF
+
+Wrapper to run fit limits.
+
+Options:
+ -o <out_dir>  set output dir, default $OUTDIR
+ -t            run test
+ -h, --help    print help
+EOF
+}
+
+while (( $# ))
+do
+    case $1 in
+	--help) doc; exit 1;;
+	-h) doc; exit 1;;
+	-o) shift; OUTDIR=$1; shift;;
+	-t) ee=-h; shift;;
+	*)
+	    if [[ -n $input ]]
+		then
+		usage
+		echo 'too many inputs' >&2
+		exit 2
+	    else
+		input=$1
+	    fi
+	    shift;;
+    esac
+done
+
+if [[ -z $input ]]
 then
+    usage
     echo need file 1>&2
     exit 1
 fi
 
-# passed to python routines (for example to test them with -h)
-# ee=-h
+# __________________________________________________________________________
+# define the main functions used
 
 function check_for_files() {
     if [[ ! -d $1 ]]
@@ -73,24 +114,27 @@ function makepars() {
     echo done making parameters for $2
 }
 
+# __________________________________________________________________________
+# run the actual routines here
+
 # run full fit
-if ! makelim $1 full_exclusion ; then exit 1 ; fi
-if ! makebg $1 full_exclusion ; then exit 1 ; fi
-if ! makepars $1 full_exclusion ; then exit 1 ; fi
+if ! makelim $input full_exclusion ; then exit 1 ; fi
+if ! makebg $input full_exclusion ; then exit 1 ; fi
+if ! makepars $input full_exclusion ; then exit 1 ; fi
 
 # run systematics comparison
-if ! makelim $1 compare_systematics ; then exit 1 ; fi
-if ! makebg $1 compare_systematics ; then exit 1 ; fi
-if ! makepars $1 compare_systematics ; then exit 1 ; fi
+if ! makelim $input compare_systematics ; then exit 1 ; fi
+if ! makebg $input compare_systematics ; then exit 1 ; fi
+if ! makepars $input compare_systematics ; then exit 1 ; fi
 
 # run crw comparison
-if ! makelim $1 compare_crw ; then exit 1 ; fi
-if ! makebg $1 compare_crw ; then exit 1 ; fi
-if ! makepars $1 compare_crw ; then exit 1 ; fi
+if ! makelim $input compare_crw ; then exit 1 ; fi
+if ! makebg $input compare_crw ; then exit 1 ; fi
+if ! makepars $input compare_crw ; then exit 1 ; fi
 
 # run validation / sr plotting stuff
 SIGREGIONS=signal_mct150,signal_mct200,signal_mct250
-if ! makebg $1 vrsr ; then exit 1 ; fi
-if ! makepars $1 vrsr vr_mct,vr_mcc vr_fit ; then exit 1 ; fi
-if ! makepars $1 vrsr $SIGREGIONS sr_fit ; then exit 1 ; fi
+if ! makebg $input vrsr ; then exit 1 ; fi
+if ! makepars $input vrsr vr_mct,vr_mcc vr_fit ; then exit 1 ; fi
+if ! makepars $input vrsr $SIGREGIONS sr_fit ; then exit 1 ; fi
 

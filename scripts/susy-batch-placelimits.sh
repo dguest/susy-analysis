@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+if [[ -z $1 ]]
+then
+    echo "please give a directory containing images and tables" >&2
+    exit 1
+fi
+
 # sort tables / figures
 figs=figures/limit_tree
 for fig in $(find $1 -type f -name '*.pdf')
