@@ -92,7 +92,7 @@ class CLsExclusionPlane:
                            # vmin=-2,vmax=2,
                            )
         self._proxy_contour.append(
-            ( Line2D((0,0),(0,1), **draw_opts), str(label)) )
+            ( Line2D((0,0),(0,1), **draw_opts), str(label.replace('_',' '))))
         if point_lables:
             self._add_point_labels(x, y, point_lables)
         elif not self._pts:
