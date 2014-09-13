@@ -112,6 +112,7 @@ function makepars() {
     if [[ $4 ]]
     then
 	WSHEAD=$4
+	local DRAWARGS=-f
     fi
 
     local WSTAIL=combined_meas_model_afterFit.root
@@ -128,7 +129,7 @@ function makepars() {
 	susy-fit-systable.sh $fit -o $odir $regs $ee
 	pars=$odir/fit-parameters.yml
 	susy-fit-results.py $fit | tee $pars | susy-fit-draw-parameters.py \
-	    -o $odir $ee
+	    -o $odir $ee $DRAWARGS
     done
     echo done making parameters for $1
 }
