@@ -70,17 +70,21 @@ function check_for_files() {
 }
 
 function makelim() {
+    # first arg: yaml fit input file
+    # second arg: subdir of OUTDIR where outputs go
+    # third arg: additional stuff to pass to susy-fit-workspace
     if ! check_for_files $2 ; then return $?; fi
-    if [[ ! -d $2/workspaces ]]
+    local WSDIR=$2/workspaces
+    if [[ ! -d $WSDIR ]]
 	then
 	echo making limits for $2
-	susy-fit-workspace.py $1 -o $2/workspaces -c $2/configuration.yml $ee
+	susy-fit-workspace.py $1 -o $WSDIR -c $2/configuration.yml $3 $ee
     fi
     mkdir -p $OUTDIR/$2
     local CLSFILE=$OUTDIR/$2/cls.yml
     if [[ ! -f $CLSFILE ]]
 	then
-	susy-fit-runfit.py $2/workspaces -o $CLSFILE $ee
+	susy-fit-runfit.py $WSDIR -o $CLSFILE $ee
     fi
     echo drawing $CLSFILE
     susy-fit-draw-exclusion.py $CLSFILE -o $OUTDIR/$2/exclusion_overlay.pdf
@@ -96,24 +100,37 @@ function makebg() {
 }
 
 function makepars() {
-    echo making parameters for $2
+    # parameters:
+    # 1: directory containing workspaces (also used to name output)
+    # 2: regions to print when making tables
+    # 3: subdirectory for outputs
+    # 4: signal point used in workspace (defaults to background)
 
-    for bgfit in $2/workspaces/**/background_*_afterFit.root
+    echo making parameters for $1
+
+    local WSHEAD=background
+    if [[ $4 ]]
+    then
+	WSHEAD=$4
+    fi
+
+    local WSTAIL=combined_meas_model_afterFit.root
+    for fit in $1/workspaces/**/*${WSHEAD}*_${WSTAIL}
     do
-	odir=$OUTDIR/$2/$(dirname ${bgfit#*/workspaces/})
-	if [[ $3 ]] ; then regs='-r '$3 ; fi
-	if [[ $4 ]]
+	odir=$OUTDIR/$1/$(dirname ${fit#*/workspaces/})
+	if [[ $2 ]] ; then regs='-r '$2 ; fi
+	if [[ $3 ]]
 	then
-	    odir=$odir/$4
+	    odir=$odir/$3
 	fi
 	echo "making systables in $odir"
 	mkdir -p $odir
-	susy-fit-systable.sh $bgfit -o $odir $regs $ee
+	susy-fit-systable.sh $fit -o $odir $regs $ee
 	pars=$odir/fit-parameters.yml
-	susy-fit-results.py $bgfit | tee $pars | susy-fit-draw-parameters.py \
+	susy-fit-results.py $fit | tee $pars | susy-fit-draw-parameters.py \
 	    -o $odir $ee
     done
-    echo done making parameters for $2
+    echo done making parameters for $1
 }
 
 # __________________________________________________________________________
@@ -122,23 +139,25 @@ function makepars() {
 # run full fit
 if ! makelim $input full_exclusion ; then exit 1 ; fi
 if ! makebg $input full_exclusion ; then exit 1 ; fi
-if ! makepars $input full_exclusion ; then exit 1 ; fi
+if ! makepars full_exclusion ; then exit 1 ; fi
 
 # run systematics comparison
 if ! makelim $input compare_systematics ; then exit 1 ; fi
 if ! makebg $input compare_systematics ; then exit 1 ; fi
-if ! makepars $input compare_systematics ; then exit 1 ; fi
+if ! makepars compare_systematics ; then exit 1 ; fi
 
-# run crw comparison
-if ! makelim $input compare_crw ; then exit 1 ; fi
+# run crw comparison (pass -f to make fit results for all workspaces)
+DEFREGIONS=signal_mct150,cr_w,cr_z,cr_t
+if ! makelim $input compare_crw -f ; then exit 1 ; fi
 if ! makebg $input compare_crw ; then exit 1 ; fi
-if ! makepars $input compare_crw ; then exit 1 ; fi
+if ! makepars compare_crw $DEFREGIONS bg_fit ; then exit 1 ; fi
+if ! makepars compare_crw $DEFREGIONS 450_150 450-150 ; then exit 1 ; fi
 
 # run validation / sr plotting stuff
 SIGREGIONS=signal_mct150,signal_mct200,signal_mct250
 if ! makebg $input vrsr ; then exit 1 ; fi
-if ! makepars $input vrsr vr_mct,vr_mcc vr_fit ; then exit 1 ; fi
-if ! makepars $input vrsr $SIGREGIONS sr_fit ; then exit 1 ; fi
+if ! makepars vrsr vr_mct,vr_mcc vr_fit ; then exit 1 ; fi
+if ! makepars vrsr $SIGREGIONS sr_fit ; then exit 1 ; fi
 
 # zip up result
 if [[ $ZIP ]]
