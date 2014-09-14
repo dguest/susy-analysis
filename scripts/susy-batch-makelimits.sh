@@ -137,22 +137,23 @@ function makepars() {
 # __________________________________________________________________________
 # run the actual routines here
 
-# run full fit
-if ! makelim $input full_exclusion ; then exit 1 ; fi
+# run full fit (pass -f to make fit results for all workspaces)
+DEFREGIONS=signal_mct150,cr_w,cr_z,cr_t
+if ! makelim $input full_exclusion -f ; then exit 1 ; fi
 if ! makebg $input full_exclusion ; then exit 1 ; fi
 if ! makepars full_exclusion ; then exit 1 ; fi
+if ! makepars full_exclusion $DEFREGIONS bg_fit ; then exit 1 ; fi
+if ! makepars full_exclusion $DEFREGIONS 400_200 400-200 ; then exit 1 ; fi
+if ! makepars full_exclusion $DEFREGIONS 550_50 550-50 ; then exit 1 ; fi
 
 # run systematics comparison
 if ! makelim $input compare_systematics ; then exit 1 ; fi
 if ! makebg $input compare_systematics ; then exit 1 ; fi
 if ! makepars compare_systematics ; then exit 1 ; fi
 
-# run crw comparison (pass -f to make fit results for all workspaces)
-DEFREGIONS=signal_mct150,cr_w,cr_z,cr_t
-if ! makelim $input compare_crw -f ; then exit 1 ; fi
+# run crw comparison
+if ! makelim $input compare_crw ; then exit 1 ; fi
 if ! makebg $input compare_crw ; then exit 1 ; fi
-if ! makepars compare_crw $DEFREGIONS bg_fit ; then exit 1 ; fi
-if ! makepars compare_crw $DEFREGIONS 450_150 450-150 ; then exit 1 ; fi
 
 # run validation / sr plotting stuff
 SIGREGIONS=signal_mct150,signal_mct200,signal_mct250

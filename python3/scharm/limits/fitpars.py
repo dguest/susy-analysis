@@ -115,7 +115,7 @@ def plot_alpha_parameters(pdict, outinfo):
     canvas = FigCanvas(fig)
     ax = fig.add_subplot(1,1,1)
     ax.set_xlim(0, len(xlab))
-    ax.set_ylim(-1.5, 1.5)
+    ax.set_ylim(-2, 2)
     ax.errorbar(
         xpos, ypos, yerr=yerr, **_eb_style)
     ax.axhline(0, **_hline_style)
