@@ -69,7 +69,7 @@ class SysRecord:
         split_reg = [x.strip() for x in region.split('/')]
         self.region = _shortreg(split_reg[0])
         self.base_region = split_reg[1] if len(split_reg) > 1 else ''
-        self.value = float(value)
+        self.value = float(value) / 100 # will gives these things in percent
     def _keyvals(self):
         """return `key` values, i.e. everything but self.value"""
         return (self.method, self.process, self.variation, self.region,
