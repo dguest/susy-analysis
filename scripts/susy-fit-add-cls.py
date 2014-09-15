@@ -23,7 +23,8 @@ _danint_from_marks = {
     'm_LSP': 'lsp_mass',
     }
 _danfloat_from_marks = {
-    'CLs_exp': 'mean',
+    'CLs_exp': 'cls_exp',
+    'CLs_obs': 'cls',
     }
 def _dictify(line):
     """
@@ -32,7 +33,7 @@ def _dictify(line):
      - lsp_mass
      - upper (if exists)
      - lower (if exists)
-     - mean
+     - cls_exp
      """
     out = {}
     for assignment in line.split(','):
