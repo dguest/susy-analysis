@@ -6,12 +6,18 @@ then
     exit 1
 fi
 
+function fixdir() {
+    # workaround for bullshit with atlas not allowing svn dirs to
+    # start with a digit
+    sed -r 's:/([0-9]):/m\1:g' <<< $1
+}
+
 # sort tables / figures
 figs=figures/limit_tree
 for fig in $(find $1 -type f -name '*.pdf')
 do
     tail=${fig#*$1}
-    dest=$figs/$tail
+    dest=$(fixdir $figs/$tail)
     mkdir -p $(dirname $dest)
     cp $fig $dest
 done
@@ -20,7 +26,7 @@ tables=tables/generated
 for table in $(find $1 -type f -name '*.tex')
 do
     tail=${table#*$1}
-    dest=$tables/$tail
+    dest=$(fixdir $tables/$tail)
     mkdir -p $(dirname $dest)
     if [[ $table == */systable.tex || $table == */yieldtable.tex ]]
 	then
