@@ -112,9 +112,10 @@ def _multi_exclusion_plane(args):
         line_tups = []
         for sp in cls_list:
             sch, lsp = sp['scharm_mass'], sp['lsp_mass']
-            low, high = sp['cls_down_1_sigma'], sp['cls_up_1_sigma']
-            band_tups.append( (sch, lsp, low, high))
             line_tups.append( (sch, lsp, sp['cls_exp']) )
+            if all('cls_{}_1_sigma'.format(x) in sp for x in ['up','down']):
+                low, high = sp['cls_down_1_sigma'], sp['cls_up_1_sigma']
+                band_tups.append( (sch, lsp, low, high))
         ex_plane.add_config(line_tups, conf_name, style=color,
                             heatmap=args.heatmap)
         if len(sort_cls) <= 3 and not args.heatmap:

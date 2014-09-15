@@ -45,7 +45,7 @@ class CLsExclusionPlane:
         self.used_colors = set()
         self._proxy_contour = []
         self.lw = 3
-        self._pts = None
+        self._pts = set()
         self._threshold = threshold
 
     def _get_style(self, style_string=''):
@@ -93,12 +93,11 @@ class CLsExclusionPlane:
                            )
         self._proxy_contour.append(
             ( Line2D((0,0),(0,1), **draw_opts), str(label.replace('_',' '))))
+
         if point_lables:
             self._add_point_labels(x, y, point_lables)
-        elif not self._pts:
-            inpts = (x > xmin) & (y > ymin)
-            self._pts, = self.ax.plot(x[inpts],y[inpts],'.k')
-            self._proxy_contour.insert(0,(self._pts, 'signal points'))
+        else:
+            self._pts |= set( xy for xy in zip(x,y))
 
     def _add_point_labels(self, x, y, point_lables):
         xy = {l: [] for l in point_lables}
@@ -145,11 +144,7 @@ class CLsExclusionPlane:
             colors=[color])
         # self.ax.imshow(lowp, extent=extent, origin='lower',
         #                vmin=-0.3,vmax=2)
-        if not self._pts:
-            inpts = (x > xmin) & (y > ymin)
-            self._pts, = self.ax.plot(x[inpts],y[inpts],'.k')
-            self._proxy_contour.insert(0,(self._pts, 'signal points'))
-
+        self._pts |= set( xy for xy in zip(x,y))
 
     def add_labels(self):
         self.ax.text(0.7, 0.3,
@@ -199,7 +194,15 @@ class CLsExclusionPlane:
             r'(${} \to c + {}$)').format(self.stop, self.lsp)
         self.ax.text(px + self._w_mass, py, lower_text , **text_style)
 
+    def _add_signal_points(self):
+        x, y = np.array(list(self._pts)).T
+        inpts = (x > self.low_x) & (y > self.low_y)
+        self._pts, = self.ax.plot(x[inpts],y[inpts],'.k')
+        self._proxy_contour.insert(0,(self._pts, 'signal points'))
+
     def save(self, name):
+        if self._pts:
+            self._add_signal_points()
         self._add_kinematic_bounds()
         self.ax.set_ylim(*self.ylim)
         self.ax.set_xlim(*self.xlim)
