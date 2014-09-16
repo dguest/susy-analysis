@@ -11,6 +11,8 @@ from matplotlib.colors import colorConverter
 from os.path import dirname
 import os, math
 
+from scharm.limits import limitsty
+
 class CLsExclusionPlane:
     """Scharm to Charm exclusion plane"""
     # plot limits
@@ -27,9 +29,9 @@ class CLsExclusionPlane:
     _kinbound_alpha = 0.3
 
     # labels
-    lsp = r'\tilde{\chi}_1^0'
-    scharm = r'\tilde{c}_1'
-    stop = r'\tilde{t}_1'
+    lsp = limitsty.lsp
+    scharm = limitsty.scharm
+    stop = limitsty.stop
 
     def __init__(self, threshold=0.05, **argv):
         width = 9.0
@@ -46,6 +48,7 @@ class CLsExclusionPlane:
         self._proxy_contour = []
         self.lw = 3
         self._pts = set()
+        self._labeled_points = set()
         self._threshold = threshold
 
     def _get_style(self, style_string=''):
@@ -91,11 +94,13 @@ class CLsExclusionPlane:
             self.ax.imshow(zp, extent=extent, origin='lower',
                            # vmin=-2,vmax=2,
                            )
+
         self._proxy_contour.append(
-            ( Line2D((0,0),(0,1), **draw_opts), str(label.replace('_',' '))))
+            ( Line2D((0,0),(0,1), **draw_opts), str(_fancy_label(label))))
 
         if point_lables:
             self._add_point_labels(x, y, point_lables)
+            self._labeled_points |= set(xy for xy in zip(x,y))
         else:
             self._pts |= set( xy for xy in zip(x,y))
 
@@ -107,10 +112,9 @@ class CLsExclusionPlane:
             x, y = np.array(ptlist).T
             inpts = (x > self.low_x) & (y > self.low_y)
             pts, = self.ax.plot(
-                x[inpts], y[inpts], '.', label=lab, color=color,
-                markersize=20)
-            self._proxy_contour.append((pts, lab))
-        self._pts = True
+                x[inpts], y[inpts], '.', label=lab,
+                color=color, markersize=20)
+            self._proxy_contour.append((pts, _fancy_label(lab)))
 
     def add_band(self, stop_lsp_low_high, color=None):
         """
@@ -195,20 +199,24 @@ class CLsExclusionPlane:
         self.ax.text(px + self._w_mass, py, lower_text , **text_style)
 
     def _add_signal_points(self):
-        x, y = np.array(list(self._pts)).T
+        """Add unlabeled signal points"""
+        # TODO: make drawing of labeled points happen here too
+        unlab = self._pts - self._labeled_points
+        if not unlab:
+            return
+        x, y = np.array(list(unlab)).T
         inpts = (x > self.low_x) & (y > self.low_y)
         self._pts, = self.ax.plot(x[inpts],y[inpts],'.k')
         self._proxy_contour.insert(0,(self._pts, 'signal points'))
 
     def save(self, name):
-        if self._pts:
-            self._add_signal_points()
+        self._add_signal_points()
         self._add_kinematic_bounds()
         self.ax.set_ylim(*self.ylim)
         self.ax.set_xlim(*self.xlim)
         self._add_kinbound_text()
         leg = self.ax.legend(
-            *zip(*self._proxy_contour), fontsize='xx-large',
+            *zip(*self._proxy_contour), fontsize='x-large',
              loc='upper left', framealpha=0.0, numpoints=1)
         # may be able to use these to positon lables
         # (x1, y1),(x2,y2) = leg.get_bbox_to_anchor().get_points()
@@ -245,3 +253,7 @@ def _remove_bads(args, baddex=2):
         applist = bads if cls == -1.0 else goods
         applist.append(vals)
     return goods, bads
+
+def _fancy_label(label):
+    """make label pretty for regions"""
+    return limitsty.config_names.get(label,label.replace('_',' '))

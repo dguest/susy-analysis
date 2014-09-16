@@ -2,6 +2,13 @@
 Style for fit parameters / regions
 """
 # __________________________________________________________________________
+# general names
+
+lsp = r'\tilde{\chi}_1^0'
+scharm = r'\tilde{c}_1'
+stop = r'\tilde{t}_1'
+
+# __________________________________________________________________________
 # alpha systematics
 
 alpha_names = {
@@ -113,3 +120,13 @@ reg_names = {
     'cr_w_mct150_l1pt50': r'CRW ($p_{\rm T}^{\ell_{1}} > 50$)',
     'cr_z': 'CRZ'}
 
+# __________________________________________________________________________
+# configurations
+
+config_names = {
+    'mct150': r'$m_{\rm CT} > 150$',
+    'mct200': r'$m_{\rm CT} > 200$',
+    'mct250': r'$m_{\rm CT} > 250$',
+    'C1': r'${} \to c {}$: C1'.format(stop, lsp),
+    'C2': r'${} \to c {}$: C2'.format(stop, lsp),
+    }
