@@ -8,6 +8,7 @@ usage() {
 }
 
 OUTDIR=fit_figs_and_tables
+SC_CLSFILE=stop-to-charm-cls.yml
 
 doc() {
     usage
@@ -82,9 +83,14 @@ function makelim() {
     fi
     mkdir -p $OUTDIR/$2
     local CLSFILE=$OUTDIR/$2/cls.yml
+    local SC_CLSPATH=$2/$SC_CLSFILE
     if [[ ! -f $CLSFILE ]]
 	then
 	susy-fit-runfit.py $WSDIR -o $CLSFILE $ee
+	if [[ -f $SC_CLSPATH ]]
+	    then
+	    cat $SC_CLSPATH >> $CLSFILE
+	fi
     fi
     echo drawing $CLSFILE
     susy-fit-draw-exclusion.py $CLSFILE -o $OUTDIR/$2/exclusion_overlay.pdf
@@ -135,13 +141,22 @@ function makepars() {
 }
 
 # __________________________________________________________________________
+# check for files
+
+if [[ ! -f full_exclusion/$SC_CLSFILE ]]
+then
+    echo "can't find $SC_CLSFILE for full exclusion, quitting" >&2
+    exit 1
+fi
+
+# __________________________________________________________________________
 # run the actual routines here
 
 # run full fit (pass -f to make fit results for all workspaces)
 DEFREGIONS=signal_mct150,cr_w,cr_z,cr_t
 BGREGIONS=cr_w,cr_z,cr_t	# not sure if we need this for anything
 if ! makelim $input full_exclusion -f ; then exit 1 ; fi
-if ! makepars full_exclusion $DEFREGIONS bg_fit ; then exit 1 ; fi
+if ! makepars full_exclusion $BGREGIONS bg_fit ; then exit 1 ; fi
 if ! makepars full_exclusion $DEFREGIONS 400_200 400-200 ; then exit 1 ; fi
 if ! makepars full_exclusion $DEFREGIONS 550_50 550-50 ; then exit 1 ; fi
 if ! makepars full_exclusion $DEFREGIONS 250_50 250-50 ; then exit 1 ; fi
@@ -161,6 +176,7 @@ SIGREGIONS=signal_mct150,signal_mct200,signal_mct250
 if ! makebg $input vrsr ; then exit 1 ; fi
 if ! makepars vrsr vr_mct,vr_mcc vr_fit ; then exit 1 ; fi
 if ! makepars vrsr $SIGREGIONS sr_fit ; then exit 1 ; fi
+if ! makepars vrsr signal_mct150 onesr_fit ; then exit 1 ; fi
 
 # zip up result
 if [[ $ZIP ]]
