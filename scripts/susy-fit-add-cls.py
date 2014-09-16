@@ -15,16 +15,19 @@ def run():
     cls_dict = {}
     for mfile in args.mark_files:
         _add_mark_file(cls_dict, mfile)
-    print(yaml.dump(cls_dict))
+    print(yaml.dump(_flatten_cls_dict(cls_dict)))
 
 # translation from marks naming convention
 _danint_from_marks = {
     'm_scharm': 'scharm_mass',
     'm_LSP': 'lsp_mass',
+    'm_stop': 'scharm_mass',
     }
 _danfloat_from_marks = {
     'CLs_exp': 'cls_exp',
     'CLs_obs': 'cls',
+    'CLs_exp1sup': 'cls_up_1_sigma',
+    'CLs_exp_1sdown': 'cls_down_1_sigma',
     }
 def _dictify(line):
     """
@@ -47,18 +50,31 @@ def _dictify(line):
     return out
 
 def _add_mark_file(cls_dict, mark_file):
+    """adds a {region: {mass_point: params, ... }, ...} dict to cls_dict"""
     with open(mark_file) as txt:
         config_name = None
         for line in txt:
             sline = line.strip()
+            if not sline:
+                continue
 
             # region names start with ':'
             if sline.endswith(':'):
                 config_name = sline.rstrip(':')
                 continue
 
-            config_list = cls_dict.setdefault(config_name,[])
-            config_list.append(_dictify(sline))
+            config_dict = cls_dict.setdefault(config_name,{})
+            pt = _dictify(sline)
+            pt_key = pt['scharm_mass'],pt['lsp_mass']
+            config_dict.setdefault(pt_key,{}).update(pt)
+
+def _flatten_cls_dict(cls_dict):
+    """flattens cls_dict to return {region: [ params, ... ], ...} dict"""
+    flat_dict = {}
+    for region, pt_dict in cls_dict.items():
+        for params in pt_dict.values():
+            flat_dict.setdefault(region,[]).append(params)
+    return flat_dict
 
 if __name__ == '__main__':
     run()
