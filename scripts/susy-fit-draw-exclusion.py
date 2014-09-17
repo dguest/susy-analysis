@@ -20,6 +20,7 @@ def run():
     dowhat.add_argument('--best-regions', action='store_true',
                         help='show which region is used for each point')
     dowhat.add_argument('--heatmap', action='store_true')
+    dowhat.add_argument('--noband', action='store_true')
     args = parser.parse_args(sys.argv[1:])
     if args.best or args.best_regions:
         _max_exclusion_plane(args, show_regions=args.best_regions)
@@ -118,7 +119,7 @@ def _multi_exclusion_plane(args):
                 band_tups.append( (sch, lsp, low, high))
         ex_plane.add_config(line_tups, conf_name, style=color,
                             heatmap=args.heatmap)
-        if len(sort_cls) <= 3 and not args.heatmap:
+        if not any([len(sort_cls) > 3, args.heatmap, args.noband]):
             ex_plane.add_band(band_tups, color=color)
 
     ex_plane.save(args.output_plot)
