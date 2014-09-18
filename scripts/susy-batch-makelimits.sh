@@ -154,7 +154,8 @@ fi
 
 # run full fit (pass -f to make fit results for all workspaces)
 DEFREGIONS=signal_mct150,cr_w,cr_z,cr_t
-BGREGIONS=cr_w,cr_z,cr_t	# not sure if we need this for anything
+BGREGIONS=cr_w,cr_z,cr_t
+VREGIONS=vr_mct,vr_mcc
 if ! makelim $input full_exclusion -f ; then exit 1 ; fi
 if ! makepars full_exclusion $BGREGIONS bg_fit ; then exit 1 ; fi
 if ! makepars full_exclusion $DEFREGIONS 400_200 400-200 ; then exit 1 ; fi
@@ -170,11 +171,13 @@ if ! makepars compare_systematics ; then exit 1 ; fi
 # run crw comparison
 if ! makelim $input compare_crw ; then exit 1 ; fi
 if ! makebg $input compare_crw ; then exit 1 ; fi
+if ! makepars compare_crw $VREGIONS vr_fit ; then exit 1 ; fi
+if ! makepars compare_crw $BGREGIONS bg_fit ; then exit 1 ; fi
 
 # run validation / sr plotting stuff
 SIGREGIONS=signal_mct150,signal_mct200,signal_mct250
 if ! makebg $input vrsr ; then exit 1 ; fi
-if ! makepars vrsr vr_mct,vr_mcc vr_fit ; then exit 1 ; fi
+if ! makepars vrsr $VREGIONS vr_fit ; then exit 1 ; fi
 if ! makepars vrsr $SIGREGIONS sr_fit ; then exit 1 ; fi
 if ! makepars vrsr signal_mct150 onesr_fit ; then exit 1 ; fi
 
