@@ -121,7 +121,7 @@ function makepars() {
 	local DRAWARGS=-f
     fi
 
-    local WSTAIL=combined_meas_model_afterFit.root
+    local WSTAIL=afterFit.root
     for fit in $1/workspaces/**/*${WSHEAD}*_${WSTAIL}
     do
 	odir=$OUTDIR/$1/$(dirname ${fit#*/workspaces/})
