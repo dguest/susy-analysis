@@ -55,7 +55,7 @@ def _make_exclusion_plane(args):
     if args.band_region:
         for sp in cls_dict[args.band_region]:
             sch, lsp = sp['scharm_mass'], sp['lsp_mass']
-            low, high = sp['cls_down_1_sigma'], sp['cls_up_1_sigma']
+            low, high = sp['exp_d1s'], sp['exp_u1s']
             cls_list.append( (sch, lsp, low, high))
         ex_plane.add_band(cls_list)
 
@@ -82,8 +82,8 @@ def _max_exclusion_plane(args, show_regions=False):
     for conf_name, cls_list in sorted(cls_dict.items()):
         for sp in cls_list:
             sch, lsp = sp['scharm_mass'], sp['lsp_mass']
-            low, high = sp['cls_down_1_sigma'], sp['cls_up_1_sigma']
-            expt = sp['cls_exp']
+            low, high = sp['exp_d1s'], sp['exp_u1s']
+            expt = sp['exp']
             if not (sch, lsp) in point_dict or point_dict[sch, lsp][0] > expt:
                 point_dict[sch, lsp] = (expt, low, high, conf_name)
 
@@ -113,9 +113,9 @@ def _multi_exclusion_plane(args):
         line_tups = []
         for sp in cls_list:
             sch, lsp = sp['scharm_mass'], sp['lsp_mass']
-            line_tups.append( (sch, lsp, sp['cls_exp']) )
-            if all('cls_{}_1_sigma'.format(x) in sp for x in ['up','down']):
-                low, high = sp['cls_down_1_sigma'], sp['cls_up_1_sigma']
+            line_tups.append( (sch, lsp, sp['exp']) )
+            if all('exp_{}1s'.format(x) in sp for x in 'ud'):
+                low, high = sp['exp_d1s'], sp['exp_u1s']
                 band_tups.append( (sch, lsp, low, high))
         ex_plane.add_config(line_tups, conf_name, style=color,
                             heatmap=args.heatmap)
