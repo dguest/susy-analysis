@@ -24,10 +24,10 @@ _danint_from_marks = {
     'm_stop': 'scharm_mass',
     }
 _danfloat_from_marks = {
-    'CLs_exp': 'cls_exp',
-    'CLs_obs': 'cls',
-    'CLs_exp1sup': 'cls_up_1_sigma',
-    'CLs_exp_1sdown': 'cls_down_1_sigma',
+    'CLs_exp': 'exp',
+    'CLs_obs': 'obs',
+    'CLs_exp1sup': 'exp_u1s',
+    'CLs_exp_1sdown': 'exp_d1s',
     }
 def _dictify(line):
     """
