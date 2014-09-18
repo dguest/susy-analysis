@@ -28,7 +28,7 @@ bool NMinusVRMCCSelection::pass(const EventObjects& obj) const {
   if (reco.n_baseline_muons > 0) return false;
 
   // keep signal regions blind
-  if (reco.mcc > vr::VR_MCC_MAX) return false;
+  // if (reco.mcc > vr::VR_MCC_MAX) return false;
 
   // also blind the low met region to keep people from asking about
   // multijet stuff
