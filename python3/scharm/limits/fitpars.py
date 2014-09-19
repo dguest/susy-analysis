@@ -1,5 +1,6 @@
 from os.path import join
 import os, itertools
+import colorsys                 # to convert to YIQ
 from scharm.limits.limitsty import alpha_names, reg_names, mu_names
 from scharm.schema import get_jes_variations
 import numpy as np
@@ -115,7 +116,7 @@ def plot_alpha_parameters(pdict, outinfo):
     canvas = FigCanvas(fig)
     ax = fig.add_subplot(1,1,1)
     ax.set_xlim(0, len(xlab))
-    ax.set_ylim(-2, 2)
+    ax.set_ylim(-2.5, 2.5)
     ax.errorbar(
         xpos, ypos, yerr=yerr, **_eb_style)
     ax.axhline(0, **_hline_style)
@@ -183,7 +184,8 @@ def _add_numbers(ax, matrix, image, threshold=0.25):
     for binx, biny in _xyiter(matrix):
         val = matrix[binx, biny]
         # use white in the dark squares
-        greyval = sum(image.to_rgba(val)[:3]) / 3
+        rgb = image.to_rgba(val)[:3]
+        greyval = colorsys.rgb_to_yiq(*rgb)[0]
         col = 'w' if greyval < threshold else 'k'
         ax.text(binx, biny, '{:.0f}'.format(val*100), color=col, **text_args)
 
