@@ -4,6 +4,7 @@ Top level for routines to draw excluded contour.
 """
 _best_help = 'use best cls value from all regions'
 _regions_help = 'only plot a subset of regions'
+_clean_help = 'suppress signal points and grid'
 import argparse, sys
 from scharm.limits import planeplt
 import yaml
@@ -21,9 +22,11 @@ def run():
                         help='show which region is used for each point')
     dowhat.add_argument('--heatmap', action='store_true')
     dowhat.add_argument('--noband', action='store_true')
+    dowhat.add_argument('--clean', action='store_true', help=_clean_help)
     args = parser.parse_args(sys.argv[1:])
-    if args.best or args.best_regions:
-        _max_exclusion_plane(args, show_regions=args.best_regions)
+    if any([args.best, args.best_regions, args.clean]):
+        _max_exclusion_plane(args, show_regions=args.best_regions,
+                             clean=args.clean)
     elif args.band_region:
         _make_exclusion_plane(args)
     else:
@@ -96,14 +99,15 @@ class Point:
     def xy(self):
         return self.ms, self.ml
 
-def _max_exclusion_plane(args, show_regions=False):
+def _max_exclusion_plane(args, show_regions=False, clean=False):
     """
     Exclusion plane using the "best" region for each point. With show_regions
     will show what region that is.
     """
     cls_dict = _load_subset(args.cls_file, args.regions)
 
-    ex_plane = planeplt.CLsExclusionPlane()
+    clutter = not clean
+    ex_plane = planeplt.CLsExclusionPlane(grid=clutter, show_points=clutter)
     ex_plane.lw = 1.5
     pdict = _get_max_expected_points(cls_dict)
 
@@ -112,11 +116,12 @@ def _max_exclusion_plane(args, show_regions=False):
     else:
         cls_list = [ x.cfg_tup()[:3] for x in pdict.values()]
         ex_plane.add_labels()
-    ex_plane.add_observed(pdict.values())
-    ex_plane.add_config(cls_list, 'expected', '-darkblue')
 
     band_list = [ x.lowhigh_tup() for x in pdict.values()]
-    ex_plane.add_band(band_list)
+    ex_plane.add_band(band_list, label='expected')
+
+    ex_plane.add_observed(pdict.values())
+    ex_plane.add_config(cls_list, 'expected', '-darkblue')
 
     ex_plane.save(args.output_plot)
 

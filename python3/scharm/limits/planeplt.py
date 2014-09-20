@@ -1,16 +1,20 @@
 """
 Exclusion plane plotter
 """
-import numpy as np
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_agg import FigureCanvasAgg as FigCanvas
-from scharm.style import vdict, hdict
-from scipy.interpolate import LinearNDInterpolator
-from matplotlib.lines import Line2D
-from matplotlib.colors import colorConverter
 from os.path import dirname
 import os, math
 
+import numpy as np
+from scipy.interpolate import LinearNDInterpolator
+
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigCanvas
+
+from matplotlib.lines import Line2D
+from matplotlib.patches import Patch
+from matplotlib.colors import colorConverter
+
+from scharm.style import vdict, hdict
 from scharm.limits import limitsty
 
 class CLsExclusionPlane:
@@ -23,6 +27,9 @@ class CLsExclusionPlane:
     low_x = 0
     low_y = -25
 
+    # epsilon offset to put regions above / below threshold
+    threshold_margin = 0.01
+
     # physical constants relating to the kinematic bounds
     _w_mass = 80.385
     _t_mass = 173.3
@@ -33,13 +40,17 @@ class CLsExclusionPlane:
     scharm = limitsty.scharm
     stop = limitsty.stop
 
+    # legend setup
+    legend_properties = dict(
+        fontsize='x-large', loc='upper left', framealpha=0.0, numpoints=1)
+
     def __init__(self, threshold=0.05, **argv):
         width = 9.0
         height = width*argv.get('aspect_ratio',8.0/width)
         self.figure = Figure(figsize=(width,height))
         self.canvas = FigCanvas(self.figure)
         self.ax = self.figure.add_subplot(1,1,1)
-        self.ax.grid(True)
+        self.ax.grid(argv.get('grid', True))
         self.ax.tick_params(labelsize=16)
         self.ax.set_ylabel(r'$m_{{ {} }}$ [GeV]'.format(self.lsp), **vdict)
         self.ax.set_xlabel(r'$m_{{ {} }}$ [GeV]'.format(self.scharm), **hdict)
@@ -50,6 +61,8 @@ class CLsExclusionPlane:
         self._pts = set()
         self._labeled_points = set()
         self._threshold = threshold
+        self._finalized = False
+        self._drawpoints = argv.get('show_points', True)
 
     def _get_style(self, style_string=''):
         if not style_string:
@@ -78,9 +91,12 @@ class CLsExclusionPlane:
             med.append( (pt.ms, pt.ml, pt.obs) )
             high.append( (pt.ms, pt.ml, pt.obs_high) )
         line_opts = {'linewidths':3, 'colors': 'firebrick'}
+        patch_opts = dict(ec='firebrick', fill=False, linestyle='dotted')
+        label = 'observed'
         self.add_config(low, style=':firebrick')
-        self.add_config(med, add_draw_opts = line_opts, label='observed')
+        self.add_config(med, add_draw_opts = line_opts, label=label)
         self.add_config(high, style=':firebrick')
+        self._proxy_contour.append((Patch(**patch_opts), label))
 
     def add_config(self, stop_lsp_cls, label=None, style=None, heatmap=False,
                    add_draw_opts=None):
@@ -111,11 +127,14 @@ class CLsExclusionPlane:
         ct = self.ax.contour(
             xp, yp, zp, [self._threshold], zorder=2, **draw_opts)
         if heatmap:
-            self.ax.imshow(zp, extent=extent, origin='lower')
+            self.ax.imshow(
+                zp, extent=extent, origin='lower', interpolation='nearest',
+                aspect='auto', vmin=self._threshold*0.5,
+                vmax=self._threshold*1.1)
         if label:
             singular_opts = {x.rstrip('s'): y for x,y in draw_opts.items()}
-            proxline = Line2D((0,0),(0,1), **singular_opts)
-            self._proxy_contour.append( (proxline, _fancy_label(label)))
+            proxline = Line2D((0,0),(0,1), zorder=1, **singular_opts)
+            self._proxy_contour.append( (proxline, label))
 
         if point_lables:
             self._add_point_labels(x, y, point_lables)
@@ -124,11 +143,16 @@ class CLsExclusionPlane:
             self._pts |= set( xy for xy in zip(x,y))
 
     def _fill_in_interp(self, zp, xp, yp, x, y):
-        zp[np.isnan(zp) & (yp > self.ylim[0])] = self._threshold*1.2
+        """misc hacks to fill in the interpolated space"""
+        th_high = self._threshold * (1 + self.threshold_margin)
+        th_low  = self._threshold * (1 - self.threshold_margin)
+        zp[np.isnan(zp) & (yp > self.ylim[0])] = th_high
         # fill in low values if we have stop points
-        if np.any(x - y < self._w_mass / 20):
-            zp[(yp < xp) & (xp < min(x))] = self._threshold * 0.8
-            zp[(yp > xp) & (xp < min(x))] = self._threshold * 1.2
+        min_dm = np.min(x - y)
+        if min_dm < self._w_mass / 20:
+            dm = xp - yp
+            zp[(dm > min_dm) & (xp < min(x))] = th_low
+            zp[(dm < min_dm) & (xp < min(x))] = th_high
 
     def _add_point_labels(self, x, y, point_lables):
         xy = {l: [] for l in point_lables}
@@ -140,9 +164,9 @@ class CLsExclusionPlane:
             pts, = self.ax.plot(
                 x[inpts], y[inpts], '.', label=lab,
                 color=color, markersize=20, zorder=1)
-            self._proxy_contour.append((pts, _fancy_label(lab)))
+            self._proxy_contour.append((pts, lab))
 
-    def add_band(self, stop_lsp_low_high, color=None):
+    def add_band(self, stop_lsp_low_high, color=None, label=None):
         """
         Expects a list of (mass stop, mass lsp, upper limit) tuples.
         """
@@ -172,9 +196,9 @@ class CLsExclusionPlane:
         ct = self.ax.contourf(
             xp, yp, zp, [-1, 0],
             colors=[color], zorder=0)
-        # self.ax.imshow(lowp, extent=extent, origin='lower',
-        #                vmin=-0.3,vmax=2)
         self._pts |= set( xy for xy in zip(x,y))
+        if label:
+            self._proxy_contour.append((Patch(color=color, zorder=0), label))
 
     def add_labels(self, y=0.28):
         self.ax.text(0.2, 1-y, 'ATLAS', weight='bold', style='italic',
@@ -184,10 +208,10 @@ class CLsExclusionPlane:
                      horizontalalignment='left',
                      transform=self.ax.transAxes, size=24)
         self.ax.text(0.05, 0.9 - y,
-                     '$\int\ \mathcal{L}\ dt\ =\ 20.3\ \mathrm{fb}^{-1}$',
+                     '$\int\ \mathcal{L}\ dt\ =\ {\sf 20.3\ fb}^{-1}$',
                      transform=self.ax.transAxes, size=24)
         self.ax.text(0.05, 0.8 - y,
-                     '$\sqrt{s}\ =\ 8\ \mathrm{TeV}$',
+                     '$\sqrt{s}\ =\ {\sf 8\ TeV}$',
                      transform=self.ax.transAxes, size=24)
 
     def _add_kinematic_bounds(self):
@@ -235,22 +259,25 @@ class CLsExclusionPlane:
         self._pts, = self.ax.plot(x[inpts],y[inpts],'.k', zorder=3)
         self._proxy_contour.insert(0,(self._pts, 'signal points'))
 
-    def save(self, name):
-        self._add_signal_points()
+    def _finalize(self):
+        if self._finalized:
+            return
+        if self._drawpoints:
+            self._add_signal_points()
         self._add_kinematic_bounds()
         self.ax.set_ylim(*self.ylim)
         self.ax.set_xlim(*self.xlim)
         self._add_kinbound_text()
-        leg = self.ax.legend(
-            *zip(*self._proxy_contour), fontsize='x-large',
-             loc='upper left', framealpha=0.0, numpoints=1)
-        # may be able to use these to positon lables
-        # (x1, y1),(x2,y2) = leg.get_bbox_to_anchor().get_points()
+        leg = self.ax.legend(*_get_legend_labels(self._proxy_contour),
+                             **self.legend_properties)
+        self._finalized = True
+
+    def save(self, name):
+        self._finalize()
         pl_dir = dirname(name)
         if pl_dir and not os.path.isdir(pl_dir):
             os.makedirs(pl_dir)
         self.canvas.print_figure(name, bbox_inches='tight')
-
 
 def _get_interpolated_xyz(x, y, z, xlims, ylims, xpts, log=True):
     xmin, xmax = xlims
@@ -279,6 +306,24 @@ def _remove_bads(args, baddex=2):
         applist = bads if cls == -1.0 else goods
         applist.append(vals)
     return goods, bads
+
+def _get_legend_labels(legend_tuples):
+    """
+    Translates a list of (handle, name) tuples into the format needed
+    by legend: ([list of handles], [list of labels]).
+    """
+    labels = []
+    handles = {}
+    for handle, label in legend_tuples:
+        if label not in handles:
+            labels.append(label)
+            handles[label] = [handle]
+        else:
+            handles[label].append(handle)
+
+    fancy_labels = [_fancy_label(x) for x in labels]
+    handle_list = [tuple(handles[x]) for x in labels]
+    return handle_list, fancy_labels
 
 def _fancy_label(label):
     """make label pretty for regions"""
