@@ -70,13 +70,22 @@ function check_for_files() {
     return 0
 }
 
+function matches_in() {
+    local NWS=$(find $1 -type f -name $2 | wc -w)
+    if (( $NWS > 0 ))
+	then
+	return 0
+    fi
+    return 1
+}
+
 function makelim() {
     # first arg: yaml fit input file
     # second arg: subdir of OUTDIR where outputs go
     # third arg: additional stuff to pass to susy-fit-workspace
     if ! check_for_files $2 ; then return $?; fi
     local WSDIR=$2/workspaces
-    if [[ ! -d $WSDIR ]]
+    if ! matches_in $WSDIR '*nominal*'
 	then
 	echo making limits for $2
 	susy-fit-workspace.py $1 -o $WSDIR -c $2/configuration.yml $3 $ee
@@ -98,6 +107,22 @@ function makelim() {
 	-o $OUTDIR/$2/exclusion_best.pdf
     echo done limits for $2
 }
+function makews_updown() {
+    # first arg: yaml fit input file
+    # second arg: subdir of OUTDIR where outputs go
+    if ! check_for_files $2 ; then return $?; fi
+    local WSDIR=$2/workspaces
+    if ! matches_in $WSDIR '*1sigma*'
+	then
+	for dr in --down --up
+	do
+	    echo making ${dr#--} limits for $2
+	    susy-fit-workspace.py $1 -o $WSDIR -c $2/configuration.yml \
+		$ee $dr
+	done
+    fi
+}
+
 function makebg() {
     if ! check_for_files $2 ; then return $?; fi
     echo making bg fit for $2
@@ -156,6 +181,7 @@ fi
 DEFREGIONS=signal_mct150,cr_w,cr_z,cr_t
 BGREGIONS=cr_w,cr_z,cr_t
 VREGIONS=vr_mct,vr_mcc
+if ! makews_updown $input full_exclusion ; then exit 1 ; fi
 if ! makelim $input full_exclusion -f ; then exit 1 ; fi
 if ! makepars full_exclusion $BGREGIONS bg_fit ; then exit 1 ; fi
 if ! makepars full_exclusion $DEFREGIONS 400_200 400-200 ; then exit 1 ; fi
