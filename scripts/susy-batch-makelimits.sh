@@ -71,6 +71,10 @@ function check_for_files() {
 }
 
 function matches_in() {
+    if [[ ! -d $1 ]]
+	then
+	return 1
+    fi
     local NWS=$(find $1 -type f -name $2 | wc -w)
     if (( $NWS > 0 ))
 	then
@@ -184,6 +188,7 @@ VREGIONS=vr_mct,vr_mcc
 if ! makews_updown $input full_exclusion ; then exit 1 ; fi
 if ! makelim $input full_exclusion -f ; then exit 1 ; fi
 if ! makepars full_exclusion $BGREGIONS bg_fit ; then exit 1 ; fi
+if ! makepars full_exclusion $DEFREGIONS srcr srcr ; then exit 1 ; fi
 if ! makepars full_exclusion $DEFREGIONS 400_200 400-200 ; then exit 1 ; fi
 if ! makepars full_exclusion $DEFREGIONS 550_50 550-50 ; then exit 1 ; fi
 if ! makepars full_exclusion $DEFREGIONS 250_50 250-50 ; then exit 1 ; fi
