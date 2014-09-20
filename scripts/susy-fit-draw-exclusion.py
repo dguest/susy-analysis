@@ -46,7 +46,11 @@ def _load_subset(cls_file, subset):
         keys = ', '.join(cls_dict.keys())
         raise ValueError('{} not in {}'.format(err.args[0], keys))
 
+# __________________________________________________________________________
+# single exclusion plane
+
 def _make_exclusion_plane(args):
+    """show exclusion plane for one config"""
     cls_dict = _load_subset(args.cls_file, args.regions)
 
     ex_plane = planeplt.CLsExclusionPlane()
@@ -69,6 +73,29 @@ def _make_exclusion_plane(args):
 
     ex_plane.save(args.output_plot)
 
+# ___________________________________________________________________________
+# "best" exclusion
+
+class Point:
+    """minimal class to hold point info"""
+    def __init__(self, sp, config_name):
+        self.ms, self.ml = sp['scharm_mass'], sp['lsp_mass']
+        self.low, self.high = sp['exp_d1s'], sp['exp_u1s']
+        self.expt = sp['exp']
+        self.obs = sp['obs']
+        self.obs_high = sp.get('obs_u1s', self.obs)
+        self.obs_low = sp.get('obs_d1s', self.obs)
+        self.config_name = config_name
+
+    def cfg_tup(self):
+        return self.ms, self.ml, self.expt, self.config_name
+
+    def lowhigh_tup(self):
+        return self.ms, self.ml, self.low, self.high
+
+    def xy(self):
+        return self.ms, self.ml
+
 def _max_exclusion_plane(args, show_regions=False):
     """
     Exclusion plane using the "best" region for each point. With show_regions
@@ -78,26 +105,33 @@ def _max_exclusion_plane(args, show_regions=False):
 
     ex_plane = planeplt.CLsExclusionPlane()
     ex_plane.lw = 1.5
-    point_dict = {}
-    for conf_name, cls_list in sorted(cls_dict.items()):
-        for sp in cls_list:
-            sch, lsp = sp['scharm_mass'], sp['lsp_mass']
-            low, high = sp['exp_d1s'], sp['exp_u1s']
-            expt = sp['exp']
-            if not (sch, lsp) in point_dict or point_dict[sch, lsp][0] > expt:
-                point_dict[sch, lsp] = (expt, low, high, conf_name)
+    pdict = _get_max_expected_points(cls_dict)
 
     if show_regions:
-        cls_list = [ (x[0], x[1], y[0], y[3]) for x,y in point_dict.items()]
+        cls_list = [ x.cfg_tup() for x in pdict.values()]
     else:
-        cls_list = [ (x[0], x[1], y[0]) for x,y in point_dict.items()]
-    ex_plane.add_config(cls_list, 'best expected', '-k')
+        cls_list = [ x.cfg_tup()[:3] for x in pdict.values()]
+        ex_plane.add_labels()
+    ex_plane.add_observed(pdict.values())
+    ex_plane.add_config(cls_list, 'expected', '-darkblue')
 
-    band_list = [ (x[0], x[1], y[1], y[2]) for x,y in point_dict.items()]
+    band_list = [ x.lowhigh_tup() for x in pdict.values()]
     ex_plane.add_band(band_list)
 
     ex_plane.save(args.output_plot)
 
+def _get_max_expected_points(cls_dict):
+    """helper for _max_exclusion_plane"""
+    pdict = {}
+    for conf_name, cls_list in sorted(cls_dict.items()):
+        for sp in cls_list:
+            pt = Point(sp, conf_name)
+            if pt.xy() not in pdict or pdict[pt.xy()].expt > pt.expt:
+                pdict[pt.xy()] = pt
+    return pdict
+
+# ____________________________________________________________________________
+# overlay multiple exclusions
 
 def _multi_exclusion_plane(args):
     cls_dict = _load_subset(args.cls_file, args.regions)

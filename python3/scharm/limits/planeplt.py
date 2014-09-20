@@ -16,12 +16,12 @@ from scharm.limits import limitsty
 class CLsExclusionPlane:
     """Scharm to Charm exclusion plane"""
     # plot limits
-    xlim = (100.0, 600.0)
-    ylim = (0.0,   400.0)
+    xlim = (0.0, 600.0)
+    ylim = (0.0, 500.0)
 
     # limits on internal interpolated grid
-    low_x = 80
-    low_y = 0
+    low_x = 0
+    low_y = -25
 
     # physical constants relating to the kinematic bounds
     _w_mass = 80.385
@@ -57,14 +57,33 @@ class CLsExclusionPlane:
                 if not color in self.used_colors:
                     self.used_colors.add(color)
                     return color, 'solid'
-
-        line_style = 'dashed' if '-' in style_string else 'solid'
-        the_color = style_string.replace('-','')
+        line_style = 'solid'
+        if '-' in style_string:
+            line_style = 'dashed'
+        elif ':' in style_string:
+            line_style = 'dotted'
+        the_color = style_string.translate({ord(x):None for x in '-:'})
         self.used_colors.add(the_color)
         return the_color, line_style
 
+    def add_observed(self, points):
+        """
+        Expects a list of `Point`s.
+        """
+        low = []
+        med = []
+        high = []
+        for pt in points:
+            low.append( (pt.ms, pt.ml, pt.obs_low) )
+            med.append( (pt.ms, pt.ml, pt.obs) )
+            high.append( (pt.ms, pt.ml, pt.obs_high) )
+        line_opts = {'linewidths':3, 'colors': 'firebrick'}
+        self.add_config(low, style=':firebrick')
+        self.add_config(med, add_draw_opts = line_opts, label='observed')
+        self.add_config(high, style=':firebrick')
 
-    def add_config(self, stop_lsp_cls, label, style=None, heatmap=False):
+    def add_config(self, stop_lsp_cls, label=None, style=None, heatmap=False,
+                   add_draw_opts=None):
         """
         Expects a list of (mass stop, mass lsp, upper limit) tuples.
         """
@@ -78,31 +97,38 @@ class CLsExclusionPlane:
         x, y, z = slu.T
         xmin, xmax = self.low_x, max(x)
         ymin, ymax = self.low_y, max(y)
-        xpts = 100
+        xpts = 120
 
         xp, yp, zp = _get_interpolated_xyz(
             x, y, z, (xmin, xmax), (ymin, ymax), xpts)
-        zp[np.isnan(zp) & (yp > self.ylim[0])] = self._threshold*1.2
+        self._fill_in_interp(zp,xp,yp,x,y)
         extent = [xmin, xmax, ymin, ymax]
         ct_color, ct_style = self._get_style(style)
-        draw_opts = dict(color=ct_color, linewidth=self.lw,
-                         linestyle=ct_style)
+        draw_opts = dict(colors=ct_color, linewidths=self.lw,
+                         linestyles=ct_style)
+        if add_draw_opts:
+            draw_opts.update(add_draw_opts)
         ct = self.ax.contour(
-            xp, yp, zp, [self._threshold],
-            colors=ct_color, linewidths=self.lw, linestyles=ct_style )
+            xp, yp, zp, [self._threshold], zorder=2, **draw_opts)
         if heatmap:
-            self.ax.imshow(zp, extent=extent, origin='lower',
-                           # vmin=-2,vmax=2,
-                           )
-
-        self._proxy_contour.append(
-            ( Line2D((0,0),(0,1), **draw_opts), str(_fancy_label(label))))
+            self.ax.imshow(zp, extent=extent, origin='lower')
+        if label:
+            singular_opts = {x.rstrip('s'): y for x,y in draw_opts.items()}
+            proxline = Line2D((0,0),(0,1), **singular_opts)
+            self._proxy_contour.append( (proxline, _fancy_label(label)))
 
         if point_lables:
             self._add_point_labels(x, y, point_lables)
             self._labeled_points |= set(xy for xy in zip(x,y))
         else:
             self._pts |= set( xy for xy in zip(x,y))
+
+    def _fill_in_interp(self, zp, xp, yp, x, y):
+        zp[np.isnan(zp) & (yp > self.ylim[0])] = self._threshold*1.2
+        # fill in low values if we have stop points
+        if np.any(x - y < self._w_mass / 20):
+            zp[(yp < xp) & (xp < min(x))] = self._threshold * 0.8
+            zp[(yp > xp) & (xp < min(x))] = self._threshold * 1.2
 
     def _add_point_labels(self, x, y, point_lables):
         xy = {l: [] for l in point_lables}
@@ -113,7 +139,7 @@ class CLsExclusionPlane:
             inpts = (x > self.low_x) & (y > self.low_y)
             pts, = self.ax.plot(
                 x[inpts], y[inpts], '.', label=lab,
-                color=color, markersize=20)
+                color=color, markersize=20, zorder=1)
             self._proxy_contour.append((pts, _fancy_label(lab)))
 
     def add_band(self, stop_lsp_low_high, color=None):
@@ -145,23 +171,23 @@ class CLsExclusionPlane:
 
         ct = self.ax.contourf(
             xp, yp, zp, [-1, 0],
-            colors=[color])
+            colors=[color], zorder=0)
         # self.ax.imshow(lowp, extent=extent, origin='lower',
         #                vmin=-0.3,vmax=2)
         self._pts |= set( xy for xy in zip(x,y))
 
-    def add_labels(self):
-        self.ax.text(0.7, 0.3,
-                     '$\sqrt{s}\ =\ 8\ \mathrm{TeV}$',
-                     transform=self.ax.transAxes, size=24)
-        self.ax.text(0.6, 0.2,
-                     '$\int\ \mathcal{L}\ dt\ =\ 20.3\ \mathrm{fb}^{-1}$',
-                     transform=self.ax.transAxes, size=24)
-        self.ax.text(0.7, 0.05, 'ATLAS', style='italic', weight='bold',
+    def add_labels(self, y=0.28):
+        self.ax.text(0.2, 1-y, 'ATLAS', weight='bold', style='italic',
                      horizontalalignment='right',
                      transform=self.ax.transAxes, size=24)
-        self.ax.text(0.7, 0.05, ' INTERNAL', style='italic',
+        self.ax.text(0.2, 1-y, ' Preliminary', #style='italic',
                      horizontalalignment='left',
+                     transform=self.ax.transAxes, size=24)
+        self.ax.text(0.05, 0.9 - y,
+                     '$\int\ \mathcal{L}\ dt\ =\ 20.3\ \mathrm{fb}^{-1}$',
+                     transform=self.ax.transAxes, size=24)
+        self.ax.text(0.05, 0.8 - y,
+                     '$\sqrt{s}\ =\ 8\ \mathrm{TeV}$',
                      transform=self.ax.transAxes, size=24)
 
     def _add_kinematic_bounds(self):
@@ -185,7 +211,7 @@ class CLsExclusionPlane:
         pd = p1 - p0
         slope_deg = math.degrees(math.atan2(pd[1], pd[0]))
 
-        px, py = 200, 212
+        px, py = 250, 264
         text_style = dict(
             ha='left', va='bottom', rotation=slope_deg,
             color=(0,0,0,self._kinbound_alpha))
@@ -206,7 +232,7 @@ class CLsExclusionPlane:
             return
         x, y = np.array(list(unlab)).T
         inpts = (x > self.low_x) & (y > self.low_y)
-        self._pts, = self.ax.plot(x[inpts],y[inpts],'.k')
+        self._pts, = self.ax.plot(x[inpts],y[inpts],'.k', zorder=3)
         self._proxy_contour.insert(0,(self._pts, 'signal points'))
 
     def save(self, name):

@@ -124,9 +124,11 @@ reg_names = {
 # configurations
 
 config_names = {
-    'mct150': r'$m_{\rm CT} > 150$',
-    'mct200': r'$m_{\rm CT} > 200$',
-    'mct250': r'$m_{\rm CT} > 250$',
+    'mct150': r'$m_{\sf CT} > 150$',
+    'mct200': r'$m_{\sf CT} > 200$',
+    'mct250': r'$m_{\sf CT} > 250$',
     'C1': r'${} \to c {}$: C1'.format(stop, lsp),
     'C2': r'${} \to c {}$: C2'.format(stop, lsp),
+    'expected': r'Expected Limit ($\pm 1 \sigma^{\sf SM}_{\sf theory+exp}$)',
+    'observed': r'Observed Limit ($\pm 1 \sigma^{\sf SUSY}_{\sf theory})$'
     }
