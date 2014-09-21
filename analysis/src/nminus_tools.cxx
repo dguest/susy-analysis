@@ -86,6 +86,11 @@ namespace {
       sel.insert({jantiu(jn), {antiu, INFINITY, miss} });
     }
   }
+
+  // ACHTUNG:
+  // These should be merged into the Selection classes.
+  // Migration shouldn't be terribly difficult, the only added dependency
+  // in the classes is Window.
   void add_1l_cuts(std::map<std::string, Window>& sel) {
     using namespace cr1l;
     sel.insert(
@@ -119,6 +124,14 @@ namespace {
     sel.insert( {
 	{MET_EFF, {MET_EFF_MIN, INFINITY} },
 	{DPHI, {MIN_DPHI_JET_MET, INFINITY} },
+	{MCC, {-INFINITY, vr::VR_MCC_MAX} },
+	  });
+  }
+  void add_vr_mct_cuts(std::map<std::string, Window>& sel) {
+    sel.insert( {
+	{MET_EFF, {MET_EFF_MIN, INFINITY} },
+	{DPHI, {MIN_DPHI_JET_MET, INFINITY} },
+	{MCT, {-INFINITY, vr::VR_MCT_MAX} },
 	  });
   }
   void add_presel_cuts(std::map<std::string, Window>& sel) {
@@ -142,37 +155,19 @@ namespace nminus {
   {
     auto sel = get_common_selection(cfg);
     switch (cfg.selection) {
-    case reg::Selection::VR_MCT: // fallthrough
-    case reg::Selection::SIGNAL: {
-      add_sr_cuts(sel);
-      return sel;
-    }
+    case reg::Selection::SIGNAL: { add_sr_cuts(sel); return sel; }
       // control / validation regions
     case reg::Selection::CR_1E:	// fallthrough
     case reg::Selection::CR_1M:	// fallthrough
-    case reg::Selection::CR_W: {
-      add_1l_cuts(sel);
-      return sel;
-    }
+    case reg::Selection::CR_W: { add_1l_cuts(sel); return sel; }
     case reg::Selection::CR_Z_1L: // fallthrough
     case reg::Selection::CR_Z_2L: // fallthrough
-    case reg::Selection::CR_Z_AL: {
-      add_sf_cuts(sel);
-      return sel;
-    }
-    case reg::Selection::CR_T: {
-      add_df_cuts(sel);
-      return sel;
-    }
+    case reg::Selection::CR_Z_AL: { add_sf_cuts(sel); return sel; }
+    case reg::Selection::CR_T: { add_df_cuts(sel); return sel; }
     case reg::Selection::VR_MET: // fallthrough
-    case reg::Selection::QUALITY_EVENT: {
-      add_presel_cuts(sel);
-      return sel;
-    }
-    case reg::Selection::VR_MCC: {
-      add_vr_mcc_cuts(sel);
-      return sel;
-    }
+    case reg::Selection::QUALITY_EVENT: { add_presel_cuts(sel); return sel; }
+    case reg::Selection::VR_MCT: { add_vr_mct_cuts(sel); return sel; }
+    case reg::Selection::VR_MCC: { add_vr_mcc_cuts(sel); return sel; }
 
     default: throw std::invalid_argument("unknown selection in " __FILE__);
     }

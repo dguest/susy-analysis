@@ -33,9 +33,8 @@ namespace cr1l {
 }
 
 namespace vr {
-  // these are blinding cuts
-  // const float VR_MCT_MAX = 150_GeV;
-  // const float VR_MCC_MAX = 200_GeV;
+  const float VR_MCT_MAX = 150_GeV;
+  const float VR_MCC_MAX = 200_GeV;
 
   // this is just to keep people from asking about low met events
   const float VR_MET_MIN = 150_GeV;
