@@ -109,12 +109,17 @@ def _signal_regions_and_points_iterator(yields_dict):
 def _add_signal_isr(yields_dict):
     """Add an isr systematic (taken from sbottom) to the signal points"""
 
-    # pulled from sbottom
+    ## pulled from sbottom, in general we were only using the high dm value
+    # dm_vs_isr_syst = [
+    #     (0, 0.287),
+    #     (10, 0.076),
+    #     (30, 0.079),
+    #     (50, 0.112),
+    #     ]
+
+    ## derived for scharm (only one systematic for all points)
     dm_vs_isr_syst = [
-        (0, 0.287),
-        (10, 0.076),
-        (30, 0.079),
-        (50, 0.112),
+        (0, 0.107),
         ]
 
     dm_vals, ret_vals = zip(*dm_vs_isr_syst)
