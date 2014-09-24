@@ -92,7 +92,7 @@ function makelim() {
     if ! matches_in $WSDIR '*nominal*'
 	then
 	echo making limits for $2
-	local fitargs=-o $WSDIR -c $2/configuration.yml $3 $ee
+	local fitargs="-o $WSDIR -c $2/configuration.yml $3 $ee"
 	if ! susy-fit-workspace.py $1 $fitargs; then return 2; fi
     fi
     mkdir -p $OUTDIR/$2
