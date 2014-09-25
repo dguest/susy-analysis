@@ -83,6 +83,10 @@ function matches_in() {
     return 1
 }
 
+function check() {
+    if ! eval $@ ; then exit 1 ; fi
+}
+
 function makelim() {
     # first arg: yaml fit input file
     # second arg: subdir of OUTDIR where outputs go
@@ -233,7 +237,7 @@ BGREGIONS=cr_w,cr_z,cr_t
 VREGIONS=vr_mct,vr_mcc
 if ! makews_updown $input full_exclusion ; then exit 1 ; fi
 if ! makelim $input full_exclusion -f ; then exit 1 ; fi
-drawlim full_exclusion
+if ! drawlim full_exclusion ; then exit 1; fi
 if ! makepars full_exclusion $BGREGIONS bg_fit ; then exit 1 ; fi
 if ! makepars full_exclusion $DEFREGIONS srcr srcr ; then exit 1 ; fi
 if ! makepars full_exclusion $DEFREGIONS 400_200 400-200 ; then exit 1 ; fi
@@ -255,9 +259,9 @@ if ! makepars compare_crw $VREGIONS vr_fit ; then exit 1 ; fi
 if ! makepars compare_crw $BGREGIONS bg_fit ; then exit 1 ; fi
 
 # other fit checks
-if ! makelim $input other_fits -f ; then exit 1; fi
-if ! drawlimsubset other_fits single_t normal st_with_other ; then exit 1 ; fi
-if ! drawlimsubset other_fits jes normal jes_breakdown ; then exit 1 ; fi
+check makelim $input other_fits -f
+check drawlimsubset other_fits single_t.pdf normal st_with_other
+check drawlimsubset other_fits jes.pdf normal jes_breakdown
 if ! makepars other_fits $DEFREGIONS bg_fit ; then exit 1; fi
 if ! makepars other_fits $DEFREGIONS 400_200 400-200 ; then exit 1; fi
 
