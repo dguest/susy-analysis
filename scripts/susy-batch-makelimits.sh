@@ -110,6 +110,10 @@ function makelim() {
 }
 function drawlim() {
     local CLSFILE=$OUTDIR/$1/cls.yml
+    if [[ ! -f $CLSFILE ]]; then
+	echo no $CLSFILE >&2
+	return 1
+    fi
     local OVL=$OUTDIR/$1/exclusion_overlay.pdf
     local BST=$OUTDIR/$1/exclusion_best.pdf
     if [[ ! -f $OVL ]] ; then
@@ -154,6 +158,9 @@ function makews_updown() {
 
 function makebg() {
     if ! check_for_files $2 ; then return $?; fi
+    if matches_in $2/workspaces "background*afterFit.root"; then
+	return 0
+    fi
     echo making bg fit for $2
     susy-fit-workspace.py $1 -o $2/workspaces -c $2/configuration.yml -fb $ee
     echo done bg fit for $2
@@ -176,7 +183,14 @@ function makepars() {
     fi
 
     local WSTAIL=afterFit.root
-    for fit in $1/workspaces/**/*${WSHEAD}*_${WSTAIL}
+    local WSMATCH="*${WSHEAD}*_${WSTAIL}"
+    if ! matches_in $1/workspaces $WSMATCH
+	then
+	echo "no matches to $WSMATCH $1/workspaces"
+	return 1
+    fi
+
+    for fit in $1/workspaces/**/$WSMATCH
     do
 	local odir=$OUTDIR/$1/$(dirname ${fit#*/workspaces/})
 	if [[ $2 ]] ; then regs='-r '$2 ; fi
@@ -229,19 +243,19 @@ if ! makepars full_exclusion $DEFREGIONS 250_50 250-50 ; then exit 1 ; fi
 
 # run systematics comparison
 if ! makelim $input compare_systematics ; then exit 1 ; fi
-drawlim compare_systematics
+if ! drawlim compare_systematics ; then exit 1; fi
 if ! makebg $input compare_systematics ; then exit 1 ; fi
 if ! makepars compare_systematics ; then exit 1 ; fi
 
 # run crw comparison
 if ! makelim $input compare_crw ; then exit 1 ; fi
-drawlim compare_crw
+if ! drawlim compare_crw ; then exit 1; fi
 if ! makebg $input compare_crw ; then exit 1 ; fi
 if ! makepars compare_crw $VREGIONS vr_fit ; then exit 1 ; fi
 if ! makepars compare_crw $BGREGIONS bg_fit ; then exit 1 ; fi
 
 # other fit checks
-if ! makelim $input other_fits ; then exit 1; fi
+if ! makelim $input other_fits -f ; then exit 1; fi
 if ! drawlimsubset other_fits single_t normal st_with_other ; then exit 1 ; fi
 if ! drawlimsubset other_fits jes normal jes_breakdown ; then exit 1 ; fi
 if ! makepars other_fits $DEFREGIONS bg_fit ; then exit 1; fi
