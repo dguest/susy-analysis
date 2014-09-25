@@ -106,12 +106,36 @@ function makelim() {
 	    cat $SC_CLSPATH >> $CLSFILE
 	fi
     fi
-    echo drawing $CLSFILE
-    susy-fit-draw-exclusion.py $CLSFILE -o $OUTDIR/$2/exclusion_overlay.pdf
-    susy-fit-draw-exclusion.py $CLSFILE --best-regions \
-	-o $OUTDIR/$2/exclusion_best.pdf
     echo done limits for $2
 }
+function drawlim() {
+    local CLSFILE=$OUTDIR/$1/cls.yml
+    local OVL=$OUTDIR/$1/exclusion_overlay.pdf
+    local BST=$OUTDIR/$1/exclusion_best.pdf
+    if [[ ! -f $OVL ]] ; then
+	echo drawing $OVL
+	susy-fit-draw-exclusion.py $CLSFILE -o $OVL
+    fi
+    if [[ ! -f $BST ]] ; then
+	echo drawing $BST
+	susy-fit-draw-exclusion.py $CLSFILE --best-regions -o $BST
+    fi
+}
+function drawlimsubset() {
+    # first arg: dir with cls
+    # second arg: out file name (put in dir with cls)
+    # all remaining: regions to draw
+    local CLSFILE=$OUTDIR/$1/cls.yml
+    if [[ ! -f $CLSFILE ]] ; then
+	echo no file ${CLSFILE}! >&2
+	return 1
+    fi
+    local CONFIGS="-r ${@:3}"
+    local OUTNAME="-o $OUTDIR/$1/$2"
+    echo drawing $2 from $CLSFILE
+    susy-fit-draw-exclusion.py $CLSFILE $OUTNAME $CONFIGS
+}
+
 function makews_updown() {
     # first arg: yaml fit input file
     # second arg: subdir of OUTDIR where outputs go
@@ -154,18 +178,25 @@ function makepars() {
     local WSTAIL=afterFit.root
     for fit in $1/workspaces/**/*${WSHEAD}*_${WSTAIL}
     do
-	odir=$OUTDIR/$1/$(dirname ${fit#*/workspaces/})
+	local odir=$OUTDIR/$1/$(dirname ${fit#*/workspaces/})
 	if [[ $2 ]] ; then regs='-r '$2 ; fi
 	if [[ $3 ]]
 	then
 	    odir=$odir/$3
 	fi
-	echo "making systables in $odir"
-	mkdir -p $odir
-	susy-fit-systable.sh $fit -o $odir $regs $ee
-	pars=$odir/fit-parameters.yml
-	susy-fit-results.py $fit | tee $pars | susy-fit-draw-parameters.py \
-	    -o $odir $ee $DRAWARGS
+	if ! matches_in $odir "*.tex"
+	    then
+	    echo "making systables in $odir"
+	    mkdir -p $odir
+	    susy-fit-systable.sh $fit -o $odir $regs $ee
+	fi
+	if ! matches_in $odir "*.pdf"
+	    then
+	    echo "drawing parameters in $odir"
+	    local pars=$odir/fit-parameters.yml
+	    local draw="susy-fit-draw-parameters.py -o $odir $ee $DRAWARGS"
+	    susy-fit-results.py $fit | tee $pars | $draw
+	fi
     done
     echo done making parameters for $1
 }
@@ -188,6 +219,7 @@ BGREGIONS=cr_w,cr_z,cr_t
 VREGIONS=vr_mct,vr_mcc
 if ! makews_updown $input full_exclusion ; then exit 1 ; fi
 if ! makelim $input full_exclusion -f ; then exit 1 ; fi
+drawlim full_exclusion
 if ! makepars full_exclusion $BGREGIONS bg_fit ; then exit 1 ; fi
 if ! makepars full_exclusion $DEFREGIONS srcr srcr ; then exit 1 ; fi
 if ! makepars full_exclusion $DEFREGIONS 400_200 400-200 ; then exit 1 ; fi
@@ -197,14 +229,23 @@ if ! makepars full_exclusion $DEFREGIONS 250_50 250-50 ; then exit 1 ; fi
 
 # run systematics comparison
 if ! makelim $input compare_systematics ; then exit 1 ; fi
+drawlim compare_systematics
 if ! makebg $input compare_systematics ; then exit 1 ; fi
 if ! makepars compare_systematics ; then exit 1 ; fi
 
 # run crw comparison
 if ! makelim $input compare_crw ; then exit 1 ; fi
+drawlim compare_crw
 if ! makebg $input compare_crw ; then exit 1 ; fi
 if ! makepars compare_crw $VREGIONS vr_fit ; then exit 1 ; fi
 if ! makepars compare_crw $BGREGIONS bg_fit ; then exit 1 ; fi
+
+# other fit checks
+if ! makelim $input other_fits ; then exit 1; fi
+if ! drawlimsubset other_fits single_t normal st_with_other ; then exit 1 ; fi
+if ! drawlimsubset other_fits jes normal jes_breakdown ; then exit 1 ; fi
+if ! makepars other_fits $DEFREGIONS bg_fit ; then exit 1; fi
+if ! makepars other_fits $DEFREGIONS 400_200 400-200 ; then exit 1; fi
 
 # run validation / sr plotting stuff
 SIGREGIONS=signal_mct150,signal_mct200,signal_mct250
