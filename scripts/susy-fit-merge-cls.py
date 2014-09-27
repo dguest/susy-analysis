@@ -47,5 +47,12 @@ def run():
                 _throw_if_overwrite(points[dup],newpts[dup])
             points[dup].update(newpts[dup])
 
+    out_dict = {}
+    for (cfg, msch, mlsp), pt in points.items():
+        config = out_dict.setdefault(cfg, [])
+        config.append(pt)
+
+    sys.stdout.write(yaml.dump(out_dict))
+
 if __name__ == '__main__':
     run()
