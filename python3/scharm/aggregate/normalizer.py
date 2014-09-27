@@ -7,6 +7,8 @@ import numpy as np
 from collections import Counter
 from tempfile import TemporaryFile
 
+from scharm import datasets
+
 class Normalizer:
     """
     provide an iterator which returns h5 files with a normalizer function.
@@ -33,9 +35,9 @@ class Normalizer:
         this is slightly hackish, but does the right thing by renaming the
         physics type.
         """
-        finder = re.compile('Scharm_dir_([0-9]+)_([0-9]+)_MET([0-9]+)')
-        stop_finder = re.compile('stopToCharmLSP_t(\d+)_n(\d+)_MET(\d+)')
-        stop_finder2 = re.compile('directCC_(\d+)_(\d+)')
+        finder = re.compile(datasets.scharm_re)
+        stop_finder = re.compile(datasets.stop_re)
+        stop_finder2 = re.compile(datasets.stop2_re)
         for finder in [finder, stop_finder, stop_finder2]:
             try:
                 found = finder.search(ds).group
