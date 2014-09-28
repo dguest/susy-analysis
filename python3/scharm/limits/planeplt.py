@@ -126,6 +126,7 @@ class CLsExclusionPlane:
                 self.ax.text(pt.ms, pt.ml, xstr, **self.ultxt)
         if not self._ax2:
             self._ax2 = self.ax.twinx()
+            self._ax2.set_ylim(*self.ax.get_ylim())
             self._ax2.tick_params(**self.major_pars)
             self._ax2.minorticks_on()
             self._ax2.tick_params(which='minor', **self.minor_pars)
@@ -272,18 +273,19 @@ class CLsExclusionPlane:
         pd = p1 - p0
         slope_deg = math.degrees(math.atan2(pd[1], pd[0]))
 
-        px, py = 250, 264
+        xpos = 250
+        px, py = xpos, xpos + 16
         text_style = dict(
             ha='left', va='bottom', rotation=slope_deg,
             color=(0,0,0,self._kinbound_alpha))
         upper_text = (
-            r'$\Delta m \equiv m_{{ {} }} - m_{{ {} }} <'
-            r' 0$ (forbidden)').format(self.scharm, self.lsp)
+            r'$m_{{ {c} }} < m_{{ {l} }}$'
+            r' (${c} \to c{l}$ forbidden)').format(c=self.scharm, l=self.lsp)
         self.ax.text(px, py, upper_text, **text_style)
         if self._kinbounds == 'both' or self._kinbounds == True:
             lower_text = (
-                r'$\Delta m < m_W + m_c$ '
-                r'(${} \to c + {}$)').format(self.stop, self.lsp)
+                r'$m_{{ {c} }} < m_{{ {l} }} + m_W + m_c$ (${s} \to c {l}$)'
+                ).format(s=self.stop, l=self.lsp, c=self.scharm)
             self.ax.text(px + self._w_mass, py, lower_text , **text_style)
 
     def _add_signal_points(self):

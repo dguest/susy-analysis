@@ -114,7 +114,7 @@ def _max_exclusion_plane(args, show_regions=False, clean=False, ul=False):
     plane_opts = dict(
         grid = not clean and not ul,
         show_points = not clean and not ul,
-        kinematic_bounds = 'upper' if ul else 'both')
+        kinematic_bounds = 'both')
 
     ex_plane = planeplt.CLsExclusionPlane(**plane_opts)
     ex_plane.lw = 1.5
