@@ -146,9 +146,11 @@ function drawlimsubset() {
 	return 1
     fi
     local CONFIGS="-r ${@:3}"
-    local OUTNAME="-o $OUTDIR/$1/$2"
-    echo drawing $2 from $CLSFILE
-    susy-fit-draw-exclusion.py $CLSFILE $OUTNAME $CONFIGS
+    local OUTNAME=$OUTDIR/$1/$2
+    if [[ ! -f $OUTNAME ]] ; then
+	echo drawing $2 from $CLSFILE
+	susy-fit-draw-exclusion.py $CLSFILE -o $OUTNAME $CONFIGS
+    fi
 }
 
 function makews_updown() {
