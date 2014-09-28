@@ -111,9 +111,12 @@ def _max_exclusion_plane(args, show_regions=False, clean=False, ul=False):
     """
     cls_dict = _load_subset(args.cls_file, args.regions)
 
-    grid = not clean
-    do_pt = not clean and not ul
-    ex_plane = planeplt.CLsExclusionPlane(grid=grid, show_points=do_pt)
+    plane_opts = dict(
+        grid = not clean and not ul,
+        show_points = not clean and not ul,
+        kinematic_bounds = 'upper' if ul else 'both')
+
+    ex_plane = planeplt.CLsExclusionPlane(**plane_opts)
     ex_plane.lw = 1.5
     pdict = _get_max_expected_points(cls_dict)
 

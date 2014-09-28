@@ -44,26 +44,42 @@ class CLsExclusionPlane:
     legend_properties = dict(
         fontsize='x-large', loc='upper left', framealpha=0.0, numpoints=1)
 
+    # ticks
+    major_pars = dict(labelsize=16, length=10)
+    minor_pars = dict(length=5)
+
+    # special strings
+    right_side_ul_info = 'Numbers give 95% CLs excluded cross section [fb]'
+
     def __init__(self, threshold=0.05, **argv):
         width = 9.0
         height = width*argv.get('aspect_ratio',8.0/width)
         self.figure = Figure(figsize=(width,height))
         self.canvas = FigCanvas(self.figure)
         self.ax = self.figure.add_subplot(1,1,1)
+
         self.ax.grid(argv.get('grid', True))
-        self.ax.tick_params(labelsize=16)
+        self.ax.tick_params(**self.major_pars)
+        self.ax.minorticks_on()
+        self.ax.tick_params(which='minor', **self.minor_pars)
         self.ax.set_ylabel(r'$m_{{ {} }}$ [GeV]'.format(self.lsp), **vdict)
         self.ax.set_xlabel(r'$m_{{ {} }}$ [GeV]'.format(self.scharm), **hdict)
+
         self.colors = list('rgbmc') + ['orange']
         self.ultxt = dict(fontsize=10, ha='center', va='bottom', color='grey')
         self.used_colors = set()
-        self._proxy_contour = []
+
         self.lw = 3
+        self.approved = False
+
+        self._proxy_contour = []
         self._pts = set()
         self._labeled_points = set()
         self._threshold = threshold
         self._finalized = False
         self._drawpoints = argv.get('show_points', True)
+        self._kinbounds = argv.get('kinematic_bounds', True)
+        self._ax2 = None        # just for an added label
 
     def _get_style(self, style_string=''):
         if not style_string:
@@ -108,6 +124,14 @@ class CLsExclusionPlane:
                     continue
                 xstr = '{:.0f}'.format(pt.ul * pt.xsec)
                 self.ax.text(pt.ms, pt.ml, xstr, **self.ultxt)
+        if not self._ax2:
+            self._ax2 = self.ax.twinx()
+            self._ax2.tick_params(**self.major_pars)
+            self._ax2.minorticks_on()
+            self._ax2.tick_params(which='minor', **self.minor_pars)
+            self._ax2.yaxis.set_ticklabels([])
+            self._ax2.yaxis.set_label_position('right')
+            self._ax2.set_ylabel(self.right_side_ul_info)
 
     def add_config(self, stop_lsp_cls, label=None, style=None, heatmap=False,
                    add_draw_opts=None):
@@ -212,12 +236,13 @@ class CLsExclusionPlane:
             self._proxy_contour.append((Patch(color=color, zorder=0), label))
 
     def add_labels(self, y=0.28):
-        self.ax.text(0.2, 1-y, 'ATLAS', weight='bold', style='italic',
-                     horizontalalignment='right',
-                     transform=self.ax.transAxes, size=24)
-        self.ax.text(0.2, 1-y, ' Internal', #style='italic',
-                     horizontalalignment='left',
-                     transform=self.ax.transAxes, size=24)
+        if self.approved:
+            self.ax.text(0.2, 1-y, 'ATLAS', weight='bold', style='italic',
+                         horizontalalignment='right',
+                         transform=self.ax.transAxes, size=24)
+            self.ax.text(0.2, 1-y, ' Preliminary',
+                         horizontalalignment='left',
+                         transform=self.ax.transAxes, size=24)
         self.ax.text(0.05, 0.9 - y,
                      '$\int\ \mathcal{L}\ dt\ =\ {\sf 20.3\ fb}^{-1}$',
                      transform=self.ax.transAxes, size=24)
@@ -236,7 +261,8 @@ class CLsExclusionPlane:
         y_pts_f = x_pts
         y_pts_w = x_pts - self._w_mass
         self.ax.plot(x_pts, y_pts_f, **bound_style)
-        self.ax.plot(x_pts, y_pts_w, **bound_style)
+        if self._kinbounds == 'both' or self._kinbounds == True:
+            self.ax.plot(x_pts, y_pts_w, **bound_style)
 
     def _add_kinbound_text(self):
         """adds text on the kinematic bounds"""
@@ -254,10 +280,11 @@ class CLsExclusionPlane:
             r'$\Delta m \equiv m_{{ {} }} - m_{{ {} }} <'
             r' 0$ (forbidden)').format(self.scharm, self.lsp)
         self.ax.text(px, py, upper_text, **text_style)
-        lower_text = (
-            r'$\Delta m < m_W + m_c$ '
-            r'(${} \to c + {}$)').format(self.stop, self.lsp)
-        self.ax.text(px + self._w_mass, py, lower_text , **text_style)
+        if self._kinbounds == 'both' or self._kinbounds == True:
+            lower_text = (
+                r'$\Delta m < m_W + m_c$ '
+                r'(${} \to c + {}$)').format(self.stop, self.lsp)
+            self.ax.text(px + self._w_mass, py, lower_text , **text_style)
 
     def _add_signal_points(self):
         """Add unlabeled signal points"""
@@ -275,7 +302,8 @@ class CLsExclusionPlane:
             return
         if self._drawpoints:
             self._add_signal_points()
-        self._add_kinematic_bounds()
+        if self._kinbounds:
+            self._add_kinematic_bounds()
         self.ax.set_ylim(*self.ylim)
         self.ax.set_xlim(*self.xlim)
         self._add_kinbound_text()
