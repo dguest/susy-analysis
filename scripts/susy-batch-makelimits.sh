@@ -226,6 +226,34 @@ function make_upper_limits() {
     done
 }
 
+function make_model_independent_ul () {
+    # first arg: directory containing workspaces
+    local DISCWS=discovery_nominal.root
+    local WS_DIR=$1/workspaces
+    if ! matches_in $WS_DIR $DISCWS; then
+	echo "no discovery workspaces found in $WS_DIR" >&2
+	exit 1
+    fi
+    local UL_DIR=$OUTDIR/$1/upper_limits
+    mkdir -p $UL_DIR
+
+    local SHIT=pile-o-shit
+    mkdir -p $SHIT
+    (
+	if cd $SHIT ; then
+	    rm *
+	else
+	    exit 1
+	fi
+	local WS=$(find ../$WS_DIR -name $DISCWS)
+	echo "making ul table"
+	UpperLimitTable.py $WS -o ultab.tex >| bullshit.log 2>&1
+	local BULLSHIT=$(wc -l bullshit.log | cut -d ' ' -f 1)
+	echo "made ul table with $BULLSHIT lines of bullshit"
+    )
+    cp $SHIT/ultab.tex $UL_DIR/model_independent_limit.tex
+}
+
 function makepars() {
     # parameters:
     # 1: directory containing workspaces (also used to name output)
@@ -309,6 +337,7 @@ check makepars full_exclusion $DEFREGIONS 250_50 250-50
 if [[ $DO_UL ]]
 then
     check make_upper_limits full_exclusion
+    check make_model_independent_ul full_exclusion
 fi
 
 # run systematics comparison
