@@ -55,6 +55,7 @@ class CLsExclusionPlane:
         self.ax.set_ylabel(r'$m_{{ {} }}$ [GeV]'.format(self.lsp), **vdict)
         self.ax.set_xlabel(r'$m_{{ {} }}$ [GeV]'.format(self.scharm), **hdict)
         self.colors = list('rgbmc') + ['orange']
+        self.ultxt = dict(fontsize=10, ha='center', va='bottom', color='grey')
         self.used_colors = set()
         self._proxy_contour = []
         self.lw = 3
@@ -97,6 +98,16 @@ class CLsExclusionPlane:
         self.add_config(med, add_draw_opts = line_opts, label=label)
         self.add_config(high, style=':firebrick')
         self._proxy_contour.append((Patch(**patch_opts), label))
+
+    def add_upper_limits(self, points):
+        xlow, xhigh = self.xlim
+        for pt in points:
+            if pt.ul and pt.xsec:
+                is_low_dm = pt.ml + self._w_mass > pt.ms
+                if not (xlow < pt.ms < xhigh) or is_low_dm:
+                    continue
+                xstr = '{:.0f}'.format(pt.ul * pt.xsec)
+                self.ax.text(pt.ms, pt.ml, xstr, **self.ultxt)
 
     def add_config(self, stop_lsp_cls, label=None, style=None, heatmap=False,
                    add_draw_opts=None):
@@ -204,7 +215,7 @@ class CLsExclusionPlane:
         self.ax.text(0.2, 1-y, 'ATLAS', weight='bold', style='italic',
                      horizontalalignment='right',
                      transform=self.ax.transAxes, size=24)
-        self.ax.text(0.2, 1-y, ' Preliminary', #style='italic',
+        self.ax.text(0.2, 1-y, ' Internal', #style='italic',
                      horizontalalignment='left',
                      transform=self.ax.transAxes, size=24)
         self.ax.text(0.05, 0.9 - y,

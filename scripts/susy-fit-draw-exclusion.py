@@ -5,6 +5,7 @@ Top level for routines to draw excluded contour.
 _best_help = 'use best cls value from all regions'
 _regions_help = 'only plot a subset of regions'
 _clean_help = 'suppress signal points and grid'
+_ul_help = 'show upper limits'
 import argparse, sys
 from scharm.limits import planeplt
 import yaml
@@ -23,10 +24,11 @@ def run():
     dowhat.add_argument('--heatmap', action='store_true')
     dowhat.add_argument('--noband', action='store_true')
     dowhat.add_argument('--clean', action='store_true', help=_clean_help)
+    dowhat.add_argument('--ul', action='store_true', help=_ul_help)
     args = parser.parse_args(sys.argv[1:])
-    if any([args.best, args.best_regions, args.clean]):
+    if any([args.best, args.best_regions, args.clean, args.ul]):
         _max_exclusion_plane(args, show_regions=args.best_regions,
-                             clean=args.clean)
+                             clean=args.clean, ul=args.ul)
     elif args.band_region:
         _make_exclusion_plane(args)
     else:
@@ -88,6 +90,9 @@ class Point:
         self.obs = sp['obs']
         self.obs_high = sp.get('obs_u1s', self.obs)
         self.obs_low = sp.get('obs_d1s', self.obs)
+        self.xsec = sp.get('xsec')
+        ul = sp.get('ul')
+        self.ul = None if ul == -1 else ul
         self.config_name = config_name
 
     def cfg_tup(self):
@@ -99,15 +104,16 @@ class Point:
     def xy(self):
         return self.ms, self.ml
 
-def _max_exclusion_plane(args, show_regions=False, clean=False):
+def _max_exclusion_plane(args, show_regions=False, clean=False, ul=False):
     """
     Exclusion plane using the "best" region for each point. With show_regions
     will show what region that is.
     """
     cls_dict = _load_subset(args.cls_file, args.regions)
 
-    clutter = not clean
-    ex_plane = planeplt.CLsExclusionPlane(grid=clutter, show_points=clutter)
+    grid = not clean
+    do_pt = not clean and not ul
+    ex_plane = planeplt.CLsExclusionPlane(grid=grid, show_points=do_pt)
     ex_plane.lw = 1.5
     pdict = _get_max_expected_points(cls_dict)
 
@@ -122,6 +128,8 @@ def _max_exclusion_plane(args, show_regions=False, clean=False):
 
     ex_plane.add_observed(pdict.values())
     ex_plane.add_config(cls_list, 'expected', '-darkblue')
+    if ul:
+        ex_plane.add_upper_limits(pdict.values())
 
     ex_plane.save(args.output_plot)
 
