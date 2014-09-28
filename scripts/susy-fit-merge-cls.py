@@ -29,6 +29,8 @@ def _flattify(cls_dict):
     return cls_flat
 
 def _throw_if_overwrite(point, newpt):
+    if None in [point, newpt]:
+        return
     dup_pars = set(point) & set(newpt)
     bad_dup = dup_pars - set(['scharm_mass', 'lsp_mass'])
     if bad_dup:
@@ -41,11 +43,10 @@ def run():
         points = _flattify(yaml.load(yml))
 
     for newpts in _file_iter(args.cls_files[1:]):
-        dup_pts = set(points) & set(newpts)
-        for dup in dup_pts:
+        for ptkey, newpt in newpts.items():
             if args.noover:
-                _throw_if_overwrite(points[dup],newpts[dup])
-            points[dup].update(newpts[dup])
+                _throw_if_overwrite(points.get(ptkey),newpt)
+            points.setdefault(ptkey,{}).update(newpt)
 
     out_dict = {}
     for (cfg, msch, mlsp), pt in points.items():
