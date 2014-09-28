@@ -4,11 +4,12 @@
 # usage and parsing
 
 usage() {
-    echo "${0##*/} [-ht] [-o <output_dir>] <fit inputs>" >&2
+    echo "${0##*/} [-thlz] [-o <output_dir>] <fit inputs>" >&2
 }
 
 OUTDIR=fit_figs_and_tables
 SC_CLSFILE=stop-to-charm-cls.yml
+DATASET_META=dataset-meta.yml # need this to get the cross sections
 
 doc() {
     usage
@@ -18,6 +19,7 @@ Wrapper to run fit limits.
 
 Options:
  -o <out_dir>  set output dir, default $OUTDIR
+ -l            also run upper limits (slow)
  -t            run test
  -h, --help    print help
  -z            tar and zip when finished
@@ -32,6 +34,7 @@ do
 	-o) shift; OUTDIR=$1; shift;;
 	-t) ee=-h; shift;;
 	-z) ZIP=1; shift;;
+	-l) DO_UL=1; shift;;
 	*)
 	    if [[ -n $input ]]
 		then
@@ -52,8 +55,8 @@ then
     exit 1
 fi
 
-# __________________________________________________________________________
-# define the main functions used
+# ____________________________________________________________________________
+# common utility functions (mostly checking for files)
 
 function check_for_files() {
     if [[ ! -d $1 ]]
@@ -71,6 +74,7 @@ function check_for_files() {
 }
 
 function matches_in() {
+    # takes a directory, followed by a pattern
     if [[ ! -d $1 ]]
 	then
 	return 1
@@ -86,6 +90,9 @@ function matches_in() {
 function check() {
     if ! eval $@ ; then exit 1 ; fi
 }
+
+# __________________________________________________________________________
+# define the main functions used
 
 function makelim() {
     # first arg: yaml fit input file
@@ -170,6 +177,53 @@ function makebg() {
     echo done bg fit for $2
 }
 
+function make_upper_limits() {
+    # first arg: dir where workspace and upper-limits.yml live
+    local WS_DIR=$1/workspaces
+    local UL_FILE=$1/upper-limits.yml
+    if ! matches_in $WS_DIR "*nominal.root"; then
+	echo "no pre-fit workspaces found in $WS_DIR" >&2
+	return 1
+    fi
+    if [[ ! -f $UL_FILE ]] ; then
+	echo "making $UL_FILE"
+	susy-fit-runfit.py $WS_DIR -c ul -o $UL_FILE
+    fi
+
+    local UL_OUTDIR=$OUTDIR/$1
+    mkdir -p $UL_OUTDIR
+    local CLS_FILE=$UL_OUTDIR/cls.yml
+    if [[ ! -f $CLS_FILE ]] ; then
+	echo "no $CLS_FILE found" >&2
+	return 1
+    fi
+    local COMBINED_OUT=$UL_OUTDIR/combined-ul-cls.yml
+    if [[ ! -f $COMBINED_OUT ]] ; then
+	susy-fit-add-xsec.py -i $UL_FILE $DATASET_META
+	if ! susy-fit-merge-cls.py $UL_FILE $CLS_FILE > $COMBINED_OUT; then
+	    exit 2
+	fi
+    fi
+
+    local PLOTDIR=$UL_OUTDIR/upper_limits
+    mkdir -p $PLOTDIR
+    local ALL_CONFIG="mct150 mct200 mct250"
+    local FARG="$COMBINED_OUT --ul "
+    local COMB_OUT=$PLOTDIR/scharm_combined.pdf
+    if [[ ! -f $COMB_OUT ]]; then
+	echo "drawing $COMB_OUT"
+	susy-fit-draw-exclusion.py $FARG -r $ALL_CONFIG -o $COMB_OUT
+    fi
+    local CONFIG
+    for CONFIG in $ALL_CONFIG ; do
+	local OUT_PLT=$PLOTDIR/${CONFIG}.pdf
+	if [[ ! -f $OUT_PLT ]]; then
+	    echo "drawing $OUT_PLT"
+	    susy-fit-draw-exclusion.py $FARG -r $CONFIG -o $OUT_PLT
+	fi
+    done
+}
+
 function makepars() {
     # parameters:
     # 1: directory containing workspaces (also used to name output)
@@ -194,6 +248,7 @@ function makepars() {
 	return 1
     fi
 
+    local fit
     for fit in $1/workspaces/**/$WSMATCH
     do
 	local odir=$OUTDIR/$1/$(dirname ${fit#*/workspaces/})
@@ -227,6 +282,10 @@ then
     echo "can't find $SC_CLSFILE for full exclusion, quitting" >&2
     exit 1
 fi
+if [[ $DO_UL && ! -f $DATASET_META ]] ; then
+    echo "can't find $DATASET_META for upper-limits, quitting" >&2
+    exit 1
+fi
 
 # __________________________________________________________________________
 # run the actual routines here
@@ -235,15 +294,20 @@ fi
 DEFREGIONS=signal_mct150,cr_w,cr_z,cr_t
 BGREGIONS=cr_w,cr_z,cr_t
 VREGIONS=vr_mct,vr_mcc
-if ! makews_updown $input full_exclusion ; then exit 1 ; fi
-if ! makelim $input full_exclusion -f ; then exit 1 ; fi
-if ! drawlim full_exclusion ; then exit 1; fi
-if ! makepars full_exclusion $BGREGIONS bg_fit ; then exit 1 ; fi
-if ! makepars full_exclusion $DEFREGIONS srcr srcr ; then exit 1 ; fi
-if ! makepars full_exclusion $DEFREGIONS 400_200 400-200 ; then exit 1 ; fi
-if ! makepars full_exclusion $DEFREGIONS 550_50 550-50 ; then exit 1 ; fi
-if ! makepars full_exclusion $DEFREGIONS 250_50 250-50 ; then exit 1 ; fi
+check makews_updown $input full_exclusion
+check makelim $input full_exclusion -f
+check drawlim full_exclusion
+check makepars full_exclusion $BGREGIONS bg_fit
+check makepars full_exclusion $DEFREGIONS srcr srcr
+check makepars full_exclusion $DEFREGIONS 400_200 400-200
+check makepars full_exclusion $DEFREGIONS 550_50 550-50
+check makepars full_exclusion $DEFREGIONS 250_50 250-50
 
+# upper limit stuff
+if [[ $DO_UL ]]
+then
+    check make_upper_limits full_exclusion
+fi
 
 # run systematics comparison
 if ! makelim $input compare_systematics ; then exit 1 ; fi
@@ -262,8 +326,8 @@ if ! makepars compare_crw $BGREGIONS bg_fit ; then exit 1 ; fi
 check makelim $input other_fits -f
 check drawlimsubset other_fits single_t.pdf normal st_with_other
 check drawlimsubset other_fits jes.pdf normal jes_breakdown
-if ! makepars other_fits $DEFREGIONS bg_fit ; then exit 1; fi
-if ! makepars other_fits $DEFREGIONS 400_200 400-200 ; then exit 1; fi
+check makepars other_fits $DEFREGIONS bg_fit
+check makepars other_fits $DEFREGIONS 400_200 400-200
 
 # run validation / sr plotting stuff
 SIGREGIONS=signal_mct150,signal_mct200,signal_mct250
