@@ -4,7 +4,7 @@
 # usage and parsing
 
 usage() {
-    echo "${0##*/} [-thlz] [-o <output_dir>] <fit inputs>" >&2
+    echo "${0##*/} [-t] [-h] [-l] [-z] [-o <output_dir>] <fit inputs>" >&2
 }
 
 OUTDIR=fit_figs_and_tables
