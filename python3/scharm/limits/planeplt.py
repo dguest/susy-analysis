@@ -58,7 +58,7 @@ class CLsExclusionPlane:
         self.canvas = FigCanvas(self.figure)
         self.ax = self.figure.add_subplot(1,1,1)
 
-        self.ax.grid(argv.get('grid', True))
+        self.ax.grid(argv.get('grid', True), alpha=0.05, ls='-')
         self.ax.tick_params(**self.major_pars)
         self.ax.minorticks_on()
         self.ax.tick_params(which='minor', **self.minor_pars)
