@@ -235,6 +235,10 @@ function make_model_independent_ul () {
 	exit 1
     fi
     local UL_DIR=$OUTDIR/$1/upper_limits
+    local OUTFILE=$UL_DIR/model_independent_limit.tex
+    if [[ -f $OUTFILE ]] ; then
+	return 0
+    fi
     mkdir -p $UL_DIR
 
     local SHIT=pile-o-shit
@@ -251,7 +255,7 @@ function make_model_independent_ul () {
 	local BULLSHIT=$(wc -l bullshit.log | cut -d ' ' -f 1)
 	echo "made ul table with $BULLSHIT lines of bullshit"
     )
-    cp $SHIT/ultab.tex $UL_DIR/model_independent_limit.tex
+    cp $SHIT/ultab.tex $OUTFILE
 }
 
 function makepars() {
@@ -324,6 +328,7 @@ fi
 DEFREGIONS=signal_mct150,cr_w,cr_z,cr_t
 BGREGIONS=cr_w,cr_z,cr_t
 VREGIONS=vr_mct,vr_mcc
+SIGREGIONS=signal_mct150,signal_mct200,signal_mct250
 check makews_updown $input full_exclusion
 check makelim $input full_exclusion -f
 check drawlim full_exclusion
@@ -361,11 +366,11 @@ check makepars other_fits $DEFREGIONS bg_fit
 check makepars other_fits $DEFREGIONS 400_200 400-200
 
 # run validation / sr plotting stuff
-SIGREGIONS=signal_mct150,signal_mct200,signal_mct250
-if ! makebg $input vrsr ; then exit 1 ; fi
-if ! makepars vrsr $VREGIONS vr_fit ; then exit 1 ; fi
-if ! makepars vrsr $SIGREGIONS sr_fit ; then exit 1 ; fi
-if ! makepars vrsr signal_mct150 onesr_fit ; then exit 1 ; fi
+check makebg $input vrsr
+check makepars vrsr $VREGIONS vr_fit
+check makepars vrsr $SIGREGIONS sr_fit
+check makepars vrsr $SIGREGIONS srs_fit srcr
+check makepars vrsr signal_mct150 onesr_fit
 
 # zip up result
 if [[ $ZIP ]]
