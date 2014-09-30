@@ -369,7 +369,6 @@ check makepars other_fits $DEFREGIONS 400_200 400-200
 check makebg $input vrsr
 check makepars vrsr $VREGIONS vr_fit
 check makepars vrsr $SIGREGIONS sr_fit
-check makepars vrsr $SIGREGIONS srs_fit srcr
 check makepars vrsr signal_mct150 onesr_fit
 
 # zip up result
