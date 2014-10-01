@@ -8,7 +8,6 @@
 #include <vector>
 #include <string>
 
-struct Axis;
 class RegionConfig;
 class ISelection;
 

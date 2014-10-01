@@ -1,6 +1,9 @@
 #include "nminus_tools.hh"
 #include "RegionConfig.hh"
 
+#include "EventObjects.hh"
+
+// selection stuff (maybe should break off?)
 #include "SignalSelection.hh"
 #include "CR1LSelection.hh"
 #include "CR1ESelection.hh"
@@ -238,5 +241,110 @@ namespace nminus {
     default: throw std::invalid_argument("unknown selection in " __FILE__);
     }
   }
+
+  // ________________________________________________________________________
+  // variable adding functions
+
+  std::map<std::string, double> get_reco_map(
+    const EventRecoParameters& reco, const TVector2& met){
+    return {
+      {NSJET, reco.n_signal_jets},
+      {MET, met.Mod()},
+      {DPHI, reco.min_jetmet_dphi},
+      {LEP_DPHI, reco.lepmet_dphi},
+      {MCT, reco.mct},
+      {MCT_UNCORR, reco.mct_uncorr},
+      {MET_EFF, reco.met_eff},
+      {MCC, reco.mcc},
+	};
+  }
+
+  void insert_jets(const std::vector<Jet>& jets, const TVector2& met,
+		   std::map<std::string, double>& values) {
+    int jn = 0;
+    for (const auto& jet: jets) {
+      double pb = jet.flavor_weight(Flavor::BOTTOM);
+      double pc = jet.flavor_weight(Flavor::CHARM);
+      double pu = jet.flavor_weight(Flavor::LIGHT);
+      double met_dphi = std::abs(jet.Vect().XYvector().DeltaPhi(met));
+      values.insert( {
+	  {jeta(jn), jet.Eta()},
+	  {jpt(jn), jet.Pt()},
+	  {jantib(jn), log(pc/pb)},
+	  {jantiu(jn), log(pc/pu)},
+	  {jmetdphi(jn), met_dphi} } );
+
+      jn++;
+    }
+    if (jn >= 2) {
+      double jj_dphi = std::abs(jets.at(0).DeltaPhi(jets.at(1)));
+      double jj_dr = std::abs(jets.at(0).DeltaR(jets.at(1)));
+      values.insert( { {DPHI_CC, jj_dphi}, {DR_CC, jj_dr} });
+    }
+  } // end insert_jets
+
+  int condensed_ftl(Flavor flavor) {
+    switch(flavor) {
+    case Flavor::LIGHT: return 0;
+    case Flavor::CHARM: return 1;
+    case Flavor::BOTTOM: return 2;
+    case Flavor::TAU: return 3;
+    default: throw std::invalid_argument("bad ftl");
+    }
+  }
+  void insert_jet_ftl(const std::vector<Jet>& jets,
+		      std::map<std::string, double>& values) {
+    int jn = 0;
+    for (const auto& jet: jets) {
+      Flavor flavor = jet.flavor_truth_label();
+      int flav_bin = condensed_ftl(flavor);
+      values[jftl(jn)] = flav_bin;
+
+      jn++;
+    }
+  }
+
+  void insert_leptons(
+    const std::vector<Lepton>& leptons, const TVector2& met,
+    std::map<std::string, double>& values){
+    int ln = 0;
+    for (const auto& lep: leptons) {
+      double met_dphi = std::abs(lep.Vect().XYvector().DeltaPhi(met));
+      values.insert( {
+	  {lpt(ln), lep.Pt() },
+	  {lmetdphi(ln), met_dphi} });
+      ln++;
+    }
+    if (ln >= 2) {
+      values[DPHI_LL] = std::abs(leptons.at(0).DeltaPhi(leptons.at(1)));
+    }
+  }
+
+  double get_dphi_any(const std::vector<Jet>& jets,
+		      const std::vector<Lepton>& leptons,
+		      const TVector2& met){
+    double min_dphi = 100;
+    for (const auto& jet: jets) {
+      double dphi = std::abs(jet.Vect().XYvector().DeltaPhi(met));
+      min_dphi = std::min(min_dphi, dphi);
+    }
+    for (const auto& lep: leptons) {
+      double dphi = std::abs(lep.Vect().XYvector().DeltaPhi(met));
+      min_dphi = std::min(min_dphi, dphi);
+    }
+    return min_dphi;
+  }
+
+  // ____________________________________________________________________
+  // misc stuff
+
+  void throw_if_nan(const std::map<std::string, double>& values) {
+    for (const auto itr: values) {
+      if (std::isnan(itr.second)) {
+	throw std::invalid_argument(itr.first + " is nan");
+      }
+    }
+  }
+
 
 }

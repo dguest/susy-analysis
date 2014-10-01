@@ -6,8 +6,14 @@
 class ISelection;
 class RegionConfig;
 
+class EventRecoParameters;
+class TVector2;
+class Jet;
+class Lepton;
+
 #include <map>
 #include <string>
+#include <vector>
 
 namespace nminus {
   const int MIN_SIGNAL_JETS = 2;
@@ -55,6 +61,23 @@ namespace nminus {
 
   ISelection* selection_factory(const RegionConfig& config);
   std::map<std::string, Window> get_windows(const RegionConfig&);
+
+
+  // functions to add variables
+  std::map<std::string, double> get_reco_map(
+    const EventRecoParameters& reco, const TVector2& met);
+  void insert_jets(const std::vector<Jet>&, const TVector2& met,
+		   std::map<std::string, double>& values);
+  void insert_leptons(
+    const std::vector<Lepton>&, const TVector2& met,
+    std::map<std::string, double>& values);
+  double get_dphi_any(const std::vector<Jet>&, const std::vector<Lepton>&,
+		      const TVector2& met);
+  void insert_jet_ftl(const std::vector<Jet>&,
+		      std::map<std::string, double>& values);
+  void throw_if_nan(const std::map<std::string, double>& values);
+
+
 }
 
 #endif
