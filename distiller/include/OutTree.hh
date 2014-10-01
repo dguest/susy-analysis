@@ -176,6 +176,7 @@ namespace outtree {
 
     int hfor_type;
     unsigned event_number;
+    unsigned run_number;
 
     int truth_leading_cjet_pos;
     int truth_subleading_cjet_pos;

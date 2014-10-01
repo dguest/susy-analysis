@@ -88,6 +88,7 @@ namespace outtree {
     met.set_branches(m_tree, "");
 
     MAKE_BRANCH(m_tree, event_number);
+    MAKE_BRANCH(m_tree, run_number);
 
     if ( flags & cutflag::truth) {
       MAKE_BRANCH(m_tree, hfor_type);
@@ -131,6 +132,7 @@ namespace outtree {
 
     hfor_type = -2;
     event_number = 0;
+    run_number = 0;
 
     truth_leading_cjet_pos = -1;
     truth_subleading_cjet_pos = -1;
