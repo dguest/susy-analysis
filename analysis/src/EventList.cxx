@@ -37,8 +37,13 @@ void EventList::fill(const EventObjects& obj) {
   if (!m_selection->pass(obj)) return;
 
   const TVector2& met = obj.met;
+
+  // get value map and add variables
   auto values = nminus::get_reco_map(reco, met);
+  nminus::insert_jets(obj.jets, met, values);
   nminus::insert_leptons(obj.leptons, met, values);
+  values[nminus::MT] = reco.mt;
+  values[nminus::MLL] = reco.mll;
   nminus::throw_if_nan(values);
 
   // check all cuts
