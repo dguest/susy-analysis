@@ -162,10 +162,6 @@ namespace {
   } // end get_weight
 }
 
-namespace nminus {
-
-}
-
 void NMinus1Histograms::write_to(H5::CommonFG& file) const {
   using namespace H5;
   Group region(file.createGroup(m_region_config->name));

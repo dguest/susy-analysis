@@ -89,6 +89,7 @@ GEN_OBJ     += VRMCTSelection.o VRMCCSelection.o
 
 GEN_OBJ     += Window.o
 GEN_OBJ     += NMinus1Histograms.o
+GEN_OBJ     += EventList.o
 GEN_OBJ     += nminus_tools.o
 
 # more common functions
