@@ -62,8 +62,12 @@ void EventList::write_to(H5::CommonFG& file) const {
   std::vector<long> evt;
   std::vector<long> run;
   for (auto event: m_events) {
-    evt.push_back(event.event);
-    run.push_back(event.has_run ? event.run : -1);
+    long signed_evt = static_cast<long>(event.event);
+    if (signed_evt < 0){
+      throw std::runtime_error("Event counter too big to store as signed");
+    }
+    evt.push_back(signed_evt);
+    run.push_back(event.has_run ? static_cast<long>(event.run) : -1);
   }
   hsize_t size = evt.size();
   hid_t loc = region.getLocId();
