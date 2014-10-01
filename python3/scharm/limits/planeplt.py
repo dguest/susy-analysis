@@ -126,7 +126,7 @@ class CLsExclusionPlane:
                 self.ax.text(pt.ms, pt.ml, xstr, **self.ultxt)
         if not self._ax2:
             self._ax2 = self.ax.twinx()
-            self._ax2.set_ylim(*self.ax.get_ylim())
+            self._ax2.set_ylim(*self.ylim)
             self._ax2.tick_params(**self.major_pars)
             self._ax2.minorticks_on()
             self._ax2.tick_params(which='minor', **self.minor_pars)
