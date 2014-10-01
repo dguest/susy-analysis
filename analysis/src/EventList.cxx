@@ -7,6 +7,8 @@
 
 #include "nminus_tools.hh"
 
+#include "H5Cpp.h"
+#include "hdf5_hl.h"
 #include "TVector2.h"
 
 EventList::EventList(const RegionConfig& config, const unsigned flags):
@@ -39,15 +41,37 @@ void EventList::fill(const EventObjects& obj) {
   nminus::insert_leptons(obj.leptons, met, values);
   nminus::throw_if_nan(values);
 
+  // check all cuts
   for (const auto& named_window: m_windows) {
-    if (! values.count(named_window.first) ) {
-      // if (named_window.second.accept_missing()) continue;
-      // else return; // reject event if the window doesn't accept missing
+    const auto& window_name = named_window.first;
+    const auto& window = named_window.second;
+    if (! values.count(window_name) ) {
+      if (nminus::accept_missing(window)) continue;
+      else return; // reject event if the window doesn't accept missing
     }
+    const auto value = values.at(window_name);
+    if (window.min > value || value > window.max) return;
   }
-
+  m_events.push_back(EventIndex{0, reco.event_number, false});
 }
 
 void EventList::write_to(H5::CommonFG& file) const {
+  using namespace H5;
+  const auto& regname = m_region_config->name;
+  Group region(file.createGroup(regname));
+  std::vector<long> evt;
+  std::vector<long> run;
+  for (auto event: m_events) {
+    evt.push_back(event.event);
+    run.push_back(event.has_run ? event.run : -1);
+  }
+  hsize_t size = evt.size();
+  hid_t loc = region.getLocId();
+  if (H5LTmake_dataset_long(loc, "event", 1, {&size}, evt.data()) < 0) {
+    throw std::runtime_error("problem writing " + regname + " events");
+  }
+  if (H5LTmake_dataset_long(loc, "run", 1, {&size}, run.data()) < 0) {
+    throw std::runtime_error("problem writing " + regname + " runs");
+  }
 
 }

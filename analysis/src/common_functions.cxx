@@ -33,6 +33,7 @@ void internal_set(TTree* tree, const std::string& name,
 
 // misc crap to check type names in ROOT
 std::string get_name(unsigned long long) { return "ULong64_t"; }
+std::string get_name(unsigned) {return "UInt_t"; }
 std::string get_name(double) { return "Double_t"; }
 std::string get_name(float) { return "Float_t"; }
 std::string get_name(bool) { return "Bool_t"; }

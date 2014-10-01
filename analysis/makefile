@@ -57,7 +57,7 @@ CXXFLAGS     += -I$(HDF_PATH)/include -I$(SELECTION_INC)
 LIBS         += -L$(HDF_PATH)/lib -Wl,-rpath,$(HDF_PATH)/lib
 
 # --- HDF5 needed for hist saving
-LIBS         += -lhdf5_cpp -lhdf5
+LIBS         += -lhdf5_cpp -lhdf5 -lhdf5_hl
 
 # rootstuff
 CXXFLAGS     += $(ROOTCFLAGS)

@@ -28,6 +28,8 @@ struct EventRecoParameters {
   float mll;
   float htx;
 
+  unsigned event_number;
+
   // float first_lepton_pt;
   // int first_lepton_pdgid;
   // float second_lepton_pt;

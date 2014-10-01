@@ -263,6 +263,8 @@ namespace {
     SET_PARAMETER(tree, mll);
     SET_PARAMETER(tree, htx);
 
+    SET_PARAMETER(tree, event_number);
+
     // SET_PARAMETER(tree, first_lepton_pt);
     // SET_PARAMETER(tree, first_lepton_pdgid);
 

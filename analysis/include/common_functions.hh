@@ -19,6 +19,7 @@ void internal_set(TTree* tree, const std::string& name,
 
 // misc crap to check type names in ROOT
 std::string get_name(unsigned long long);
+std::string get_name(unsigned);
 std::string get_name(double);
 std::string get_name(float);
 std::string get_name(bool);

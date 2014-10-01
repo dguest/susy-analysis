@@ -10,6 +10,8 @@ namespace nminus {
     double max;
     Missing missing;
   };
+
+  bool accept_missing(const Window&);
 }
 
 #endif
