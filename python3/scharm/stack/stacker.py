@@ -102,6 +102,7 @@ class Stacker:
             needed_replacement = dis['replacement'] == reg.replacement
             if not stcheck(reg) or not needed_replacement:
                 continue
+
             for systematic in systematics:
                 if self._ismc(ntuple) or systematic == 'NONE':
                     regdic = reg.get_config_dict(hists=NMINUS)
