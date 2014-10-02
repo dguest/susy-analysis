@@ -8,15 +8,14 @@
 #include "nminus_tools.hh"
 
 #include "H5Cpp.h"
-#include "hdf5_hl.h"
 #include "TVector2.h"
 
 EventList::EventList(const RegionConfig& config, const unsigned flags):
   m_region_config(new RegionConfig(config)),
   m_selection(nminus::selection_factory(config))
 {
-  if (flags & buildflag::is_data) {
-    throw std::invalid_argument(__FILE__" not work with data");
+  if (!(flags & buildflag::is_data)) {
+    throw std::invalid_argument(__FILE__" not work with simulation");
   }
 
   const auto windows = nminus::get_windows(config);
@@ -60,9 +59,26 @@ void EventList::fill(const EventObjects& obj) {
   m_events.push_back(EventIndex{0, reco.event_number, false});
 }
 
+namespace {
+  void write_ds(H5::CommonFG& file, const std::vector<long>& vec,
+		const std::string& name) {
+    auto type = H5::PredType::NATIVE_LONG;
+    hsize_t size = vec.size();
+    H5::DataSpace dsp(1, {&size});
+    H5::DSetCreatPropList params;
+    params.setChunk(1, {&size});
+    params.setDeflate(7);
+    H5::DataSet ds = file.createDataSet(name, type, dsp, params);
+    ds.write(vec.data(), type);
+  }
+}
+
 void EventList::write_to(H5::CommonFG& file) const {
   using namespace H5;
   const auto& regname = m_region_config->name;
+  if (H5Lexists(file.getLocId(), regname.c_str(), H5P_DEFAULT)) {
+    throw std::runtime_error("tried to overwrite '" + regname + "'");
+  }
   Group region(file.createGroup(regname));
   std::vector<long> evt;
   std::vector<long> run;
@@ -74,13 +90,6 @@ void EventList::write_to(H5::CommonFG& file) const {
     evt.push_back(signed_evt);
     run.push_back(event.has_run ? static_cast<long>(event.run) : -1);
   }
-  hsize_t size = evt.size();
-  hid_t loc = region.getLocId();
-  if (H5LTmake_dataset_long(loc, "event", 1, {&size}, evt.data()) < 0) {
-    throw std::runtime_error("problem writing " + regname + " events");
-  }
-  if (H5LTmake_dataset_long(loc, "run", 1, {&size}, run.data()) < 0) {
-    throw std::runtime_error("problem writing " + regname + " runs");
-  }
-
+  write_ds(file, evt, "event");
+  write_ds(file, run, "run");
 }
