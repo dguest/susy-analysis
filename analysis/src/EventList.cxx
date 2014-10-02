@@ -62,23 +62,27 @@ void EventList::fill(const EventObjects& obj) {
 namespace {
   void write_ds(H5::CommonFG& file, const std::vector<long>& vec,
 		const std::string& name) {
+    if (H5Lexists(file.getLocId(), name.c_str(), H5P_DEFAULT)) {
+      throw std::runtime_error("tried to overwrite '" + name + "'");
+    }
     auto type = H5::PredType::NATIVE_LONG;
-    hsize_t size = vec.size();
-    H5::DataSpace dsp(1, {&size});
+    std::vector<hsize_t> size{vec.size()};
+    H5::DataSpace dsp(1, size.data());
     H5::DSetCreatPropList params;
-    params.setChunk(1, {&size});
-    params.setDeflate(7);
+    if (size.at(0) > 0) {
+      params.setChunk(1, size.data());
+      params.setDeflate(7);
+    }
     H5::DataSet ds = file.createDataSet(name, type, dsp, params);
-    ds.write(vec.data(), type);
+    if (size.at(0) > 0) {
+      ds.write(vec.data(), type);
+    }
   }
 }
 
 void EventList::write_to(H5::CommonFG& file) const {
   using namespace H5;
   const auto& regname = m_region_config->name;
-  if (H5Lexists(file.getLocId(), regname.c_str(), H5P_DEFAULT)) {
-    throw std::runtime_error("tried to overwrite '" + regname + "'");
-  }
   Group region(file.createGroup(regname));
   std::vector<long> evt;
   std::vector<long> run;
@@ -90,6 +94,6 @@ void EventList::write_to(H5::CommonFG& file) const {
     evt.push_back(signed_evt);
     run.push_back(event.has_run ? static_cast<long>(event.run) : -1);
   }
-  write_ds(file, evt, "event");
-  write_ds(file, run, "run");
+  write_ds(region, evt, "event");
+  write_ds(region, run, "run");
 }

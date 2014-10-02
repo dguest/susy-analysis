@@ -12,7 +12,6 @@ try:
         reg_dict['output_name'] = '{}.h5'.format(hists.lower())
         reg_dict['stream'] = 'FULLSIM'
         reg_dict['save_wt2'] = True
-        reg_dict['hists'] = 'EVENT_LIST'
         return reg_dict
     all_cuts = [nr(x,d) for x,d in sbr().items()]
     bonus = [nr(x, d, True) for x,d, in sbr().items() if d['type'] == 'signal']
