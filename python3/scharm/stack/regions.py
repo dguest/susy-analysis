@@ -1,3 +1,11 @@
+"""
+Classes and routines to help setup the region dict that gets passed into
+the hist building code.
+"""
+
+# 'typedefs' for histogram type
+NMINUS = 'NMINUS'
+EVENT_LIST = 'EVENT_LIST'
 
 class Region:
     """
@@ -21,7 +29,6 @@ class Region:
         if self.type not in self._allowed_types:
             raise RegionConfigError('region type {} is not known'.format(
                     self.type))
-        self.hists = yaml_dict.get('hists', 'NMINUS')
         self.boson_pt_correction = yaml_dict.get(
             'boson_pt_correction', 'NO_PT_CORRECTION')
         self.replacement = yaml_dict.get('replacement','normal')
@@ -37,7 +44,7 @@ class Region:
         base = {k:v for k, v in baselist if not k.startswith('_')}
         return base
 
-    def get_config_dict(self):
+    def get_config_dict(self, hists=NMINUS):
         """
         Produces the configuration info needed for _stacksusy.
         Note that this lacks some important information, such as
@@ -53,9 +60,9 @@ class Region:
             'mct': self.kinematics.get('mct_gev',-1)*1e3,
             'max_signal_jets': self.max_signal_jets,
             'type': self.type.upper(),
-            'hists': self.hists.upper(),
             'boson_pt_correction': self.boson_pt_correction,
             'tagger': self.tagger.upper(),
+            'hists': hists,
             }
         return config_dict
 
@@ -86,7 +93,8 @@ def _sbottom_region(version, stream):
     return _build_kinematic_region(version, lj, met, rpl, stream)
 
 def _build_kinematic_region(version, lj, met, rpl='normal', stream='jet'):
-    control_regions = _sbottom_cr | {'QUALITY_EVENT', 'VR_MCT'}
+    control_regions = _sbottom_cr | {
+        'QUALITY_EVENT', 'VR_MCT', 'VR_MCC', 'VR_MET'}
     default_dict = {
         'selection': version,
         'type': 'signal' if version not in control_regions else 'control',

@@ -2,6 +2,7 @@ import sys, os
 from os.path import join, isdir, basename, splitext, isfile, dirname
 from scharm import schema
 from scharm.bullshit import make_dir_if_none
+from scharm.stack.regions import NMINUS, EVENT_LIST
 
 class Stacker:
     """
@@ -41,8 +42,7 @@ class Stacker:
                 "not sure what '{}' does as ntuple prepend in '{}'".format(
                     first, ntuple_name))
 
-    def _setup_region_dict(self, name, reg, ntuple, systematic):
-        regdic = reg.get_config_dict()
+    def _setup_region_dict(self, name, regdic, ntuple, systematic):
         regdic['systematic'] = systematic.upper()
         regdic['name'] = name
         # we get the basic output path from the input path
@@ -72,7 +72,6 @@ class Stacker:
         # we have to add them here.
         regdic['output_name'] = full_out_path
         regdic['stream'] = dist_settings['stream'].upper()
-
         return regdic
 
     def run_multisys(self, ntuple, systematics, tuple_n=None):
@@ -104,12 +103,16 @@ class Stacker:
             if not stcheck(reg) or not needed_replacement:
                 continue
             for systematic in systematics:
-                needed_syst = self._ismc(ntuple) or systematic == 'NONE'
-                if needed_syst:
-                    regdic = self._setup_region_dict(
-                        name, reg, ntuple, systematic)
-                    if regdic:
-                        regions.append(regdic)
+                if self._ismc(ntuple) or systematic == 'NONE':
+                    regdic = reg.get_config_dict(hists=NMINUS)
+                    regions.append(self._setup_region_dict(
+                            name, regdic, ntuple, systematic))
+
+            # dump event numbers for signal data
+            if not self._ismc(ntuple) and reg.type == 'signal':
+                regdic = reg.get_config_dict(hists=EVENT_LIST)
+                regions.append(self._setup_region_dict(
+                        name, regdic, ntuple, 'NONE'))
 
         if regions:
             self._print_progress(tuple_n, systematics)
