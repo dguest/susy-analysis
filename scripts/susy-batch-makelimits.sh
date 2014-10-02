@@ -11,6 +11,8 @@ OUTDIR=fit_figs_and_tables
 SC_CLSFILE=stop-to-charm-cls.yml
 DATASET_META=dataset-meta.yml # need this to get the cross sections
 
+NTOYS=0 			# by default run asymptotic upper limits
+
 doc() {
     usage
     cat <<EOF
@@ -23,7 +25,15 @@ Options:
  -t            run test
  -h, --help    print help
  -z            tar and zip when finished
+ --toys        run model independent upper limits with toys (recommend 3000)
 EOF
+}
+
+function checkarg() {
+    if [[ ! $2 ]] ; then
+	echo "argument to $1 is missing" >&2
+	exit 1
+    fi
 }
 
 while (( $# ))
@@ -31,10 +41,11 @@ do
     case $1 in
 	--help) doc; exit 1;;
 	-h) doc; exit 1;;
-	-o) shift; OUTDIR=$1; shift;;
+	-o) checkarg $@; shift; OUTDIR=$1; shift;;
 	-t) ee=-h; shift;;
 	-z) ZIP=1; shift;;
 	-l) DO_UL=1; shift;;
+	--toys) DO_UL=1; checkarg $@; shift; NTOYS=$1; shift;;
 	*)
 	    if [[ -n $input ]]
 		then
@@ -228,6 +239,13 @@ function make_upper_limits() {
 
 function make_model_independent_ul () {
     # first arg: directory containing workspaces
+    # second arg: number of toys
+    local TOYS=0
+    local OUT_SUFFIX=asymptotic
+    if [[ $2 ]] ; then
+	TOYS=$2
+	OUT_SUFFIX=${2}toys
+    fi
     local DISCWS=discovery_nominal.root
     local WS_DIR=$1/workspaces
     if ! matches_in $WS_DIR $DISCWS; then
@@ -235,7 +253,7 @@ function make_model_independent_ul () {
 	exit 1
     fi
     local UL_DIR=$OUTDIR/$1/upper_limits
-    local OUTFILE=$UL_DIR/model_independent_limit.tex
+    local OUTFILE=$UL_DIR/model_independent_limit_${OUT_SUFFIX}.tex
     if [[ -f $OUTFILE ]] ; then
 	return 0
     fi
@@ -250,9 +268,10 @@ function make_model_independent_ul () {
 	    exit 1
 	fi
 	local WS=$(find ../$WS_DIR -name $DISCWS)
-	echo "making ul table"
-	UpperLimitTable.py $WS -o ultab.tex >| bullshit.log 2>&1
-	local BULLSHIT=$(wc -l bullshit.log | cut -d ' ' -f 1)
+	echo "making ul table $OUTFILE"
+	local BS=bullshit.log
+	UpperLimitTable.py $WS --n-toys $TOYS -o ultab.tex >| $BS 2>&1
+	local BULLSHIT=$(wc -l $BS | cut -d ' ' -f 1)
 	echo "made ul table with $BULLSHIT lines of bullshit"
     )
     cp $SHIT/ultab.tex $OUTFILE
@@ -343,6 +362,9 @@ if [[ $DO_UL ]]
 then
     check make_upper_limits full_exclusion
     check make_model_independent_ul full_exclusion
+    if (( $NTOYS > 0 )); then
+	check make_model_independent_ul full_exclusion $NTOYS
+    fi
 fi
 
 # run systematics comparison
