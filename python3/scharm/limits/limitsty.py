@@ -33,7 +33,7 @@ alpha_names = {
     'theory_top': 'top theory',
     'theory_Wjets': r'$W$ theory',
     'theory_Zjets': r'$Z$ theory',
-    'signal_isr': 'signal isr',
+    'signal_isr': r'\tilde{c} ISR / FSR',
 
     'jcb': r'Close By',
     'jbjes': r'$b$ JES',
@@ -80,11 +80,12 @@ long_alpha_names = {
     'theory_top': 'combined top theory',
     'theory_Wjets': r'combined $W$ theory',
     'theory_Zjets': r'combined $Z$ theory',
+    'signal_isr': r'signal ISR / FSR',
 
     'jcb': r'Close By',
     'jbjes': r'$b$ JES',
-    'jflavcomp': 'Flavor Comp',
-    'jflavresp': 'Flavor Resp',
+    'jflavcomp': 'Flavor Composition',
+    'jflavresp': 'Flavor Response',
     'jicalm': r'$\eta$ Intcal Model',
     'jicals': r'$\eta$ Intcal Stat',
     'jpumu': r'Pileup $\mu$',
