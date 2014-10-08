@@ -12,11 +12,11 @@ _transdics = {
     }
 
 def _transgamma(line):
-    head, *tail = line.split('&')
+    head, tail = line.split('&', 1)
     for region, long_name in reg_names.items():
         esc_name = region.replace('_',r'\_')
         if r'_stat\_' + esc_name in head:
-            return long_name + ' stat error' + ' & '.join(tail)
+            return long_name + ' stat error & ' + tail
 
 def _transline(line):
     for head, dic in _transdics.items():
@@ -33,8 +33,7 @@ def _transline(line):
         newregs = [transreg(x) for x in oldregs]
         return ' & '.join([head.strip()] + newregs) + ' '.join(tail) + '\n'
     if line.startswith(r'gamma\_'):
-        return ''
-        # return _transgamma(line)
+        return _transgamma(line)
     return line
 
 def run():

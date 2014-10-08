@@ -146,7 +146,7 @@ def _rename_corr_var(name):
     if name.startswith(gstat):
         trunc = name[len(gstat):-len(stattail)]
         name = reg_names.get(trunc, trunc)
-        return name + " Stat"
+        return r'$\gamma$ ' + name
     mu = 'mu_'
     if name.startswith(mu):
         trunc = name[len(mu):]

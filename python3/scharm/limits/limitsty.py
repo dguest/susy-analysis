@@ -113,9 +113,9 @@ mu_names = {
 reg_names = {
     'cr_t': 'CRT',
     'cr_w_mct150': 'CRW', 'cr_w': 'CRW',
-    'signal_mct150': r'SR ($m_{\rm CT} > 150$)',
-    'signal_mct200': r'SR ($m_{\rm CT} > 200$)',
-    'signal_mct250': r'SR ($m_{\rm CT} > 250$)',
+    'signal_mct150': r'$m_{\rm CT} > 150$',
+    'signal_mct200': r'$m_{\rm CT} > 200$',
+    'signal_mct250': r'$m_{\rm CT} > 250$',
     'vr_mct': r'VR $m_{\rm CT} < 150$',
     'vr_mcc': r'VR $m_{cc} < 200$',
     'cr_w_mct150_l1pt50': r'CRW ($p_{\rm T}^{\ell_{1}} > 50$)',
