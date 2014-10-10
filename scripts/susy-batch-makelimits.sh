@@ -140,11 +140,11 @@ function drawlim() {
     local BST=$OUTDIR/$1/exclusion_best.pdf
     if [[ ! -f $OVL ]] ; then
 	echo drawing $OVL
-	susy-fit-draw-exclusion.py $CLSFILE -o $OVL
+	check susy-fit-draw-exclusion.py $CLSFILE -o $OVL
     fi
     if [[ ! -f $BST ]] ; then
 	echo drawing $BST
-	susy-fit-draw-exclusion.py $CLSFILE --best-regions -o $BST
+	check susy-fit-draw-exclusion.py $CLSFILE --best-regions -o $BST
     fi
 }
 function drawlimsubset() {
@@ -160,7 +160,7 @@ function drawlimsubset() {
     local OUTNAME=$OUTDIR/$1/$2
     if [[ ! -f $OUTNAME ]] ; then
 	echo drawing $2 from $CLSFILE
-	susy-fit-draw-exclusion.py $CLSFILE -o $OUTNAME $CONFIGS
+	check susy-fit-draw-exclusion.py $CLSFILE -o $OUTNAME $CONFIGS
     fi
 }
 
@@ -174,7 +174,7 @@ function makews_updown() {
 	for dr in --down --up
 	do
 	    echo making ${dr#--} limits for $2
-	    susy-fit-workspace.py $1 -o $WSDIR -c $2/configuration.yml \
+	    check susy-fit-workspace.py $1 -o $WSDIR -c $2/configuration.yml \
 		$ee $dr
 	done
     fi
@@ -212,7 +212,7 @@ function make_upper_limits() {
     fi
     local COMBINED_OUT=$UL_OUTDIR/combined-ul-cls.yml
     if [[ ! -f $COMBINED_OUT ]] ; then
-	susy-fit-add-xsec.py -i $UL_FILE $DATASET_META
+	check susy-fit-add-xsec.py -i $UL_FILE $DATASET_META
 	if ! susy-fit-merge-cls.py $UL_FILE $CLS_FILE > $COMBINED_OUT; then
 	    exit 2
 	fi
@@ -225,14 +225,14 @@ function make_upper_limits() {
     local COMB_OUT=$PLOTDIR/scharm_combined.pdf
     if [[ ! -f $COMB_OUT ]]; then
 	echo "drawing $COMB_OUT"
-	susy-fit-draw-exclusion.py $FARG -r $ALL_CONFIG -o $COMB_OUT
+	check susy-fit-draw-exclusion.py $FARG -r $ALL_CONFIG -o $COMB_OUT
     fi
     local CONFIG
     for CONFIG in $ALL_CONFIG ; do
 	local OUT_PLT=$PLOTDIR/${CONFIG}.pdf
 	if [[ ! -f $OUT_PLT ]]; then
 	    echo "drawing $OUT_PLT"
-	    susy-fit-draw-exclusion.py $FARG -r $CONFIG -o $OUT_PLT
+	    check susy-fit-draw-exclusion.py $FARG -r $CONFIG -o $OUT_PLT
 	fi
     done
 }
@@ -314,14 +314,14 @@ function makepars() {
 	    then
 	    echo "making systables in $odir"
 	    mkdir -p $odir
-	    susy-fit-systable.sh $fit -o $odir $regs $ee
+	    check susy-fit-systable.sh $fit -o $odir $regs $ee
 	fi
 	if ! matches_in $odir "*.pdf"
 	    then
 	    echo "drawing parameters in $odir"
 	    local pars=$odir/fit-parameters.yml
 	    local draw="susy-fit-draw-parameters.py -o $odir $ee $DRAWARGS"
-	    susy-fit-results.py $fit | tee $pars | $draw
+	    check susy-fit-results.py $fit | tee $pars | $draw
 	fi
     done
     echo done making parameters for $1

@@ -18,7 +18,7 @@ import warnings
 def run():
     """top level routine"""
     args = _get_args()
-    warnigs.filter_warnings('error')
+    warnings.filterwarnings('error')
     pars_dict = _get_fit_pars(args.fit_parameters)
     outinfo = dict(ext=args.ext, outdir=args.plot_directory)
     if not isdir(args.plot_directory):

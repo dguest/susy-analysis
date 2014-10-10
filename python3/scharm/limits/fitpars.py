@@ -110,6 +110,9 @@ def plot_alpha_parameters(pdict, outinfo):
     from matplotlib.backends.backend_agg import FigureCanvasAgg as FigCanvas
     pars = []
     parlist, div_idxs = _sort_alpha(pdict)
+    # in some fits we don't include systematics, don't draw anything
+    if not parlist:
+        return
     xlab, xpos, ypos, yerr = _get_lab_x_y_err(parlist)
     fig = Figure(figsize=(8, 4))
     fig.subplots_adjust(bottom=0.2)
