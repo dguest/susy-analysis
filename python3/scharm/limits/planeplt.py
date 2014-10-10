@@ -355,7 +355,11 @@ def _interpolate_normal(x, y, z, xlims, ylims, xpts):
     lin = LinearNDInterpolator(pts, norm.ppf(z))
     interp_points = np.dstack((xp.flatten(), yp.flatten())).squeeze()
     interp_z = lin(interp_points).reshape(xp.shape)
-    zp = norm.cdf(interp_z)
+    # avoid passing nan into the norm.cdf function
+    nans = np.isnan(interp_z)
+    zp = np.empty(interp_z.shape)
+    zp[nans] = np.nan
+    zp[~nans] = norm.cdf(interp_z[~nans])
     return xp, yp, zp
 
 def _interpolate_linear(x, y, z, xlims, ylims, xpts):

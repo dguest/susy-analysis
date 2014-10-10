@@ -13,9 +13,12 @@ from os import mkdir
 from scharm.limits.fitpars import plot_mu_parameters, plot_alpha_parameters
 from scharm.limits.fitpars import plot_corr_matrix
 
+import warnings
+
 def run():
     """top level routine"""
     args = _get_args()
+    warnigs.filter_warnings('error')
     pars_dict = _get_fit_pars(args.fit_parameters)
     outinfo = dict(ext=args.ext, outdir=args.plot_directory)
     if not isdir(args.plot_directory):
