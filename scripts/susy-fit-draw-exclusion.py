@@ -16,6 +16,8 @@ def run():
     parser.add_argument('cls_file')
     parser.add_argument('-o', '--output-plot', default='plane.pdf')
     parser.add_argument('-r', '--regions', help=_regions_help, nargs='+')
+    parser.add_argument('-i', '--interpolation', default='gauss',
+                        choices=planeplt.interpolators)
     dowhat = parser.add_mutually_exclusive_group()
     dowhat.add_argument('-b', '--band-region')
     dowhat.add_argument('--best', action='store_true', help=_best_help)
@@ -58,7 +60,7 @@ def _make_exclusion_plane(args):
     """show exclusion plane for one config"""
     cls_dict = _load_subset(args.cls_file, args.regions)
 
-    ex_plane = planeplt.CLsExclusionPlane()
+    ex_plane = planeplt.CLsExclusionPlane(interpolation=args.interpolation)
     ex_plane.lw = 1.5
     cls_list = []
     if args.band_region:
@@ -114,7 +116,8 @@ def _max_exclusion_plane(args, show_regions=False, clean=False, ul=False):
     plane_opts = dict(
         grid = not clean and not ul,
         show_points = not clean and not ul,
-        kinematic_bounds = 'both')
+        kinematic_bounds = 'both',
+        interpolation=args.interpolation)
 
     ex_plane = planeplt.CLsExclusionPlane(**plane_opts)
     ex_plane.lw = 1.5
@@ -152,7 +155,7 @@ def _get_max_expected_points(cls_dict):
 def _multi_exclusion_plane(args):
     cls_dict = _load_subset(args.cls_file, args.regions)
 
-    ex_plane = planeplt.CLsExclusionPlane()
+    ex_plane = planeplt.CLsExclusionPlane(interpolation=args.interpolation)
     ex_plane.lw = 1.5
     colors = list('rgbmc') + ['orange']
     sort_cls = sorted(cls_dict.items())

@@ -5,7 +5,10 @@ from os.path import dirname
 import os, math
 
 import numpy as np
+
+# for interpolation
 from scipy.interpolate import LinearNDInterpolator
+from scipy.stats import norm
 
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigCanvas
@@ -71,6 +74,11 @@ class CLsExclusionPlane:
 
         self.lw = 3
         self.approved = False
+
+        interp = argv.get('interpolation','gauss')
+        if interp not in interpolators:
+            raise ValueError("no interpolator '{}'".format(interp))
+        self._interpolator = interpolators[interp]
 
         self._proxy_contour = []
         self._pts = set()
@@ -151,7 +159,7 @@ class CLsExclusionPlane:
         ymin, ymax = self.low_y, max(y)
         xpts = 120
 
-        xp, yp, zp = _get_interpolated_xyz(
+        xp, yp, zp = self._interpolator(
             x, y, z, (xmin, xmax), (ymin, ymax), xpts)
         self._fill_in_interp(zp,xp,yp,x,y)
         extent = [xmin, xmax, ymin, ymax]
@@ -212,9 +220,9 @@ class CLsExclusionPlane:
         ymin, ymax = self.low_y, max(y)
         xpts = 200
 
-        xp, yp, lowp = _get_interpolated_xyz(
+        xp, yp, lowp = self._interpolator(
             x, y, low, (xmin, xmax), (ymin, ymax), xpts)
-        *nada, highp = _get_interpolated_xyz(
+        *nada, highp = self._interpolator(
             x, y, high, (xmin, xmax), (ymin, ymax), xpts)
         th = self._threshold
         zp = np.maximum( (lowp - th), -(highp - th))
@@ -320,23 +328,55 @@ class CLsExclusionPlane:
             os.makedirs(pl_dir)
         self.canvas.print_figure(name, bbox_inches='tight')
 
-def _get_interpolated_xyz(x, y, z, xlims, ylims, xpts, log=True):
+# _________________________________________________________________________
+# interpolation functions
+
+def _get_meshgrid(xlims, ylims, xpts):
     xmin, xmax = xlims
     ymin, ymax = ylims
     xi = np.linspace(*xlims, num=xpts)
     num_y = xpts * (ymax - ymin) // (xmax - xmin)
     yi = np.linspace(*ylims, num=num_y)
     xp, yp = np.meshgrid(xi, yi)
+    return xp, yp
 
+def _interpolate_log(x, y, z, xlims, ylims, xpts):
+    xp, yp = _get_meshgrid(xlims, ylims, xpts)
     pts = np.dstack((x,y)).squeeze()
-    # take a log transform?
-    lin = LinearNDInterpolator(pts, np.log(z) if log else z)
+    lin = LinearNDInterpolator(pts, np.log(z))
+    interp_points = np.dstack((xp.flatten(), yp.flatten())).squeeze()
+    interp_z = lin(interp_points).reshape(xp.shape)
+    zp = np.exp(interp_z)
+    return xp, yp, zp
+
+def _interpolate_normal(x, y, z, xlims, ylims, xpts):
+    xp, yp = _get_meshgrid(xlims, ylims, xpts)
+    pts = np.dstack((x,y)).squeeze()
+    lin = LinearNDInterpolator(pts, norm.ppf(z))
+    interp_points = np.dstack((xp.flatten(), yp.flatten())).squeeze()
+    interp_z = lin(interp_points).reshape(xp.shape)
+    zp = norm.cdf(interp_z)
+    return xp, yp, zp
+
+def _interpolate_linear(x, y, z, xlims, ylims, xpts):
+    xp, yp = _get_meshgrid(xlims, ylims, xpts)
+    pts = np.dstack((x,y)).squeeze()
+    lin = LinearNDInterpolator(pts, z)
     interp_points = np.dstack((xp.flatten(), yp.flatten())).squeeze()
     zp = lin(interp_points).reshape(xp.shape)
-    # transform back
-    if log:
-        zp = np.exp(zp)
     return xp, yp, zp
+
+# interpolators for significance
+interpolators = {
+    'log': _interpolate_log,
+    'gauss': _interpolate_normal,
+    'lin': _interpolate_linear,
+    }
+
+
+
+# _________________________________________________________________________
+# misc utilities
 
 def _remove_bads(args, baddex=2):
     """returns two lists, of good and bad (test = -1.0) points"""
