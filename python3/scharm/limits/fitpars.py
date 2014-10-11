@@ -33,10 +33,18 @@ def _sort_labels(labels):
     other = []
     mu = []
     theory = []
+    gamma = []
     for longkey in labels:
-        if not longkey.startswith('alpha_'):
-            mu.append(longkey)
+
+        if any(longkey.startswith(x) for x in ['gamma_', 'mu_', 'Lumi']):
+            if longkey.startswith('gamma_'):
+                gamma.append(longkey)
+            elif longkey.startswith('mu_'):
+                mu.append(longkey)
+            else:
+                other.append(longkey)
             continue
+
         key = longkey.split('_',1)[1]
         if key in 'bcut':
             tagging.append(longkey)
@@ -50,14 +58,19 @@ def _sort_labels(labels):
             met.append(longkey)
         else:
             other.append(longkey)
-    # stick the lists together, sorted
-    lists = [x for x in [tagging, jet, lep, met, theory, other, mu] if x]
-    idxs = [len(lists[0])]
-    for l in lists[1:]:
-        idxs.append(idxs[-1] + len(l))
+    return _flattenate(tagging, jet, lep, met, theory, other, gamma, mu)
 
-    full_list = list(itertools.chain.from_iterable(
-            [sorted(x) for x in lists]))
+def _flattenate(*list_of_lists):
+    """stick the lists together, sorted, return (list, division index)"""
+    lists = filter(None, list_of_lists)
+    idxs = []
+    full_list = []
+    idx = 0
+    for l in lists:
+        idx += len(l)
+        idxs.append(idx)
+        full_list += sorted(l)
+
     # we don't care about the last index, it's just the length of the list
     return full_list, idxs[:-1]
 

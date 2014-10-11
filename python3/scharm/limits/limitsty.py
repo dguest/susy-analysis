@@ -33,7 +33,7 @@ alpha_names = {
     'theory_top': 'top theory',
     'theory_Wjets': r'$W$ theory',
     'theory_Zjets': r'$Z$ theory',
-    'signal_isr': r'\tilde{c} ISR / FSR',
+    'signal_isr': r'$\tilde{c}$ ISR / FSR',
 
     'jcb': r'Close By',
     'jbjes': r'$b$ JES',
