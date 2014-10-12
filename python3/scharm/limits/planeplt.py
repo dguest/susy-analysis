@@ -12,6 +12,7 @@ from scipy.stats import norm
 
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigCanvas
+# from matplotlib.backends.backend_pdf import FigureCanvasPs as PdfCanvas
 
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
@@ -19,6 +20,10 @@ from matplotlib.colors import colorConverter
 
 from scharm.style import vdict, hdict
 from scharm.limits import limitsty
+
+# import matplotlib
+from matplotlib import font_manager, rc
+rc('font',**{'family':'sans-serif','sans-serif':['Arial']})
 
 class CLsExclusionPlane:
     """Scharm to Charm exclusion plane"""
@@ -45,6 +50,8 @@ class CLsExclusionPlane:
 
     # legend setup
     legend_properties = dict(
+        # fontproperties = font_manager.FontProperties(family='Helvetica'),
+        # fontproperties = 'Helvetica',
         fontsize='x-large', loc='upper left', framealpha=0.0, numpoints=1)
 
     # ticks
@@ -245,10 +252,14 @@ class CLsExclusionPlane:
             self._proxy_contour.append((Patch(color=color, zorder=0), label))
 
     def add_labels(self, y=0.28):
-        if self.approved:
+        # fontproperties, = font_manager.FontProperties(family='Helvetica'),
+        # print(fontproperties)
+        if self.approved or True:
             self.ax.text(0.2, 1-y, 'ATLAS', weight='bold', style='italic',
                          horizontalalignment='right',
-                         transform=self.ax.transAxes, size=24)
+                         transform=self.ax.transAxes, size=24,
+                         # fontproperties = fontproperties, 
+                         )
             self.ax.text(0.2, 1-y, ' Preliminary',
                          horizontalalignment='left',
                          transform=self.ax.transAxes, size=24)
