@@ -16,6 +16,14 @@ def make_dir_if_none(hists_dir):
         else:
             raise
 
+def helvetify():
+    """
+    Load 'Helvetica' default font (may be Arial for now)
+    """
+    from matplotlib import rc
+    # 'Comic Sans MS', 'Trebuchet MS' works, Arial works in png...
+    rc('font',**{'family':'sans-serif','sans-serif':['Arial']})
+
 def fast_walk(base_dir):
     """
     trying to be clever about using os.walk (which is slow on omega for

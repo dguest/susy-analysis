@@ -8,6 +8,7 @@ _clean_help = 'suppress signal points and grid'
 _ul_help = 'show upper limits'
 import argparse, sys
 from scharm.limits import planeplt
+from scharm.bullshit import helvetify
 import yaml
 
 def run():
@@ -28,6 +29,7 @@ def run():
     dowhat.add_argument('--clean', action='store_true', help=_clean_help)
     dowhat.add_argument('--ul', action='store_true', help=_ul_help)
     args = parser.parse_args(sys.argv[1:])
+    helvetify()
     if any([args.best, args.best_regions, args.clean, args.ul]):
         _max_exclusion_plane(args, show_regions=args.best_regions,
                              clean=args.clean, ul=args.ul)
