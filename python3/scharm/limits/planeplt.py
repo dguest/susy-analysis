@@ -21,8 +21,8 @@ from matplotlib.colors import colorConverter
 from scharm.style import vdict, hdict
 from scharm.limits import limitsty
 
-# import matplotlib
 from matplotlib import font_manager, rc
+# 'Comic Sans MS', 'Trebuchet MS' works, Arial works in png...
 rc('font',**{'family':'sans-serif','sans-serif':['Arial']})
 
 class CLsExclusionPlane:
