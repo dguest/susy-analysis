@@ -10,7 +10,6 @@ import argparse, sys
 from scharm.limits import planeplt
 import yaml
 
-
 def run():
     d = 'default: %(default)s'
     parser = argparse.ArgumentParser(description=__doc__)

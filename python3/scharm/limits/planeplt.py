@@ -12,7 +12,6 @@ from scipy.stats import norm
 
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigCanvas
-# from matplotlib.backends.backend_pdf import FigureCanvasPs as PdfCanvas
 
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
@@ -50,8 +49,6 @@ class CLsExclusionPlane:
 
     # legend setup
     legend_properties = dict(
-        # fontproperties = font_manager.FontProperties(family='Helvetica'),
-        # fontproperties = 'Helvetica',
         fontsize='x-large', loc='upper left', framealpha=0.0, numpoints=1)
 
     # ticks
@@ -252,22 +249,18 @@ class CLsExclusionPlane:
             self._proxy_contour.append((Patch(color=color, zorder=0), label))
 
     def add_labels(self, y=0.28):
-        # fontproperties, = font_manager.FontProperties(family='Helvetica'),
-        # print(fontproperties)
-        if self.approved or True:
+        if self.approved:
             self.ax.text(0.2, 1-y, 'ATLAS', weight='bold', style='italic',
                          horizontalalignment='right',
-                         transform=self.ax.transAxes, size=24,
-                         # fontproperties = fontproperties, 
-                         )
+                         transform=self.ax.transAxes, size=24)
             self.ax.text(0.2, 1-y, ' Preliminary',
                          horizontalalignment='left',
                          transform=self.ax.transAxes, size=24)
         self.ax.text(0.05, 0.9 - y,
-                     '$\int\ \mathcal{L}\ dt\ =\ {\sf 20.3\ fb}^{-1}$',
+                     r'$\int\ \mathcal{L}\ dt\ =$ 20.3 fb$^{\sf -1}$',
                      transform=self.ax.transAxes, size=24)
         self.ax.text(0.05, 0.8 - y,
-                     '$\sqrt{s}\ =\ {\sf 8\ TeV}$',
+                     r'$\sqrt{s}\ =$ 8 TeV',
                      transform=self.ax.transAxes, size=24)
 
     def _add_kinematic_bounds(self):
