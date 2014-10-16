@@ -2,6 +2,7 @@
 """
 Plotting routine for stack plots
 """
+_bl_help = "don't plot data (make blinded plots)"
 import argparse
 import yaml
 import sys
@@ -16,6 +17,7 @@ def get_config():
     parser.add_argument('--scale', choices={'log','linear', 'both'},
                         default='both', help=d)
     parser.add_argument('-f', '--fit-parameters', help='from fit-results')
+    parser.add_argument('-b', '--blind', action='store_true', help=_bl_help)
     parser.add_argument(
         '--filt', help='not really sure what this does... should fix it')
     parser.add_argument(
@@ -65,14 +67,15 @@ def run_plotmill(args):
     pltconfig = {
         'lumi_fb': config['misc']['lumi_fb'],
         'base_dir': args.output_dir,
-        'output_ext': args.ext,
+        'output_ext': '_blinded' + args.ext if args.blind else args.ext,
         'theme': args.theme,
         'serial': args.serial,
         }
     do_log = args.scale == 'log'
-    plot.make_plots(plots_dict, pltconfig, log=do_log, mu_dict=mudic)
+    more_args = dict(mu_dict=mudic, blind=args.blind)
+    plot.make_plots(plots_dict, pltconfig, log=do_log, **more_args)
     if args.scale == 'both':
-        plot.make_plots(plots_dict, pltconfig, log=True, mu_dict=mudic)
+        plot.make_plots(plots_dict, pltconfig, log=True, **more_args)
 
 def _get_signal_finder(signal_points):
     if signal_points:

@@ -24,8 +24,8 @@ class Stack:
     This is for drawing.
     """
     lumi_str = '$\int\ \mathcal{{L}}\ dt\ =\ ${:.1f} fb$^{{-1}}$'
-    syserr_name = 'systematic'
-    staterr_name = 'statistical'
+    syserr_name = 'experimental'
+    staterr_name = 'stat error'
     toterr_name = 'total'
     ratio_grid_color = (0,0,0,0.2)
     label_font_size = 16
@@ -169,6 +169,14 @@ class Stack:
             self.ratio.plot(x_vals, 1 - rel_stat_err, 'k:')
             ln, = self.ratio.plot(x_vals, 1 + rel_stat_err, 'k:')
             self._rat_legs.append( (ln, self.staterr_name) )
+        else:
+            tot = self._y_sum_step
+            low = tot * (1 - rel_stat_err)
+            high = tot * (1 + rel_stat_err)
+            self.ax.fill_between(x_vals, low, high, color=self._cut_fill)
+            proxy = Rectangle(
+                (0, 0), 1, 1, fc=self._cut_fill, ec='none')
+            self._proxy_legs.append( (proxy, self.staterr_name))
 
     def add_total2(self, hist_list):
         x_vals, rel_err = _get_mc_error_bands(

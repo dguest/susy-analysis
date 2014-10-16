@@ -11,13 +11,15 @@ import numpy as np
 from itertools import chain
 from concurrent.futures import ProcessPoolExecutor as Executor
 
-def make_plots(plots_dict, misc_info, log=False, mu_dict={}):
+def make_plots(plots_dict, misc_info, log=False, mu_dict={}, blind=False):
     hist1_dict = {}
     hist2_dict = {}
     converter = HistConverter(misc_info)
     converter.appended_evt_str = None
     for tup, hist in plots_dict.items():
         proc, var, reg = tup
+        if proc == 'data' and blind:
+            continue
         if var.endswith(wt2_ext) or var.endswith(sys2_ext):
             continue
         sys_tup = (proc, var + sys2_ext, reg)
