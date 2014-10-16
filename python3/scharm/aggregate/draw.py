@@ -313,9 +313,9 @@ class Stack:
         atl_lable_args = dict(
             # x=0.15, y=0.7,
             x=0.7, y=vert,
-            style='italic', transform=self.ax.transAxes,
+            transform=self.ax.transAxes,
             size=self.label_font_size + 4)
-        self.ax.text(s='ATLAS', weight='bold',
+        self.ax.text(s='ATLAS', weight='bold', style='italic',
                      horizontalalignment='right', **atl_lable_args)
         self.ax.text(s=' INTERNAL',
                      horizontalalignment='left', **atl_lable_args)
