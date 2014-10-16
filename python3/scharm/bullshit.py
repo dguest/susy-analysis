@@ -10,8 +10,8 @@ def make_dir_if_none(hists_dir):
     """
     try:
         os.makedirs(hists_dir)
-    except OSError as err:
-        if err.errno == errno.EEXIST and os.path.isdir(hists_dir):
+    except FileExistsError as err:
+        if os.path.isdir(hists_dir):
             pass
         else:
             raise

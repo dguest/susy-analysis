@@ -42,6 +42,8 @@ def run_plotmill(args):
     from scharm.aggregate import plot
     from scharm.aggregate.aggschema import HistDict
 
+    from scharm.bullshit import helvetify
+    helvetify()
     from numpy import seterr
     seterr(invalid='ignore', divide='ignore')
 
