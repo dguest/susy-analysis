@@ -322,7 +322,7 @@ class Stack:
             size=self.label_font_size + 4)
         self.ax.text(s='ATLAS', weight='bold', style='italic',
                      horizontalalignment='right', **atl_lable_args)
-        self.ax.text(s=' INTERNAL',
+        self.ax.text(s=' Internal',
                      horizontalalignment='left', **atl_lable_args)
 
     def add_legend(self):
