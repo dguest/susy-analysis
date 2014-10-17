@@ -142,7 +142,7 @@ def _max_exclusion_plane(args, show_regions=False, clean=False, ul=False):
     if ul:
         ex_plane.add_upper_limits(pdict.values())
     if args.mono:
-        montit = 'Monojet     [1407.0608]'
+        montit = 'Monojet [1407.0608]'
         ex_plane.add_exclusion(_xy_from_csv(args.mono), montit, pushdown=True)
 
     ex_plane.save(args.output_plot)

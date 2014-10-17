@@ -89,6 +89,7 @@ class CLsExclusionPlane:
         self._finalized = False
         self._drawpoints = argv.get('show_points', True)
         self._kinbounds = argv.get('kinematic_bounds', True)
+        self._fill_low_stop = argv.get('fill_low_stop', False)
         self._ax2 = None        # just for an added label
 
     def _get_style(self, style_string=''):
@@ -195,7 +196,7 @@ class CLsExclusionPlane:
         zp[np.isnan(zp) & (yp > self.ylim[0])] = th_high
         # fill in low values if we have stop points
         min_dm = np.min(x - y)
-        if min_dm < self._w_mass / 20:
+        if self._fill_low_stop and min_dm < self._w_mass / 20:
             dm = xp - yp
             zp[(dm > min_dm) & (xp < min(x))] = th_low
             zp[(dm < min_dm) & (xp < min(x))] = th_high

@@ -5,7 +5,7 @@ Style for fit parameters / regions
 # general names
 
 lsp = r'\tilde{\chi}_1^0'
-scharm = r'\tilde{c}_1'
+scharm = r'\tilde{c}_{\sf R}'
 stop = r'\tilde{t}_1'
 
 # __________________________________________________________________________
