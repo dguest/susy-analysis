@@ -6,6 +6,7 @@ _best_help = 'use best cls value from all regions'
 _regions_help = 'only plot a subset of regions'
 _clean_help = 'suppress signal points and grid'
 _ul_help = 'show upper limits'
+_mono_help = 'include monojet limits (expects a csv file with points to draw)'
 import argparse, sys
 from scharm.limits import planeplt
 from scharm.bullshit import helvetify
@@ -28,9 +29,10 @@ def run():
     dowhat.add_argument('--noband', action='store_true')
     dowhat.add_argument('--clean', action='store_true', help=_clean_help)
     dowhat.add_argument('--ul', action='store_true', help=_ul_help)
+    dowhat.add_argument('--mono', help=_mono_help)
     args = parser.parse_args(sys.argv[1:])
     helvetify()
-    if any([args.best, args.best_regions, args.clean, args.ul]):
+    if any([args.best, args.best_regions, args.clean, args.ul, args.mono]):
         _max_exclusion_plane(args, show_regions=args.best_regions,
                              clean=args.clean, ul=args.ul)
     elif args.band_region:
@@ -117,12 +119,13 @@ def _max_exclusion_plane(args, show_regions=False, clean=False, ul=False):
 
     plane_opts = dict(
         grid = not clean and not ul,
-        show_points = not clean and not ul,
+        show_points = not any([clean, ul, args.mono]),
         kinematic_bounds = 'both',
         interpolation=args.interpolation)
 
     ex_plane = planeplt.CLsExclusionPlane(**plane_opts)
     ex_plane.lw = 1.5
+    ex_plane.approved = True
     pdict = _get_max_expected_points(cls_dict)
 
     if show_regions:
@@ -138,8 +141,20 @@ def _max_exclusion_plane(args, show_regions=False, clean=False, ul=False):
     ex_plane.add_config(cls_list, 'expected', '-darkblue')
     if ul:
         ex_plane.add_upper_limits(pdict.values())
+    if args.mono:
+        montit = 'Observed Monojet'
+        ex_plane.add_exclusion(_xy_from_csv(args.mono), montit, pushdown=True)
 
     ex_plane.save(args.output_plot)
+
+def _xy_from_csv(file_path):
+    """return (x, y) values from input file"""
+
+    def pt_from_line(line):
+        return [float(x) for x in line.split(',')]
+
+    with open(file_path) as csv:
+        return [pt_from_line(x) for x in csv]
 
 def _get_max_expected_points(cls_dict):
     """helper for _max_exclusion_plane"""

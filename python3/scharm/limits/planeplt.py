@@ -14,7 +14,7 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigCanvas
 
 from matplotlib.lines import Line2D
-from matplotlib.patches import Patch
+from matplotlib.patches import Patch, Polygon
 from matplotlib.colors import colorConverter
 
 from scharm.style import vdict, hdict
@@ -36,6 +36,7 @@ class CLsExclusionPlane:
     # physical constants relating to the kinematic bounds
     _w_mass = 80.385
     _t_mass = 173.3
+    _c_mass = 1.29
     _kinbound_alpha = 0.3
 
     # labels
@@ -61,7 +62,7 @@ class CLsExclusionPlane:
         self.canvas = FigCanvas(self.figure)
         self.ax = self.figure.add_subplot(1,1,1)
 
-        self.ax.grid(argv.get('grid', True), alpha=0.05, ls='-')
+        self.ax.grid(argv.get('grid', True), alpha=0.03, ls='-')
         self.ax.tick_params(**self.major_pars)
         self.ax.minorticks_on()
         self.ax.tick_params(which='minor', **self.minor_pars)
@@ -73,6 +74,7 @@ class CLsExclusionPlane:
         self.used_colors = set()
 
         self.lw = 3
+        self.wideline = 3
         self.approved = False
 
         interp = argv.get('interpolation','gauss')
@@ -115,7 +117,7 @@ class CLsExclusionPlane:
             low.append( (pt.ms, pt.ml, pt.obs_low) )
             med.append( (pt.ms, pt.ml, pt.obs) )
             high.append( (pt.ms, pt.ml, pt.obs_high) )
-        line_opts = {'linewidths':3, 'colors': 'firebrick'}
+        line_opts = {'linewidths':self.wideline, 'colors': 'firebrick'}
         patch_opts = dict(ec='firebrick', fill=False, linestyle='dotted')
         label = 'observed'
         self.add_config(low, style=':firebrick')
@@ -244,6 +246,22 @@ class CLsExclusionPlane:
         if label:
             self._proxy_contour.append((Patch(color=color, zorder=0), label))
 
+    def add_exclusion(self, xy, label, pushdown=False):
+        """
+        Expects list of (x, y) points.
+        With `pushdown`, makes sure the x values are below W mass.
+        """
+        pts = np.array(xy)
+        if pushdown:
+            upper = self._w_mass - self._c_mass
+            pts[:,0] = np.minimum(pts[:,0], upper + pts[:,1])
+            highpts = pts[(pts[:,0] > 100) & (pts[:,1] > 50)]
+            min_dm = np.min(highpts[:,0] - highpts[:,1])
+            pts = np.vstack(([[min_dm,0]], highpts, [[upper, 0]]))
+        patch = Polygon(pts, color='CornflowerBlue', alpha=0.1, zorder=0)
+        self.ax.add_patch(patch)
+        self._proxy_contour.append( (patch, label) )
+
     def add_labels(self, y=0.28):
         if self.approved:
             self.ax.text(0.2, 1-y, 'ATLAS', weight='bold', style='italic',
@@ -268,7 +286,7 @@ class CLsExclusionPlane:
         alpha = self._kinbound_alpha
         bound_style = dict(color='k', alpha=0.3)
         y_pts_f = x_pts
-        y_pts_w = x_pts - self._w_mass
+        y_pts_w = x_pts - (self._w_mass + self._c_mass)
         self.ax.plot(x_pts, y_pts_f, **bound_style)
         if self._kinbounds == 'both' or self._kinbounds == True:
             self.ax.plot(x_pts, y_pts_w, **bound_style)
