@@ -9,7 +9,7 @@ import numpy as np
 # for interpolation
 from scipy.interpolate import LinearNDInterpolator
 from scipy.stats import norm
-
+from scipy.ndimage import gaussian_filter
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigCanvas
 
@@ -29,6 +29,9 @@ class CLsExclusionPlane:
     # limits on internal interpolated grid
     low_x = 0
     low_y = -25
+    high_x = xlim[1]
+    high_y = ylim[1]
+    _gev_per_bin = 1
 
     # epsilon offset to put regions above / below threshold
     threshold_margin = 0.01
@@ -90,7 +93,7 @@ class CLsExclusionPlane:
         self._finalized = False
         self._drawpoints = argv.get('show_points', True)
         self._kinbounds = argv.get('kinematic_bounds', True)
-        self._fill_low_stop = argv.get('fill_low_stop', False)
+        self._fill_low_stop = argv.get('fill_low_stop', True)
         self._ax2 = None        # just for an added label
 
     def _get_style(self, style_string=''):
@@ -159,9 +162,9 @@ class CLsExclusionPlane:
             point_lables = byvar[3]
         slu = np.array(list(stop_lsp_cls))
         x, y, z = slu.T
-        xmin, xmax = self.low_x, max(x)
-        ymin, ymax = self.low_y, max(y)
-        xpts = 120
+        xmin, xmax = self.low_x, self.high_x
+        ymin, ymax = self.low_y, self.high_y
+        xpts = (xmax - xmin) // self._gev_per_bin
 
         xp, yp, zp = self._interpolator(
             x, y, z, (xmin, xmax), (ymin, ymax), xpts)
@@ -194,13 +197,15 @@ class CLsExclusionPlane:
         """misc hacks to fill in the interpolated space"""
         th_high = self._threshold * (1 + self.threshold_margin)
         th_low  = self._threshold * (1 - self.threshold_margin)
-        zp[np.isnan(zp) & (yp > self.ylim[0])] = th_high
+        znan = np.isnan(zp)
+        min_dm = np.min(xp[~znan] - yp[~znan])
+        zp[znan & (yp > self.ylim[0] + 0.5)] = th_high
         # fill in low values if we have stop points
-        min_dm = np.min(x - y)
-        if self._fill_low_stop and min_dm < self._w_mass / 20:
-            dm = xp - yp
+        if self._fill_low_stop and min_dm < self._w_mass / 2:
+            dm = (xp - yp)
             zp[(dm > min_dm) & (xp < min(x))] = th_low
             zp[(dm < min_dm) & (xp < min(x))] = th_high
+        gaussian_filter(zp, sigma=(1 / self._gev_per_bin), output=zp)
 
     def _add_point_labels(self, x, y, point_lables):
         xy = {l: [] for l in point_lables}
@@ -220,9 +225,9 @@ class CLsExclusionPlane:
         """
         stop_lsp_low_high, _ = _remove_bads(stop_lsp_low_high)
         x, y, low, high = np.array(stop_lsp_low_high).T
-        xmin, xmax = self.low_x, max(x)
-        ymin, ymax = self.low_y, max(y)
-        xpts = 200
+        xmin, xmax = self.low_x, self.high_x
+        ymin, ymax = self.low_y, self.high_y
+        xpts = (xmax - xmin) // self._gev_per_bin
 
         xp, yp, lowp = self._interpolator(
             x, y, low, (xmin, xmax), (ymin, ymax), xpts)
@@ -232,6 +237,9 @@ class CLsExclusionPlane:
         zp = np.maximum( (lowp - th), -(highp - th))
 
         zp[np.isnan(zp)] = 0.001
+
+        gaussian_filter(zp, sigma=(1 / self._gev_per_bin), output=zp)
+
         extent = [xmin, xmax, ymin, ymax]
         draw_opts = dict(color=None, linewidth=self.lw,
                          linestyle='-')
@@ -355,7 +363,8 @@ def _get_meshgrid(xlims, ylims, xpts):
     xmin, xmax = xlims
     ymin, ymax = ylims
     xi = np.linspace(*xlims, num=xpts)
-    num_y = xpts * (ymax - ymin) // (xmax - xmin)
+    ratio = (ymax - ymin) / (xmax - xmin)
+    num_y = round(xpts * ratio)
     yi = np.linspace(*ylims, num=num_y)
     xp, yp = np.meshgrid(xi, yi)
     return xp, yp
