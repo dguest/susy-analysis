@@ -37,6 +37,7 @@ class CLsExclusionPlane:
     _w_mass = 80.385
     _t_mass = 173.3
     _c_mass = 1.29
+    _b_mass = 4.18
     _kinbound_alpha = 0.3
 
     # labels
@@ -73,7 +74,7 @@ class CLsExclusionPlane:
         self.ultxt = dict(fontsize=10, ha='center', va='bottom', color='grey')
         self.used_colors = set()
 
-        self.lw = 3
+        self.lw = 1.5
         self.wideline = 3
         self.approved = False
 
@@ -254,7 +255,7 @@ class CLsExclusionPlane:
         """
         pts = np.array(xy)
         if pushdown:
-            upper = self._w_mass - self._c_mass
+            upper = self._w_mass + self._b_mass
             pts[:,0] = np.minimum(pts[:,0], upper + pts[:,1])
             highpts = pts[(pts[:,0] > 100) & (pts[:,1] > 50)]
             min_dm = np.min(highpts[:,0] - highpts[:,1])
@@ -287,7 +288,7 @@ class CLsExclusionPlane:
         alpha = self._kinbound_alpha
         bound_style = dict(color='k', alpha=0.3)
         y_pts_f = x_pts
-        y_pts_w = x_pts - (self._w_mass + self._c_mass)
+        y_pts_w = x_pts - (self._w_mass + self._b_mass)
         self.ax.plot(x_pts, y_pts_f, **bound_style)
         if self._kinbounds == 'both' or self._kinbounds == True:
             self.ax.plot(x_pts, y_pts_w, **bound_style)
@@ -311,7 +312,7 @@ class CLsExclusionPlane:
         self.ax.text(px, py, upper_text, **text_style)
         if self._kinbounds == 'both' or self._kinbounds == True:
             lower_text = (
-                r'$m_{{ {c} }} < m_{{ {l} }} + m_W + m_c$ (${s} \to c {l}$)'
+                r'$m_{{ {c} }} < m_{{ {l} }} + m_W + m_b$ (${s} \to c {l}$)'
                 ).format(s=self.stop, l=self.lsp, c=self.scharm)
             self.ax.text(px + self._w_mass, py, lower_text , **text_style)
 

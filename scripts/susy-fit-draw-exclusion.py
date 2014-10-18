@@ -65,7 +65,6 @@ def _make_exclusion_plane(args):
     cls_dict = _load_subset(args.cls_file, args.regions)
 
     ex_plane = planeplt.CLsExclusionPlane(interpolation=args.interpolation)
-    ex_plane.lw = 1.5
     cls_list = []
     if args.band_region:
         for sp in cls_dict[args.band_region]:
@@ -124,7 +123,6 @@ def _max_exclusion_plane(args, show_regions=False, clean=False, ul=False):
         interpolation=args.interpolation)
 
     ex_plane = planeplt.CLsExclusionPlane(**plane_opts)
-    ex_plane.lw = 1.5
     ex_plane.approved = True
     pdict = _get_max_expected_points(cls_dict)
 
@@ -173,7 +171,6 @@ def _multi_exclusion_plane(args):
     cls_dict = _load_subset(args.cls_file, args.regions)
 
     ex_plane = planeplt.CLsExclusionPlane(interpolation=args.interpolation)
-    ex_plane.lw = 1.5
     colors = list('rgbmc') + ['orange']
     sort_cls = sorted(cls_dict.items())
     if args.heatmap and len(cls_dict) > 1:
