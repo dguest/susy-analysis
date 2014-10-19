@@ -27,14 +27,13 @@ class CLsExclusionPlane:
     ylim = (0.0, 500.0)
 
     # limits on internal interpolated grid
-    low_x = 0
-    low_y = -25
-    high_x = xlim[1]
-    high_y = ylim[1]
-    _gev_per_bin = 1
+    gev_per_bin = 5
+    grid_xlim = xlim
+    grid_ylim = (ylim[0] - gev_per_bin, ylim[1])
 
     # epsilon offset to put regions above / below threshold
-    threshold_margin = 0.01
+    threshold_margin = 0.1
+    zval_forbidden = 10
 
     # physical constants relating to the kinematic bounds
     _w_mass = 80.385
@@ -162,12 +161,13 @@ class CLsExclusionPlane:
             point_lables = byvar[3]
         slu = np.array(list(stop_lsp_cls))
         x, y, z = slu.T
-        xmin, xmax = self.low_x, self.high_x
-        ymin, ymax = self.low_y, self.high_y
-        xpts = (xmax - xmin) // self._gev_per_bin
+        xmin, xmax = self.grid_xlim
+        ymin, ymax = self.grid_ylim
+        xpts = (xmax - xmin) // self.gev_per_bin + 1
 
         xp, yp, zp = self._interpolator(
             x, y, z, (xmin, xmax), (ymin, ymax), xpts)
+        self._extrap_bottom(zp, y)
         self._fill_in_interp(zp,xp,yp,x,y)
         extent = [xmin, xmax, ymin, ymax]
         ct_color, ct_style = self._get_style(style)
@@ -199,13 +199,16 @@ class CLsExclusionPlane:
         th_low  = self._threshold * (1 - self.threshold_margin)
         znan = np.isnan(zp)
         min_dm = np.min(xp[~znan] - yp[~znan])
-        zp[znan & (yp > self.ylim[0] + 0.5)] = th_high
+
+        # replace nan values with something above the threshold
+        zp[znan] = th_high
+
         # fill in low values if we have stop points
+        dm = (xp - yp)
         if self._fill_low_stop and min_dm < self._w_mass / 2:
-            dm = (xp - yp)
-            zp[(dm > min_dm) & (xp < min(x))] = th_low
-            zp[(dm < min_dm) & (xp < min(x))] = th_high
-        gaussian_filter(zp, sigma=(1 / self._gev_per_bin), output=zp)
+            zp[(xp < min(x)) & (dm >= 0.0)] = th_low
+            # make sure forbidden values aren't included
+            zp[dm < min_dm] = self.zval_forbidden
 
     def _add_point_labels(self, x, y, point_lables):
         xy = {l: [] for l in point_lables}
@@ -213,7 +216,7 @@ class CLsExclusionPlane:
             xy[lab].append((x, y))
         for (lab, ptlist), color in zip(sorted(xy.items()), self.colors):
             x, y = np.array(ptlist).T
-            inpts = (x > self.low_x) & (y > self.low_y)
+            inpts = (x > self.xlim[0]) & (y > self.ylim[0])
             pts, = self.ax.plot(
                 x[inpts], y[inpts], '.', label=lab,
                 color=color, markersize=20, zorder=1)
@@ -225,9 +228,9 @@ class CLsExclusionPlane:
         """
         stop_lsp_low_high, _ = _remove_bads(stop_lsp_low_high)
         x, y, low, high = np.array(stop_lsp_low_high).T
-        xmin, xmax = self.low_x, self.high_x
-        ymin, ymax = self.low_y, self.high_y
-        xpts = (xmax - xmin) // self._gev_per_bin
+        xmin, xmax = self.grid_xlim
+        ymin, ymax = self.grid_ylim
+        xpts = (xmax - xmin) // self.gev_per_bin + 1
 
         xp, yp, lowp = self._interpolator(
             x, y, low, (xmin, xmax), (ymin, ymax), xpts)
@@ -236,9 +239,7 @@ class CLsExclusionPlane:
         th = self._threshold
         zp = np.maximum( (lowp - th), -(highp - th))
 
-        zp[np.isnan(zp)] = 0.001
-
-        gaussian_filter(zp, sigma=(1 / self._gev_per_bin), output=zp)
+        self._extrap_bottom(zp, y)
 
         extent = [xmin, xmax, ymin, ymax]
         draw_opts = dict(color=None, linewidth=self.lw,
@@ -255,6 +256,14 @@ class CLsExclusionPlane:
         self._pts |= set( xy for xy in zip(x,y))
         if label:
             self._proxy_contour.append((Patch(color=color, zorder=0), label))
+
+    def _extrap_bottom(self, zp, y):
+        """
+        fill in the bottom few points (since the exclusion goes off the
+        page there)
+        """
+        bot_bins = min(y) // self.gev_per_bin + 2
+        zp[0:bot_bins,:] = zp[bot_bins,:]
 
     def add_exclusion(self, xy, label, pushdown=False):
         """
@@ -331,7 +340,7 @@ class CLsExclusionPlane:
         if not unlab:
             return
         x, y = np.array(list(unlab)).T
-        inpts = (x > self.low_x) & (y > self.low_y)
+        inpts = (x > self.xlim[0]) & (y > self.ylim[0])
         self._pts, = self.ax.plot(x[inpts],y[inpts],'.k', zorder=3)
         self._proxy_contour.insert(0,(self._pts, 'signal points'))
 
