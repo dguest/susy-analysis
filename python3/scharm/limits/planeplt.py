@@ -9,7 +9,6 @@ import numpy as np
 # for interpolation
 from scipy.interpolate import LinearNDInterpolator
 from scipy.stats import norm
-from scipy.ndimage import gaussian_filter
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigCanvas
 
