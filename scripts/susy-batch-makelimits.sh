@@ -8,8 +8,14 @@ usage() {
 }
 
 OUTDIR=fit_figs_and_tables
-SC_CLSFILE=stop-to-charm-cls.yml
-DATASET_META=dataset-meta.yml # need this to get the cross sections
+FIT_INPUTS=fit_inputs
+
+# monojet limits
+MONOJET_LIMITS=$FIT_INPUTS/mono-observed-exclusion.txt
+# these get combined with our limits
+SC_CLSFILE=$FIT_INPUTS/stop-to-charm-cls.yml
+# need this to get the cross sections
+DATASET_META=$FIT_INPUTS/dataset-meta.yml
 
 NTOYS=0 			# by default run asymptotic upper limits
 
@@ -119,7 +125,7 @@ function makelim() {
     fi
     mkdir -p $OUTDIR/$2
     local CLSFILE=$OUTDIR/$2/cls.yml
-    local SC_CLSPATH=$2/$SC_CLSFILE
+    local SC_CLSPATH=$SC_CLSFILE
     if [[ ! -f $CLSFILE ]]
 	then
 	if ! susy-fit-runfit.py $WSDIR -o $CLSFILE $ee; then return 2; fi
@@ -138,6 +144,7 @@ function drawlim() {
     fi
     local OVL=$OUTDIR/$1/exclusion_overlay.pdf
     local BST=$OUTDIR/$1/exclusion_best.pdf
+    local PTY=$OUTDIR/$1/exclusion_pretty.pdf
     if [[ ! -f $OVL ]] ; then
 	echo drawing $OVL
 	check susy-fit-draw-exclusion.py $CLSFILE -o $OVL
@@ -145,6 +152,10 @@ function drawlim() {
     if [[ ! -f $BST ]] ; then
 	echo drawing $BST
 	check susy-fit-draw-exclusion.py $CLSFILE --best-regions -o $BST
+    fi
+    if [[ ! -f $PTY ]] ; then
+	echo drawing $PTY
+	check susy-fit-draw-exclusion.py $CLSFILE --mono $MONOJET_LIMITS -o $PTY
     fi
 }
 function drawlimsubset() {
@@ -330,13 +341,18 @@ function makepars() {
 # __________________________________________________________________________
 # check for files
 
-if [[ ! -f full_exclusion/$SC_CLSFILE ]]
+if [[ ! -f $SC_CLSFILE ]]
 then
     echo "can't find $SC_CLSFILE for full exclusion, quitting" >&2
     exit 1
 fi
 if [[ $DO_UL && ! -f $DATASET_META ]] ; then
     echo "can't find $DATASET_META for upper-limits, quitting" >&2
+    exit 1
+fi
+if [[ ! -f $MONOJET_LIMITS ]]
+then
+    echo "can't find $MONOJET_LIMITS for full exclusion, quitting" >&2
     exit 1
 fi
 
