@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.3
+#!/usr/bin/env python3
 """Dump a yields table for validation regions"""
 
 import argparse, sys

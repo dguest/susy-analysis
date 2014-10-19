@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.3
+#!/usr/bin/env python3
 """
 dump regions for diagnostics / maybe to plot or display them
 """

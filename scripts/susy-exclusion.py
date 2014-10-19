@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.3
+#!/usr/bin/env python3
 """
 Top level for routines to draw excluded contour. Cuts used are defined in
 yaml_cuts. To make fancy names for regions, use the 'fancy_name' key.

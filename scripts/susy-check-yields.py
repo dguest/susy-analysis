@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.3
+#!/usr/bin/env python3
 
 """
 Check / dump the yields in some h5 histograms

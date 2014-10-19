@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.3
+#!/usr/bin/env python3
 """add cross sections to a cls file (for use with plots)"""
 _in_place_help = 'update cls file rather than dumping to stdout'
 

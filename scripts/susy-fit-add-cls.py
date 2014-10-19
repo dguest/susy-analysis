@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.3
+#!/usr/bin/env python3
 """print cls values in some other format to a limits file"""
 
 import argparse, sys

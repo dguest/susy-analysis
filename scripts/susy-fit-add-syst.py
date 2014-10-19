@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.3
+#!/usr/bin/env python3
 """Add qcd, other systematics I'm not computing to the fit inputs"""
 
 import argparse, sys

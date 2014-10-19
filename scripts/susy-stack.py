@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.3
+#!/usr/bin/env python3
 """
 An attempt at a dumber stacking routine for the full analysis.
 Sets up textfiles that point to collections of root files, decides on

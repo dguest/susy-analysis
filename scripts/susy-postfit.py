@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.3
+#!/usr/bin/env python3
 
 """
 Top level for post-fit routines. At the moment not sure if this includes

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.3
+#!/usr/bin/env python3
 """
 Convert the output from `ami dataset info <full ds name>` to the meta format.
 """

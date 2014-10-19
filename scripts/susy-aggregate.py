@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.3
+#!/usr/bin/env python3
 """
 uses run / mc meta data and ntuples files to produce stacks.
 """

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.3
+#!/usr/bin/env python3
 
 """
 Recurse through a directory tree, aggregate events in signal regions.
