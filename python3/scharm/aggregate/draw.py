@@ -220,16 +220,16 @@ class Stack:
         if not self._selection:
             return
         low, high = self._selection
-        fill_args = dict(facecolor=self._cut_fill, linestyle=None)
+        fill_args = dict(facecolor=self._cut_fill, lw=0)
         line_args = dict(color=self._cut_color, linewidth=2)
         inf = float('inf')
         xlow, xhigh = self._x_limits
         if low != -inf:
             self.ax.axvspan(xlow, low, **fill_args)
-            self.ax.axvline(low, **line_args)
+            # self.ax.axvline(low, **line_args)
         if high != inf:
             self.ax.axvspan(high, xhigh, **fill_args)
-            self.ax.axvline(high, **line_args)
+            # self.ax.axvline(high, **line_args)
 
     def _add_ratio(self, x_vals, y_vals, lows, highs):
         """
@@ -309,25 +309,27 @@ class Stack:
         # TODO: fix this, the dims don't match the backgrounds
         # self._upper_limit = np.maximum(self._upper_limit, highs)
 
-    def _add_pr_crap(self):
+    def _add_pr_crap(self, frac_consumed):
+        vspace = 0.09 if self.ratio else 0.07
         if self.lumi:
             self.ax.text(
-                0.02, 0.85, self.lumi_str.format(self.lumi),
-                transform=self.ax.transAxes, size=self.label_font_size)
+                0.02, 0.95, self.lumi_str.format(self.lumi),
+                transform=self.ax.transAxes, size=self.label_font_size,
+                va='top')
             self.ax.text(
-                0.05, 0.75, r'$\sqrt{s} = $ 8 TeV',
+                0.05, 1 - 2*vspace, r'$\sqrt{s} = $ 8 TeV', va='top',
                 transform=self.ax.transAxes, size=self.label_font_size)
 
         if self.region_name:
-            reg_y = 0.66
+            reg_y = 1 - 3*vspace
             region_string = 'region: {}'.format(self.region_name)
             self.ax.text(
-                s=region_string, ha='left', x=0.05, y=reg_y,
+                s=region_string, ha='left', x=0.05, y=reg_y, va='top',
                 transform=self.ax.transAxes, size=self.label_font_size)
 
-        vert = 0.56 if self.ratio else 0.66
+        vert = 0.9 - frac_consumed
         atl_lable_args = dict(
-            x=0.7, y=vert,
+            x=0.8, y=vert,
             transform=self.ax.transAxes,
             size=self.label_font_size + 4)
         self.ax.text(s='ATLAS', weight='bold', style='italic',
@@ -340,8 +342,9 @@ class Stack:
         Return a list of entries to add for the SM total. May be empty
         if there's no need to add these.
         """
+        # return dummy spacer if there's no need for the total
         if not self.show_counts and self.ratio:
-            return [(Line2D((0,1),(0,1), alpha=0), ' ')]
+            return []
 
         # the artist is just a black line (change to red like sbottom?)
         artist = Line2D((0,1),(0,0), color='k')
@@ -358,14 +361,23 @@ class Stack:
         # add a stat uncertainty band for the non-ratio plots
         if not self.ratio:
             staterr = Rectangle((0, 0), 1, 1, fc=self._cut_fill, ec='none')
-            tartist = (artist, staterr)
+            artist = (artist, staterr)
 
         return [(artist, tstring)]
 
     def add_legend(self):
         sm_total_entries = self._get_sm_total_legends()
         bg_legs = self._bg_proxy_legs[::-1]
-        all_legs = self._proxy_legs + sm_total_entries + bg_legs
+        first_col_legs = self._proxy_legs + sm_total_entries
+
+        # add extra blank legends to put all bg in one col
+        n_bg = len(bg_legs)
+        n_other = len(first_col_legs)
+        if n_other < n_bg:
+            n_blank = n_bg - n_other
+            first_col_legs += [(Line2D((0,1),(0,1), alpha=0), ' ')]*n_blank
+        all_legs =  first_col_legs + bg_legs
+
         proxies = zip(*all_legs)
         legend = self.ax.legend(*proxies, numpoints=1, ncol=2)
         if legend:
@@ -385,7 +397,7 @@ class Stack:
             # lg.get_frame().set_linewidth(0)
             # lg.get_frame().set_alpha(0)
 
-        self._add_pr_crap()
+        self._add_pr_crap(frac_consumed)
 
     def save(self, name):
         if self._x_limits is None:
