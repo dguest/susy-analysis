@@ -3,7 +3,7 @@
 Plotting routine for stack plots
 """
 _bl_help = "don't plot data (make blinded plots)"
-_p_help = ""
+_p_help = "some changes for the paper versions (don't show event counts)"
 import argparse
 import yaml
 import sys

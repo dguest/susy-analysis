@@ -105,7 +105,8 @@ class Stack:
 
         hval = float(hist)
         # return title
-        return self.legend_format.format(title=title, name=_legstr(hval))
+        return self.legend_format.format(
+            title=title, number_events=_legstr(hval))
 
     def _set_xlims(self, hist):
         xval = hist.get_xy_step_pts()[0]
@@ -349,7 +350,7 @@ class Stack:
         total_title = 'SM total'
         if self.show_counts:
             tstring = self.legend_format.format(
-                title=total_title, count=_legstr(self._sm_total))
+                title=total_title, number_events=_legstr(self._sm_total))
         else:
             tstring = total_title
 
