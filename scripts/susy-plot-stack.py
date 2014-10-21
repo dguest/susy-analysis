@@ -3,6 +3,7 @@
 Plotting routine for stack plots
 """
 _bl_help = "don't plot data (make blinded plots)"
+_p_help = ""
 import argparse
 import yaml
 import sys
@@ -32,6 +33,7 @@ def get_config():
         default='dan', help=d)
     parser.add_argument('--serial', action='store_true',
                         help='disable multiprocess')
+    parser.add_argument('-p', '--paper', action='store_true', help=_p_help)
 
     args = parser.parse_args(sys.argv[1:])
     return args
@@ -70,6 +72,7 @@ def run_plotmill(args):
         'output_ext': '_blinded' + args.ext if args.blind else args.ext,
         'theme': args.theme,
         'serial': args.serial,
+        'show_event_counts': not args.paper,
         }
     do_log = args.scale == 'log'
     more_args = dict(mu_dict=mudic, blind=args.blind)

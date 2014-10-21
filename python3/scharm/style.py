@@ -251,7 +251,13 @@ crop_vars = {
     'mass_t': (0, 200),
     'leading_lepton_pt': (0, 350),
     'second_lepton_pt': (0, 160),
-}
+    }
+# cropping for specific regions (given as (region, variable))
+crop_region_vars = {
+    ('cr_t', 'met'): (0, 400),
+    ('cr_w', 'met'): (0, 400),
+    ('cr_z', 'met'): (0, 400),
+    }
 
 # ________________________________________________________________________
 # misc top level stack plotting tweaks

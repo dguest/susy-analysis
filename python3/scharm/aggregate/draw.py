@@ -29,6 +29,7 @@ class Stack:
     toterr_name = 'total'
     ratio_grid_color = (0,0,0,0.2)
     label_font_size = 16
+    legend_format = '{title}: {number_events}'
     magic_sig_str = 'scharm-'
     # confidence interval for data
     data_ci = 1 - math.erf( (1/2)**0.5) # 1 sigma
@@ -38,10 +39,13 @@ class Stack:
         self.fig = Figure(figsize=(8,6))
         self.canvas = FigureCanvas(self.fig)
         self.lumi = None
+        self.region_name = None
         self.ratio_max = 2.0
         self.ratio_font_size = 10
         self.colors = list('kc') + ['purple', 'orange']
         self.y_min = None
+        self.show_counts = True
+
         if not ratio:
             self.ax = self.fig.add_subplot(1,1,1)
             self.ratio = None
@@ -94,15 +98,14 @@ class Stack:
     def _get_legstr(self, hist):
         if hist.title.startswith(self.magic_sig_str):
             title = hist.title.replace(self.magic_sig_str,'')
-            # vals = [int(x) for x in hist.title.split('-')[1:3]]
-            # title_tmp = (r'$m_{{ \tilde{{c}} }} = $ {},'
-            #              r' $m_{{ \rm lsp }} = $ {}')
-            # title = title_tmp.format(*vals)
         else:
             title = hist.title
+        if not self.show_counts:
+            return title
+
         hval = float(hist)
         # return title
-        return '{}: {}'.format(title, _legstr(hval))
+        return self.legend_format.format(title=title, name=_legstr(hval))
 
     def _set_xlims(self, hist):
         xval = hist.get_xy_step_pts()[0]
@@ -314,25 +317,54 @@ class Stack:
                 0.05, 0.75, r'$\sqrt{s} = $ 8 TeV',
                 transform=self.ax.transAxes, size=self.label_font_size)
 
+        if self.region_name:
+            reg_y = 0.66
+            region_string = 'region: {}'.format(self.region_name)
+            self.ax.text(
+                s=region_string, ha='left', x=0.05, y=reg_y,
+                transform=self.ax.transAxes, size=self.label_font_size)
+
         vert = 0.56 if self.ratio else 0.66
         atl_lable_args = dict(
-            # x=0.15, y=0.7,
             x=0.7, y=vert,
             transform=self.ax.transAxes,
             size=self.label_font_size + 4)
         self.ax.text(s='ATLAS', weight='bold', style='italic',
-                     horizontalalignment='right', **atl_lable_args)
+                     ha='right', **atl_lable_args)
         self.ax.text(s=' Internal',
-                     horizontalalignment='left', **atl_lable_args)
+                     ha='left', **atl_lable_args)
 
-    def add_legend(self):
-        tstring = 'SM total: {}'.format(_legstr(self._sm_total))
-        tartist = Line2D((0,1),(0,0), color='k')
+    def _get_sm_total_legends(self):
+        """
+        Return a list of entries to add for the SM total. May be empty
+        if there's no need to add these.
+        """
+        if not self.show_counts and self.ratio:
+            return [(Line2D((0,1),(0,1), alpha=0), ' ')]
+
+        # the artist is just a black line (change to red like sbottom?)
+        artist = Line2D((0,1),(0,0), color='k')
+
+        # the string depends on whether we're showing the total counts
+        total_title = 'SM total'
+        if self.show_counts:
+            tstring = self.legend_format.format(
+                title=total_title, count=_legstr(self._sm_total))
+        else:
+            tstring = total_title
+
+
+        # add a stat uncertainty band for the non-ratio plots
         if not self.ratio:
             staterr = Rectangle((0, 0), 1, 1, fc=self._cut_fill, ec='none')
-            tartist = (tartist, staterr)
+            tartist = (artist, staterr)
+
+        return [(artist, tstring)]
+
+    def add_legend(self):
+        sm_total_entries = self._get_sm_total_legends()
         bg_legs = self._bg_proxy_legs[::-1]
-        all_legs = self._proxy_legs + [(tartist, tstring)] + bg_legs
+        all_legs = self._proxy_legs + sm_total_entries + bg_legs
         proxies = zip(*all_legs)
         legend = self.ax.legend(*proxies, numpoints=1, ncol=2)
         if legend:

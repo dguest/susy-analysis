@@ -4,6 +4,7 @@ Top level drawing routines for stack plots.
 
 from scharm import style, hists
 from scharm.schema import wt2_ext, sys2_ext
+from scharm.limits.limitsty import reg_names
 from os.path import isdir, join
 from scharm.aggregate.draw import Stack, Hist2d, Hist1d
 import os
@@ -15,7 +16,6 @@ def make_plots(plots_dict, misc_info, log=False, mu_dict={}, blind=False):
     hist1_dict = {}
     hist2_dict = {}
     converter = HistConverter(misc_info)
-    converter.appended_evt_str = None
     for tup, hist in plots_dict.items():
         proc, var, reg = tup
         if proc == 'data' and blind:
@@ -42,7 +42,7 @@ class HistConverter:
     """
     def __init__(self, misc_info):
         self.lumi_fb = misc_info['lumi_fb']
-        self.appended_evt_str = r': {:.1f} Evt'
+        show_events = misc_info.get('show_events', True)
         theme = misc_info['theme']
         self._style = style.get_type_dict(theme)
 
@@ -131,7 +131,9 @@ class HistConverter:
         for ext in wt2_ext, sys2_ext:
             if variable.endswith(ext):
                 crop_var = variable[:-len(ext)]
-        if crop_var in style.crop_vars:
+        if (cut, crop_var) in style.crop_region_vars:
+            hist.crop(*style.crop_region_vars[cut, crop_var])
+        elif crop_var in style.crop_vars:
             hist.crop(*style.crop_vars[crop_var])
         hist.selection = selection
         max_bins = style.rebinning.get(cut,30)
@@ -143,8 +145,6 @@ class HistConverter:
         except KeyError:
             hist.color = None
             hist.title = physics
-        if self.appended_evt_str:
-            hist.title += self.appended_evt_str.format(float(hist))
         return hist
 
 def sort_data_mc(hist1_dict):
@@ -190,6 +190,7 @@ class StackPlotPrinter:
         self.ext = options['output_ext']
         self.lumi = options['lumi_fb']
         self.serial = options.get('serial', False)
+        self._show_counts = options['show_event_counts']
         self.log = log
         self.verbose = True
         theme = options['theme']
@@ -224,6 +225,7 @@ class StackPlotPrinter:
             obj.lumi = self.lumi
             obj.selection_colors = self._selection_colors
             obj.mu_dict = self._mu_dict
+            obj.show_counts = self._show_counts
             save_dir = join(self.plot_dir, obj.cut)
             if not isdir(save_dir):
                 os.makedirs(save_dir)
@@ -295,6 +297,8 @@ def _print_plot(obj):
     stack = Stack(ratio=has_ratio, selection_colors=obj.selection_colors)
     stack.colors = obj.signal_colors
     stack.lumi = obj.lumi
+    stack.region_name = reg_names.get(obj.cut)
+    stack.show_counts = obj.show_counts
     if obj.log:
         stack.y_min = 0.1
         stack.ax.set_yscale('log')
