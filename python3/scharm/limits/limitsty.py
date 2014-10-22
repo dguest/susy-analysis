@@ -118,6 +118,10 @@ reg_names = {
     'signal_mct250': r'$m_{\rm CT} > 250$',
     'vr_mct': r'VR $m_{\rm CT} < 150$',
     'vr_mcc': r'VR $m_{cc} < 200$',
+    # new names for the above regions so that we can remove all `vr`
+    # from the fit inputs
+    'fr_mct': r'VR $m_{\rm CT} < 150$',
+    'fr_mcc': r'VR $m_{cc} < 200$',
     'cr_w_mct150_l1pt50': r'CRW ($p_{\rm T}^{\ell_{1}} > 50$)',
     'cr_z': 'CRZ'}
 
