@@ -116,6 +116,7 @@ reg_names = {
     'signal_mct150': r'$m_{\rm CT} > 150$',
     'signal_mct200': r'$m_{\rm CT} > 200$',
     'signal_mct250': r'$m_{\rm CT} > 250$',
+    # these are going to be removed
     'vr_mct': r'VR $m_{\rm CT} < 150$',
     'vr_mcc': r'VR $m_{cc} < 200$',
     # new names for the above regions so that we can remove all `vr`
@@ -123,7 +124,12 @@ reg_names = {
     'fr_mct': r'VR $m_{\rm CT} < 150$',
     'fr_mcc': r'VR $m_{cc} < 200$',
     'cr_w_mct150_l1pt50': r'CRW ($p_{\rm T}^{\ell_{1}} > 50$)',
-    'cr_z': 'CRZ'}
+    'cr_z': 'CRZ',
+    # nicola's regions
+    'cr_w_nicola': r'CRW Tight',
+    'cr_z_nicola': r'CRZ Tight',
+    'cr_t_nicola': r'CRT Tight',
+    }
 
 # __________________________________________________________________________
 # configurations
@@ -135,5 +141,7 @@ config_names = {
     'C1': r'${} \to c {}$: C1'.format(stop, lsp),
     'C2': r'${} \to c {}$: C2'.format(stop, lsp),
     'expected': r'Expected Limit ($\pm 1 \sigma^{\sf SM}_{\sf theory+exp}$)',
-    'observed': r'Observed Limit ($\pm 1 \sigma^{\sf SUSY}_{\sf theory})$'
+    'observed': r'Observed Limit ($\pm 1 \sigma^{\sf SUSY}_{\sf theory})$',
+    # nicola's fit
+    'nicolas': 'Tight CRs',
     }
