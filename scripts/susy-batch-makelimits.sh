@@ -10,6 +10,9 @@ usage() {
 OUTDIR=fit_figs_and_tables
 FIT_INPUTS=fit_inputs
 
+# stuff for robustness (quit on nonzero exit, treat unset access as error)
+set -eu
+
 # monojet limits
 MONOJET_LIMITS=$FIT_INPUTS/mono-observed-exclusion.txt
 # these get combined with our limits
@@ -147,15 +150,15 @@ function drawlim() {
     local PTY=$OUTDIR/$1/exclusion_pretty.pdf
     if [[ ! -f $OVL ]] ; then
 	echo drawing $OVL
-	check susy-fit-draw-exclusion.py $CLSFILE -o $OVL
+	susy-fit-draw-exclusion.py $CLSFILE -o $OVL
     fi
     if [[ ! -f $BST ]] ; then
 	echo drawing $BST
-	check susy-fit-draw-exclusion.py $CLSFILE --best-regions -o $BST
+	susy-fit-draw-exclusion.py $CLSFILE --best-regions -o $BST
     fi
     if [[ ! -f $PTY ]] ; then
 	echo drawing $PTY
-	check susy-fit-draw-exclusion.py $CLSFILE --mono $MONOJET_LIMITS -o $PTY
+	susy-fit-draw-exclusion.py $CLSFILE --mono $MONOJET_LIMITS -o $PTY
     fi
 }
 function drawlimsubset() {
@@ -171,7 +174,7 @@ function drawlimsubset() {
     local OUTNAME=$OUTDIR/$1/$2
     if [[ ! -f $OUTNAME ]] ; then
 	echo drawing $2 from $CLSFILE
-	check susy-fit-draw-exclusion.py $CLSFILE -o $OUTNAME $CONFIGS
+	susy-fit-draw-exclusion.py $CLSFILE -o $OUTNAME $CONFIGS
     fi
 }
 
@@ -185,7 +188,7 @@ function makews_updown() {
 	for dr in --down --up
 	do
 	    echo making ${dr#--} limits for $2
-	    check susy-fit-workspace.py $1 -o $WSDIR -c $2/configuration.yml \
+	    susy-fit-workspace.py $1 -o $WSDIR -c $2/configuration.yml \
 		$ee $dr
 	done
     fi
@@ -223,7 +226,7 @@ function make_upper_limits() {
     fi
     local COMBINED_OUT=$UL_OUTDIR/combined-ul-cls.yml
     if [[ ! -f $COMBINED_OUT ]] ; then
-	check susy-fit-add-xsec.py -i $UL_FILE $DATASET_META
+	susy-fit-add-xsec.py -i $UL_FILE $DATASET_META
 	if ! susy-fit-merge-cls.py $UL_FILE $CLS_FILE > $COMBINED_OUT; then
 	    exit 2
 	fi
@@ -236,14 +239,14 @@ function make_upper_limits() {
     local COMB_OUT=$PLOTDIR/scharm_combined.pdf
     if [[ ! -f $COMB_OUT ]]; then
 	echo "drawing $COMB_OUT"
-	check susy-fit-draw-exclusion.py $FARG -r $ALL_CONFIG -o $COMB_OUT
+	susy-fit-draw-exclusion.py $FARG -r $ALL_CONFIG -o $COMB_OUT
     fi
     local CONFIG
     for CONFIG in $ALL_CONFIG ; do
 	local OUT_PLT=$PLOTDIR/${CONFIG}.pdf
 	if [[ ! -f $OUT_PLT ]]; then
 	    echo "drawing $OUT_PLT"
-	    check susy-fit-draw-exclusion.py $FARG -r $CONFIG -o $OUT_PLT
+	    susy-fit-draw-exclusion.py $FARG -r $CONFIG -o $OUT_PLT
 	fi
     done
 }
@@ -325,14 +328,14 @@ function makepars() {
 	    then
 	    echo "making systables in $odir"
 	    mkdir -p $odir
-	    check susy-fit-systable.sh $fit -o $odir $regs $ee
+	    susy-fit-systable.sh $fit -o $odir $regs $ee
 	fi
 	if ! matches_in $odir "*.pdf"
 	    then
 	    echo "drawing parameters in $odir"
 	    local pars=$odir/fit-parameters.yml
 	    local draw="susy-fit-draw-parameters.py -o $odir $ee $DRAWARGS"
-	    check susy-fit-results.py $fit | tee $pars | $draw
+	    susy-fit-results.py $fit | tee $pars | $draw
 	fi
     done
     echo done making parameters for $1
@@ -364,50 +367,51 @@ DEFREGIONS=signal_mct150,cr_w,cr_z,cr_t
 BGREGIONS=cr_w,cr_z,cr_t
 VREGIONS=vr_mct,vr_mcc
 SIGREGIONS=signal_mct150,signal_mct200,signal_mct250
-check makews_updown $input full_exclusion
-check makelim $input full_exclusion -f
-check drawlim full_exclusion
-check makepars full_exclusion $BGREGIONS bg_fit
-check makepars full_exclusion $DEFREGIONS srcr srcr
-check makepars full_exclusion $DEFREGIONS 400_200 400-200
-check makepars full_exclusion $DEFREGIONS 550_50 550-50
-check makepars full_exclusion $DEFREGIONS 250_50 250-50
+makews_updown $input full_exclusion
+makelim $input full_exclusion -f
+drawlim full_exclusion
+makepars full_exclusion $BGREGIONS bg_fit
+makepars full_exclusion $DEFREGIONS srcr srcr
+makepars full_exclusion $DEFREGIONS 400_200 400-200
+makepars full_exclusion $DEFREGIONS 550_50 550-50
+makepars full_exclusion $DEFREGIONS 250_50 250-50
 
 # upper limit stuff
 if [[ $DO_UL ]]
 then
-    check make_upper_limits full_exclusion
-    check make_model_independent_ul full_exclusion
+    make_upper_limits full_exclusion
+    make_model_independent_ul full_exclusion
     if (( $NTOYS > 0 )); then
-	check make_model_independent_ul full_exclusion $NTOYS
+	make_model_independent_ul full_exclusion $NTOYS
     fi
 fi
 
 # run systematics comparison
-if ! makelim $input compare_systematics ; then exit 1 ; fi
-if ! drawlim compare_systematics ; then exit 1; fi
-if ! makebg $input compare_systematics ; then exit 1 ; fi
-if ! makepars compare_systematics ; then exit 1 ; fi
+makelim $input compare_systematics
+drawlim compare_systematics
+makebg $input compare_systematics
+makepars compare_systematics
 
 # run crw comparison
-if ! makelim $input compare_crw ; then exit 1 ; fi
-if ! drawlim compare_crw ; then exit 1; fi
-if ! makebg $input compare_crw ; then exit 1 ; fi
-if ! makepars compare_crw $VREGIONS vr_fit ; then exit 1 ; fi
-if ! makepars compare_crw $BGREGIONS bg_fit ; then exit 1 ; fi
+makelim $input compare_crw
+drawlim compare_crw
+makebg $input compare_crw
+makepars compare_crw $VREGIONS vr_fit
+makepars compare_crw $BGREGIONS bg_fit
 
 # other fit checks
-check makelim $input other_fits -f
-check drawlimsubset other_fits single_t.pdf normal st_with_other
-check drawlimsubset other_fits jes.pdf normal jes_breakdown
-check makepars other_fits $DEFREGIONS bg_fit
-check makepars other_fits $DEFREGIONS 400_200 400-200
+makelim $input other_fits -f
+drawlimsubset other_fits single_t.pdf normal st_with_other
+drawlimsubset other_fits jes.pdf normal jes_breakdown
+drawlimsubset other_fits nicolas.pdf normal nicolas
+makepars other_fits $DEFREGIONS bg_fit
+makepars other_fits $DEFREGIONS 400_200 400-200
 
 # run validation / sr plotting stuff
-check makebg $input vrsr
-check makepars vrsr $VREGIONS vr_fit
-check makepars vrsr $SIGREGIONS sr_fit
-check makepars vrsr signal_mct150 onesr_fit
+makebg $input vrsr
+makepars vrsr $VREGIONS vr_fit
+makepars vrsr $SIGREGIONS sr_fit
+makepars vrsr signal_mct150 onesr_fit
 
 # zip up result
 if [[ $ZIP ]]
