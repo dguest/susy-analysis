@@ -21,6 +21,14 @@ from scharm.limits import limitsty
 
 class CLsExclusionPlane:
     """Scharm to Charm exclusion plane"""
+    # text sizes
+    # big_size = 24
+    # med_size = 18
+    # small_size = 14
+    big_size = 26
+    med_size = 20
+    small_size = 16
+
     # plot limits
     xlim = (0.0, 600.0)
     ylim = (0.0, 500.0)
@@ -45,18 +53,24 @@ class CLsExclusionPlane:
     # labels
     lsp = limitsty.lsp
     scharm = limitsty.scharm
+    antischarm = limitsty.scharm.replace(r'{c}', r'{\bar{c}}')
     stop = limitsty.stop
 
     # legend setup
     legend_properties = dict(
-        fontsize='x-large', loc='upper left', framealpha=0.0, numpoints=1)
-
-    # ticks
-    major_pars = dict(labelsize=16, length=10)
-    minor_pars = dict(length=5)
+        fontsize=med_size, loc='upper left', framealpha=0.0, numpoints=1)
 
     # special strings
     right_side_ul_info = 'Numbers give 95% CLs excluded cross section [fb]'
+    ax_tmp = r'$m_{{ {} }}$ [GeV]'
+
+    # text formatting
+    x_fmt = dict(y=0.98, ha='right', fontsize=big_size)
+    y_fmt = dict(x=0.98, ha='right', fontsize=big_size)
+
+    # ticks
+    major_pars = dict(length=10, labelsize=med_size)
+    minor_pars = dict(length=5)
 
     def __init__(self, threshold=0.05, **argv):
         width = 9.0
@@ -69,8 +83,8 @@ class CLsExclusionPlane:
         self.ax.tick_params(**self.major_pars)
         self.ax.minorticks_on()
         self.ax.tick_params(which='minor', **self.minor_pars)
-        self.ax.set_ylabel(r'$m_{{ {} }}$ [GeV]'.format(self.lsp), **vdict)
-        self.ax.set_xlabel(r'$m_{{ {} }}$ [GeV]'.format(self.scharm), **hdict)
+        self.ax.set_ylabel(self.ax_tmp.format(self.lsp), **self.x_fmt)
+        self.ax.set_xlabel(self.ax_tmp.format(self.scharm), **self.y_fmt)
 
         self.colors = list('rgbmc') + ['orange']
         self.ultxt = dict(fontsize=10, ha='center', va='bottom', color='grey')
@@ -90,11 +104,16 @@ class CLsExclusionPlane:
         self._labeled_points = set()
         self._threshold = threshold
         self._finalized = False
+        self._ax2 = None        # just for an added label
+
         self._drawpoints = argv.get('show_points', True)
         self._kinbounds = argv.get('kinematic_bounds', True)
-        self._kinbound_alpha = 0.7 if argv.get('high_contrast') else 0.3
+
+        hc = argv.get('high_contrast')
+        self._kinbound_alpha = 0.7 if hc else 0.3
+        self._mono_alpha = 0.2 if hc else 0.1
+
         self._fill_low_stop = argv.get('fill_low_stop', True)
-        self._ax2 = None        # just for an added label
 
     def _get_style(self, style_string=''):
         if not style_string:
@@ -278,24 +297,31 @@ class CLsExclusionPlane:
             highpts = pts[(pts[:,0] > 100) & (pts[:,1] > 50)]
             min_dm = np.min(highpts[:,0] - highpts[:,1])
             pts = np.vstack(([[min_dm,0]], highpts, [[upper, 0]]))
-        patch = Polygon(pts, color='CornflowerBlue', alpha=0.1, zorder=0)
+        exc_props = dict(
+            color='CornflowerBlue', alpha=self._mono_alpha, zorder=0)
+        patch = Polygon(pts, **exc_props)
         self.ax.add_patch(patch)
         self._proxy_contour.append( (patch, label) )
 
-    def add_labels(self, y=0.28):
+    def add_labels(self, y=0.32):
         if self.approved:
             self.ax.text(0.2, 1-y, 'ATLAS', weight='bold', style='italic',
                          horizontalalignment='right',
-                         transform=self.ax.transAxes, size=24)
+                         transform=self.ax.transAxes, size=self.big_size)
             self.ax.text(0.2, 1-y, ' Preliminary',
                          horizontalalignment='left',
-                         transform=self.ax.transAxes, size=24)
+                         transform=self.ax.transAxes, size=self.big_size)
         self.ax.text(0.05, 0.9 - y,
                      r'$\int\ \mathcal{L}\ dt\ =$ 20.3 fb$^{\sf -1}$',
-                     transform=self.ax.transAxes, size=24)
-        self.ax.text(0.05, 0.8 - y,
+                     transform=self.ax.transAxes, size=self.med_size)
+        self.ax.text(0.08, 0.825 - y,
                      r'$\sqrt{s}\ =$ 8 TeV',
-                     transform=self.ax.transAxes, size=24)
+                     transform=self.ax.transAxes, size=self.med_size)
+
+        title = r' Direct ${c}{cb}$, ${c} \to c{l}$'.format(
+            c=self.scharm, cb=self.antischarm, l=self.lsp)
+        self.ax.set_title(
+            title, loc='left', fontsize=self.big_size, va='bottom')
 
     def _add_kinematic_bounds(self):
         """adds lines indicating where stop -> charm decays are allowed"""
@@ -319,11 +345,11 @@ class CLsExclusionPlane:
         pd = p1 - p0
         slope_deg = math.degrees(math.atan2(pd[1], pd[0]))
 
-        xpos = 250
-        px, py = xpos, xpos + 16
+        xpos = 270
+        px, py = xpos, xpos + 1.5*self.small_size
         text_style = dict(
             ha='left', va='bottom', rotation=slope_deg,
-            color=(0,0,0,self._kinbound_alpha))
+            color=(0,0,0,self._kinbound_alpha), fontsize=self.small_size)
         fmt_dict = dict(s=self.stop, l=self.lsp, c=self.scharm)
         upper_text = (
             r'$m_{{ {c} }} <\ m_{{ {l} }}$'
