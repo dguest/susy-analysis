@@ -374,6 +374,7 @@ DEFREGIONS=signal_mct150,cr_w,cr_z,cr_t
 BGREGIONS=cr_w,cr_z,cr_t
 VREGIONS=fr_mct,fr_mcc
 SIGREGIONS=signal_mct150,signal_mct200,signal_mct250
+
 makews_updown $INPUT full_exclusion
 makelim $INPUT full_exclusion -f
 drawlim full_exclusion
@@ -407,12 +408,14 @@ makepars compare_crw $VREGIONS vr_fit
 makepars compare_crw $BGREGIONS bg_fit
 
 # other fit checks
+NICKREGIONS=signal_mct150,cr_w_nicola,cr_z_nicola,cr_t_nicola
 makelim $INPUT other_fits -f
 drawlimsubset other_fits single_t.pdf normal st_with_other
 drawlimsubset other_fits jes.pdf normal jes_breakdown
 drawlimsubset other_fits nicolas.pdf normal nicolas
 makepars other_fits $DEFREGIONS bg_fit
 makepars other_fits $DEFREGIONS 400_200 400-200
+makepars other_fits $NICKREGIONS nicolas
 
 # run validation / sr plotting stuff
 makebg $INPUT vrsr
