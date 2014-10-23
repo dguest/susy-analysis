@@ -94,7 +94,7 @@ class Point:
             pt_name = '{}-{}'.format(self.ms, self.ml)
             haveargs = ', '.join(sp.keys())
             if sp.get('ul') == -1:
-                raise NullPointError(sp)
+                raise NullPointError(self.ms, self.ml)
             err = 'expected CLs missing for {}, keys: {}'.format(
                 pt_name, haveargs)
             raise KeyError(err)
@@ -118,8 +118,9 @@ class Point:
         return self.ms, self.ml
 
 class NullPointError(Exception):
-    def __init__(self, pt):
-        super().__init__(pt)
+    def __init__(self, ms, ml):
+        super().__init__('point with no expected cls')
+        self.xy = (ms, ml)
 
 def _max_exclusion_plane(args, show_regions=False, clean=False, ul=False):
     """
@@ -169,15 +170,20 @@ def _xy_from_csv(file_path):
 def _get_max_expected_points(cls_dict):
     """helper for _max_exclusion_plane"""
     pdict = {}
+    # HACK: poison points (where no expected CLs is found, but UL is
+    # defined) are removed only to keep us consistent with the limits
+    # we showed before.
+    poison_points = set()
     for conf_name, cls_list in sorted(cls_dict.items()):
         for sp in cls_list:
             try:
                 pt = Point(sp, conf_name)
             except NullPointError as err:
+                poison_points.add(err.xy)
                 continue
             if pt.xy() not in pdict or pdict[pt.xy()].expt > pt.expt:
                 pdict[pt.xy()] = pt
-    return pdict
+    return {key: pdict[key] for key in set(pdict) - poison_points}
 
 # ____________________________________________________________________________
 # overlay multiple exclusions
