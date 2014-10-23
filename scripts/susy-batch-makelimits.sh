@@ -45,30 +45,34 @@ function checkarg() {
     fi
 }
 
+INPUT=''
+DO_UL=0
+ZIP=0
+EE=''
 while (( $# ))
 do
     case $1 in
 	--help) doc; exit 1;;
 	-h) doc; exit 1;;
 	-o) checkarg $@; shift; OUTDIR=$1; shift;;
-	-t) ee=-h; shift;;
+	-t) EE=-h; shift;;
 	-z) ZIP=1; shift;;
 	-l) DO_UL=1; shift;;
 	--toys) DO_UL=1; checkarg $@; shift; NTOYS=$1; shift;;
 	*)
-	    if [[ -n $input ]]
+	    if [[ -n $INPUT ]]
 		then
 		usage
 		echo 'too many inputs' >&2
 		exit 2
 	    else
-		input=$1
+		INPUT=$1
 	    fi
 	    shift;;
     esac
 done
 
-if [[ -z $input ]]
+if [[ -z $INPUT ]]
 then
     usage
     echo need file 1>&2
@@ -123,7 +127,7 @@ function makelim() {
     if ! matches_in $WSDIR '*nominal*'
 	then
 	echo making limits for $2
-	local fitargs="-o $WSDIR -c $2/configuration.yml $3 $ee"
+	local fitargs="-o $WSDIR -c $2/configuration.yml $3 $EE"
 	if ! susy-fit-workspace.py $1 $fitargs; then return 2; fi
     fi
     mkdir -p $OUTDIR/$2
@@ -131,7 +135,7 @@ function makelim() {
     local SC_CLSPATH=$SC_CLSFILE
     if [[ ! -f $CLSFILE ]]
 	then
-	if ! susy-fit-runfit.py $WSDIR -o $CLSFILE $ee; then return 2; fi
+	if ! susy-fit-runfit.py $WSDIR -o $CLSFILE $EE; then return 2; fi
 	if [[ -f $SC_CLSPATH ]]
 	    then
 	    cat $SC_CLSPATH >> $CLSFILE
@@ -189,7 +193,7 @@ function makews_updown() {
 	do
 	    echo making ${dr#--} limits for $2
 	    susy-fit-workspace.py $1 -o $WSDIR -c $2/configuration.yml \
-		$ee $dr
+		$EE $dr
 	done
     fi
 }
@@ -200,7 +204,7 @@ function makebg() {
 	return 0
     fi
     echo making bg fit for $2
-    susy-fit-workspace.py $1 -o $2/workspaces -c $2/configuration.yml -fb $ee
+    susy-fit-workspace.py $1 -o $2/workspaces -c $2/configuration.yml -fb $EE
     echo done bg fit for $2
 }
 
@@ -328,13 +332,13 @@ function makepars() {
 	    then
 	    echo "making systables in $odir"
 	    mkdir -p $odir
-	    susy-fit-systable.sh $fit -o $odir $regs $ee
+	    susy-fit-systable.sh $fit -o $odir $regs $EE
 	fi
 	if ! matches_in $odir "*.pdf"
 	    then
 	    echo "drawing parameters in $odir"
 	    local pars=$odir/fit-parameters.yml
-	    local draw="susy-fit-draw-parameters.py -o $odir $ee $DRAWARGS"
+	    local draw="susy-fit-draw-parameters.py -o $odir $EE $DRAWARGS"
 	    susy-fit-results.py $fit | tee $pars | $draw
 	fi
     done
@@ -367,8 +371,8 @@ DEFREGIONS=signal_mct150,cr_w,cr_z,cr_t
 BGREGIONS=cr_w,cr_z,cr_t
 VREGIONS=vr_mct,vr_mcc
 SIGREGIONS=signal_mct150,signal_mct200,signal_mct250
-makews_updown $input full_exclusion
-makelim $input full_exclusion -f
+makews_updown $INPUT full_exclusion
+makelim $INPUT full_exclusion -f
 drawlim full_exclusion
 makepars full_exclusion $BGREGIONS bg_fit
 makepars full_exclusion $DEFREGIONS srcr srcr
@@ -387,20 +391,20 @@ then
 fi
 
 # run systematics comparison
-makelim $input compare_systematics
+makelim $INPUT compare_systematics
 drawlim compare_systematics
-makebg $input compare_systematics
+makebg $INPUT compare_systematics
 makepars compare_systematics
 
 # run crw comparison
-makelim $input compare_crw
+makelim $INPUT compare_crw
 drawlim compare_crw
-makebg $input compare_crw
+makebg $INPUT compare_crw
 makepars compare_crw $VREGIONS vr_fit
 makepars compare_crw $BGREGIONS bg_fit
 
 # other fit checks
-makelim $input other_fits -f
+makelim $INPUT other_fits -f
 drawlimsubset other_fits single_t.pdf normal st_with_other
 drawlimsubset other_fits jes.pdf normal jes_breakdown
 drawlimsubset other_fits nicolas.pdf normal nicolas
@@ -408,7 +412,7 @@ makepars other_fits $DEFREGIONS bg_fit
 makepars other_fits $DEFREGIONS 400_200 400-200
 
 # run validation / sr plotting stuff
-makebg $input vrsr
+makebg $INPUT vrsr
 makepars vrsr $VREGIONS vr_fit
 makepars vrsr $SIGREGIONS sr_fit
 makepars vrsr signal_mct150 onesr_fit
