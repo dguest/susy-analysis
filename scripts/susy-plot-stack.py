@@ -20,7 +20,7 @@ def get_config():
     parser.add_argument('-f', '--fit-parameters', help='from fit-results')
     parser.add_argument('-b', '--blind', action='store_true', help=_bl_help)
     parser.add_argument(
-        '--filt', help='not really sure what this does... should fix it')
+        '--filt', help='only print plots matching some proc/variable/region')
     parser.add_argument(
         '-s','--signal-points', default=def_pts, nargs='+',
         help="assumes <particle>-<something> type name, " + d)

@@ -294,7 +294,10 @@ def _print_plot(obj):
             print('making ratio {}'.format(save_name))
         else:
             print('making {}'.format(save_name))
-    stack = Stack(ratio=has_ratio, selection_colors=obj.selection_colors)
+    stackopts = dict(
+        ratio=has_ratio, selection_colors=obj.selection_colors,
+        for_paper=(not obj.show_counts))
+    stack = Stack(**stackopts)
     stack.colors = obj.signal_colors
     stack.lumi = obj.lumi
     stack.region_name = reg_names.get(obj.cut)

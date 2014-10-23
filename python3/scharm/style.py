@@ -242,7 +242,7 @@ _ax_labels = {
 #       units are converted
 crop_vars = {
     'met': (0, 600),
-    'mass_ct': (0, 500),
+    'mass_ct': (0, 400),
     'mass_ll': (40, 140),
     'j0_pt': (0, 580),
     'j1_pt': (0, 300),

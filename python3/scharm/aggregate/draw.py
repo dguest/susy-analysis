@@ -27,14 +27,16 @@ class Stack:
     syserr_name = 'experimental'
     staterr_name = 'statistical'
     toterr_name = 'total'
+    verbose_total_error = 'stat + experimental error'
     ratio_grid_color = (0,0,0,0.2)
-    label_font_size = 16
     legend_format = '{title}: {number_events}'
     magic_sig_str = 'scharm-'
+    signal_prefix = r'$\tilde{c}$ '
     # confidence interval for data
     data_ci = 1 - math.erf( (1/2)**0.5) # 1 sigma
     def __init__(self, ratio=False, exclude_zeros=True,
-                 selection_colors=('r',(0.9, 0, 0, 0.2))):
+                 selection_colors=('r',(0.9, 0, 0, 0.2)),
+                 for_paper=False):
         self._exclude_zeros = exclude_zeros
         self.fig = Figure(figsize=(8,6))
         self.canvas = FigureCanvas(self.fig)
@@ -44,7 +46,11 @@ class Stack:
         self.ratio_font_size = 10
         self.colors = list('kc') + ['purple', 'orange']
         self.y_min = None
-        self.show_counts = True
+
+        self._for_paper = for_paper
+        self._small_size = 16
+        self._med_size = 18 if for_paper else self._small_size
+        self._big_size = 20 if for_paper else 18
 
         if not ratio:
             self.ax = self.fig.add_subplot(1,1,1)
@@ -53,12 +59,12 @@ class Stack:
             grid = GridSpec(2,1, height_ratios=[3,1])
             self.ax = self.fig.add_subplot(grid[0])
             self.ratio = self.fig.add_subplot(grid[1],sharex=self.ax)
-            self.ratio.set_ylabel('Data / SM', fontsize=self.label_font_size)
+            self.ratio.set_ylabel('Data / SM', fontsize=self._small_size)
             locator = MaxNLocator(5, prune='upper')
             self.ratio.get_yaxis().set_major_locator(locator)
             self.ratio.tick_params(
-                labelsize=self.label_font_size, which='both')
-        self.ax.tick_params(labelsize=self.label_font_size, which='both')
+                labelsize=self._med_size, which='both')
+        self.ax.tick_params(labelsize=self._med_size, which='both')
 
         self._selection = None
         self._y_sum_step = 0.0
@@ -93,15 +99,16 @@ class Stack:
 
         if not xlabel:
             axes.set_xlabel(name, x=0.98, ha='right',
-                            fontsize=self.label_font_size)
+                            fontsize=self._big_size)
 
     def _get_legstr(self, hist):
-        if hist.title.startswith(self.magic_sig_str):
+        is_sig = hist.title.startswith(self.magic_sig_str)
+        if is_sig:
             title = hist.title.replace(self.magic_sig_str,'')
         else:
             title = hist.title
-        if not self.show_counts:
-            return title
+        if self._for_paper:
+            return self.signal_prefix + title if is_sig else title
 
         hval = float(hist)
         # return title
@@ -130,7 +137,7 @@ class Stack:
             ylabel = self.ax.get_ylabel()
             if not ylabel:
                 self.ax.set_ylabel(hist.y_label, y=0.98, ha='right',
-                                   fontsize=self.label_font_size)
+                                   fontsize=self._big_size)
             self._set_xlab(hist.x_label)
 
             fill_color = hist.color
@@ -155,18 +162,26 @@ class Stack:
             last_plot = tmp_sum
             self._sm_total += float(hist)
 
+    def _add_transparent_ratio_err(self, x_vals, rel_sys_err):
+        self.ratio.fill_between(
+            x_vals, 1 - rel_sys_err, 1 + rel_sys_err,
+            color=self._cut_fill, linewidth=0.0)
+        proxy = Rectangle(
+            (0, 0), 1, 1, fc=self._cut_fill, ec='none')
+        return proxy
+
     def add_syst2(self, hist_list):
+        if self._for_paper:
+            return
         x_vals, rel_sys_err = _get_mc_error_bands(
             hist_list, self._y_sum_step)
         if self.ratio:
-            self.ratio.fill_between(
-                x_vals, 1 - rel_sys_err, 1 + rel_sys_err,
-                color=self._cut_fill, linewidth=0.0)
-            proxy = Rectangle(
-                (0, 0), 1, 1, fc=self._cut_fill, ec='none')
+            proxy = self._add_transparent_ratio_err(x_vals, rel_sys_err)
             self._rat_legs.append((proxy, self.syserr_name))
 
     def add_wt2(self, hist_list):
+        if self._for_paper:
+            return
         x_vals, rel_stat_err = _get_mc_error_bands(
             hist_list, self._y_sum_step)
         if self.ratio:
@@ -183,6 +198,10 @@ class Stack:
         x_vals, rel_err = _get_mc_error_bands(
             hist_list, self._y_sum_step)
         if self.ratio:
+            if self._for_paper:
+                proxy = self._add_transparent_ratio_err(x_vals, rel_err)
+                self._rat_legs.append((proxy, self.verbose_total_error))
+                return
             self.ratio.plot(x_vals, 1 - rel_err, color=self._cut_color)
             ln, = self.ratio.plot(x_vals, 1 + rel_err, color=self._cut_color)
             self._rat_legs.append( (ln, self.toterr_name) )
@@ -314,24 +333,24 @@ class Stack:
         if self.lumi:
             self.ax.text(
                 0.02, 0.95, self.lumi_str.format(self.lumi),
-                transform=self.ax.transAxes, size=self.label_font_size,
+                transform=self.ax.transAxes, size=self._small_size,
                 va='top')
             self.ax.text(
                 0.05, 1 - 2*vspace, r'$\sqrt{s} = $ 8 TeV', va='top',
-                transform=self.ax.transAxes, size=self.label_font_size)
+                transform=self.ax.transAxes, size=self._small_size)
 
         if self.region_name:
             reg_y = 1 - 3*vspace
             region_string = 'region: {}'.format(self.region_name)
             self.ax.text(
                 s=region_string, ha='left', x=0.05, y=reg_y, va='top',
-                transform=self.ax.transAxes, size=self.label_font_size)
+                transform=self.ax.transAxes, size=self._small_size)
 
         vert = 0.9 - frac_consumed
         atl_lable_args = dict(
             x=0.8, y=vert,
             transform=self.ax.transAxes,
-            size=self.label_font_size + 4)
+            size=self._med_size + 4)
         self.ax.text(s='ATLAS', weight='bold', style='italic',
                      ha='right', **atl_lable_args)
         self.ax.text(s=' Internal',
@@ -343,7 +362,7 @@ class Stack:
         if there's no need to add these.
         """
         # return dummy spacer if there's no need for the total
-        if not self.show_counts and self.ratio:
+        if self._for_paper and self.ratio:
             return []
 
         # the artist is just a black line (change to red like sbottom?)
@@ -351,7 +370,7 @@ class Stack:
 
         # the string depends on whether we're showing the total counts
         total_title = 'SM total'
-        if self.show_counts:
+        if not self._for_paper:
             tstring = self.legend_format.format(
                 title=total_title, number_events=_legstr(self._sm_total))
         else:
@@ -379,15 +398,18 @@ class Stack:
         all_legs =  first_col_legs + bg_legs
 
         proxies = zip(*all_legs)
-        legend = self.ax.legend(*proxies, numpoints=1, ncol=2)
+        legend = self.ax.legend(
+            *proxies, numpoints=1, ncol=2, fontsize=self._med_size)
         if legend:
             legend.get_frame().set_linewidth(0)
             legend.get_frame().set_alpha(0)
 
         # crude guess for how many legends fit
-        max_fitting = 24 if self.ratio else 34
+        max_fitting = 22 if self.ratio else 34
         n_leg = len(all_legs)
         frac_consumed = min(n_leg / max_fitting, 0.9)
+        # adjust for bigger font
+        frac_consumed *= self._med_size / self._small_size
         self._scaleup = 1 / (1 - frac_consumed)
 
         if self._rat_legs:
@@ -533,7 +555,7 @@ class Hist1d:
     def y_label(self):
         bins = len(self._array) - 2
         x_per_bin = (self.extent[1] - self.extent[0]) / bins
-        fm_string = '{} / {:.1f}'
+        fm_string = '{} / {:.2g}'
         if self._x_units:
             fm_string += ' {units}'
         return fm_string.format(
