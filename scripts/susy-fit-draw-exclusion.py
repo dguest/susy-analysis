@@ -90,6 +90,14 @@ class Point:
     """minimal class to hold point info"""
     def __init__(self, sp, config_name):
         self.ms, self.ml = sp['scharm_mass'], sp['lsp_mass']
+        if not all(x in sp for x in ['exp_d1s', 'exp_u1s', 'exp']):
+            pt_name = '{}-{}'.format(self.ms, self.ml)
+            haveargs = ', '.join(sp.keys())
+            if sp.get('ul') == -1:
+                raise NullPointError(sp)
+            err = 'expected CLs missing for {}, keys: {}'.format(
+                pt_name, haveargs)
+            raise KeyError(err)
         self.low, self.high = sp['exp_d1s'], sp['exp_u1s']
         self.expt = sp['exp']
         self.obs = sp['obs']
@@ -108,6 +116,10 @@ class Point:
 
     def xy(self):
         return self.ms, self.ml
+
+class NullPointError(Exception):
+    def __init__(self, pt):
+        super().__init__(pt)
 
 def _max_exclusion_plane(args, show_regions=False, clean=False, ul=False):
     """
@@ -159,7 +171,10 @@ def _get_max_expected_points(cls_dict):
     pdict = {}
     for conf_name, cls_list in sorted(cls_dict.items()):
         for sp in cls_list:
-            pt = Point(sp, conf_name)
+            try:
+                pt = Point(sp, conf_name)
+            except NullPointError as err:
+                continue
             if pt.xy() not in pdict or pdict[pt.xy()].expt > pt.expt:
                 pdict[pt.xy()] = pt
     return pdict

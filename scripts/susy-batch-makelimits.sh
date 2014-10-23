@@ -46,8 +46,8 @@ function checkarg() {
 }
 
 INPUT=''
-DO_UL=0
-ZIP=0
+DO_UL=''
+ZIP=''
 EE=''
 while (( $# ))
 do
@@ -122,12 +122,14 @@ function makelim() {
     # first arg: yaml fit input file
     # second arg: subdir of OUTDIR where outputs go
     # third arg: additional stuff to pass to susy-fit-workspace
+    local ADD_ARGS=''
+    if (( $# >= 3 )) ; then ADD_ARGS=$3; fi
     if ! check_for_files $2 ; then return $?; fi
     local WSDIR=$2/workspaces
     if ! matches_in $WSDIR '*nominal*'
 	then
 	echo making limits for $2
-	local fitargs="-o $WSDIR -c $2/configuration.yml $3 $EE"
+	local fitargs="-o $WSDIR -c $2/configuration.yml $ADD_ARGS $EE"
 	if ! susy-fit-workspace.py $1 $fitargs; then return 2; fi
     fi
     mkdir -p $OUTDIR/$2
@@ -260,7 +262,7 @@ function make_model_independent_ul () {
     # second arg: number of toys
     local TOYS=0
     local OUT_SUFFIX=asymptotic
-    if [[ $2 ]] ; then
+    if (( $# >= 2 )) ; then
 	TOYS=$2
 	OUT_SUFFIX=${2}toys
     fi
@@ -281,7 +283,7 @@ function make_model_independent_ul () {
     mkdir -p $SHIT
     (
 	if cd $SHIT ; then
-	    rm *
+	    rm -f *
 	else
 	    exit 1
 	fi
@@ -305,10 +307,11 @@ function makepars() {
     echo making parameters for $1
 
     local WSHEAD=background
-    if [[ $4 ]]
+    local DRAWARGS=''
+    if (( $# >= 4 ))
     then
 	WSHEAD=$4
-	local DRAWARGS=-f
+	DRAWARGS=-f
     fi
 
     local WSTAIL=afterFit.root
@@ -323,8 +326,8 @@ function makepars() {
     for fit in $1/workspaces/**/$WSMATCH
     do
 	local odir=$OUTDIR/$1/$(dirname ${fit#*/workspaces/})
-	if [[ $2 ]] ; then regs='-r '$2 ; fi
-	if [[ $3 ]]
+	if (( $# >= 2 )) ; then regs='-r '$2 ; fi
+	if (( $# >= 3 ))
 	then
 	    odir=$odir/$3
 	fi
@@ -369,7 +372,7 @@ fi
 # run full fit (pass -f to make fit results for all workspaces)
 DEFREGIONS=signal_mct150,cr_w,cr_z,cr_t
 BGREGIONS=cr_w,cr_z,cr_t
-VREGIONS=vr_mct,vr_mcc
+VREGIONS=fr_mct,fr_mcc
 SIGREGIONS=signal_mct150,signal_mct200,signal_mct250
 makews_updown $INPUT full_exclusion
 makelim $INPUT full_exclusion -f
