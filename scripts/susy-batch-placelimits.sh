@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 
-if [[ -z $1 ]]
+if (( $# < 1 ))
 then
     echo "please give a directory containing images and tables" >&2
     exit 1
 fi
+set -e
 
 function fixdir() {
     # workaround for bullshit with atlas not allowing svn dirs to
