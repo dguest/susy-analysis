@@ -133,7 +133,8 @@ def _max_exclusion_plane(args, show_regions=False, clean=False, ul=False):
         grid = not clean and not ul,
         show_points = not any([clean, ul, args.mono]),
         kinematic_bounds = 'both',
-        interpolation=args.interpolation)
+        interpolation=args.interpolation,
+        high_contrast=args.mono)
 
     ex_plane = planeplt.CLsExclusionPlane(**plane_opts)
     ex_plane.approved = True

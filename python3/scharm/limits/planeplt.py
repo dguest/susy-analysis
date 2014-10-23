@@ -27,6 +27,8 @@ class CLsExclusionPlane:
 
     # limits on internal interpolated grid
     gev_per_bin = 5
+    assert (xlim[1] - xlim[0]) % gev_per_bin == 0, 'non-int number of xbins'
+    assert (ylim[1] - ylim[0]) % gev_per_bin == 0, 'non-int number of ybins'
     grid_xlim = xlim
     grid_ylim = (ylim[0] - gev_per_bin, ylim[1])
 
@@ -39,7 +41,6 @@ class CLsExclusionPlane:
     _t_mass = 173.3
     _c_mass = 1.29
     _b_mass = 4.18
-    _kinbound_alpha = 0.3
 
     # labels
     lsp = limitsty.lsp
@@ -91,6 +92,7 @@ class CLsExclusionPlane:
         self._finalized = False
         self._drawpoints = argv.get('show_points', True)
         self._kinbounds = argv.get('kinematic_bounds', True)
+        self._kinbound_alpha = 0.7 if argv.get('high_contrast') else 0.3
         self._fill_low_stop = argv.get('fill_low_stop', True)
         self._ax2 = None        # just for an added label
 
@@ -322,15 +324,17 @@ class CLsExclusionPlane:
         text_style = dict(
             ha='left', va='bottom', rotation=slope_deg,
             color=(0,0,0,self._kinbound_alpha))
+        fmt_dict = dict(s=self.stop, l=self.lsp, c=self.scharm)
         upper_text = (
-            r'$m_{{ {c} }} < m_{{ {l} }}$'
-            r' (${c} \to c{l}$ forbidden)').format(c=self.scharm, l=self.lsp)
+            r'$m_{{ {c} }} <\ m_{{ {l} }}$'
+            r' (${c} \to c{l}$ forbidden)').format(**fmt_dict)
         self.ax.text(px, py, upper_text, **text_style)
         if self._kinbounds == 'both' or self._kinbounds == True:
+            xoff = self._w_mass + self._b_mass
             lower_text = (
-                r'$m_{{ {c} }} < m_{{ {l} }} + m_W + m_b$ (${s} \to c {l}$)'
-                ).format(s=self.stop, l=self.lsp, c=self.scharm)
-            self.ax.text(px + self._w_mass, py, lower_text , **text_style)
+                r'$m_{{ {c} }} <\ m_{{ {l} }} +\ m_W +\ m_b$'
+                r' (${s} \to c {l}$)').format(**fmt_dict)
+            self.ax.text(px + xoff, py, lower_text , **text_style)
 
     def _add_signal_points(self):
         """Add unlabeled signal points"""
