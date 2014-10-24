@@ -13,6 +13,8 @@ class HistDict(dict):
         - bottom dir is cut / region
         - all middle dirs are the variable name
     """
+    fast_plots = [('signal_mct150', 'mass_ct'),('cr_z', 'mass_ll')]
+
     def __init__(self, file_name='', filt=None, sig_prefix='scharm',
                  sig_points=[],
                  cut_set=None, var_blacklist=None, fast=False):
@@ -20,7 +22,8 @@ class HistDict(dict):
             return None
         with h5py.File(file_name,'r') as infile:
             if fast:
-                self._build_fast(infile, sig_prefix, sig_points)
+                for plt in self.fast_plots:
+                    self._build_fast(infile, sig_prefix, sig_points, *plt)
                 return
 
             for proc, var_grp in infile.items():
@@ -44,7 +47,8 @@ class HistDict(dict):
                     hist = infile[path]
                     self[nametup] = HistNd(hist)
 
-    def _build_fast(self, infile, sig_prefix, sig_points):
+    def _build_fast(self, infile, sig_prefix, sig_points,
+                    reg='signal_mct150', variable='mass_ct'):
         for proc, var_grp in infile.items():
             sig_pt = proc.startswith(sig_prefix)
             if sig_pt and proc not in sig_points:
@@ -53,9 +57,9 @@ class HistDict(dict):
             if proc != 'data' and not proc.startswith(sig_prefix):
                 variants.append('Syst2')
             for var in variants:
-                variable = 'mass_ll' + var
-                nametup = (proc, variable, 'cr_t')
-                hist = var_grp[variable]['cr_t']
+                full_var = variable + var
+                nametup = (proc, full_var, reg)
+                hist = var_grp[variable][reg]
                 self[nametup] = HistNd(hist)
 
     def __setitem__(self, key, value):

@@ -262,11 +262,16 @@ crop_region_vars = {
 # ________________________________________________________________________
 # misc top level stack plotting tweaks
 
-def customize_stack(stack, var_name):
+def customize_stack(stack, var_name, region):
     if var_name.endswith('flavor_truth_label'):
         stack.ax.set_xticks([0, 1, 2, 3])
         stack.ax.set_xticklabels(['light', 'charm', 'bottom', 'tau'])
         stack.ax.set_ylabel('Jets')
+    if var_name == 'mass_ct' and region.startswith('signal'):
+        stack.add_cut_arrow(150)
+        stack.add_cut_arrow(200)
+        stack.add_cut_arrow(250)
+        stack.region_name = None
 # ________________________________________________________________________
 # rebinning
 rebinning = {

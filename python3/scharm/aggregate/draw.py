@@ -9,6 +9,7 @@ from matplotlib.ticker import MaxNLocator, LogLocator
 from matplotlib.ticker import LogFormatterMathtext, LogFormatter
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
+from matplotlib.transforms import blended_transform_factory as transfact
 import numpy as np
 from itertools import chain
 from scharm import errorbars
@@ -27,7 +28,9 @@ class Stack:
     syserr_name = 'experimental'
     staterr_name = 'statistical'
     toterr_name = 'total'
-    verbose_total_error = 'stat + experimental error'
+    verbose_total_error = 'statistical + experimental error'
+    # verbose_total_error = (
+    #     r'$(\sigma_{\sf stat}^2 + \sigma_{\sf experimental}^2})^{1/2}$')
     ratio_grid_color = (0,0,0,0.2)
     legend_format = '{title}: {number_events}'
     magic_sig_str = 'scharm-'
@@ -67,6 +70,8 @@ class Stack:
         self.ax.tick_params(labelsize=self._med_size, which='both')
 
         self._selection = None
+        self._inner_cuts = [None, None]
+        self._cut_arrows = []
         self._y_sum_step = 0.0
         self._y_sum = 0.0
         self._proxy_legs = []
@@ -242,6 +247,8 @@ class Stack:
 
         inf = float('inf')
         if self._for_paper:
+            for value, down in self._cut_arrows:
+                self._draw_cut_arrow(value, down)
             if low != -inf:
                 self._draw_cut_arrow(low)
             if high != inf:
@@ -256,21 +263,31 @@ class Stack:
         if high != inf:
             self.ax.axvspan(high, xhigh, **fill_args)
 
+    def add_cut_arrow(self, value, down=False):
+        self._cut_arrows.append((value, down))
+
     def _draw_cut_arrow(self, value, down=False):
-        ylow, yhigh = self.ax.get_ylim()
-        yrng = yhigh - ylow
-        top = ylow + yrng * 0.6
-        bot = ylow
-        self.ax.plot([value]*2, [bot, top], linewidth=2, color='red')
-        cent = ylow + yrng * 0.3
+        if not self._for_paper:
+            return
+        if self._inner_cuts[0] and value <= self._inner_cuts[0]:
+            return
+        color = 'firebrick'
+        transform = transfact(self.ax.transData, self.ax.transAxes)
+        self.ax.plot([value]*2, [0, 0.5], linewidth=2, color=color,
+                     transform=transform)
         xlow, xhigh = self.ax.get_xlim()
-        print(xlow, xhigh, cent)
-        alength = (xhigh - xlow) / 7
-        arrow_start = value + alength if down else value - alength
-        arrow_sty = dict(arrowstyle='simple', fc='red')
+        if down:
+            arrow_start = self._inner_cuts[1] or xhigh
+            self._inner_cuts[1] = value
+        else:
+            arrow_start = self._inner_cuts[0] or xlow
+            self._inner_cuts[0] = value
+        arrow_sty = dict(arrowstyle='simple', fc=color, ec='none', alpha=0.3)
+        arrow_height = 0.1 if self.ax.get_yscale() == 'log' else 0.3
         self.ax.annotate(
-            '', (arrow_start, cent), (value, cent), textcoords='data',
-            size=self._big_size)
+            '', xytext=(arrow_start, arrow_height), xy=(value, arrow_height),
+            xycoords=transform,
+            size=32, arrowprops=arrow_sty, transform=transform)
 
     def _add_ratio(self, x_vals, y_vals, lows, highs):
         """

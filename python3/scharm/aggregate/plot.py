@@ -317,10 +317,12 @@ def _print_plot(obj):
         stack.add_wt2(obj.wt2)
         if obj.syst2:
             stack.add_total2(obj.syst2 + obj.wt2)
+
+    style.customize_stack(stack, obj.variable, obj.cut)
+
     stack.add_legend()
     if not isdir(obj.plot_dir):
         os.makedirs(obj.plot_dir)
-    style.customize_stack(stack, obj.variable)
     stack.save(save_name)
 
 # __________________________________________________________________________
