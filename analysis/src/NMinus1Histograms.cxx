@@ -46,13 +46,13 @@ NMinus1Histograms
   add_hist(Axis{DPHI_CC, 80, 0.0, 3.2});
   add_hist(Axis{DR_CC, 200, 0.0, 8.0});
   add_hist(Axis{DPHI_ANY, 80, 0.0, 3.2});
-  add_hist(Axis{MCT, N_BINS, 0.0, MAX_ENERGY, EUNIT});
-  add_hist(Axis{MCT_UNCORR, N_BINS, 0.0, MAX_ENERGY, EUNIT});
+  add_hist(Axis{MCT, N_BINS, 0.0, 0.5_TeV, EUNIT});
+  add_hist(Axis{MCT_UNCORR, N_BINS, 0.0, 0.5_TeV, EUNIT});
   add_hist(Axis{MET_EFF, N_BINS, 0, 1.0});
   add_hist(Axis{MCC, N_BINS, 0.0, MAX_ENERGY, EUNIT});
   for (int jn: {0,1,2}) {
     add_hist(Axis{jeta(jn), 112, -2.8, 2.8});
-    add_hist(Axis{jpt(jn), N_BINS, 0, MAX_ENERGY, EUNIT});
+    add_hist(Axis{jpt(jn), N_BINS, 0, 500_GeV, EUNIT});
     add_hist(Axis{jantib(jn), 300, -7.5, 7.5});
     add_hist(Axis{jantiu(jn), 300, -7.5, 7.5});
     add_hist(Axis{jmetdphi(jn), 80, 0.0, 3.2});

@@ -241,10 +241,10 @@ _ax_labels = {
 # NOTE: this is "plot level" units, the cropping is done _after_
 #       units are converted
 crop_vars = {
-    'met': (0, 600),
+    'met': (0, 500),
     'mass_ct': (0, 400),
     'mass_ll': (40, 140),
-    'j0_pt': (0, 580),
+    'j0_pt': (0, 500),
     'j1_pt': (0, 300),
     'j2_pt': (0, 200),
     'n_signal_jets': (1.5, 10.5),
