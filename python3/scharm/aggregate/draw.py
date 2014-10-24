@@ -239,16 +239,38 @@ class Stack:
         if not self._selection:
             return
         low, high = self._selection
+
+        inf = float('inf')
+        if self._for_paper:
+            if low != -inf:
+                self._draw_cut_arrow(low)
+            if high != inf:
+                self._draw_cut_arrow(high, down=True)
+            return
+
         fill_args = dict(facecolor=self._cut_fill, lw=0)
         line_args = dict(color=self._cut_color, linewidth=2)
-        inf = float('inf')
         xlow, xhigh = self._x_limits
         if low != -inf:
             self.ax.axvspan(xlow, low, **fill_args)
-            # self.ax.axvline(low, **line_args)
         if high != inf:
             self.ax.axvspan(high, xhigh, **fill_args)
-            # self.ax.axvline(high, **line_args)
+
+    def _draw_cut_arrow(self, value, down=False):
+        ylow, yhigh = self.ax.get_ylim()
+        yrng = yhigh - ylow
+        top = ylow + yrng * 0.6
+        bot = ylow
+        self.ax.plot([value]*2, [bot, top], linewidth=2, color='red')
+        cent = ylow + yrng * 0.3
+        xlow, xhigh = self.ax.get_xlim()
+        print(xlow, xhigh, cent)
+        alength = (xhigh - xlow) / 7
+        arrow_start = value + alength if down else value - alength
+        arrow_sty = dict(arrowstyle='simple', fc='red')
+        self.ax.annotate(
+            '', (arrow_start, cent), (value, cent), textcoords='data',
+            size=self._big_size)
 
     def _add_ratio(self, x_vals, y_vals, lows, highs):
         """
@@ -425,7 +447,6 @@ class Stack:
         if self._x_limits is None:
             return
 
-        self._draw_selection()
         self.ax.set_xlim(*self._x_limits)
         if self.ax.get_yscale() != 'log':
             ymax = self.ax.get_ylim()[1]
@@ -433,6 +454,8 @@ class Stack:
         else:
             ymin, ymax = self.ax.get_ylim()
             self.ax.set_ylim(ymin, ymax**self._scaleup)
+
+        self._draw_selection()
 
         self.fig.tight_layout(pad=0.3, h_pad=0.3, w_pad=0.3)
 

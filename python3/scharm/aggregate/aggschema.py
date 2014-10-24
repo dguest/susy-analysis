@@ -15,10 +15,14 @@ class HistDict(dict):
     """
     def __init__(self, file_name='', filt=None, sig_prefix='scharm',
                  sig_points=[],
-                 cut_set=None, var_blacklist=None):
+                 cut_set=None, var_blacklist=None, fast=False):
         if not file_name:
             return None
         with h5py.File(file_name,'r') as infile:
+            if fast:
+                self._build_fast(infile, sig_prefix, sig_points)
+                return
+
             for proc, var_grp in infile.items():
                 if sig_prefix is not None and proc.startswith(sig_prefix):
                     if proc not in sig_points:
@@ -39,6 +43,20 @@ class HistDict(dict):
                     nametup = (physics, variable, cut)
                     hist = infile[path]
                     self[nametup] = HistNd(hist)
+
+    def _build_fast(self, infile, sig_prefix, sig_points):
+        for proc, var_grp in infile.items():
+            sig_pt = proc.startswith(sig_prefix)
+            if sig_pt and proc not in sig_points:
+                continue
+            variants = ['', 'Wt2']
+            if proc != 'data' and not proc.startswith(sig_prefix):
+                variants.append('Syst2')
+            for var in variants:
+                variable = 'mass_ll' + var
+                nametup = (proc, variable, 'cr_t')
+                hist = var_grp[variable]['cr_t']
+                self[nametup] = HistNd(hist)
 
     def __setitem__(self, key, value):
         if len(key) != 3 or not all(isinstance(k,str) for k in key):
