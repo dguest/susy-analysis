@@ -40,7 +40,7 @@ NMinus1Histograms
   auto add_hist = [this, &sel, &hf](Axis ax) {
     this->m_hists.emplace_back(ax, sel, hf);
   };
-  add_hist(Axis{MET, N_BINS, 0.0, MAX_ENERGY, EUNIT});
+  add_hist(Axis{MET, N_BINS, 0.0, 500_GeV, EUNIT});
   add_hist(Axis{NSJET, SJET_RANGE, -0.5, SJET_RANGE - 0.5});
   add_hist(Axis{DPHI, 80, 0.0, 3.2});
   add_hist(Axis{DPHI_CC, 80, 0.0, 3.2});
