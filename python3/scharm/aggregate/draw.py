@@ -470,6 +470,9 @@ class Hist1d:
     """
     class to organize 1d hists from np arrays
     """
+    # when rebinning there are some values we'd like more than others
+    nicevals = (
+        np.array([1, 5]).reshape(-1,1) * np.logspace(-2,2,5)).flatten()
 
     def __init__(self, array, extent,
                  x_label = '', y_label = '', x_units='', title=''):
@@ -576,6 +579,8 @@ class Hist1d:
             self._array = self._prebin_array
         else:
             self._prebin_array = self._array
+
+        n_bins = self._array.size - 2
         binbase = np.arange(2,16)
         rebin_numbers = np.concatenate([binbase*10**x for x in (0,1,2,3)])
         # find the maximum numbers by which the current number is divisible
@@ -585,8 +590,21 @@ class Hist1d:
         valid_rebins = int_rebin & under_max
         if not valid_rebins.any():
             return
-        n_bins = rebin_numbers[int_rebin & under_max].min()
-        self._rebin(n_bins)
+        n_merged = rebin_numbers[valid_rebins].min()
+
+        # also look for "nice" values
+        binsize = (self.extent[1] - self.extent[0]) / n_bins
+        bin_sizes = rebin_numbers * binsize
+        offness = np.min((self.nicevals.reshape(-1,1) - bin_sizes)**2, 0)
+        rel_offness = offness / bin_sizes**2
+        nice_rebins = (rel_offness < 0.01) & valid_rebins
+        if nice_rebins.any():
+            nice_n_merged = rebin_numbers[nice_rebins]
+            if nice_n_merged < n_merged * 2:
+                self._rebin(nice_n_merged)
+                return
+
+        self._rebin(n_merged)
 
     def _rebin(self, n_bins):
         center_bins = self._array[1:-1]
