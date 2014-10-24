@@ -472,7 +472,7 @@ class Hist1d:
     """
     # when rebinning there are some values we'd like more than others
     nicevals = (
-        np.array([1, 5]).reshape(-1,1) * np.logspace(-2,2,5)).flatten()
+        np.array([1, 2.5, 5]).reshape(-1,1) * np.logspace(-2,2,5)).flatten()
 
     def __init__(self, array, extent,
                  x_label = '', y_label = '', x_units='', title=''):
@@ -595,16 +595,31 @@ class Hist1d:
         # also look for "nice" values
         binsize = (self.extent[1] - self.extent[0]) / n_bins
         bin_sizes = rebin_numbers * binsize
-        offness = np.min((self.nicevals.reshape(-1,1) - bin_sizes)**2, 0)
-        rel_offness = offness / bin_sizes**2
-        nice_rebins = (rel_offness < 0.01) & valid_rebins
+        if self.selection:
+            near_sel = self._get_nearsel(bin_sizes) & valid_rebins
+            if near_sel.any():
+                nearsel_n_merged = rebin_numbers[near_sel].min()
+                if nearsel_n_merged < n_merged * 5:
+                    self._rebin(nearsel_n_merged)
+                    return
+
+        nice_rebins = self._get_nice(bin_sizes) & valid_rebins
         if nice_rebins.any():
-            nice_n_merged = rebin_numbers[nice_rebins]
-            if nice_n_merged < n_merged * 2:
-                self._rebin(nice_n_merged)
+            nice_rebin = rebin_numbers[nice_rebins].min()
+            if nice_rebin < n_merged * 2:
+                self._rebin(nice_rebin)
                 return
 
         self._rebin(n_merged)
+
+    def _get_nearsel(self, bin_sizes):
+        seloff = (self.selection[0] % bin_sizes) / bin_sizes
+        return ((seloff > 0.99) | (seloff < 0.01))
+
+    def _get_nice(self, bin_sizes):
+        offness = np.min((self.nicevals.reshape(-1,1) - bin_sizes)**2, 0)
+        rel_offness = offness / bin_sizes**2
+        return (rel_offness < 0.01)
 
     def _rebin(self, n_bins):
         center_bins = self._array[1:-1]
