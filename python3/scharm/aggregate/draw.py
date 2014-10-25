@@ -456,8 +456,6 @@ class Stack:
             lg = self.ratio.legend(
                 *zip(*self._rat_legs), fontsize=self.ratio_font_size,
                  ncol=3, loc='lower right', borderaxespad=0.0)
-            # lg.get_frame().set_linewidth(0)
-            # lg.get_frame().set_alpha(0)
 
         self._add_pr_crap(frac_consumed)
 
