@@ -32,10 +32,11 @@ class HistDict(dict):
                         continue
                 for subpath in self._list_paths(var_grp):
                     path = proc + subpath
-                    if filt:
-                        if not filt in path:
-                            continue
                     spl = path.split('/')
+                    if filt:
+                        allfilt = [filt + y for y in ['','Syst2', 'Wt2']]
+                        if not any(x in spl for x in allfilt):
+                            continue
                     physics = spl[0]
                     if var_blacklist and set(spl[1:-1]) & var_blacklist:
                         continue
