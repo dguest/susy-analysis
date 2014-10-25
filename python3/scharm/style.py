@@ -262,16 +262,25 @@ crop_region_vars = {
 # ________________________________________________________________________
 # misc top level stack plotting tweaks
 
-def customize_stack(stack, var_name, region):
+def customize_stack(stack, var_name, region, is_paper):
+    is_sr = region.startswith('signal')
     if var_name.endswith('flavor_truth_label'):
         stack.ax.set_xticks([0, 1, 2, 3])
         stack.ax.set_xticklabels(['light', 'charm', 'bottom', 'tau'])
         stack.ax.set_ylabel('Jets')
-    if var_name == 'mass_ct' and region.startswith('signal'):
+    if var_name == 'mass_ct' and is_sr:
         stack.add_cut_arrow(150)
         stack.add_cut_arrow(200)
         stack.add_cut_arrow(250)
         stack.region_name = None
+
+    # hacks for Al
+    if not is_paper:
+        return
+    if var_name in {'mass_ct','met', 'j0_pt'} and is_sr:
+        stack.extra_yrange *= 0.8
+    if var_name in {'met'} and region == 'cr_w':
+        stack.extra_yrange *= 0.8
 # ________________________________________________________________________
 # rebinning
 rebinning = {

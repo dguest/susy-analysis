@@ -45,6 +45,7 @@ class Stack:
         self.canvas = FigureCanvas(self.fig)
         self.lumi = None
         self.region_name = None
+        self.extra_yrange = 1.0
         self.ratio_max = 2.0
         self.ratio_font_size = 10
         self.colors = list('kc') + ['purple', 'orange']
@@ -82,7 +83,7 @@ class Stack:
         # for setting plot upper limit with selection applied
         self._upper_limit = 0.0
         # scale up y axis when the legends get big
-        self._scaleup = 1.0
+        self._scale_for_legend = 1.0
         self._set_selection_colors(*selection_colors)
 
     def _set_selection_colors(self, line, face):
@@ -449,7 +450,7 @@ class Stack:
         frac_consumed = min(n_leg / max_fitting, 0.9)
         # adjust for bigger font
         frac_consumed *= self._med_size / self._small_size
-        self._scaleup = 1 / (1 - frac_consumed)
+        self._scale_for_legend = 1 / (1 - frac_consumed)
 
         if self._rat_legs:
             lg = self.ratio.legend(
@@ -465,12 +466,13 @@ class Stack:
             return
 
         self.ax.set_xlim(*self._x_limits)
+        y_rescale = self._scale_for_legend * self.extra_yrange
         if self.ax.get_yscale() != 'log':
             ymax = self.ax.get_ylim()[1]
-            self.ax.set_ylim(0,ymax * self._scaleup)
+            self.ax.set_ylim(0,ymax * y_rescale)
         else:
             ymin, ymax = self.ax.get_ylim()
-            self.ax.set_ylim(ymin, ymax**self._scaleup)
+            self.ax.set_ylim(ymin, ymax**y_rescale)
 
         self._draw_selection()
 

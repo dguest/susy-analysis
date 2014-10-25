@@ -42,6 +42,19 @@ def run():
     args = get_config()
     run_plotmill(args)
 
+_paper_plots = [
+    ('signal_mct150', 'mass_ct'),
+    ('signal_mct150', 'met'),
+    ('signal_mct150', 'mass_cc'),
+    ('signal_mct150', 'j0_pt'),
+    ('cr_z', 'mass_ll'),
+    ('cr_z', 'mass_ct'),
+    ('cr_w', 'mass_ct'),
+    ('cr_w', 'met'),
+    ('cr_t', 'mass_ll'),
+    ('cr_t', 'met'),
+    ]
+
 def run_plotmill(args):
     from scharm.aggregate import plot
     from scharm.aggregate.aggschema import HistDict
@@ -56,10 +69,13 @@ def run_plotmill(args):
     config = _get_config_info(args.steering_file)
     aggregates = [args.aggregate]
     plots_dict = {}
+
+    fastplots = _paper_plots if args.paper else None
+
     for agg_file in aggregates:
         print('loading {}...'.format(agg_file), end='', flush=True)
         hists = HistDict(agg_file,args.filt, sig_points=args.signal_points,
-                         sig_prefix='scharm',
+                         sig_prefix='scharm', fast=fastplots,
                          var_blacklist={'truth'})
         plots_dict.update(hists)
         print('done')

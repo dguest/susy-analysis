@@ -294,9 +294,10 @@ def _print_plot(obj):
             print('making ratio {}'.format(save_name))
         else:
             print('making {}'.format(save_name))
+    for_paper = not obj.show_counts
     stackopts = dict(
         ratio=has_ratio, selection_colors=obj.selection_colors,
-        for_paper=(not obj.show_counts))
+        for_paper=for_paper)
     stack = Stack(**stackopts)
     stack.colors = obj.signal_colors
     stack.lumi = obj.lumi
@@ -318,7 +319,7 @@ def _print_plot(obj):
         if obj.syst2:
             stack.add_total2(obj.syst2 + obj.wt2)
 
-    style.customize_stack(stack, obj.variable, obj.cut)
+    style.customize_stack(stack, obj.variable, obj.cut, for_paper)
 
     stack.add_legend()
     if not isdir(obj.plot_dir):

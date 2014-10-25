@@ -13,7 +13,6 @@ class HistDict(dict):
         - bottom dir is cut / region
         - all middle dirs are the variable name
     """
-    fast_plots = [('signal_mct150', 'mass_ct'),('cr_z', 'mass_ll')]
 
     def __init__(self, file_name='', filt=None, sig_prefix='scharm',
                  sig_points=[],
@@ -22,7 +21,7 @@ class HistDict(dict):
             return None
         with h5py.File(file_name,'r') as infile:
             if fast:
-                for plt in self.fast_plots:
+                for plt in fast:
                     self._build_fast(infile, sig_prefix, sig_points, *plt)
                 return
 
