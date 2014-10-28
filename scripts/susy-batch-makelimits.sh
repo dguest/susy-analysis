@@ -121,32 +121,42 @@ function check() {
 function makelim() {
     # first arg: yaml fit input file
     # second arg: subdir of OUTDIR where outputs go
-    # third arg: additional stuff to pass to susy-fit-workspace
+    # thrid arg: cls file to add
+    # forth arg: additional stuff to pass to susy-fit-workspace
     local ADD_ARGS=''
-    if (( $# >= 3 )) ; then ADD_ARGS=$3; fi
+    if (( $# >= 4 )) ; then ADD_ARGS=$4; fi
     if ! check_for_files $2 ; then return $?; fi
     local WSDIR=$2/workspaces
     if ! matches_in $WSDIR '*nominal*'
 	then
 	echo making limits for $2
 	local fitargs="-o $WSDIR -c $2/configuration.yml $ADD_ARGS $EE"
-	if ! susy-fit-workspace.py $1 $fitargs; then return 2; fi
+	susy-fit-workspace.py $1 $fitargs
     fi
     mkdir -p $OUTDIR/$2
     local CLSFILE=$OUTDIR/$2/cls.yml
-    local SC_CLSPATH=$SC_CLSFILE
+    local CLSPATH=""
+    if (( $# >= 3 )) ; then CLSPATH=$3 ; fi
     if [[ ! -f $CLSFILE ]]
 	then
-	if ! susy-fit-runfit.py $WSDIR -o $CLSFILE $EE; then return 2; fi
-	if [[ -f $SC_CLSPATH ]]
-	    then
-	    cat $SC_CLSPATH >> $CLSFILE
+	susy-fit-runfit.py $WSDIR -o $CLSFILE $EE
+	if [[ -f $CLSPATH ]] ; then
+	    cat $CLSPATH >> $CLSFILE
+	elif [[ -n $CLSPATH ]] ; then
+	    echo $CLSPATH not found! >&2
+	    return 1
 	fi
     fi
     echo done limits for $2
 }
 function drawlim() {
+    # first arg: dir with cls
+    # remaining args: regions to include (none means all)
     local CLSFILE=$OUTDIR/$1/cls.yml
+    local REG=""
+    if (( $# > 1 )); then
+	REG="-r ${@:2}"
+    fi
     if [[ ! -f $CLSFILE ]]; then
 	echo no $CLSFILE >&2
 	return 1
@@ -156,15 +166,15 @@ function drawlim() {
     local PTY=$OUTDIR/$1/exclusion_pretty.pdf
     if [[ ! -f $OVL ]] ; then
 	echo drawing $OVL
-	susy-fit-draw-exclusion.py $CLSFILE -o $OVL
+	susy-fit-draw-exclusion.py $CLSFILE -o $OVL $REG
     fi
     if [[ ! -f $BST ]] ; then
 	echo drawing $BST
-	susy-fit-draw-exclusion.py $CLSFILE --best-regions -o $BST
+	susy-fit-draw-exclusion.py $CLSFILE --best-regions -o $BST $REG
     fi
     if [[ ! -f $PTY ]] ; then
 	echo drawing $PTY
-	susy-fit-draw-exclusion.py $CLSFILE --mono $MONOJET_LIMITS -o $PTY
+	susy-fit-draw-exclusion.py $CLSFILE --mono $MONOJET_LIMITS -o $PTY $REG
     fi
 }
 function drawlimsubset() {
@@ -376,7 +386,7 @@ VREGIONS=fr_mct,fr_mcc
 SIGREGIONS=signal_mct150,signal_mct200,signal_mct250
 
 makews_updown $INPUT full_exclusion
-makelim $INPUT full_exclusion -f
+makelim $INPUT full_exclusion $SC_CLSFILE -f
 drawlim full_exclusion
 makepars full_exclusion $BGREGIONS bg_fit
 makepars full_exclusion $DEFREGIONS srcr srcr
@@ -409,7 +419,7 @@ makepars compare_crw $BGREGIONS bg_fit
 
 # other fit checks
 NICKREGIONS=signal_mct150,cr_w_nicola,cr_z_nicola,cr_t_nicola
-makelim $INPUT other_fits -f
+makelim $INPUT other_fits "" -f
 drawlimsubset other_fits single_t.pdf normal st_with_other
 drawlimsubset other_fits jes.pdf normal jes_breakdown
 drawlimsubset other_fits nicolas.pdf normal nicolas
