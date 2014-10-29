@@ -11,9 +11,9 @@ DEP          := $(BIN)
 
 #  set search path
 vpath %.o    $(BIN)
-vpath %.cxx  $(SRC) 
-vpath %.hh   $(INC) 
-vpath %.h    $(INC) 
+vpath %.cxx  $(SRC)
+vpath %.hh   $(INC)
+vpath %.h    $(INC)
 vpath %Dict.h $(DICT)
 vpath %Dict.cxx $(DICT)
 
@@ -34,7 +34,7 @@ ifeq ($(COMPILER_NAME), g++)
   LDFLAGS      := -Wl,-no-undefined
 endif
 
-# rootstuff 
+# rootstuff
 CXXFLAGS     += $(ROOTCFLAGS)
 LDFLAGS      += $(ROOTLDFLAGS)
 LIBS         += $(ROOTLIBS)
@@ -46,7 +46,7 @@ DEPFLAGS    = -M -MP -MT $(BIN)/$*.o -MT $(DEP)/$*.d $(DEPINCLUDE)
 # ---- define objects
 TOBJ        := RooDummy.o
 T_DICTS     := $(TOBJ:.o=Dict.o)
-GEN_OBJ     := Skimmer.o TreeBranch.o SusyBuffer.o
+GEN_OBJ     := Skimmer.o TreeBranch.o SusyBuffer.o BranchBuffer.o
 GEN_OBJ     += boson_truth_tools.o misc_func.o
 EXE_OBJ     := run-skim.o
 
