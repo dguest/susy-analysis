@@ -269,9 +269,9 @@ def customize_stack(stack, var_name, region, is_paper):
         stack.ax.set_xticklabels(['light', 'charm', 'bottom', 'tau'])
         stack.ax.set_ylabel('Jets')
     if var_name == 'mass_ct' and is_sr:
-        stack.add_cut_arrow(150)
-        stack.add_cut_arrow(200)
-        stack.add_cut_arrow(250)
+        stack.add_cut_arrow(150, height=0.6)
+        stack.add_cut_arrow(200, height=0.6)
+        stack.add_cut_arrow(250, height=0.6)
         stack.region_name = None
 
     # hacks for Al
@@ -281,6 +281,15 @@ def customize_stack(stack, var_name, region, is_paper):
         stack.extra_yrange *= 0.8
     if var_name in {'met'} and region == 'cr_w':
         stack.extra_yrange *= 0.8
+
+def predraw_customize(stack, var_name, region, is_paper):
+    if not is_paper:
+        return
+
+    is_sr = region.startswith('signal')
+    # hack for Troels
+    if var_name == 'met' and is_sr:
+        stack.ratio_max = 3.0
 # ________________________________________________________________________
 # rebinning
 rebinning = {

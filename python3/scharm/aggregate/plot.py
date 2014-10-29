@@ -303,6 +303,9 @@ def _print_plot(obj):
     stack.lumi = obj.lumi
     stack.region_name = reg_names.get(obj.cut)
     stack.show_counts = obj.show_counts
+
+    style.predraw_customize(stack, obj.variable, obj.cut, for_paper)
+
     if obj.log:
         stack.y_min = 0.1
         stack.ax.set_yscale('log')
