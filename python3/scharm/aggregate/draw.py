@@ -64,7 +64,7 @@ class Stack:
             self.ax = self.fig.add_subplot(grid[0])
             self.ratio = self.fig.add_subplot(grid[1],sharex=self.ax)
             self.ratio.set_ylabel('Data / SM', fontsize=self._small_size)
-            locator = MaxNLocator(5, prune='upper')
+            locator = MaxNLocator(4, prune='upper')
             self.ratio.get_yaxis().set_major_locator(locator)
             self.ratio.tick_params(
                 labelsize=self._med_size, which='both')
@@ -248,8 +248,10 @@ class Stack:
 
         inf = float('inf')
         if self._for_paper:
-            for value, down in self._cut_arrows:
-                self._draw_cut_arrow(value, down)
+            # first draw custom arrows
+            for value, down, height in self._cut_arrows:
+                self._draw_cut_arrow(value, down, height=height)
+            # draw the automatic arrows
             if low != -inf:
                 self._draw_cut_arrow(low)
             if high != inf:
@@ -264,17 +266,18 @@ class Stack:
         if high != inf:
             self.ax.axvspan(high, xhigh, **fill_args)
 
-    def add_cut_arrow(self, value, down=False):
-        self._cut_arrows.append((value, down))
+    def add_cut_arrow(self, value, down=False, height=None):
+        self._cut_arrows.append((value, down, height))
 
-    def _draw_cut_arrow(self, value, down=False):
+    def _draw_cut_arrow(self, value, down=False, height=None):
         if not self._for_paper:
             return
         if self._inner_cuts[0] and value <= self._inner_cuts[0]:
             return
         color = 'firebrick'
         transform = transfact(self.ax.transData, self.ax.transAxes)
-        self.ax.plot([value]*2, [0, 0.5], linewidth=2, color=color,
+        cuttop = (height or 0.4) + 0.1
+        self.ax.plot([value]*2, [0, cuttop], linewidth=2, color=color,
                      transform=transform)
         xlow, xhigh = self.ax.get_xlim()
         if down:
@@ -284,7 +287,10 @@ class Stack:
             arrow_start = self._inner_cuts[0] or xlow
             self._inner_cuts[0] = value
         arrow_sty = dict(arrowstyle='simple', fc=color, ec='none', alpha=0.3)
-        arrow_height = 0.1 if self.ax.get_yscale() == 'log' else 0.3
+        if height is None:
+            arrow_height = 0.1 if self.ax.get_yscale() == 'log' else 0.3
+        else:
+            arrow_height = height
         self.ax.annotate(
             '', xytext=(arrow_start, arrow_height), xy=(value, arrow_height),
             xycoords=transform,
@@ -329,10 +335,13 @@ class Stack:
                 bound_y, ms=10, fmt='r.',
                 yerr=[bound_down, bound_up])
 
-        # add lines showing 1, 0.5, 1.5
+        # add lines showing 1, 0.5, 1.5, 2.
+        dotargs = dict(linestyle='--', color=self.ratio_grid_color)
+        self.ratio.axhline(y=0.5, **dotargs)
         self.ratio.axhline(y=1, linestyle='-', color=self.ratio_grid_color)
-        self.ratio.axhline(y=0.5, linestyle='--', color=self.ratio_grid_color)
-        self.ratio.axhline(y=1.5, linestyle='--', color=self.ratio_grid_color)
+        for liney in np.arange(1.5, self.ratio_max, 0.5):
+            self.ratio.axhline(y=liney, **dotargs)
+
 
     def add_data(self, hist):
         x_vals, y_vals = hist.get_xy_center_pts()
@@ -452,12 +461,10 @@ class Stack:
         frac_consumed *= self._med_size / self._small_size
         self._scale_for_legend = 1 / (1 - frac_consumed)
 
-        if self._rat_legs:
+        if self._rat_legs and not self._for_paper:
             lg = self.ratio.legend(
                 *zip(*self._rat_legs), fontsize=self.ratio_font_size,
                  ncol=3, loc='lower right', borderaxespad=0.0)
-            # lg.get_frame().set_linewidth(0)
-            # lg.get_frame().set_alpha(0)
 
         self._add_pr_crap(frac_consumed)
 
@@ -476,11 +483,11 @@ class Stack:
 
         self._draw_selection()
 
-        self.fig.tight_layout(pad=0.3, h_pad=0.3, w_pad=0.3)
+        self.fig.tight_layout(pad=0.0)
 
         if self.ratio:
             self.ratio.set_ylim(0,self.ratio_max)
-        self.canvas.print_figure(name)
+        self.canvas.print_figure(name, bbox_inches='tight')
 
 def _legstr(hval):
     """

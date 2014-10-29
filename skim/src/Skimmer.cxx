@@ -88,6 +88,7 @@ void Skimmer::copyVariablesTo(TTree* output_tree, TFile* file) {
 
   float event_wt = 0;
   float boson_pt = -1.0;
+  float ttbar_pt = -1.0;
 
   // this only exists to check if the return code is usually negative
   // (i.e. no bosons are being found)
@@ -95,6 +96,7 @@ void Skimmer::copyVariablesTo(TTree* output_tree, TFile* file) {
   if (buffer.hasMc()) {
     output_tree->Branch(pfx("mcevt_weight").c_str(), &event_wt);
     output_tree->Branch(pfx("boson_pt").c_str(), &boson_pt);
+    output_tree->Branch(pfx("ttbar_pt").c_str(), &ttbar_pt);
   }
 
   SummaryParameters summary(buffer.hasMc());
@@ -107,6 +109,7 @@ void Skimmer::copyVariablesTo(TTree* output_tree, TFile* file) {
     // buffer.dump();
     if (summary.has_mc) {
       boson_pt = get_boson_truth_pt(buffer);
+      ttbar_pt = get_ttbar_truth_pt(buffer);
       if (boson_pt > 0) n_bosons++;
       event_wt = buffer.mcevt_weight->at(0).at(0);
       summary.total_event_weight += event_wt;

@@ -3,8 +3,8 @@
 #define SUSY_BUFFER_HH
 
 class TChain;
-class ITreeBranch;
 class TTree;
+class BranchBuffer;
 
 #include <vector>
 #include <map>
@@ -12,7 +12,6 @@ class TTree;
 #include <string>
 #include <stdexcept>
 
-enum class Save { IF_LISTED, ALWAYS, NEVER };
 
 struct Triggers {
   Triggers() = default;
@@ -69,24 +68,13 @@ public:
   Met met;
 
 private:
-  // generic branch setters
-  template<typename T>
-  void set(TChain& chain, const std::string& name, T* ptr,
-	   Save save = Save::IF_LISTED);
-  void setInternal(TChain& chain, const std::string& name, void* dest);
+  BranchBuffer* m_branch_buffer;
 
   // specific branch setters (call the above functions)
   void setMcBranches(TChain& chain);
   void setTriggerBranches(TChain& chain);
   void setMetBranches(TChain& chain);
 
-  // all "out branches" are set with setPassThrough
-  std::map<std::string, ITreeBranch*> m_out_branches;
-  // all requested branches (via text file)
-  const std::set<std::string> m_requested_passthrough;
-  // exposed inputs are set to some local buffer (not just passing though)
-  std::set<std::string> m_exposed_inputs;
-  std::set<std::string> m_missing_inputs;
   bool m_has_mc;
   bool m_has_xe80_tclcw_loose;
 };
