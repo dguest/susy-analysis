@@ -1,12 +1,12 @@
 #include "SusyBuffer.hh"
 #include "misc_func.hh"		// setOrThrow
+#include "BranchBuffer.hh"
 
 #include <vector>
 #include <string>
 #include <utility>
 
 #include "TChain.h"
-#include "TLeaf.h"
 
 namespace {
   // warning: works by setting the status of all trigger branches to 0
@@ -16,7 +16,6 @@ namespace {
 SusyBuffer::SusyBuffer(TChain& chain,
 		       const std::vector<std::string>& variables):
   m_branch_buffer(new BranchBuffer),
-  m_requested_passthrough(variables.begin(), variables.end()),
   m_has_mc(true),
   m_has_xe80_tclcw_loose(true)
 {
@@ -32,7 +31,7 @@ SusyBuffer::SusyBuffer(TChain& chain,
   setMcBranches(chain);
   setTriggerBranches(chain);
 
-  m_branch_buffer->addInputs(chain, variables)
+  m_branch_buffer->addInputs(chain, variables);
 }
 
 SusyBuffer::~SusyBuffer() {
@@ -45,16 +44,25 @@ SusyBuffer::~SusyBuffer() {
   delete mc_pdgId;
 }
 
+std::set<std::string> SusyBuffer::getExposedInputs() const {
+  return m_branch_buffer->getExposedInputs();
+}
+std::set<std::string> SusyBuffer::getMissingBranches() const {
+  return m_branch_buffer->getMissingBranches();
+}
+
+
+void SusyBuffer::setPassThrough(TTree& tr) const {
+  m_branch_buffer->setPassThrough(tr);
+}
+
+
 bool SusyBuffer::hasMc() const {
   return m_has_mc;
 }
 
 void SusyBuffer::dump() const {
-  puts("dumping...");
-  for (auto pair: m_out_branches) {
-    printf("branch %s ", pair.first.c_str());
-    pair.second->dump();
-  }
+  m_branch_buffer->dump();
 }
 
 // ========== private stuff ==========

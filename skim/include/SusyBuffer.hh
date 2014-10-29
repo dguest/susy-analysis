@@ -3,8 +3,8 @@
 #define SUSY_BUFFER_HH
 
 class TChain;
-class ITreeBranch;
 class TTree;
+class BranchBuffer;
 
 #include <vector>
 #include <map>

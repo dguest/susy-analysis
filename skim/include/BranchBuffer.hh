@@ -30,11 +30,12 @@ public:
 
 private:
   void setInternal(TChain& chain, const std::string& name, void* dest);
+  std::string getBranchClass(TChain& ch, const std::string& name);
   // all "out branches" are set with setPassThrough
   std::map<std::string, ITreeBranch*> m_out_branches;
 
   // all requested branches (via text file)
-  const std::set<std::string> m_requested_passthrough;
+  std::set<std::string> m_requested_passthrough;
 
   // exposed inputs are set to some local buffer (not just passing though)
   std::set<std::string> m_exposed_inputs;
@@ -44,7 +45,7 @@ private:
 // implementation
 
 template<typename T>
-void SusyBuffer::set(TChain& ch, const std::string& name, T* ptr, Save save)
+void BranchBuffer::set(TChain& ch, const std::string& name, T* ptr, Save save)
 {
   *ptr = 0;
   setInternal(ch, name, ptr);
@@ -52,7 +53,7 @@ void SusyBuffer::set(TChain& ch, const std::string& name, T* ptr, Save save)
   bool listed = (
     save == Save::IF_LISTED && m_requested_passthrough.count(name));
   if (save == Save::ALWAYS || listed ) {
-    std::string br_class = ch.FindBranch(name.c_str())->GetClassName();
+    std::string br_class = getBranchClass(ch, name);
     if (br_class.size() > 0) {
       m_out_branches.insert(
 	std::make_pair(name, new ObjBranch<T>(ptr, name, br_class)));

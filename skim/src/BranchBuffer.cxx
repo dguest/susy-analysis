@@ -1,6 +1,9 @@
 #include "BranchBuffer.hh"
 
 #include "TChain.h"
+#include "TLeaf.h"
+
+#include <stdexcept>
 
 namespace {
   ITreeBranch* getBranchBuffer(TChain&, const std::string& name);
@@ -18,7 +21,9 @@ void BranchBuffer::addInputs(TChain& chain,
 			     const std::vector<std::string>& variables) {
   // loop over requrested variables
   for (const auto itr: variables) {
-    // if they haven't already been processed in the above setting routines
+    m_requested_passthrough.insert(itr);
+
+    // if they haven't already been processed in setting routines
     // we need to add them to the outputs here.
     if (!m_exposed_inputs.count(itr) && !m_out_branches.count(itr) ) {
       m_out_branches.insert(
@@ -29,7 +34,6 @@ void BranchBuffer::addInputs(TChain& chain,
       }
     }
   }
-
 }
 
 std::set<std::string> BranchBuffer::getExposedInputs() const {
@@ -57,11 +61,20 @@ void BranchBuffer::dump() const {
 
 // ========== private stuff ==========
 
-void SusyBuffer::setInternal(TChain& chain, const std::string& name,
+void BranchBuffer::setInternal(TChain& chain, const std::string& name,
 			     void* val) {
+  if (m_requested_passthrough.count(name)) {
+    throw std::logic_error("tried to set pass-through branch" + name);
+  }
   setOrThrow(chain, name, val);
   m_exposed_inputs.insert(name);
 }
+
+std::string BranchBuffer::getBranchClass(TChain& ch, const std::string& name)
+{
+  return ch.FindBranch(name.c_str())->GetClassName();
+}
+
 
 // macro to use in getBranchBuffer below
 #define TRY_BRANCH_TYPE(TYPE) \
