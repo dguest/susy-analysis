@@ -474,11 +474,11 @@ class Stack:
 
         self._draw_selection()
 
-        self.fig.tight_layout(pad=0.3, h_pad=0.3, w_pad=0.3)
+        self.fig.tight_layout(pad=0.0)
 
         if self.ratio:
             self.ratio.set_ylim(0,self.ratio_max)
-        self.canvas.print_figure(name)
+        self.canvas.print_figure(name, bbox_inches='tight')
 
 def _legstr(hval):
     """
