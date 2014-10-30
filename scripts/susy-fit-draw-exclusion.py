@@ -7,6 +7,8 @@ _regions_help = 'only plot a subset of regions'
 _clean_help = 'suppress signal points and grid'
 _ul_help = 'show upper limits'
 _mono_help = 'include monojet limits (expects a csv file with points to draw)'
+_regs_help = 'show which region is used for each point'
+_ext_help = 'plotting tweaks for external plots'
 import argparse, sys
 from scharm.limits import planeplt
 from scharm.bullshit import helvetify
@@ -14,21 +16,22 @@ import yaml
 
 def run():
     d = 'default: %(default)s'
+    b = dict(action='store_true') # boolian
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('cls_file')
     parser.add_argument('-o', '--output-plot', default='plane.pdf')
     parser.add_argument('-r', '--regions', help=_regions_help, nargs='+')
     parser.add_argument('-i', '--interpolation', default='gauss',
                         choices=planeplt.interpolators)
+    parser.add_argument('-e', '--external', help=_ext_help, **b)
     dowhat = parser.add_mutually_exclusive_group()
     dowhat.add_argument('-b', '--band-region')
-    dowhat.add_argument('--best', action='store_true', help=_best_help)
-    dowhat.add_argument('--best-regions', action='store_true',
-                        help='show which region is used for each point')
-    dowhat.add_argument('--heatmap', action='store_true')
-    dowhat.add_argument('--noband', action='store_true')
-    dowhat.add_argument('--clean', action='store_true', help=_clean_help)
-    dowhat.add_argument('--ul', action='store_true', help=_ul_help)
+    dowhat.add_argument('--best', help=_best_help, **b)
+    dowhat.add_argument('--best-regions', help=_regs_help, **b)
+    dowhat.add_argument('--heatmap', **b)
+    dowhat.add_argument('--noband', **b)
+    dowhat.add_argument('--clean', help=_clean_help, **b)
+    dowhat.add_argument('--ul', help=_ul_help, **b)
     dowhat.add_argument('--mono', help=_mono_help)
     args = parser.parse_args(sys.argv[1:])
     helvetify()
@@ -134,14 +137,16 @@ def _max_exclusion_plane(args, show_regions=False, clean=False, ul=False):
         show_points = not any([clean, ul, args.mono]),
         kinematic_bounds = 'both',
         interpolation=args.interpolation,
-        high_contrast=args.mono)
+        high_contrast=args.external)
 
     ex_plane = planeplt.CLsExclusionPlane(**plane_opts)
-    ex_plane.approved = True
+    ex_plane.approved = False and args.external # WAIT FOR APPROVAL
     pdict = _get_max_expected_points(cls_dict)
 
     if show_regions:
         cls_list = [ x.cfg_tup() for x in pdict.values()]
+        if args.external and False: # WAIT FOR SOMEONE TO ASK
+            ex_plane.add_labels(0.5)
     else:
         cls_list = [ x.cfg_tup()[:3] for x in pdict.values()]
         ex_plane.add_labels()
