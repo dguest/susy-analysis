@@ -58,7 +58,7 @@ class CLsExclusionPlane:
 
     # legend setup
     legend_properties = dict(
-        fontsize=med_size, loc='upper left', framealpha=0.0, numpoints=1)
+        loc='upper left', framealpha=0.0, numpoints=1)
 
     # special strings
     right_side_ul_info = 'Numbers give 95% CLs excluded cross section [fb]'
@@ -105,13 +105,14 @@ class CLsExclusionPlane:
         self._threshold = threshold
         self._finalized = False
         self._ax2 = None        # just for an added label
+        self._labeled = False
 
         self._drawpoints = argv.get('show_points', True)
         self._kinbounds = argv.get('kinematic_bounds', True)
 
         hc = argv.get('high_contrast')
         self._kinbound_alpha = 0.7 if hc else 0.3
-        self._mono_alpha = 0.2 if hc else 0.1
+        self._mono_alpha = 0.3 if hc else 0.1
 
         self._fill_low_stop = argv.get('fill_low_stop', True)
 
@@ -304,24 +305,33 @@ class CLsExclusionPlane:
         self._proxy_contour.append( (patch, label) )
 
     def add_labels(self, y=0.32):
-        if self.approved:
-            self.ax.text(0.2, 1-y, 'ATLAS', weight='bold', style='italic',
-                         horizontalalignment='right',
-                         transform=self.ax.transAxes, size=self.big_size)
-            self.ax.text(0.2, 1-y, ' Preliminary',
+        atl_y = 1-y
+        atl_x = 0.275 if self.approved else 0.2
+        self.ax.text(atl_x, atl_y, 'ATLAS', weight='bold', style='italic',
+                     horizontalalignment='right',
+                     transform=self.ax.transAxes, size=self.big_size)
+        if not self.approved:
+            self.ax.text(atl_x, atl_y, ' Internal',
                          horizontalalignment='left',
                          transform=self.ax.transAxes, size=self.big_size)
-        self.ax.text(0.05, 0.9 - y,
+        squeeze = y > 0.45
+        lumisize = self.small_size if squeeze else self.med_size
+        lumi_x = 0.03 if squeeze else 0.05
+        sf = lumisize / self.med_size # squeeze factor
+        lumi_y = atl_y - 0.1*sf
+        sqrts_y = lumi_y - 0.06*sf
+        self.ax.text(lumi_x, lumi_y,
                      r'$\int\ \mathcal{L}\ dt\ =$ 20.3 fb$^{\sf -1}$',
-                     transform=self.ax.transAxes, size=self.med_size)
-        self.ax.text(0.08, 0.825 - y,
+                     transform=self.ax.transAxes, size=lumisize)
+        self.ax.text(lumi_x + 0.03, sqrts_y,
                      r'$\sqrt{s}\ =$ 8 TeV',
-                     transform=self.ax.transAxes, size=self.med_size)
+                     transform=self.ax.transAxes, size=lumisize)
 
         title = r' Direct ${c}{cb}$, ${c} \to c{l}$'.format(
             c=self.scharm, cb=self.antischarm, l=self.lsp)
         self.ax.set_title(
             title, loc='left', fontsize=self.big_size, va='bottom')
+        self._labeled = True
 
     def _add_kinematic_bounds(self):
         """adds lines indicating where stop -> charm decays are allowed"""
@@ -383,8 +393,12 @@ class CLsExclusionPlane:
         self.ax.set_ylim(*self.ylim)
         self.ax.set_xlim(*self.xlim)
         self._add_kinbound_text()
-        leg = self.ax.legend(*_get_legend_labels(self._proxy_contour),
-                             **self.legend_properties)
+        leg_labels = _get_legend_labels(self._proxy_contour)
+        small_leg = len(leg_labels[0]) > 4 and self._labeled
+        leg = self.ax.legend(
+            *leg_labels,
+             fontsize=(self.small_size if small_leg else self.med_size),
+             **self.legend_properties)
         self._finalized = True
 
     def save(self, name):
