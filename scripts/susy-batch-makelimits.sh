@@ -153,9 +153,10 @@ function drawlim() {
     # first arg: dir with cls
     # remaining args: regions to include (none means all)
     local CLSFILE=$OUTDIR/$1/cls.yml
-    local REG=""
+    local BASEFLAGS='--external' # make external-publication plots
+    local ADD=$BASEFLAGS
     if (( $# > 1 )); then
-	REG="-r ${@:2}"
+	ADD="-r ${@:2} $BASEFLAGS"
     fi
     if [[ ! -f $CLSFILE ]]; then
 	echo no $CLSFILE >&2
@@ -166,15 +167,15 @@ function drawlim() {
     local PTY=$OUTDIR/$1/exclusion_pretty.pdf
     if [[ ! -f $OVL ]] ; then
 	echo drawing $OVL
-	susy-fit-draw-exclusion.py $CLSFILE -o $OVL $REG
+	susy-fit-draw-exclusion.py $CLSFILE -o $OVL $ADD
     fi
     if [[ ! -f $BST ]] ; then
 	echo drawing $BST
-	susy-fit-draw-exclusion.py $CLSFILE --best-regions -o $BST $REG
+	susy-fit-draw-exclusion.py $CLSFILE --best-regions -o $BST $ADD
     fi
     if [[ ! -f $PTY ]] ; then
 	echo drawing $PTY
-	susy-fit-draw-exclusion.py $CLSFILE --mono $MONOJET_LIMITS -o $PTY $REG
+	susy-fit-draw-exclusion.py $CLSFILE --mono $MONOJET_LIMITS -o $PTY $ADD
     fi
 }
 function drawlimsubset() {
@@ -251,7 +252,7 @@ function make_upper_limits() {
     local PLOTDIR=$UL_OUTDIR/upper_limits
     mkdir -p $PLOTDIR
     local ALL_CONFIG="mct150 mct200 mct250"
-    local FARG="$COMBINED_OUT --ul "
+    local FARG="$COMBINED_OUT --ul --external"
     local COMB_OUT=$PLOTDIR/scharm_combined.pdf
     if [[ ! -f $COMB_OUT ]]; then
 	echo "drawing $COMB_OUT"
@@ -398,7 +399,7 @@ makepars full_exclusion $DEFREGIONS 250_50 250-50
 if [[ $DO_UL ]]
 then
     make_upper_limits full_exclusion
-    make_model_independent_ul full_exclusion
+    # make_model_independent_ul full_exclusion
     if (( $NTOYS > 0 )); then
 	make_model_independent_ul full_exclusion $NTOYS
     fi
