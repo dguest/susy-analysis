@@ -55,7 +55,7 @@ ALLOBJ      := $(ALLDEPOBJ) $(T_DICTS)
 
 OUTPUT    := run-skim
 
-all: $(OUTPUT) 
+all: $(OUTPUT)
 
 $(OUTPUT): $(ALLOBJ:%=$(BIN)/%)
 	@echo "linking $^ --> $@"
@@ -63,16 +63,16 @@ $(OUTPUT): $(ALLOBJ:%=$(BIN)/%)
 
 # --------------------------------------------------
 
-# root dictionary generation 
+# root dictionary generation
 LINKDEF := LinkDef.h
 $(DICT)/%Dict.cxx: %.h $(LINKDEF)
 	@echo making dict $@
 	@mkdir -p $(DICT)
-	@rm -f $(DICT)/$*Dict.h $(DICT)/$*Dict.cxx 
-	@rootcint $@ -c $(INC)/$*.h $(INC)/$(LINKDEF) 
+	@rm -f $(DICT)/$*Dict.h $(DICT)/$*Dict.cxx
+	@rootcint $@ -c $(INC)/$*.h $(INC)/$(LINKDEF)
 	@sed -i 's,#include "$(INC)/\(.*\)",#include "\1",g' $(DICT)/$*Dict.h
 
-$(BIN)/%Dict.o: $(DICT)/%Dict.cxx 
+$(BIN)/%Dict.o: $(DICT)/%Dict.cxx
 	@mkdir -p $(BIN)
 	@echo compiling dict $@
 	@$(CXX) $(CXXFLAGS) $(ROOTCFLAGS) -c $< -o $@
@@ -94,14 +94,14 @@ endif
 $(DEP)/%.d: %.cxx
 	@echo making dependencies for $<
 	@mkdir -p $(DEP)
-	@$(CXX) $(DEPFLAGS) $< -o $@ 
+	@$(CXX) $(DEPFLAGS) $< -o $@
 
 # clean
 .PHONY : clean rmdep
-CLEANLIST     = *~ *.o *.o~ *.d core 
+CLEANLIST     = *~ *.o *.o~ *.d core
 clean:
 	rm -fr $(CLEANLIST) $(CLEANLIST:%=$(BIN)/%) $(CLEANLIST:%=$(DEP)/%)
 	rm -fr $(BIN) $(OUTPUT) $(DICT) $(DEP)
 
-rmdep: 
+rmdep:
 	rm -f $(DEP)/*.d
