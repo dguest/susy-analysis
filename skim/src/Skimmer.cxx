@@ -1,6 +1,6 @@
 #include "Skimmer.hh"
 #include "SusyBuffer.hh"
-#include "boson_truth_tools.hh"
+#include "truth_tools.hh"
 #include "constants_skim.hh"
 #include "misc_func.hh" // TolerableDataError
 
