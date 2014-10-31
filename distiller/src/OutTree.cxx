@@ -104,6 +104,9 @@ namespace outtree {
 	MAKE_BRANCH(m_tree, truth_boson_pt_weight);
 	MAKE_BRANCH(m_tree, truth_boson_pt);
       }
+      if (flags & cutflag::truth_ttbar_pt) {
+	MAKE_BRANCH(m_tree, truth_ttbar_pt);
+      }
       pileup_sf.set_branches(m_tree, "pileup_");
       el_sf.set_branches(m_tree, "el_");
       mu_sf.set_branches(m_tree, "mu_");

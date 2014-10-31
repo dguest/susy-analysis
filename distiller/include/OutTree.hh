@@ -194,6 +194,7 @@ namespace outtree {
     float boson_child_phi;
     float truth_boson_pt_weight;
     float truth_boson_pt;
+    float truth_ttbar_pt;
 
     std::vector<outtree::Jet*> jets;
     Lepton first_lepton;

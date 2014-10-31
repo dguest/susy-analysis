@@ -86,7 +86,7 @@ static unsigned get_flags(const char* flags_str)
   if (strchr(flags_str,'f')) flags |= cutflag::is_atlfast;
   if (strchr(flags_str,'g')) flags |= cutflag::get_branches;
   if (strchr(flags_str,'i')) flags |= cutflag::spartid;
-  // if (strchr(flags_str,'j')) flags |= cutflag::vector_output;
+  if (strchr(flags_str,'j')) flags |= cutflag::truth_ttbar_pt;
   // if (strchr(flags_str,'m')) flags |= cutflag::mv3;
   if (strchr(flags_str,'p')) flags |= cutflag::boson_pt_reweight;
   // if (strchr(flags_str,'r')) flags |= cutflag::save_ratios;

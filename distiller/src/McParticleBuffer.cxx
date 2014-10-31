@@ -2,10 +2,18 @@
 #include "SmartChain.hh"
 
 McParticleBuffer::McParticleBuffer():
-  m_has_skimmed_info(true)
+  skimmed_boson_pt(-1),
+  skimmed_ttbar_pt(-1),
+  m_has_skimmed_info(true),
+  m_has_ttbar_pt(true)
 {}
 
 void McParticleBuffer::set_branches(SmartChain* chain) {
+  try {
+    chain->SetBranch("skimmed_ttbar_pt", &skimmed_ttbar_pt);
+  } catch (MissingBranchError& err) {
+    m_has_ttbar_pt = false;
+  }
   try {
     chain->SetBranch("skimmed_boson_pt", &skimmed_boson_pt);
   } catch (MissingBranchError& err) {
@@ -23,4 +31,7 @@ void McParticleBuffer::set_branches(SmartChain* chain) {
 
 bool McParticleBuffer::has_skimmed_info() const {
   return m_has_skimmed_info;
+}
+bool McParticleBuffer::has_ttbar_pt() const {
+  return m_has_ttbar_pt;
 }

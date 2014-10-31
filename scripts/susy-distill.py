@@ -148,6 +148,8 @@ def _config_from_meta(meta_file_name, ds_key):
         )
     if _is_sherpa_ew(dataset):
         flags += 'p'            # do boson pt reweighting
+    if _is_reweight_ttbar(ds_key):
+        flags += 'j'            # save ttbar system pt
     return flags, add_dict
 
 def _get_config_flags(config):
@@ -192,6 +194,15 @@ def _is_sherpa_ew(dataset):
             type_matched)
         raise ValueError(prob)
     return bool(ew_matched)
+
+def _is_reweight_ttbar(ds_key):
+    """return True if this key is something were we can do ttbar RW"""
+    # not ttbar if it's data...
+    if ds_key[0] in 'jem':
+        return False
+
+    # one key is alright right now.
+    return int(ds_key[1:]) == 117050
 
 def run():
     args = _get_config()

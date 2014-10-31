@@ -381,6 +381,11 @@ void StopDistiller::setup_susytools() {
 }
 
 void StopDistiller::setup_outputs() {
+  if (m_flags & cutflag::truth_ttbar_pt) {
+    if (!m_susy_buffer->mc_particles.has_ttbar_pt()) {
+      throw std::logic_error("no truth pt found in input file");
+    }
+  }
   const std::string tree_name = "evt_tree";
   m_out_tree = new outtree::OutTree(
     m_info.out_ntuple, tree_name, m_flags, N_JETS_TO_SAVE);
@@ -609,6 +614,7 @@ namespace {
       out_tree.spart2_pdgid = buffer.spart2_pdgid;
     }
     out_tree.mc_event_weight = buffer.mc_event_weight;
+    out_tree.truth_ttbar_pt = buffer.mc_particles.skimmed_ttbar_pt;
   }
 
   // this is only used in the cutflow

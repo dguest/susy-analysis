@@ -10,9 +10,11 @@ struct McParticleBuffer {
   McParticleBuffer();
   void set_branches(SmartChain*);
   bool has_skimmed_info() const;
+  bool has_ttbar_pt() const;
 
   // may be calculated in the skim
   float skimmed_boson_pt;
+  float skimmed_ttbar_pt;
 
   // if not, fall back to these
   int mc_n;
@@ -24,6 +26,7 @@ struct McParticleBuffer {
   std::vector<int>* mc_pdgId;
 private:
   bool m_has_skimmed_info;
+  bool m_has_ttbar_pt;
 };
 
 #endif
