@@ -5,7 +5,13 @@ _group_help="""
 Groups d3pds into datasets by file. Will break larger datasets into multiple
 outputs.
 """
-
+_sys_help = (
+    "enable basic systematics (currently all that's used in the scharm "
+    "search")
+_allsys_help = (
+    "enable all systematics, including some negligible EGamma ones")
+_jes_help = (
+    'enable basic systematics plus jes cross check (used in scharm search)')
 import argparse, sys
 import os
 import random
@@ -37,9 +43,11 @@ def get_config():
     parser.add_argument('-a', '--aggressive', action='store_true')
     syslev = parser.add_mutually_exclusive_group()
     syslev.add_argument('-y', '--systematics', action='store_true',
-                        help='enable systematics')
-    syslev.add_argument('--all-systematics', action='store_true')
-    syslev.add_argument('--jes-systematics', action='store_true')
+                        help=_sys_help)
+    syslev.add_argument(
+        '--all-systematics', action='store_true', help=_allsys_help)
+    syslev.add_argument('--jes-systematics', action='store_true',
+                        help=_jes_help)
     return parser.parse_args(sys.argv[1:])
 
 def run():
