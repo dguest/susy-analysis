@@ -383,7 +383,7 @@ void StopDistiller::setup_susytools() {
 void StopDistiller::setup_outputs() {
   if (m_flags & cutflag::truth_ttbar_pt) {
     if (!m_susy_buffer->mc_particles.has_ttbar_pt()) {
-      throw std::logic_error("no truth pt found in input file");
+      throw std::logic_error("no truth ttbar pt found in input file");
     }
   }
   const std::string tree_name = "evt_tree";

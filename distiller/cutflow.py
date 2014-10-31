@@ -3,7 +3,7 @@
 from scharm.distiller import cutflow
 import sys, glob, os
 
-flags = 'vbgzfc'
+flags = 'vbgzfcj'
 # flags += 'u'                    # generate pu reweighting file
 configs = ['SIGNAL']
 files = []
