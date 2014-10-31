@@ -124,7 +124,7 @@ function makelim() {
     # thrid arg: cls file to add
     # forth arg: additional stuff to pass to susy-fit-workspace
     local ADD_ARGS=''
-    if (( $# >= 4 )) ; then ADD_ARGS=$4; fi
+    if (( $# >= 4 )) ; then ADD_ARGS=${@:4}; fi
     if ! check_for_files $2 ; then return $?; fi
     local WSDIR=$2/workspaces
     if ! matches_in $WSDIR '*nominal*'
@@ -420,9 +420,9 @@ makepars compare_crw $BGREGIONS bg_fit
 
 # other fit checks
 NICKREGIONS=signal_mct150,cr_w_nicola,cr_z_nicola,cr_t_nicola
-makelim $INPUT other_fits "" -f
+makelim $INPUT other_fits "" -f -s normal st_with_other nicolas
 drawlimsubset other_fits single_t.pdf normal st_with_other
-drawlimsubset other_fits jes.pdf normal jes_breakdown
+# drawlimsubset other_fits jes.pdf normal jes_breakdown
 drawlimsubset other_fits nicolas.pdf normal nicolas
 makepars other_fits $DEFREGIONS bg_fit
 makepars other_fits $DEFREGIONS 400_200 400-200
