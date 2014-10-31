@@ -21,6 +21,11 @@ private:
   bool m_has_variations;
 };
 
+struct OptionalFloat
+{
+  bool defined;
+  float value;
+};
 
 class EventScalefactors
 {
@@ -29,21 +34,16 @@ public:
   ~EventScalefactors();
   EventScalefactors(const EventScalefactors&) = delete;
   EventScalefactors& operator=(const EventScalefactors&) = delete;
-  const SFBox* get_box(EventSyst) const;
-
-  // convenience method for single systematic
   float get_sf(syst::Systematic syst) const;
 private:
+  const SFBox* get_box(EventSyst) const;
   SFBox* m_el_sf;
   SFBox* m_mu_sf;
   SFBox* m_lepton_trig_sf;
   SFBox* m_pileup_sf;
+
+  OptionalFloat m_truth_ttbar_pt;
 };
 
-// ________________________________________________________________________
-// functions to grab info about variations
-SystVariation sf_direction(syst::Systematic);
-EventSyst sf_type(syst::Systematic);
-bool is_sf_systematic(syst::Systematic);
 
 #endif

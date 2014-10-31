@@ -2,12 +2,21 @@
 #include "EventScaleEnums.hh"
 #include "common_functions.hh"	// set_branch
 #include "StackerExceptions.hh"
+#include "TTBarReweighting.hh"
 
 #include <string>
 #include <set>
 #include <stdexcept>
 
 #include "TTree.h"
+
+// ________________________________________________________________________
+// functions to grab info about variations
+namespace {
+  SystVariation sf_direction(syst::Systematic);
+  EventSyst sf_type(syst::Systematic);
+  bool is_sf_systematic(syst::Systematic);
+}
 
 SFBox::SFBox(TTree* tree, const std::string& prefix):
   m_has_variations(true)
@@ -43,6 +52,12 @@ EventScalefactors::EventScalefactors(TTree* tree):
   m_lepton_trig_sf(new SFBox(tree, "lepton_trig_sf")),
   m_pileup_sf(new SFBox(tree, "pileup_sf"))
 {
+  try {
+    set_branch(tree, "truth_ttbar_pt", &m_truth_ttbar_pt.value);
+    m_truth_ttbar_pt.defined = true;
+  } catch (MissingBranch& err) {
+    m_truth_ttbar_pt.defined = false;
+  }
 }
 
 EventScalefactors::~EventScalefactors() {
@@ -68,6 +83,11 @@ const SFBox* EventScalefactors::get_box(EventSyst lept) const {
 
 float EventScalefactors::get_sf(syst::Systematic syst) const {
   float sf = 1.0;
+
+  if (syst == syst::TTBAR_PT_RW && m_truth_ttbar_pt.defined) {
+    sf *= get_ttbar_reweighting(m_truth_ttbar_pt.value);
+  }
+
   const SFBox* varied = 0;
   if (is_sf_systematic(syst)) varied = get_box(sf_type(syst));
   // ACHTUNG: hack!
@@ -100,23 +120,25 @@ namespace {
   const std::set<syst::Systematic> pu_syst = {
     syst::PUUP, syst::PUDOWN};
 
+
+  SystVariation sf_direction(syst::Systematic sys)
+  {
+    if (up_type_syst.count(sys)) return SystVariation::UP;
+    else if (down_type_syst.count(sys)) return SystVariation::DOWN;
+    else return SystVariation::NONE;
+  }
+
+  EventSyst sf_type(syst::Systematic sys) {
+    if (el_syst.count(sys)) return EventSyst::ELECTRON;
+    if (mu_syst.count(sys)) return EventSyst::MUON;
+    if (trig_syst.count(sys)) return EventSyst::LEPTRIG;
+    if (pu_syst.count(sys)) return EventSyst::PU;
+    throw std::logic_error("non-sf systematic");
+  }
+
+  bool is_sf_systematic(syst::Systematic sys) {
+    return up_type_syst.count(sys) || down_type_syst.count(sys);
+  }
+
 }
 
-SystVariation sf_direction(syst::Systematic sys)
-{
-  if (up_type_syst.count(sys)) return SystVariation::UP;
-  else if (down_type_syst.count(sys)) return SystVariation::DOWN;
-  else return SystVariation::NONE;
-}
-
-EventSyst sf_type(syst::Systematic sys) {
-  if (el_syst.count(sys)) return EventSyst::ELECTRON;
-  if (mu_syst.count(sys)) return EventSyst::MUON;
-  if (trig_syst.count(sys)) return EventSyst::LEPTRIG;
-  if (pu_syst.count(sys)) return EventSyst::PU;
-  throw std::logic_error("non-sf systematic");
-}
-
-bool is_sf_systematic(syst::Systematic sys) {
-  return up_type_syst.count(sys) || down_type_syst.count(sys);
-}

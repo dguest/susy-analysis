@@ -276,6 +276,8 @@ static bool safe_copy(PyObject* value, syst::Systematic& dest) {
   NAME_TO_DEST(PUUP);
   NAME_TO_DEST(PUDOWN);
 
+  NAME_TO_DEST(TTBAR_PT_RW);
+
   std::string problem = "got undefined systematic: " + name;
   PyErr_SetString(PyExc_ValueError,problem.c_str());
   return false;

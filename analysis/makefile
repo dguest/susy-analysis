@@ -75,7 +75,7 @@ GEN_OBJ     := HistBuilder.o Jet.o SkimCounts.o ObjectFactory.o
 GEN_OBJ     += JetBuffer.o BtagBuffer.o
 GEN_OBJ     += BtagConfig.o RegionConfig.o Flavor.o
 GEN_OBJ     += EventObjects.o
-GEN_OBJ     += EventScalefactors.o
+GEN_OBJ     += EventScalefactors.o TTBarReweighting.o
 GEN_OBJ     += NMinusHist.o
 GEN_OBJ     += Lepton.o LeptonBuffer.o
 
