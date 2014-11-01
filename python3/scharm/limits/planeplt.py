@@ -304,7 +304,7 @@ class CLsExclusionPlane:
         self.ax.add_patch(patch)
         self._proxy_contour.append( (patch, label) )
 
-    def add_labels(self, y=0.32):
+    def add_labels(self, y=0.32, config=None):
         atl_y = 1-y
         atl_x = 0.275 if self.approved else 0.2
         self.ax.text(atl_x, atl_y, 'ATLAS', weight='bold', style='italic',
@@ -329,6 +329,8 @@ class CLsExclusionPlane:
 
         title = r' Direct ${c}{cb}$, ${c} \to c{l}$'.format(
             c=self.scharm, cb=self.antischarm, l=self.lsp)
+        if config:
+            title += ', ' + _fancy_label(config)
         self.ax.set_title(
             title, loc='left', fontsize=self.big_size, va='bottom')
         self._labeled = True

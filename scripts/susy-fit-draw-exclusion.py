@@ -149,7 +149,8 @@ def _max_exclusion_plane(args, show_regions=False, clean=False, ul=False):
             ex_plane.add_labels(0.5)
     else:
         cls_list = [ x.cfg_tup()[:3] for x in pdict.values()]
-        ex_plane.add_labels()
+        config = args.regions[0] if len(args.regions) == 1 else None
+        ex_plane.add_labels(config=config)
 
     band_list = [ x.lowhigh_tup() for x in pdict.values()]
     ex_plane.add_band(band_list, label='expected')
