@@ -35,7 +35,8 @@ MetBuffer::MetBuffer(TTree* tree, const std::string& prefix) {
 }
 
 
-ObjectFactory::ObjectFactory(const std::string& root_file, int n_jets) :
+ObjectFactory::ObjectFactory(const std::string& root_file, int n_jets,
+			     unsigned buildflags) :
   m_tree(0),
   m_file(0),
   m_event_reco_parameters(0),
@@ -69,7 +70,7 @@ ObjectFactory::ObjectFactory(const std::string& root_file, int n_jets) :
     set_branch(m_tree,"truth_leading_cjet_pos", &m_leading_cjet_pos);
     set_branch(m_tree,"truth_subleading_cjet_pos", &m_subleading_cjet_pos);
     set_branch(m_tree,"mc_event_weight", &m_mc_event_weight);
-    m_evt_sf = new EventScalefactors(m_tree);
+    m_evt_sf = new EventScalefactors(m_tree, buildflags);
   } catch (MissingBranch& err) {
     m_ioflags |= ioflag::no_truth;
   }

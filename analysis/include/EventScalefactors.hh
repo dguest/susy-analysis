@@ -30,7 +30,7 @@ struct OptionalFloat
 class EventScalefactors
 {
 public:
-  EventScalefactors(TTree* tree);
+  EventScalefactors(TTree* tree, unsigned buildflags);
   ~EventScalefactors();
   EventScalefactors(const EventScalefactors&) = delete;
   EventScalefactors& operator=(const EventScalefactors&) = delete;
@@ -43,6 +43,7 @@ private:
   SFBox* m_pileup_sf;
 
   OptionalFloat m_truth_ttbar_pt;
+  bool m_apply_ttbar_reweight;	// apply everywhere, not just for syst
 };
 
 

@@ -46,7 +46,7 @@ struct MetBuffer
 class ObjectFactory
 {
 public:
-  ObjectFactory(const std::string& root_file, int n_jets);
+  ObjectFactory(const std::string& root_file, int jets, unsigned buildflags);
   ~ObjectFactory();
   int entries() const;
   bool is_data() const;

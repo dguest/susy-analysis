@@ -324,5 +324,6 @@ static unsigned parse_flags(const char* flags){
   if(strchr(flags,'v')) bitflags |= verbose;
   if(strchr(flags,'t')) bitflags |= fill_truth;
   if(strchr(flags,'d')) bitflags |= is_data;
+  if(strchr(flags,'w')) bitflags |= ttbar_rw;
   return bitflags;
 }

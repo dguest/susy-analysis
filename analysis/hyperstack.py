@@ -15,6 +15,7 @@ try:
         return reg_dict
     all_cuts = [nr(x,d) for x,d in sbr().items()]
     bonus = [nr(x, d, True) for x,d, in sbr().items() if d['type'] == 'signal']
+    bonus = []
 except ImportError:
     all_cuts = [
         {
@@ -30,4 +31,4 @@ except ImportError:
             },
         ]
 
-hfw.stacksusy(sys.argv[1], all_cuts + bonus, flags='v')
+hfw.stacksusy(sys.argv[1], all_cuts + bonus, flags='vw')

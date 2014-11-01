@@ -3,6 +3,7 @@
 #include "common_functions.hh"	// set_branch
 #include "StackerExceptions.hh"
 #include "TTBarReweighting.hh"
+#include "HistBuilderFlags.hh"
 
 #include <string>
 #include <set>
@@ -46,11 +47,12 @@ float SFBox::get_sf(SystVariation systematic) const{
   }
 }
 
-EventScalefactors::EventScalefactors(TTree* tree):
+EventScalefactors::EventScalefactors(TTree* tree, unsigned buildflags):
   m_el_sf(new SFBox(tree, "el_sf")),
   m_mu_sf(new SFBox(tree, "mu_sf")),
   m_lepton_trig_sf(new SFBox(tree, "lepton_trig_sf")),
-  m_pileup_sf(new SFBox(tree, "pileup_sf"))
+  m_pileup_sf(new SFBox(tree, "pileup_sf")),
+  m_apply_ttbar_reweight(buildflags & buildflag::ttbar_rw)
 {
   try {
     set_branch(tree, "truth_ttbar_pt", &m_truth_ttbar_pt.value);
@@ -84,8 +86,17 @@ const SFBox* EventScalefactors::get_box(EventSyst lept) const {
 float EventScalefactors::get_sf(syst::Systematic syst) const {
   float sf = 1.0;
 
-  if (syst == syst::TTBAR_PT_RW && m_truth_ttbar_pt.defined) {
-    sf *= get_ttbar_reweighting(m_truth_ttbar_pt.value);
+  // apply ttbar reweighting
+  if (m_truth_ttbar_pt.defined) {
+    bool ttbar_syst = (syst == syst::TTBAR_PT_RW);
+    if (ttbar_syst || m_apply_ttbar_reweight) {
+      float ttbar_factor = get_ttbar_reweighting(m_truth_ttbar_pt.value);
+      sf *= ttbar_factor;
+      if (m_apply_ttbar_reweight && ttbar_syst) {
+	// apply again for systematic
+	sf *= ttbar_factor;
+      }
+    }
   }
 
   const SFBox* varied = 0;

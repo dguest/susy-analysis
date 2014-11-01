@@ -18,11 +18,11 @@
 #include <ostream>
 #include <fstream>
 
-HistBuilder::HistBuilder(std::string input, const unsigned flags):
+HistBuilder::HistBuilder(std::string input, const unsigned buildflags):
   m_input_file(input),
-  m_build_flags(flags)
+  m_build_flags(buildflags)
 {
-  m_factory = new ObjectFactory(input, N_JETS_TO_READ);
+  m_factory = new ObjectFactory(input, N_JETS_TO_READ, buildflags);
   if (m_factory->is_data()) m_build_flags |= buildflag::is_data;
 }
 
