@@ -35,21 +35,12 @@ def get_config():
         '--mode', default='nminus', choices={
             'histmill','kinematic_stat','nminus'},
         help=d)
+    parser.add_argument('-w','--ttbar-reweight', action='store_true')
     parser.add_argument('-d','--dump-run', action='store_true',
                             help="dump region config, don't run")
     parser.add_argument('-o','--hists-dir', default='hists', help=d)
 
     return parser.parse_args(sys.argv[1:])
-
-def _build_reg_dict(reg_file):
-    if not os.path.isfile(reg_file):
-        reg_dict = {
-            'regions': sbottom_regions()
-            }
-
-        with open(reg_file, 'w') as regions:
-            regions.write(yaml.dump(reg_dict))
-        sys.exit('wrote dummy, quit...')
 
 def run_stacker(config):
     _build_reg_dict(config.steering_file)
@@ -61,6 +52,8 @@ def run_stacker(config):
     stacker = Stacker(regions, config.hists_dir)
     stacker.verbose = False
     stacker.dummy = config.dump_run
+    if config.ttbar_reweight:
+        stacker.flags.add('w')
 
     ntuples = []
     with open(config.input_files_list) as file_list:
@@ -80,6 +73,22 @@ def run_stacker(config):
             systematics = ['NONE']
         stacker.run_multisys(
             ntuple, systematics, tuple_n=tuple_n)
+
+
+
+
+# __________________________________________________________________________
+# utility functions
+
+def _build_reg_dict(reg_file):
+    if not os.path.isfile(reg_file):
+        reg_dict = {
+            'regions': sbottom_regions()
+            }
+
+        with open(reg_file, 'w') as regions:
+            regions.write(yaml.dump(reg_dict))
+        sys.exit('wrote dummy, quit...')
 
 _shift_sf = list('BCUT') + ['EL','MU','LEPTRIG','PU']
 scale_factor_systematics = ['NONE','TTBAR_PT_RW'] + [

@@ -151,8 +151,6 @@ class Stacker:
             return
         from scharm.stack.hfw import stacksusy
         flags = ''.join(self.flags)
-        if basename(ntuple).startswith('d'):
-            flags += 'd'
         if not isfile(ntuple):
             raise IOError(3,"doesn't exist",ntuple)
         stacksusy(ntuple, regions, flags=flags)
