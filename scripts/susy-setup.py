@@ -190,10 +190,16 @@ def setup_hadd(config):
     Creates one job for each directory to hadd.
     """
     input_dirs = []
+    # don't hadd some directories that aren't hists
+    blacklist_dirs = ['event_list']
     for hadd_dir in config.input_dirs:
         if not isdir(hadd_dir):
             raise OSError("inputs must be directories")
         for root, dirs, files in os.walk(hadd_dir):
+            # don't hadd some directories
+            for bd in blacklist_dirs:
+                if bd in dirs:
+                    dirs.remove(bd)
             if files and dirs:
                 raise OSError("confused: {} and {} in {}".format(
                     files, dirs, root))
