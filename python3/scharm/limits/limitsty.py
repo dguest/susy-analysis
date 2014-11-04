@@ -127,9 +127,12 @@ reg_names = {
     'cr_w_mct150_l1pt50': r'CRW ($p_{\rm T}^{\ell_{1}} > 50$)',
     'cr_z': 'CRZ',
     # nicola's regions
-    'cr_w_nicola': r'CRW Tight',
-    'cr_z_nicola': r'CRZ Tight',
-    'cr_t_nicola': r'CRT Tight',
+    'cr_w_nicola': r'CRW SPT',
+    'cr_z_nicola': r'CRZ SPT',
+    'cr_t_nicola': r'CRT SPT',
+    'cr_w_metola': r'CRW SMT',
+    'cr_z_metola': r'CRZ SMT',
+    'cr_t_metola': r'CRT SMT',
     }
 
 # __________________________________________________________________________
