@@ -12,8 +12,9 @@ from scharm import datasets
 
 def get_args():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('cls_files', nargs='+')
-    parser.add_argument('-v', '--veto-bad-points', help=_veto_help)
+    parser.add_argument('cls_files', nargs='+', default=[])
+    parser.add_argument(
+        '-v', '--veto-bad-points', help=_veto_help, nargs='+', default=[])
     parser.add_argument('-a', '--allow-overwrite', action='store_false',
                         dest='noover', help=_overwrite_help)
     return parser.parse_args()

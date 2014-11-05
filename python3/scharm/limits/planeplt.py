@@ -228,6 +228,10 @@ class CLsExclusionPlane:
         dm = (xp - yp)
         if self._fill_low_stop and min_dm < self._w_mass / 2:
             zp[(xp < min(x)) & (dm >= 0.0)] = th_low
+
+            # # temp HACK to fill in area around missing 100-1 point
+            # zp[(xp < 300) & (xp > 90) & (yp < 75)] = th_low
+
             # make sure forbidden values aren't included
             zp[dm < min_dm] = self.zval_forbidden
 

@@ -20,7 +20,8 @@ def run():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('cls_file')
     parser.add_argument('-o', '--output-plot', default='plane.pdf')
-    parser.add_argument('-r', '--regions', help=_regions_help, nargs='+')
+    parser.add_argument(
+        '-r', '--regions', help=_regions_help, nargs='+', default=[])
     parser.add_argument('-i', '--interpolation', default='gauss',
                         choices=planeplt.interpolators)
     parser.add_argument('-e', '--external', help=_ext_help, **b)
