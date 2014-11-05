@@ -3,6 +3,7 @@
 Merge several cls files. Will throw exceptions if duplicate info is found.
 """
 _overwrite_help = 'allow duplicate info (earlier file is overwritten)'
+_veto_help = 'veto XXX-YYY formatted list of points'
 import argparse
 import yaml
 import sys
@@ -12,20 +13,25 @@ from scharm import datasets
 def get_args():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('cls_files', nargs='+')
+    parser.add_argument('-v', '--veto-bad-points', help=_veto_help)
     parser.add_argument('-a', '--allow-overwrite', action='store_false',
                         dest='noover', help=_overwrite_help)
     return parser.parse_args()
 
-def _file_iter(file_list):
+def _file_iter(file_list, veto_set):
     for cfile in file_list:
-        with open(cfile) as yml:
-            yield _flattify(yaml.load(yml))
+        if cfile:
+            with open(cfile) as yml:
+                yield _flattify(yaml.load(yml), veto_set)
 
-def _flattify(cls_dict):
+def _flattify(cls_dict, veto_set):
     cls_flat = {}
     for conf, points in cls_dict.items():
         for pt in points:
-            cls_flat[conf, pt['scharm_mass'], pt['lsp_mass']] = pt
+            ms, ml = pt['scharm_mass'], pt['lsp_mass']
+            if (ms, ml) in veto_set:
+                continue
+            cls_flat[conf, ms, ml] = pt
     return cls_flat
 
 def _throw_if_overwrite(point, newpt):
@@ -39,10 +45,13 @@ def _throw_if_overwrite(point, newpt):
 
 def run():
     args = get_args()
-    with open(args.cls_files[0]) as yml:
-        points = _flattify(yaml.load(yml))
+    veto_set = {
+        tuple(int(x) for x in pt.split('-')) for pt in args.veto_bad_points}
 
-    for newpts in _file_iter(args.cls_files[1:]):
+    with open(args.cls_files[0]) as yml:
+        points = _flattify(yaml.load(yml), veto_set)
+
+    for newpts in _file_iter(args.cls_files[1:], veto_set):
         for ptkey, newpt in newpts.items():
             if args.noover:
                 _throw_if_overwrite(points.get(ptkey),newpt)
