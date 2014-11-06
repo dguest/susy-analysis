@@ -29,9 +29,14 @@ do
     tail=${table#*$1}
     dest=$(fixdir $tables/$tail)
     mkdir -p $(dirname $dest)
+    if [[ $table == */sr_fit/yieldtable.tex ]]; then
+	EXTRA='--replace-multijet'
+    else
+	EXTRA=''
+    fi
     if [[ $table == */systable.tex || $table == */yieldtable.tex ]]
 	then
-	susy-fit-translate-defs.py $table >| $dest
+	susy-fit-translate-defs.py $table $EXTRA >| $dest
     else
 	cp $table $dest
     fi
