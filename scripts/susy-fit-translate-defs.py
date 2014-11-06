@@ -18,7 +18,16 @@ def _transgamma(line):
         if r'_stat\_' + esc_name in head:
             return long_name + ' stat error & ' + tail
 
+# HACK: hardcoded multijet numbers
+_multijet_events = [(0.34, 0.13), (0.21, 0.04), (0.05, 0.02)]
+def _get_mjline(multijet_events=_multijet_events):
+    multijet_tex = [r'${} \pm {}$'.format(*x) for x in multijet_events]
+    mjhead, mjsep = '      Multijet events', '         &  '
+    return mjsep.join([mjhead] + multijet_tex) + r'\\'
+
 def _transline(line):
+    if 'MULTIJET_FILLER' in line:
+        return _get_mjline()
     for head, dic in _transdics.items():
         if line.startswith(head):
             stem = line[len(head):].split('&')[0].strip()

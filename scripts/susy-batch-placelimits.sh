@@ -31,10 +31,7 @@ do
     mkdir -p $(dirname $dest)
     if [[ $table == */systable.tex || $table == */yieldtable.tex ]]
 	then
-	if ! susy-fit-translate-defs.py $table >| $dest ; then
-	    echo problem translating $table
-	    exit 1
-	fi
+	susy-fit-translate-defs.py $table >| $dest
     else
 	cp $table $dest
     fi
