@@ -18,6 +18,14 @@ def _transgamma(line):
         if r'_stat\_' + esc_name in head:
             return long_name + ' stat error & ' + tail
 
+# HACK: hardcoded multijet numbers
+_multijet_events = [(0.34, 0.13), (0.21, 0.04), (0.05, 0.02)]
+
+def _get_mjline(multijet_events):
+    multijet_tex = [r'${} \pm {}$'.format(*x) for x in multijet_events]
+    mjhead, mjsep = '      Multijet events', '         &  '
+    return mjsep.join([mjhead] + multijet_tex) + r'\\' + '\n'
+
 def _transline(line):
     for head, dic in _transdics.items():
         if line.startswith(head):
@@ -47,7 +55,10 @@ def run():
             sys.exit('need a file to change in place')
         out = sys.stdout
     for line in pars_file:
-        out.write(_transline(line))
+        if args.replace_multijet and 'MULTIJET_FILLER' in line:
+            out.write(_get_mjline(_multijet_events))
+        else:
+            out.write(_transline(line))
 
     if args.in_place:
         pars_file.seek(0)
@@ -62,6 +73,7 @@ def _get_args():
     parser.add_argument(
         'tex_file', help='any tex file', nargs='?')
     parser.add_argument('-i', '--in-place', action='store_true')
+    parser.add_argument('-m', '--replace-multijet', action='store_true')
     return parser.parse_args()
 
 def _get_fit_pars(fit_parameters):
