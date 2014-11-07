@@ -75,6 +75,7 @@ class Stack:
         self._cut_arrows = []
         self._y_sum_step = 0.0
         self._y_sum = 0.0
+        self._x_step_vals = None
         self._proxy_legs = []
         self._bg_proxy_legs = []
         self._rat_legs = []     # for ratio plot
@@ -130,6 +131,16 @@ class Stack:
         else:
             pass                # add check!
 
+    def _set_or_check_xvals(self, xvals):
+        if self._x_step_vals is None:
+            self._x_step_vals = xvals
+            return
+
+        nz = (xvals != 0)
+        x_rel_diff = (self._x_step_vals[nz] - xvals[nz]) / xvals[nz]
+        if any(np.abs(x_rel_diff) > 0.001):
+            raise ValueError('x vals don\'t match')
+
     def add_backgrounds(self, hist_list):
         last_plot = 0
         color_itr = iter(self.colors)
@@ -167,6 +178,7 @@ class Stack:
 
             last_plot = tmp_sum
             self._sm_total += float(hist)
+            self._set_or_check_xvals(x_vals)
 
     def _add_transparent_ratio_err(self, x_vals, rel_sys_err):
         self.ratio.fill_between(
@@ -269,16 +281,17 @@ class Stack:
     def add_cut_arrow(self, value, down=False, height=None):
         self._cut_arrows.append((value, down, height))
 
+    def _ax_from_data(self, point):
+        raw_coords = self.ax.transData.transform(point)
+        return self.ax.transAxes.inverted().transform(raw_coords)
+
     def _draw_cut_arrow(self, value, down=False, height=None):
         if not self._for_paper:
             return
         if self._inner_cuts[0] and value <= self._inner_cuts[0]:
             return
-        color = 'firebrick'
-        transform = transfact(self.ax.transData, self.ax.transAxes)
-        cuttop = (height or 0.4) + 0.1
-        self.ax.plot([value]*2, [0, cuttop], linewidth=2, color=color,
-                     transform=transform)
+
+        # figure out arrow start pos
         xlow, xhigh = self.ax.get_xlim()
         if down:
             arrow_start = self._inner_cuts[1] or xhigh
@@ -286,13 +299,29 @@ class Stack:
         else:
             arrow_start = self._inner_cuts[0] or xlow
             self._inner_cuts[0] = value
-        arrow_sty = dict(arrowstyle='simple', fc=color, ec='none', alpha=0.3)
+
+        # figure out the height of arrow / line
+        mc_all_data_height = np.max(self._y_sum_step)
+        mc_all_ax_height = self._ax_from_data((0, mc_all_data_height))[1]
+        cuttop = mc_all_ax_height + 0.1
         if height is None:
-            arrow_height = 0.1 if self.ax.get_yscale() == 'log' else 0.3
-        else:
-            arrow_height = height
+            lowval, highval = [f(arrow_start, value) for f in [min, max]]
+            sv = self._x_step_vals
+            idx = (lowval < sv) & (sv < highval)
+            mc_data_height = np.max(self._y_sum_step[idx])
+            mc_ax_height = self._ax_from_data((0, mc_data_height))[1]
+            arrow_min = mc_ax_height + 0.1
+            height = (arrow_min + cuttop) / 2
+        cuttop = max(cuttop, height + 0.05)
+
+        # draw this shit
+        transform = transfact(self.ax.transData, self.ax.transAxes)
+        color = 'firebrick'
+        self.ax.plot([value]*2, [0, cuttop], linewidth=2, color=color,
+                     transform=transform)
+        arrow_sty = dict(arrowstyle='simple', fc=color, ec='none', alpha=0.3)
         self.ax.annotate(
-            '', xytext=(arrow_start, arrow_height), xy=(value, arrow_height),
+            '', xytext=(arrow_start, height), xy=(value, height),
             xycoords=transform,
             size=32, arrowprops=arrow_sty, transform=transform)
 
