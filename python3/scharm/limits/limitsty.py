@@ -149,5 +149,5 @@ config_names = {
     # nicola's fit
     'nicolas': 'Tight CRs',
     'inclusive_squark': (
-        r'$\tilde{q} / \tilde{g} \rightarrow 0\ell + 2$--$6$ Jets')
+        r'$\tilde{q} / \tilde{g} \rightarrow$ 0L + 2-6 Jets')
     }

@@ -180,7 +180,7 @@ def _add_exclusion_from_csv(exclusion_plane, file_name, legend_name):
         for rep in '_-':
             short_name = short_name.replace(rep, ' ')
     points = _xy_from_csv(file_name)
-    props = dict(ec='grey', zorder=0, lw=2, fc=(0,0,0,0.3))
+    props = dict(ec='grey', zorder=0, lw=2, fc=(0,0,0,0.2))
     filtpoints = [(x, y) for x, y in points if x - y > 0]
     exclusion_plane.add_exclusion(filtpoints, short_name, properties=props)
 
