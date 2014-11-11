@@ -290,7 +290,7 @@ class CLsExclusionPlane:
         bot_bins = min(y) // self.gev_per_bin + 2
         zp[0:bot_bins,:] = zp[bot_bins,:]
 
-    def add_exclusion(self, xy, label, pushdown=False):
+    def add_exclusion(self, xy, label, pushdown=False, properties=None):
         """
         Expects list of (x, y) points.
         With `pushdown`, makes sure the x values are below W mass.
@@ -302,13 +302,17 @@ class CLsExclusionPlane:
             highpts = pts[(pts[:,0] > 100) & (pts[:,1] > 50)]
             min_dm = np.min(highpts[:,0] - highpts[:,1])
             pts = np.vstack(([[min_dm,0]], highpts, [[upper, 0]]))
-        exc_props = dict(
+
+        # default is monojet properties, but others are allowed
+        poly_props = properties or dict(
             color='CornflowerBlue', alpha=self._mono_alpha, zorder=0)
-        patch = Polygon(pts, **exc_props)
+        patch = Polygon(pts, **poly_props)
         self.ax.add_patch(patch)
         self._proxy_contour.append( (patch, label) )
 
-    def add_labels(self, y=0.32, config=None):
+    def add_labels(self, y=None, config=None):
+        if y is None:
+            y = 0.08 * len(set(x[1] for x in self._proxy_contour)) + 0.07
         atl_y = 1-y
         atl_x = 0.275 if self.approved else 0.2
         self.ax.text(atl_x, atl_y, 'ATLAS', weight='bold', style='italic',

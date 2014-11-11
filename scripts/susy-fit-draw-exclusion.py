@@ -7,9 +7,10 @@ _regions_help = 'only plot a subset of regions'
 _clean_help = 'suppress signal points and grid'
 _ul_help = 'show upper limits'
 _mono_help = 'include monojet limits (expects a csv file with points to draw)'
+_limits_help = 'include external limit (requires a csv file)'
 _regs_help = 'show which region is used for each point'
 _ext_help = 'plotting tweaks for external plots'
-import argparse, sys
+import argparse, sys, os
 from scharm.limits import planeplt
 from scharm.bullshit import helvetify
 import yaml
@@ -34,6 +35,7 @@ def run():
     dowhat.add_argument('--clean', help=_clean_help, **b)
     dowhat.add_argument('--ul', help=_ul_help, **b)
     dowhat.add_argument('--mono', help=_mono_help)
+    parser.add_argument('-a', '--add-limits', help=_limits_help)
     args = parser.parse_args(sys.argv[1:])
     helvetify()
     if any([args.best, args.best_regions, args.clean, args.ul, args.mono]):
@@ -146,12 +148,9 @@ def _max_exclusion_plane(args, show_regions=False, clean=False, ul=False):
 
     if show_regions:
         cls_list = [ x.cfg_tup() for x in pdict.values()]
-        if args.external and False: # WAIT FOR SOMEONE TO ASK
-            ex_plane.add_labels(0.5)
     else:
         cls_list = [ x.cfg_tup()[:3] for x in pdict.values()]
         config = args.regions[0] if len(args.regions) == 1 else None
-        ex_plane.add_labels(config=config)
 
     band_list = [ x.lowhigh_tup() for x in pdict.values()]
     ex_plane.add_band(band_list, label='expected')
@@ -160,11 +159,26 @@ def _max_exclusion_plane(args, show_regions=False, clean=False, ul=False):
     ex_plane.add_config(cls_list, 'expected', '-darkblue')
     if ul:
         ex_plane.add_upper_limits(pdict.values())
+
+    if args.add_limits:
+        _add_exclusion_from_csv(ex_plane, args.add_limits)
     if args.mono:
-        montit = 'Monojet [1407.0608]'
+        montit = 'Monojet' + '' if args.add_limits else ' [1407.0608]'
         ex_plane.add_exclusion(_xy_from_csv(args.mono), montit, pushdown=True)
 
+    if not show_regions:
+        ex_plane.add_labels(config=config)
+
     ex_plane.save(args.output_plot)
+
+def _add_exclusion_from_csv(exclusion_plane, file_name):
+    short_name = os.path.splitext(file_name.rsplit('/')[-1])[0]
+    for rep in '_-':
+        short_name = short_name.replace(rep, ' ')
+    points = _xy_from_csv(file_name)
+    props = dict(ec='grey', zorder=0, lw=2, fc=(0,0,0,0.3))
+    filtpoints = [(x, y) for x, y in points if x - y > 0]
+    exclusion_plane.add_exclusion(filtpoints, short_name, properties=props)
 
 def _xy_from_csv(file_path):
     """return (x, y) values from input file"""
