@@ -148,4 +148,6 @@ config_names = {
     'observed': r'Observed Limit ($\pm 1 \sigma^{\sf SUSY}_{\sf theory})$',
     # nicola's fit
     'nicolas': 'Tight CRs',
+    'inclusive_squark': (
+        r'$\tilde{q} / \tilde{g} \rightarrow 0\ell + 2$--$6$ Jets')
     }
