@@ -166,7 +166,7 @@ def _max_exclusion_plane(args, show_regions=False, clean=False, ul=False):
     if args.add_limits:
         _add_exclusion_from_csv(ex_plane, *args.add_limits)
     if args.mono:
-        montit = 'Monojet' + '' if args.add_limits else ' [1407.0608]'
+        montit = 'Monojet' + ('' if args.add_limits else ' [1407.0608]')
         ex_plane.add_exclusion(_xy_from_csv(args.mono), montit, pushdown=True)
 
     if not show_regions:
@@ -175,16 +175,15 @@ def _max_exclusion_plane(args, show_regions=False, clean=False, ul=False):
     ex_plane.save(args.output_plot)
 
 def _add_exclusion_from_csv(exclusion_plane, file_name, legend_name):
-    short_name = os.path.splitext(file_name.rsplit('/')[-1])[0]
-    if short_name in limitsty.config_names:
-        short_name = limitsty.config_names[short_name]
+    if legend_name in limitsty.config_names:
+        legend_name = limitsty.config_names[legend_name]
     else:
         for rep in '_-':
-            short_name = short_name.replace(rep, ' ')
+            legend_name = legend_name.replace(rep, ' ')
     points = _xy_from_csv(file_name)
     props = dict(ec='grey', zorder=0, lw=2, fc=(0,0,0,0.2))
     filtpoints = [(x, y) for x, y in points if x - y > 0]
-    exclusion_plane.add_exclusion(filtpoints, short_name, properties=props)
+    exclusion_plane.add_exclusion(filtpoints, legend_name, properties=props)
 
 def _xy_from_csv(file_path):
     """return (x, y) values from input file"""
