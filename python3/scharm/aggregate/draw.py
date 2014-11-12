@@ -359,9 +359,12 @@ class Stack:
         bound_up = y_ratios_high[out_of_bounds] - bound_y
         bound_down = bound_y - bound_y_low
         if np.any(out_of_bounds):
+            arrow_width = 0.25
             self.ratio.errorbar(
                 rat_x[out_of_bounds],
-                bound_y, ms=10, fmt='r.',
+                bound_y, ms=10, color='k',
+                marker='',
+                # marker=[(0,0), (-arrow_width,-1), (arrow_width,-1)] ,
                 yerr=[bound_down, bound_up])
 
         # add lines showing 1, 0.5, 1.5, 2.
