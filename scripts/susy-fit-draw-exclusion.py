@@ -156,10 +156,10 @@ def _max_exclusion_plane(args, show_regions=False, clean=False, ul=False):
         config = args.regions[0] if len(args.regions) == 1 else None
 
     band_list = [ x.lowhigh_tup() for x in pdict.values()]
-    ex_plane.add_band(band_list, label='expected')
+    ex_plane.add_band(band_list, label=limitsty.EXPECTED)
 
     ex_plane.add_observed(pdict.values())
-    ex_plane.add_config(cls_list, 'expected', '-darkblue')
+    ex_plane.add_config(cls_list, limitsty.EXPECTED, '-darkblue')
     if ul:
         ex_plane.add_upper_limits(pdict.values())
 

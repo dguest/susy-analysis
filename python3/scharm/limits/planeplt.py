@@ -24,6 +24,9 @@ BOTH = 'both'
 UPPER = 'upper'
 _allowed_kinbounds = {None, True, False, BOTH, UPPER}
 
+# enums for region labels
+from scharm.limits.limitsty import OBSERVED, EXPECTED
+
 class CLsExclusionPlane:
     """Scharm to Charm exclusion plane"""
     # text sizes
@@ -150,7 +153,7 @@ class CLsExclusionPlane:
             high.append( (pt.ms, pt.ml, pt.obs_high) )
         line_opts = {'linewidths':self.wideline, 'colors': 'firebrick'}
         patch_opts = dict(ec='firebrick', fill=False, linestyle='dotted')
-        label = 'observed'
+        label = OBSERVED
         self.add_config(low, style=':firebrick')
         self.add_config(med, add_draw_opts = line_opts, label=label)
         self.add_config(high, style=':firebrick')
@@ -204,6 +207,9 @@ class CLsExclusionPlane:
             draw_opts.update(add_draw_opts)
         ct = self.ax.contour(
             xp, yp, zp, [self._threshold], zorder=2, **draw_opts)
+        if label in {OBSERVED, EXPECTED}:
+            pass
+            # self.ax.scatter(*zip(*_get_contour_points(ct)))
         if heatmap:
             self.ax.imshow(
                 zp, extent=extent, origin='lower', interpolation='nearest',
@@ -478,6 +484,17 @@ interpolators = {
 
 # _________________________________________________________________________
 # misc utilities
+
+def _dump_contour(contour, label):
+    """find points, dump them"""
+    print(label, _get_contour_points(contour))
+
+def _get_contour_points(contour):
+    """return (x,y) points in an array"""
+    paths = xy_pts = contour.collections[0].get_paths()[0]
+    paths.simplify_threshold = 1 # should be in GeV?
+    xy_pts = paths.cleaned(simplify=True).vertices
+    return xy_pts
 
 def _remove_bads(args, baddex=2):
     """returns two lists, of good and bad (test = -1.0) points"""
