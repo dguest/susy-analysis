@@ -36,7 +36,9 @@ def run():
     dowhat.add_argument('--clean', help=_clean_help, **b)
     dowhat.add_argument('--ul', help=_ul_help, **b)
     dowhat.add_argument('--mono', help=_mono_help)
-    parser.add_argument('-a', '--add-limits', help=_limits_help, nargs=2)
+    parser.add_argument(
+        '-a', '--add-limits', help=_limits_help, nargs=2,
+        metavar=('FILE', 'ENTRY'))
     args = parser.parse_args(sys.argv[1:])
     helvetify()
     if any([args.best, args.best_regions, args.clean, args.ul, args.mono]):
@@ -139,7 +141,7 @@ def _max_exclusion_plane(args, show_regions=False, clean=False, ul=False):
     plane_opts = dict(
         grid = not clean and not ul,
         show_points = not any([clean, ul, args.mono]),
-        kinematic_bounds = 'both',
+        kinematic_bounds = 'upper' if args.mono else 'both',
         interpolation=args.interpolation,
         high_contrast=args.external)
 

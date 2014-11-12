@@ -19,6 +19,11 @@ from matplotlib.colors import colorConverter
 from scharm.style import vdict, hdict
 from scharm.limits import limitsty
 
+# enums for kinematic bounds
+BOTH = 'both'
+UPPER = 'upper'
+_allowed_kinbounds = {None, True, False, BOTH, UPPER}
+
 class CLsExclusionPlane:
     """Scharm to Charm exclusion plane"""
     # text sizes
@@ -109,6 +114,7 @@ class CLsExclusionPlane:
 
         self._drawpoints = argv.get('show_points', True)
         self._kinbounds = argv.get('kinematic_bounds', True)
+        assert self._kinbounds in _allowed_kinbounds
 
         hc = argv.get('high_contrast')
         self._kinbound_alpha = 0.7 if hc else 0.3
@@ -354,7 +360,7 @@ class CLsExclusionPlane:
         y_pts_f = x_pts
         y_pts_w = x_pts - (self._w_mass + self._b_mass)
         self.ax.plot(x_pts, y_pts_f, **bound_style)
-        if self._kinbounds == 'both' or self._kinbounds == True:
+        if self._kinbounds == BOTH or self._kinbounds == True:
             self.ax.plot(x_pts, y_pts_w, **bound_style)
 
     def _add_kinbound_text(self):
@@ -375,7 +381,7 @@ class CLsExclusionPlane:
             r'$m_{{ {c} }} <\ m_{{ {l} }}$'
             r' (${c} \to c{l}$ forbidden)').format(**fmt_dict)
         self.ax.text(px, py, upper_text, **text_style)
-        if self._kinbounds == 'both' or self._kinbounds == True:
+        if self._kinbounds == BOTH or self._kinbounds == True:
             xoff = self._w_mass + self._b_mass
             lower_text = (
                 r'$m_{{ {c} }} <\ m_{{ {l} }} +\ m_W +\ m_b$'
