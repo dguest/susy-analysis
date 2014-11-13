@@ -156,9 +156,9 @@ def _max_exclusion_plane(args, show_regions=False, clean=False, ul=False):
         config = args.regions[0] if len(args.regions) == 1 else None
 
     band_list = [ x.lowhigh_tup() for x in pdict.values()]
-    ex_plane.add_band(band_list, label=limitsty.EXPECTED)
 
     ex_plane.add_observed(pdict.values())
+    ex_plane.add_band(band_list, label=limitsty.EXPECTED)
     ex_plane.add_config(cls_list, limitsty.EXPECTED, '-darkblue')
     if ul:
         ex_plane.add_upper_limits(pdict.values())
@@ -181,7 +181,7 @@ def _add_exclusion_from_csv(exclusion_plane, file_name, legend_name):
         for rep in '_-':
             legend_name = legend_name.replace(rep, ' ')
     points = _xy_from_csv(file_name)
-    props = dict(ec='grey', zorder=0, lw=2, fc=(0,0,0,0.2))
+    props = dict(ec='grey', zorder=0, lw=2, fc=(0,0,0,0.1)) #, hatch='///')
     filtpoints = [(x, y) for x, y in points if x - y > 0]
     exclusion_plane.add_exclusion(filtpoints, legend_name, properties=props)
 

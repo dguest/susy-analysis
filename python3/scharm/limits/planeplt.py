@@ -208,8 +208,8 @@ class CLsExclusionPlane:
         ct = self.ax.contour(
             xp, yp, zp, [self._threshold], zorder=2, **draw_opts)
         if label in {OBSERVED, EXPECTED}:
+            # self.ax.plot(*zip(*_get_contour_points(ct)))
             pass
-            # self.ax.scatter(*zip(*_get_contour_points(ct)))
         if heatmap:
             self.ax.imshow(
                 zp, extent=extent, origin='lower', interpolation='nearest',

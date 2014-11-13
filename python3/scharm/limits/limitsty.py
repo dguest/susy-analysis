@@ -148,7 +148,7 @@ config_names = {
     'mct250': r'$m_{\sf CT} > 250$',
     'C1': r'${} \to c {}$: C1'.format(stop, lsp),
     'C2': r'${} \to c {}$: C2'.format(stop, lsp),
-    EXPECTED: r'Expected Limit ($\pm 1 \sigma^{\sf SM}_{\sf theory+exp}$)',
+    EXPECTED: r'Expected Limit ($\pm 1 \sigma^{\sf SM}_{\sf exp}$)',
     OBSERVED: r'Observed Limit ($\pm 1 \sigma^{\sf SUSY}_{\sf theory})$',
     # nicola's fit
     'nicolas': 'Tight CRs',
