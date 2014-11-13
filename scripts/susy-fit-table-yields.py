@@ -47,7 +47,7 @@ def _num(numlist):
     if numlist[0] < 0.1:
         return '$< 0.1$'
     sigfig = 1 if numlist[0] < 10 else 0
-    return r'{{\braketsize $({:.{s}f})$}}'.format(numlist[0], s=sigfig)
+    return r'$({:.{s}f})$'.format(numlist[0], s=sigfig)
 
 _reg_dic = {'cr_' + c: c for c in 'wtz'}
 _reg_dic.update({'signal_mct{}0'.format(x): str(x) for x in [15,20,25]})
@@ -93,7 +93,7 @@ Others    & {o15} & {o20} & {o25} \\
 \hline
 {{\bf Total}} & {{\bf {s15} }} & {{\bf {s20} }} & {{\bf {s25} }} \\
 \hline
-{{\bf Data}}  & {{\bf {d15} }}& {{\bf {d20} }}& {{\bf {d25} }}\\
+{{\bf Data}}  & {{\bf {d15} }} & {{\bf {d20} }}& {{\bf {d25} }}\\
 \hline\hline
 \end{{tabular}}
 """
@@ -105,29 +105,29 @@ _wide_table = r"""
  & CRT & CRZ & CRW & $>$150 & $>$200 & $>$250 \\
  \hline
 \multirow{{2}}{{*}}{{Top}}
-         & {tt}   & {tz}   & {tw} &
+         & {tt}   & {tz}   & {tw}
          & {t15}  & {t20}  & {t25} \\
-         & {tte}  & {tze}  & {twe} &
+         & {tte}  & {tze}  & {twe}
          & {t15e} & {t20e} & {t25e} \\
 \multirow{{2}}{{*}}{{$Z$+jets}}
-         & {zt}   & {zz}   & {zw} &
+         & {zt}   & {zz}   & {zw}
          & {z15}  & {z20}  & {z25} \\
-         & {zte}  & {zze}  & {zwe} &
+         & {zte}  & {zze}  & {zwe}
          & {z15e} & {z20e} & {z25e} \\
 \multirow{{2}}{{*}}{{$W$+jets}}
-         & {wt}   & {wz}   & {ww} &
+         & {wt}   & {wz}   & {ww}
          & {w15}  & {w20}  & {w25} \\
-         & {wte}  & {wze}  & {wwe} &
+         & {wte}  & {wze}  & {wwe}
          & {w15e} & {w20e} & {w25e} \\
-Multijets &  --          &  --             &  --              &
-          $0.3 \pm 0.3 $ &  $0.2 \pm 0.2 $ &  $0.05 \pm 0.05$ \\[4pt]
-Others    & {ot}  & {oz}  & {ow}  &
+Multijets &  --            &  --             &  --
+          & $0.3 \pm 0.3 $ &  $0.2 \pm 0.2 $ &  $0.05 \pm 0.05$ \\[4pt]
+Others    & {ot}  & {oz}  & {ow}
           & {o15} & {o20} & {o25} \\
 \hline
-{{\bf Total}} & {st}           & {sz}           & {sw}           &
+{{\bf Total}} & {st}           & {sz}           & {sw}
               & {{\bf {s15} }} & {{\bf {s20} }} & {{\bf {s25} }} \\
 \hline
-{{\bf Data}}  & {dt}           & {dz}           & {dw}           &
+{{\bf Data}}  & {dt}           & {dz}           & {dw}
               & {{\bf {d15} }} & {{\bf {d20} }} & {{\bf {d25} }} \\
 \hline\hline
 \end{{tabular}}
