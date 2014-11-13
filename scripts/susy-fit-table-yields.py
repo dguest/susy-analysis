@@ -24,7 +24,11 @@ def _get_args():
     parser.add_argument('yields', help=_yields_help, nargs='?')
     plot_type = parser.add_mutually_exclusive_group()
     plot_type.add_argument('-w', '--wide', **bl('wide version'))
-    return parser.parse_args()
+    args = parser.parse_args()
+    if sys.stdin.isatty() and args.yields is None:
+        parser.print_usage()
+        sys.exit(1)
+    return args
 
 def _get_yaml(file_name):
     if not file_name and not sys.stdin.isatty():
