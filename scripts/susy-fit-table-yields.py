@@ -38,14 +38,14 @@ def _get_yaml(file_name):
         return yaml.load(pars)
 
 def _number_with_unct(numlist):
-    if numlist[0] < 0.1:
+    if numlist[0] < 0.05:
         return '$< 0.1$'
     sigfig = 1 if numlist[0] < 10 else 0
     return r'${:.{s}f} \pm {:.{s}f}$'.format(*numlist, s=sigfig)
 
 def _num(numlist):
-    if numlist[0] < 0.1:
-        return '$< 0.1$'
+    if numlist[0] < 0.05:
+        return '($< 0.1$)'
     sigfig = 1 if numlist[0] < 10 else 0
     return r'$({:.{s}f})$'.format(numlist[0], s=sigfig)
 
