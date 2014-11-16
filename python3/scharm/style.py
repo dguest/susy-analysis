@@ -252,11 +252,19 @@ crop_vars = {
     'leading_lepton_pt': (0, 350),
     'second_lepton_pt': (0, 160),
     }
+# if defined, use the special 'log' values for log plots 
+# (if not listed below)
+log_crop_vars = {
+    'mass_ct': (0, 500),
+    }
 # cropping for specific regions (given as (region, variable))
 crop_region_vars = {
     ('cr_t', 'met'): (0, 400),
     ('cr_w', 'met'): (0, 400),
     ('cr_z', 'met'): (0, 400),
+    ('signal_mct150', 'met'): (100, 500),
+    ('signal_mct200', 'met'): (100, 500),
+    ('signal_mct250', 'met'): (100, 500),
     }
 
 # ________________________________________________________________________

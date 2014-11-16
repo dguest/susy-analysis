@@ -15,7 +15,7 @@ from concurrent.futures import ProcessPoolExecutor as Executor
 def make_plots(plots_dict, misc_info, log=False, mu_dict={}, blind=False):
     hist1_dict = {}
     hist2_dict = {}
-    converter = HistConverter(misc_info)
+    converter = HistConverter(misc_info, log=log)
     for tup, hist in plots_dict.items():
         proc, var, reg = tup
         if proc == 'data' and blind:
@@ -40,11 +40,12 @@ class HistConverter:
     """
     convert from NdHist to several Hist1d or Hist2d.
     """
-    def __init__(self, misc_info):
+    def __init__(self, misc_info, log=False):
         self.lumi_fb = misc_info['lumi_fb']
         show_events = misc_info.get('show_events', True)
         theme = misc_info['theme']
         self._style = style.get_type_dict(theme)
+        self._log = log
 
     def h1dict_from_histn(self, pvc, histn):
         """
@@ -133,6 +134,8 @@ class HistConverter:
                 crop_var = variable[:-len(ext)]
         if (cut, crop_var) in style.crop_region_vars:
             hist.crop(*style.crop_region_vars[cut, crop_var])
+        elif crop_var in style.log_crop_vars:
+            hist.crop(*style.log_crop_vars[crop_var])
         elif crop_var in style.crop_vars:
             hist.crop(*style.crop_vars[crop_var])
         hist.selection = selection
