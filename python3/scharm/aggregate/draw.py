@@ -443,9 +443,9 @@ class Stack:
                 s=region_string, ha='left', x=0.05, y=reg_y, va='top',
                 transform=self.ax.transAxes, size=self._small_size)
 
-        vert = 0.9 - frac_consumed
+        vert = 0.9 - frac_consumed / 2
         atl_lable_args = dict(
-            x=0.8, y=vert,
+            x=0.5, y=vert,
             transform=self.ax.transAxes,
             size=self._med_size + 4)
         self.ax.text(s='ATLAS', weight='bold', style='italic',
@@ -483,7 +483,7 @@ class Stack:
 
     def add_legend(self):
         sm_tot = self._get_sm_total_legends()
-        sec_col_legs = sm_tot + self._data_legs + self._bg_proxy_legs[::-1]
+        sec_col_legs = self._data_legs + sm_tot + self._bg_proxy_legs[::-1]
         first_col_legs = self._signal_legs
 
         # add extra blank legends to put all bg in one col
@@ -505,7 +505,7 @@ class Stack:
             legend.get_frame().set_alpha(0)
 
         # crude guess for how many legends fit
-        max_fitting = 26 if self.ratio else 34
+        max_fitting = 26 if self.ratio else 38
         n_leg = len(all_legs)
         frac_consumed = min(n_leg / max_fitting, 0.9)
         # adjust for bigger font
