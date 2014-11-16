@@ -298,7 +298,11 @@ class Stack:
         self._cut_arrows.append((value, down, height))
 
     def _ax_from_data(self, point):
-        raw_coords = self.ax.transData.transform(point)
+        point_array = np.array(point)
+        # weird hack required for single points
+        if point_array.ndim == 1:
+            point_array = point_array[None, :]
+        raw_coords = self.ax.transData.transform(point_array)
         return self.ax.transAxes.inverted().transform(raw_coords)
 
     def _draw_cut_arrow(self, value, down=False, height=None):
@@ -318,14 +322,14 @@ class Stack:
 
         # figure out the height of arrow / line
         mc_all_data_height = np.max(self._y_sum_step)
-        mc_all_ax_height = self._ax_from_data((0, mc_all_data_height))[1]
+        mc_all_ax_height = self._ax_from_data((0, mc_all_data_height))[:,1]
         cuttop = mc_all_ax_height + 0.1
         if height is None:
             lowval, highval = [f(arrow_start, value) for f in [min, max]]
             sv = self._x_step_vals
             idx = (lowval < sv) & (sv < highval)
             mc_data_height = np.max(self._y_sum_step[idx])
-            mc_ax_height = self._ax_from_data((0, mc_data_height))[1]
+            mc_ax_height = self._ax_from_data((0, mc_data_height))[:,1]
             arrow_min = mc_ax_height + 0.1
             height = (arrow_min + cuttop) / 2
         cuttop = max(cuttop, height + 0.05)
