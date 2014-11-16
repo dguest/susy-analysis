@@ -29,14 +29,27 @@ class Stack:
     staterr_name = 'statistical'
     toterr_name = 'total'
     verbose_total_error = 'statistical + experimental error'
-    # verbose_total_error = (
-    #     r'$(\sigma_{\sf stat}^2 + \sigma_{\sf experimental}^2})^{1/2}$')
     ratio_grid_color = (0,0,0,0.2)
     legend_format = '{title}: {number_events}'
     magic_sig_str = 'scharm-'
-    signal_prefix = r'$\tilde{c}$ '
+    # signal_tmp = (
+    #     r'$m_{{\tilde{{c}} }}$ = {} GeV, '
+    #     r'$m_{{\tilde{{\chi}}_1^0}}$ = {} GeV')
+    signal_tmp = (
+        r'$m_{{\tilde{{c}},\tilde{{\chi}}_1^0}} = $ {}, {} GeV')
+
+
     # confidence interval for data
     data_ci = 1 - math.erf( (1/2)**0.5) # 1 sigma
+
+    # legend options for paper
+    paper_legend_opts = dict(
+        columnspacing=0.75,
+        borderpad=0,
+        labelspacing=0.0,
+        handletextpad=0.25,
+        handlelength=1.5,
+        handleheight=1.3)
     def __init__(self, ratio=False, exclude_zeros=True,
                  selection_colors=('r',(0.9, 0, 0, 0.2)),
                  for_paper=False):
@@ -76,8 +89,9 @@ class Stack:
         self._y_sum_step = 0.0
         self._y_sum = 0.0
         self._x_step_vals = None
-        self._proxy_legs = []
+        self._signal_legs = []
         self._bg_proxy_legs = []
+        self._data_legs = []
         self._rat_legs = []     # for ratio plot
         self._x_limits = None
         self._sm_total = 0.0
@@ -115,7 +129,9 @@ class Stack:
         else:
             title = hist.title
         if self._for_paper:
-            return self.signal_prefix + title if is_sig else title
+            if is_sig:
+                return self.signal_tmp.format(*title.split('-'))
+            return title
 
         hval = float(hist)
         # return title
@@ -238,7 +254,7 @@ class Stack:
             style = '--'
             plt_handle, = self.ax.plot(
                 x_vals,y_vals,style, linewidth=3.0, color=color)
-            self._proxy_legs.append( (plt_handle, self._get_legstr(hist)))
+            self._signal_legs.append( (plt_handle, self._get_legstr(hist)))
 
     def _get_min_plotable(self, y_vals):
         plot_vals = np.array(y_vals)
@@ -405,7 +421,7 @@ class Stack:
             plt_x, plt_y, ms=10, fmt='k.',
             yerr=[plt_err_down,plt_err_up])
 
-        self._proxy_legs.append( (line, self._get_legstr(hist)))
+        self._data_legs.append( (line, self._get_legstr(hist)))
         # TODO: fix this, the dims don't match the backgrounds
         # self._upper_limit = np.maximum(self._upper_limit, highs)
 
@@ -466,27 +482,30 @@ class Stack:
         return [(artist, tstring)]
 
     def add_legend(self):
-        sm_total_entries = self._get_sm_total_legends()
-        bg_legs = self._bg_proxy_legs[::-1]
-        first_col_legs = self._proxy_legs + sm_total_entries
+        sm_tot = self._get_sm_total_legends()
+        sec_col_legs = sm_tot + self._data_legs + self._bg_proxy_legs[::-1]
+        first_col_legs = self._signal_legs
 
         # add extra blank legends to put all bg in one col
-        n_bg = len(bg_legs)
+        n_bg = len(sec_col_legs)
         n_other = len(first_col_legs)
         if n_other < n_bg:
             n_blank = n_bg - n_other
             first_col_legs += [(Line2D((0,1),(0,1), alpha=0), ' ')]*n_blank
-        all_legs =  first_col_legs + bg_legs
+        all_legs =  first_col_legs + sec_col_legs
 
         proxies = zip(*all_legs)
+        leg_opts = dict(numpoints=1, ncol=2, fontsize=self._med_size)
+        if self._for_paper:
+            leg_opts.update(self.paper_legend_opts)
         legend = self.ax.legend(
-            *proxies, numpoints=1, ncol=2, fontsize=self._med_size)
+            *proxies, **leg_opts)
         if legend:
             legend.get_frame().set_linewidth(0)
             legend.get_frame().set_alpha(0)
 
         # crude guess for how many legends fit
-        max_fitting = 22 if self.ratio else 34
+        max_fitting = 26 if self.ratio else 34
         n_leg = len(all_legs)
         frac_consumed = min(n_leg / max_fitting, 0.9)
         # adjust for bigger font

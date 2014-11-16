@@ -34,6 +34,7 @@ def get_config():
     parser.add_argument('--serial', action='store_true',
                         help='disable multiprocess')
     parser.add_argument('-p', '--paper', action='store_true', help=_p_help)
+    parser.add_argument('-e', '--paper-subset', action='store_true')
 
     args = parser.parse_args(sys.argv[1:])
     return args
@@ -47,6 +48,7 @@ _paper_plots = [
     ('signal_mct150', 'met'),
     ('signal_mct150', 'mass_cc'),
     ('signal_mct150', 'j0_pt'),
+    ('signal_mct150', 'j0_flavor_truth_label'),
     ('cr_z', 'mass_ll'),
     ('cr_z', 'mass_ct'),
     ('cr_w', 'mass_ct'),
@@ -70,7 +72,7 @@ def run_plotmill(args):
     aggregates = [args.aggregate]
     plots_dict = {}
 
-    fastplots = _paper_plots if args.paper else None
+    fastplots = _paper_plots if args.paper_subset else None
 
     for agg_file in aggregates:
         print('loading {}...'.format(agg_file), end='', flush=True)

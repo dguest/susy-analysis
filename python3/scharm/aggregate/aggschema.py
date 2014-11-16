@@ -53,6 +53,8 @@ class HistDict(dict):
             sig_pt = proc.startswith(sig_prefix)
             if sig_pt and proc not in sig_points:
                 continue
+            if proc == 'data' and variable not in var_grp:
+                continue
             variants = ['', 'Wt2']
             if proc != 'data' and not proc.startswith(sig_prefix):
                 variants.append('Syst2')
