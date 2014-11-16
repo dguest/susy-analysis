@@ -12,7 +12,10 @@ _transdics = {
     }
 
 def _transgamma(line):
-    head, tail = line.split('&', 1)
+    head, *tails = line.split('&')
+    if all(r'$\pm 0.00$' in t for t in tails):
+        return ''
+    tail = '&'.join(tails) + r'\\' + '\n'
     for region, long_name in reg_names.items():
         esc_name = region.replace('_',r'\_')
         if r'_stat\_' + esc_name in head:
