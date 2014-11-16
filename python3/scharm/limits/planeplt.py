@@ -61,7 +61,7 @@ class CLsExclusionPlane:
     # labels
     lsp = limitsty.lsp
     scharm = limitsty.scharm
-    antischarm = limitsty.scharm.replace(r'{c}', r'{\bar{c}}')
+    antischarm = limitsty.scharm.replace(r'{c}', r'{c}^{*}')
     stop = limitsty.stop
 
     # legend setup
