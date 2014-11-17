@@ -529,6 +529,10 @@ class Stack:
 
         self.ax.set_xlim(*self._x_limits)
         y_rescale = self._scale_for_legend * self.extra_yrange
+        # make a bit more room for log plots with cut arrows (log plots
+        # tend to be flatter and get jammed against the legend)
+        if self._cut_arrows and self.ax.get_yscale() == 'log':
+            y_rescale *= 1.1
         if self.ax.get_yscale() != 'log':
             ymax = self.ax.get_ylim()[1]
             self.ax.set_ylim(0,ymax * y_rescale)
