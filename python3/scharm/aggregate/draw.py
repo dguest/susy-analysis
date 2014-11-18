@@ -25,7 +25,7 @@ class Stack:
     This is for drawing.
     """
     lumi_str = '$\int\ \mathcal{{L}}\ dt\ =\ ${:.1f} fb$^{{-1}}$'
-    lumi_and_energy = r'{:.1f} fb$^{{-1}}$, 8 TeV'
+    lumi_and_energy = r'8 TeV, {:.1f} fb$^{{-1}}$'
     syserr_name = 'experimental'
     staterr_name = 'statistical'
     toterr_name = 'total'
@@ -59,7 +59,7 @@ class Stack:
         self.canvas = FigureCanvas(self.fig)
         self.lumi = None
         self.region_name = None
-        self.extra_yrange = 1.0
+        self.extra_yrange = 1.0 # for external use
         self.ratio_max = 2.0
         self.ratio_font_size = 10
         self.colors = list('kc') + ['purple', 'orange']
@@ -89,6 +89,7 @@ class Stack:
         self._cut_arrows = []
         self._y_sum_step = 0.0
         self._y_sum = 0.0
+        self._data_max = 0.0
         self._x_step_vals = None
         self._signal_legs = []
         self._bg_proxy_legs = []
@@ -430,6 +431,9 @@ class Stack:
         # TODO: fix this, the dims don't match the backgrounds
         # self._upper_limit = np.maximum(self._upper_limit, highs)
 
+        # more robust way to find max value
+        self._data_max = max(np.max(highs), self._data_max)
+
     # __________________________________________________________________
     # PR crap for atlas
 
@@ -559,16 +563,20 @@ class Stack:
 
         self.ax.set_xlim(*self._x_limits)
         y_rescale = self._scale_for_legend * self.extra_yrange
-        # make a bit more room for log plots with cut arrows (log plots
-        # tend to be flatter and get jammed against the legend)
-        if self._cut_arrows and self.ax.get_yscale() == 'log':
+        # make a bit more room for log plots with cut arrows
+        if self._cut_arrows:
             y_rescale *= 1.1
         if self.ax.get_yscale() != 'log':
             ymax = self.ax.get_ylim()[1]
             self.ax.set_ylim(0,ymax * y_rescale)
         else:
             ymin, ymax = self.ax.get_ylim()
-            self.ax.set_ylim(ymin, ymax**y_rescale)
+            log_min = math.log(ymin,10)
+            log_range = math.log(ymax,10) - log_min
+            log_max = log_range*y_rescale + log_min
+            new_max = 10**log_max
+            print('rescale {} by {}, to {}'.format(ymax, y_rescale, new_max))
+            self.ax.set_ylim(ymin, new_max)
             self.ax.yaxis.set_major_formatter(FuncFormatter(_log_formatting))
 
         self._draw_selection()

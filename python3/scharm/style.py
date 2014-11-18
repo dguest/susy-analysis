@@ -283,8 +283,7 @@ def customize_stack(stack, var_name, region, is_paper):
         stack.region_name = None
 
     # hacks for Al
-    if not is_paper:
-        return
+    return
     if var_name in {'mass_ct','met', 'j0_pt'} and is_sr:
         stack.extra_yrange *= 0.8
     if var_name in {'met'} and region == 'cr_w':
