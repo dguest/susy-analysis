@@ -25,7 +25,7 @@ class Stack:
     This is for drawing.
     """
     lumi_str = '$\int\ \mathcal{{L}}\ dt\ =\ ${:.1f} fb$^{{-1}}$'
-    lumi_and_energy = r'8 TeV, {:.1f} fb$^{{-1}}$'
+    lumi_and_energy = r'$\sqrt{{s}} = $8 TeV, {:.1f} fb$^{{-1}}$'
     syserr_name = 'experimental'
     staterr_name = 'statistical'
     toterr_name = 'total'
@@ -575,7 +575,6 @@ class Stack:
             log_range = math.log(ymax,10) - log_min
             log_max = log_range*y_rescale + log_min
             new_max = 10**log_max
-            print('rescale {} by {}, to {}'.format(ymax, y_rescale, new_max))
             self.ax.set_ylim(ymin, new_max)
             self.ax.yaxis.set_major_formatter(FuncFormatter(_log_formatting))
 
