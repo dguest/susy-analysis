@@ -25,6 +25,7 @@ class Stack:
     This is for drawing.
     """
     lumi_str = '$\int\ \mathcal{{L}}\ dt\ =\ ${:.1f} fb$^{{-1}}$'
+    lumi_and_energy = r'{:.1f} fb$^{{-1}}$, 8 TeV'
     syserr_name = 'experimental'
     staterr_name = 'statistical'
     toterr_name = 'total'
@@ -429,33 +430,62 @@ class Stack:
         # TODO: fix this, the dims don't match the backgrounds
         # self._upper_limit = np.maximum(self._upper_limit, highs)
 
+    # __________________________________________________________________
+    # PR crap for atlas
+
     def _add_pr_crap(self, frac_consumed):
         vspace = 0.09 if self.ratio else 0.07
         if self.lumi:
-            self.ax.text(
-                0.02, 0.95, self.lumi_str.format(self.lumi),
-                transform=self.ax.transAxes, size=self._small_size,
-                va='top')
-            self.ax.text(
-                0.05, 1 - 2*vspace, r'$\sqrt{s} = $ 8 TeV', va='top',
-                transform=self.ax.transAxes, size=self._small_size)
+            self._add_lumi(vspace, paper_style=True)
 
         if self.region_name:
-            reg_y = 1 - 3*vspace
-            region_string = 'region: {}'.format(self.region_name)
-            self.ax.text(
-                s=region_string, ha='left', x=0.05, y=reg_y, va='top',
-                transform=self.ax.transAxes, size=self._small_size)
+            self._add_region_name(vspace, paper_style=True)
 
-        vert = 0.9 - frac_consumed / 2
+        self._add_atlas_label(frac_consumed, vspace, paper_style=True)
+
+    def _add_atlas_label(self, frac_consumed, vspace, paper_style):
+        if paper_style:
+            vert = 0.98
+            horz = 0.17
+        else:
+            vert = 0.95 - frac_consumed / 2
+            horz = 0.5
+
         atl_lable_args = dict(
-            x=0.5, y=vert,
+            x=horz, y=vert, va='top',
             transform=self.ax.transAxes,
             size=self._med_size + 4)
         self.ax.text(s='ATLAS', weight='bold', style='italic',
                      ha='right', **atl_lable_args)
         self.ax.text(s=' Internal',
                      ha='left', **atl_lable_args)
+
+    def _add_lumi(self, vspace, paper_style):
+        opts = dict(
+            transform=self.ax.transAxes, size=self._small_size, va='top')
+
+        if paper_style:
+            lstr = self.lumi_and_energy.format(self.lumi)
+            self.ax.text(0.03, 0.90, lstr, **opts)
+            return
+        self.ax.text(0.02, 0.95, self.lumi_str.format(self.lumi), **opts)
+        self.ax.text(
+            0.05, 1 - 2*vspace, r'$\sqrt{s} = $ 8 TeV', **opts)
+
+    def _add_region_name(self, vspace, paper_style):
+        if paper_style:
+            reg_y = 0.83
+            reg_x = 0.03
+        else:
+            reg_y = 1 - 3*vspace
+            reg_x = 0.05
+        region_string = 'region: {}'.format(self.region_name)
+        self.ax.text(
+            s=region_string, ha='left', x=reg_x, y=reg_y, va='top',
+            transform=self.ax.transAxes, size=self._small_size)
+
+    # _____________________________________________________________________
+    # end PR crap
 
     def _get_sm_total_legends(self):
         """
@@ -500,7 +530,7 @@ class Stack:
 
         proxies = zip(*all_legs)
         leg_opts = dict(numpoints=1, ncol=2, fontsize=self._med_size)
-        if self._for_paper:
+        if self._for_paper or True:
             leg_opts.update(self.paper_legend_opts)
         legend = self.ax.legend(
             *proxies, **leg_opts)
@@ -510,7 +540,7 @@ class Stack:
 
         # crude guess for how many legends fit
         max_fitting = 26 if self.ratio else 38
-        n_leg = len(all_legs)
+        n_leg = len(self._signal_legs)
         frac_consumed = min(n_leg / max_fitting, 0.9)
         # adjust for bigger font
         frac_consumed *= self._med_size / self._small_size
