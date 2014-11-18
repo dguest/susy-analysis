@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm, Normalize
 from matplotlib.gridspec import GridSpec
 from matplotlib.ticker import MaxNLocator, LogLocator
-from matplotlib.ticker import LogFormatterMathtext, LogFormatter
+from matplotlib.ticker import LogFormatterMathtext, FuncFormatter
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
 from matplotlib.transforms import blended_transform_factory as transfact
@@ -569,6 +569,7 @@ class Stack:
         else:
             ymin, ymax = self.ax.get_ylim()
             self.ax.set_ylim(ymin, ymax**y_rescale)
+            self.ax.yaxis.set_major_formatter(FuncFormatter(_log_formatting))
 
         self._draw_selection()
 
@@ -603,6 +604,15 @@ def _get_mc_error_bands(hist_list, y_sum_step, nan_proxy_val=100.0):
     inf_vals = np.isinf(rel_sys_err) | np.isnan(rel_sys_err)
     rel_sys_err[inf_vals] = nan_proxy_val
     return x_vals, rel_sys_err
+
+def _log_formatting(value, pos):
+    roundval = round(value)
+    if roundval == 1:
+        return '$1$ '
+    elif roundval == 10:
+        return '$10$ '
+    exp = round(math.log(value,10))
+    return '$10^{{{}}}$'.format(exp)
 
 class Hist1d:
     """
@@ -898,7 +908,7 @@ class Hist2d(object):
         cb_dict = {'cax':cax}
         if log:
             cb_dict['ticks'] = LogLocator(10, np.arange(0.1,1,0.1))
-            cb_dict['format'] = LogFormatterMathtext(10)
+            cb_dict['format'] = FuncFormatter(_log_formatting)
 
         cb = plt.colorbar(im, **cb_dict)
 
