@@ -283,11 +283,9 @@ def customize_stack(stack, var_name, region, is_paper):
         stack.region_name = None
 
     # hacks for Al
-    return
-    if var_name in {'mass_ct','met', 'j0_pt'} and is_sr:
-        stack.extra_yrange *= 0.8
-    if var_name in {'met'} and region == 'cr_w':
-        stack.extra_yrange *= 0.8
+    if (var_name, region) == ('mass_cc','signal_mct150'):
+        stack.lumi_info_position = (0.55, 0.83)
+        stack.extra_yrange = 0.75
 
 def predraw_customize(stack, var_name, region, is_paper):
     if not is_paper:

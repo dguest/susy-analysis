@@ -61,6 +61,8 @@ class Stack:
         self.lumi = None
         self.region_name = None
         self.extra_yrange = 1.0 # for external use
+        self.atlas_label_position = (0.16, 0.96) # for external use
+        self.lumi_info_position = None
         self.ratio_max = 2.0
         self.ratio_font_size = 10
         self.colors = list('kc') + ['purple', 'orange']
@@ -441,24 +443,18 @@ class Stack:
     # __________________________________________________________________
     # PR crap for atlas
 
-    def _add_pr_crap(self, frac_consumed):
-        vspace = 0.09 if self.ratio else 0.07
-        self._add_atlas_label(frac_consumed, vspace, paper_style=True)
+    def _add_pr_crap(self, x=0.16, y=0.96):
+        self._add_atlas_label(x, y)
+        if self.lumi_info_position is not None:
+            x, y = self.lumi_info_position
         if self.lumi:
-            self._add_lumi(vspace, paper_style=True)
+            self._add_lumi(x - 0.13, y - 0.08)
         if self.region_name:
-            self._add_region_name(vspace, paper_style=True)
+            self._add_region_name(x - 0.11, y - 0.16)
 
-    def _add_atlas_label(self, frac_consumed, vspace, paper_style):
-        if paper_style:
-            vert = 0.96
-            horz = 0.16
-        else:
-            vert = 0.95 - frac_consumed / 2
-            horz = 0.5
-
+    def _add_atlas_label(self, x, y):
         atl_lable_args = dict(
-            x=horz, y=vert, va='top',
+            x=x, y=y, va='top',
             transform=self.ax.transAxes,
             size=self._med_size + 4)
         self.ax.text(s='ATLAS', weight='bold', style='italic',
@@ -466,28 +462,16 @@ class Stack:
         self.ax.text(s=' Internal',
                      ha='left', **atl_lable_args)
 
-    def _add_lumi(self, vspace, paper_style):
+    def _add_lumi(self, x=0.03, y=0.88):
         opts = dict(
             transform=self.ax.transAxes, size=self._small_size, va='top')
+        lstr = self.lumi_and_energy.format(self.lumi)
+        self.ax.text(x, y, lstr, **opts)
 
-        if paper_style:
-            lstr = self.lumi_and_energy.format(self.lumi)
-            self.ax.text(0.03, 0.88, lstr, **opts)
-            return
-        self.ax.text(0.02, 0.95, self.lumi_str.format(self.lumi), **opts)
-        self.ax.text(
-            0.05, 1 - 2*vspace, r'$\sqrt{s} = $ 8 TeV', **opts)
-
-    def _add_region_name(self, vspace, paper_style):
-        if paper_style:
-            reg_y = 0.80
-            reg_x = 0.05
-        else:
-            reg_y = 1 - 3*vspace
-            reg_x = 0.05
+    def _add_region_name(self, x=0.05, y=0.80):
         region_string = 'region: {}'.format(self.region_name)
         self.ax.text(
-            s=region_string, ha='left', x=reg_x, y=reg_y, va='top',
+            s=region_string, ha='left', x=x, y=y, va='top',
             transform=self.ax.transAxes, size=self._small_size)
 
     # _____________________________________________________________________
@@ -557,7 +541,7 @@ class Stack:
                 *zip(*self._rat_legs), fontsize=self.ratio_font_size,
                  ncol=3, loc='lower right', borderaxespad=0.0)
 
-        self._add_pr_crap(frac_consumed)
+        self._add_pr_crap(*self.atlas_label_position)
 
     def _get_rescaled_max(self, old_max, rescale):
         """rescale, independent of log axis"""
