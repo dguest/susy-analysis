@@ -169,7 +169,9 @@ def _max_exclusion_plane(args, show_regions=False, clean=False, ul=False):
         montit = 'Monojet' + ('' if args.add_limits else ' [1407.0608]')
         ex_plane.add_exclusion(_xy_from_csv(args.mono), montit, pushdown=True)
 
-    if not show_regions:
+    if show_regions:
+        ex_plane.add_atlas_label(0.23, 0.38, stack=True)
+    else:
         ex_plane.add_labels(config=config)
 
     ex_plane.save(args.output_plot)

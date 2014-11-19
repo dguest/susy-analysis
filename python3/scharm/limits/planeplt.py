@@ -322,18 +322,26 @@ class CLsExclusionPlane:
         self.ax.add_patch(patch)
         self._proxy_contour.append( (patch, label) )
 
+    def add_atlas_label(self, atl_x, atl_y, stack=False):
+        topopts = dict(size=self.big_size, transform=self.ax.transAxes,
+                       ha='right')
+        botopts = dict(size=self.big_size, transform=self.ax.transAxes,
+                       ha='left')
+        if stack:
+            topopts.update(dict(va='bottom', ha='right'))
+            botopts.update(dict(va='top', ha='right'))
+        self.ax.text(atl_x, atl_y, 'ATLAS', weight='bold', style='italic',
+                     horizontalalignment='right', **topopts)
+        if not self.approved:
+            self.ax.text(atl_x, atl_y, ' Internal',
+                         horizontalalignment='left', **botopts)
+
     def add_labels(self, y=None, config=None):
         if y is None:
             y = 0.08 * len(set(x[1] for x in self._proxy_contour)) + 0.07
         atl_y = 1-y
         atl_x = 0.275 if self.approved else 0.2
-        self.ax.text(atl_x, atl_y, 'ATLAS', weight='bold', style='italic',
-                     horizontalalignment='right',
-                     transform=self.ax.transAxes, size=self.big_size)
-        if not self.approved:
-            self.ax.text(atl_x, atl_y, ' Internal',
-                         horizontalalignment='left',
-                         transform=self.ax.transAxes, size=self.big_size)
+        self.add_atlas_label(atl_x, atl_y)
         squeeze = y > 0.45
         lumisize = self.small_size if squeeze else self.med_size
         lumi_x = 0.03 if squeeze else 0.05
