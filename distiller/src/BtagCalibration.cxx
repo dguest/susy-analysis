@@ -16,7 +16,7 @@ BtagCalibration::BtagCalibration(std::string clb_file,
 {
   using namespace btag;
   if (clb_file.size() && file_path.size()) {
-    m_cnn = new CDI("JetFitterCharm", clb_file, file_path);
+    m_cnn = new CDI("JFC", clb_file, file_path);
   }
   m_ops[CNN_LOOSE] = "-0_9_NONE";
   m_ops[CNN_MEDIUM] = "-0_9_0_95";

@@ -9,3 +9,4 @@ bin/
 *.pyc
 *.so
 local.mk
+*.log
