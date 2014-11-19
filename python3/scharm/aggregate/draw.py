@@ -50,7 +50,7 @@ class Stack:
         borderpad=0,
         labelspacing=0.0,
         handletextpad=0.25,
-        handlelength=1.5,
+        handlelength=1.3,
         handleheight=1.3)
     def __init__(self, ratio=False, exclude_zeros=True,
                  selection_colors=('r',(0.9, 0, 0, 0.2)),
@@ -443,18 +443,16 @@ class Stack:
 
     def _add_pr_crap(self, frac_consumed):
         vspace = 0.09 if self.ratio else 0.07
+        self._add_atlas_label(frac_consumed, vspace, paper_style=True)
         if self.lumi:
             self._add_lumi(vspace, paper_style=True)
-
         if self.region_name:
             self._add_region_name(vspace, paper_style=True)
 
-        self._add_atlas_label(frac_consumed, vspace, paper_style=True)
-
     def _add_atlas_label(self, frac_consumed, vspace, paper_style):
         if paper_style:
-            vert = 0.98
-            horz = 0.17
+            vert = 0.96
+            horz = 0.16
         else:
             vert = 0.95 - frac_consumed / 2
             horz = 0.5
@@ -474,7 +472,7 @@ class Stack:
 
         if paper_style:
             lstr = self.lumi_and_energy.format(self.lumi)
-            self.ax.text(0.01, 0.90, lstr, **opts)
+            self.ax.text(0.03, 0.88, lstr, **opts)
             return
         self.ax.text(0.02, 0.95, self.lumi_str.format(self.lumi), **opts)
         self.ax.text(
@@ -482,7 +480,7 @@ class Stack:
 
     def _add_region_name(self, vspace, paper_style):
         if paper_style:
-            reg_y = 0.82
+            reg_y = 0.80
             reg_x = 0.05
         else:
             reg_y = 1 - 3*vspace
