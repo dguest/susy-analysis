@@ -19,6 +19,7 @@ from matplotlib.figure import Figure
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from os.path import join, isdir, dirname
 import os, math
+import copy
 
 class Stack:
     """
@@ -65,6 +66,7 @@ class Stack:
         self.colors = list('kc') + ['purple', 'orange']
         self.y_min = None
 
+        # sizing related
         self._for_paper = for_paper
         self._small_size = 16
         self._med_size = 18 if for_paper else self._small_size
@@ -84,21 +86,23 @@ class Stack:
                 labelsize=self._med_size, which='both')
         self.ax.tick_params(labelsize=self._med_size, which='both')
 
+        # to draw N-1 relates stuff
         self._selection = None
         self._inner_cuts = [None, None]
         self._cut_arrows = []
+        # for setting proper range
+        self._data_max_drawn = 0.0
+        # for drawing stack / keeping track of edges
         self._y_sum_step = 0.0
         self._y_sum = 0.0
-        self._data_max = 0.0
         self._x_step_vals = None
+        self._x_limits = None
+        self._sm_total = 0.0
+        # legends
         self._signal_legs = []
         self._bg_proxy_legs = []
         self._data_legs = []
         self._rat_legs = []     # for ratio plot
-        self._x_limits = None
-        self._sm_total = 0.0
-        # for setting plot upper limit with selection applied
-        self._upper_limit = 0.0
         # scale up y axis when the legends get big
         self._scale_for_legend = 1.0
         self._set_selection_colors(*selection_colors)
@@ -299,13 +303,15 @@ class Stack:
     def add_cut_arrow(self, value, down=False, height=None):
         self._cut_arrows.append((value, down, height))
 
-    def _ax_from_data(self, point):
+    def _ax_from_data(self, point, reverse=False):
         point_array = np.array(point)
         # weird hack required for single points
         if point_array.ndim == 1:
             point_array = point_array[None, :]
-        raw_coords = self.ax.transData.transform(point_array)
-        return self.ax.transAxes.inverted().transform(raw_coords)
+        todata = self.ax.transAxes if reverse else self.ax.transData
+        toout = self.ax.transData if reverse else self.ax.transAxes
+        raw_coords = todata.transform(point_array)
+        return toout.inverted().transform(raw_coords)
 
     def _draw_cut_arrow(self, value, down=False, height=None):
         if not self._for_paper:
@@ -400,6 +406,7 @@ class Stack:
     def add_data(self, hist):
         x_vals, y_vals = hist.get_xy_center_pts()
         lows, highs = errorbars.poisson_interval(y_vals, self.data_ci)
+        self._data_max_drawn = max(np.max(highs), self._data_max_drawn)
 
         if self.ratio and np.any(self._y_sum):
             self._add_ratio(x_vals, y_vals, lows, highs)
@@ -429,10 +436,7 @@ class Stack:
 
         self._data_legs.append( (line, self._get_legstr(hist)))
         # TODO: fix this, the dims don't match the backgrounds
-        # self._upper_limit = np.maximum(self._upper_limit, highs)
 
-        # more robust way to find max value
-        self._data_max = max(np.max(highs), self._data_max)
 
     # __________________________________________________________________
     # PR crap for atlas
@@ -470,7 +474,7 @@ class Stack:
 
         if paper_style:
             lstr = self.lumi_and_energy.format(self.lumi)
-            self.ax.text(0.03, 0.90, lstr, **opts)
+            self.ax.text(0.01, 0.90, lstr, **opts)
             return
         self.ax.text(0.02, 0.95, self.lumi_str.format(self.lumi), **opts)
         self.ax.text(
@@ -478,8 +482,8 @@ class Stack:
 
     def _add_region_name(self, vspace, paper_style):
         if paper_style:
-            reg_y = 0.83
-            reg_x = 0.03
+            reg_y = 0.82
+            reg_x = 0.05
         else:
             reg_y = 1 - 3*vspace
             reg_x = 0.05
@@ -522,7 +526,7 @@ class Stack:
     def add_legend(self):
         sm_tot = self._get_sm_total_legends()
         sec_col_legs = self._data_legs + sm_tot + self._bg_proxy_legs[::-1]
-        first_col_legs = self._signal_legs
+        first_col_legs = copy.copy(self._signal_legs)
 
         # add extra blank legends to put all bg in one col
         n_bg = len(sec_col_legs)
@@ -543,8 +547,8 @@ class Stack:
             legend.get_frame().set_alpha(0)
 
         # crude guess for how many legends fit
-        max_fitting = 26 if self.ratio else 38
-        n_leg = len(self._signal_legs)
+        max_fitting = 11 if self.ratio else 19
+        n_leg = len(self._signal_legs) + (1 if self.region_name else 0)
         frac_consumed = min(n_leg / max_fitting, 0.9)
         # adjust for bigger font
         frac_consumed *= self._med_size / self._small_size
@@ -557,25 +561,39 @@ class Stack:
 
         self._add_pr_crap(frac_consumed)
 
+    def _get_rescaled_max(self, old_max, rescale):
+        """rescale, independent of log axis"""
+        ymin = self.ax.get_ylim()[0]
+        if self.ax.get_yscale() == 'log':
+            if old_max == 0:
+                return old_max
+            log_min = math.log(ymin,10)
+            log_range = math.log(old_max,10) - log_min
+            log_max = log_range*rescale + log_min
+            new_max = 10**log_max
+            return new_max
+        return old_max*rescale
+
     def save(self, name):
         if self._x_limits is None:
             return
 
         self.ax.set_xlim(*self._x_limits)
-        y_rescale = self._scale_for_legend * self.extra_yrange
-        # make a bit more room for log plots with cut arrows
-        if self._cut_arrows:
-            y_rescale *= 1.1
-        if self.ax.get_yscale() != 'log':
-            ymax = self.ax.get_ylim()[1]
-            self.ax.set_ylim(0,ymax * y_rescale)
-        else:
-            ymin, ymax = self.ax.get_ylim()
-            log_min = math.log(ymin,10)
-            log_range = math.log(ymax,10) - log_min
-            log_max = log_range*y_rescale + log_min
-            new_max = 10**log_max
-            self.ax.set_ylim(ymin, new_max)
+        rescale = self._scale_for_legend * self.extra_yrange
+
+        # leave some room above plotted things
+        inf = float('inf')
+        has_arrows = (self._selection != (-inf, inf) or self._cut_arrows)
+        mc_buf = 1.3 if has_arrows else 1.1
+        data_buf = 1.0
+
+        mc_max = np.max(self._y_sum)
+        data_max = self._data_max_drawn
+        new_mc_max = self._get_rescaled_max(mc_max, rescale * mc_buf)
+        new_data_max = self._get_rescaled_max(data_max, rescale * data_buf)
+        self.ax.set_ylim(
+            self.ax.get_ylim()[0], max(new_mc_max, new_data_max))
+        if self.ax.get_yscale() == 'log':
             self.ax.yaxis.set_major_formatter(FuncFormatter(_log_formatting))
 
         self._draw_selection()

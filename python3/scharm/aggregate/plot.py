@@ -205,7 +205,7 @@ class StackPlotPrinter:
         keys = []
         for key in mc.keys():
             bads = [key[0].endswith(wt2_ext), key[0].endswith(sys2_ext)]
-            if not any(bads):
+            if not any(bads) and mc[key]:
                 keys.append(key)
 
         for id_tup in keys:
