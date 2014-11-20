@@ -21,6 +21,7 @@ from os.path import join, isdir, dirname
 import os, math
 import copy
 
+
 class Stack:
     """
     This is for drawing.
@@ -444,7 +445,7 @@ class Stack:
     # PR crap for atlas
 
     def _add_pr_crap(self, x=0.16, y=0.96):
-        self._add_atlas_label(x, y)
+        self._add_atlas_label(x, y, 'Preliminary')
         if self.lumi_info_position is not None:
             x, y = self.lumi_info_position
         if self.lumi:
@@ -452,15 +453,22 @@ class Stack:
         if self.region_name:
             self._add_region_name(x - 0.11, y - 0.16)
 
-    def _add_atlas_label(self, x, y):
+    def _add_atlas_label(self, x, y, extension='Internal'):
+        base_size = self._med_size + 4
+        if extension and len(extension) > 10:
+            size = self._med_size
+            x *= size / base_size
+        else:
+            size = base_size
         atl_lable_args = dict(
             x=x, y=y, va='top',
             transform=self.ax.transAxes,
-            size=self._med_size + 4)
+            size=size)
         self.ax.text(s='ATLAS', weight='bold', style='italic',
                      ha='right', **atl_lable_args)
-        self.ax.text(s=' Internal',
-                     ha='left', **atl_lable_args)
+        if extension:
+            spaced = ' ' + extension.lstrip()
+            self.ax.text(s=spaced, ha='left', **atl_lable_args)
 
     def _add_lumi(self, x=0.03, y=0.88):
         opts = dict(

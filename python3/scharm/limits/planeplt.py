@@ -333,7 +333,7 @@ class CLsExclusionPlane:
         self.ax.text(atl_x, atl_y, 'ATLAS', weight='bold', style='italic',
                      horizontalalignment='right', **topopts)
         if not self.approved:
-            self.ax.text(atl_x, atl_y, ' Internal',
+            self.ax.text(atl_x, atl_y, ' Preliminary',
                          horizontalalignment='left', **botopts)
 
     def add_labels(self, y=None, config=None):
