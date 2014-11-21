@@ -69,6 +69,7 @@ class CLsExclusionPlane:
         loc='upper left', framealpha=0.0, numpoints=1)
 
     # special strings
+    title_tmp = r' Direct ${c}{cb}$, ${c} \to c{l}$ (single ${c}$ state)'
     right_side_ul_info = 'Numbers give 95% CLs excluded cross section [fb]'
     ax_tmp = r'$m_{{ {} }}$ [GeV]'
 
@@ -355,7 +356,7 @@ class CLsExclusionPlane:
                      r'$\sqrt{s}\ =$ 8 TeV',
                      transform=self.ax.transAxes, size=lumisize)
 
-        title = r' Direct ${c}{cb}$, ${c} \to c{l}$'.format(
+        title = self.title_tmp.format(
             c=self.scharm, cb=self.antischarm, l=self.lsp)
         if config:
             title += ', ' + _fancy_label(config)
