@@ -95,6 +95,20 @@ def _make_exclusion_plane(args):
 # ___________________________________________________________________________
 # "best" exclusion
 
+# the "worst" way to get error bars
+import numpy as np
+from scharm.constants import unct_vs_mscharm
+_unct_x, _unct_y = np.array(unct_vs_mscharm, dtype='f').T
+def _interpolpoint(observed, mscharm, fudge=2.1):
+    """the worst kind of hack, returns high and low cls based on nominal"""
+    from scipy.stats import norm
+    xsec_unct = np.interp(mscharm, _unct_x, _unct_y) / 100
+    n_sigma = norm.ppf(observed)
+    significance_unct = xsec_unct * fudge + 1
+    offset = np.array([significance_unct, 1/significance_unct])
+    ud = n_sigma * offset
+    return norm.cdf(ud)
+
 class Point:
     """minimal class to hold point info"""
     def __init__(self, sp, config_name):
@@ -110,8 +124,13 @@ class Point:
         self.low, self.high = sp['exp_d1s'], sp['exp_u1s']
         self.expt = sp['exp']
         self.obs = sp['obs']
-        self.obs_high = sp.get('obs_u1s', self.obs)
-        self.obs_low = sp.get('obs_d1s', self.obs)
+        # if (self.ms, self.ml) == (275, 200):
+        #     raise NullPointError(self.ms, self.ml)
+        if 'obs_u1s' not in sp:
+            self.obs_high, self.obs_low = _interpolpoint(self.obs, self.ms)
+        else:
+            self.obs_high = sp['obs_u1s']
+            self.obs_low = sp['obs_d1s']
         self.xsec = sp.get('xsec')
         ul = sp.get('ul')
         self.ul = None if ul == -1 else ul

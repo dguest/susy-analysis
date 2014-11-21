@@ -143,28 +143,7 @@ def _add_signal_xsec(yields_dict):
     Taken from the INT note
     """
     import numpy as np
-    # Taken from the INT note
-    unct_vs_mscharm = [
-        (100, 16.2),
-        (150, 15.7),
-        (200, 15.0),
-        (250, 14.8),
-        (300, 14.8),
-        (350, 14.5),
-        (400, 14.4),
-        (450, 14.2),
-        (500, 15.0),
-        (550, 15.8),
-        (600, 16.6),
-        (650, 17.6),
-        (700, 18.4),
-        (750, 19.4),
-        (800, 20.8),
-        (850, 22.1),
-        (900, 24.2),
-        (950, 26.1),
-        (1000, 27.9)
-        ]
+    from scharm.constants import unct_vs_mscharm
     xp, yp = zip(*unct_vs_mscharm)
     def get_unct(sig_name):
         prefix, msusy, mlsp = sig_name.split('-')
