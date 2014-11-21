@@ -99,7 +99,7 @@ def _make_exclusion_plane(args):
 import numpy as np
 from scharm.constants import unct_vs_mscharm
 _unct_x, _unct_y = np.array(unct_vs_mscharm, dtype='f').T
-def _interpolpoint(observed, mscharm, fudge=2.3):
+def _interpolpoint(observed, mscharm, fudge=2.1):
     """the worst kind of hack, returns high and low cls based on nominal"""
     from scipy.stats import norm
     xsec_unct = np.interp(mscharm, _unct_x, _unct_y) / 100

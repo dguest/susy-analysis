@@ -69,7 +69,7 @@ class CLsExclusionPlane:
         loc='upper left', framealpha=0.0, numpoints=1)
 
     # special strings
-    title_tmp = r' Direct ${c}{cb}$, ${c} \to c{l}$ (single ${c}$ state)'
+    title_tmp = r' Direct ${c}{cb}$, ${c} \to c{l}$, single ${c}$ state'
     right_side_ul_info = 'Numbers give 95% CLs excluded cross section [fb]'
     ax_tmp = r'$m_{{ {} }}$ [GeV]'
 
