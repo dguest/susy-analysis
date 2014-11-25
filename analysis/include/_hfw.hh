@@ -49,6 +49,10 @@ static bool safe_copy(PyObject* list, std::vector<T>* dest) {
 
 template<typename T>
 static bool safe_copy(PyObject* list, std::vector<T>& dest) {
+  if (!PyList_Check(list)) {
+    PyErr_SetString(PyExc_ValueError, "python object must be list");
+    return false;
+  }
   const int n_values = PyList_Size(list);
   if (PyErr_Occurred()) return NULL;
   for (int val_n = 0; val_n < n_values; val_n++) {
