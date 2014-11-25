@@ -11,7 +11,7 @@ class Stacker:
     """
     data_prepend = 'jem'
     mc_prepend = 'sa'
-    def __init__(self, regions_dict, base_dir):
+    def __init__(self, regions_dict, base_dir, veto_events=None):
         self._regions = regions_dict
         self.dummy = False
         self.flags = set()
@@ -20,6 +20,7 @@ class Stacker:
         self.outstream = sys.stdout
         self.bugstream = sys.stderr
         self.base_dir = base_dir
+        self._veto_events = veto_events or {}
     @property
     def verbose(self):
         return self._verbose
@@ -43,6 +44,10 @@ class Stacker:
                     first, ntuple_name))
 
     def _setup_region_dict(self, name, regdic, ntuple, systematic):
+        """
+        The region-specific information is defined in the `Region` class.
+        This section handles the ntuple and systematic specific additions.
+        """
         regdic['systematic'] = systematic.upper()
         regdic['name'] = name
         # we get the basic output path from the input path
@@ -72,7 +77,13 @@ class Stacker:
         # we have to add them here.
         regdic['output_name'] = full_out_path
         regdic['stream'] = dist_settings['stream'].upper()
+
+        self._add_event_vetos(regdic, histname)
         return regdic
+
+    def _add_event_vetos(self, regdic, histname):
+        run_number = int(splitext(histname)[0].split('-')[0])
+        return self._veto_events.get(run_number, {})
 
     def run_multisys(self, ntuple, systematics, tuple_n=None):
         """
