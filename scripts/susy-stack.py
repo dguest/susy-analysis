@@ -48,7 +48,7 @@ def run_stacker(config):
         config_dict = yaml.load(steering_yml)
 
     regions = {k:Region(v) for k, v in config_dict['regions'].items()}
-    veto_events = _get_veto_events(config_dict['veto_events_file'])
+    veto_events = _get_veto_events(config_dict['etc']['veto_events_file'])
 
     stacker = Stacker(regions, config.hists_dir, veto_events=veto_events)
     stacker.verbose = False
@@ -103,13 +103,12 @@ def _get_systematics(variant):
     return [syst]
 
 def _get_veto_events(events_file):
-    events = {}
-    expanded_file = expanduser(events_file)
-    with open(events_file,'r') as will_file:
+    outdic = {}
+    with open(expanduser(events_file),'r') as will_file:
         for line in will_file:
             runstr, *events = line.split()
-            events[int(runstr)] = [tuple(*x.split('-')) for x in events]
-    return events
+            outdic[int(runstr)] = [tuple(x.split('-')) for x in events]
+    return outdic
 
 if __name__ == '__main__':
     run()
