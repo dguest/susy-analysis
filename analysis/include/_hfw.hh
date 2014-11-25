@@ -81,6 +81,10 @@ static bool safe_copy(PyObject* tup, std::pair<T, U>& dest) {
 
 // -------- top level routines -------------
 
+namespace {
+  bool add_key_to_exception(const std::string&);
+}
+
 template<typename T>
 static bool require(PyObject* dict, std::string key, T& dest) {
   PyObject* string = PyDict_GetItemString(dict, key.c_str());
@@ -89,7 +93,7 @@ static bool require(PyObject* dict, std::string key, T& dest) {
     PyErr_SetString(PyExc_ValueError,prob.c_str());
     return false;
   }
-  if (!safe_copy(string, dest)) return false;
+  if (!safe_copy(string, dest)) return add_key_to_exception(key);
   return true;
 }
 
@@ -97,9 +101,19 @@ template<typename T>
 static bool copy(PyObject* dict, std::string key, T& dest) {
   PyObject* string = PyDict_GetItemString(dict, key.c_str());
   if (!string) return true; 	// it's not required
-  if (!safe_copy(string, dest)) return false;
+  if (!safe_copy(string, dest)) return add_key_to_exception(key);
   return true;
 }
 
+namespace {
+  bool add_key_to_exception(const std::string& key) {
+    PyObject *type, *value, *traceback;
+    PyErr_Fetch(&type, &value, &traceback);
+    std::string error = PyUnicode_AsUTF8(value);
+    error += " (while copying '" + key + "')";
+    PyErr_SetString(type, error.c_str());
+    return false;
+  }
+}
 
 #endif
