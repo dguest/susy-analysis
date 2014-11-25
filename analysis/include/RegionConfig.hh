@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <utility>
 #include "btag_enums.hh"
 #include "systematic_defs.hh"
 #include "region_enums.hh"
@@ -25,6 +26,7 @@ struct RegionConfig
   reg::BosonPtCorrection boson_pt_correction;
   reg::Stream stream;
   bool save_wt2;
+  std::vector<std::pair<long, long> > veto_events;
   RegionConfig();
 };
 

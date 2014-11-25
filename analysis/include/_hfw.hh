@@ -10,7 +10,7 @@
 #include <string>
 #include <map>
 #include <vector>
-
+#include <utility>
 
 template <typename T>
 static bool require(PyObject* dict, std::string key, T& dest);
@@ -21,6 +21,8 @@ template <typename T>
 static bool safe_copy(PyObject* list, std::vector<T>* dest);
 template <typename T>
 static bool safe_copy(PyObject* list, std::vector<T>& dest);
+template <typename T, typename U>
+static bool safe_copy(PyObject* tup, std::pair<T, U>& dest);
 
 static bool safe_copy(PyObject* dict, RegionConfig& region);
 static bool safe_copy(PyObject* value, std::string& dest);
@@ -34,7 +36,7 @@ static bool safe_copy(PyObject* value, reg::BosonPtCorrection& dest);
 static bool safe_copy(PyObject* value, reg::Selection& dest);
 static bool safe_copy(PyObject* value, reg::Stream& dest);
 
-// --- implementation ---
+// --- implementation of sequence -> atomic copies ---
 
 template <typename T>
 static bool safe_copy(PyObject* list, std::vector<T>* dest) {
@@ -58,6 +60,26 @@ static bool safe_copy(PyObject* list, std::vector<T>& dest) {
   return true;
 }
 
+template<typename T, typename U>
+static bool safe_copy(PyObject* tup, std::pair<T, U>& dest) {
+  if (!PyTuple_Check(tup)) {
+    PyErr_SetString(PyExc_ValueError, "object is not tupple");
+    return false;
+  }
+  if (PyTuple_Size(tup) != 2){
+    PyErr_SetString(PyExc_IndexError, "tuple->pair must be size two");
+    return false;
+  }
+  T item1;
+  if (!safe_copy(PyTuple_GetItem(tup, 0), item1)) return false;
+  U item2;
+  if (!safe_copy(PyTuple_GetItem(tup, 1), item2)) return false;
+  dest.first = item1;
+  dest.second = item2;
+  return true;
+}
+
+// -------- top level routines -------------
 
 template<typename T>
 static bool require(PyObject* dict, std::string key, T& dest) {

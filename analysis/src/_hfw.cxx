@@ -96,6 +96,7 @@ static bool safe_copy(PyObject* dict, RegionConfig& region)
   REQUIRE(tagger);
   COPY(boson_pt_correction);
   REQUIRE(save_wt2);
+  COPY(veto_events);
 
 #undef REQUIRE
 #undef COPY
