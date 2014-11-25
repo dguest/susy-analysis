@@ -10,6 +10,7 @@
 
 class RegionConfig;
 class ISelection;
+class EventVeto;
 
 namespace nminus {
   const size_t N_BINS = 100;
@@ -38,6 +39,7 @@ private:
 
   std::vector<nminus::NMinusHist> m_hists;
   nminus::NMinusHist* m_weight_hist;
+  EventVeto* m_event_veto;
 };
 
 

@@ -6,6 +6,7 @@
 #include "RegionConfig.hh"
 #include "EventObjects.hh"
 #include "EventScalefactors.hh"
+#include "EventVeto.hh"
 #include "region_logic.hh"
 #include "nminus_tools.hh"
 
@@ -26,11 +27,14 @@ NMinus1Histograms
   m_build_flags(flags),
   m_make_lepton_plots(false),
   m_make_dilep_plots(false),
-  m_weight_hist(0)
+  m_weight_hist(0),
+  m_event_veto(0)
 {
   if (reg::lepton_region(config.selection)) m_make_lepton_plots = true;
   if (reg::twolep_region(config.selection)) m_make_dilep_plots = true;
-
+  if (config.veto_events.size() > 0) {
+    m_event_veto = new EventVeto(config.veto_events);
+  }
   using namespace nminus;
   const auto sel = get_windows(config);
   // save wt^2 for _some_ hists (those with no systematic applied)
@@ -82,6 +86,7 @@ NMinus1Histograms::~NMinus1Histograms() {
   delete m_selection;
   delete m_region_config;
   delete m_weight_hist;
+  delete m_event_veto;
 }
 
 
@@ -97,6 +102,7 @@ void NMinus1Histograms::fill(const EventObjects& obj) {
   const EventRecoParameters& reco = obj.reco;
   if (!reco.pass_event_quality) return;
   if (!m_selection->pass(obj)) return;
+  if (m_event_veto && m_event_veto->veto(reco.event_number)) return;
 
   // TODO: use the stream and remove build_flags
   double weight = 1.0;
