@@ -1,5 +1,4 @@
 #include "EventVeto.hh"
-// #include <cstdio>
 
 EventVeto::EventVeto(const std::vector<std::pair<long, long> >& vetos):
   m_veto_ranges(vetos)
@@ -11,7 +10,6 @@ bool EventVeto::veto(long event_number) const {
     long low = rng.first;
     long high = rng.second;
     if (low <= event_number && event_number <= high){
-      // printf("veto! %d, %d, %d\n", low, event_number, high);
       return true;
     }
   }
