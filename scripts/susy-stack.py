@@ -104,10 +104,12 @@ def _get_systematics(variant):
 
 def _get_veto_events(events_file):
     outdic = {}
+    def int_tuple(string):
+        return tuple(int(x) for x in string.split('-'))
     with open(expanduser(events_file),'r') as will_file:
         for line in will_file:
             runstr, *events = line.split()
-            outdic[int(runstr)] = [tuple(x.split('-')) for x in events]
+            outdic[int(runstr)] = [int_tuple(x) for x in events]
     return outdic
 
 if __name__ == '__main__':

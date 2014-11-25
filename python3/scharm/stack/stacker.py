@@ -83,7 +83,7 @@ class Stacker:
 
     def _get_event_vetos(self, histname):
         run_number = int(splitext(histname)[0].split('-')[0][1:])
-        return self._veto_events.get(run_number, {})
+        return self._veto_events.get(run_number, [])
 
     def run_multisys(self, ntuple, systematics, tuple_n=None):
         """
