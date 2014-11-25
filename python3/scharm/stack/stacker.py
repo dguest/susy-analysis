@@ -78,10 +78,10 @@ class Stacker:
         regdic['output_name'] = full_out_path
         regdic['stream'] = dist_settings['stream'].upper()
 
-        self._add_event_vetos(regdic, histname)
+        regdic['veto_events'] = self._get_event_vetos(histname)
         return regdic
 
-    def _add_event_vetos(self, regdic, histname):
+    def _get_event_vetos(self, histname):
         run_number = int(splitext(histname)[0].split('-')[0][1:])
         return self._veto_events.get(run_number, {})
 
