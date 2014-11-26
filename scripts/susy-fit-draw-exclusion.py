@@ -15,6 +15,7 @@ import argparse, sys, os
 from scharm.limits import planeplt, limitsty
 from scharm.bullshit import helvetify
 import yaml
+import numpy as np
 
 def run():
     d = 'default: %(default)s'
@@ -41,6 +42,7 @@ def run():
         metavar=('FILE', 'ENTRY'))
     args = parser.parse_args(sys.argv[1:])
     helvetify()
+    np.seterr(all='raise')
     if any([args.best, args.best_regions, args.clean, args.ul, args.mono]):
         _max_exclusion_plane(args, show_regions=args.best_regions,
                              clean=args.clean, ul=args.ul)
@@ -96,7 +98,6 @@ def _make_exclusion_plane(args):
 # "best" exclusion
 
 # the "worst" way to get error bars
-import numpy as np
 from scharm.constants import unct_vs_mscharm
 _unct_x, _unct_y = np.array(unct_vs_mscharm, dtype='f').T
 def _interpolpoint(observed, mscharm, fudge=2.1):
@@ -117,15 +118,15 @@ class Point:
             pt_name = '{}-{}'.format(self.ms, self.ml)
             haveargs = ', '.join(sp.keys())
             if sp.get('ul') == -1:
-                raise NullPointError(self.ms, self.ml)
+                raise NullPointError(self.ms, self.ml, poison=True)
             err = 'expected CLs missing for {}, keys: {}'.format(
                 pt_name, haveargs)
             raise KeyError(err)
         self.low, self.high = sp['exp_d1s'], sp['exp_u1s']
         self.expt = sp['exp']
         self.obs = sp['obs']
-        # if (self.ms, self.ml) == (275, 200):
-        #     raise NullPointError(self.ms, self.ml)
+        if self.obs == -1:
+            raise NullPointError(self.ms, self.ml)
         if 'obs_u1s' not in sp:
             self.obs_high, self.obs_low = _interpolpoint(self.obs, self.ms)
         else:
@@ -146,9 +147,10 @@ class Point:
         return self.ms, self.ml
 
 class NullPointError(Exception):
-    def __init__(self, ms, ml):
+    def __init__(self, ms, ml, poison=False):
         super().__init__('point with no expected cls')
         self.xy = (ms, ml)
+        self.poison = poison
 
 def _max_exclusion_plane(args, show_regions=False, clean=False, ul=False):
     """
@@ -227,7 +229,8 @@ def _get_max_expected_points(cls_dict):
             try:
                 pt = Point(sp, conf_name)
             except NullPointError as err:
-                poison_points.add(err.xy)
+                if err.poison:
+                    poison_points.add(err.xy)
                 continue
             if pt.xy() not in pdict or pdict[pt.xy()].expt > pt.expt:
                 pdict[pt.xy()] = pt

@@ -102,6 +102,7 @@ class CLsExclusionPlane:
         self.lw = 1.5
         self.wideline = 3
         self.approved = False
+        self.stage = 'Internal'
 
         interp = argv.get('interpolation','gauss')
         if interp not in interpolators:
@@ -334,7 +335,7 @@ class CLsExclusionPlane:
         self.ax.text(atl_x, atl_y, 'ATLAS', weight='bold', style='italic',
                      horizontalalignment='right', **topopts)
         if not self.approved:
-            self.ax.text(atl_x, atl_y, ' Preliminary',
+            self.ax.text(atl_x, atl_y, ' ' + self.stage,
                          horizontalalignment='left', **botopts)
 
     def add_labels(self, y=None, config=None):
