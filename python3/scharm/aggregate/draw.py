@@ -433,6 +433,14 @@ class Stack:
         if not np.any(plt_err_up):
             return
 
+        if self._for_paper:
+            _, caplines, _ = self.ax.errorbar(
+                plt_x, plt_y, ms=12, fmt='w.', lw=2,
+                yerr=[plt_err_down,plt_err_up], capsize=3.5, zorder=1)
+            for cap in caplines:
+                cap.set_markeredgewidth(1)
+                cap.set_color('w')
+                cap.set_zorder(1)
         line,cap,notsure = self.ax.errorbar(
             plt_x, plt_y, ms=10, fmt='k.',
             yerr=[plt_err_down,plt_err_up])
