@@ -118,20 +118,18 @@ class Point:
             pt_name = '{}-{}'.format(self.ms, self.ml)
             haveargs = ', '.join(sp.keys())
             if sp.get('ul') == -1:
-                raise NullPointError(self.ms, self.ml, poison=True)
+                raise NullPointError(self.ms, self.ml, poison=False)
             err = 'expected CLs missing for {}, keys: {}'.format(
                 pt_name, haveargs)
             raise KeyError(err)
-        self.low, self.high = sp['exp_d1s'], sp['exp_u1s']
+        self.low, self.high = tuple(
+            f(sp['exp_d1s'], sp['exp_u1s']) for f in [min, max])
         self.expt = sp['exp']
         self.obs = sp['obs']
         if self.obs == -1:
             raise NullPointError(self.ms, self.ml)
-        if 'obs_u1s' not in sp:
-            self.obs_high, self.obs_low = _interpolpoint(self.obs, self.ms)
-        else:
-            self.obs_high = sp['obs_u1s']
-            self.obs_low = sp['obs_d1s']
+        self.obs_high = sp.get('obs_u1s', self.obs)
+        self.obs_low =  sp.get('obs_d1s', self.obs)
         self.xsec = sp.get('xsec')
         ul = sp.get('ul')
         self.ul = None if ul == -1 else ul

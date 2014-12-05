@@ -326,17 +326,15 @@ class CLsExclusionPlane:
 
     def add_atlas_label(self, atl_x, atl_y, stack=False):
         topopts = dict(size=self.big_size, transform=self.ax.transAxes,
-                       ha='right')
+                       ha='right', weight='bold', style='italic')
         botopts = dict(size=self.big_size, transform=self.ax.transAxes,
                        ha='left')
         if stack:
             topopts.update(dict(va='bottom', ha='right'))
             botopts.update(dict(va='top', ha='right'))
-        self.ax.text(atl_x, atl_y, 'ATLAS', weight='bold', style='italic',
-                     horizontalalignment='right', **topopts)
+        self.ax.text(atl_x, atl_y, 'ATLAS', **topopts)
         if not self.approved:
-            self.ax.text(atl_x, atl_y, ' ' + self.stage,
-                         horizontalalignment='left', **botopts)
+            self.ax.text(atl_x, atl_y, ' ' + self.stage, **botopts)
 
     def add_labels(self, y=None, config=None):
         if y is None:
