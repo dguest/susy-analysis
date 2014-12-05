@@ -67,7 +67,11 @@ def _add_jan_file(cls_dict, jan_file):
         config_dict = cls_dict.setdefault(config_name,{})
         for line in lines:
             mass_keys, pt = _dictify(line, headers)
-            config_dict.setdefault(mass_keys,{}).update(pt)
+            point_dict = config_dict.setdefault(mass_keys,{})
+            if mass_keys in point_dict:
+                raise ValueError(
+                    'tried to overwrite key {}'.format(mass_keys))
+            point_dict.update(pt)
 
 def _flatten_cls_dict(cls_dict):
     """flattens cls_dict to return {region: [ params, ... ], ...} dict"""
