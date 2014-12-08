@@ -51,6 +51,8 @@ _danfloat_from_jan = {
     'expDown': 'exp_d1s',
     'obsUp': 'obs_u1s',
     'obsDown': 'obs_d1s',
+    'theoUp': 'obs_u1s',
+    'theoDown': 'obs_d1s',
     'limit_obs': 'ul',
     'limit_exp': None,
     'limit_up': None,
@@ -91,8 +93,8 @@ def _add_jan_file(cls_dict, jan_file, save_keys=None):
         config_dict = cls_dict.setdefault(config_name,{})
         for line in lines:
             mass_keys, pt = _dictify(line, headers)
-            if mass_keys not in config_dict:
-                continue
+            # if mass_keys not in config_dict:
+            #     continue
             # slightly strange logic is required here to
             # update only the values that haven't been defined
             point_dict = config_dict.setdefault(mass_keys,{})

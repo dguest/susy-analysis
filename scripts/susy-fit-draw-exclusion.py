@@ -114,6 +114,10 @@ class Point:
     """minimal class to hold point info"""
     def __init__(self, sp, config_name):
         self.ms, self.ml = sp['scharm_mass'], sp['lsp_mass']
+
+        # if (self.ms, self.ml) in {(300, 220)}:
+        #     raise NullPointError(self.ms, self.ml, poison=True)
+
         if not all(x in sp for x in ['exp_d1s', 'exp_u1s', 'exp']):
             pt_name = '{}-{}'.format(self.ms, self.ml)
             haveargs = ', '.join(sp.keys())
