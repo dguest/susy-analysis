@@ -261,11 +261,6 @@ class Stack:
             else:
                 color = next(color_itr)
             handles = []
-            if self._for_paper:
-                # make white line underneath
-                han, = self.ax.plot(
-                    x_vals, y_vals,'w', linewidth=3.0, zorder=2)
-                handles.append(han)
             style = '--'
             plt_handle, = self.ax.plot(
                 x_vals,y_vals,style, linewidth=3.0, color=color, zorder=2)
