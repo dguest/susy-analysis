@@ -260,10 +260,18 @@ class Stack:
                 color = hist.color
             else:
                 color = next(color_itr)
+            handles = []
+            if self._for_paper:
+                # make white line underneath
+                han, = self.ax.plot(
+                    x_vals, y_vals,'w', linewidth=3.0, zorder=2)
+                handles.append(han)
             style = '--'
             plt_handle, = self.ax.plot(
-                x_vals,y_vals,style, linewidth=3.0, color=color)
-            self._signal_legs.append( (plt_handle, self._get_legstr(hist)))
+                x_vals,y_vals,style, linewidth=3.0, color=color, zorder=2)
+            handles.append(plt_handle)
+            self._signal_legs.append(
+                (tuple(handles), self._get_legstr(hist)))
 
     def _get_min_plotable(self, y_vals):
         plot_vals = np.array(y_vals)
@@ -349,7 +357,7 @@ class Stack:
         transform = transfact(self.ax.transData, self.ax.transAxes)
         color = 'firebrick'
         self.ax.plot([value]*2, [0, cuttop], linewidth=2, color=color,
-                     transform=transform)
+                     transform=transform, zorder=2)
         arrow_sty = dict(arrowstyle='simple', fc=color, ec='none', alpha=0.3)
         self.ax.annotate(
             '', xytext=(arrow_start, height), xy=(value, height),
@@ -442,7 +450,7 @@ class Stack:
                 cap.set_color('w')
                 cap.set_zorder(1)
         line,cap,notsure = self.ax.errorbar(
-            plt_x, plt_y, ms=10, fmt='k.',
+            plt_x, plt_y, ms=10, fmt='k.', zorder=3,
             yerr=[plt_err_down,plt_err_up])
 
         self._data_legs.append( (line, self._get_legstr(hist)))
@@ -631,11 +639,15 @@ def _get_mc_error_bands(hist_list, y_sum_step, nan_proxy_val=100.0):
 def _log_formatting(value, pos):
     roundval = round(value)
     if roundval == 1:
-        return '$1$ '
+        base = 1
+        exp = ''
     elif roundval == 10:
-        return '$10$ '
-    exp = round(math.log(value,10))
-    return '$10^{{{}}}$'.format(exp)
+        base = 10
+        exp = ''
+    else:
+        base = 10
+        exp = round(math.log(value,10))
+    return r'{}$^{{\mathdefault{{ {} }} }}$'.format(base, exp)
 
 class Hist1d:
     """
@@ -969,7 +981,7 @@ def tagger_overlay_plot_for_jet_number(plots_dict, jetn, signal_point,
     color_groups = {
         'red': ['ttbar', 't'],
         'green': [signal_point],
-        'blue': ['Wjets','Zjets'],
+        'blue': ['Wjets','Zets'],
         }
 
     def get_im_dict(physics, jet_number):
