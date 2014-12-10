@@ -45,16 +45,16 @@ def run():
 
 _paper_plots = [
     ('signal_mct150', 'mass_ct'),
-    ('signal_mct150', 'met'),
+    # ('signal_mct150', 'met'),
     ('signal_mct150', 'mass_cc'),
-    ('signal_mct150', 'j0_pt'),
-    ('signal_mct150', 'j0_flavor_truth_label'),
-    ('cr_z', 'mass_ll'),
-    ('cr_z', 'mass_ct'),
-    ('cr_w', 'mass_ct'),
-    ('cr_w', 'met'),
-    ('cr_t', 'mass_ll'),
-    ('cr_t', 'met'),
+    # ('signal_mct150', 'j0_pt'),
+    # ('signal_mct150', 'j0_flavor_truth_label'),
+    # ('cr_z', 'mass_ll'),
+    # ('cr_z', 'mass_ct'),
+    # ('cr_w', 'mass_ct'),
+    # ('cr_w', 'met'),
+    # ('cr_t', 'mass_ll'),
+    # ('cr_t', 'met'),
     ]
 
 def run_plotmill(args):

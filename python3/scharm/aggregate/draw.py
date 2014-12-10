@@ -261,9 +261,11 @@ class Stack:
             else:
                 color = next(color_itr)
             handles = []
+            plt = dict(linewidth=2.0, zorder=2)
+            bg_line, = self.ax.plot(x_vals, y_vals, 'w', **plt)
+            handles.append(bg_line)
             style = '--'
-            plt_handle, = self.ax.plot(
-                x_vals,y_vals,style, linewidth=3.0, color=color, zorder=2)
+            plt_handle, = self.ax.plot(x_vals,y_vals,style, color=color, **plt)
             handles.append(plt_handle)
             self._signal_legs.append(
                 (tuple(handles), self._get_legstr(hist)))
