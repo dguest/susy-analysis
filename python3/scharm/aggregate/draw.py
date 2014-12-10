@@ -264,9 +264,7 @@ class Stack:
             else:
                 color = next(color_itr)
             handles = []
-            plt = dict(linewidth=2.0, zorder=self._zord['signal'])
-            bg_line, = self.ax.plot(x_vals, y_vals, 'k', **plt)
-            handles.append(bg_line)
+            plt = dict(linewidth=3.0, zorder=self._zord['signal'])
             style = '--'
             plt_handle, = self.ax.plot(x_vals,y_vals,style, color=color, **plt)
             handles.append(plt_handle)
