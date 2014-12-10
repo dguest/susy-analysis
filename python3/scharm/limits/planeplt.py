@@ -338,22 +338,22 @@ class CLsExclusionPlane:
 
     def add_labels(self, y=None, config=None):
         if y is None:
-            y = 0.08 * len(set(x[1] for x in self._proxy_contour)) + 0.07
-        atl_y = 1-y
-        atl_x = 0.275 if self.approved else 0.2
-        self.add_atlas_label(atl_x, atl_y)
+            y = 0.08 * len(set(x[1] for x in self._proxy_contour)) + 0.08
+
+        # add lumi
+        lumi_y = 1-y
         squeeze = y > 0.45
         lumisize = self.small_size if squeeze else self.med_size
         lumi_x = 0.03 if squeeze else 0.05
-        sf = lumisize / self.med_size # squeeze factor
-        lumi_y = atl_y - 0.1*sf
-        sqrts_y = lumi_y - 0.06*sf
         self.ax.text(lumi_x, lumi_y,
-                     r'$\int\ \mathcal{L}\ dt\ =$ 20.3 fb$^{\sf -1}$',
+                     r'$\sqrt{s}\ =$ 8 TeV, 20.3 fb$^{\sf -1}$',
                      transform=self.ax.transAxes, size=lumisize)
-        self.ax.text(lumi_x + 0.03, sqrts_y,
-                     r'$\sqrt{s}\ =$ 8 TeV',
-                     transform=self.ax.transAxes, size=lumisize)
+
+        # add atlas label
+        sf = lumisize / self.med_size # squeeze factor
+        atl_x = 0.275 if self.approved else 0.23
+        atl_y = lumi_y - 0.08*sf
+        self.add_atlas_label(atl_x, atl_y)
 
         title = self.title_tmp.format(
             c=self.scharm, cb=self.antischarm, l=self.lsp)
