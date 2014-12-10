@@ -99,9 +99,9 @@ def _get_labels(theme):
     def get_theme(texname, name):
         return texname, name, theme[name]
     return [
-        get_theme(r'diboson',           'diboson'),
+        get_theme(r'Diboson',           'diboson'),
         get_theme(r'QCD',               'QCD'),
-        get_theme(r'single $t$',        'singleTop'),
+        get_theme(r'Single $t$',        'singleTop'),
         get_theme(r'$t\bar{t}$',        'ttbar'),
         get_theme(r'$t\bar{t} + V$',    'ttbarV'),
         get_theme(r'$W \to l \nu$ + b', 'WjetsB'),
@@ -120,10 +120,10 @@ def _get_labels(theme):
         ('other','other','orange'),
 
         # colors from the sbottom analysis
-        get_theme(r'other'     , 'other'),
+        get_theme(r'Other'     , 'other'),
         get_theme(r'$W$ + jets', 'Wjets'),
         get_theme(r'$Z$ + jets', 'Zjets'),
-        get_theme(r'top'       , 'top'  ),
+        get_theme(r'Top'       , 'top'  ),
         ]
 
 def texify_sr(sr_name):

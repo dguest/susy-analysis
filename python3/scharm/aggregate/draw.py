@@ -488,7 +488,7 @@ class Stack:
         self.ax.text(x, y, lstr, **opts)
 
     def _add_region_name(self, x=0.05, y=0.80):
-        region_string = 'region: {}'.format(self.region_name)
+        region_string = 'Region: {}'.format(self.region_name)
         self.ax.text(
             s=region_string, ha='left', x=x, y=y, va='top',
             transform=self.ax.transAxes, size=self._small_size)
