@@ -41,6 +41,8 @@ class Stack:
     signal_tmp = (
         r'$m_{{\tilde{{c}},\tilde{{\chi}}_1^0}} = $ {}, {} GeV')
 
+    # set zorder of plot elements
+    plot_order = ['signal','data_annulus', 'data', 'cuts']
 
     # confidence interval for data
     data_ci = 1 - math.erf( (1/2)**0.5) # 1 sigma
@@ -101,6 +103,7 @@ class Stack:
         self._x_step_vals = None
         self._x_limits = None
         self._sm_total = 0.0
+        self._zord = {y:x for x,y in enumerate(self.plot_order, 1)}
         # legends
         self._signal_legs = []
         self._bg_proxy_legs = []
@@ -261,8 +264,8 @@ class Stack:
             else:
                 color = next(color_itr)
             handles = []
-            plt = dict(linewidth=2.0, zorder=2)
-            bg_line, = self.ax.plot(x_vals, y_vals, 'w', **plt)
+            plt = dict(linewidth=2.0, zorder=self._zord['signal'])
+            bg_line, = self.ax.plot(x_vals, y_vals, 'k', **plt)
             handles.append(bg_line)
             style = '--'
             plt_handle, = self.ax.plot(x_vals,y_vals,style, color=color, **plt)
@@ -354,7 +357,7 @@ class Stack:
         transform = transfact(self.ax.transData, self.ax.transAxes)
         color = 'firebrick'
         self.ax.plot([value]*2, [0, cuttop], linewidth=2, color=color,
-                     transform=transform, zorder=2)
+                     transform=transform, zorder=self._zord['cuts'])
         arrow_sty = dict(arrowstyle='simple', fc=color, ec='none', alpha=0.3)
         self.ax.annotate(
             '', xytext=(arrow_start, height), xy=(value, height),
@@ -441,13 +444,14 @@ class Stack:
         if self._for_paper:
             _, caplines, _ = self.ax.errorbar(
                 plt_x, plt_y, ms=12, fmt='w.', lw=2,
-                yerr=[plt_err_down,plt_err_up], capsize=3.5, zorder=1)
+                yerr=[plt_err_down,plt_err_up], capsize=3.5,
+                zorder=self._zord['data_annulus'])
             for cap in caplines:
                 cap.set_markeredgewidth(1)
                 cap.set_color('w')
                 cap.set_zorder(1)
         line,cap,notsure = self.ax.errorbar(
-            plt_x, plt_y, ms=10, fmt='k.', zorder=3,
+            plt_x, plt_y, ms=10, fmt='k.', zorder=self._zord['data'],
             yerr=[plt_err_down,plt_err_up])
 
         self._data_legs.append( (line, self._get_legstr(hist)))
