@@ -265,7 +265,8 @@ class CLsExclusionPlane:
                 color=color, markersize=20, zorder=1)
             self._proxy_contour.append((pts, lab))
 
-    def add_band(self, stop_lsp_low_high, color=None, label=None):
+    def add_band(self, stop_lsp_low_high, color=None, label=None,
+                 do_smooth_func=False):
         """
         Expects a list of (mass stop, mass lsp, upper limit) tuples.
         """
@@ -281,6 +282,9 @@ class CLsExclusionPlane:
             x, y, high, (xmin, xmax), (ymin, ymax), xpts)
         th = self._threshold
         zp = np.maximum( (lowp - th), -(highp - th))
+        if do_smooth_func:
+            smooth_pts = do_smooth_func(xp, yp)
+            zp[smooth_pts] = _get_smoothed(zp)[smooth_pts]
 
         self._extrap_bottom(zp, y)
 
