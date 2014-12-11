@@ -44,6 +44,11 @@ class Stack:
     # set zorder of plot elements
     plot_order = ['signal','data_annulus', 'data', 'cuts']
 
+    # draw properties
+    ms = 14
+    capsize = 4.2
+    eblw = 2
+
     # confidence interval for data
     data_ci = 1 - math.erf( (1/2)**0.5) # 1 sigma
 
@@ -264,8 +269,15 @@ class Stack:
             else:
                 color = next(color_itr)
             handles = []
-            plt = dict(linewidth=3.0, zorder=self._zord['signal'])
-            style = '--'
+            zord = self._zord['signal']
+            lw = 3.0
+            plt = dict(linewidth=lw, zorder=zord)
+
+            backline, = self.ax.plot(
+                x_vals, y_vals, 'w', alpha=0.5, linewidth=lw+2, zorder=zord)
+            handles.append(backline)
+
+            style = '-'
             plt_handle, = self.ax.plot(x_vals,y_vals,style, color=color, **plt)
             handles.append(plt_handle)
             self._signal_legs.append(
@@ -386,9 +398,12 @@ class Stack:
 
         # plot the well behaved data first
         if np.any(in_bounds):
-            self.ratio.errorbar(
-                rat_x[in_bounds], y_ratios[in_bounds], ms=10, fmt='k.',
+            _, caps, _ = self.ratio.errorbar(
+                rat_x[in_bounds], y_ratios[in_bounds], ms=self.ms, fmt='k.',
+                capsize=self.capsize,
                 yerr=[y_ratio_err_down[in_bounds], y_ratio_err_up[in_bounds]])
+            for cap in caps:
+                cap.set_markeredgewidth(self.eblw/2)
 
         # the points outside the ratio max are red
         bound_y = np.minimum(self.ratio_max, y_ratios[out_of_bounds])
@@ -441,16 +456,18 @@ class Stack:
 
         if self._for_paper:
             _, caplines, _ = self.ax.errorbar(
-                plt_x, plt_y, ms=12, fmt='w.', lw=2,
-                yerr=[plt_err_down,plt_err_up], capsize=3.5,
+                plt_x, plt_y, ms=self.ms+2, fmt='w.', lw=2,
+                yerr=[plt_err_down,plt_err_up], capsize=self.capsize+0.2,
                 zorder=self._zord['data_annulus'])
             for cap in caplines:
-                cap.set_markeredgewidth(1)
+                cap.set_markeredgewidth(self.eblw*1.5/2)
                 cap.set_color('w')
-                cap.set_zorder(1)
-        line,cap,notsure = self.ax.errorbar(
-            plt_x, plt_y, ms=10, fmt='k.', zorder=self._zord['data'],
-            yerr=[plt_err_down,plt_err_up])
+                # cap.set_zorder(1)
+        line,caps,notsure = self.ax.errorbar(
+            plt_x, plt_y, ms=self.ms, fmt='k.', zorder=self._zord['data'],
+            yerr=[plt_err_down,plt_err_up], capsize=self.capsize)
+        for cap in caps:
+            cap.set_markeredgewidth(self.eblw/2)
 
         self._data_legs.append( (line, self._get_legstr(hist)))
         # TODO: fix this, the dims don't match the backgrounds
