@@ -34,7 +34,9 @@ def get_config():
     parser.add_argument('--serial', action='store_true',
                         help='disable multiprocess')
     parser.add_argument('-p', '--paper', action='store_true', help=_p_help)
-    parser.add_argument('-e', '--paper-subset', action='store_true')
+    subset = parser.add_mutually_exclusive_group()
+    subset.add_argument('-e', '--paper-subset', action='store_true')
+    subset.add_argument('-d', '--debugging-subset', action='store_true')
 
     args = parser.parse_args(sys.argv[1:])
     return args
@@ -45,16 +47,20 @@ def run():
 
 _paper_plots = [
     ('signal_mct150', 'mass_ct'),
-    # ('signal_mct150', 'met'),
+    ('signal_mct150', 'met'),
     ('signal_mct150', 'mass_cc'),
-    # ('signal_mct150', 'j0_pt'),
-    # ('signal_mct150', 'j0_flavor_truth_label'),
-    # ('cr_z', 'mass_ll'),
-    # ('cr_z', 'mass_ct'),
-    # ('cr_w', 'mass_ct'),
-    # ('cr_w', 'met'),
-    # ('cr_t', 'mass_ll'),
-    # ('cr_t', 'met'),
+    ('signal_mct150', 'j0_pt'),
+    ('cr_z', 'mass_ll'),
+    ('cr_z', 'mass_ct'),
+    ('cr_w', 'mass_ct'),
+    ('cr_w', 'met'),
+    ('cr_t', 'mass_ll'),
+    ('cr_t', 'met'),
+    ]
+
+_debug_plots = [
+    ('signal_mct150', 'mass_ct'),
+    ('signal_mct150', 'j0_flavor_truth_label'),
     ]
 
 def run_plotmill(args):
@@ -72,7 +78,11 @@ def run_plotmill(args):
     aggregates = [args.aggregate]
     plots_dict = {}
 
-    fastplots = _paper_plots if args.paper_subset else None
+    fastplots = None
+    if args.paper_subset:
+        fastplots = _paper_plots
+    elif args.debugging_subset:
+        fastplots = _debug_plots
 
     for agg_file in aggregates:
         print('loading {}...'.format(agg_file), end='', flush=True)

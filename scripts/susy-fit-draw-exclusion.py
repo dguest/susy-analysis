@@ -138,6 +138,10 @@ class NullPointError(Exception):
         self.xy = (ms, ml)
         self.poison = poison
 
+# smoothing HACK
+def _smooth_decision(x,y):
+    return x > 200
+
 def _max_exclusion_plane(args, show_regions=False, clean=False, ul=False):
     """
     Exclusion plane using the "best" region for each point. With show_regions
@@ -164,7 +168,7 @@ def _max_exclusion_plane(args, show_regions=False, clean=False, ul=False):
 
     band_list = [ x.lowhigh_tup() for x in pdict.values()]
 
-    ex_plane.add_observed(pdict.values())
+    ex_plane.add_observed(pdict.values(), _smooth_decision)
     ex_plane.add_band(band_list, label=limitsty.EXPECTED)
     ex_plane.add_config(cls_list, limitsty.EXPECTED, '-darkblue')
     if ul:

@@ -142,7 +142,7 @@ class CLsExclusionPlane:
         self.used_colors.add(the_color)
         return the_color, line_style
 
-    def add_observed(self, points):
+    def add_observed(self, points, do_smooth_func=None):
         """
         Expects a list of `Point`s.
         """
@@ -156,9 +156,10 @@ class CLsExclusionPlane:
         line_opts = {'linewidths':self.wideline, 'colors': 'firebrick'}
         patch_opts = dict(ec='firebrick', fill=False, linestyle='dotted')
         label = OBSERVED
-        self.add_config(low, style=':firebrick')
+        unct_opts = dict(style=':firebrick', do_smooth_func=do_smooth_func)
+        self.add_config(low, **unct_opts)
         self.add_config(med, add_draw_opts = line_opts, label=label)
-        self.add_config(high, style=':firebrick')
+        self.add_config(high, **unct_opts)
         self._proxy_contour.append((Patch(**patch_opts), label))
 
     def add_upper_limits(self, points):
@@ -181,7 +182,7 @@ class CLsExclusionPlane:
             self._ax2.set_ylabel(self.right_side_ul_info)
 
     def add_config(self, stop_lsp_cls, label=None, style=None, heatmap=False,
-                   add_draw_opts=None):
+                   add_draw_opts=None, do_smooth_func=False):
         """
         Expects a list of (mass stop, mass lsp, upper limit) tuples.
         """
@@ -199,6 +200,9 @@ class CLsExclusionPlane:
 
         xp, yp, zp = self._interpolator(
             x, y, z, (xmin, xmax), (ymin, ymax), xpts)
+        if do_smooth_func:
+            smooth_pts = do_smooth_func(xp, yp)
+            zp[smooth_pts] = _get_smoothed(zp)[smooth_pts]
         self._extrap_bottom(zp, y)
         self._fill_in_interp(zp,xp,yp,x,y)
         extent = [xmin, xmax, ymin, ymax]
@@ -492,6 +496,13 @@ interpolators = {
 
 # _________________________________________________________________________
 # misc utilities
+
+def _get_smoothed(zval):
+    """do some kind of smoothing"""
+    from scipy.signal import convolve2d
+    kernel = np.ones((3,3))
+    kernel /= kernel.sum()
+    return convolve2d(zval, kernel, mode='same')
 
 def _dump_contour(contour, label):
     """find points, dump them"""
