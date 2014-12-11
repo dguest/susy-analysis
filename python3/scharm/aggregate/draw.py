@@ -46,8 +46,8 @@ class Stack:
 
     # draw properties
     ms = 14
-    capsize = 4.2               # caps currently disabled
-    line_width = 2
+    capsize = 0 #4.2  # zero means don't show caps
+    line_width = 1
 
     # confidence interval for data
     data_ci = 1 - math.erf( (1/2)**0.5) # 1 sigma
@@ -74,7 +74,7 @@ class Stack:
         self.ratio_max = 2.0
         self.ratio_font_size = 10
         self.colors = list('kc') + ['purple', 'orange']
-        self.dashes = [[10, 3],[2,2,2,2,10,2]]
+        self.dashes = [[15, 3],[2,2]*2]
         self.y_min = None
 
         # sizing related
@@ -272,12 +272,12 @@ class Stack:
                 color = next(color_itr)
             handles = []
             zord = self._zord['signal']
-            lw = 2.0 if self._for_paper else 3.0
+            lw = 4.0 if self._for_paper else 3.0
             plt = dict(linewidth=lw, zorder=zord)
 
             dashes = []
             if self._for_paper:
-                color = 'k'
+                color = 'c'
                 dashes = next(dash_itr)
             else:
                 backline, = self.ax.plot(
@@ -409,10 +409,10 @@ class Stack:
         if np.any(in_bounds):
             _, caps, _ = self.ratio.errorbar(
                 rat_x[in_bounds], y_ratios[in_bounds], ms=self.ms, fmt='k.',
-                capsize=0, lw=self.line_width,
+                capsize=self.capsize, lw=self.line_width,
                 yerr=[y_ratio_err_down[in_bounds], y_ratio_err_up[in_bounds]])
-            # for cap in caps:
-            #     cap.set_markeredgewidth(self.line_width/2)
+            for cap in caps:
+                cap.set_markeredgewidth(self.line_width/2)
 
         # the points outside the ratio max are red
         bound_y = np.minimum(self.ratio_max, y_ratios[out_of_bounds])
@@ -467,18 +467,18 @@ class Stack:
             _, caplines, _ = self.ax.errorbar(
                 plt_x, plt_y, ms=self.ms+2, fmt='w.',
                 lw=self.line_width*1.5,
-                yerr=[plt_err_down,plt_err_up], capsize=0,
+                yerr=[plt_err_down,plt_err_up], capsize=self.capsize,
                 zorder=self._zord['data_annulus'])
-            # for cap in caplines:
-            #     cap.set_markeredgewidth(self.line_width*1.5)
-            #     cap.set_color('w')
+            for cap in caplines:
+                cap.set_markeredgewidth(self.line_width*1.5)
+                cap.set_color('w')
 
         line,caps,notsure = self.ax.errorbar(
             plt_x, plt_y, ms=self.ms, fmt='k.', zorder=self._zord['data'],
-            yerr=[plt_err_down,plt_err_up], capsize=0,
+            yerr=[plt_err_down,plt_err_up], capsize=self.capsize,
             lw=self.line_width)
-        # for cap in caps:
-        #     cap.set_markeredgewidth(self.line_width)
+        for cap in caps:
+            cap.set_markeredgewidth(self.line_width)
 
         self._data_legs.append( (line, self._get_legstr(hist)))
         # TODO: fix this, the dims don't match the backgrounds
