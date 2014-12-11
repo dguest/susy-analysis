@@ -505,6 +505,7 @@ def _get_smoothed(zval):
     """do some kind of smoothing"""
     from scipy.signal import convolve2d
     kernel = np.ones((3,3))
+    kernel[1,1] = 8
     kernel /= kernel.sum()
     return convolve2d(zval, kernel, mode='same')
 
