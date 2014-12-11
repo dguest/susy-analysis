@@ -140,7 +140,7 @@ class NullPointError(Exception):
 
 # smoothing HACK
 def _smooth_decision(x,y):
-    return x > 200
+    return y > 200
 
 def _max_exclusion_plane(args, show_regions=False, clean=False, ul=False):
     """
