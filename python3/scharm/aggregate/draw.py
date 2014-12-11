@@ -47,7 +47,7 @@ class Stack:
     # draw properties
     ms = 14
     capsize = 4.2
-    cap_width = 2
+    line_width = 2
 
     # confidence interval for data
     data_ci = 1 - math.erf( (1/2)**0.5) # 1 sigma
@@ -409,10 +409,10 @@ class Stack:
         if np.any(in_bounds):
             _, caps, _ = self.ratio.errorbar(
                 rat_x[in_bounds], y_ratios[in_bounds], ms=self.ms, fmt='k.',
-                capsize=self.capsize,
+                capsize=self.capsize, lw=self.line_width,
                 yerr=[y_ratio_err_down[in_bounds], y_ratio_err_up[in_bounds]])
             for cap in caps:
-                cap.set_markeredgewidth(self.cap_width/2)
+                cap.set_markeredgewidth(self.line_width/2)
 
         # the points outside the ratio max are red
         bound_y = np.minimum(self.ratio_max, y_ratios[out_of_bounds])
@@ -465,18 +465,20 @@ class Stack:
 
         if self._for_paper:
             _, caplines, _ = self.ax.errorbar(
-                plt_x, plt_y, ms=self.ms+2, fmt='w.', lw=2,
-                yerr=[plt_err_down,plt_err_up], capsize=self.capsize+0.2,
+                plt_x, plt_y, ms=self.ms+2, fmt='w.',
+                lw=self.line_width*1.5,
+                yerr=[plt_err_down,plt_err_up], capsize=self.capsize+0.4,
                 zorder=self._zord['data_annulus'])
             for cap in caplines:
-                cap.set_markeredgewidth(self.cap_width*1.5/2)
+                cap.set_markeredgewidth(self.line_width*1.5)
                 cap.set_color('w')
-                # cap.set_zorder(1)
+
         line,caps,notsure = self.ax.errorbar(
             plt_x, plt_y, ms=self.ms, fmt='k.', zorder=self._zord['data'],
-            yerr=[plt_err_down,plt_err_up], capsize=self.capsize)
+            yerr=[plt_err_down,plt_err_up], capsize=self.capsize,
+            lw=self.line_width)
         for cap in caps:
-            cap.set_markeredgewidth(self.cap_width/2)
+            cap.set_markeredgewidth(self.line_width)
 
         self._data_legs.append( (line, self._get_legstr(hist)))
         # TODO: fix this, the dims don't match the backgrounds
