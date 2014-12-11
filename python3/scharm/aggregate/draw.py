@@ -46,7 +46,7 @@ class Stack:
 
     # draw properties
     ms = 14
-    capsize = 4.2
+    capsize = 4.2               # caps currently disabled
     line_width = 2
 
     # confidence interval for data
@@ -409,10 +409,10 @@ class Stack:
         if np.any(in_bounds):
             _, caps, _ = self.ratio.errorbar(
                 rat_x[in_bounds], y_ratios[in_bounds], ms=self.ms, fmt='k.',
-                capsize=self.capsize, lw=self.line_width,
+                capsize=0, lw=self.line_width,
                 yerr=[y_ratio_err_down[in_bounds], y_ratio_err_up[in_bounds]])
-            for cap in caps:
-                cap.set_markeredgewidth(self.line_width/2)
+            # for cap in caps:
+            #     cap.set_markeredgewidth(self.line_width/2)
 
         # the points outside the ratio max are red
         bound_y = np.minimum(self.ratio_max, y_ratios[out_of_bounds])
@@ -467,18 +467,18 @@ class Stack:
             _, caplines, _ = self.ax.errorbar(
                 plt_x, plt_y, ms=self.ms+2, fmt='w.',
                 lw=self.line_width*1.5,
-                yerr=[plt_err_down,plt_err_up], capsize=self.capsize+0.4,
+                yerr=[plt_err_down,plt_err_up], capsize=0,
                 zorder=self._zord['data_annulus'])
-            for cap in caplines:
-                cap.set_markeredgewidth(self.line_width*1.5)
-                cap.set_color('w')
+            # for cap in caplines:
+            #     cap.set_markeredgewidth(self.line_width*1.5)
+            #     cap.set_color('w')
 
         line,caps,notsure = self.ax.errorbar(
             plt_x, plt_y, ms=self.ms, fmt='k.', zorder=self._zord['data'],
-            yerr=[plt_err_down,plt_err_up], capsize=self.capsize,
+            yerr=[plt_err_down,plt_err_up], capsize=0,
             lw=self.line_width)
-        for cap in caps:
-            cap.set_markeredgewidth(self.line_width)
+        # for cap in caps:
+        #     cap.set_markeredgewidth(self.line_width)
 
         self._data_legs.append( (line, self._get_legstr(hist)))
         # TODO: fix this, the dims don't match the backgrounds
