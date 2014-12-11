@@ -47,7 +47,7 @@ class Stack:
     # draw properties
     ms = 14
     capsize = 4.2
-    eblw = 2
+    cap_width = 2
 
     # confidence interval for data
     data_ci = 1 - math.erf( (1/2)**0.5) # 1 sigma
@@ -74,6 +74,7 @@ class Stack:
         self.ratio_max = 2.0
         self.ratio_font_size = 10
         self.colors = list('kc') + ['purple', 'orange']
+        self.dashes = [[10, 3],[2,2,2,2,10,2]]
         self.y_min = None
 
         # sizing related
@@ -259,6 +260,7 @@ class Stack:
 
     def add_signals(self, hist_list):
         color_itr = iter(self.colors)
+        dash_itr = iter(self.dashes)
         for hist in hist_list:
             x_vals, y_vals = hist.get_xy_step_pts()
             if self.y_min is not None:
@@ -270,15 +272,22 @@ class Stack:
                 color = next(color_itr)
             handles = []
             zord = self._zord['signal']
-            lw = 3.0
+            lw = 2.0 if self._for_paper else 3.0
             plt = dict(linewidth=lw, zorder=zord)
 
-            backline, = self.ax.plot(
-                x_vals, y_vals, 'w', alpha=0.5, linewidth=lw+2, zorder=zord)
-            handles.append(backline)
+            dashes = []
+            if self._for_paper:
+                color = 'k'
+                dashes = next(dash_itr)
+            else:
+                backline, = self.ax.plot(
+                    x_vals, y_vals, 'w', alpha=0.5, linewidth=lw+2,
+                    zorder=zord)
+                handles.append(backline)
 
-            style = '-'
-            plt_handle, = self.ax.plot(x_vals,y_vals,style, color=color, **plt)
+            plt_handle, = self.ax.plot(
+                x_vals,y_vals, color=color, **plt)
+            plt_handle.set_dashes(dashes)
             handles.append(plt_handle)
             self._signal_legs.append(
                 (tuple(handles), self._get_legstr(hist)))
@@ -403,7 +412,7 @@ class Stack:
                 capsize=self.capsize,
                 yerr=[y_ratio_err_down[in_bounds], y_ratio_err_up[in_bounds]])
             for cap in caps:
-                cap.set_markeredgewidth(self.eblw/2)
+                cap.set_markeredgewidth(self.cap_width/2)
 
         # the points outside the ratio max are red
         bound_y = np.minimum(self.ratio_max, y_ratios[out_of_bounds])
@@ -460,14 +469,14 @@ class Stack:
                 yerr=[plt_err_down,plt_err_up], capsize=self.capsize+0.2,
                 zorder=self._zord['data_annulus'])
             for cap in caplines:
-                cap.set_markeredgewidth(self.eblw*1.5/2)
+                cap.set_markeredgewidth(self.cap_width*1.5/2)
                 cap.set_color('w')
                 # cap.set_zorder(1)
         line,caps,notsure = self.ax.errorbar(
             plt_x, plt_y, ms=self.ms, fmt='k.', zorder=self._zord['data'],
             yerr=[plt_err_down,plt_err_up], capsize=self.capsize)
         for cap in caps:
-            cap.set_markeredgewidth(self.eblw/2)
+            cap.set_markeredgewidth(self.cap_width/2)
 
         self._data_legs.append( (line, self._get_legstr(hist)))
         # TODO: fix this, the dims don't match the backgrounds
