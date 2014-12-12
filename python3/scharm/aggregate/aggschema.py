@@ -61,7 +61,7 @@ class HistDict(dict):
             for var in variants:
                 full_var = variable + var
                 nametup = (proc, full_var, reg)
-                hist = var_grp[variable][reg]
+                hist = var_grp[full_var][reg]
                 self[nametup] = HistNd(hist)
 
     def __setitem__(self, key, value):
