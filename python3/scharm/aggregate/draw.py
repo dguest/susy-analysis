@@ -365,8 +365,8 @@ class Stack:
         if height is None:
             lowval, highval = [f(arrow_start, value) for f in [min, max]]
             sv = self._x_step_vals
-            idx = (lowval < sv) & (sv < highval)
-            mc_data_height = np.max(self._y_sum_step[idx])
+            idx = (lowval <= sv) & (sv <= highval)
+            mc_data_height = np.max(self._y_sum_step[idx][1:-1])
             mc_ax_height = self._ax_from_data((0, mc_data_height))[:,1]
             arrow_min = mc_ax_height + 0.1
             height = (arrow_min + cuttop) / 2
