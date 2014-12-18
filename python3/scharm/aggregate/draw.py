@@ -45,7 +45,7 @@ class Stack:
     plot_order = ['bg','signal','data_annulus', 'data', 'cuts']
 
     # draw properties
-    ms = 14
+    ms = 16
     capsize = 0 #4.2  # zero means don't show caps
     line_width = 1
 
@@ -203,10 +203,10 @@ class Stack:
                 tmp_sum[tmp_sum < self.y_min] = self.y_min
 
             self.ax.fill_between(
-                x_vals, tmp_sum, last_plot, lw=0, facecolor=fill_color,
-                zorder=self._zord['bg'])
-            proxy = plt.Rectangle((0, 0), 1, 1, fc=fill_color, lw=0,
-                                  label=hist.title)
+                x_vals, tmp_sum, last_plot, lw=1, facecolor=fill_color,
+                zorder=self._zord['bg'], color=fill_color)
+            proxy = plt.Rectangle((0, 0), 1, 1, fc=fill_color, lw=1,
+                                  label=hist.title, color=fill_color)
             if hist.selection:
                 self._add_selection(*hist.selection)
             self._bg_proxy_legs.append( (proxy,self._get_legstr(hist)))
@@ -463,7 +463,7 @@ class Stack:
         if not np.any(plt_err_up):
             return
 
-        if self._for_paper:
+        if self._for_paper and False:
             _, caplines, _ = self.ax.errorbar(
                 plt_x, plt_y, ms=self.ms+2, fmt='w.',
                 lw=self.line_width*1.5,
@@ -481,8 +481,6 @@ class Stack:
             cap.set_markeredgewidth(self.line_width)
 
         self._data_legs.append( (line, self._get_legstr(hist)))
-        # TODO: fix this, the dims don't match the backgrounds
-
 
     # __________________________________________________________________
     # PR crap for atlas
