@@ -406,16 +406,18 @@ class Stack:
         out_of_bounds = y_ratios > self.ratio_max
         in_bounds = ~out_of_bounds
 
+        ebopts = dict(
+            ms=self.ms, color='k', capsize=self.capsize, lw=self.line_width)
         # plot the well behaved data first
         if np.any(in_bounds):
             _, caps, _ = self.ratio.errorbar(
-                rat_x[in_bounds], y_ratios[in_bounds], ms=self.ms, fmt='k.',
-                capsize=self.capsize, lw=self.line_width,
-                yerr=[y_ratio_err_down[in_bounds], y_ratio_err_up[in_bounds]])
+                rat_x[in_bounds], y_ratios[in_bounds],
+                yerr=[y_ratio_err_down[in_bounds], y_ratio_err_up[in_bounds]],
+                fmt='.', **ebopts)
             for cap in caps:
                 cap.set_markeredgewidth(self.line_width/2)
 
-        # the points outside the ratio max are red
+        # add points outside the ratio max
         bound_y = np.minimum(self.ratio_max, y_ratios[out_of_bounds])
         bound_y_low = np.minimum(self.ratio_max, y_ratios_low[out_of_bounds])
         bound_up = y_ratios_high[out_of_bounds] - bound_y
@@ -423,11 +425,8 @@ class Stack:
         if np.any(out_of_bounds):
             arrow_width = 0.25
             self.ratio.errorbar(
-                rat_x[out_of_bounds],
-                bound_y, ms=10, color='k',
-                marker='',
-                # marker=[(0,0), (-arrow_width,-1), (arrow_width,-1)] ,
-                yerr=[bound_down, bound_up])
+                rat_x[out_of_bounds], bound_y, fmt='',
+                yerr=[bound_down, bound_up], **ebopts)
 
         # add lines showing 1, 0.5, 1.5, 2.
         dotargs = dict(linestyle='--', color=self.ratio_grid_color)
@@ -772,7 +771,7 @@ class Hist1d:
     def y_label(self):
         bins = len(self._array) - 2
         x_per_bin = (self.extent[1] - self.extent[0]) / bins
-        fm_string = '{} / {:.2g}'
+        fm_string = '{} / {:.3g}'
         if self._x_units:
             fm_string += ' {units}'
         return fm_string.format(
