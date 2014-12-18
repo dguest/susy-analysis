@@ -42,7 +42,7 @@ class Stack:
         r'$m_{{\tilde{{c}},\tilde{{\chi}}_1^0}} = $ {}, {} GeV')
 
     # set zorder of plot elements
-    plot_order = ['signal','data_annulus', 'data', 'cuts']
+    plot_order = ['bg','signal','data_annulus', 'data', 'cuts']
 
     # draw properties
     ms = 14
@@ -202,9 +202,10 @@ class Stack:
             if self.y_min is not None:
                 tmp_sum[tmp_sum < self.y_min] = self.y_min
 
-            self.ax.fill_between(x_vals, tmp_sum, last_plot,
-                                 facecolor=fill_color)
-            proxy = plt.Rectangle((0, 0), 1, 1, fc=fill_color,
+            self.ax.fill_between(
+                x_vals, tmp_sum, last_plot, lw=0, facecolor=fill_color,
+                zorder=self._zord['bg'])
+            proxy = plt.Rectangle((0, 0), 1, 1, fc=fill_color, lw=0,
                                   label=hist.title)
             if hist.selection:
                 self._add_selection(*hist.selection)
@@ -538,7 +539,10 @@ class Stack:
             return []
 
         # the artist is just a black line (change to red like sbottom?)
-        artist = Line2D((0,1),(0,0), color='k')
+        # Line2D((0,1),(0,0), color='k')
+        artist, = self.ax.plot(
+            self._x_step_vals, self._y_sum_step, 'k',
+            zorder=self._zord['bg'])
 
         # the string depends on whether we're showing the total counts
         total_title = 'SM total'
