@@ -34,6 +34,7 @@ def get_config():
     parser.add_argument('--serial', action='store_true',
                         help='disable multiprocess')
     parser.add_argument('-p', '--paper', action='store_true', help=_p_help)
+    parser.add_argument('-a', '--approved', action='store_true')
     subset = parser.add_mutually_exclusive_group()
     subset.add_argument('-e', '--paper-subset', action='store_true')
     subset.add_argument('-d', '--debugging-subset', action='store_true')
@@ -101,6 +102,7 @@ def run_plotmill(args):
         'theme': args.theme,
         'serial': args.serial,
         'show_event_counts': not args.paper,
+        'approval_status': '' if args.approved else 'Internal',
         }
     do_log = args.scale == 'log'
     more_args = dict(mu_dict=mudic, blind=args.blind)

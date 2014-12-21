@@ -200,6 +200,7 @@ class StackPlotPrinter:
         self._selection_colors = style.get_selection_color(theme)
         self._signal_colors = style.get_signal_colors(theme)
         self._mu_dict = mu_dict
+        self._approval_status = options['approval_status']
 
     def _info_generator(self, data, mc, signal):
         keys = []
@@ -229,6 +230,7 @@ class StackPlotPrinter:
             obj.selection_colors = self._selection_colors
             obj.mu_dict = self._mu_dict
             obj.show_counts = self._show_counts
+            obj.approval_status = self._approval_status
             save_dir = join(self.plot_dir, obj.cut)
             if not isdir(save_dir):
                 os.makedirs(save_dir)
@@ -300,7 +302,7 @@ def _print_plot(obj):
     for_paper = not obj.show_counts
     stackopts = dict(
         ratio=has_ratio, selection_colors=obj.selection_colors,
-        for_paper=for_paper)
+        for_paper=for_paper, approval_status=obj.approval_status)
     stack = Stack(**stackopts)
     stack.colors = obj.signal_colors
     stack.lumi = obj.lumi

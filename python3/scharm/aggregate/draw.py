@@ -62,7 +62,7 @@ class Stack:
         handleheight=1.3)
     def __init__(self, ratio=False, exclude_zeros=True,
                  selection_colors=('r',(0.9, 0, 0, 0.2)),
-                 for_paper=False):
+                 for_paper=False, approval_status='Internal'):
         self._exclude_zeros = exclude_zeros
         self.fig = Figure(figsize=(8,6))
         self.canvas = FigureCanvas(self.fig)
@@ -70,6 +70,7 @@ class Stack:
         self.region_name = None
         self.extra_yrange = 1.0 # for external use
         self.atlas_label_position = (0.16, 0.96) # for external use
+        self.approval_status = approval_status
         self.lumi_info_position = None
         self.ratio_max = 2.0
         self.ratio_font_size = 10
@@ -485,7 +486,7 @@ class Stack:
     # PR crap for atlas
 
     def _add_pr_crap(self, x=0.16, y=0.96):
-        self._add_atlas_label(x, y, 'Preliminary')
+        self._add_atlas_label(x, y, self.approval_status)
         if self.lumi_info_position is not None:
             x, y = self.lumi_info_position
         if self.lumi:
