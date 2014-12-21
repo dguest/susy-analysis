@@ -157,7 +157,7 @@ def _max_exclusion_plane(args, show_regions=False, clean=False, ul=False):
         high_contrast=args.external)
 
     ex_plane = planeplt.CLsExclusionPlane(**plane_opts)
-    ex_plane.approved = args.external # WAIT FOR APPROVAL
+    ex_plane.approved = args.external
     pdict = _get_max_expected_points(cls_dict)
 
     if show_regions:
