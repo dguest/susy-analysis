@@ -299,7 +299,7 @@ def predraw_customize(stack, var_name, region, is_paper):
 # rebinning
 rebinning = {
     'preselection':100,
-    'signal_mct150': 15,
+    # 'signal_mct150': 15,
 }
 
 # _________________________________________________________________________
