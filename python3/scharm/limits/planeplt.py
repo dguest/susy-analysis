@@ -1,7 +1,7 @@
 """
 Exclusion plane plotter
 """
-from os.path import dirname
+from os.path import split, join, splitext
 import os, math
 
 import numpy as np
@@ -121,6 +121,9 @@ class CLsExclusionPlane:
         self._kinbounds = argv.get('kinematic_bounds', True)
         assert self._kinbounds in _allowed_kinbounds
 
+        self._do_hepdata = argv.get('hepdata', False)
+        self._hepdata_xy = {}
+
         hc = argv.get('high_contrast')
         self._kinbound_alpha = 0.7 if hc else 0.3
         self._mono_alpha = 0.3 if hc else 0.1
@@ -213,9 +216,10 @@ class CLsExclusionPlane:
             draw_opts.update(add_draw_opts)
         ct = self.ax.contour(
             xp, yp, zp, [self._threshold], zorder=2, **draw_opts)
-        if label in {OBSERVED, EXPECTED}:
-            # self.ax.plot(*zip(*_get_contour_points(ct)))
-            pass
+        if label in {OBSERVED, EXPECTED} and self._do_hepdata:
+            cont_pts = _get_contour_points(ct)
+            self.ax.plot(*zip(*cont_pts), marker='.', linestyle='none')
+            self._hepdata_xy[label] = cont_pts
         if heatmap:
             self.ax.imshow(
                 zp, extent=extent, origin='lower', interpolation='nearest',
@@ -441,10 +445,18 @@ class CLsExclusionPlane:
 
     def save(self, name):
         self._finalize()
-        pl_dir = dirname(name)
+        pl_dir, bname = split(name)
         if pl_dir and not os.path.isdir(pl_dir):
             os.makedirs(pl_dir)
         self.canvas.print_figure(name, bbox_inches='tight')
+
+        def get_path(ctname):
+            fname = '{}_{c}{}'.format(splitext(bname)[0], '.txt', c=ctname)
+            return join(pl_dir, fname)
+
+        for ctname, xy in self._hepdata_xy.items():
+            _make_hepdata_file(get_path(ctname), xy)
+
 
 # _________________________________________________________________________
 # interpolation functions
@@ -500,6 +512,23 @@ interpolators = {
 
 # _________________________________________________________________________
 # misc utilities
+
+def _make_hepdata_file(output, xy):
+    """
+    Build a hepdata input file.
+    """
+    out_lines = [
+        '*dataset:', '*location: XXX',
+        '*dscomment: XXX',
+        '*qual: SQRT(S) IN GEV : 8000.0',
+        '*xheader: Scharm Mass [GeV]',
+        '*yheader: Neutralino1 Mass [GeV]',
+        '*data: x : y']
+    for x, y in xy:
+        out_lines.append(' {:.1f}; {:.1f};'.format(x, y))
+    out_lines.append('*dataend:')
+    with open(output,'w') as out:
+        out.writelines(x + '\n' for x in out_lines)
 
 def _get_smoothed(zval):
     """do some kind of smoothing"""

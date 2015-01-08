@@ -40,6 +40,7 @@ def run():
     parser.add_argument(
         '-a', '--add-limits', help=_limits_help, nargs=2,
         metavar=('FILE', 'ENTRY'))
+    parser.add_argument('-d','--do-hepdata', **b)
     args = parser.parse_args(sys.argv[1:])
     helvetify()
     np.seterr(all='raise')
@@ -154,7 +155,7 @@ def _max_exclusion_plane(args, show_regions=False, clean=False, ul=False):
         show_points = not any([clean, ul, args.mono]),
         kinematic_bounds = 'upper' if args.mono else 'both',
         interpolation=args.interpolation,
-        high_contrast=args.external)
+        high_contrast=args.external, hepdata=args.do_hepdata)
 
     ex_plane = planeplt.CLsExclusionPlane(**plane_opts)
     ex_plane.approved = args.external
