@@ -116,6 +116,7 @@ class Stack:
         # class, it doesn't belong in here.
         self._total_background_error = None
         self._stat_background_error = None
+        self._sys_background_error = None
         self._signal_yvalues = []
         self._data_yvalues = None
         # legends
@@ -231,10 +232,11 @@ class Stack:
         return proxy
 
     def add_syst2(self, hist_list):
-        if self._for_paper:
-            return
         x_vals, rel_sys_err = _get_mc_error_bands(
             hist_list, self._y_sum_step)
+        self._sys_background_error = self._y_sum_step * rel_sys_err
+        if self._for_paper:
+            return
         if self.ratio:
             proxy = self._add_transparent_ratio_err(x_vals, rel_sys_err)
             self._rat_legs.append((proxy, self.syserr_name))
@@ -274,7 +276,7 @@ class Stack:
         for hist in hist_list:
             x_vals, y_vals = hist.get_xy_step_pts()
             self._signal_yvalues.append(
-                (hist.title, hist.get_xy_center_pts()))
+                (hist.title, hist.get_xy_center_pts()[1]))
             if self.y_min is not None:
                 y_vals[y_vals < self.y_min] = self.y_min
 
@@ -626,18 +628,42 @@ class Stack:
         data_pts = self._data_yvalues
         # right now there some points are stored as two per bin, some
         # as one per bin. Hopefully this will change in the future, but until
-        # then we'll use this hack.
+        # then we'll use some hacks.
         assert len(x_pts) == len(data_pts)*2, (len(x_pts), len(data_pts))
+
+        # make the data more conveniently formatted
         xlow, xhigh = x_pts.reshape(-1,2).T
         total = self._y_sum
         error = self._total_background_error.reshape(-1,2)[:,0]
+        syst = self._sys_background_error.reshape(-1,2)[:,0]
         stat = self._stat_background_error.reshape(-1,2)[:,0]
         data = self._data_yvalues
         dstat = self._data_yvalues**0.5
+
+        # build the template and header string
+        tmp = (' {low} TO {high}; {d} +- {de:.3f};'
+               ' {bg:.3f} +- {be:.3f} (DSYS={bsy:.3f}); ')
+        hdr = '*data: x : y : y'
+        qual = '*qual: . : DATA : BACKGROUND'
+        for signame, _ in self._signal_yvalues:
+            tmp += '{{{}:.3f}}; '.format(signame)
+            hdr += ' : y'
+            qual += ' : ' + signame
+        out_lines = [
+            '*dataset:', '*location: XXX', '*dscomment: XXX', '*obskey: N',
+            qual, '*qual: SQRT(S) IN GEV : 8000.0', '*xheader: XXX',
+            '*yheader: EVENTS / {} GEV'.format(int((xhigh - xlow)[0])), hdr]
         for bin in range(len(xlow)):
-            vals = dict(low=xlow[bin], high=xhigh[bin])
-            nonsig = '{low} TO {high}; '.format(**vals)
-            print(nonsig)
+            vals = dict(
+                d=int(data[bin]), de=dstat[bin],
+                low=xlow[bin], high=xhigh[bin], bg=total[bin],
+                be=error[bin], bst=stat[bin], bsy=syst[bin])
+            for signame, sigval in self._signal_yvalues:
+                vals[signame] = sigval[bin]
+            out_lines.append(tmp.format(**vals))
+        out_lines.append('*dataend:')
+        with open(name,'w') as out:
+            out.writelines(x + '\n' for x in out_lines)
 
     def save(self, name):
         if name.endswith('.txt'):
