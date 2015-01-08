@@ -4,6 +4,9 @@ Plotting routine for stack plots
 """
 _bl_help = "don't plot data (make blinded plots)"
 _p_help = "some changes for the paper versions (don't show event counts)"
+_ext_help = (
+    'Plot extensions. Can be a matplotlib image extension or'
+    ' ".txt" for hepdata dump')
 import argparse
 import yaml
 import sys
@@ -25,7 +28,7 @@ def get_config():
         '-s','--signal-points', default=def_pts, nargs='+',
         help="assumes <particle>-<something> type name, " + d)
     parser.add_argument(
-        '--ext', help='plot extensions, ' + d, default='.pdf')
+        '--ext', help=_ext_help + d, default='.pdf')
     parser.add_argument('-o', '--output-dir',
                         help=d, default='plots')
     parser.add_argument(
@@ -107,7 +110,7 @@ def run_plotmill(args):
     do_log = args.scale == 'log'
     more_args = dict(mu_dict=mudic, blind=args.blind)
     plot.make_plots(plots_dict, pltconfig, log=do_log, **more_args)
-    if args.scale == 'both':
+    if args.scale == 'both' and not args.ext == '.txt':
         plot.make_plots(plots_dict, pltconfig, log=True, **more_args)
 
 def _get_signal_finder(signal_points):

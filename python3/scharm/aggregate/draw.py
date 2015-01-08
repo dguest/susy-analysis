@@ -111,6 +111,13 @@ class Stack:
         self._x_limits = None
         self._sm_total = 0.0
         self._zord = {y:x for x,y in enumerate(self.plot_order, 1)}
+        # hacks to print to text
+        # TODO: the whole print-to-text thing should be moved into another
+        # class, it doesn't belong in here.
+        self._total_background_error = None
+        self._stat_background_error = None
+        self._signal_yvalues = []
+        self._data_yvalues = None
         # legends
         self._signal_legs = []
         self._bg_proxy_legs = []
@@ -233,10 +240,11 @@ class Stack:
             self._rat_legs.append((proxy, self.syserr_name))
 
     def add_wt2(self, hist_list):
-        if self._for_paper:
-            return
         x_vals, rel_stat_err = _get_mc_error_bands(
             hist_list, self._y_sum_step)
+        self._stat_background_error = self._y_sum_step * rel_stat_err
+        if self._for_paper:
+            return
         if self.ratio:
             self.ratio.plot(x_vals, 1 - rel_stat_err, 'k:')
             ln, = self.ratio.plot(x_vals, 1 + rel_stat_err, 'k:')
@@ -250,6 +258,7 @@ class Stack:
     def add_total2(self, hist_list):
         x_vals, rel_err = _get_mc_error_bands(
             hist_list, self._y_sum_step)
+        self._total_background_error = self._y_sum_step * rel_err
         if self.ratio:
             if self._for_paper:
                 proxy = self._add_transparent_ratio_err(x_vals, rel_err)
@@ -264,6 +273,8 @@ class Stack:
         dash_itr = iter(self.dashes)
         for hist in hist_list:
             x_vals, y_vals = hist.get_xy_step_pts()
+            self._signal_yvalues.append(
+                (hist.title, hist.get_xy_center_pts()))
             if self.y_min is not None:
                 y_vals[y_vals < self.y_min] = self.y_min
 
@@ -438,6 +449,7 @@ class Stack:
 
     def add_data(self, hist):
         x_vals, y_vals = hist.get_xy_center_pts()
+        self._data_yvalues = y_vals
         lows, highs = errorbars.poisson_interval(y_vals, self.data_ci)
         self._data_max_drawn = max(np.max(highs), self._data_max_drawn)
 
@@ -605,7 +617,33 @@ class Stack:
             return new_max
         return old_max*rescale
 
+    def _save_text(self, name):
+        """
+        Save routine for HEPData.
+        TODO: break this off of the Stack class.
+        """
+        x_pts = self._x_step_vals
+        data_pts = self._data_yvalues
+        # right now there some points are stored as two per bin, some
+        # as one per bin. Hopefully this will change in the future, but until
+        # then we'll use this hack.
+        assert len(x_pts) == len(data_pts)*2, (len(x_pts), len(data_pts))
+        xlow, xhigh = x_pts.reshape(-1,2).T
+        total = self._y_sum
+        error = self._total_background_error.reshape(-1,2)[:,0]
+        stat = self._stat_background_error.reshape(-1,2)[:,0]
+        data = self._data_yvalues
+        dstat = self._data_yvalues**0.5
+        for bin in range(len(xlow)):
+            vals = dict(low=xlow[bin], high=xhigh[bin])
+            nonsig = '{low} TO {high}; '.format(**vals)
+            print(nonsig)
+
     def save(self, name):
+        if name.endswith('.txt'):
+            self._save_text(name)
+            return
+
         if self._x_limits is None:
             return
 
