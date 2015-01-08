@@ -642,11 +642,11 @@ class Stack:
 
         # build the template and header string
         tmp = (' {low} TO {high}; {d} +- {de:.3f};'
-               ' {bg:.3f} +- {be:.3f} (DSYS={bsy:.3f}); ')
+               ' {bg:.3f} +- {be:.3f} (DSYS={bsy:.3f});')
         hdr = '*data: x : y : y'
         qual = '*qual: . : DATA : BACKGROUND'
         for signame, _ in self._signal_yvalues:
-            tmp += '{{{}:.3f}}; '.format(signame)
+            tmp += ' {{{}:.3f}};'.format(signame)
             hdr += ' : y'
             qual += ' : ' + signame
         out_lines = [
