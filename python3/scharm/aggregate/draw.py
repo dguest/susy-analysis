@@ -45,7 +45,7 @@ class Stack:
     plot_order = ['bg','signal','data_annulus', 'data', 'cuts']
 
     # draw properties
-    ms = 14
+    ms = 16
     capsize = 0 #4.2  # zero means don't show caps
     line_width = 1
 
@@ -211,10 +211,11 @@ class Stack:
             if self.y_min is not None:
                 tmp_sum[tmp_sum < self.y_min] = self.y_min
 
-            self.ax.fill_between(x_vals, tmp_sum, last_plot,
-                                 facecolor=fill_color)
-            proxy = plt.Rectangle((0, 0), 1, 1, fc=fill_color,
-                                  label=hist.title)
+            self.ax.fill_between(
+                x_vals, tmp_sum, last_plot, lw=1, facecolor=fill_color,
+                zorder=self._zord['bg'], color=fill_color)
+            proxy = plt.Rectangle((0, 0), 1, 1, fc=fill_color, lw=1,
+                                  label=hist.title, color=fill_color)
             if hist.selection:
                 self._add_selection(*hist.selection)
             self._bg_proxy_legs.append( (proxy,self._get_legstr(hist)))
@@ -477,7 +478,7 @@ class Stack:
         if not np.any(plt_err_up):
             return
 
-        if self._for_paper:
+        if self._for_paper and False:
             _, caplines, _ = self.ax.errorbar(
                 plt_x, plt_y, ms=self.ms+2, fmt='w.',
                 lw=self.line_width*1.5,
@@ -550,7 +551,10 @@ class Stack:
             return []
 
         # the artist is just a black line (change to red like sbottom?)
-        artist = Line2D((0,1),(0,0), color='k')
+        # Line2D((0,1),(0,0), color='k')
+        artist, = self.ax.plot(
+            self._x_step_vals, self._y_sum_step, 'k',
+            zorder=self._zord['bg'])
 
         # the string depends on whether we're showing the total counts
         total_title = 'SM total'
