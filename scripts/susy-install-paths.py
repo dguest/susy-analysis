@@ -30,6 +30,6 @@ if __name__ == '__main__':
     opts = {'install': add_path, 'remove': rm_path}
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('action', nargs='?', choices=opts, default='install')
+    parser.add_argument('action', choices=opts, default='install')
     args = parser.parse_args(sys.argv[1:])
     opts[args.action]()
