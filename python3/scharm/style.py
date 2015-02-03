@@ -51,6 +51,18 @@ _dan_theme.update( {
         'signal_list': ['purple', 'cyan'],
         })
 
+_light_theme = _dan_detail.copy()
+_light_theme.update( {
+        'other':'orange',
+        'Wjets':'yellow',
+        'Zjets':'lightgreen',
+        # 'top':'blue',
+        # 'top': 'lightblue',
+        'top': 'skyblue',
+        # 'top':(0x33/255,0x33/255,0xCC/255), # sbottom Wjets
+        'signal_list': ['k', 'k'],
+        })
+
 _brimstone = _dan_detail.copy()
 _brimstone.update( {
         'other':'yellow',
@@ -92,8 +104,10 @@ _sbot_theme = {
     'signal_list': ['orange','red'],
     }
 
-_theme_names = {'dan':_dan_theme, 'sbot': _sbot_theme,
-                'brimstone': _brimstone, 'brony':_brony}
+_theme_names = {
+    'dan':_dan_theme, 'sbot': _sbot_theme,
+    'brimstone': _brimstone, 'brony':_brony,
+    'light':_light_theme}
 
 def _get_labels(theme):
     def get_theme(texname, name):
@@ -299,7 +313,7 @@ def predraw_customize(stack, var_name, region, is_paper):
 # rebinning
 rebinning = {
     'preselection':100,
-    'signal_mct150': 15,
+    # 'signal_mct150': 15,
 }
 
 # _________________________________________________________________________

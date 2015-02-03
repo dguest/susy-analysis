@@ -32,7 +32,7 @@ def get_config():
     parser.add_argument('-o', '--output-dir',
                         help=d, default='plots')
     parser.add_argument(
-        '-t','--theme', choices={'dan','sbot','brimstone','brony'},
+        '-t','--theme', choices={'dan','sbot','brimstone','brony', 'light'},
         default='dan', help=d)
     parser.add_argument('--serial', action='store_true',
                         help='disable multiprocess')

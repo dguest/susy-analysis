@@ -56,10 +56,10 @@ class Stack:
     paper_legend_opts = dict(
         columnspacing=0.75,
         borderpad=0,
-        labelspacing=0.0,
+        labelspacing=0.1,
         handletextpad=0.25,
         handlelength=1.3,
-        handleheight=1.3)
+        handleheight=0.8)
     def __init__(self, ratio=False, exclude_zeros=True,
                  selection_colors=('r',(0.9, 0, 0, 0.2)),
                  for_paper=False, approval_status='Internal'):
@@ -212,10 +212,10 @@ class Stack:
                 tmp_sum[tmp_sum < self.y_min] = self.y_min
 
             self.ax.fill_between(
-                x_vals, tmp_sum, last_plot, lw=1, facecolor=fill_color,
+                x_vals, tmp_sum, last_plot, lw=0.5, facecolor=fill_color,
                 zorder=self._zord['bg'], color=fill_color)
             proxy = plt.Rectangle((0, 0), 1, 1, fc=fill_color, lw=1,
-                                  label=hist.title, color=fill_color)
+                                  label=hist.title, color='k')
             if hist.selection:
                 self._add_selection(*hist.selection)
             self._bg_proxy_legs.append( (proxy,self._get_legstr(hist)))
@@ -287,12 +287,12 @@ class Stack:
                 color = next(color_itr)
             handles = []
             zord = self._zord['signal']
-            lw = 4.0 if self._for_paper else 3.0
+            lw = 1.5 if self._for_paper else 3.0
             plt = dict(linewidth=lw, zorder=zord)
 
             dashes = []
             if self._for_paper:
-                color = 'c'
+                # color = 'k'
                 dashes = next(dash_itr)
             else:
                 backline, = self.ax.plot(
