@@ -76,7 +76,7 @@ class Stack:
         self.ratio_font_size = 10
         self.colors = list('kc') + ['purple', 'orange']
         self.dashes = [[15, 3],[2,2]*2]
-        self.y_min = None
+        self.y_min = 0
 
         # sizing related
         self._for_paper = for_paper
@@ -185,10 +185,8 @@ class Stack:
             raise ValueError('x vals don\'t match')
 
     def add_backgrounds(self, hist_list):
-        last_plot = 0
         color_itr = iter(self.colors)
-        if self.y_min is not None:
-            last_plot = self.y_min
+        last_plot = self.y_min
         for hist in hist_list:
             x_vals, y_vals = hist.get_xy_step_pts()
 
@@ -208,8 +206,7 @@ class Stack:
             self._y_sum += hist.get_xy_center_pts()[1]
 
             tmp_sum = np.array(self._y_sum_step[:])
-            if self.y_min is not None:
-                tmp_sum[tmp_sum < self.y_min] = self.y_min
+            tmp_sum[tmp_sum < self.y_min] = self.y_min
 
             self.ax.fill_between(
                 x_vals, tmp_sum, last_plot, lw=0.5, facecolor=fill_color,
@@ -276,10 +273,10 @@ class Stack:
         dash_itr = iter(self.dashes)
         for hist in hist_list:
             x_vals, y_vals = hist.get_xy_step_pts()
-            self._signal_yvalues.append(
-                (hist.title, hist.get_xy_center_pts()[1]))
-            if self.y_min is not None:
-                y_vals[y_vals < self.y_min] = self.y_min
+            center_y = hist.get_xy_center_pts()[1]
+            self._signal_yvalues.append((hist.title, center_y))
+
+            y_vals[y_vals < self.y_min] = self.y_min
 
             if hist.color:
                 color = hist.color
@@ -309,9 +306,8 @@ class Stack:
 
     def _get_min_plotable(self, y_vals):
         plot_vals = np.array(y_vals)
-        if self.y_min is not None:
-            bad_y_vals = y_vals <= self.y_min
-            plot_vals[bad_y_vals] = self.y_min*1.001
+        bad_y_vals = y_vals <= self.y_min
+        plot_vals[bad_y_vals] = self.y_min*1.001
         return plot_vals
 
     def _add_selection(self, low, high):
