@@ -298,7 +298,7 @@ def customize_stack(stack, var_name, region, is_paper):
 
     # hacks for Al
     if (var_name, region) == ('mass_cc','signal_mct150'):
-        stack.lumi_info_position = (0.55, 0.83)
+        stack.lumi_info_position = (0.52, 0.88)
         stack.extra_yrange = 0.75
 
 def predraw_customize(stack, var_name, region, is_paper):

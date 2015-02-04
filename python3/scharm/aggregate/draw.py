@@ -82,7 +82,7 @@ class Stack:
         self._for_paper = for_paper
         self._small_size = 16
         self._med_size = 18 if for_paper else self._small_size
-        self._big_size = 20 if for_paper else 18
+        self._big_size = 24 if for_paper else 18
 
         if not ratio:
             self.ax = self.fig.add_subplot(1,1,1)
@@ -329,12 +329,12 @@ class Stack:
         if self._for_paper:
             # first draw custom arrows
             for value, down, height in self._cut_arrows:
-                self._draw_cut_arrow(value, down, height=height)
+                self._alt_draw_cut_arrow(value, down, height=height)
             # draw the automatic arrows
             if low != -inf:
-                self._draw_cut_arrow(low)
+                self._alt_draw_cut_arrow(low)
             if high != inf:
-                self._draw_cut_arrow(high, down=True)
+                self._alt_draw_cut_arrow(high, down=True)
             return
 
         fill_args = dict(facecolor=self._cut_fill, lw=0)
@@ -359,6 +359,9 @@ class Stack:
         return toout.inverted().transform(raw_coords)
 
     def _draw_cut_arrow(self, value, down=False, height=None):
+        """
+        Old way to draw cut arrows: arrow goes over the excluded data.
+        """
         if not self._for_paper:
             return
         if self._inner_cuts[0] and value <= self._inner_cuts[0]:
@@ -397,6 +400,37 @@ class Stack:
             '', xytext=(arrow_start, height), xy=(value, height),
             xycoords=transform,
             size=32, arrowprops=arrow_sty, transform=transform)
+
+    def _alt_draw_cut_arrow(self, value, down=False, height=None):
+        """
+        Draw the arrows starting at the cut and pointing in the direction of
+        the accepted data.
+        """
+        if not self._for_paper:
+            return
+        if self._inner_cuts[0] and value <= self._inner_cuts[0]:
+            return
+
+        if height is None:
+            sv = self._x_step_vals
+            idx = (sv <= value) if down else (value <= sv)
+            idx = np.convolve(idx, [True]*3, 'same')
+            mc_data_height = np.max(self._y_sum_step[idx][1:-1])
+            ax_val, ax_height = self._ax_from_data((value, mc_data_height))[0]
+            arrow_min = ax_height + 0.1
+            height = arrow_min
+
+        # draw this shit
+        transform = self.ax.transAxes
+        color = 'firebrick'
+        self.ax.plot([ax_val]*2, [0, height], linewidth=2, color=color,
+                     transform=transform, zorder=self._zord['cuts'])
+        arrow_len = 0.03
+        if down:
+            arrow_len = -arrow_len
+        self.ax.arrow(ax_val, height, arrow_len, 0, linewidth=2,
+                      head_width=0.02, head_length=0.01, fc=color, ec=color,
+                      transform=transform)
 
     def _add_ratio(self, x_vals, y_vals, lows, highs):
         """
@@ -683,7 +717,7 @@ class Stack:
         # leave some room above plotted things
         inf = float('inf')
         has_arrows = (self._selection != (-inf, inf) or self._cut_arrows)
-        mc_buf = 1.3 if has_arrows else 1.1
+        mc_buf = 1.1 if has_arrows else 1.1 # was 1.3 for old arrows
         data_buf = 1.0
 
         mc_max = np.max(self._y_sum)
