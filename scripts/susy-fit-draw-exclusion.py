@@ -178,7 +178,7 @@ def _max_exclusion_plane(args, show_regions=False, clean=False, ul=False):
     if args.add_limits:
         _add_exclusion_from_csv(ex_plane, *args.add_limits)
     if args.mono:
-        montit = 'Monojet' + ('' if args.add_limits else ' [1407.0608]')
+        montit = 'Monojet' # + ('' if args.add_limits else ' [1407.0608]')
         ex_plane.add_exclusion(_xy_from_csv(args.mono), montit, pushdown=True)
 
     if show_regions:
