@@ -424,9 +424,10 @@ class Stack:
         arrow_len = 0.03
         if down:
             arrow_len = -arrow_len
-        self.ax.arrow(ax_val, height, arrow_len, 0, linewidth=2,
-                      head_width=0.02, head_length=0.01, fc=color, ec=color,
-                      transform=transform)
+        self.ax.arrow(
+            ax_val, height, arrow_len, 0, linewidth=2,
+            head_width=0.02, head_length=0.01, fc=color, ec=color,
+            transform=transform, zorder=self._zord['cuts'])
 
     def _add_ratio(self, x_vals, y_vals, lows, highs):
         """
