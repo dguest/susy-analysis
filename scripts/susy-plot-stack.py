@@ -28,11 +28,11 @@ def get_config():
         '-s','--signal-points', default=def_pts, nargs='+',
         help="assumes <particle>-<something> type name, " + d)
     parser.add_argument(
-        '--ext', help=_ext_help + d, default='.pdf')
+        '--ext', help=_ext_help + ' ' + d, default='.pdf')
     parser.add_argument('-o', '--output-dir',
                         help=d, default='plots')
     parser.add_argument(
-        '-t','--theme', choices={'dan','sbot','brimstone','brony'},
+        '-t','--theme', choices={'dan','sbot','brimstone','brony', 'light'},
         default='dan', help=d)
     parser.add_argument('--serial', action='store_true',
                         help='disable multiprocess')
@@ -105,7 +105,7 @@ def run_plotmill(args):
         'theme': args.theme,
         'serial': args.serial,
         'show_event_counts': not args.paper,
-        'approval_status': '' if args.approved else 'Internal',
+        'approval_status': '' if args.approved else 'Work in Progress',
         }
     do_log = args.scale == 'log'
     more_args = dict(mu_dict=mudic, blind=args.blind)

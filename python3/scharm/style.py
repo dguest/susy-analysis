@@ -51,6 +51,18 @@ _dan_theme.update( {
         'signal_list': ['purple', 'cyan'],
         })
 
+_light_theme = _dan_detail.copy()
+_light_theme.update( {
+        'other':'orange',
+        'Wjets':'yellow',
+        'Zjets':'lightgreen',
+        # 'top':'blue',
+        # 'top': 'lightblue',
+        'top': 'skyblue',
+        # 'top':(0x33/255,0x33/255,0xCC/255), # sbottom Wjets
+        'signal_list': ['k', 'k'],
+        })
+
 _brimstone = _dan_detail.copy()
 _brimstone.update( {
         'other':'yellow',
@@ -92,8 +104,10 @@ _sbot_theme = {
     'signal_list': ['orange','red'],
     }
 
-_theme_names = {'dan':_dan_theme, 'sbot': _sbot_theme,
-                'brimstone': _brimstone, 'brony':_brony}
+_theme_names = {
+    'dan':_dan_theme, 'sbot': _sbot_theme,
+    'brimstone': _brimstone, 'brony':_brony,
+    'light':_light_theme}
 
 def _get_labels(theme):
     def get_theme(texname, name):
@@ -284,7 +298,7 @@ def customize_stack(stack, var_name, region, is_paper):
 
     # hacks for Al
     if (var_name, region) == ('mass_cc','signal_mct150'):
-        stack.lumi_info_position = (0.55, 0.83)
+        stack.lumi_info_position = (0.52, 0.88)
         stack.extra_yrange = 0.75
 
 def predraw_customize(stack, var_name, region, is_paper):

@@ -45,7 +45,7 @@ class Stack:
     plot_order = ['bg','signal','data_annulus', 'data', 'cuts']
 
     # draw properties
-    ms = 14
+    ms = 16
     capsize = 0 #4.2  # zero means don't show caps
     line_width = 1
 
@@ -56,10 +56,10 @@ class Stack:
     paper_legend_opts = dict(
         columnspacing=0.75,
         borderpad=0,
-        labelspacing=0.0,
+        labelspacing=0.1,
         handletextpad=0.25,
         handlelength=1.3,
-        handleheight=1.3)
+        handleheight=0.8)
     def __init__(self, ratio=False, exclude_zeros=True,
                  selection_colors=('r',(0.9, 0, 0, 0.2)),
                  for_paper=False, approval_status='Internal'):
@@ -76,13 +76,13 @@ class Stack:
         self.ratio_font_size = 10
         self.colors = list('kc') + ['purple', 'orange']
         self.dashes = [[15, 3],[2,2]*2]
-        self.y_min = None
+        self.y_min = 0
 
         # sizing related
         self._for_paper = for_paper
         self._small_size = 16
         self._med_size = 18 if for_paper else self._small_size
-        self._big_size = 20 if for_paper else 18
+        self._big_size = 24 if for_paper else 18
 
         if not ratio:
             self.ax = self.fig.add_subplot(1,1,1)
@@ -185,10 +185,8 @@ class Stack:
             raise ValueError('x vals don\'t match')
 
     def add_backgrounds(self, hist_list):
-        last_plot = 0
         color_itr = iter(self.colors)
-        if self.y_min is not None:
-            last_plot = self.y_min
+        last_plot = self.y_min
         for hist in hist_list:
             x_vals, y_vals = hist.get_xy_step_pts()
 
@@ -208,13 +206,13 @@ class Stack:
             self._y_sum += hist.get_xy_center_pts()[1]
 
             tmp_sum = np.array(self._y_sum_step[:])
-            if self.y_min is not None:
-                tmp_sum[tmp_sum < self.y_min] = self.y_min
+            tmp_sum[tmp_sum < self.y_min] = self.y_min
 
-            self.ax.fill_between(x_vals, tmp_sum, last_plot,
-                                 facecolor=fill_color)
-            proxy = plt.Rectangle((0, 0), 1, 1, fc=fill_color,
-                                  label=hist.title)
+            self.ax.fill_between(
+                x_vals, tmp_sum, last_plot, lw=0.5, facecolor=fill_color,
+                zorder=self._zord['bg'], color=fill_color)
+            proxy = plt.Rectangle((0, 0), 1, 1, fc=fill_color, lw=1,
+                                  label=hist.title, color='k')
             if hist.selection:
                 self._add_selection(*hist.selection)
             self._bg_proxy_legs.append( (proxy,self._get_legstr(hist)))
@@ -275,10 +273,10 @@ class Stack:
         dash_itr = iter(self.dashes)
         for hist in hist_list:
             x_vals, y_vals = hist.get_xy_step_pts()
-            self._signal_yvalues.append(
-                (hist.title, hist.get_xy_center_pts()[1]))
-            if self.y_min is not None:
-                y_vals[y_vals < self.y_min] = self.y_min
+            center_y = hist.get_xy_center_pts()[1]
+            self._signal_yvalues.append((hist.title, center_y))
+
+            y_vals[y_vals < self.y_min] = self.y_min
 
             if hist.color:
                 color = hist.color
@@ -286,12 +284,12 @@ class Stack:
                 color = next(color_itr)
             handles = []
             zord = self._zord['signal']
-            lw = 4.0 if self._for_paper else 3.0
+            lw = 1.5 if self._for_paper else 3.0
             plt = dict(linewidth=lw, zorder=zord)
 
             dashes = []
             if self._for_paper:
-                color = 'c'
+                # color = 'k'
                 dashes = next(dash_itr)
             else:
                 backline, = self.ax.plot(
@@ -308,9 +306,8 @@ class Stack:
 
     def _get_min_plotable(self, y_vals):
         plot_vals = np.array(y_vals)
-        if self.y_min is not None:
-            bad_y_vals = y_vals <= self.y_min
-            plot_vals[bad_y_vals] = self.y_min*1.001
+        bad_y_vals = y_vals <= self.y_min
+        plot_vals[bad_y_vals] = self.y_min*1.001
         return plot_vals
 
     def _add_selection(self, low, high):
@@ -328,12 +325,12 @@ class Stack:
         if self._for_paper:
             # first draw custom arrows
             for value, down, height in self._cut_arrows:
-                self._draw_cut_arrow(value, down, height=height)
+                self._alt_draw_cut_arrow(value, down, height=height)
             # draw the automatic arrows
             if low != -inf:
-                self._draw_cut_arrow(low)
+                self._alt_draw_cut_arrow(low)
             if high != inf:
-                self._draw_cut_arrow(high, down=True)
+                self._alt_draw_cut_arrow(high, down=True)
             return
 
         fill_args = dict(facecolor=self._cut_fill, lw=0)
@@ -358,6 +355,9 @@ class Stack:
         return toout.inverted().transform(raw_coords)
 
     def _draw_cut_arrow(self, value, down=False, height=None):
+        """
+        Old way to draw cut arrows: arrow goes over the excluded data.
+        """
         if not self._for_paper:
             return
         if self._inner_cuts[0] and value <= self._inner_cuts[0]:
@@ -396,6 +396,38 @@ class Stack:
             '', xytext=(arrow_start, height), xy=(value, height),
             xycoords=transform,
             size=32, arrowprops=arrow_sty, transform=transform)
+
+    def _alt_draw_cut_arrow(self, value, down=False, height=None):
+        """
+        Draw the arrows starting at the cut and pointing in the direction of
+        the accepted data.
+        """
+        if not self._for_paper:
+            return
+        if self._inner_cuts[0] and value <= self._inner_cuts[0]:
+            return
+
+        if height is None:
+            sv = self._x_step_vals
+            idx = (sv <= value) if down else (value <= sv)
+            idx = np.convolve(idx, [True]*3, 'same')
+            mc_data_height = np.max(self._y_sum_step[idx][1:-1])
+            ax_val, ax_height = self._ax_from_data((value, mc_data_height))[0]
+            arrow_min = ax_height + 0.1
+            height = arrow_min
+
+        # draw this shit
+        transform = self.ax.transAxes
+        color = 'firebrick'
+        self.ax.plot([ax_val]*2, [0, height], linewidth=2, color=color,
+                     transform=transform, zorder=self._zord['cuts'])
+        arrow_len = 0.03
+        if down:
+            arrow_len = -arrow_len
+        self.ax.arrow(
+            ax_val, height, arrow_len, 0, linewidth=2,
+            head_width=0.02, head_length=0.01, fc=color, ec=color,
+            transform=transform, zorder=self._zord['cuts'])
 
     def _add_ratio(self, x_vals, y_vals, lows, highs):
         """
@@ -477,7 +509,7 @@ class Stack:
         if not np.any(plt_err_up):
             return
 
-        if self._for_paper:
+        if self._for_paper and False:
             _, caplines, _ = self.ax.errorbar(
                 plt_x, plt_y, ms=self.ms+2, fmt='w.',
                 lw=self.line_width*1.5,
@@ -550,7 +582,10 @@ class Stack:
             return []
 
         # the artist is just a black line (change to red like sbottom?)
-        artist = Line2D((0,1),(0,0), color='k')
+        # Line2D((0,1),(0,0), color='k')
+        artist, = self.ax.plot(
+            self._x_step_vals, np.maximum(self._y_sum_step, self.y_min), 'k',
+            zorder=self._zord['bg'])
 
         # the string depends on whether we're showing the total counts
         total_title = 'SM total'
@@ -679,7 +714,7 @@ class Stack:
         # leave some room above plotted things
         inf = float('inf')
         has_arrows = (self._selection != (-inf, inf) or self._cut_arrows)
-        mc_buf = 1.3 if has_arrows else 1.1
+        mc_buf = 1.1 if has_arrows else 1.1 # was 1.3 for old arrows
         data_buf = 1.0
 
         mc_max = np.max(self._y_sum)
