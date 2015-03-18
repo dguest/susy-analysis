@@ -584,7 +584,7 @@ class Stack:
         # the artist is just a black line (change to red like sbottom?)
         # Line2D((0,1),(0,0), color='k')
         artist, = self.ax.plot(
-            self._x_step_vals, self._y_sum_step, 'k',
+            self._x_step_vals, np.maximum(self._y_sum_step, self.y_min), 'k',
             zorder=self._zord['bg'])
 
         # the string depends on whether we're showing the total counts
