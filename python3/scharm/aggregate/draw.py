@@ -674,10 +674,13 @@ class Stack:
         syst = self._sys_background_error.reshape(-1,2)[:,0]
         stat = self._stat_background_error.reshape(-1,2)[:,0]
         data = self._data_yvalues
+        lows, highs = errorbars.poisson_interval(data, self.data_ci)
+        dstat_down = data - lows
+        dstat_up = highs - data
         dstat = self._data_yvalues**0.5
 
         # build the template and header string
-        tmp = (' {low} TO {high}; {d} +- {de:.3f};'
+        tmp = (' {low} TO {high}; {d} + {du:.3f},-{dd:.3f};'
                ' {bg:.3f} +- {be:.3f} (DSYS={bsy:.3f});')
         hdr = '*data: x : y : y'
         qual = '*qual: . : DATA : BACKGROUND'
@@ -691,7 +694,7 @@ class Stack:
             '*yheader: EVENTS / {} GEV'.format(int((xhigh - xlow)[0])), hdr]
         for bin in range(len(xlow)):
             vals = dict(
-                d=int(data[bin]), de=dstat[bin],
+                d=int(data[bin]), dd=dstat_down[bin], du=dstat_up[bin],
                 low=xlow[bin], high=xhigh[bin], bg=total[bin],
                 be=error[bin], bst=stat[bin], bsy=syst[bin])
             for signame, sigval in self._signal_yvalues:
