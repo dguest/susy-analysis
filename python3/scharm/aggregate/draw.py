@@ -292,10 +292,11 @@ class Stack:
                 # color = 'k'
                 dashes = next(dash_itr)
             else:
-                backline, = self.ax.plot(
-                    x_vals, y_vals, 'w', alpha=0.5, linewidth=lw+2,
-                    zorder=zord)
-                handles.append(backline)
+                # backline, = self.ax.plot(
+                #     x_vals, y_vals, 'w', alpha=0.5, linewidth=lw+2,
+                #     zorder=zord)
+                # handles.append(backline)
+                pass
 
             plt_handle, = self.ax.plot(
                 x_vals,y_vals, color=color, **plt)
@@ -643,7 +644,7 @@ class Stack:
 
     def _get_rescaled_max(self, old_max, rescale):
         """rescale, independent of log axis"""
-        ymin = self.ax.get_ylim()[0]
+        ymin = self.y_min
         if self.ax.get_yscale() == 'log':
             if old_max == 0:
                 return old_max
@@ -722,7 +723,7 @@ class Stack:
         new_mc_max = self._get_rescaled_max(mc_max, rescale * mc_buf)
         new_data_max = self._get_rescaled_max(data_max, rescale * data_buf)
         self.ax.set_ylim(
-            self.ax.get_ylim()[0], max(new_mc_max, new_data_max))
+            self.y_min, max(new_mc_max, new_data_max))
         if self.ax.get_yscale() == 'log':
             self.ax.yaxis.set_major_formatter(FuncFormatter(_log_formatting))
 

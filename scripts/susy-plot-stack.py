@@ -65,6 +65,7 @@ _paper_plots = [
 _debug_plots = [
     ('signal_mct150', 'mass_ct'),
     ('signal_mct150', 'j0_flavor_truth_label'),
+    ('preselection', 'jetmet_dphi'),
     ]
 
 def run_plotmill(args):
