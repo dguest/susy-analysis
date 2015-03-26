@@ -534,12 +534,13 @@ class Stack:
 
     def _add_pr_crap(self, x=0.16, y=0.96):
         self._add_atlas_label(x, y, self.approval_status)
+        s = 1 if self.ratio else 0.7 # shrink when there's no ratio
         if self.lumi_info_position is not None:
             x, y = self.lumi_info_position
         if self.lumi:
-            self._add_lumi(x - 0.13, y - 0.08)
+            self._add_lumi(x - 0.13, y - 0.08*s)
         if self.region_name:
-            self._add_region_name(x - 0.11, y - 0.16)
+            self._add_region_name(x - 0.11, y - 0.16*s)
 
     def _add_atlas_label(self, x, y, extension='Internal'):
         base_size = self._med_size + 4
@@ -630,7 +631,9 @@ class Stack:
         # crude guess for how many legends fit
         max_fitting = 11 if self.ratio else 19
         n_leg = len(self._signal_legs) + (1 if self.region_name else 0)
-        frac_consumed = min(n_leg / max_fitting, 0.9)
+        min_consumed = 0.1 if self.ratio else 0.25
+        frac_consumed = max(n_leg / max_fitting, min_consumed)
+
         # adjust for bigger font
         frac_consumed *= self._med_size / self._small_size
         self._scale_for_legend = 1 / (1 - frac_consumed)
