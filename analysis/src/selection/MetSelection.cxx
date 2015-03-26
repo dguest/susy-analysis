@@ -26,6 +26,8 @@ bool MetSelection::pass(const EventObjects& obj) const {
   auto n_leptons = reco.n_baseline_electrons + reco.n_baseline_muons;
   bool zero_lepton_selection = n_leptons == 0 && reco.pass_met_trigger;
 
+  // unblind this region (comment out next line to blind)
+  return zero_lepton_selection;
   // veto events in SR
   const size_t jets_to_check = std::min<size_t>(obj.jets.size(), 2);
   int passing = 0;
