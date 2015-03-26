@@ -323,24 +323,14 @@ class Stack:
         low, high = self._selection
 
         inf = float('inf')
-        if self._for_paper:
-            # first draw custom arrows
-            for value, down, height in self._cut_arrows:
-                self._alt_draw_cut_arrow(value, down, height=height)
-            # draw the automatic arrows
-            if low != -inf:
-                self._alt_draw_cut_arrow(low)
-            if high != inf:
-                self._alt_draw_cut_arrow(high, down=True)
-            return
-
-        fill_args = dict(facecolor=self._cut_fill, lw=0)
-        line_args = dict(color=self._cut_color, linewidth=2)
-        xlow, xhigh = self._x_limits
+        # first draw custom arrows
+        for value, down, height in self._cut_arrows:
+            self._alt_draw_cut_arrow(value, down, height=height)
+        # draw the automatic arrows
         if low != -inf:
-            self.ax.axvspan(xlow, low, **fill_args)
+            self._alt_draw_cut_arrow(low)
         if high != inf:
-            self.ax.axvspan(high, xhigh, **fill_args)
+            self._alt_draw_cut_arrow(high, down=True)
 
     def add_cut_arrow(self, value, down=False, height=None):
         self._cut_arrows.append((value, down, height))
@@ -403,8 +393,6 @@ class Stack:
         Draw the arrows starting at the cut and pointing in the direction of
         the accepted data.
         """
-        if not self._for_paper:
-            return
         if self._inner_cuts[0] and value <= self._inner_cuts[0]:
             return
 
