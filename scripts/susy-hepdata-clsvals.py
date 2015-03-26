@@ -50,11 +50,15 @@ def _make_best_expected(cls_file, out_file):
     with open(cls_file,'r') as cls:
         cls_dict = yaml.load(cls)
     best_points = {}
-    for regname, points in cls_dict.items():
+    # have to sort points to be consistent with limit plots when CLs values
+    # are identical
+    for regname in sorted(cls_dict):
+        points = cls_dict[regname]
         for pdict in points:
             newpt = Point(pdict, regname)
             oldpt = best_points.get((newpt.ms, newpt.ml))
-            keep = oldpt and oldpt.exp < newpt.exp
+            # this '<=' is also needed to resolve identical CLs values
+            keep = oldpt and oldpt.exp <= newpt.exp
             if not keep:
                 best_points[newpt.ms, newpt.ml] = newpt
 
@@ -64,7 +68,7 @@ def _make_best_expected(cls_file, out_file):
 _all_yheads = [
     ('EXPECTED CLS', '{exp:.6f};', 'Expected CLs for signal points'),
     ('OBSERVED CLS', '{obs:.6f};', 'Observed CLs for signal points'),
-    ('UPPER LIMIT ON MOCEL CROSS-SECTION IN PB', '{ulpb:.0f};',
+    ('UPPER LIMIT ON MODEL CROSS-SECTION IN PB', '{ulpb:.0f};',
      '95% CLs upper limit on model cross-section for signal points'),
     ('TOTAL SIGNAL UNCERTAINTY', '{sig_unct:.2f};',
      'Total experimental uncertainty for signal points'),

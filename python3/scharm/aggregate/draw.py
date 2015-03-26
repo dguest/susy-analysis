@@ -680,7 +680,7 @@ class Stack:
         dstat = self._data_yvalues**0.5
 
         # build the template and header string
-        tmp = (' {low} TO {high}; {d} + {du:.3f},-{dd:.3f};'
+        tmp = (' {low} TO {high}; {d} +{du:.1f},-{dd:.1f};'
                ' {bg:.3f} +- {be:.3f} (DSYS={bsy:.3f});')
         hdr = '*data: x : y : y'
         qual = '*qual: . : DATA : BACKGROUND'
