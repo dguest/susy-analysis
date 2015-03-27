@@ -79,6 +79,7 @@ def _make_other_records(cls_file, out_dir):
         cls_dict = yaml.load(cls)
     for regname, pdict in cls_dict.items():
         points = sorted([Point(x, regname) for x in pdict],key=_sort_by_mass)
+        points = [x for x in points if (x.ms - x.ml) >= 80]
         for parameter, fmt, info in _all_yheads:
             outname = parameter.lower().replace(' ','_').replace('-','_')
             out_path = join(out_dir, '{}_{}.dat'.format(regname,outname))
@@ -105,8 +106,8 @@ def _write_hepdata_file(point_list, out_file, yheads=_all_yheads, reg=None):
     tmp = ' {ms: 4.0f}; {ml: 4.0f}; ' + ' '.join(y for _, y, _ in yheads)
     for point in point_list:
 
-        # exclude failed fits and points with DeltaM < 80
-        if point.exp < 0.0 or (point.ms - point.ml) < 80:
+        # exclude failed fits
+        if point.exp < 0.0:
             continue
 
         vals = vars(point)
