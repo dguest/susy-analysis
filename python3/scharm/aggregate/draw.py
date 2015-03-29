@@ -324,8 +324,9 @@ class Stack:
 
         inf = float('inf')
         # first draw custom arrows
-        for value, down, height in self._cut_arrows:
-            self._alt_draw_cut_arrow(value, down, height=height)
+        if self._for_paper:
+            for value, down, height in self._cut_arrows:
+                self._alt_draw_cut_arrow(value, down, height=height)
         # draw the automatic arrows
         if low != -inf:
             self._alt_draw_cut_arrow(low)
