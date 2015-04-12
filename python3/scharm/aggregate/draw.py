@@ -48,6 +48,7 @@ class Stack:
     ms = 16
     capsize = 0 #4.2  # zero means don't show caps
     line_width = 1
+    space_above_stack = 1.1     # extra after legend space is calculated
 
     # confidence interval for data
     data_ci = 1 - math.erf( (1/2)**0.5) # 1 sigma
@@ -710,13 +711,12 @@ class Stack:
         # leave some room above plotted things
         inf = float('inf')
         has_arrows = (self._selection != (-inf, inf) or self._cut_arrows)
-        mc_buf = 1.1 if has_arrows else 1.1 # was 1.3 for old arrows
-        data_buf = 1.0
+        buf = self.space_above_stack
 
         mc_max = np.max(self._y_sum)
         data_max = self._data_max_drawn
-        new_mc_max = self._get_rescaled_max(mc_max, rescale * mc_buf)
-        new_data_max = self._get_rescaled_max(data_max, rescale * data_buf)
+        new_mc_max = self._get_rescaled_max(mc_max, rescale * buf)
+        new_data_max = self._get_rescaled_max(data_max, rescale * buf)
         self.ax.set_ylim(
             self.y_min, max(new_mc_max, new_data_max))
         if self.ax.get_yscale() == 'log':
