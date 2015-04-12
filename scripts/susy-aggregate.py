@@ -65,6 +65,7 @@ def run():
         variables='all',
         breakdown=args.breakdown,
         quiet=args.quiet,
+        ignored={'QCD'},
         )
     aggregator.aggregate()
     agg_name = args.output

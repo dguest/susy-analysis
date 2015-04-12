@@ -35,13 +35,14 @@ class SampleAggregator:
     wt2_tag = 'Wt2'
 
     def __init__(self,meta_path, hfiles, variables, breakdown=False,
-                 quiet=False):
+                 quiet=False, ignored=set()):
         self._normalizer = Normalizer(meta_path, hfiles, quiet=quiet)
         self.variables = variables
         self._plots_dict = HistDict()
         self._check_variables(variables)
         self._breakdown = breakdown
         self._renamer = renamer.Renamer()
+        self._ignored = ignored
 
     def _check_variables(self, variables):
         if variables == 'all':
@@ -67,6 +68,9 @@ class SampleAggregator:
     def aggregate(self):
         plots_dict = HistDict()
         for process, hfile, normalization in self._normalizer:
+
+            if process in self._ignored:
+                continue
 
             # consolidate the samples (as they are in sbottom)
             if not self._breakdown:
