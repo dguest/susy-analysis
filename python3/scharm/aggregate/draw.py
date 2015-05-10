@@ -523,7 +523,7 @@ class Stack:
         # Line2D((0,1),(0,0), color='k')
         artist, = self.ax.plot(
             self._x_step_vals, np.maximum(self._y_sum_step, self.y_min), 'k',
-            zorder=self._zord['bg'])
+            zorder=self._zord['bg'], alpha=0) # HACK: alpha = 0 to hide line
 
         # the string depends on whether we're showing the total counts
         total_title = 'SM total'
