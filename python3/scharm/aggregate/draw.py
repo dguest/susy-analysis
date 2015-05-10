@@ -336,49 +336,6 @@ class Stack:
         raw_coords = todata.transform(point_array)
         return toout.inverted().transform(raw_coords)
 
-    def _draw_cut_arrow(self, value, down=False, height=None):
-        """
-        Old way to draw cut arrows: arrow goes over the excluded data.
-        """
-        if not self._for_paper:
-            return
-        if self._inner_cuts[0] and value <= self._inner_cuts[0]:
-            return
-
-        # figure out arrow start pos
-        xlow, xhigh = self.ax.get_xlim()
-        if down:
-            arrow_start = self._inner_cuts[1] or xhigh
-            self._inner_cuts[1] = value
-        else:
-            arrow_start = self._inner_cuts[0] or xlow
-            self._inner_cuts[0] = value
-
-        # figure out the height of arrow / line
-        mc_all_data_height = np.max(self._y_sum_step)
-        mc_all_ax_height = self._ax_from_data((0, mc_all_data_height))[:,1]
-        cuttop = mc_all_ax_height + 0.1
-        if height is None:
-            lowval, highval = [f(arrow_start, value) for f in [min, max]]
-            sv = self._x_step_vals
-            idx = (lowval <= sv) & (sv <= highval)
-            mc_data_height = np.max(self._y_sum_step[idx][1:-1])
-            mc_ax_height = self._ax_from_data((0, mc_data_height))[:,1]
-            arrow_min = mc_ax_height + 0.1
-            height = (arrow_min + cuttop) / 2
-        cuttop = max(cuttop, height + 0.05)
-
-        # draw this shit
-        transform = transfact(self.ax.transData, self.ax.transAxes)
-        color = 'firebrick'
-        self.ax.plot([value]*2, [0, cuttop], linewidth=2, color=color,
-                     transform=transform, zorder=self._zord['cuts'])
-        arrow_sty = dict(arrowstyle='simple', fc=color, ec='none', alpha=0.3)
-        self.ax.annotate(
-            '', xytext=(arrow_start, height), xy=(value, height),
-            xycoords=transform,
-            size=32, arrowprops=arrow_sty, transform=transform)
-
     def _alt_draw_cut_arrow(self, value, down=False, height=None):
         """
         Draw the arrows starting at the cut and pointing in the direction of
