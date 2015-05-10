@@ -25,6 +25,11 @@ def get_signal_colors(theme):
         theme = _theme_names[theme]
     return theme.get('signal_list', 'kcmy')
 
+def get_signal_dashes(theme):
+    if theme in _theme_names:
+        theme = _theme_names[theme]
+    return theme.get('signal_dashes', [])
+
 # define the themes here
 _dan_detail = {
     'diboson':'pink',
@@ -61,6 +66,7 @@ _light_theme.update( {
         'top': 'skyblue',
         # 'top':(0x33/255,0x33/255,0xCC/255), # sbottom Wjets
         'signal_list': ['k', 'k'],
+        'signal_dashes': [[15, 3],[2,2]*2],
         })
 
 _brimstone = _dan_detail.copy()

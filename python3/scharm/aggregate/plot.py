@@ -199,6 +199,7 @@ class StackPlotPrinter:
         theme = options['theme']
         self._selection_colors = style.get_selection_color(theme)
         self._signal_colors = style.get_signal_colors(theme)
+        self._signal_dashes = style.get_signal_dashes(theme)
         self._mu_dict = mu_dict
         self._approval_status = options['approval_status']
 
@@ -226,6 +227,7 @@ class StackPlotPrinter:
             obj.ext = self.ext
             obj.verbose = self.verbose
             obj.signal_colors = self._signal_colors
+            obj.signal_dashes = self._signal_dashes
             obj.lumi = self.lumi
             obj.selection_colors = self._selection_colors
             obj.mu_dict = self._mu_dict
@@ -305,6 +307,7 @@ def _print_plot(obj):
         for_paper=for_paper, approval_status=obj.approval_status)
     stack = Stack(**stackopts)
     stack.colors = obj.signal_colors
+    stack.dashes = obj.signal_dashes
     stack.lumi = obj.lumi
     stack.region_name = reg_names.get(obj.cut)
     stack.show_counts = obj.show_counts

@@ -11,7 +11,7 @@ from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
 from matplotlib.transforms import blended_transform_factory as transfact
 import numpy as np
-from itertools import chain
+from itertools import chain, cycle
 from scharm import errorbars
 from warnings import warn
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
@@ -76,7 +76,7 @@ class Stack:
         self.ratio_max = 2.0
         self.ratio_font_size = 10
         self.colors = list('kc') + ['purple', 'orange']
-        self.dashes = [[15, 3],[2,2]*2]
+        self.dashes = cycle([[]])
         self.y_min = 0
 
         # sizing related
@@ -283,21 +283,11 @@ class Stack:
                 color = hist.color
             else:
                 color = next(color_itr)
+            dashes = next(dash_itr)
             handles = []
             zord = self._zord['signal']
             lw = 1.5 if self._for_paper else 3.0
             plt = dict(linewidth=lw, zorder=zord)
-
-            dashes = []
-            if self._for_paper:
-                # color = 'k'
-                dashes = next(dash_itr)
-            else:
-                # backline, = self.ax.plot(
-                #     x_vals, y_vals, 'w', alpha=0.5, linewidth=lw+2,
-                #     zorder=zord)
-                # handles.append(backline)
-                pass
 
             plt_handle, = self.ax.plot(
                 x_vals,y_vals, color=color, **plt)
@@ -325,9 +315,8 @@ class Stack:
 
         inf = float('inf')
         # first draw custom arrows
-        if self._for_paper:
-            for value, down, height in self._cut_arrows:
-                self._alt_draw_cut_arrow(value, down, height=height)
+        for value, down, height in self._cut_arrows:
+            self._alt_draw_cut_arrow(value, down, height=height)
         # draw the automatic arrows
         if low != -inf:
             self._alt_draw_cut_arrow(low)
